@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, DollarSign, TrendingUp, AlertCircle, Edit, Check, X } from "lucide-react";
+import { Plus, DollarSign, TrendingUp, AlertCircle, Edit, Check, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -89,6 +89,10 @@ export default function Financial() {
   const saveEdit = () => {
     setExpenses((prev) => prev.map((e) => e.id === editingId ? { ...editForm, id: editingId, amount: parseFloat(editForm.amount) || 0 } : e));
     setEditingId(null);
+  };
+
+  const deleteExpense = (id) => {
+    setExpenses((prev) => prev.filter((e) => e.id !== id));
   };
 
   const enriched = expenses.map((e) => ({ ...e, dueDate: getCurrentDueDate(e, now), status: getStatus(e) }));
@@ -190,6 +194,7 @@ export default function Financial() {
                   onSave={saveEdit}
                   onCancel={() => setEditingId(null)}
                   onMarkPaid={() => markPaid(expense)}
+                  onDelete={() => deleteExpense(expense.id)}
                 />
               ))}
             </div>
@@ -219,12 +224,13 @@ export default function Financial() {
                         onSave={saveEdit}
                         onCancel={() => setEditingId(null)}
                         onMarkPaid={() => markPaid(expense)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+                        onDelete={() => deleteExpense(expense.id)}
+                        />
+                        ))}
+                        </div>
+                        </div>
+                        );
+                        })}
           </div>
         )}
       </div>
@@ -232,7 +238,7 @@ export default function Financial() {
   );
 }
 
-function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave, onCancel, onMarkPaid }) {
+function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave, onCancel, onMarkPaid, onDelete }) {
   if (isEditing) {
     return (
       <div className="bg-card rounded-xl border border-orange-500/20 p-4 flex items-center gap-3 flex-wrap">
@@ -314,6 +320,9 @@ function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave,
       <p className="text-orange-500 text-sm font-bold w-16 text-right shrink-0">${expense.amount.toFixed(2)}</p>
       <button onClick={onEdit} className="p-1.5 rounded-md hover:bg-white/5 text-white/15 hover:text-white/50 transition-all shrink-0">
         <Edit className="w-3.5 h-3.5" />
+      </button>
+      <button onClick={onDelete} className="p-1.5 rounded-md hover:bg-white/5 text-white/15 hover:text-red-400/50 transition-all shrink-0">
+        <Trash2 className="w-3.5 h-3.5" />
       </button>
       <div className="shrink-0">
         {expense.status === "Paid" ? (
