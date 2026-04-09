@@ -5,7 +5,20 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-// Add page imports here
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import CredentialManager from './pages/CredentialManager';
+import Documents from './pages/Documents';
+import Financial from './pages/Financial';
+import Legal from './pages/Legal';
+import CRM from './pages/CRM';
+import Analytics from './pages/Analytics';
+import Comms from './pages/Comms';
+import OrbitSEO from './pages/OrbitSEO';
+import WebOps from './pages/WebOps';
+import Forge from './pages/Forge';
+import Performance from './pages/Performance';
+import SettingsPage from './pages/SettingsPage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -33,8 +46,22 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
-      <Route path="*" element={<PageNotFound />} />
+      <Route element={<Layout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/logins" element={<CredentialManager />} />
+        <Route path="/documents" element={<Documents />} />
+        <Route path="/financial" element={<Financial />} />
+        <Route path="/legal" element={<Legal />} />
+        <Route path="/crm" element={<CRM />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/comms" element={<Comms />} />
+        <Route path="/orbit-seo" element={<OrbitSEO />} />
+        <Route path="/web-ops" element={<WebOps />} />
+        <Route path="/forge" element={<Forge />} />
+        <Route path="/performance" element={<Performance />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Route>
     </Routes>
   );
 };
