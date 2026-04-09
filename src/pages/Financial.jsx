@@ -261,6 +261,27 @@ function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave,
             {CATEGORIES.map((c) => <SelectItem key={c} value={c} className="text-white/70">{c}</SelectItem>)}
           </SelectContent>
         </Select>
+        <div className="flex items-center gap-1.5">
+          <Input
+            value={editForm.dueDay}
+            onChange={(e) => setEditForm({ ...editForm, dueDay: parseInt(e.target.value) || 1 })}
+            type="number"
+            min="1" max="31"
+            className="bg-white/[0.04] border-white/[0.08] text-white h-8 w-16"
+            placeholder="Day"
+          />
+          {(editForm.frequency === "Annually") && (
+            <Input
+              value={editForm.dueMonth || ""}
+              onChange={(e) => setEditForm({ ...editForm, dueMonth: parseInt(e.target.value) || 1 })}
+              type="number"
+              min="1" max="12"
+              className="bg-white/[0.04] border-white/[0.08] text-white h-8 w-16"
+              placeholder="Mo"
+            />
+          )}
+          <span className="text-white/20 text-[10px]">due</span>
+        </div>
         <div className="flex gap-2 ml-auto">
           <button onClick={onSave} className="p-1.5 rounded-md bg-green-500/10 text-green-400/70 hover:bg-green-500/20 transition-all"><Check className="w-4 h-4" /></button>
           <button onClick={onCancel} className="p-1.5 rounded-md bg-white/[0.04] text-white/30 hover:bg-white/[0.08] transition-all"><X className="w-4 h-4" /></button>
