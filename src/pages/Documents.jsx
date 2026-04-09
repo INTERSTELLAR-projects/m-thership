@@ -1,40 +1,93 @@
-import { useState } from "react";
-import { Search, Upload, Pin, FileText, Folder, Clock, Star } from "lucide-react";
+import { useState, useRef } from "react";
+import { Search, Upload, Pin, FileText, Folder, Trash2, ExternalLink, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 
-const documentCategories = [
-  { name: "Internal Processes", count: 12, icon: Folder },
-  { name: "Service Documents", count: 8, icon: FileText },
-  { name: "Contracts & Agreements", count: 15, icon: FileText },
-  { name: "Presentations", count: 6, icon: FileText },
-  { name: "Legal Documents", count: 9, icon: FileText },
-  { name: "Financial Documents", count: 11, icon: FileText },
+const CATEGORIES = [
+  "Internal Processes",
+  "Service Documents",
+  "Contracts & Agreements",
+  "Presentations",
+  "Legal Documents",
+  "Financial Documents",
 ];
 
-const recentDocs = [
-  { name: "Q1 Revenue Report", category: "Financial Documents", date: "Mar 28, 2026", pinned: true },
-  { name: "Ørbit SEO Service Agreement", category: "Contracts & Agreements", date: "Mar 25, 2026", pinned: true },
-  { name: "Client Onboarding SOP", category: "Internal Processes", date: "Mar 22, 2026", pinned: false },
-  { name: "NW Tree Service Proposal", category: "Presentations", date: "Mar 20, 2026", pinned: false },
-  { name: "Privacy Policy v2.3", category: "Legal Documents", date: "Mar 18, 2026", pinned: false },
-  { name: "Monthly Expense Sheet", category: "Financial Documents", date: "Mar 15, 2026", pinned: false },
-];
+function loadDocs() {
+  try { return JSON.parse(localStorage.getItem("ic_documents") || "[]"); } catch { return []; }
+}
+function saveDocs(docs) { localStorage.setItem("ic_documents", JSON.stringify(docs)); }
 
 export default function Documents() {
+  const [docs, setDocs] = useState(() => loadDocs());
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
+  const [uploading, setUploading] = useState(false);
+  const [uploadCategory, setUploadCategory] = useState(CATEGORIES[0]);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState([]);
+  const fileRef = useRef();
 
-  const filters = ["All", "Pinned", "Recent", ...documentCategories.map((c) => c.name)];
+  const categoryCounts = CATEGORIES.reduce((acc, cat) => {
+    acc[cat] = docs.filter((d) => d.category === cat).length;
+    return acc;
+  }, {});
 
-  const filteredDocs = recentDocs.filter((doc) => {
+  const filtered = docs.filter((doc) => {
     const matchSearch = doc.name.toLowerCase().includes(search.toLowerCase());
     if (activeFilter === "All") return matchSearch;
     if (activeFilter === "Pinned") return matchSearch && doc.pinned;
-    if (activeFilter === "Recent") return matchSearch;
     return matchSearch && doc.category === activeFilter;
   });
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setPendingFiles(files);
+    setShowUploadModal(true);
+    e.target.value = "";
+  };
+
+  const handleUpload = async () => {
+    setUploading(true);
+    const newDocs = [];
+    for (const file of pendingFiles) {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      newDocs.push({
+        id: Date.now() + Math.random(),
+        name: file.name,
+        category: uploadCategory,
+        url: file_url,
+        date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+        pinned: false,
+        type: file.type,
+        size: file.size,
+      });
+    }
+    const updated = [...docs, ...newDocs];
+    setDocs(updated);
+    saveDocs(updated);
+    setUploading(false);
+    setShowUploadModal(false);
+    setPendingFiles([]);
+  };
+
+  const togglePin = (id) => {
+    const updated = docs.map((d) => d.id === id ? { ...d, pinned: !d.pinned } : d);
+    setDocs(updated);
+    saveDocs(updated);
+  };
+
+  const deleteDoc = (id) => {
+    const updated = docs.filter((d) => d.id !== id);
+    setDocs(updated);
+    saveDocs(updated);
+  };
+
+  const openDoc = (doc) => {
+    window.open(doc.url, "_blank");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,7 +105,8 @@ export default function Documents() {
               className="pl-10 bg-card border-white/[0.06] text-white placeholder:text-white/20 h-9"
             />
           </div>
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white h-9 gap-2">
+          <input ref={fileRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
+          <Button onClick={() => fileRef.current.click()} className="bg-orange-500 hover:bg-orange-600 text-white h-9 gap-2">
             <Upload className="w-4 h-4" />
             Upload
           </Button>
@@ -60,26 +114,26 @@ export default function Documents() {
 
         {/* Categories */}
         <div className="grid grid-cols-3 gap-3">
-          {documentCategories.map((cat) => (
+          {CATEGORIES.map((cat) => (
             <button
-              key={cat.name}
-              onClick={() => setActiveFilter(cat.name)}
+              key={cat}
+              onClick={() => setActiveFilter(activeFilter === cat ? "All" : cat)}
               className={`bg-card rounded-xl border p-4 text-left transition-all hover:border-orange-500/20 ${
-                activeFilter === cat.name ? "border-orange-500/30 bg-orange-500/[0.03]" : "border-white/[0.06]"
+                activeFilter === cat ? "border-orange-500/30 bg-orange-500/[0.03]" : "border-white/[0.06]"
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <cat.icon className="w-4 h-4 text-orange-500/50" />
-                <span className="text-white/20 text-xs font-medium">{cat.count}</span>
+                <Folder className="w-4 h-4 text-orange-500/50" />
+                <span className="text-white/20 text-xs font-medium">{categoryCounts[cat] || 0}</span>
               </div>
-              <p className="text-white/70 text-sm font-medium">{cat.name}</p>
+              <p className="text-white/70 text-sm font-medium">{cat}</p>
             </button>
           ))}
         </div>
 
         {/* Filter Tabs */}
         <div className="flex gap-1.5 flex-wrap">
-          {["All", "Pinned", "Recent"].map((f) => (
+          {["All", "Pinned"].map((f) => (
             <button
               key={f}
               onClick={() => setActiveFilter(f)}
@@ -95,30 +149,94 @@ export default function Documents() {
         </div>
 
         {/* Document List */}
-        <div className="space-y-2">
-          {filteredDocs.map((doc) => (
-            <div
-              key={doc.name}
-              className="bg-card rounded-xl border border-white/[0.06] p-4 flex items-center gap-4 group hover:border-orange-500/15 transition-all"
-            >
-              <div className="w-9 h-9 rounded-lg bg-orange-500/[0.06] flex items-center justify-center">
-                <FileText className="w-4 h-4 text-orange-500/40" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-white/85 text-sm font-medium">{doc.name}</span>
-                  {doc.pinned && <Pin className="w-3 h-3 text-orange-500/50" />}
+        {filtered.length === 0 ? (
+          <div className="bg-card rounded-xl border border-white/[0.06] p-10 text-center">
+            <Folder className="w-8 h-8 text-white/10 mx-auto mb-3" />
+            <p className="text-white/30 text-sm">
+              {activeFilter === "All" ? "No documents yet. Upload your first file." : `No documents in ${activeFilter}.`}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {filtered.map((doc) => (
+              <div
+                key={doc.id}
+                className="bg-card rounded-xl border border-white/[0.06] p-4 flex items-center gap-4 group hover:border-orange-500/15 transition-all"
+              >
+                <button onClick={() => openDoc(doc)} className="w-9 h-9 rounded-lg bg-orange-500/[0.06] flex items-center justify-center shrink-0 hover:bg-orange-500/10 transition-all">
+                  <FileText className="w-4 h-4 text-orange-500/40" />
+                </button>
+                <div className="flex-1 min-w-0">
+                  <button onClick={() => openDoc(doc)} className="flex items-center gap-2 text-left hover:text-orange-400/80 transition-colors">
+                    <span className="text-white/85 text-sm font-medium truncate">{doc.name}</span>
+                    <ExternalLink className="w-3 h-3 text-white/20 shrink-0" />
+                    {doc.pinned && <Pin className="w-3 h-3 text-orange-500/50 shrink-0" />}
+                  </button>
+                  <p className="text-white/25 text-xs mt-0.5">{doc.category} · {doc.date}</p>
                 </div>
-                <p className="text-white/25 text-xs mt-0.5">{doc.category}</p>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                  <button
+                    onClick={() => togglePin(doc.id)}
+                    className={`p-1.5 rounded-md transition-all ${doc.pinned ? "text-orange-500/60 hover:text-orange-500" : "text-white/20 hover:text-white/50 hover:bg-white/5"}`}
+                    title={doc.pinned ? "Unpin" : "Pin"}
+                  >
+                    <Pin className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => deleteDoc(doc.id)}
+                    className="p-1.5 rounded-md text-white/20 hover:text-red-400/60 hover:bg-white/5 transition-all"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-white/20 text-xs">
-                <Clock className="w-3 h-3" />
-                {doc.date}
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
+          <div className="bg-card border border-white/[0.08] rounded-2xl p-6 w-full max-w-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-white font-bold text-sm">Upload Documents</h3>
+              <button onClick={() => { setShowUploadModal(false); setPendingFiles([]); }} className="text-white/30 hover:text-white/60"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="space-y-1">
+              {pendingFiles.map((f, i) => (
+                <p key={i} className="text-white/50 text-xs truncate">📄 {f.name}</p>
+              ))}
+            </div>
+            <div>
+              <p className="text-white/40 text-xs mb-1.5">Category</p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setUploadCategory(cat)}
+                    className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-all text-left ${
+                      uploadCategory === cat
+                        ? "bg-orange-500/15 text-orange-500 border border-orange-500/20"
+                        : "text-white/30 hover:text-white/50 border border-white/[0.06]"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
               </div>
             </div>
-          ))}
+            <Button
+              onClick={handleUpload}
+              disabled={uploading}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              {uploading ? "Uploading..." : `Upload ${pendingFiles.length} file${pendingFiles.length > 1 ? "s" : ""}`}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
