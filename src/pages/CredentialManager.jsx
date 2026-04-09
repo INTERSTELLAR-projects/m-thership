@@ -61,11 +61,31 @@ const sampleData = [
 const categories = ["All", "Email", "Hosting", "SEO", "Billing", "Social Tools", "Other"];
 
 export default function CredentialManager() {
+  const [logins, setLogins] = useState(sampleData);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [visiblePasswords, setVisiblePasswords] = useState({});
+  const [editingLogin, setEditingLogin] = useState(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [newLogin, setNewLogin] = useState({ platform: "", category: "", email: "", username: "", password: "", loginType: "Email + Password", notes: "" });
 
-  const filtered = sampleData.filter((login) => {
+  const handleDelete = (id) => {
+    setLogins((prev) => prev.filter((l) => l.id !== id));
+  };
+
+  const handleEditSave = () => {
+    setLogins((prev) => prev.map((l) => l.id === editingLogin.id ? editingLogin : l));
+    setEditingLogin(null);
+  };
+
+  const handleAdd = () => {
+    const id = Date.now();
+    setLogins((prev) => [...prev, { ...newLogin, id }]);
+    setNewLogin({ platform: "", category: "", email: "", username: "", password: "", loginType: "Email + Password", notes: "" });
+    setAddOpen(false);
+  };
+
+  const filtered = logins.filter((login) => {
     const matchSearch =
       login.platform.toLowerCase().includes(search.toLowerCase()) ||
       login.email.toLowerCase().includes(search.toLowerCase());
@@ -108,7 +128,42 @@ export default function CredentialManager() {
               </button>
             ))}
           </div>
-          <Dialog>
+          {/* Edit Dialog */}
+          <Dialog open={!!editingLogin} onOpenChange={(o) => !o && setEditingLogin(null)}>
+            <DialogContent className="bg-card border-white/[0.06] text-white">
+              <DialogHeader><DialogTitle className="text-white">Edit Login</DialogTitle></DialogHeader>
+              {editingLogin && (
+                <div className="space-y-4 pt-2">
+                  <div><Label className="text-white/50 text-xs">Platform</Label><Input value={editingLogin.platform} onChange={(e) => setEditingLogin({...editingLogin, platform: e.target.value})} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>
+                  <div><Label className="text-white/50 text-xs">Category</Label>
+                    <Select value={editingLogin.category} onValueChange={(v) => setEditingLogin({...editingLogin, category: v})}>
+                      <SelectTrigger className="bg-white/[0.03] border-white/[0.06] text-white mt-1"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-card border-white/[0.06]">{categories.filter((c) => c !== "All").map((cat) => <SelectItem key={cat} value={cat} className="text-white/70">{cat}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label className="text-white/50 text-xs">Email</Label><Input value={editingLogin.email} onChange={(e) => setEditingLogin({...editingLogin, email: e.target.value})} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>
+                    <div><Label className="text-white/50 text-xs">Username</Label><Input value={editingLogin.username} onChange={(e) => setEditingLogin({...editingLogin, username: e.target.value})} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>
+                  </div>
+                  <div><Label className="text-white/50 text-xs">Login Type</Label>
+                    <Select value={editingLogin.loginType} onValueChange={(v) => setEditingLogin({...editingLogin, loginType: v})}>
+                      <SelectTrigger className="bg-white/[0.03] border-white/[0.06] text-white mt-1"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-card border-white/[0.06]">
+                        <SelectItem value="Email + Password" className="text-white/70">Email + Password</SelectItem>
+                        <SelectItem value="Google Login" className="text-white/70">Google Login</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {editingLogin.loginType === "Email + Password" && <div><Label className="text-white/50 text-xs">Password</Label><Input value={editingLogin.password} onChange={(e) => setEditingLogin({...editingLogin, password: e.target.value})} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>}
+                  <div><Label className="text-white/50 text-xs">Notes</Label><Input value={editingLogin.notes} onChange={(e) => setEditingLogin({...editingLogin, notes: e.target.value})} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>
+                  <Button onClick={handleEditSave} className="w-full bg-orange-500 hover:bg-orange-600 text-white">Save Changes</Button>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Add Dialog */}
+          <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
               <Button className="bg-orange-500 hover:bg-orange-600 text-white h-9 gap-2">
                 <Plus className="w-4 h-4" />
@@ -116,46 +171,31 @@ export default function CredentialManager() {
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-card border-white/[0.06] text-white">
-              <DialogHeader>
-                <DialogTitle className="text-white">Add New Login</DialogTitle>
-              </DialogHeader>
+              <DialogHeader><DialogTitle className="text-white">Add New Login</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
-                <div>
-                  <Label className="text-white/50 text-xs">Platform</Label>
-                  <Input className="bg-white/[0.03] border-white/[0.06] text-white mt-1" />
-                </div>
-                <div>
-                  <Label className="text-white/50 text-xs">Category</Label>
-                  <Select>
-                    <SelectTrigger className="bg-white/[0.03] border-white/[0.06] text-white mt-1">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card border-white/[0.06]">
-                      {categories.filter((c) => c !== "All").map((cat) => (
-                        <SelectItem key={cat} value={cat} className="text-white/70">{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
+                <div><Label className="text-white/50 text-xs">Platform</Label><Input value={newLogin.platform} onChange={(e) => setNewLogin({...newLogin, platform: e.target.value})} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>
+                <div><Label className="text-white/50 text-xs">Category</Label>
+                  <Select value={newLogin.category} onValueChange={(v) => setNewLogin({...newLogin, category: v})}>
+                    <SelectTrigger className="bg-white/[0.03] border-white/[0.06] text-white mt-1"><SelectValue placeholder="Select category" /></SelectTrigger>
+                    <SelectContent className="bg-card border-white/[0.06]">{categories.filter((c) => c !== "All").map((cat) => <SelectItem key={cat} value={cat} className="text-white/70">{cat}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-white/50 text-xs">Email</Label>
-                    <Input className="bg-white/[0.03] border-white/[0.06] text-white mt-1" />
-                  </div>
-                  <div>
-                    <Label className="text-white/50 text-xs">Username</Label>
-                    <Input className="bg-white/[0.03] border-white/[0.06] text-white mt-1" />
-                  </div>
+                  <div><Label className="text-white/50 text-xs">Email</Label><Input value={newLogin.email} onChange={(e) => setNewLogin({...newLogin, email: e.target.value})} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>
+                  <div><Label className="text-white/50 text-xs">Username</Label><Input value={newLogin.username} onChange={(e) => setNewLogin({...newLogin, username: e.target.value})} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>
                 </div>
-                <div>
-                  <Label className="text-white/50 text-xs">Password</Label>
-                  <Input type="password" className="bg-white/[0.03] border-white/[0.06] text-white mt-1" />
+                <div><Label className="text-white/50 text-xs">Login Type</Label>
+                  <Select value={newLogin.loginType} onValueChange={(v) => setNewLogin({...newLogin, loginType: v})}>
+                    <SelectTrigger className="bg-white/[0.03] border-white/[0.06] text-white mt-1"><SelectValue /></SelectTrigger>
+                    <SelectContent className="bg-card border-white/[0.06]">
+                      <SelectItem value="Email + Password" className="text-white/70">Email + Password</SelectItem>
+                      <SelectItem value="Google Login" className="text-white/70">Google Login</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div>
-                  <Label className="text-white/50 text-xs">Notes</Label>
-                  <Input className="bg-white/[0.03] border-white/[0.06] text-white mt-1" />
-                </div>
-                <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">Save Login</Button>
+                {newLogin.loginType === "Email + Password" && <div><Label className="text-white/50 text-xs">Password</Label><Input value={newLogin.password} onChange={(e) => setNewLogin({...newLogin, password: e.target.value})} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>}
+                <div><Label className="text-white/50 text-xs">Notes</Label><Input value={newLogin.notes} onChange={(e) => setNewLogin({...newLogin, notes: e.target.value})} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>
+                <Button onClick={handleAdd} className="w-full bg-orange-500 hover:bg-orange-600 text-white">Save Login</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -196,10 +236,10 @@ export default function CredentialManager() {
                     </button>
                   </>
                 )}
-                <button className="p-1.5 rounded-md hover:bg-white/5 text-white/20 hover:text-white/50 transition-all">
+                <button onClick={() => setEditingLogin(login)} className="p-1.5 rounded-md hover:bg-white/5 text-white/20 hover:text-white/50 transition-all">
                   <Edit className="w-3.5 h-3.5" />
                 </button>
-                <button className="p-1.5 rounded-md hover:bg-white/5 text-white/20 hover:text-red-400/50 transition-all">
+                <button onClick={() => handleDelete(login.id)} className="p-1.5 rounded-md hover:bg-white/5 text-white/20 hover:text-red-400/50 transition-all">
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
