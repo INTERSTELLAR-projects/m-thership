@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Search, Plus, Eye, EyeOff, Copy, Edit, Trash2 } from "lucide-react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { Search, Plus, Eye, EyeOff, Copy, Edit, Trash2, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -95,6 +96,15 @@ export default function CredentialManager() {
     setEditingCat(null);
   };
 
+  const handleDragEndCat = (result) => {
+    if (!result.destination) return;
+    const nonAll = categoryList.filter((c) => c !== "All");
+    const reordered = Array.from(nonAll);
+    const [removed] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, removed);
+    setCategoryList(["All", ...reordered]);
+  };
+
   const handleDelete = (id) => {
     setLogins((prev) => prev.filter((l) => l.id !== id));
   };
@@ -167,31 +177,37 @@ export default function CredentialManager() {
             <DialogContent className="bg-card border-white/[0.06] text-white max-w-sm">
               <DialogHeader><DialogTitle className="text-white">Manage Categories</DialogTitle></DialogHeader>
               <div className="space-y-3 pt-2">
-                <div className="space-y-1 max-h-64 overflow-y-auto">
-                  {categoryList.filter((c) => c !== "All").map((cat) => (
-                    <div key={cat} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                      {editingCat?.old === cat ? (
-                        <>
-                          <Input
-                            value={editingCat.val}
-                            onChange={(e) => setEditingCat({ ...editingCat, val: e.target.value })}
-                            onKeyDown={(e) => e.key === "Enter" && handleEditCategory(cat, editingCat.val)}
-                            className="h-7 flex-1 bg-white/[0.04] border-white/[0.08] text-white text-xs"
-                            autoFocus
-                          />
-                          <button onClick={() => handleEditCategory(cat, editingCat.val)} className="text-orange-500 text-xs font-semibold hover:text-orange-400">Save</button>
-                          <button onClick={() => setEditingCat(null)} className="text-white/30 text-xs hover:text-white/60">Cancel</button>
-                        </>
-                      ) : (
-                        <>
-                          <span className="flex-1 text-white/70 text-sm">{cat}</span>
-                          <button onClick={() => setEditingCat({ old: cat, val: cat })} className="p-1 text-white/25 hover:text-white/60 transition-colors"><Edit className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => handleDeleteCategory(cat)} className="p-1 text-white/25 hover:text-red-400/70 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <DragDropContext onDragEnd={handleDragEndCat}>
+                  <Droppable droppableId="categories">
+                    {(provided) => (
+                      <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-1 max-h-64 overflow-y-auto">
+                        {categoryList.filter((c) => c !== "All").map((cat, index) => (
+                          <Draggable key={cat} draggableId={cat} index={index}>
+                            {(drag) => (
+                              <div ref={drag.innerRef} {...drag.draggableProps} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                                <span {...drag.dragHandleProps} className="text-white/15 hover:text-white/40 cursor-grab active:cursor-grabbing"><GripVertical className="w-3.5 h-3.5" /></span>
+                                {editingCat?.old === cat ? (
+                                  <>
+                                    <Input value={editingCat.val} onChange={(e) => setEditingCat({ ...editingCat, val: e.target.value })} onKeyDown={(e) => e.key === "Enter" && handleEditCategory(cat, editingCat.val)} className="h-7 flex-1 bg-white/[0.04] border-white/[0.08] text-white text-xs" autoFocus />
+                                    <button onClick={() => handleEditCategory(cat, editingCat.val)} className="text-orange-500 text-xs font-semibold hover:text-orange-400">Save</button>
+                                    <button onClick={() => setEditingCat(null)} className="text-white/30 text-xs hover:text-white/60">Cancel</button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="flex-1 text-white/70 text-sm">{cat}</span>
+                                    <button onClick={() => setEditingCat({ old: cat, val: cat })} className="p-1 text-white/25 hover:text-white/60 transition-colors"><Edit className="w-3.5 h-3.5" /></button>
+                                    <button onClick={() => handleDeleteCategory(cat)} className="p-1 text-white/25 hover:text-red-400/70 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
                 <div className="flex gap-2 pt-1">
                   <Input
                     placeholder="New category name..."
