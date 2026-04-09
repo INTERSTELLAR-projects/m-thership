@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Search, Upload, Pin, FileText, Folder, Trash2, ExternalLink, X } from "lucide-react";
+import { Search, Upload, Pin, FileText, Folder, Trash2, ExternalLink, X, Pencil, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
@@ -24,6 +24,8 @@ export default function Documents() {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
   const [uploading, setUploading] = useState(false);
+  const [renamingId, setRenamingId] = useState(null);
+  const [renameValue, setRenameValue] = useState("");
   const [uploadCategory, setUploadCategory] = useState(CATEGORIES[0]);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [pendingFiles, setPendingFiles] = useState([]);
@@ -87,6 +89,19 @@ export default function Documents() {
 
   const openDoc = (doc) => {
     window.open(doc.url, "_blank");
+  };
+
+  const startRename = (doc) => {
+    setRenamingId(doc.id);
+    setRenameValue(doc.name);
+  };
+
+  const saveRename = (id) => {
+    if (!renameValue.trim()) return;
+    const updated = docs.map((d) => d.id === id ? { ...d, name: renameValue.trim() } : d);
+    setDocs(updated);
+    saveDocs(updated);
+    setRenamingId(null);
   };
 
   return (
@@ -167,14 +182,35 @@ export default function Documents() {
                   <FileText className="w-4 h-4 text-orange-500/40" />
                 </button>
                 <div className="flex-1 min-w-0">
-                  <button onClick={() => openDoc(doc)} className="flex items-center gap-2 text-left hover:text-orange-400/80 transition-colors">
+                  {renamingId === doc.id ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      autoFocus
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") saveRename(doc.id); if (e.key === "Escape") setRenamingId(null); }}
+                      className="bg-white/[0.06] border border-orange-500/30 rounded-md px-2 py-0.5 text-sm text-white outline-none w-64"
+                    />
+                    <button onClick={() => saveRename(doc.id)} className="p-1 text-green-400/70 hover:text-green-400"><Check className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => setRenamingId(null)} className="p-1 text-white/30 hover:text-white/60"><X className="w-3.5 h-3.5" /></button>
+                  </div>
+                ) : (
+                <button onClick={() => openDoc(doc)} className="flex items-center gap-2 text-left hover:text-orange-400/80 transition-colors">
                     <span className="text-white/85 text-sm font-medium truncate">{doc.name}</span>
                     <ExternalLink className="w-3 h-3 text-white/20 shrink-0" />
                     {doc.pinned && <Pin className="w-3 h-3 text-orange-500/50 shrink-0" />}
                   </button>
+                )}
                   <p className="text-white/25 text-xs mt-0.5">{doc.category} · {doc.date}</p>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                  <button
+                    onClick={() => startRename(doc)}
+                    className="p-1.5 rounded-md text-white/20 hover:text-white/50 hover:bg-white/5 transition-all"
+                    title="Rename"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
                   <button
                     onClick={() => togglePin(doc.id)}
                     className={`p-1.5 rounded-md transition-all ${doc.pinned ? "text-orange-500/60 hover:text-orange-500" : "text-white/20 hover:text-white/50 hover:bg-white/5"}`}
