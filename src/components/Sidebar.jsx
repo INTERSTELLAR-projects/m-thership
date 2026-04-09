@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, KeyRound, FileText, DollarSign, 
   Scale, Users, BarChart3, MessageSquare, Globe, 
-  Wrench, Flame, TrendingUp, Settings, LogOut
+  Wrench, Flame, TrendingUp, Settings, LogOut, ClipboardList
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
@@ -17,6 +17,8 @@ const mainNav = [
 ];
 
 const portalNav = [
+  { label: "Dashboard", icon: LayoutDashboard, path: "/portal-dashboard" },
+  { label: "Form Submissions", icon: ClipboardList, path: "/form-submissions" },
   { label: "Comms", icon: MessageSquare, path: "/comms" },
   { label: "Ørbit SEO", icon: Globe, path: "/orbit-seo" },
   { label: "Web Øps", icon: Wrench, path: "/web-ops" },
