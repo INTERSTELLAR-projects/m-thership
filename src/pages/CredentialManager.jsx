@@ -62,12 +62,38 @@ const categories = ["All", "Email", "Hosting", "SEO", "Billing", "Social Tools",
 
 export default function CredentialManager() {
   const [logins, setLogins] = useState(sampleData);
+  const [categoryList, setCategoryList] = useState(categories);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [visiblePasswords, setVisiblePasswords] = useState({});
   const [editingLogin, setEditingLogin] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [manageCatsOpen, setManageCatsOpen] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [editingCat, setEditingCat] = useState(null);
   const [newLogin, setNewLogin] = useState({ platform: "", category: "", email: "", username: "", password: "", loginType: "Email + Password", notes: "" });
+
+  const handleAddCategory = () => {
+    const trimmed = newCatName.trim();
+    if (!trimmed || categoryList.includes(trimmed)) return;
+    setCategoryList((prev) => [...prev, trimmed]);
+    setNewCatName("");
+  };
+
+  const handleDeleteCategory = (cat) => {
+    if (cat === "All") return;
+    setCategoryList((prev) => prev.filter((c) => c !== cat));
+    if (activeCategory === cat) setActiveCategory("All");
+  };
+
+  const handleEditCategory = (oldCat, newCat) => {
+    const trimmed = newCat.trim();
+    if (!trimmed || (trimmed !== oldCat && categoryList.includes(trimmed))) return;
+    setCategoryList((prev) => prev.map((c) => c === oldCat ? trimmed : c));
+    setLogins((prev) => prev.map((l) => l.category === oldCat ? { ...l, category: trimmed } : l));
+    if (activeCategory === oldCat) setActiveCategory(trimmed);
+    setEditingCat(null);
+  };
 
   const handleDelete = (id) => {
     setLogins((prev) => prev.filter((l) => l.id !== id));
@@ -85,6 +111,7 @@ export default function CredentialManager() {
     setAddOpen(false);
   };
 
+  const filteredCategories = categoryList;
   const filtered = logins.filter((login) => {
     const matchSearch =
       login.platform.toLowerCase().includes(search.toLowerCase()) ||
@@ -113,8 +140,8 @@ export default function CredentialManager() {
               className="pl-10 bg-card border-white/[0.06] text-white placeholder:text-white/20 h-9"
             />
           </div>
-          <div className="flex gap-1.5 flex-wrap">
-            {categories.map((cat) => (
+          <div className="flex gap-1.5 flex-wrap items-center">
+            {categoryList.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
@@ -127,8 +154,59 @@ export default function CredentialManager() {
                 {cat}
               </button>
             ))}
+            <button
+              onClick={() => setManageCatsOpen(true)}
+              className="px-2 py-1.5 rounded-lg text-xs text-white/20 hover:text-white/50 border border-dashed border-white/10 hover:border-white/20 transition-all"
+              title="Manage categories"
+            >
+              <Edit className="w-3 h-3" />
+            </button>
           </div>
-          {/* Edit Dialog */}
+          {/* Manage Categories Dialog */}
+          <Dialog open={manageCatsOpen} onOpenChange={setManageCatsOpen}>
+            <DialogContent className="bg-card border-white/[0.06] text-white max-w-sm">
+              <DialogHeader><DialogTitle className="text-white">Manage Categories</DialogTitle></DialogHeader>
+              <div className="space-y-3 pt-2">
+                <div className="space-y-1 max-h-64 overflow-y-auto">
+                  {categoryList.filter((c) => c !== "All").map((cat) => (
+                    <div key={cat} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                      {editingCat?.old === cat ? (
+                        <>
+                          <Input
+                            value={editingCat.val}
+                            onChange={(e) => setEditingCat({ ...editingCat, val: e.target.value })}
+                            onKeyDown={(e) => e.key === "Enter" && handleEditCategory(cat, editingCat.val)}
+                            className="h-7 flex-1 bg-white/[0.04] border-white/[0.08] text-white text-xs"
+                            autoFocus
+                          />
+                          <button onClick={() => handleEditCategory(cat, editingCat.val)} className="text-orange-500 text-xs font-semibold hover:text-orange-400">Save</button>
+                          <button onClick={() => setEditingCat(null)} className="text-white/30 text-xs hover:text-white/60">Cancel</button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="flex-1 text-white/70 text-sm">{cat}</span>
+                          <button onClick={() => setEditingCat({ old: cat, val: cat })} className="p-1 text-white/25 hover:text-white/60 transition-colors"><Edit className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => handleDeleteCategory(cat)} className="p-1 text-white/25 hover:text-red-400/70 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <Input
+                    placeholder="New category name..."
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddCategory()}
+                    className="flex-1 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-white/20 h-9"
+                  />
+                  <Button onClick={handleAddCategory} className="bg-orange-500 hover:bg-orange-600 text-white h-9 px-3"><Plus className="w-4 h-4" /></Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Edit Login Dialog */}
           <Dialog open={!!editingLogin} onOpenChange={(o) => !o && setEditingLogin(null)}>
             <DialogContent className="bg-card border-white/[0.06] text-white">
               <DialogHeader><DialogTitle className="text-white">Edit Login</DialogTitle></DialogHeader>
@@ -138,7 +216,7 @@ export default function CredentialManager() {
                   <div><Label className="text-white/50 text-xs">Category</Label>
                     <Select value={editingLogin.category} onValueChange={(v) => setEditingLogin({...editingLogin, category: v})}>
                       <SelectTrigger className="bg-white/[0.03] border-white/[0.06] text-white mt-1"><SelectValue /></SelectTrigger>
-                      <SelectContent className="bg-card border-white/[0.06]">{categories.filter((c) => c !== "All").map((cat) => <SelectItem key={cat} value={cat} className="text-white/70">{cat}</SelectItem>)}</SelectContent>
+                      <SelectContent className="bg-card border-white/[0.06]">{filteredCategories.filter((c) => c !== "All").map((cat) => <SelectItem key={cat} value={cat} className="text-white/70">{cat}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -162,7 +240,7 @@ export default function CredentialManager() {
             </DialogContent>
           </Dialog>
 
-          {/* Add Dialog */}
+          {/* Add Login Dialog */}
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
               <Button className="bg-orange-500 hover:bg-orange-600 text-white h-9 gap-2">
@@ -177,7 +255,7 @@ export default function CredentialManager() {
                 <div><Label className="text-white/50 text-xs">Category</Label>
                   <Select value={newLogin.category} onValueChange={(v) => setNewLogin({...newLogin, category: v})}>
                     <SelectTrigger className="bg-white/[0.03] border-white/[0.06] text-white mt-1"><SelectValue placeholder="Select category" /></SelectTrigger>
-                    <SelectContent className="bg-card border-white/[0.06]">{categories.filter((c) => c !== "All").map((cat) => <SelectItem key={cat} value={cat} className="text-white/70">{cat}</SelectItem>)}</SelectContent>
+                    <SelectContent className="bg-card border-white/[0.06]">{filteredCategories.filter((c) => c !== "All").map((cat) => <SelectItem key={cat} value={cat} className="text-white/70">{cat}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
