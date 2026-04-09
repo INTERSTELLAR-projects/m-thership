@@ -8,14 +8,57 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import PageHeader from "../components/PageHeader";
 
 const sampleData = [
-  { id: 1, platform: "Google Workspace", category: "Email", email: "admin@interstellar.com", username: "admin", password: "••••••••", notes: "Main admin account", tags: ["primary", "admin"] },
-  { id: 2, platform: "Cloudflare", category: "Hosting", email: "dev@interstellar.com", username: "interstellar-dev", password: "••••••••", notes: "DNS management", tags: ["infrastructure"] },
-  { id: 3, platform: "SEMrush", category: "SEO", email: "seo@interstellar.com", username: "interstellar_seo", password: "••••••••", notes: "Ørbit SEO main tool", tags: ["seo", "tools"] },
-  { id: 4, platform: "Stripe", category: "Billing", email: "billing@interstellar.com", username: "interstellar", password: "••••••••", notes: "Payment processing", tags: ["finance"] },
-  { id: 5, platform: "Vercel", category: "Hosting", email: "dev@interstellar.com", username: "interstellar-team", password: "••••••••", notes: "Website deployments", tags: ["infrastructure", "web"] },
+  { id: 1, platform: "Gmail", category: "Email", email: "interstellarstrategiesllc@gmail.com", username: "interstellarstrategiesllc", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 2, platform: "Gmail", category: "Email", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 3, platform: "ClickUp", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 4, platform: "Squarespace", category: "Hosting", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 5, platform: "Google Workspace", category: "Email", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 6, platform: "ZenBusiness", category: "Billing", email: "interstellarstrategiesllc@gmail.com", username: "interstellarstrategiesllc", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 7, platform: "Envato", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 8, platform: "Mercury BBA", category: "Billing", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox12344", loginType: "Email + Password", notes: "" },
+  { id: 9, platform: "PayPal", category: "Billing", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 10, platform: "Webflow", category: "Hosting", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 11, platform: "ChatGPT", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 12, platform: "Canva", category: "Social Tools", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 13, platform: "Stripe", category: "Billing", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 14, platform: "Zapier", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 15, platform: "GitHub", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox000$", loginType: "Email + Password", notes: "" },
+  { id: 16, platform: "Render", category: "Hosting", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 17, platform: "QuickBooks", category: "Billing", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 18, platform: "Netlify", category: "Hosting", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 19, platform: "Serp API", category: "SEO", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 20, platform: "Interstellar Reviews Dashboard", category: "SEO", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 21, platform: "Spline", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 22, platform: "Wix", category: "Hosting", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 23, platform: "Framer", category: "Hosting", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 24, platform: "Typeform", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 25, platform: "XAI", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 26, platform: "Cursor", category: "Other", email: "Google Login", username: "Google Login", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 27, platform: "Relume", category: "Other", email: "Google Login", username: "Google Login", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 28, platform: "Search Atlas", category: "SEO", email: "Google Login", username: "Google Login", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 29, platform: "Aragon", category: "Other", email: "Google Login", username: "Google Login", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 30, platform: "Genspark", category: "Other", email: "Google Login", username: "Google Login", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 31, platform: "Looka", category: "Other", email: "Google Login", username: "Google Login", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 32, platform: "Base44", category: "Other", email: "Google Login", username: "Google Login", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 33, platform: "Claude", category: "Other", email: "Google Login", username: "Google Login", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 34, platform: "Custom E-Signature", category: "Other", email: "Google Login", username: "Google Login", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 35, platform: "DocuSign", category: "Other", email: "Google Login", username: "Google Login", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 36, platform: "Motion", category: "Other", email: "Google Login", username: "Google Login", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 37, platform: "Clockify", category: "Other", email: "Google Login", username: "Google Login", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 38, platform: "Eleven Labs", category: "Billing", email: "Google Login", username: "Google Login", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 39, platform: "Coursera", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 40, platform: "MyClaw", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 41, platform: "Semrush", category: "SEO", email: "justin@interstellar-strategies.com", username: "justin", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 42, platform: "Veed", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 43, platform: "SMPL Social", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 44, platform: "Vistaprint", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 45, platform: "Feedbird", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 46, platform: "AirTable", category: "Other", email: "justin@interstellar-strategies.com", username: "justin", password: "Google Login", loginType: "Google Login", notes: "" },
+  { id: 47, platform: "Instagram", category: "Social Tools", email: "interstellarstrategies", username: "interstellarstrategies", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
+  { id: 48, platform: "LinkedIn", category: "Social Tools", email: "justin@interstellar-strategies.com", username: "justin", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
 ];
 
-const categories = ["All", "Email", "Hosting", "SEO", "Billing", "Social", "Tools", "Other"];
+const categories = ["All", "Email", "Hosting", "SEO", "Billing", "Social Tools", "Other"];
 
 export default function CredentialManager() {
   const [search, setSearch] = useState("");
@@ -137,16 +180,22 @@ export default function CredentialManager() {
                 </div>
                 <p className="text-white/30 text-xs">{login.email}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-white/25 text-xs font-mono w-24">
-                  {visiblePasswords[login.id] ? "p@ssw0rd123" : "••••••••"}
-                </span>
-                <button onClick={() => togglePassword(login.id)} className="p-1.5 rounded-md hover:bg-white/5 text-white/20 hover:text-white/50 transition-all">
-                  {visiblePasswords[login.id] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                </button>
-                <button className="p-1.5 rounded-md hover:bg-white/5 text-white/20 hover:text-white/50 transition-all">
-                  <Copy className="w-3.5 h-3.5" />
-                </button>
+              <div className="flex items-center gap-3">
+                {login.loginType === "Google Login" ? (
+                  <span className="text-blue-400/60 text-xs font-semibold tracking-wider px-2 py-0.5 bg-blue-500/5 rounded border border-blue-500/10">Google Login</span>
+                ) : (
+                  <>
+                    <span className="text-white/25 text-xs font-mono w-24">
+                      {visiblePasswords[login.id] ? login.password : "••••••••"}
+                    </span>
+                    <button onClick={() => togglePassword(login.id)} className="p-1.5 rounded-md hover:bg-white/5 text-white/20 hover:text-white/50 transition-all">
+                      {visiblePasswords[login.id] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                    <button className="p-1.5 rounded-md hover:bg-white/5 text-white/20 hover:text-white/50 transition-all">
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                )}
                 <button className="p-1.5 rounded-md hover:bg-white/5 text-white/20 hover:text-white/50 transition-all">
                   <Edit className="w-3.5 h-3.5" />
                 </button>
