@@ -192,7 +192,7 @@ function CategorySection({ category, items, editId, editForm, setEditForm, onEdi
 
 function TaskRow({ item, onEdit, onToggleDone, onDelete }) {
   return (
-    <div className={`bg-card rounded-xl border p-4 flex items-start gap-4 group transition-all ${item.done ? "border-green-500/10 opacity-60" : "border-white/[0.06] hover:border-orange-500/15"}`}>
+    <div className={`card-hover bg-card rounded-xl border p-4 flex items-start gap-4 group ${item.done ? "border-green-500/10 opacity-60" : "border-white/[0.06]"}`}>
       <button onClick={onToggleDone} className="mt-0.5 shrink-0 text-white/25 hover:text-orange-500/70 transition-colors">
         {item.done ? <CheckSquare className="w-4 h-4 text-green-400/70" /> : <Square className="w-4 h-4" />}
       </button>

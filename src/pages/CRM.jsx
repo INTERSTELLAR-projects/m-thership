@@ -118,7 +118,7 @@ export default function CRM() {
             {filtered.map((client) => {
               const total = (client.services || []).reduce((s, sv) => s + (sv.price || 0), 0);
               return (
-                <div key={client.id} className="w-full bg-card rounded-xl border border-white/[0.06] p-4 flex items-center gap-5 group hover:border-orange-500/15 transition-all">
+                <div key={client.id} className="card-hover w-full bg-card rounded-xl border border-white/[0.06] p-4 flex items-center gap-5 group">
                   <button onClick={() => setSelectedId(client.id)} className="flex items-center gap-5 flex-1 text-left min-w-0">
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/10 to-orange-600/5 flex items-center justify-center text-orange-500/50 text-sm font-bold border border-orange-500/10 shrink-0">{client.business?.charAt(0)}</div>
                     <div className="flex-1 min-w-0">

@@ -65,7 +65,7 @@ export default function ClientContentSchedule() {
         {clients.map((client) => {
           const clientDone = client.blogSchedule.every((e) => completions[`${client.id}_${e.id}`]);
           return (
-            <div key={client.id} className={`bg-card rounded-xl border p-4 transition-all ${clientDone ? "border-green-500/15 opacity-70" : "border-white/[0.06] hover:border-orange-500/15"}`}>
+            <div key={client.id} className={`card-hover bg-card rounded-xl border p-4 ${clientDone ? "border-green-500/15 opacity-70" : "border-white/[0.06]"}`}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500/10 to-orange-600/5 flex items-center justify-center text-orange-500/50 text-xs font-bold border border-orange-500/10 shrink-0">

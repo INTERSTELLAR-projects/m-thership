@@ -64,7 +64,7 @@ export default function PriorityTasks() {
       ) : (
         <div className="grid grid-cols-2 gap-3">
           {[...pending, ...done].map((item) => (
-            <div key={item.id} className={`bg-card rounded-xl border p-3 flex items-start gap-3 group transition-all ${item.done ? "border-green-500/10 opacity-60" : "border-white/[0.06] hover:border-orange-500/15"}`}>
+            <div key={item.id} className={`card-hover bg-card rounded-xl border p-3 flex items-start gap-3 group ${item.done ? "border-green-500/10 opacity-60" : "border-white/[0.06]"}`}>
               <button onClick={() => toggleDone(item)} className="mt-0.5 shrink-0 text-white/25 hover:text-orange-500/70 transition-colors">
                 {item.done ? <CheckSquare className="w-4 h-4 text-green-400/70" /> : <Square className="w-4 h-4" />}
               </button>

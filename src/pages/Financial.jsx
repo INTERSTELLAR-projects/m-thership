@@ -219,7 +219,7 @@ function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave,
   }
 
   return (
-    <div className={`bg-card rounded-xl border p-4 flex items-center gap-5 group transition-all ${expense.status === "Overdue" ? "border-red-500/15" : expense.status === "Paid" ? "border-green-500/10 opacity-70" : "border-white/[0.06] hover:border-orange-500/15"}`}>
+    <div className={`card-hover bg-card rounded-xl border p-4 flex items-center gap-5 group ${expense.status === "Overdue" ? "border-red-500/15" : expense.status === "Paid" ? "border-green-500/10 opacity-70" : "border-white/[0.06]"}`}>
       <div className="w-10 h-10 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/30 text-xs font-bold shrink-0">{expense.platform?.charAt(0)}</div>
       <div className="flex-1 min-w-0">
         <span className="text-white/85 text-sm font-medium">{expense.platform}</span>

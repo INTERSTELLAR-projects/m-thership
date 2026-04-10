@@ -77,7 +77,11 @@ module.exports = {
   				ring: 'hsl(var(--sidebar-ring))'
   			}
   		},
-  		keyframes: {
+  		boxShadow: {
+			'orange-glow': '0 0 16px rgba(255, 106, 0, 0.25), 0 0 40px rgba(255, 106, 0, 0.10), 0 0 1px rgba(255, 180, 80, 0.4)',
+			'orange-glow-sm': '0 0 10px rgba(255, 106, 0, 0.20), 0 0 24px rgba(255, 106, 0, 0.08)',
+		},
+		keyframes: {
   			'accordion-down': {
   				from: { height: '0' },
   				to: { height: 'var(--radix-accordion-content-height)' }

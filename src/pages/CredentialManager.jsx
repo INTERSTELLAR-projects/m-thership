@@ -287,7 +287,7 @@ export default function CredentialManager() {
         ) : (
           <div className="space-y-2">
             {filtered.map((login) => (
-              <div key={login.id} className="bg-card rounded-xl border border-white/[0.06] p-4 flex items-center gap-6 group hover:border-orange-500/15 transition-all">
+              <div key={login.id} className="card-hover bg-card rounded-xl border border-white/[0.06] p-4 flex items-center gap-6 group">
                 <div className="w-10 h-10 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/30 text-xs font-bold">{login.platform?.charAt(0)}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-1">

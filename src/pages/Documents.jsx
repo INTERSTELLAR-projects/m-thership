@@ -127,7 +127,7 @@ export default function Documents() {
         ) : (
           <div className="space-y-2">
             {filtered.map((doc) => (
-              <div key={doc.id} className="bg-card rounded-xl border border-white/[0.06] p-4 flex items-center gap-4 group hover:border-orange-500/15 transition-all">
+              <div key={doc.id} className="card-hover bg-card rounded-xl border border-white/[0.06] p-4 flex items-center gap-4 group">
                 <button onClick={() => window.open(doc.url, "_blank")} className="w-9 h-9 rounded-lg bg-orange-500/[0.06] flex items-center justify-center shrink-0 hover:bg-orange-500/10 transition-all"><FileText className="w-4 h-4 text-orange-500/40" /></button>
                 <div className="flex-1 min-w-0">
                   {renamingId === doc.id ? (

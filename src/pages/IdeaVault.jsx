@@ -230,7 +230,7 @@ Category: ${idea.category}`;
             )}
             <div className="space-y-3">
               {filtered.map((idea) => (
-                <div key={idea.id} className="bg-card rounded-xl border border-white/[0.06] p-5 group hover:border-orange-500/15 transition-all">
+                <div key={idea.id} className="card-hover bg-card rounded-xl border border-white/[0.06] p-5 group">
                   {editId === idea.id ? (
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
