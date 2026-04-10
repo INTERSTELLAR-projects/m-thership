@@ -1,38 +1,74 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Check, X, Lightbulb, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Lightbulb, Search, Settings, GripVertical } from "lucide-react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Input } from "@/components/ui/input";
 import PageHeader from "../components/PageHeader";
 
-const CATEGORIES = ["All", "Marketing", "Product", "Operations", "Tech", "Content", "Other"];
-
+const DEFAULT_CATEGORIES = ["Marketing", "Product", "Operations", "Tech", "Content", "Other"];
 const STATUS_OPTIONS = ["New", "In Review", "Planned", "Implemented", "Shelved"];
 
-function load() {
-  try { return JSON.parse(localStorage.getItem("idea_vault") || "[]"); } catch { return []; }
-}
-function save(ideas) { localStorage.setItem("idea_vault", JSON.stringify(ideas)); }
+function loadIdeas() { try { return JSON.parse(localStorage.getItem("idea_vault") || "[]"); } catch { return []; } }
+function loadCats() { try { return JSON.parse(localStorage.getItem("idea_vault_cats")) || DEFAULT_CATEGORIES; } catch { return DEFAULT_CATEGORIES; } }
+function saveIdeas(ideas) { localStorage.setItem("idea_vault", JSON.stringify(ideas)); }
+function saveCats(cats) { localStorage.setItem("idea_vault_cats", JSON.stringify(cats)); }
 
 export default function IdeaVault() {
-  const [ideas, setIdeas] = useState(() => load());
+  const [ideas, setIdeas] = useState(() => loadIdeas());
+  const [categories, setCategories] = useState(() => loadCats());
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
   const [adding, setAdding] = useState(false);
-  const [newIdea, setNewIdea] = useState({ title: "", description: "", category: "Other", status: "New" });
+  const [newIdea, setNewIdea] = useState({ title: "", description: "", category: "", status: "New" });
   const [editId, setEditId] = useState(null);
   const [editVal, setEditVal] = useState({});
+  const [managingCats, setManagingCats] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [editCat, setEditCat] = useState(null); // { index, val }
 
-  const update = (next) => { setIdeas(next); save(next); };
+  const updateIdeas = (next) => { setIdeas(next); saveIdeas(next); };
+  const updateCats = (next) => { setCategories(next); saveCats(next); };
 
   const add = () => {
     if (!newIdea.title.trim()) return;
-    update([{ ...newIdea, id: Date.now(), date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) }, ...ideas]);
+    const cat = newIdea.category || categories[0] || "Other";
+    updateIdeas([{ ...newIdea, category: cat, id: Date.now(), date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) }, ...ideas]);
     setAdding(false);
-    setNewIdea({ title: "", description: "", category: "Other", status: "New" });
+    setNewIdea({ title: "", description: "", category: "", status: "New" });
   };
 
-  const del = (id) => update(ideas.filter((i) => i.id !== id));
+  const del = (id) => updateIdeas(ideas.filter((i) => i.id !== id));
   const startEdit = (idea) => { setEditId(idea.id); setEditVal({ ...idea }); };
-  const saveEdit = () => { update(ideas.map((i) => i.id === editId ? editVal : i)); setEditId(null); };
+  const saveEdit = () => { updateIdeas(ideas.map((i) => i.id === editId ? editVal : i)); setEditId(null); };
+
+  // Category management
+  const addCat = () => {
+    const t = newCatName.trim();
+    if (!t || categories.includes(t)) return;
+    updateCats([...categories, t]);
+    setNewCatName("");
+  };
+  const deleteCat = (i) => {
+    const next = categories.filter((_, idx) => idx !== i);
+    updateCats(next);
+    if (catFilter === categories[i]) setCatFilter("All");
+  };
+  const saveEditCat = (i) => {
+    const t = editCat.val.trim();
+    if (!t) return;
+    const old = categories[i];
+    const next = categories.map((c, idx) => idx === i ? t : c);
+    updateCats(next);
+    updateIdeas(ideas.map((idea) => idea.category === old ? { ...idea, category: t } : idea));
+    if (catFilter === old) setCatFilter(t);
+    setEditCat(null);
+  };
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+    const next = Array.from(categories);
+    const [removed] = next.splice(result.source.index, 1);
+    next.splice(result.destination.index, 0, removed);
+    updateCats(next);
+  };
 
   const filtered = ideas.filter((i) => {
     const matchSearch = i.title.toLowerCase().includes(search.toLowerCase()) || i.description?.toLowerCase().includes(search.toLowerCase());
@@ -51,15 +87,64 @@ export default function IdeaVault() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
             <Input placeholder="Search ideas..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 bg-card border-white/[0.06] text-white placeholder:text-white/20 h-9" />
           </div>
-          <div className="flex gap-1.5 flex-wrap">
-            {CATEGORIES.map((c) => (
+          <div className="flex gap-1.5 flex-wrap items-center">
+            <button onClick={() => setCatFilter("All")} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${catFilter === "All" ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>All</button>
+            {categories.map((c) => (
               <button key={c} onClick={() => setCatFilter(c)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${catFilter === c ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{c}</button>
             ))}
+            <button onClick={() => setManagingCats(true)} className="p-1.5 rounded-lg text-white/20 hover:text-white/50 border border-dashed border-white/10 hover:border-white/20 transition-all" title="Manage categories">
+              <Settings className="w-3.5 h-3.5" />
+            </button>
           </div>
           <button onClick={() => setAdding(true)} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors">
             <Plus className="w-4 h-4" />Add Idea
           </button>
         </div>
+
+        {/* Manage Categories Panel */}
+        {managingCats && (
+          <div className="bg-card rounded-xl border border-white/[0.08] p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Manage Categories</h3>
+              <button onClick={() => setManagingCats(false)} className="text-white/30 hover:text-white/60"><X className="w-4 h-4" /></button>
+            </div>
+            <DragDropContext onDragEnd={onDragEnd}>
+              <Droppable droppableId="idea-cats">
+                {(provided) => (
+                  <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-1 max-h-64 overflow-y-auto">
+                    {categories.map((cat, i) => (
+                      <Draggable key={cat} draggableId={cat} index={i}>
+                        {(drag) => (
+                          <div ref={drag.innerRef} {...drag.draggableProps} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                            <span {...drag.dragHandleProps} className="text-white/15 hover:text-white/40 cursor-grab active:cursor-grabbing"><GripVertical className="w-3.5 h-3.5" /></span>
+                            {editCat?.index === i ? (
+                              <>
+                                <Input value={editCat.val} onChange={(e) => setEditCat({ ...editCat, val: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") saveEditCat(i); if (e.key === "Escape") setEditCat(null); }} className="h-7 flex-1 bg-white/[0.04] border-white/[0.08] text-white text-xs" autoFocus />
+                                <button onClick={() => saveEditCat(i)} className="text-orange-500 text-xs font-semibold hover:text-orange-400">Save</button>
+                                <button onClick={() => setEditCat(null)} className="text-white/30 text-xs hover:text-white/60">Cancel</button>
+                              </>
+                            ) : (
+                              <>
+                                <span className="flex-1 text-white/70 text-sm">{cat}</span>
+                                <button onClick={() => setEditCat({ index: i, val: cat })} className="p-1 text-white/25 hover:text-white/60 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => deleteCat(i)} className="p-1 text-white/25 hover:text-red-400/70 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+            <div className="flex gap-2 pt-1">
+              <Input placeholder="New category..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addCat()} className="flex-1 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-white/20 h-9" />
+              <button onClick={addCat} className="px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
+            </div>
+          </div>
+        )}
 
         {/* Add Form */}
         {adding && (
@@ -70,8 +155,8 @@ export default function IdeaVault() {
             <div className="flex gap-3 flex-wrap">
               <div className="flex items-center gap-2">
                 <span className="text-white/40 text-xs">Category:</span>
-                <select value={newIdea.category} onChange={(e) => setNewIdea({ ...newIdea, category: e.target.value })} className="bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-xs text-white outline-none">
-                  {CATEGORIES.filter((c) => c !== "All").map((c) => <option key={c} value={c}>{c}</option>)}
+                <select value={newIdea.category || categories[0]} onChange={(e) => setNewIdea({ ...newIdea, category: e.target.value })} className="bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-xs text-white outline-none">
+                  {categories.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div className="flex items-center gap-2">
@@ -107,7 +192,7 @@ export default function IdeaVault() {
                     <div className="flex items-center gap-2">
                       <span className="text-white/40 text-xs">Category:</span>
                       <select value={editVal.category} onChange={(e) => setEditVal({ ...editVal, category: e.target.value })} className="bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-xs text-white outline-none">
-                        {CATEGORIES.filter((c) => c !== "All").map((c) => <option key={c} value={c}>{c}</option>)}
+                        {categories.map((c) => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
                     <div className="flex items-center gap-2">
