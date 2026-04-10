@@ -122,7 +122,7 @@ export default function ToDo() {
   return (
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Command Center / To-Do" rightText="Master Task List" />
-      <div className="px-4 md:px-8 py-6 space-y-6">
+      <div className="px-8 py-6 space-y-6">
         <div className="flex justify-end">
           <button onClick={() => setAdding(true)} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors">
             <Plus className="w-4 h-4" />Add Task

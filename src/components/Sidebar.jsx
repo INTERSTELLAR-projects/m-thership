@@ -54,15 +54,15 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-[220px] min-w-[220px] h-screen bg-sidebar flex flex-col border-r border-sidebar-border md:fixed md:left-0 md:top-0">
+    <aside className="w-[220px] min-w-[220px] h-screen bg-sidebar flex flex-col border-r border-sidebar-border">
       {/* Logo */}
       <div className="px-5 pt-6 pb-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center overflow-hidden border border-white/10">
             <img src="https://framerusercontent.com/images/lYN9zTgbln1GtT6KOSpG27mq3Q.png?scale-down-to=512&width=1563&height=1563" alt="Logo" className="w-full h-full object-contain" />
           </div>
-          <div className="min-w-0">
-            <h1 className="font-orbitron text-white font-bold text-sm tracking-wide leading-none truncate">ZERØ GRAVITY</h1>
+          <div>
+            <h1 className="font-orbitron text-white font-bold text-sm tracking-wide leading-none">ZERØ GRAVITY</h1>
             <p className="font-orbitron text-white/30 text-[10px] tracking-widest uppercase">Portal</p>
           </div>
         </div>
@@ -96,7 +96,7 @@ export default function Sidebar() {
           className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-white/40 hover:text-white/70 hover:bg-white/5 transition-all"
         >
           <Settings className="w-[18px] h-[18px]" />
-          <span className="truncate">Settings</span>
+          <span>Settings</span>
         </Link>
         <button
           onClick={handleLogout}
@@ -107,7 +107,7 @@ export default function Sidebar() {
         </button>
         
         {/* Profile */}
-        <div className="mt-2 px-4 py-2 rounded-lg bg-white/[0.02] border border-white/5 min-w-0">
+        <div className="mt-2 px-4 py-2 rounded-lg bg-white/[0.02] border border-white/5">
           <p className="text-white/70 text-xs font-medium truncate">justin@interstellar...</p>
           <p className="text-orange-500/70 text-[10px] font-semibold tracking-wider uppercase">Admin</p>
         </div>

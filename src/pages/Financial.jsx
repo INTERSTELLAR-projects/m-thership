@@ -140,15 +140,15 @@ export default function Financial() {
   return (
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Command Center / Financial" rightText="Expense Management" />
-      <div className="px-4 md:px-8 pt-4 flex gap-1 border-b border-white/[0.05] overflow-x-auto">
+      <div className="px-8 pt-4 flex gap-1 border-b border-white/[0.05]">
         {["overview", "categories", "analytics", "investments"].map((tab) => (
-          <button key={tab} onClick={() => setSubPage(tab)} className={`px-3 md:px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all rounded-t-lg whitespace-nowrap ${subPage === tab ? "bg-orange-500/15 text-orange-500 border-b-2 border-orange-500" : "text-white/30 hover:text-white/60"}`}>{tab === "overview" ? "Overview" : tab === "categories" ? "Categories" : tab === "analytics" ? "Analytics" : "Investments"}</button>
+          <button key={tab} onClick={() => setSubPage(tab)} className={`px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all rounded-t-lg ${subPage === tab ? "bg-orange-500/15 text-orange-500 border-b-2 border-orange-500" : "text-white/30 hover:text-white/60"}`}>{tab === "overview" ? "Overview" : tab === "categories" ? "Categories" : tab === "analytics" ? "Analytics" : "Investments"}</button>
         ))}
       </div>
-      <div className="px-4 md:px-8 py-6 space-y-6">
+      <div className="px-8 py-6 space-y-6">
         {subPage === "overview" ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <SummaryCard icon={DollarSign} label="Total Monthly" value={`$${totalMonthly.toFixed(2)}`} />
               <SummaryCard icon={TrendingUp} label="Total Annual" value={`$${totalAnnual.toFixed(2)}`} />
               <SummaryCard icon={AlertCircle} label="Overdue / Unpaid" value={`${overdueCount} bills`} danger={overdueCount > 0} />
@@ -156,7 +156,7 @@ export default function Financial() {
             {upcoming.length > 0 && (
               <div>
                 <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase mb-3">Upcoming Expenses</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {upcoming.map((e) => (
                     <div key={e.id} className={`bg-card rounded-xl border p-4 flex items-center gap-4 ${e.status === "Overdue" ? "border-red-500/20" : "border-white/[0.06]"}`}>
                       <div className="w-9 h-9 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/30 text-xs font-bold shrink-0">{e.platform?.charAt(0)}</div>
@@ -304,22 +304,20 @@ function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave,
   }
 
   return (
-    <div className={`card-hover bg-card rounded-xl border p-3 md:p-4 flex items-center gap-3 md:gap-5 group flex-wrap ${expense.status === "Overdue" ? "border-red-500/15" : expense.status === "Paid" ? "border-green-500/10 opacity-70" : "border-white/[0.06]"}`}>
-      <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/30 text-xs font-bold shrink-0">{expense.platform?.charAt(0)}</div>
-      <div className="flex-1 min-w-[120px]">
+    <div className={`card-hover bg-card rounded-xl border p-4 flex items-center gap-5 group ${expense.status === "Overdue" ? "border-red-500/15" : expense.status === "Paid" ? "border-green-500/10 opacity-70" : "border-white/[0.06]"}`}>
+      <div className="w-10 h-10 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/30 text-xs font-bold shrink-0">{expense.platform?.charAt(0)}</div>
+      <div className="flex-1 min-w-0">
         <span className="text-white/85 text-sm font-medium">{expense.platform}</span>
-        <div className="flex items-center gap-1.5 md:gap-2 mt-0.5 flex-wrap">
+        <div className="flex items-center gap-2 mt-0.5">
           <span className={`text-[10px] font-semibold tracking-wider px-1.5 py-0.5 rounded ${expense.frequency === "Monthly" ? "bg-blue-500/10 text-blue-400/60" : expense.frequency === "Quarterly" ? "bg-yellow-500/10 text-yellow-400/60" : "bg-purple-500/10 text-purple-400/60"}`}>{expense.frequency}</span>
           <span className="text-white/15 text-[10px] px-1.5 py-0.5 rounded bg-white/[0.03]">{expense.category}</span>
           <span className="text-white/20 text-xs">Due {formatDueDate(expense.dueDate)}</span>
         </div>
       </div>
-      <p className="text-orange-500 text-sm font-bold text-right">${expense.amount.toFixed(2)}</p>
-      <div className="flex items-center gap-1 md:gap-2">
-        <button onClick={onEdit} className="p-1.5 rounded-md hover:bg-white/5 text-white/15 hover:text-white/50 transition-all"><Edit className="w-3.5 h-3.5" /></button>
-        <button onClick={onDelete} className="p-1.5 rounded-md hover:bg-white/5 text-white/15 hover:text-red-400/50 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
-      </div>
-      <div className="w-full md:w-auto">
+      <p className="text-orange-500 text-sm font-bold w-16 text-right shrink-0">${expense.amount.toFixed(2)}</p>
+      <button onClick={onEdit} className="p-1.5 rounded-md hover:bg-white/5 text-white/15 hover:text-white/50 transition-all shrink-0"><Edit className="w-3.5 h-3.5" /></button>
+      <button onClick={onDelete} className="p-1.5 rounded-md hover:bg-white/5 text-white/15 hover:text-red-400/50 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
+      <div className="shrink-0">
         {expense.status === "Paid" ? (
           <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-500/10 text-green-400/70 border border-green-500/15">✓ Paid</span>
         ) : expense.status === "Overdue" ? (
