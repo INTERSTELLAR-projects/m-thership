@@ -36,11 +36,11 @@ export default function FinancialPanel() {
   const progress = (mrr / mrrGoal) * 100;
 
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-6">
+    <div className="bg-card rounded-xl border border-white/[0.06] p-4 sm:p-6">
       <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase mb-5">Financial</h2>
 
       {/* Top Metrics */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
         <MetricCard label="MRR" value={`$${mrr.toLocaleString()}`} highlight />
         <MetricCard label="ARR" value={`$${(mrr * 12).toLocaleString()}`} />
         <MetricCard label="MRR Goal" value="$10,000" />
@@ -61,7 +61,7 @@ export default function FinancialPanel() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
         <div>
           <p className="text-white/25 text-[10px] tracking-wider uppercase mb-2">Monthly Revenue</p>
           <div className="h-[120px]">

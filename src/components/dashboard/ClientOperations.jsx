@@ -109,9 +109,9 @@ export default function ClientOperations() {
   }, []);
 
   return (
-    <section className="px-8 pt-6">
+    <section className="px-4 sm:px-8 pt-6">
       <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase mb-4">Client Operations</h2>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {CARD_KEYS.map((title) => <TodoCard key={title} title={title} clients={clients} />)}
       </div>
     </section>

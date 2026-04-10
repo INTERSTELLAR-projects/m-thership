@@ -43,7 +43,7 @@ const subscriptionGroups = [
 
 export default function ActiveSubscriptions() {
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-6">
+    <div className="bg-card rounded-xl border border-white/[0.06] p-4 sm:p-6">
       <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase mb-5">
         Active Subscriptions
       </h2>

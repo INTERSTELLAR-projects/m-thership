@@ -35,8 +35,8 @@ function WidgetRenderer({ id }) {
     case "priority": return <PriorityTasks />;
     case "content-schedule": return <ClientContentSchedule />;
     case "client-ops": return <ClientOperations />;
-    case "subscriptions": return <div className="px-8 pt-6"><ActiveSubscriptions /></div>;
-    case "financial": return <div className="px-8 pt-6"><FinancialPanel /></div>;
+    case "subscriptions": return <div className="px-4 sm:px-8 pt-6"><ActiveSubscriptions /></div>;
+    case "financial": return <div className="px-4 sm:px-8 pt-6"><FinancialPanel /></div>;
     default: return null;
   }
 }
@@ -56,7 +56,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex items-center justify-between pr-8">
+      <div className="flex items-center justify-between pr-4 sm:pr-8">
         <PageHeader breadcrumb="Command Center / Dashboard" />
         <button
           onClick={() => setEditing(!editing)}
@@ -71,7 +71,7 @@ export default function Dashboard() {
       </div>
 
       {editing ? (
-        <div className="px-8 py-3">
+        <div className="px-4 sm:px-8 py-3">
           <p className="text-white/30 text-xs mb-3">Drag widgets to reorder them on your dashboard.</p>
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="dashboard-widgets">
