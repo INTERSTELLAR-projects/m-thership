@@ -182,8 +182,8 @@ function ClientDetail({ client, onBack, onUpdate }) {
       </div>
       <div className="px-8 py-6">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="bg-card border border-white/[0.06] mb-6">
-            {["overview", "services", "notes", "documents"].map((t) => (
+            <TabsList className="bg-card border border-white/[0.06] mb-6">
+              {["overview", "services", "notes", "documents", "requests"].map((t) => (
               <TabsTrigger key={t} value={t} className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40 capitalize">{t}</TabsTrigger>
             ))}
           </TabsList>
@@ -191,6 +191,7 @@ function ClientDetail({ client, onBack, onUpdate }) {
           <TabsContent value="services"><ServicesTab client={client} update={update} /></TabsContent>
           <TabsContent value="notes"><NotesTab client={client} update={update} /></TabsContent>
           <TabsContent value="documents"><DocumentsTab client={client} update={update} /></TabsContent>
+          <TabsContent value="requests"><RequestsTab client={client} update={update} /></TabsContent>
         </Tabs>
       </div>
     </div>
@@ -555,8 +556,36 @@ function MultiField({ label, icon: Icon, values, onAdd, onUpdate, onRemove }) {
           <Icon className="w-3.5 h-3.5 text-white/15 shrink-0" />
           <Input value={v} onChange={(e) => onUpdate(i, e.target.value)} className="h-7 flex-1 bg-white/[0.04] border-white/[0.08] text-white text-xs" />
           {values.length > 1 && <button onClick={() => onRemove(i)} className="p-0.5 text-white/15 hover:text-red-400/60"><X className="w-3 h-3" /></button>}
-        </div>
-      ))}
-    </div>
-  );
-}
+          </div>
+          ))}
+          </div>
+          );
+          }
+
+          function RequestsTab({ client, update }) {
+          const requests = client.requests || [];
+
+          return (
+          <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+          <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase mb-4">Customer Requests</h3>
+          {requests.length === 0 ? (
+          <p className="text-white/25 text-sm">No requests yet. Requests submitted through the portal will appear here.</p>
+          ) : (
+          <div className="space-y-3">
+          {requests.map((req, i) => (
+           <div key={i} className="bg-white/[0.02] rounded-lg border border-white/[0.04] p-3">
+             <div className="flex items-start justify-between gap-2">
+               <div className="flex-1 min-w-0">
+                 <p className="text-white/70 text-sm font-medium">{req.title}</p>
+                 <p className="text-white/40 text-xs mt-1">{req.description}</p>
+                 <p className="text-white/20 text-[10px] mt-2">{req.date}</p>
+               </div>
+               <span className="text-orange-500/60 text-[10px] font-semibold px-2 py-1 bg-orange-500/10 rounded shrink-0">{req.status || 'New'}</span>
+             </div>
+           </div>
+          ))}
+          </div>
+          )}
+          </div>
+          );
+          }
