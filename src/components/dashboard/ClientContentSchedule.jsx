@@ -30,9 +30,7 @@ export default function ClientContentSchedule() {
 
   useEffect(() => {
     const all = loadCRMClients();
-    // Only clients with a blog schedule
-    const withSchedule = all.filter((c) => c.blogSchedule && c.blogSchedule.length > 0);
-    setClients(withSchedule);
+    setClients(all);
   }, []);
 
   const toggleComplete = (clientId, entryId) => {
@@ -45,7 +43,12 @@ export default function ClientContentSchedule() {
   const totalItems = clients.reduce((sum, c) => sum + (c.blogSchedule?.length || 0), 0);
   const completedItems = Object.values(completions).filter(Boolean).length;
 
-  if (clients.length === 0) return null;
+  if (clients.length === 0) return (
+    <section className="px-8 pt-6">
+      <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase mb-2">Client Content Schedule</h2>
+      <p className="text-white/25 text-xs">No CRM clients found. Add clients in the CRM to see their content schedules here.</p>
+    </section>
+  );
 
   return (
     <section className="px-8 pt-6">
@@ -76,6 +79,9 @@ export default function ClientContentSchedule() {
                 </div>
                 {clientDone && <CheckCircle2 className="w-4 h-4 text-green-400/60 shrink-0" />}
               </div>
+              {(!client.blogSchedule || client.blogSchedule.length === 0) ? (
+                <p className="text-white/20 text-xs px-1">No content schedule — add one in CRM → Services.</p>
+              ) : (
               <div className="space-y-1.5">
                 {client.blogSchedule.map((entry) => {
                   const key = `${client.id}_${entry.id}`;
@@ -104,6 +110,7 @@ export default function ClientContentSchedule() {
                   );
                 })}
               </div>
+              )}
             </div>
           );
         })}
