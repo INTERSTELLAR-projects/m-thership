@@ -21,6 +21,7 @@ import Forge from './pages/Forge';
 import Performance from './pages/Performance';
 import SettingsPage from './pages/SettingsPage';
 import IdeaVault from './pages/IdeaVault';
+import Requests from './pages/Requests';
 import ToDo from './pages/ToDo';
 
 const AuthenticatedApp = () => {
@@ -64,7 +65,7 @@ const AuthenticatedApp = () => {
         <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/idea-vault" element={<ProtectedRoute><IdeaVault /></ProtectedRoute>} />
-        <Route path="/todo" element={<ProtectedRoute><ToDo /></ProtectedRoute>} />
+        <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
