@@ -30,7 +30,7 @@ function load(key, def) {
 }
 function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
 
-const DEFAULT_ORDER = ["deadlines", "todos", "dates"];
+const DEFAULT_ORDER = ["todos", "dates"];
 
 export default function Legal() {
   const [deadlines, setDeadlines] = useState(() => load("legal_deadlines", DEFAULT_DEADLINES));
@@ -53,7 +53,6 @@ export default function Legal() {
   };
 
   const renderSection = (id) => {
-    if (id === "deadlines") return <DeadlinesSection items={deadlines} setItems={setDL} />;
     if (id === "todos") return <TodosSection items={todos} setItems={setTD} />;
     if (id === "dates") return <DatesSection items={dates} setItems={setDT} />;
   };
