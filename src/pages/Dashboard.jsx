@@ -56,11 +56,11 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex items-center justify-between pr-8">
+      <div className="flex items-center justify-between px-4 md:px-8 py-4">
         <PageHeader breadcrumb="Command Center / Dashboard" />
         <button
           onClick={() => setEditing(!editing)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border whitespace-nowrap ${
             editing
               ? "bg-orange-500/15 text-orange-500 border-orange-500/20"
               : "text-white/30 hover:text-white/60 border-white/10 hover:border-white/20"
@@ -71,7 +71,7 @@ export default function Dashboard() {
       </div>
 
       {editing ? (
-        <div className="px-8 py-3">
+        <div className="px-4 md:px-8 py-3">
           <p className="text-white/30 text-xs mb-3">Drag widgets to reorder them on your dashboard.</p>
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="dashboard-widgets">

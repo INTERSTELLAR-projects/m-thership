@@ -97,15 +97,15 @@ export default function CRM() {
   return (
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Command Center / CRM" rightText="Customer Management" />
-      <div className="px-8 py-6 space-y-5">
-        <div className="flex items-center gap-4 flex-wrap">
+      <div className="px-4 md:px-8 py-6 space-y-5">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
             <Input placeholder="Search clients..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 bg-card border-white/[0.06] text-white placeholder:text-white/20 h-9" />
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 overflow-x-auto pb-1">
             {statusFilters.map((f) => (
-              <button key={f} onClick={() => setStatusFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${statusFilter === f ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{f}</button>
+              <button key={f} onClick={() => setStatusFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${statusFilter === f ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{f}</button>
             ))}
           </div>
           <Button onClick={() => setAddOpen(true)} className="bg-orange-500 hover:bg-orange-600 text-white h-9 gap-2"><Plus className="w-4 h-4" />Add Client</Button>
@@ -174,16 +174,16 @@ function ClientDetail({ client, onBack, onUpdate }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex items-center gap-3 px-8 py-5 border-b border-white/5">
+      <div className="flex items-center gap-3 px-4 md:px-8 py-4 md:py-5 border-b border-white/5">
         <button onClick={onBack} className="text-white/30 hover:text-white/60 text-sm transition-colors">← Back</button>
         <span className="text-white/15">/</span>
-        <span className="text-white font-bold text-sm tracking-wide">{client.business}</span>
+        <span className="text-white font-bold text-sm tracking-wide truncate">{client.business}</span>
       </div>
-      <div className="px-8 py-6">
+      <div className="px-4 md:px-8 py-6">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="bg-card border border-white/[0.06] mb-6">
+          <TabsList className="bg-card border border-white/[0.06] mb-6 overflow-x-auto">
             {["overview", "services", "notes", "documents"].map((t) => (
-              <TabsTrigger key={t} value={t} className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40 capitalize">{t}</TabsTrigger>
+              <TabsTrigger key={t} value={t} className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40 capitalize whitespace-nowrap">{t}</TabsTrigger>
             ))}
           </TabsList>
           <TabsContent value="overview"><ContactTab client={client} update={update} /></TabsContent>
@@ -219,8 +219,8 @@ function ContactTab({ client, update }) {
   const total = (client.services || []).reduce((s, sv) => s + (sv.price || 0), 0);
 
   return (
-    <div className="grid grid-cols-2 gap-6">
-      <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="bg-card rounded-xl border border-white/[0.06] p-4 md:p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Contact Info</h3>
           {editing ? (
@@ -259,7 +259,7 @@ function ContactTab({ client, update }) {
           </div>
         )}
       </div>
-      <div className="bg-card rounded-xl border border-white/[0.06] p-5 space-y-4">
+      <div className="bg-card rounded-xl border border-white/[0.06] p-4 md:p-5 space-y-4">
         <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Billing Summary</h3>
         <div className="text-center py-4">
           <p className="text-orange-500 text-3xl font-bold">${total}</p>

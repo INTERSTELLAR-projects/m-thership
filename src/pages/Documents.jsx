@@ -92,8 +92,8 @@ export default function Documents() {
   return (
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Command Center / Documents" rightText="Document Management" />
-      <div className="px-8 py-6 space-y-6">
-        <div className="flex items-center gap-4">
+      <div className="px-4 md:px-8 py-6 space-y-6">
+        <div className="flex items-center gap-3">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
             <Input placeholder="Search documents..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 bg-card border-white/[0.06] text-white placeholder:text-white/20 h-9" />
@@ -102,7 +102,7 @@ export default function Documents() {
           <Button onClick={() => fileRef.current.click()} className="bg-orange-500 hover:bg-orange-600 text-white h-9 gap-2"><Upload className="w-4 h-4" />Upload</Button>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {CATEGORIES.map((cat) => (
             <button key={cat} onClick={() => setActiveFilter(activeFilter === cat ? "All" : cat)} className={`bg-card rounded-xl border p-4 text-left transition-all hover:border-orange-500/20 ${activeFilter === cat ? "border-orange-500/30 bg-orange-500/[0.03]" : "border-white/[0.06]"}`}>
               <div className="flex items-center justify-between mb-2"><Folder className="w-4 h-4 text-orange-500/50" /><span className="text-white/20 text-xs font-medium">{categoryCounts[cat] || 0}</span></div>
