@@ -1,22 +1,9 @@
 import { useState } from "react";
-import { Plus, FileText, Shield, Clock, CheckSquare, CalendarDays, Trash2, Pencil, Check, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { Plus, Clock, CheckSquare, CalendarDays, Trash2, Pencil, Check, X, GripVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PageHeader from "../components/PageHeader";
-
-const DEFAULT_LEGAL_DOCS = [
-  { id: 1, name: "Master Services Agreement", status: "Active", lastUpdated: "Mar 15, 2026" },
-  { id: 2, name: "Non-Disclosure Agreement (Template)", status: "Active", lastUpdated: "Feb 28, 2026" },
-  { id: 3, name: "Contractor Agreement", status: "Review", lastUpdated: "Mar 10, 2026" },
-  { id: 4, name: "Terms of Service", status: "Active", lastUpdated: "Jan 05, 2026" },
-];
-
-const DEFAULT_POLICIES = [
-  { id: 1, name: "Privacy Policy", version: "v2.3", lastUpdated: "Mar 18, 2026" },
-  { id: 2, name: "Data Retention Policy", version: "v1.1", lastUpdated: "Feb 01, 2026" },
-  { id: 3, name: "Acceptable Use Policy", version: "v1.0", lastUpdated: "Jan 15, 2026" },
-];
 
 const DEFAULT_DEADLINES = [
   { id: 1, task: "Annual Business License Renewal", dueDate: "Jun 30, 2026", status: "Upcoming" },
@@ -43,173 +30,64 @@ function load(key, def) {
 }
 function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
 
+const DEFAULT_ORDER = ["deadlines", "todos", "dates"];
+
 export default function Legal() {
-  const [legalDocs, setLegalDocs] = useState(() => load("legal_docs", DEFAULT_LEGAL_DOCS));
-  const [policies, setPolicies] = useState(() => load("legal_policies", DEFAULT_POLICIES));
   const [deadlines, setDeadlines] = useState(() => load("legal_deadlines", DEFAULT_DEADLINES));
   const [todos, setTodos] = useState(() => load("legal_todos", DEFAULT_TODOS));
   const [dates, setDates] = useState(() => load("legal_dates", DEFAULT_DATES));
+  const [sectionOrder, setSectionOrder] = useState(() => load("legal_section_order", DEFAULT_ORDER));
 
-  // Generic helpers
   const updater = (setter, key) => (items) => { setter(items); save(key, items); };
-  const setLD = updater(setLegalDocs, "legal_docs");
-  const setPol = updater(setPolicies, "legal_policies");
   const setDL = updater(setDeadlines, "legal_deadlines");
   const setTD = updater(setTodos, "legal_todos");
   const setDT = updater(setDates, "legal_dates");
 
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+    const newOrder = Array.from(sectionOrder);
+    const [removed] = newOrder.splice(result.source.index, 1);
+    newOrder.splice(result.destination.index, 0, removed);
+    setSectionOrder(newOrder);
+    save("legal_section_order", newOrder);
+  };
+
+  const renderSection = (id) => {
+    if (id === "deadlines") return <DeadlinesSection items={deadlines} setItems={setDL} />;
+    if (id === "todos") return <TodosSection items={todos} setItems={setTD} />;
+    if (id === "dates") return <DatesSection items={dates} setItems={setDT} />;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Command Center / Legal" rightText="Legal Management" />
-
-      <div className="px-8 py-6 space-y-6">
-        <div className="grid grid-cols-2 gap-6">
-          <LegalDocsSection items={legalDocs} setItems={setLD} />
-          <PoliciesSection items={policies} setItems={setPol} />
-        </div>
-        <div className="grid grid-cols-2 gap-6">
-          <DeadlinesSection items={deadlines} setItems={setDL} />
-          <TodosSection items={todos} setItems={setTD} />
-        </div>
-        <DatesSection items={dates} setItems={setDT} />
+      <div className="px-8 py-6">
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="legal-sections">
+            {(provided) => (
+              <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-4">
+                {sectionOrder.map((id, index) => (
+                  <Draggable key={id} draggableId={id} index={index}>
+                    {(drag) => (
+                      <div ref={drag.innerRef} {...drag.draggableProps} className="relative">
+                        <div {...drag.dragHandleProps} className="absolute top-4 right-4 z-10 p-1 text-white/15 hover:text-white/40 cursor-grab active:cursor-grabbing">
+                          <GripVertical className="w-4 h-4" />
+                        </div>
+                        {renderSection(id)}
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       </div>
     </div>
   );
 }
 
-// ── Legal Documents ──────────────────────────────────────────
-function LegalDocsSection({ items, setItems }) {
-  const [editId, setEditId] = useState(null);
-  const [editVal, setEditVal] = useState({});
-  const [adding, setAdding] = useState(false);
-  const [newVal, setNewVal] = useState({ name: "", status: "Active", lastUpdated: "" });
-
-  const del = (id) => setItems(items.filter((i) => i.id !== id));
-  const startEdit = (item) => { setEditId(item.id); setEditVal({ ...item }); };
-  const saveEdit = () => { setItems(items.map((i) => i.id === editId ? editVal : i)); setEditId(null); };
-  const add = () => {
-    if (!newVal.name) return;
-    setItems([...items, { ...newVal, id: Date.now() }]);
-    setAdding(false); setNewVal({ name: "", status: "Active", lastUpdated: "" });
-  };
-
-  return (
-    <Section title="Legal Documents" icon={FileText}>
-      <div className="space-y-1">
-        {items.map((doc) => editId === doc.id ? (
-          <div key={doc.id} className="space-y-1.5 py-2">
-            <Input value={editVal.name} onChange={(e) => setEditVal({ ...editVal, name: e.target.value })} className="h-7 bg-white/[0.04] border-white/[0.08] text-white text-xs" placeholder="Name" />
-            <div className="flex gap-2">
-              <Select value={editVal.status} onValueChange={(v) => setEditVal({ ...editVal, status: v })}>
-                <SelectTrigger className="h-7 bg-white/[0.04] border-white/[0.08] text-white text-xs flex-1"><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-card border-white/[0.06]">
-                  <SelectItem value="Active" className="text-white/70">Active</SelectItem>
-                  <SelectItem value="Review" className="text-white/70">Review</SelectItem>
-                  <SelectItem value="Expired" className="text-white/70">Expired</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input value={editVal.lastUpdated} onChange={(e) => setEditVal({ ...editVal, lastUpdated: e.target.value })} className="h-7 bg-white/[0.04] border-white/[0.08] text-white text-xs flex-1" placeholder="Date" />
-              <button onClick={saveEdit} className="p-1 text-green-400/70 hover:text-green-400"><Check className="w-3.5 h-3.5" /></button>
-              <button onClick={() => setEditId(null)} className="p-1 text-white/30 hover:text-white/60"><X className="w-3.5 h-3.5" /></button>
-            </div>
-          </div>
-        ) : (
-          <div key={doc.id} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0 group">
-            <div>
-              <p className="text-white/75 text-sm">{doc.name}</p>
-              <p className="text-white/20 text-xs mt-0.5">Updated {doc.lastUpdated}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded ${doc.status === "Active" ? "text-green-400/70 bg-green-400/10" : doc.status === "Expired" ? "text-red-400/70 bg-red-400/10" : "text-yellow-400/70 bg-yellow-400/10"}`}>{doc.status}</span>
-              <button onClick={() => startEdit(doc)} className="p-1 text-white/15 hover:text-white/50 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3 h-3" /></button>
-              <button onClick={() => del(doc.id)} className="p-1 text-white/15 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
-            </div>
-          </div>
-        ))}
-        {adding ? (
-          <div className="space-y-1.5 pt-2">
-            <Input value={newVal.name} onChange={(e) => setNewVal({ ...newVal, name: e.target.value })} className="h-7 bg-white/[0.04] border-white/[0.08] text-white text-xs" placeholder="Document name" />
-            <div className="flex gap-2">
-              <Select value={newVal.status} onValueChange={(v) => setNewVal({ ...newVal, status: v })}>
-                <SelectTrigger className="h-7 bg-white/[0.04] border-white/[0.08] text-white text-xs flex-1"><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-card border-white/[0.06]">
-                  <SelectItem value="Active" className="text-white/70">Active</SelectItem>
-                  <SelectItem value="Review" className="text-white/70">Review</SelectItem>
-                  <SelectItem value="Expired" className="text-white/70">Expired</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input value={newVal.lastUpdated} onChange={(e) => setNewVal({ ...newVal, lastUpdated: e.target.value })} className="h-7 bg-white/[0.04] border-white/[0.08] text-white text-xs flex-1" placeholder="Date" />
-              <button onClick={add} className="p-1 text-green-400/70 hover:text-green-400"><Check className="w-3.5 h-3.5" /></button>
-              <button onClick={() => setAdding(false)} className="p-1 text-white/30 hover:text-white/60"><X className="w-3.5 h-3.5" /></button>
-            </div>
-          </div>
-        ) : (
-          <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-white/20 hover:text-white/50 text-xs pt-2 transition-colors"><Plus className="w-3.5 h-3.5" />Add document</button>
-        )}
-      </div>
-    </Section>
-  );
-}
-
-// ── Policies ─────────────────────────────────────────────────
-function PoliciesSection({ items, setItems }) {
-  const [editId, setEditId] = useState(null);
-  const [editVal, setEditVal] = useState({});
-  const [adding, setAdding] = useState(false);
-  const [newVal, setNewVal] = useState({ name: "", version: "", lastUpdated: "" });
-
-  const del = (id) => setItems(items.filter((i) => i.id !== id));
-  const startEdit = (item) => { setEditId(item.id); setEditVal({ ...item }); };
-  const saveEdit = () => { setItems(items.map((i) => i.id === editId ? editVal : i)); setEditId(null); };
-  const add = () => {
-    if (!newVal.name) return;
-    setItems([...items, { ...newVal, id: Date.now() }]);
-    setAdding(false); setNewVal({ name: "", version: "", lastUpdated: "" });
-  };
-
-  return (
-    <Section title="Policies" icon={Shield}>
-      <div className="space-y-1">
-        {items.map((p) => editId === p.id ? (
-          <div key={p.id} className="space-y-1.5 py-2">
-            <div className="flex gap-2">
-              <Input value={editVal.name} onChange={(e) => setEditVal({ ...editVal, name: e.target.value })} className="h-7 bg-white/[0.04] border-white/[0.08] text-white text-xs flex-1" placeholder="Policy name" />
-              <Input value={editVal.version} onChange={(e) => setEditVal({ ...editVal, version: e.target.value })} className="h-7 bg-white/[0.04] border-white/[0.08] text-white text-xs w-16" placeholder="v1.0" />
-              <Input value={editVal.lastUpdated} onChange={(e) => setEditVal({ ...editVal, lastUpdated: e.target.value })} className="h-7 bg-white/[0.04] border-white/[0.08] text-white text-xs w-28" placeholder="Date" />
-              <button onClick={saveEdit} className="p-1 text-green-400/70 hover:text-green-400"><Check className="w-3.5 h-3.5" /></button>
-              <button onClick={() => setEditId(null)} className="p-1 text-white/30 hover:text-white/60"><X className="w-3.5 h-3.5" /></button>
-            </div>
-          </div>
-        ) : (
-          <div key={p.id} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0 group">
-            <div>
-              <p className="text-white/75 text-sm">{p.name}</p>
-              <p className="text-white/20 text-xs mt-0.5">Updated {p.lastUpdated}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-white/20 text-xs font-mono">{p.version}</span>
-              <button onClick={() => startEdit(p)} className="p-1 text-white/15 hover:text-white/50 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3 h-3" /></button>
-              <button onClick={() => del(p.id)} className="p-1 text-white/15 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
-            </div>
-          </div>
-        ))}
-        {adding ? (
-          <div className="flex gap-2 pt-2">
-            <Input value={newVal.name} onChange={(e) => setNewVal({ ...newVal, name: e.target.value })} className="h-7 bg-white/[0.04] border-white/[0.08] text-white text-xs flex-1" placeholder="Policy name" />
-            <Input value={newVal.version} onChange={(e) => setNewVal({ ...newVal, version: e.target.value })} className="h-7 bg-white/[0.04] border-white/[0.08] text-white text-xs w-16" placeholder="v1.0" />
-            <Input value={newVal.lastUpdated} onChange={(e) => setNewVal({ ...newVal, lastUpdated: e.target.value })} className="h-7 bg-white/[0.04] border-white/[0.08] text-white text-xs w-28" placeholder="Date" />
-            <button onClick={add} className="p-1 text-green-400/70 hover:text-green-400"><Check className="w-3.5 h-3.5" /></button>
-            <button onClick={() => setAdding(false)} className="p-1 text-white/30 hover:text-white/60"><X className="w-3.5 h-3.5" /></button>
-          </div>
-        ) : (
-          <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-white/20 hover:text-white/50 text-xs pt-2 transition-colors"><Plus className="w-3.5 h-3.5" />Add policy</button>
-        )}
-      </div>
-    </Section>
-  );
-}
-
-// ── Deadlines ─────────────────────────────────────────────────
 function DeadlinesSection({ items, setItems }) {
   const [editId, setEditId] = useState(null);
   const [editVal, setEditVal] = useState({});
@@ -283,7 +161,6 @@ function DeadlinesSection({ items, setItems }) {
   );
 }
 
-// ── Todos ─────────────────────────────────────────────────────
 function TodosSection({ items, setItems }) {
   const [editId, setEditId] = useState(null);
   const [editVal, setEditVal] = useState("");
@@ -336,7 +213,6 @@ function TodosSection({ items, setItems }) {
   );
 }
 
-// ── Important Dates ───────────────────────────────────────────
 function DatesSection({ items, setItems }) {
   const [editId, setEditId] = useState(null);
   const [editVal, setEditVal] = useState({});
@@ -387,11 +263,11 @@ function DatesSection({ items, setItems }) {
   );
 }
 
-function Section({ title, icon: SectionIcon, children }) {
+function Section({ title, icon: Icon, children }) {
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+    <div className="bg-card rounded-xl border border-white/[0.06] p-5 pr-10">
       <div className="flex items-center gap-2 mb-4">
-        <SectionIcon className="w-4 h-4 text-orange-500/40" />
+        <Icon className="w-4 h-4 text-orange-500/40" />
         <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">{title}</h3>
       </div>
       {children}
