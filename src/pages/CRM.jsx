@@ -304,13 +304,12 @@ function ContactTab({ client, update }) {
               </div>
             ))}
           </div>
-        </div>
-      </div>
-      <BrandProfile clientId={client.id} initialData={client.brandProfile || {}} />
-    </div>
-  );
-}
-}
+          </div>
+          </div>
+          <BrandProfile clientId={client.id} initialData={client.brandProfile || {}} />
+          </div>
+          );
+          }
 
 function ServicesTab({ client, update }) {
   const [editId, setEditId] = useState(null);
