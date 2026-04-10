@@ -27,13 +27,10 @@ export default function Requests() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Get request forms
-      const allForms = await base44.entities.FormTemplate.filter(
-        { formType: "request", published: true },
-        "-created_date",
-        100
-      );
-      setForms(allForms);
+      // Get published forms (both request and intake types)
+      const allForms = await base44.entities.FormTemplate.list("-created_date", 100);
+      const publishedForms = allForms.filter(f => f.published === true);
+      setForms(publishedForms);
 
       // Find customer by email
       const customers = await base44.entities.CRMClient.filter(
