@@ -10,6 +10,9 @@
     },
     "due": {
       "type": "string"
+    },
+    "client": {
+      "type": "string"
     }
   },
   "required": [
