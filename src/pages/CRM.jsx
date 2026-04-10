@@ -272,7 +272,6 @@ function ServicesTab({ client, update }) {
   const [newSvc, setNewSvc] = useState({ name: "", price: "" });
 
   const save = (services) => update({ services });
-
   const del = (id) => save(client.services.filter((s) => s.id !== id));
   const startEdit = (s) => { setEditId(s.id); setEditVal({ ...s }); };
   const saveEdit = () => { save(client.services.map((s) => s.id === editId ? { ...editVal, price: parseFloat(editVal.price) || 0 } : s)); setEditId(null); };
@@ -285,44 +284,115 @@ function ServicesTab({ client, update }) {
   const total = client.services.reduce((s, sv) => s + (sv.price || 0), 0);
 
   return (
+    <div className="space-y-4">
+      <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Services & Billing</h3>
+          <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-orange-500/60 hover:text-orange-500 text-xs transition-colors"><Plus className="w-3.5 h-3.5" />Add Service</button>
+        </div>
+        <div className="space-y-2">
+          {client.services.map((s) => editId === s.id ? (
+            <div key={s.id} className="flex items-center gap-2 py-2">
+              <Input value={editVal.name} onChange={(e) => setEditVal({ ...editVal, name: e.target.value })} className="flex-1 h-8 bg-white/[0.04] border-white/[0.08] text-white text-xs" placeholder="Service name" />
+              <Input value={editVal.price} onChange={(e) => setEditVal({ ...editVal, price: e.target.value })} type="number" className="w-24 h-8 bg-white/[0.04] border-white/[0.08] text-white text-xs" placeholder="Price" />
+              <button onClick={saveEdit} className="p-1 text-green-400/70 hover:text-green-400"><Check className="w-3.5 h-3.5" /></button>
+              <button onClick={() => setEditId(null)} className="p-1 text-white/30 hover:text-white/60"><X className="w-3.5 h-3.5" /></button>
+            </div>
+          ) : (
+            <div key={s.id} className="flex items-center justify-between py-3 border-b border-white/[0.04] last:border-0 group">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-orange-500/50" />
+                <span className="text-white/70 text-sm">{s.name}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-orange-500/70 text-sm font-medium">${s.price}/mo</span>
+                <button onClick={() => startEdit(s)} className="p-1 text-white/15 hover:text-white/50 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
+                <button onClick={() => del(s.id)} className="p-1 text-white/15 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+              </div>
+            </div>
+          ))}
+          {adding && (
+            <div className="flex items-center gap-2 py-2 border-t border-white/[0.04] mt-2">
+              <Input value={newSvc.name} onChange={(e) => setNewSvc({ ...newSvc, name: e.target.value })} className="flex-1 h-8 bg-white/[0.04] border-white/[0.08] text-white text-xs" placeholder="Service name" autoFocus />
+              <Input value={newSvc.price} onChange={(e) => setNewSvc({ ...newSvc, price: e.target.value })} type="number" className="w-24 h-8 bg-white/[0.04] border-white/[0.08] text-white text-xs" placeholder="$/mo" />
+              <button onClick={add} className="p-1 text-green-400/70 hover:text-green-400"><Check className="w-3.5 h-3.5" /></button>
+              <button onClick={() => setAdding(false)} className="p-1 text-white/30 hover:text-white/60"><X className="w-3.5 h-3.5" /></button>
+            </div>
+          )}
+        </div>
+        <div className="mt-4 pt-4 border-t border-white/[0.06] flex justify-between items-center">
+          <span className="text-white/40 text-xs uppercase tracking-wider">Total Monthly</span>
+          <span className="text-orange-500 font-bold text-lg">${total}/mo</span>
+        </div>
+      </div>
+      <BlogScheduleSection client={client} update={update} />
+    </div>
+  );
+}
+
+// ── Blog Schedule Section ────────────────────────────────────
+const FREQ_OPTIONS = ["per week", "per month"];
+
+function BlogScheduleSection({ client, update }) {
+  const schedule = client.blogSchedule || [];
+  const [adding, setAdding] = useState(false);
+  const [newEntry, setNewEntry] = useState({ type: "Website Blog", count: 1, frequency: "per month" });
+  const [editId, setEditId] = useState(null);
+  const [editVal, setEditVal] = useState({});
+
+  const save = (blogSchedule) => update({ blogSchedule });
+  const del = (id) => save(schedule.filter((s) => s.id !== id));
+  const startEdit = (s) => { setEditId(s.id); setEditVal({ ...s }); };
+  const saveEdit = () => { save(schedule.map((s) => s.id === editId ? { ...editVal, count: parseInt(editVal.count) || 1 } : s)); setEditId(null); };
+  const add = () => {
+    if (!newEntry.type) return;
+    save([...schedule, { ...newEntry, count: parseInt(newEntry.count) || 1, id: Date.now() }]);
+    setAdding(false);
+    setNewEntry({ type: "Website Blog", count: 1, frequency: "per month" });
+  };
+
+  return (
     <div className="bg-card rounded-xl border border-white/[0.06] p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Services & Billing</h3>
-        <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-orange-500/60 hover:text-orange-500 text-xs transition-colors"><Plus className="w-3.5 h-3.5" />Add Service</button>
+        <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Blog & Content Schedule</h3>
+        <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-orange-500/60 hover:text-orange-500 text-xs transition-colors"><Plus className="w-3.5 h-3.5" />Add Entry</button>
       </div>
       <div className="space-y-2">
-        {client.services.map((s) => editId === s.id ? (
-          <div key={s.id} className="flex items-center gap-2 py-2">
-            <Input value={editVal.name} onChange={(e) => setEditVal({ ...editVal, name: e.target.value })} className="flex-1 h-8 bg-white/[0.04] border-white/[0.08] text-white text-xs" placeholder="Service name" />
-            <Input value={editVal.price} onChange={(e) => setEditVal({ ...editVal, price: e.target.value })} type="number" className="w-24 h-8 bg-white/[0.04] border-white/[0.08] text-white text-xs" placeholder="Price" />
+        {schedule.length === 0 && !adding && <p className="text-white/20 text-xs">No schedule set yet.</p>}
+        {schedule.map((s) => editId === s.id ? (
+          <div key={s.id} className="flex items-center gap-2 py-2 flex-wrap">
+            <input value={editVal.type} onChange={(e) => setEditVal({ ...editVal, type: e.target.value })} className="flex-1 min-w-[140px] h-8 bg-white/[0.04] border border-white/[0.08] rounded px-2 text-white text-xs outline-none" placeholder="Type" />
+            <input type="number" min="1" value={editVal.count} onChange={(e) => setEditVal({ ...editVal, count: e.target.value })} className="w-16 h-8 bg-white/[0.04] border border-white/[0.08] rounded px-2 text-white text-xs outline-none" />
+            <select value={editVal.frequency} onChange={(e) => setEditVal({ ...editVal, frequency: e.target.value })} className="h-8 bg-white/[0.04] border border-white/[0.08] rounded px-2 text-white text-xs outline-none">
+              {FREQ_OPTIONS.map((f) => <option key={f} value={f}>{f}</option>)}
+            </select>
             <button onClick={saveEdit} className="p-1 text-green-400/70 hover:text-green-400"><Check className="w-3.5 h-3.5" /></button>
             <button onClick={() => setEditId(null)} className="p-1 text-white/30 hover:text-white/60"><X className="w-3.5 h-3.5" /></button>
           </div>
         ) : (
           <div key={s.id} className="flex items-center justify-between py-3 border-b border-white/[0.04] last:border-0 group">
             <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-orange-500/50" />
-              <span className="text-white/70 text-sm">{s.name}</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-orange-500/30" />
+              <span className="text-white/70 text-sm">{s.type}</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-orange-500/70 text-sm font-medium">${s.price}/mo</span>
+              <span className="text-orange-500/60 text-sm font-medium">{s.count}x {s.frequency}</span>
               <button onClick={() => startEdit(s)} className="p-1 text-white/15 hover:text-white/50 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
               <button onClick={() => del(s.id)} className="p-1 text-white/15 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
             </div>
           </div>
         ))}
         {adding && (
-          <div className="flex items-center gap-2 py-2 border-t border-white/[0.04] mt-2">
-            <Input value={newSvc.name} onChange={(e) => setNewSvc({ ...newSvc, name: e.target.value })} className="flex-1 h-8 bg-white/[0.04] border-white/[0.08] text-white text-xs" placeholder="Service name" autoFocus />
-            <Input value={newSvc.price} onChange={(e) => setNewSvc({ ...newSvc, price: e.target.value })} type="number" className="w-24 h-8 bg-white/[0.04] border-white/[0.08] text-white text-xs" placeholder="$/mo" />
+          <div className="flex items-center gap-2 py-2 border-t border-white/[0.04] mt-2 flex-wrap">
+            <input value={newEntry.type} onChange={(e) => setNewEntry({ ...newEntry, type: e.target.value })} className="flex-1 min-w-[140px] h-8 bg-white/[0.04] border border-white/[0.08] rounded px-2 text-white text-xs outline-none" placeholder="e.g. Website Blog" autoFocus />
+            <input type="number" min="1" value={newEntry.count} onChange={(e) => setNewEntry({ ...newEntry, count: e.target.value })} className="w-16 h-8 bg-white/[0.04] border border-white/[0.08] rounded px-2 text-white text-xs outline-none" />
+            <select value={newEntry.frequency} onChange={(e) => setNewEntry({ ...newEntry, frequency: e.target.value })} className="h-8 bg-white/[0.04] border border-white/[0.08] rounded px-2 text-white text-xs outline-none">
+              {FREQ_OPTIONS.map((f) => <option key={f} value={f}>{f}</option>)}
+            </select>
             <button onClick={add} className="p-1 text-green-400/70 hover:text-green-400"><Check className="w-3.5 h-3.5" /></button>
             <button onClick={() => setAdding(false)} className="p-1 text-white/30 hover:text-white/60"><X className="w-3.5 h-3.5" /></button>
           </div>
         )}
-      </div>
-      <div className="mt-4 pt-4 border-t border-white/[0.06] flex justify-between items-center">
-        <span className="text-white/40 text-xs uppercase tracking-wider">Total Monthly</span>
-        <span className="text-orange-500 font-bold text-lg">${total}/mo</span>
       </div>
     </div>
   );
