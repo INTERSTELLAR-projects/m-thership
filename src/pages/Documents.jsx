@@ -204,6 +204,7 @@ export default function Documents() {
       const [showFormBuilder, setShowFormBuilder] = useState(false);
       const [editingForm, setEditingForm] = useState(null);
       const [previewForm, setPreviewForm] = useState(null);
+      const [selectedType, setSelectedType] = useState("request");
 
       const handleDeleteForm = async (id) => {
       await base44.entities.FormTemplate.delete(id);
@@ -218,19 +219,24 @@ export default function Documents() {
 
       return (
       <div className="space-y-6">
+      <div className="flex gap-2 mb-6">
+        <button onClick={() => setSelectedType("request")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedType === "request" ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/40 hover:text-white/60 border border-transparent"}`}>Request Forms</button>
+        <button onClick={() => setSelectedType("intake")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedType === "intake" ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/40 hover:text-white/60 border border-transparent"}`}>Intake Forms</button>
+      </div>
+
       <div className="flex items-center justify-between">
-       <h3 className="text-white font-bold text-sm">Request Forms</h3>
+       <h3 className="text-white font-bold text-sm">{selectedType === "request" ? "Request" : "Intake"} Forms</h3>
        <Button onClick={() => { setEditingForm(null); setShowFormBuilder(true); }} className="bg-orange-500 hover:bg-orange-600 text-white h-9 gap-2"><Plus className="w-4 h-4" />New Form</Button>
       </div>
 
-      {forms.length === 0 ? (
+      {forms.filter(f => (f.formType || "request") === selectedType).length === 0 ? (
        <div className="bg-card rounded-xl border border-white/[0.06] p-10 text-center">
          <FileText className="w-8 h-8 text-white/10 mx-auto mb-3" />
          <p className="text-white/30 text-sm">No request forms yet. Create one to get started.</p>
        </div>
       ) : (
        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-         {forms.map((form) => (
+         {forms.filter(f => (f.formType || "request") === selectedType).map((form) => (
            <div key={form.id} className="card-hover bg-card rounded-xl border border-white/[0.06] p-5 space-y-3">
            <div>
              <h4 className="text-white font-bold text-sm">{form.title}</h4>
@@ -251,15 +257,15 @@ export default function Documents() {
       )}
 
       {showFormBuilder && (
-       <FormBuilder form={editingForm} onClose={() => setShowFormBuilder(false)} onSave={(form) => {
-         if (editingForm) {
-           setForms((prev) => prev.map((f) => f.id === form.id ? form : f));
-         } else {
-           setForms((prev) => [...prev, form]);
-         }
-         setShowFormBuilder(false);
-         setEditingForm(null);
-       }} />
+       <FormBuilder form={editingForm} formType={selectedType} onClose={() => setShowFormBuilder(false)} onSave={(form) => {
+          if (editingForm) {
+            setForms((prev) => prev.map((f) => f.id === form.id ? form : f));
+          } else {
+            setForms((prev) => [...prev, form]);
+          }
+          setShowFormBuilder(false);
+          setEditingForm(null);
+        }} />
       )}
 
       {previewForm && (
@@ -269,7 +275,7 @@ export default function Documents() {
       );
       }
 
-      function FormBuilder({ form, onClose, onSave }) {
+      function FormBuilder({ form, formType, onClose, onSave }) {
       const [step, setStep] = useState(form?.id ? "builder" : "basic"); // 'basic' or 'builder'
       const [title, setTitle] = useState(form?.title || "");
       const [subtitle, setSubtitle] = useState(form?.subtitle || "");
@@ -284,6 +290,7 @@ export default function Documents() {
       title: title.trim(),
       subtitle: subtitle.trim(),
       category,
+      formType: formType || "request",
       fields: fields.map(f => ({
         ...f,
         acceptedTypes: f.type === "file_upload" ? ["images", "videos", "documents", "pdf"] : undefined,

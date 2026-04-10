@@ -21,6 +21,14 @@
         "Other"
       ]
     },
+    "formType": {
+      "type": "string",
+      "enum": [
+        "request",
+        "intake"
+      ],
+      "default": "request"
+    },
     "fields": {
       "type": "array",
       "items": {
