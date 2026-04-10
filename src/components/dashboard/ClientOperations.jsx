@@ -12,6 +12,7 @@ function TodoCard({ title }) {
   const [todos, setTodos] = useState(() => load(title));
   const [adding, setAdding] = useState(false);
   const [newText, setNewText] = useState("");
+  const [newDue, setNewDue] = useState("");
   const [editId, setEditId] = useState(null);
   const [editText, setEditText] = useState("");
 
@@ -19,15 +20,17 @@ function TodoCard({ title }) {
 
   const add = () => {
     if (!newText.trim()) return;
-    update([...todos, { id: Date.now(), text: newText.trim() }]);
-    setNewText(""); setAdding(false);
+    update([...todos, { id: Date.now(), text: newText.trim(), due: newDue.trim() }]);
+    setNewText(""); setNewDue(""); setAdding(false);
   };
 
   const del = (id) => update(todos.filter((t) => t.id !== id));
 
+  const [editDue, setEditDue] = useState("");
+
   const saveEdit = (id) => {
     if (!editText.trim()) return;
-    update(todos.map((t) => t.id === id ? { ...t, text: editText.trim() } : t));
+    update(todos.map((t) => t.id === id ? { ...t, text: editText.trim(), due: editDue.trim() } : t));
     setEditId(null);
   };
 
@@ -65,13 +68,22 @@ function TodoCard({ title }) {
                   onKeyDown={(e) => { if (e.key === "Enter") saveEdit(t.id); if (e.key === "Escape") setEditId(null); }}
                   className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded px-2 py-0.5 text-xs text-white outline-none"
                 />
+                <input
+                  type="date"
+                  value={editDue}
+                  onChange={(e) => setEditDue(e.target.value)}
+                  className="bg-white/[0.04] border border-white/[0.08] rounded px-2 py-0.5 text-xs text-white/60 outline-none w-32"
+                />
                 <button onClick={() => saveEdit(t.id)} className="p-0.5 text-green-400/70 hover:text-green-400"><Check className="w-3 h-3" /></button>
                 <button onClick={() => setEditId(null)} className="p-0.5 text-white/30 hover:text-white/60"><X className="w-3 h-3" /></button>
               </>
             ) : (
               <>
-                <span className="flex-1 text-white/60 text-xs leading-relaxed">• {t.text}</span>
-                <button onClick={() => { setEditId(t.id); setEditText(t.text); }} className="p-0.5 text-white/15 hover:text-white/50 opacity-0 group-hover/item:opacity-100 transition-all"><Pencil className="w-3 h-3" /></button>
+                <div className="flex-1 min-w-0">
+                  <span className="text-white/60 text-xs leading-relaxed">• {t.text}</span>
+                  {t.due && <span className="ml-2 text-orange-500/50 text-[10px] font-medium">{new Date(t.due + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+                </div>
+                <button onClick={() => { setEditId(t.id); setEditText(t.text); setEditDue(t.due || ""); }} className="p-0.5 text-white/15 hover:text-white/50 opacity-0 group-hover/item:opacity-100 transition-all"><Pencil className="w-3 h-3" /></button>
                 <button onClick={() => del(t.id)} className="p-0.5 text-white/15 hover:text-red-400/60 opacity-0 group-hover/item:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
               </>
             )}
@@ -83,12 +95,18 @@ function TodoCard({ title }) {
               autoFocus
               value={newText}
               onChange={(e) => setNewText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") add(); if (e.key === "Escape") { setAdding(false); setNewText(""); } }}
+              onKeyDown={(e) => { if (e.key === "Enter") add(); if (e.key === "Escape") { setAdding(false); setNewText(""); setNewDue(""); } }}
               placeholder="New item..."
               className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded px-2 py-0.5 text-xs text-white placeholder:text-white/20 outline-none"
             />
+            <input
+              type="date"
+              value={newDue}
+              onChange={(e) => setNewDue(e.target.value)}
+              className="bg-white/[0.04] border border-white/[0.08] rounded px-2 py-0.5 text-xs text-white/60 outline-none w-32"
+            />
             <button onClick={add} className="p-0.5 text-green-400/70 hover:text-green-400"><Check className="w-3 h-3" /></button>
-            <button onClick={() => { setAdding(false); setNewText(""); }} className="p-0.5 text-white/30 hover:text-white/60"><X className="w-3 h-3" /></button>
+            <button onClick={() => { setAdding(false); setNewText(""); setNewDue(""); }} className="p-0.5 text-white/30 hover:text-white/60"><X className="w-3 h-3" /></button>
           </div>
         )}
       </div>
