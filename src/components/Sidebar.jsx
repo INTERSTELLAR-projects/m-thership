@@ -69,6 +69,8 @@ export default function Sidebar() {
 
       {/* Main Nav */}
       <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
+        <p className="px-4 pb-1 text-[10px] font-semibold tracking-[0.2em] text-white/25 uppercase">Admin</p>
+
         {mainNav.map((item) => (
           <NavItem key={item.path} item={item} />
         ))}
