@@ -62,15 +62,15 @@ export default function Sidebar() {
             <img src="https://framerusercontent.com/images/lYN9zTgbln1GtT6KOSpG27mq3Q.png?scale-down-to=512&width=1563&height=1563" alt="Logo" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="text-white font-bold text-sm tracking-wide leading-none">ZERØ GRAVITY</h1>
-            <p className="text-white/30 text-[10px] tracking-widest uppercase">Portal</p>
+            <h1 className="font-orbitron text-white font-bold text-sm tracking-wide leading-none">ZERØ GRAVITY</h1>
+            <p className="font-orbitron text-white/30 text-[10px] tracking-widest uppercase">Portal</p>
           </div>
         </div>
       </div>
 
       {/* Main Nav */}
       <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
-        <p className="px-4 pb-1 text-[10px] font-semibold tracking-[0.2em] text-white/25 uppercase">Admin</p>
+        <p className="font-orbitron px-4 pb-1 text-[10px] font-semibold tracking-[0.2em] text-white/25 uppercase">Admin</p>
 
         {mainNav.map((item) => (
           <NavItem key={item.path} item={item} />
@@ -82,7 +82,7 @@ export default function Sidebar() {
         </div>
 
         {/* Portal Label */}
-        <p className="px-4 pb-1 text-[10px] font-semibold tracking-[0.2em] text-white/25 uppercase">Portal</p>
+        <p className="font-orbitron px-4 pb-1 text-[10px] font-semibold tracking-[0.2em] text-white/25 uppercase">Portal</p>
 
         {portalNav.map((item) => (
           <NavItem key={item.path} item={item} />

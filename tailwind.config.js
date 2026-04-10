@@ -6,6 +6,8 @@ module.exports = {
   	extend: {
       fontFamily: {
         sans: ['var(--font-sans)'],
+        display: ['var(--font-display)'],
+        orbitron: ['var(--font-display)'],
       },
   		borderRadius: {
   			lg: 'var(--radius)',
