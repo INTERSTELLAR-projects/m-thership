@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { Plus, DollarSign, TrendingUp, AlertCircle, Edit, Check, X, Trash2, Loader2 } from "lucide-react";
+import { Plus, DollarSign, TrendingUp, AlertCircle, Edit, Check, X, Trash2, Loader2, Settings, GripVertical } from "lucide-react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -31,8 +32,17 @@ const INITIAL_EXPENSES = [
   { platform: "Zapier Pro", amount: 240, frequency: "Annually", dueDay: 22, dueMonth: 5, category: "Operations", paidCycles: [] },
 ];
 
-const CATEGORIES = ["AI Tools", "Design", "Finance", "Hosting", "Marketing", "Operations", "SEO"];
+const DEFAULT_CATEGORIES = ["AI Tools", "Design", "Finance", "Hosting", "Marketing", "Operations", "SEO"];
 const FREQUENCIES = ["Monthly", "Quarterly", "Annually"];
+const FIN_CATS_KEY = "financial_categories";
+
+function loadFinCategories() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(FIN_CATS_KEY));
+    if (Array.isArray(saved) && saved.length > 0) return saved;
+  } catch {}
+  return DEFAULT_CATEGORIES;
+}
 
 function getCurrentDueDate(expense, now) {
   if (expense.frequency === "Monthly" || expense.frequency === "Quarterly") {
@@ -60,6 +70,15 @@ export default function Financial() {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [subPage, setSubPage] = useState("overview");
+  const [categories, setCategories] = useState(loadFinCategories);
+  const [managingCats, setManagingCats] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [editCat, setEditCat] = useState(null);
+
+  const saveCats = (next) => {
+    setCategories(next);
+    localStorage.setItem(FIN_CATS_KEY, JSON.stringify(next));
+  };
 
   useEffect(() => {
     base44.entities.Expense.list("platform", 200).then(async (data) => {
@@ -108,7 +127,7 @@ export default function Financial() {
   const totalMonthly = enriched.filter((e) => e.frequency === "Monthly").reduce((s, e) => s + e.amount, 0);
   const totalAnnual = enriched.filter((e) => e.frequency === "Annually").reduce((s, e) => s + e.amount, 0);
   const overdueCount = enriched.filter((e) => e.status === "Overdue").length;
-  const grouped = CATEGORIES.reduce((acc, cat) => { acc[cat] = enriched.filter((e) => e.category === cat); return acc; }, {});
+  const grouped = categories.reduce((acc, cat) => { acc[cat] = enriched.filter((e) => e.category === cat); return acc; }, {});
 
   if (loading) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -153,22 +172,80 @@ export default function Financial() {
                 <span className="text-white/10 mx-1">|</span>
                 {["All", "Upcoming", "Paid", "Overdue"].map((f) => <FilterPill key={f} label={f} active={statusFilter === f} onClick={() => setStatusFilter(f)} danger={f === "Overdue"} />)}
               </div>
-              <AddExpenseDialog onAdd={async (form) => {
+              <AddExpenseDialog categories={categories} onAdd={async (form) => {
                 const created = await base44.entities.Expense.create({ ...form, paidCycles: [] });
                 setExpenses((prev) => [...prev, created]);
               }} />
             </div>
             <div className="space-y-2">
               {filtered.map((expense) => (
-                <ExpenseRow key={expense.id} expense={expense} isEditing={editingId === expense.id} editForm={editForm} setEditForm={setEditForm} onEdit={() => startEdit(expense)} onSave={saveEdit} onCancel={() => setEditingId(null)} onMarkPaid={() => markPaid(expense)} onDelete={() => deleteExpense(expense.id)} />
+                <ExpenseRow key={expense.id} expense={expense} isEditing={editingId === expense.id} editForm={editForm} setEditForm={setEditForm} onEdit={() => startEdit(expense)} onSave={saveEdit} onCancel={() => setEditingId(null)} onMarkPaid={() => markPaid(expense)} onDelete={() => deleteExpense(expense.id)} categories={categories} />
               ))}
             </div>
           </>
         ) : (
-          <div className="space-y-6">
-            {CATEGORIES.map((cat) => {
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-white/25 text-xs">Group your expenses by category.</p>
+              <button onClick={() => setManagingCats(!managingCats)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${managingCats ? "bg-orange-500/15 text-orange-500 border-orange-500/20" : "text-white/30 hover:text-white/60 border-white/10"}`}>
+                <Settings className="w-3.5 h-3.5" />{managingCats ? "Done" : "Manage Categories"}
+              </button>
+            </div>
+
+            {managingCats && (
+              <div className="bg-card rounded-xl border border-white/[0.08] p-5 space-y-3">
+                <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Manage Categories</h3>
+                <DragDropContext onDragEnd={(result) => {
+                  if (!result.destination) return;
+                  const next = Array.from(categories);
+                  const [removed] = next.splice(result.source.index, 1);
+                  next.splice(result.destination.index, 0, removed);
+                  saveCats(next);
+                }}>
+                  <Droppable droppableId="fin-cats">
+                    {(provided) => (
+                      <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-1 max-h-64 overflow-y-auto">
+                        {categories.map((cat, i) => (
+                          <Draggable key={cat} draggableId={cat} index={i}>
+                            {(drag) => (
+                              <div ref={drag.innerRef} {...drag.draggableProps} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                                <span {...drag.dragHandleProps} className="text-white/15 hover:text-white/40 cursor-grab active:cursor-grabbing"><GripVertical className="w-3.5 h-3.5" /></span>
+                                {editCat?.index === i ? (
+                                  <>
+                                    <input value={editCat.val} onChange={(e) => setEditCat({ ...editCat, val: e.target.value })} onKeyDown={(e) => {
+                                      if (e.key === "Enter") { const t = editCat.val.trim(); if (t) { saveCats(categories.map((c, idx) => idx === i ? t : c)); setEditCat(null); } }
+                                      if (e.key === "Escape") setEditCat(null);
+                                    }} className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded px-2 py-0.5 text-xs text-white outline-none" autoFocus />
+                                    <button onClick={() => { const t = editCat.val.trim(); if (t) { saveCats(categories.map((c, idx) => idx === i ? t : c)); setEditCat(null); } }} className="text-orange-500 text-xs font-semibold hover:text-orange-400">Save</button>
+                                    <button onClick={() => setEditCat(null)} className="text-white/30 text-xs hover:text-white/60">Cancel</button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="flex-1 text-white/70 text-sm">{cat}</span>
+                                    <button onClick={() => setEditCat({ index: i, val: cat })} className="p-1 text-white/25 hover:text-white/60 transition-colors"><Edit className="w-3.5 h-3.5" /></button>
+                                    <button onClick={() => saveCats(categories.filter((_, idx) => idx !== i))} className="p-1 text-white/25 hover:text-red-400/70 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+                <div className="flex gap-2 pt-1">
+                  <input placeholder="New category..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } } }} className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none" />
+                  <button onClick={() => { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } }} className="px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-6">
+            {categories.map((cat) => {
               const items = grouped[cat];
-              if (!items.length) return null;
+              if (!items || !items.length) return null;
               const total = items.reduce((s, e) => s + e.amount, 0);
               return (
                 <div key={cat}>
@@ -178,12 +255,13 @@ export default function Financial() {
                   </div>
                   <div className="space-y-2">
                     {items.map((expense) => (
-                      <ExpenseRow key={expense.id} expense={expense} isEditing={editingId === expense.id} editForm={editForm} setEditForm={setEditForm} onEdit={() => startEdit(expense)} onSave={saveEdit} onCancel={() => setEditingId(null)} onMarkPaid={() => markPaid(expense)} onDelete={() => deleteExpense(expense.id)} />
+                      <ExpenseRow key={expense.id} expense={expense} isEditing={editingId === expense.id} editForm={editForm} setEditForm={setEditForm} onEdit={() => startEdit(expense)} onSave={saveEdit} onCancel={() => setEditingId(null)} onMarkPaid={() => markPaid(expense)} onDelete={() => deleteExpense(expense.id)} categories={categories} />
                     ))}
                   </div>
                 </div>
               );
             })}
+            </div>
           </div>
         )}
       </div>
@@ -191,7 +269,8 @@ export default function Financial() {
   );
 }
 
-function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave, onCancel, onMarkPaid, onDelete }) {
+function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave, onCancel, onMarkPaid, onDelete, categories }) {
+  categories = categories || DEFAULT_CATEGORIES;
   if (isEditing) {
     return (
       <div className="bg-card rounded-xl border border-orange-500/20 p-4 flex items-center gap-3 flex-wrap">
@@ -203,7 +282,7 @@ function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave,
         </Select>
         <Select value={editForm.category} onValueChange={(v) => setEditForm({ ...editForm, category: v })}>
           <SelectTrigger className="bg-white/[0.04] border-white/[0.08] text-white h-8 w-36"><SelectValue /></SelectTrigger>
-          <SelectContent className="bg-card border-white/[0.06]">{CATEGORIES.map((c) => <SelectItem key={c} value={c} className="text-white/70">{c}</SelectItem>)}</SelectContent>
+          <SelectContent className="bg-card border-white/[0.06]">{categories.map((c) => <SelectItem key={c} value={c} className="text-white/70">{c}</SelectItem>)}</SelectContent>
         </Select>
         <div className="flex items-center gap-1.5">
           <Input value={editForm.dueDay} onChange={(e) => setEditForm({ ...editForm, dueDay: e.target.value })} type="number" min="1" max="31" className="bg-white/[0.04] border-white/[0.08] text-white h-8 w-16" placeholder="Day" />
@@ -245,7 +324,8 @@ function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave,
   );
 }
 
-function AddExpenseDialog({ onAdd }) {
+function AddExpenseDialog({ onAdd, categories }) {
+  categories = categories || DEFAULT_CATEGORIES;
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ platform: "", amount: "", frequency: "Monthly", category: "Operations", dueDay: "", dueMonth: "" });
   const handleAdd = async () => {
@@ -277,7 +357,7 @@ function AddExpenseDialog({ onAdd }) {
           <div><Label className="text-white/50 text-xs">Category</Label>
             <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
               <SelectTrigger className="bg-white/[0.03] border-white/[0.06] text-white mt-1"><SelectValue /></SelectTrigger>
-              <SelectContent className="bg-card border-white/[0.06]">{CATEGORIES.map((c) => <SelectItem key={c} value={c} className="text-white/70">{c}</SelectItem>)}</SelectContent>
+              <SelectContent className="bg-card border-white/[0.06]">{categories.map((c) => <SelectItem key={c} value={c} className="text-white/70">{c}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <Button onClick={handleAdd} className="w-full bg-orange-500 hover:bg-orange-600 text-white">Add Expense</Button>
