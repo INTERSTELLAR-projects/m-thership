@@ -1,0 +1,44 @@
+{
+  "name": "FormTemplate",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "WebOps",
+        "Forge",
+        "\u00d8rbit SEO",
+        "Performance",
+        "Other"
+      ]
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "published": {
+      "type": "boolean",
+      "default": false
+    },
+    "publishedDate": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "fields"
+  ]
+}

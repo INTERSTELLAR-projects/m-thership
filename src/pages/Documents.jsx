@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Upload, Pin, FileText, Folder, Trash2, ExternalLink, X, Pencil, Check, Loader2 } from "lucide-react";
+import { Search, Upload, Pin, FileText, Folder, Trash2, ExternalLink, X, Pencil, Check, Loader2, Plus, Eye } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
@@ -15,8 +16,10 @@ const CATEGORIES = [
 ];
 
 export default function Documents() {
-  const [docs, setDocs] = useState([]);
-  const [loading, setLoading] = useState(true);
+   const [tab, setTab] = useState("documents");
+   const [docs, setDocs] = useState([]);
+   const [forms, setForms] = useState([]);
+   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
   const [uploading, setUploading] = useState(false);
@@ -28,8 +31,12 @@ export default function Documents() {
   const fileRef = useRef();
 
   useEffect(() => {
-    base44.entities.AppDocument.list("-created_date", 500).then((data) => {
-      setDocs(data);
+    Promise.all([
+      base44.entities.AppDocument.list("-created_date", 500),
+      base44.entities.FormTemplate.list("-created_date", 500)
+    ]).then(([docs, forms]) => {
+      setDocs(docs);
+      setForms(forms);
       setLoading(false);
     });
   }, []);
@@ -93,6 +100,12 @@ export default function Documents() {
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Command Center / Documents" rightText="Document Management" />
       <div className="px-8 py-6 space-y-6">
+        <Tabs value={tab} onValueChange={setTab} className="w-full">
+          <TabsList className="bg-card border border-white/[0.06] mb-6">
+            <TabsTrigger value="documents" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40">Documents</TabsTrigger>
+            <TabsTrigger value="forms" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40">Forms</TabsTrigger>
+          </TabsList>
+          <TabsContent value="documents" className="space-y-6">
         <div className="flex items-center gap-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
@@ -152,9 +165,14 @@ export default function Documents() {
                 </div>
               </div>
             ))}
-          </div>
-        )}
-      </div>
+            </div>
+            )}
+            </TabsContent>
+            <TabsContent value="forms">
+            <FormsList forms={forms} setForms={setForms} />
+            </TabsContent>
+            </Tabs>
+            </div>
 
       {showUploadModal && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
@@ -176,6 +194,128 @@ export default function Documents() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
+      </div>
+      );
+      }
+
+      function FormsList({ forms, setForms }) {
+      const [showFormBuilder, setShowFormBuilder] = useState(false);
+      const [editingForm, setEditingForm] = useState(null);
+
+      const handleDeleteForm = async (id) => {
+      await base44.entities.FormTemplate.delete(id);
+      setForms((prev) => prev.filter((f) => f.id !== id));
+      };
+
+      const handlePublish = async (form) => {
+      const updated = { ...form, published: true, publishedDate: new Date().toISOString() };
+      await base44.entities.FormTemplate.update(form.id, { published: true, publishedDate: updated.publishedDate });
+      setForms((prev) => prev.map((f) => f.id === form.id ? updated : f));
+      };
+
+      return (
+      <div className="space-y-6">
+      <div className="flex items-center justify-between">
+       <h3 className="text-white font-bold text-sm">Request Forms</h3>
+       <Button onClick={() => { setEditingForm(null); setShowFormBuilder(true); }} className="bg-orange-500 hover:bg-orange-600 text-white h-9 gap-2"><Plus className="w-4 h-4" />New Form</Button>
+      </div>
+
+      {forms.length === 0 ? (
+       <div className="bg-card rounded-xl border border-white/[0.06] p-10 text-center">
+         <FileText className="w-8 h-8 text-white/10 mx-auto mb-3" />
+         <p className="text-white/30 text-sm">No request forms yet. Create one to get started.</p>
+       </div>
+      ) : (
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+         {forms.map((form) => (
+           <div key={form.id} className="card-hover bg-card rounded-xl border border-white/[0.06] p-5 space-y-3">
+             <div>
+               <h4 className="text-white font-bold text-sm">{form.title}</h4>
+               <p className="text-white/40 text-xs mt-1">{form.subtitle}</p>
+               <span className={`inline-block mt-2 text-[10px] font-semibold px-2 py-1 rounded ${ form.published ? "bg-green-500/10 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
+                 {form.published ? "Published" : "Draft"}
+               </span>
+             </div>
+             <div className="flex items-center gap-2">
+               <button onClick={() => setEditingForm(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.04] text-white/60 hover:bg-white/[0.08] transition-all flex items-center justify-center gap-1.5"><Pencil className="w-3 h-3" />Edit</button>
+               {!form.published && <button onClick={() => handlePublish(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 transition-all flex items-center justify-center gap-1.5"><Eye className="w-3 h-3" />Publish</button>}
+               <button onClick={() => handleDeleteForm(form.id)} className="px-3 py-1.5 text-xs font-medium rounded-lg text-white/20 hover:text-red-400 transition-all"><Trash2 className="w-3 h-3" /></button>
+             </div>
+           </div>
+         ))}
+       </div>
+      )}
+
+      {showFormBuilder && (
+       <FormBuilder form={editingForm} onClose={() => setShowFormBuilder(false)} onSave={(form) => {
+         if (editingForm) {
+           setForms((prev) => prev.map((f) => f.id === form.id ? form : f));
+         } else {
+           setForms((prev) => [...prev, form]);
+         }
+         setShowFormBuilder(false);
+         setEditingForm(null);
+       }} />
+      )}
+      </div>
+      );
+      }
+
+      function FormBuilder({ form, onClose, onSave }) {
+      const [title, setTitle] = useState(form?.title || "");
+      const [subtitle, setSubtitle] = useState(form?.subtitle || "");
+      const [category, setCategory] = useState(form?.category || "WebOps");
+      const [saving, setSaving] = useState(false);
+
+      const handleSave = async () => {
+      if (!title.trim()) return;
+      setSaving(true);
+      const formData = {
+      title: title.trim(),
+      subtitle: subtitle.trim(),
+      category,
+      fields: form?.fields || [],
+      published: form?.published || false,
+      };
+      if (form?.id) {
+      const { id, created_date, updated_date, created_by, ...rest } = form;
+      await base44.entities.FormTemplate.update(form.id, { ...rest, ...formData });
+      onSave({ ...form, ...formData });
+      } else {
+      const created = await base44.entities.FormTemplate.create(formData);
+      onSave(created);
+      }
+      setSaving(false);
+      };
+
+      return (
+      <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
+      <div className="bg-card border border-white/[0.08] rounded-2xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto">
+       <div className="flex items-center justify-between">
+         <h3 className="text-white font-bold text-sm">{form ? "Edit Form" : "Create Form"}</h3>
+         <button onClick={onClose} className="text-white/30 hover:text-white/60"><X className="w-4 h-4" /></button>
+       </div>
+       <div className="space-y-3">
+         <div>
+           <label className="text-white/40 text-xs font-medium block mb-1.5">Form Title *</label>
+           <Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-white/[0.03] border-white/[0.06] text-white" placeholder="e.g. WebOps Website Update Request" />
+         </div>
+         <div>
+           <label className="text-white/40 text-xs font-medium block mb-1.5">Subtitle (optional)</label>
+           <Input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="bg-white/[0.03] border-white/[0.06] text-white" placeholder="Brief description" />
+         </div>
+         <div>
+           <label className="text-white/40 text-xs font-medium block mb-1.5">Category *</label>
+           <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded px-3 py-2 text-white text-sm outline-none">
+             {["WebOps", "Forge", "Ørbit SEO", "Performance", "Other"].map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+           </select>
+         </div>
+       </div>
+       <div className="flex gap-2 pt-2">
+         <Button onClick={onClose} variant="outline" className="flex-1">Cancel</Button>
+         <Button onClick={handleSave} disabled={!title.trim() || saving} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white">{saving ? "Saving..." : "Save"}</Button>
+       </div>
+      </div>
+      </div>
+      );
+      }
