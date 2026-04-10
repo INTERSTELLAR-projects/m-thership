@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
+import MicButton from "../components/MicButton";
 import { useRef } from "react";
 
 const statusFilters = ["All", "Active", "Inactive", "Lead"];
@@ -414,8 +415,6 @@ function NotesTab({ client, update }) {
     saveNotes([...(client.notes || []), { id: Date.now(), text: newNote.trim(), date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) }]);
     setNewNote("");
   };
-  const delNote = (id) => saveNotes((client.notes || []).filter((n) => n.id !== id));
-  const saveEdit = (id) => { saveNotes((client.notes || []).map((n) => n.id === id ? { ...n, text: editText } : n)); setEditId(null); };
 
   return (
     <div className="bg-card rounded-xl border border-white/[0.06] p-5">
@@ -443,7 +442,10 @@ function NotesTab({ client, update }) {
         ))}
       </div>
       <div className="flex gap-3">
-        <textarea value={newNote} onChange={(e) => setNewNote(e.target.value)} placeholder="Add a note..." className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none resize-none min-h-[80px]" />
+        <div className="relative flex-1">
+          <textarea value={newNote} onChange={(e) => setNewNote(e.target.value)} placeholder="Add a note..." className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 pr-9 text-sm text-white placeholder:text-white/20 outline-none resize-none min-h-[80px]" />
+          <MicButton onResult={(t) => setNewNote((p) => p + (p ? " " : "") + t)} className="absolute top-2 right-1" />
+        </div>
         <button onClick={addNote} className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors self-end">Add</button>
       </div>
     </div>

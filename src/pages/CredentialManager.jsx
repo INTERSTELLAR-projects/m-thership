@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
+import MicButton from "../components/MicButton";
 
 const DEFAULT_CATEGORIES = ["All", "Email", "Hosting", "SEO", "Billing", "Social Tools", "Other"];
 
@@ -238,7 +239,7 @@ export default function CredentialManager() {
                     </Select>
                   </div>
                   {editingLogin.loginType === "Email + Password" && <div><Label className="text-white/50 text-xs">Password</Label><Input value={editingLogin.password} onChange={(e) => setEditingLogin({ ...editingLogin, password: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>}
-                  <div><Label className="text-white/50 text-xs">Notes</Label><Input value={editingLogin.notes} onChange={(e) => setEditingLogin({ ...editingLogin, notes: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>
+                  <div><Label className="text-white/50 text-xs">Notes</Label><div className="flex items-center gap-1 mt-1"><Input value={editingLogin.notes} onChange={(e) => setEditingLogin({ ...editingLogin, notes: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white flex-1" /><MicButton onResult={(t) => setEditingLogin((p) => ({ ...p, notes: p.notes + (p.notes ? " " : "") + t }))} /></div></div>
                   <Button onClick={handleEditSave} className="w-full bg-orange-500 hover:bg-orange-600 text-white">Save Changes</Button>
                 </div>
               )}
@@ -253,7 +254,7 @@ export default function CredentialManager() {
             <DialogContent className="bg-card border-white/[0.06] text-white">
               <DialogHeader><DialogTitle className="text-white">Add New Login</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
-                <div><Label className="text-white/50 text-xs">Platform</Label><Input value={newLogin.platform} onChange={(e) => setNewLogin({ ...newLogin, platform: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>
+                <div><Label className="text-white/50 text-xs">Platform</Label><div className="flex items-center gap-1 mt-1"><Input value={newLogin.platform} onChange={(e) => setNewLogin({ ...newLogin, platform: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white flex-1" /><MicButton onResult={(t) => setNewLogin((p) => ({ ...p, platform: p.platform + t }))} /></div></div>
                 <div><Label className="text-white/50 text-xs">Category</Label>
                   <Select value={newLogin.category} onValueChange={(v) => setNewLogin({ ...newLogin, category: v })}>
                     <SelectTrigger className="bg-white/[0.03] border-white/[0.06] text-white mt-1"><SelectValue placeholder="Select category" /></SelectTrigger>
@@ -274,7 +275,7 @@ export default function CredentialManager() {
                   </Select>
                 </div>
                 {newLogin.loginType === "Email + Password" && <div><Label className="text-white/50 text-xs">Password</Label><Input value={newLogin.password} onChange={(e) => setNewLogin({ ...newLogin, password: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>}
-                <div><Label className="text-white/50 text-xs">Notes</Label><Input value={newLogin.notes} onChange={(e) => setNewLogin({ ...newLogin, notes: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>
+                <div><Label className="text-white/50 text-xs">Notes</Label><div className="flex items-center gap-1 mt-1"><Input value={newLogin.notes} onChange={(e) => setNewLogin({ ...newLogin, notes: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white flex-1" /><MicButton onResult={(t) => setNewLogin((p) => ({ ...p, notes: p.notes + (p.notes ? " " : "") + t }))} /></div></div>
                 <Button onClick={handleAdd} className="w-full bg-orange-500 hover:bg-orange-600 text-white">Save Login</Button>
               </div>
             </DialogContent>

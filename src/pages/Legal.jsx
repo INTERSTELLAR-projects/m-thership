@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
+import MicButton from "../components/MicButton";
 
 const DEFAULT_DEADLINES = [
   { section: "deadline", task: "Annual Business License Renewal", dueDate: "Jun 30, 2026", status: "Upcoming" },
@@ -175,6 +176,7 @@ function TodosSection({ items, onAdd, onUpdate, onDelete }) {
         {adding ? (
           <div className="flex items-center gap-2 pt-2">
             <Input value={newTask} onChange={(e) => setNewTask(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { if (newTask.trim()) { onAdd({ task: newTask.trim(), done: false }); setAdding(false); setNewTask(""); } } if (e.key === "Escape") setAdding(false); }} className="h-7 bg-white/[0.04] border-white/[0.08] text-white text-xs flex-1" placeholder="New task..." autoFocus />
+            <MicButton onResult={(t) => setNewTask((p) => p + (p ? " " : "") + t)} />
             <button onClick={() => { if (newTask.trim()) { onAdd({ task: newTask.trim(), done: false }); setAdding(false); setNewTask(""); } }} className="p-1 text-green-400/70 hover:text-green-400"><Check className="w-3.5 h-3.5" /></button>
             <button onClick={() => setAdding(false)} className="p-1 text-white/30 hover:text-white/60"><X className="w-3.5 h-3.5" /></button>
           </div>

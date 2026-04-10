@@ -5,6 +5,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
+import MicButton from "../components/MicButton";
 
 const DEFAULT_CATEGORIES = ["Marketing", "Product", "Operations", "Tech", "Content", "Other"];
 const STATUS_OPTIONS = ["New", "In Review", "Planned", "Implemented", "Shelved"];
@@ -188,8 +189,14 @@ Category: ${idea.category}`;
         {adding && (
           <div className="bg-card rounded-xl border border-orange-500/20 p-5 space-y-3">
             <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">New Idea</h3>
-            <Input value={newIdea.title} onChange={(e) => setNewIdea({ ...newIdea, title: e.target.value })} placeholder="Idea title..." className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/25" autoFocus />
-            <textarea value={newIdea.description} onChange={(e) => setNewIdea({ ...newIdea, description: e.target.value })} placeholder="Describe the idea..." className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/25 outline-none resize-none min-h-[80px]" />
+            <div className="flex items-center gap-2">
+              <Input value={newIdea.title} onChange={(e) => setNewIdea({ ...newIdea, title: e.target.value })} placeholder="Idea title..." className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/25 flex-1" autoFocus />
+              <MicButton onResult={(t) => setNewIdea((p) => ({ ...p, title: p.title + (p.title ? " " : "") + t }))} />
+            </div>
+            <div className="relative">
+              <textarea value={newIdea.description} onChange={(e) => setNewIdea({ ...newIdea, description: e.target.value })} placeholder="Describe the idea..." className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 pr-9 text-sm text-white placeholder:text-white/25 outline-none resize-none min-h-[80px]" />
+              <MicButton onResult={(t) => setNewIdea((p) => ({ ...p, description: p.description + (p.description ? " " : "") + t }))} className="absolute top-2 right-1" />
+            </div>
             <div className="flex gap-3 flex-wrap">
               <div className="flex items-center gap-2">
                 <span className="text-white/40 text-xs">Category:</span>
@@ -226,8 +233,14 @@ Category: ${idea.category}`;
                 <div key={idea.id} className="bg-card rounded-xl border border-white/[0.06] p-5 group hover:border-orange-500/15 transition-all">
                   {editId === idea.id ? (
                     <div className="space-y-3">
-                      <Input value={editVal.title} onChange={(e) => setEditVal({ ...editVal, title: e.target.value })} className="bg-white/[0.04] border-white/[0.08] text-white" />
-                      <textarea value={editVal.description} onChange={(e) => setEditVal({ ...editVal, description: e.target.value })} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white outline-none resize-none min-h-[80px]" />
+                      <div className="flex items-center gap-2">
+                        <Input value={editVal.title} onChange={(e) => setEditVal({ ...editVal, title: e.target.value })} className="bg-white/[0.04] border-white/[0.08] text-white flex-1" />
+                        <MicButton onResult={(t) => setEditVal((p) => ({ ...p, title: p.title + (p.title ? " " : "") + t }))} />
+                      </div>
+                      <div className="relative">
+                        <textarea value={editVal.description} onChange={(e) => setEditVal({ ...editVal, description: e.target.value })} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 pr-9 text-sm text-white outline-none resize-none min-h-[80px]" />
+                        <MicButton onResult={(t) => setEditVal((p) => ({ ...p, description: p.description + (p.description ? " " : "") + t }))} className="absolute top-2 right-1" />
+                      </div>
                       <div className="flex gap-3 flex-wrap">
                         <div className="flex items-center gap-2">
                           <span className="text-white/40 text-xs">Category:</span>

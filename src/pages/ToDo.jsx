@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from "@/api/base44Client";
+import MicButton from "../components/MicButton";
 import PageHeader from "../components/PageHeader";
 
 const CATEGORIES = ["Priority", "NextUp"];
@@ -225,11 +226,17 @@ function TaskForm({ form, setForm, onSave, onCancel, title, inline }) {
       <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">{title}</h3>
       <div>
         <Label className="text-white/40 text-xs">Title</Label>
-        <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Task title..." className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/20 mt-1" autoFocus />
+        <div className="flex items-center gap-2 mt-1">
+          <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Task title..." className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/20 flex-1" autoFocus />
+          <MicButton onResult={(t) => setForm((p) => ({ ...p, title: p.title + (p.title ? " " : "") + t }))} />
+        </div>
       </div>
       <div>
         <Label className="text-white/40 text-xs">Description (optional)</Label>
-        <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Add more detail..." className="w-full mt-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none resize-none min-h-[60px]" />
+        <div className="relative mt-1">
+          <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Add more detail..." className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 pr-9 text-sm text-white placeholder:text-white/20 outline-none resize-none min-h-[60px]" />
+          <MicButton onResult={(t) => setForm((p) => ({ ...p, description: p.description + (p.description ? " " : "") + t }))} className="absolute top-2 right-1" />
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
