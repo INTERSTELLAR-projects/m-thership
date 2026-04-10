@@ -61,8 +61,13 @@ const sampleData = [
 
 const categories = ["All", "Email", "Hosting", "SEO", "Billing", "Social Tools", "Other"];
 
+function loadLogins() {
+  try { return JSON.parse(localStorage.getItem("ic_logins")) || sampleData; } catch { return sampleData; }
+}
+function saveLogins(logins) { localStorage.setItem("ic_logins", JSON.stringify(logins)); }
+
 export default function CredentialManager() {
-  const [logins, setLogins] = useState(sampleData);
+  const [logins, setLogins] = useState(() => loadLogins());
   const [categoryList, setCategoryList] = useState(categories);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -106,17 +111,17 @@ export default function CredentialManager() {
   };
 
   const handleDelete = (id) => {
-    setLogins((prev) => prev.filter((l) => l.id !== id));
+    setLogins((prev) => { const next = prev.filter((l) => l.id !== id); saveLogins(next); return next; });
   };
 
   const handleEditSave = () => {
-    setLogins((prev) => prev.map((l) => l.id === editingLogin.id ? editingLogin : l));
+    setLogins((prev) => { const next = prev.map((l) => l.id === editingLogin.id ? editingLogin : l); saveLogins(next); return next; });
     setEditingLogin(null);
   };
 
   const handleAdd = () => {
     const id = Date.now();
-    setLogins((prev) => [...prev, { ...newLogin, id }]);
+    setLogins((prev) => { const next = [...prev, { ...newLogin, id }]; saveLogins(next); return next; });
     setNewLogin({ platform: "", category: "", email: "", username: "", password: "", loginType: "Email + Password", notes: "" });
     setAddOpen(false);
   };
