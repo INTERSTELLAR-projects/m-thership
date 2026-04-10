@@ -1,6 +1,10 @@
-import { X } from "lucide-react";
+import { X, Upload } from "lucide-react";
+import { useState, useRef } from "react";
+import { base44 } from "@/api/base44Client";
 
-export default function FormPreview({ form, onClose }) {
+export default function FormPreview({ form, onClose, clientId }) {
+  const [uploadingField, setUploadingField] = useState(null);
+  const fileInputRef = useRef({});
   const FIELD_TYPE_LABELS = {
     short_text: "Short Text",
     long_text: "Long Text",
@@ -194,8 +198,23 @@ export default function FormPreview({ form, onClose }) {
                 )}
 
                 {field.type === "file_upload" && (
-                  <div className="w-full border-2 border-dashed border-white/[0.06] rounded-lg p-4 text-center text-white/30 text-sm cursor-not-allowed">
-                    Drag files here or click to upload
+                  <div className="space-y-2">
+                    <input
+                      ref={(el) => (fileInputRef.current[field.id] = el)}
+                      type="file"
+                      multiple
+                      accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                      onChange={(e) => handleFileUpload(e, field.id)}
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => fileInputRef.current[field.id]?.click()}
+                      disabled={uploadingField === field.id}
+                      className="w-full border-2 border-dashed border-orange-500/30 rounded-lg p-4 text-center text-orange-400/70 text-sm hover:border-orange-500/60 hover:bg-orange-500/5 transition-all disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {uploadingField === field.id ? "Uploading..." : "Click to upload or drag files"}
+                    </button>
                   </div>
                 )}
 
@@ -213,4 +232,32 @@ export default function FormPreview({ form, onClose }) {
       </div>
     </div>
   );
+
+  const handleFileUpload = async (e, fieldId) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    setUploadingField(fieldId);
+    try {
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        if (clientId) {
+          const client = await base44.entities.CRMClient.get(clientId);
+          const documents = client.documents || [];
+          documents.push({
+            id: Date.now() + Math.random(),
+            name: file.name,
+            url: file_url,
+            date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+          });
+          await base44.entities.CRMClient.update(clientId, { documents });
+        }
+      }
+      e.target.value = "";
+    } catch (error) {
+      console.error("Upload failed:", error);
+    } finally {
+      setUploadingField(null);
+    }
+  };
 }

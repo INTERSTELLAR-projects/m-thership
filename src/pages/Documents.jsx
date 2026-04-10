@@ -270,7 +270,7 @@ export default function Documents() {
       }
 
       function FormBuilder({ form, onClose, onSave }) {
-      const [step, setStep] = useState("basic"); // 'basic' or 'builder'
+      const [step, setStep] = useState(form?.id ? "builder" : "basic"); // 'basic' or 'builder'
       const [title, setTitle] = useState(form?.title || "");
       const [subtitle, setSubtitle] = useState(form?.subtitle || "");
       const [category, setCategory] = useState(form?.category || "Web Øps");
@@ -284,7 +284,11 @@ export default function Documents() {
       title: title.trim(),
       subtitle: subtitle.trim(),
       category,
-      fields: fields,
+      fields: fields.map(f => ({
+        ...f,
+        acceptedTypes: f.type === "file_upload" ? ["images", "videos", "documents", "pdf"] : undefined,
+        multiple: f.type === "file_upload" ? true : undefined,
+      })),
       published: form?.published || false,
       };
       if (form?.id) {
