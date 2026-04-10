@@ -11,6 +11,15 @@ import PageHeader from "../components/PageHeader";
 import MicButton from "../components/MicButton";
 
 const DEFAULT_CATEGORIES = ["All", "Email", "Hosting", "SEO", "Billing", "Social Tools", "Other"];
+const CATS_STORAGE_KEY = "credential_manager_categories";
+
+function loadCategories() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CATS_STORAGE_KEY));
+    if (Array.isArray(saved) && saved.length > 0) return saved;
+  } catch {}
+  return DEFAULT_CATEGORIES;
+}
 
 const SEED_DATA = [
   { platform: "Gmail", category: "Email", email: "interstellarstrategiesllc@gmail.com", username: "interstellarstrategiesllc", password: "Paradox1234$", loginType: "Email + Password", notes: "" },
@@ -66,7 +75,7 @@ const SEED_DATA = [
 export default function CredentialManager() {
   const [logins, setLogins] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [categoryList, setCategoryList] = useState(DEFAULT_CATEGORIES);
+  const [categoryList, setCategoryList] = useState(loadCategories);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [visiblePasswords, setVisiblePasswords] = useState({});
@@ -114,23 +123,33 @@ export default function CredentialManager() {
     setAddOpen(false);
   };
 
+  const saveCategories = (cats) => {
+    localStorage.setItem(CATS_STORAGE_KEY, JSON.stringify(cats));
+  };
+
   const handleAddCategory = () => {
     const trimmed = newCatName.trim();
     if (!trimmed || categoryList.includes(trimmed)) return;
-    setCategoryList((prev) => [...prev, trimmed]);
+    const next = [...categoryList, trimmed];
+    setCategoryList(next);
+    saveCategories(next);
     setNewCatName("");
   };
 
   const handleDeleteCategory = (cat) => {
     if (cat === "All") return;
-    setCategoryList((prev) => prev.filter((c) => c !== cat));
+    const next = categoryList.filter((c) => c !== cat);
+    setCategoryList(next);
+    saveCategories(next);
     if (activeCategory === cat) setActiveCategory("All");
   };
 
   const handleEditCategory = (oldCat, newCat) => {
     const trimmed = newCat.trim();
     if (!trimmed || (trimmed !== oldCat && categoryList.includes(trimmed))) return;
-    setCategoryList((prev) => prev.map((c) => c === oldCat ? trimmed : c));
+    const next = categoryList.map((c) => c === oldCat ? trimmed : c);
+    setCategoryList(next);
+    saveCategories(next);
     if (activeCategory === oldCat) setActiveCategory(trimmed);
     setEditingCat(null);
   };
@@ -141,7 +160,9 @@ export default function CredentialManager() {
     const reordered = Array.from(nonAll);
     const [removed] = reordered.splice(result.source.index, 1);
     reordered.splice(result.destination.index, 0, removed);
-    setCategoryList(["All", ...reordered]);
+    const next = ["All", ...reordered];
+    setCategoryList(next);
+    saveCategories(next);
   };
 
   const filtered = logins.filter((login) => {

@@ -8,13 +8,22 @@ import PageHeader from "../components/PageHeader";
 import MicButton from "../components/MicButton";
 
 const DEFAULT_CATEGORIES = ["Marketing", "Product", "Operations", "Tech", "Content", "Other"];
+const IDEA_CATS_KEY = "idea_vault_categories";
+
+function loadIdeaCategories() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(IDEA_CATS_KEY));
+    if (Array.isArray(saved) && saved.length > 0) return saved;
+  } catch {}
+  return DEFAULT_CATEGORIES;
+}
 const STATUS_OPTIONS = ["New", "In Review", "Planned", "Implemented", "Shelved"];
 
 export default function IdeaVault() {
   const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState({});
-  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const [categories, setCategories] = useState(loadIdeaCategories);
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
   const [adding, setAdding] = useState(false);
@@ -28,10 +37,14 @@ export default function IdeaVault() {
   useEffect(() => {
     base44.entities.Idea.list("-created_date", 200).then((data) => {
       setIdeas(data);
-      // Derive categories from existing ideas + defaults
+      // Merge any new categories from existing ideas into saved list
+      const saved = loadIdeaCategories();
       const existingCats = [...new Set(data.map((i) => i.category).filter(Boolean))];
-      const merged = [...new Set([...DEFAULT_CATEGORIES, ...existingCats])];
-      setCategories(merged);
+      const merged = [...new Set([...saved, ...existingCats])];
+      if (merged.length !== saved.length) {
+        setCategories(merged);
+        localStorage.setItem(IDEA_CATS_KEY, JSON.stringify(merged));
+      }
       setLoading(false);
     });
   }, []);
@@ -81,16 +94,21 @@ Category: ${idea.category}`;
     setEditId(null);
   };
 
+  const saveCats = (next) => {
+    setCategories(next);
+    localStorage.setItem(IDEA_CATS_KEY, JSON.stringify(next));
+  };
+
   const addCat = () => {
     const t = newCatName.trim();
     if (!t || categories.includes(t)) return;
-    setCategories([...categories, t]);
+    saveCats([...categories, t]);
     setNewCatName("");
   };
 
   const deleteCat = (i) => {
     const next = categories.filter((_, idx) => idx !== i);
-    setCategories(next);
+    saveCats(next);
     if (catFilter === categories[i]) setCatFilter("All");
   };
 
@@ -98,7 +116,7 @@ Category: ${idea.category}`;
     const t = editCat.val.trim();
     if (!t) return;
     const old = categories[i];
-    setCategories(categories.map((c, idx) => idx === i ? t : c));
+    saveCats(categories.map((c, idx) => idx === i ? t : c));
     // Update all ideas in that category
     const affected = ideas.filter((idea) => idea.category === old);
     for (const idea of affected) {
@@ -114,7 +132,7 @@ Category: ${idea.category}`;
     const next = Array.from(categories);
     const [removed] = next.splice(result.source.index, 1);
     next.splice(result.destination.index, 0, removed);
-    setCategories(next);
+    saveCats(next);
   };
 
   const filtered = ideas.filter((i) => {
