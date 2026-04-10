@@ -290,26 +290,14 @@ function ContactTab({ client, update }) {
             </div>
           )}
         </div>
-        <div className="bg-card rounded-xl border border-white/[0.06] p-5 space-y-4">
-          <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Billing Summary</h3>
-          <div className="text-center py-4">
-            <p className="text-orange-500 text-3xl font-bold">${total}</p>
-            <p className="text-white/25 text-xs mt-1">Monthly Total</p>
-          </div>
-          <div className="space-y-2">
-            {(client.services || []).map((s) => (
-              <div key={s.id} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2 text-white/50"><div className="w-1.5 h-1.5 rounded-full bg-orange-500/50" />{s.name}</div>
-                <span className="text-orange-500/70 text-xs font-medium">${s.price}/mo</span>
-              </div>
-            ))}
-          </div>
-          </div>
-          </div>
-          <BrandProfile clientId={client.id} initialData={client.brandProfile || {}} />
-          </div>
-          );
-          }
+        </div>
+        </div>
+        <div className="col-span-2">
+        <BrandProfile clientId={client.id} initialData={client.brandProfile || {}} />
+        </div>
+        </div>
+        );
+        }
 
 function ServicesTab({ client, update }) {
   const [editId, setEditId] = useState(null);
