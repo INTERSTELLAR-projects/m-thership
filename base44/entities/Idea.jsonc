@@ -24,6 +24,9 @@
     },
     "date": {
       "type": "string"
+    },
+    "aiAnalysis": {
+      "type": "string"
     }
   },
   "required": [

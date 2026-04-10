@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Check, X, Lightbulb, Search, Settings, GripVertical, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Lightbulb, Search, Settings, GripVertical, Loader2, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
@@ -43,6 +44,25 @@ export default function IdeaVault() {
     setIdeas([created, ...ideas]);
     setAdding(false);
     setNewIdea({ title: "", description: "", category: "", status: "New" });
+    // Trigger AI analysis in background
+    analyzeIdea(created);
+  };
+
+  const analyzeIdea = async (idea) => {
+    const prompt = `You are a sharp business strategist and creative advisor. Analyze this business idea and provide:
+1. A quick take on its potential and strengths
+2. 3-5 specific add-ons or expansions that could make it significantly better
+3. Any important considerations or pitfalls to watch for
+
+Be concise, practical, and actionable. Use bullet points.
+
+Idea Title: ${idea.title}
+Description: ${idea.description || "(no description provided)"}
+Category: ${idea.category}`;
+
+    const result = await base44.integrations.Core.InvokeLLM({ prompt });
+    await base44.entities.Idea.update(idea.id, { aiAnalysis: result });
+    setIdeas((prev) => prev.map((i) => i.id === idea.id ? { ...i, aiAnalysis: result } : i));
   };
 
   const del = async (id) => {
@@ -237,6 +257,7 @@ export default function IdeaVault() {
                           </div>
                           {idea.description && <p className="text-white/45 text-sm mt-1 leading-relaxed">{idea.description}</p>}
                           <p className="text-white/15 text-[10px] mt-2">{idea.date}</p>
+                          <AIAnalysisPanel idea={idea} onReanalyze={analyzeIdea} />
                         </div>
                         <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-all">
                           <button onClick={() => startEdit(idea)} className="p-1.5 text-white/20 hover:text-white/60 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
@@ -251,6 +272,47 @@ export default function IdeaVault() {
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function AIAnalysisPanel({ idea, onReanalyze }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleReanalyze = async () => {
+    setLoading(true);
+    setOpen(true);
+    await onReanalyze(idea);
+    setLoading(false);
+  };
+
+  if (!idea.aiAnalysis && !loading) {
+    return (
+      <button onClick={handleReanalyze} className="flex items-center gap-1.5 mt-2 text-[10px] font-semibold text-orange-500/50 hover:text-orange-500/80 transition-colors">
+        <Sparkles className="w-3 h-3" />Analyze with AI
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-3 border-t border-white/[0.05] pt-3">
+      <button onClick={() => setOpen(!open)} className="flex items-center gap-1.5 text-[10px] font-semibold text-orange-500/60 hover:text-orange-500/90 transition-colors w-full text-left">
+        <Sparkles className="w-3 h-3" />
+        <span>AI Analysis</span>
+        {loading ? <Loader2 className="w-3 h-3 animate-spin ml-1" /> : open ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
+        {!loading && <button onClick={(e) => { e.stopPropagation(); handleReanalyze(); }} className="ml-auto text-white/20 hover:text-orange-500/50 transition-colors">↺ Refresh</button>}
+      </button>
+      {open && !loading && idea.aiAnalysis && (
+        <div className="mt-2 bg-orange-500/[0.03] border border-orange-500/10 rounded-lg px-4 py-3">
+          <ReactMarkdown className="text-xs text-white/55 prose prose-sm prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_ul]:pl-4 [&_li]:my-0.5">
+            {idea.aiAnalysis}
+          </ReactMarkdown>
+        </div>
+      )}
+      {loading && (
+        <div className="mt-2 flex items-center gap-2 text-white/25 text-xs"><Loader2 className="w-3.5 h-3.5 animate-spin" />Analyzing your idea...</div>
+      )}
     </div>
   );
 }
