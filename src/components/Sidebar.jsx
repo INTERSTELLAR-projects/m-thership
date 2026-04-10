@@ -56,12 +56,12 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="px-5 pt-6 pb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">IC</span>
+          <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center overflow-hidden border border-white/10">
+            <img src="https://framerusercontent.com/images/lYN9zTgbln1GtT6KOSpG27mq3Q.png?scale-down-to=512&width=1563&height=1563" alt="Logo" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="text-white font-bold text-sm tracking-wide leading-none">INTERSTELLAR</h1>
-            <p className="text-white/30 text-[10px] tracking-widest uppercase">Command</p>
+            <h1 className="text-white font-bold text-sm tracking-wide leading-none">ZERØ GRAVITY</h1>
+            <p className="text-white/30 text-[10px] tracking-widest uppercase">Portal</p>
           </div>
         </div>
       </div>
