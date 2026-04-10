@@ -67,6 +67,7 @@ const AuthenticatedApp = () => {
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/idea-vault" element={<ProtectedRoute><IdeaVault /></ProtectedRoute>} />
         <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
+        <Route path="/todo" element={<ProtectedRoute><ToDo /></ProtectedRoute>} />
         <Route path="/client-comms" element={<ProtectedRoute><ClientComms /></ProtectedRoute>} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
