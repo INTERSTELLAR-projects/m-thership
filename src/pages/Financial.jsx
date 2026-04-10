@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Plus, DollarSign, TrendingUp, AlertCircle, Edit, Check, X, Trash2, Loader2, Settings, GripVertical } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import FinancialAnalytics from "../components/financial/FinancialAnalytics";
+import InvestmentsList from "../components/financial/InvestmentsList";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -140,8 +141,8 @@ export default function Financial() {
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Command Center / Financial" rightText="Expense Management" />
       <div className="px-8 pt-4 flex gap-1 border-b border-white/[0.05]">
-        {["overview", "categories", "analytics"].map((tab) => (
-          <button key={tab} onClick={() => setSubPage(tab)} className={`px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all rounded-t-lg ${subPage === tab ? "bg-orange-500/15 text-orange-500 border-b-2 border-orange-500" : "text-white/30 hover:text-white/60"}`}>{tab === "overview" ? "Overview" : tab === "categories" ? "Categories" : "Analytics"}</button>
+        {["overview", "categories", "analytics", "investments"].map((tab) => (
+          <button key={tab} onClick={() => setSubPage(tab)} className={`px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all rounded-t-lg ${subPage === tab ? "bg-orange-500/15 text-orange-500 border-b-2 border-orange-500" : "text-white/30 hover:text-white/60"}`}>{tab === "overview" ? "Overview" : tab === "categories" ? "Categories" : tab === "analytics" ? "Analytics" : "Investments"}</button>
         ))}
       </div>
       <div className="px-8 py-6 space-y-6">
@@ -186,6 +187,8 @@ export default function Financial() {
           </>
         ) : subPage === "analytics" ? (
           <FinancialAnalytics totalMonthlyExpenses={totalMonthly} />
+        ) : subPage === "investments" ? (
+          <InvestmentsList />
         ) : (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
