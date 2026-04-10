@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     }
 
     const forgeRequest = {
-      title: "Forge Request",
+      title: "Førge Request",
       subtitle: "Request a build or deployment task",
       category: "Førge",
       formType: "request",
@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
     };
 
     const webOpsRequest = {
-      title: "Web Ops Request",
+      title: "Web Øps Request",
       subtitle: "Request website updates or changes",
       category: "Web Øps",
       formType: "request",
@@ -144,8 +144,8 @@ Deno.serve(async (req) => {
     };
 
     // Check if forms already exist
-    const existingForge = await base44.entities.FormTemplate.filter({ title: "Forge Request", formType: "request" });
-    const existingWebOps = await base44.entities.FormTemplate.filter({ title: "Web Ops Request", formType: "request" });
+    const existingForge = await base44.entities.FormTemplate.filter({ title: "Førge Request", formType: "request" });
+    const existingWebOps = await base44.entities.FormTemplate.filter({ title: "Web Øps Request", formType: "request" });
 
     const results = [];
 
