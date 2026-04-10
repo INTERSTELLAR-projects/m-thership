@@ -1,0 +1,43 @@
+{
+  "name": "ToDoItem",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Priority",
+        "NextUp"
+      ],
+      "default": "Priority"
+    },
+    "dueDate": {
+      "type": "string"
+    },
+    "estimatedAmount": {
+      "type": "number"
+    },
+    "estimatedUnit": {
+      "type": "string",
+      "enum": [
+        "Hours",
+        "Days",
+        "Weeks",
+        "Months"
+      ]
+    },
+    "done": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "category"
+  ]
+}
