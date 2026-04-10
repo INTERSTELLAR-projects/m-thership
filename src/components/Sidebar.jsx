@@ -13,7 +13,7 @@ const mainNav = [
   { label: "Financial", icon: DollarSign, path: "/financial" },
   { label: "Legal", icon: Scale, path: "/legal" },
   { label: "CRM", icon: Users, path: "/crm" },
-  { label: "Analytics", icon: BarChart3, path: "/analytics" },
+
 ];
 
 const portalNav = [
