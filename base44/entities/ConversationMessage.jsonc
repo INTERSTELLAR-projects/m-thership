@@ -1,0 +1,41 @@
+{
+  "name": "ConversationMessage",
+  "type": "object",
+  "properties": {
+    "senderEmail": {
+      "type": "string"
+    },
+    "recipientEmail": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "messageType": {
+      "type": "string",
+      "enum": [
+        "text",
+        "image",
+        "document",
+        "audio"
+      ],
+      "default": "text"
+    },
+    "timestamp": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "senderEmail",
+    "recipientEmail",
+    "content",
+    "timestamp"
+  ]
+}
