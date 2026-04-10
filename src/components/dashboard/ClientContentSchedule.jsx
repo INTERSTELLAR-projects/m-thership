@@ -29,8 +29,17 @@ export default function ClientContentSchedule() {
   const [completions, setCompletions] = useState(() => loadCompletions(year, month));
 
   useEffect(() => {
-    const all = loadCRMClients();
-    setClients(all);
+    const refresh = () => {
+      const all = loadCRMClients();
+      setClients(all);
+    };
+    refresh();
+    window.addEventListener("focus", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("storage", refresh);
+    };
   }, []);
 
   const toggleComplete = (clientId, entryId) => {
