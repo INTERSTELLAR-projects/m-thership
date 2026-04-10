@@ -19,6 +19,7 @@ import WebOps from './pages/WebOps';
 import Forge from './pages/Forge';
 import Performance from './pages/Performance';
 import SettingsPage from './pages/SettingsPage';
+import IdeaVault from './pages/IdeaVault';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
         <Route path="/forge" element={<Forge />} />
         <Route path="/performance" element={<Performance />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/idea-vault" element={<IdeaVault />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

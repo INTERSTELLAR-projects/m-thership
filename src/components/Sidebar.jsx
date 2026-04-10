@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, KeyRound, FileText, DollarSign, 
   Scale, Users, BarChart3, MessageSquare, Globe, 
-  Wrench, Flame, TrendingUp, Settings, LogOut, ClipboardList
+  Wrench, Flame, TrendingUp, Settings, LogOut, ClipboardList, Lightbulb
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
@@ -13,6 +13,7 @@ const mainNav = [
   { label: "Financial", icon: DollarSign, path: "/financial" },
   { label: "Legal", icon: Scale, path: "/legal" },
   { label: "CRM", icon: Users, path: "/crm" },
+  { label: "Idea Vault", icon: Lightbulb, path: "/idea-vault" },
 
 ];
 
