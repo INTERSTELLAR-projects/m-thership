@@ -240,7 +240,7 @@ export default function Documents() {
              </span>
            </div>
            <div className="flex items-center gap-2">
-             <button onClick={() => setEditingForm(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.04] text-white/60 hover:bg-white/[0.08] transition-all flex items-center justify-center gap-1.5"><Pencil className="w-3 h-3" />Edit</button>
+             <button onClick={() => { setEditingForm(form); setShowFormBuilder(true); }} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.04] text-white/60 hover:bg-white/[0.08] transition-all flex items-center justify-center gap-1.5"><Pencil className="w-3 h-3" />Edit</button>
              {form.published && <button onClick={() => setPreviewForm(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all flex items-center justify-center gap-1.5"><Eye className="w-3 h-3" />Preview</button>}
              {!form.published && <button onClick={() => handlePublish(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 transition-all flex items-center justify-center gap-1.5"><Eye className="w-3 h-3" />Publish</button>}
              <button onClick={() => handleDeleteForm(form.id)} className="px-3 py-1.5 text-xs font-medium rounded-lg text-white/20 hover:text-red-400 transition-all"><Trash2 className="w-3 h-3" /></button>
@@ -289,8 +289,8 @@ export default function Documents() {
       };
       if (form?.id) {
       const { id, created_date, updated_date, created_by, ...rest } = form;
-      await base44.entities.FormTemplate.update(form.id, { ...rest, ...formData });
-      onSave({ ...form, ...formData });
+      await base44.entities.FormTemplate.update(form.id, { ...formData, published: form.published, publishedDate: form.publishedDate });
+      onSave({ ...form, ...formData, published: form.published, publishedDate: form.publishedDate });
       } else {
       const created = await base44.entities.FormTemplate.create(formData);
       onSave(created);
