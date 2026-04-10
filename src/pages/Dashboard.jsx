@@ -57,7 +57,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex items-center justify-between pr-8">
-        <PageHeader breadcrumb="Command Center / Dashboard" rightText="Admin view dashboard" />
+        <PageHeader breadcrumb="Command Center / Dashboard" />
         <button
           onClick={() => setEditing(!editing)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
