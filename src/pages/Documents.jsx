@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Upload, Pin, FileText, Folder, Trash2, ExternalLink, X, Pencil, Check, Loader2, Plus, Eye } from "lucide-react";
+import { Search, Upload, Pin, FileText, Folder, Trash2, ExternalLink, X, Pencil, Check, Loader2, Plus, Eye, ArrowLeft } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
+import FormEditor from "../components/FormEditor";
 
 const CATEGORIES = [
   "Internal Processes",
@@ -262,19 +263,21 @@ export default function Documents() {
       }
 
       function FormBuilder({ form, onClose, onSave }) {
+      const [step, setStep] = useState("basic"); // 'basic' or 'builder'
       const [title, setTitle] = useState(form?.title || "");
       const [subtitle, setSubtitle] = useState(form?.subtitle || "");
       const [category, setCategory] = useState(form?.category || "Web Øps");
+      const [fields, setFields] = useState(form?.fields || []);
       const [saving, setSaving] = useState(false);
 
       const handleSave = async () => {
-      if (!title.trim()) return;
+      if (!title.trim() || fields.length === 0) return;
       setSaving(true);
       const formData = {
       title: title.trim(),
       subtitle: subtitle.trim(),
       category,
-      fields: form?.fields || [],
+      fields: fields,
       published: form?.published || false,
       };
       if (form?.id) {
@@ -287,6 +290,29 @@ export default function Documents() {
       }
       setSaving(false);
       };
+
+      if (step === "builder") {
+      return (
+      <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
+      <div className="bg-card border border-white/[0.08] rounded-2xl p-6 w-full max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+       <div className="flex items-center justify-between">
+         <div className="flex items-center gap-2">
+           <button onClick={() => setStep("basic")} className="text-white/40 hover:text-white/70 transition-colors">
+             <ArrowLeft className="w-4 h-4" />
+           </button>
+           <h3 className="text-white font-bold text-sm">Form Builder</h3>
+         </div>
+         <button onClick={onClose} className="text-white/30 hover:text-white/60"><X className="w-4 h-4" /></button>
+       </div>
+       <FormEditor fields={fields} setFields={setFields} />
+       <div className="flex gap-2 pt-2">
+         <Button onClick={() => setStep("basic")} variant="outline" className="flex-1">Back</Button>
+         <Button onClick={handleSave} disabled={!title.trim() || fields.length === 0 || saving} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white">{saving ? "Saving..." : "Save Form"}</Button>
+       </div>
+      </div>
+      </div>
+      );
+      }
 
       return (
       <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
@@ -313,7 +339,7 @@ export default function Documents() {
        </div>
        <div className="flex gap-2 pt-2">
          <Button onClick={onClose} variant="outline" className="flex-1">Cancel</Button>
-         <Button onClick={handleSave} disabled={!title.trim() || saving} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white">{saving ? "Saving..." : "Save"}</Button>
+         <Button onClick={() => setStep("builder")} disabled={!title.trim()} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white">Continue to Builder</Button>
        </div>
       </div>
       </div>
