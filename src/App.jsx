@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
 import CredentialManager from './pages/CredentialManager';
 import Documents from './pages/Documents';
@@ -50,20 +51,20 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/logins" element={<CredentialManager />} />
-        <Route path="/documents" element={<Documents />} />
-        <Route path="/financial" element={<Financial />} />
-        <Route path="/legal" element={<Legal />} />
-        <Route path="/crm" element={<CRM />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/comms" element={<Comms />} />
-        <Route path="/orbit-seo" element={<OrbitSEO />} />
-        <Route path="/web-ops" element={<WebOps />} />
-        <Route path="/forge" element={<Forge />} />
-        <Route path="/performance" element={<Performance />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/idea-vault" element={<IdeaVault />} />
-        <Route path="/todo" element={<ToDo />} />
+        <Route path="/logins" element={<ProtectedRoute><CredentialManager /></ProtectedRoute>} />
+        <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
+        <Route path="/financial" element={<ProtectedRoute><Financial /></ProtectedRoute>} />
+        <Route path="/legal" element={<ProtectedRoute><Legal /></ProtectedRoute>} />
+        <Route path="/crm" element={<ProtectedRoute><CRM /></ProtectedRoute>} />
+        <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+        <Route path="/comms" element={<ProtectedRoute><Comms /></ProtectedRoute>} />
+        <Route path="/orbit-seo" element={<ProtectedRoute><OrbitSEO /></ProtectedRoute>} />
+        <Route path="/web-ops" element={<ProtectedRoute><WebOps /></ProtectedRoute>} />
+        <Route path="/forge" element={<ProtectedRoute><Forge /></ProtectedRoute>} />
+        <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/idea-vault" element={<ProtectedRoute><IdeaVault /></ProtectedRoute>} />
+        <Route path="/todo" element={<ProtectedRoute><ToDo /></ProtectedRoute>} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
