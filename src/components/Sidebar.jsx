@@ -22,7 +22,6 @@ const mainNav = [
 const portalNav = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/portal-dashboard" },
   { label: "Requests", icon: ClipboardList, path: "/requests" },
-  { label: "Comms", icon: MessageSquare, path: "/comms" },
   { label: "Ørbit SEO", icon: Globe, path: "/orbit-seo" },
   { label: "Web Øps", icon: Wrench, path: "/web-ops" },
   { label: "Førge", icon: Flame, path: "/forge" },
