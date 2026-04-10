@@ -12,6 +12,7 @@ const STATUS_OPTIONS = ["New", "In Review", "Planned", "Implemented", "Shelved"]
 export default function IdeaVault() {
   const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [collapsed, setCollapsed] = useState({});
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
@@ -247,19 +248,26 @@ Category: ${idea.category}`;
                       </div>
                     </div>
                   ) : (
-                    <div>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h3 className="text-white/90 text-sm font-semibold">{idea.title}</h3>
-                            <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded bg-orange-500/10 text-orange-500/70">{idea.category}</span>
-                            <StatusBadge status={idea.status} />
-                          </div>
-                          {idea.description && <p className="text-white/45 text-sm mt-1 leading-relaxed">{idea.description}</p>}
-                          <p className="text-white/15 text-[10px] mt-2">{idea.date}</p>
-                          <AIAnalysisPanel idea={idea} onReanalyze={analyzeIdea} />
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <button onClick={() => setCollapsed((p) => ({ ...p, [idea.id]: !p[idea.id] }))} className="text-left">
+                            <h3 className="text-white/90 text-sm font-semibold hover:text-white transition-colors">{idea.title}</h3>
+                          </button>
+                          <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded bg-orange-500/10 text-orange-500/70">{idea.category}</span>
+                          <StatusBadge status={idea.status} />
                         </div>
-                        <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-all">
+                        {!collapsed[idea.id] && (
+                          <>
+                            {idea.description && <p className="text-white/45 text-sm mt-1 leading-relaxed">{idea.description}</p>}
+                            <p className="text-white/15 text-[10px] mt-2">{idea.date}</p>
+                            <AIAnalysisPanel idea={idea} onReanalyze={analyzeIdea} />
+                          </>
+                        )}
+                      </div>
+                      <div className="flex gap-1 shrink-0 items-center">
+                        <button onClick={() => setCollapsed((p) => ({ ...p, [idea.id]: !p[idea.id] }))} className="p-1.5 text-white/20 hover:text-white/50 transition-colors">{collapsed[idea.id] ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}</button>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
                           <button onClick={() => startEdit(idea)} className="p-1.5 text-white/20 hover:text-white/60 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
                           <button onClick={() => del(idea.id)} className="p-1.5 text-white/20 hover:text-red-400/60 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
@@ -267,8 +275,8 @@ Category: ${idea.category}`;
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
+                ))}
+                </div>
           </>
         )}
       </div>
