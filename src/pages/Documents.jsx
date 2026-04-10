@@ -204,7 +204,7 @@ export default function Documents() {
       const [showFormBuilder, setShowFormBuilder] = useState(false);
       const [editingForm, setEditingForm] = useState(null);
       const [previewForm, setPreviewForm] = useState(null);
-      const [selectedType, setSelectedType] = useState("request");
+      const [selectedType, setSelectedType] = useState("intake");
 
       const handleDeleteForm = async (id) => {
       await base44.entities.FormTemplate.delete(id);
@@ -220,8 +220,8 @@ export default function Documents() {
       return (
       <div className="space-y-6">
       <div className="flex gap-2 mb-6">
-        <button onClick={() => setSelectedType("request")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedType === "request" ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/40 hover:text-white/60 border border-transparent"}`}>Request Forms</button>
         <button onClick={() => setSelectedType("intake")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedType === "intake" ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/40 hover:text-white/60 border border-transparent"}`}>Intake Forms</button>
+        <button onClick={() => setSelectedType("request")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedType === "request" ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/40 hover:text-white/60 border border-transparent"}`}>Request Forms</button>
       </div>
 
       <div className="flex items-center justify-between">
