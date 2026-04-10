@@ -62,7 +62,7 @@ Idea Title: ${idea.title}
 Description: ${idea.description || "(no description provided)"}
 Category: ${idea.category}`;
 
-    const result = await base44.integrations.Core.InvokeLLM({ prompt });
+    const result = await base44.integrations.Core.InvokeLLM({ prompt, model: "claude_sonnet_4_6" });
     await base44.entities.Idea.update(idea.id, { aiAnalysis: result });
     setIdeas((prev) => prev.map((i) => i.id === idea.id ? { ...i, aiAnalysis: result } : i));
   };
