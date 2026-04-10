@@ -36,15 +36,17 @@ export default function ClientContentSchedule() {
     saveCompletions(year, month, next);
   };
 
-  const totalItems = clients.reduce((sum, c) => sum + (c.blogSchedule?.length || 0), 0);
+  const scheduledClients = clients.filter((c) => c.blogSchedule && c.blogSchedule.length > 0);
+  const totalItems = scheduledClients.reduce((sum, c) => sum + c.blogSchedule.length, 0);
   const completedItems = Object.values(completions).filter(Boolean).length;
-
-  if (clients.length === 0) return (
+  if (scheduledClients.length === 0) return (
     <section className="px-8 pt-6">
       <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase mb-2">Client Content Schedule</h2>
-      <p className="text-white/25 text-xs">No CRM clients found. Add clients in the CRM to see their content schedules here.</p>
+      <p className="text-white/25 text-xs">No clients have a content schedule set. Add one in CRM → Services.</p>
     </section>
   );
+
+
 
   return (
     <section className="px-8 pt-6">
@@ -62,7 +64,7 @@ export default function ClientContentSchedule() {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        {clients.map((client) => {
+        {scheduledClients.map((client) => {
           const clientDone = client.blogSchedule.every((e) => completions[`${client.id}_${e.id}`]);
           return (
             <div key={client.id} className={`card-hover bg-card rounded-xl border p-4 ${clientDone ? "border-green-500/15 opacity-70" : "border-white/[0.06]"}`}>
