@@ -40,7 +40,7 @@ export default function ClientContentSchedule() {
   const totalItems = scheduledClients.reduce((sum, c) => sum + c.blogSchedule.length, 0);
   const completedItems = Object.values(completions).filter(Boolean).length;
   if (scheduledClients.length === 0) return (
-    <section className="px-4 sm:px-8 pt-6">
+    <section className="px-8 pt-6">
       <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase mb-2">Client Content Schedule</h2>
       <p className="text-white/25 text-xs">No clients have a content schedule set. Add one in CRM → Services.</p>
     </section>
@@ -49,7 +49,7 @@ export default function ClientContentSchedule() {
 
 
   return (
-    <section className="px-4 sm:px-8 pt-6">
+    <section className="px-8 pt-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase">Client Content Schedule</h2>
@@ -63,7 +63,7 @@ export default function ClientContentSchedule() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {scheduledClients.map((client) => {
           const clientDone = client.blogSchedule.every((e) => completions[`${client.id}_${e.id}`]);
           return (

@@ -42,7 +42,7 @@ export default function PriorityTasks() {
   const done = items.filter((i) => i.done);
 
   return (
-    <section className="px-4 sm:px-8 pt-6">
+    <section className="px-8 pt-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase">Priority Tasks</h2>
@@ -62,7 +62,7 @@ export default function PriorityTasks() {
           <p className="text-white/25 text-sm">No priority tasks yet. Add them in the To-Do page.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {[...pending, ...done].map((item) => (
             <div key={item.id} className={`card-hover bg-card rounded-xl border p-3 flex items-start gap-3 group ${item.done ? "border-green-500/10 opacity-60" : "border-white/[0.06]"}`}>
               <button onClick={() => toggleDone(item)} className="mt-0.5 shrink-0 text-white/25 hover:text-orange-500/70 transition-colors">
