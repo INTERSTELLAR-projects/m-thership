@@ -1,0 +1,31 @@
+{
+  "name": "LegalItem",
+  "type": "object",
+  "properties": {
+    "section": {
+      "type": "string",
+      "enum": [
+        "deadline",
+        "todo",
+        "date"
+      ]
+    },
+    "task": {
+      "type": "string"
+    },
+    "dueDate": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "default": "Upcoming"
+    },
+    "done": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "section"
+  ]
+}

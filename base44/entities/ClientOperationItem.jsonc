@@ -1,0 +1,19 @@
+{
+  "name": "ClientOperationItem",
+  "type": "object",
+  "properties": {
+    "card": {
+      "type": "string"
+    },
+    "text": {
+      "type": "string"
+    },
+    "due": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "card",
+    "text"
+  ]
+}

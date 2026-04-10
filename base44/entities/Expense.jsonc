@@ -1,0 +1,39 @@
+{
+  "name": "Expense",
+  "type": "object",
+  "properties": {
+    "platform": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "Monthly",
+        "Quarterly",
+        "Annually"
+      ]
+    },
+    "dueDay": {
+      "type": "number"
+    },
+    "dueMonth": {
+      "type": "number"
+    },
+    "category": {
+      "type": "string"
+    },
+    "paidCycles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "platform",
+    "amount"
+  ]
+}

@@ -1,20 +1,17 @@
-import { useState } from "react";
-import { Plus, Pencil, Trash2, Check, X, Lightbulb, Search, Settings, GripVertical } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Pencil, Trash2, Check, X, Lightbulb, Search, Settings, GripVertical, Loader2 } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Input } from "@/components/ui/input";
+import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 
 const DEFAULT_CATEGORIES = ["Marketing", "Product", "Operations", "Tech", "Content", "Other"];
 const STATUS_OPTIONS = ["New", "In Review", "Planned", "Implemented", "Shelved"];
 
-function loadIdeas() { try { return JSON.parse(localStorage.getItem("idea_vault") || "[]"); } catch { return []; } }
-function loadCats() { try { return JSON.parse(localStorage.getItem("idea_vault_cats")) || DEFAULT_CATEGORIES; } catch { return DEFAULT_CATEGORIES; } }
-function saveIdeas(ideas) { localStorage.setItem("idea_vault", JSON.stringify(ideas)); }
-function saveCats(cats) { localStorage.setItem("idea_vault_cats", JSON.stringify(cats)); }
-
 export default function IdeaVault() {
-  const [ideas, setIdeas] = useState(() => loadIdeas());
-  const [categories, setCategories] = useState(() => loadCats());
+  const [ideas, setIdeas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
   const [adding, setAdding] = useState(false);
@@ -23,51 +20,79 @@ export default function IdeaVault() {
   const [editVal, setEditVal] = useState({});
   const [managingCats, setManagingCats] = useState(false);
   const [newCatName, setNewCatName] = useState("");
-  const [editCat, setEditCat] = useState(null); // { index, val }
+  const [editCat, setEditCat] = useState(null);
 
-  const updateIdeas = (next) => { setIdeas(next); saveIdeas(next); };
-  const updateCats = (next) => { setCategories(next); saveCats(next); };
+  useEffect(() => {
+    base44.entities.Idea.list("-created_date", 200).then((data) => {
+      setIdeas(data);
+      // Derive categories from existing ideas + defaults
+      const existingCats = [...new Set(data.map((i) => i.category).filter(Boolean))];
+      const merged = [...new Set([...DEFAULT_CATEGORIES, ...existingCats])];
+      setCategories(merged);
+      setLoading(false);
+    });
+  }, []);
 
-  const add = () => {
+  const add = async () => {
     if (!newIdea.title.trim()) return;
     const cat = newIdea.category || categories[0] || "Other";
-    updateIdeas([{ ...newIdea, category: cat, id: Date.now(), date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) }, ...ideas]);
+    const created = await base44.entities.Idea.create({
+      ...newIdea, category: cat,
+      date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    });
+    setIdeas([created, ...ideas]);
     setAdding(false);
     setNewIdea({ title: "", description: "", category: "", status: "New" });
   };
 
-  const del = (id) => updateIdeas(ideas.filter((i) => i.id !== id));
-  const startEdit = (idea) => { setEditId(idea.id); setEditVal({ ...idea }); };
-  const saveEdit = () => { updateIdeas(ideas.map((i) => i.id === editId ? editVal : i)); setEditId(null); };
+  const del = async (id) => {
+    await base44.entities.Idea.delete(id);
+    setIdeas(ideas.filter((i) => i.id !== id));
+  };
 
-  // Category management
+  const startEdit = (idea) => { setEditId(idea.id); setEditVal({ ...idea }); };
+
+  const saveEdit = async () => {
+    const { id, created_date, updated_date, created_by, ...fields } = editVal;
+    await base44.entities.Idea.update(id, fields);
+    setIdeas(ideas.map((i) => i.id === id ? editVal : i));
+    setEditId(null);
+  };
+
   const addCat = () => {
     const t = newCatName.trim();
     if (!t || categories.includes(t)) return;
-    updateCats([...categories, t]);
+    setCategories([...categories, t]);
     setNewCatName("");
   };
+
   const deleteCat = (i) => {
     const next = categories.filter((_, idx) => idx !== i);
-    updateCats(next);
+    setCategories(next);
     if (catFilter === categories[i]) setCatFilter("All");
   };
-  const saveEditCat = (i) => {
+
+  const saveEditCat = async (i) => {
     const t = editCat.val.trim();
     if (!t) return;
     const old = categories[i];
-    const next = categories.map((c, idx) => idx === i ? t : c);
-    updateCats(next);
-    updateIdeas(ideas.map((idea) => idea.category === old ? { ...idea, category: t } : idea));
+    setCategories(categories.map((c, idx) => idx === i ? t : c));
+    // Update all ideas in that category
+    const affected = ideas.filter((idea) => idea.category === old);
+    for (const idea of affected) {
+      await base44.entities.Idea.update(idea.id, { category: t });
+    }
+    setIdeas(ideas.map((idea) => idea.category === old ? { ...idea, category: t } : idea));
     if (catFilter === old) setCatFilter(t);
     setEditCat(null);
   };
+
   const onDragEnd = (result) => {
     if (!result.destination) return;
     const next = Array.from(categories);
     const [removed] = next.splice(result.source.index, 1);
     next.splice(result.destination.index, 0, removed);
-    updateCats(next);
+    setCategories(next);
   };
 
   const filtered = ideas.filter((i) => {
@@ -80,8 +105,6 @@ export default function IdeaVault() {
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Command Center / Idea Vault" rightText="Idea Management" />
       <div className="px-8 py-6 space-y-5">
-
-        {/* Controls */}
         <div className="flex items-center gap-4 flex-wrap">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
@@ -92,16 +115,11 @@ export default function IdeaVault() {
             {categories.map((c) => (
               <button key={c} onClick={() => setCatFilter(c)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${catFilter === c ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{c}</button>
             ))}
-            <button onClick={() => setManagingCats(true)} className="p-1.5 rounded-lg text-white/20 hover:text-white/50 border border-dashed border-white/10 hover:border-white/20 transition-all" title="Manage categories">
-              <Settings className="w-3.5 h-3.5" />
-            </button>
+            <button onClick={() => setManagingCats(true)} className="p-1.5 rounded-lg text-white/20 hover:text-white/50 border border-dashed border-white/10 hover:border-white/20 transition-all"><Settings className="w-3.5 h-3.5" /></button>
           </div>
-          <button onClick={() => setAdding(true)} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors">
-            <Plus className="w-4 h-4" />Add Idea
-          </button>
+          <button onClick={() => setAdding(true)} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors"><Plus className="w-4 h-4" />Add Idea</button>
         </div>
 
-        {/* Manage Categories Panel */}
         {managingCats && (
           <div className="bg-card rounded-xl border border-white/[0.08] p-5 space-y-3">
             <div className="flex items-center justify-between">
@@ -146,7 +164,6 @@ export default function IdeaVault() {
           </div>
         )}
 
-        {/* Add Form */}
         {adding && (
           <div className="bg-card rounded-xl border border-orange-500/20 p-5 space-y-3">
             <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">New Idea</h3>
@@ -173,74 +190,72 @@ export default function IdeaVault() {
           </div>
         )}
 
-        {/* Ideas List */}
-        {filtered.length === 0 && !adding && (
-          <div className="bg-card rounded-xl border border-white/[0.06] p-12 text-center">
-            <Lightbulb className="w-8 h-8 text-white/10 mx-auto mb-3" />
-            <p className="text-white/25 text-sm">No ideas yet. Start capturing your thoughts.</p>
-          </div>
-        )}
-
-        <div className="space-y-3">
-          {filtered.map((idea) => (
-            <div key={idea.id} className="bg-card rounded-xl border border-white/[0.06] p-5 group hover:border-orange-500/15 transition-all">
-              {editId === idea.id ? (
-                <div className="space-y-3">
-                  <Input value={editVal.title} onChange={(e) => setEditVal({ ...editVal, title: e.target.value })} className="bg-white/[0.04] border-white/[0.08] text-white" />
-                  <textarea value={editVal.description} onChange={(e) => setEditVal({ ...editVal, description: e.target.value })} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white outline-none resize-none min-h-[80px]" />
-                  <div className="flex gap-3 flex-wrap">
-                    <div className="flex items-center gap-2">
-                      <span className="text-white/40 text-xs">Category:</span>
-                      <select value={editVal.category} onChange={(e) => setEditVal({ ...editVal, category: e.target.value })} className="bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-xs text-white outline-none">
-                        {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-white/40 text-xs">Status:</span>
-                      <select value={editVal.status} onChange={(e) => setEditVal({ ...editVal, status: e.target.value })} className="bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-xs text-white outline-none">
-                        {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={saveEdit} className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors"><Check className="w-3.5 h-3.5" />Save</button>
-                    <button onClick={() => setEditId(null)} className="px-4 py-2 text-white/30 hover:text-white/60 text-xs transition-colors">Cancel</button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="text-white/90 text-sm font-semibold">{idea.title}</h3>
-                        <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded bg-orange-500/10 text-orange-500/70">{idea.category}</span>
-                        <StatusBadge status={idea.status} />
+        {loading ? (
+          <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 text-white/20 animate-spin" /></div>
+        ) : (
+          <>
+            {filtered.length === 0 && !adding && (
+              <div className="bg-card rounded-xl border border-white/[0.06] p-12 text-center">
+                <Lightbulb className="w-8 h-8 text-white/10 mx-auto mb-3" />
+                <p className="text-white/25 text-sm">No ideas yet. Start capturing your thoughts.</p>
+              </div>
+            )}
+            <div className="space-y-3">
+              {filtered.map((idea) => (
+                <div key={idea.id} className="bg-card rounded-xl border border-white/[0.06] p-5 group hover:border-orange-500/15 transition-all">
+                  {editId === idea.id ? (
+                    <div className="space-y-3">
+                      <Input value={editVal.title} onChange={(e) => setEditVal({ ...editVal, title: e.target.value })} className="bg-white/[0.04] border-white/[0.08] text-white" />
+                      <textarea value={editVal.description} onChange={(e) => setEditVal({ ...editVal, description: e.target.value })} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white outline-none resize-none min-h-[80px]" />
+                      <div className="flex gap-3 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <span className="text-white/40 text-xs">Category:</span>
+                          <select value={editVal.category} onChange={(e) => setEditVal({ ...editVal, category: e.target.value })} className="bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-xs text-white outline-none">
+                            {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white/40 text-xs">Status:</span>
+                          <select value={editVal.status} onChange={(e) => setEditVal({ ...editVal, status: e.target.value })} className="bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-xs text-white outline-none">
+                            {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        </div>
                       </div>
-                      {idea.description && <p className="text-white/45 text-sm mt-1 leading-relaxed">{idea.description}</p>}
-                      <p className="text-white/15 text-[10px] mt-2">{idea.date}</p>
+                      <div className="flex gap-2">
+                        <button onClick={saveEdit} className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors"><Check className="w-3.5 h-3.5" />Save</button>
+                        <button onClick={() => setEditId(null)} className="px-4 py-2 text-white/30 hover:text-white/60 text-xs transition-colors">Cancel</button>
+                      </div>
                     </div>
-                    <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-all">
-                      <button onClick={() => startEdit(idea)} className="p-1.5 text-white/20 hover:text-white/60 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => del(idea.id)} className="p-1.5 text-white/20 hover:text-red-400/60 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                  ) : (
+                    <div>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h3 className="text-white/90 text-sm font-semibold">{idea.title}</h3>
+                            <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded bg-orange-500/10 text-orange-500/70">{idea.category}</span>
+                            <StatusBadge status={idea.status} />
+                          </div>
+                          {idea.description && <p className="text-white/45 text-sm mt-1 leading-relaxed">{idea.description}</p>}
+                          <p className="text-white/15 text-[10px] mt-2">{idea.date}</p>
+                        </div>
+                        <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-all">
+                          <button onClick={() => startEdit(idea)} className="p-1.5 text-white/20 hover:text-white/60 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => del(idea.id)} className="p-1.5 text-white/20 hover:text-red-400/60 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
 function StatusBadge({ status }) {
-  const colors = {
-    "New": "bg-blue-500/10 text-blue-400/70",
-    "In Review": "bg-yellow-500/10 text-yellow-400/70",
-    "Planned": "bg-purple-500/10 text-purple-400/70",
-    "Implemented": "bg-green-500/10 text-green-400/70",
-    "Shelved": "bg-white/5 text-white/25",
-  };
+  const colors = { "New": "bg-blue-500/10 text-blue-400/70", "In Review": "bg-yellow-500/10 text-yellow-400/70", "Planned": "bg-purple-500/10 text-purple-400/70", "Implemented": "bg-green-500/10 text-green-400/70", "Shelved": "bg-white/5 text-white/25" };
   return <span className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded ${colors[status] || "bg-white/5 text-white/25"}`}>{status}</span>;
 }

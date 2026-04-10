@@ -1,0 +1,32 @@
+{
+  "name": "Idea",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "New",
+        "In Review",
+        "Planned",
+        "Implemented",
+        "Shelved"
+      ],
+      "default": "New"
+    },
+    "date": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}
