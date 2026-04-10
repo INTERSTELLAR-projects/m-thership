@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid } from "recharts";
+import { base44 } from "@/api/base44Client";
 
 const revenueData = [
   { month: "Oct", amount: 2100 },
@@ -19,8 +21,18 @@ const growthData = [
 ];
 
 export default function FinancialPanel() {
-  const mrr = 3400;
+  const [mrr, setMrr] = useState(3471);
   const mrrGoal = 10000;
+
+  useEffect(() => {
+    base44.entities.CRMClient.list("-created_date", 200).then((clients) => {
+      const revenue = clients
+        .filter((c) => c.status === "Active")
+        .reduce((sum, c) => sum + (c.services || []).reduce((s, sv) => s + (sv.price || 0), 0), 0);
+      if (revenue > 0) setMrr(revenue);
+    });
+  }, []);
+
   const progress = (mrr / mrrGoal) * 100;
 
   return (
@@ -29,8 +41,8 @@ export default function FinancialPanel() {
 
       {/* Top Metrics */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <MetricCard label="MRR" value="$3,400" highlight />
-        <MetricCard label="ARR" value="$40,800" />
+        <MetricCard label="MRR" value={`$${mrr.toLocaleString()}`} highlight />
+        <MetricCard label="ARR" value={`$${(mrr * 12).toLocaleString()}`} />
         <MetricCard label="MRR Goal" value="$10,000" />
       </div>
 
