@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 import FormEditor from "../components/FormEditor";
+import FormPreview from "../components/FormPreview";
 
 const CATEGORIES = [
   "Internal Processes",
@@ -202,6 +203,7 @@ export default function Documents() {
       function FormsList({ forms, setForms }) {
       const [showFormBuilder, setShowFormBuilder] = useState(false);
       const [editingForm, setEditingForm] = useState(null);
+      const [previewForm, setPreviewForm] = useState(null);
 
       const handleDeleteForm = async (id) => {
       await base44.entities.FormTemplate.delete(id);
@@ -230,18 +232,19 @@ export default function Documents() {
        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
          {forms.map((form) => (
            <div key={form.id} className="card-hover bg-card rounded-xl border border-white/[0.06] p-5 space-y-3">
-             <div>
-               <h4 className="text-white font-bold text-sm">{form.title}</h4>
-               <p className="text-white/40 text-xs mt-1">{form.subtitle}</p>
-               <span className={`inline-block mt-2 text-[10px] font-semibold px-2 py-1 rounded ${ form.published ? "bg-green-500/10 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
-                 {form.published ? "Published" : "Draft"}
-               </span>
-             </div>
-             <div className="flex items-center gap-2">
-               <button onClick={() => setEditingForm(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.04] text-white/60 hover:bg-white/[0.08] transition-all flex items-center justify-center gap-1.5"><Pencil className="w-3 h-3" />Edit</button>
-               {!form.published && <button onClick={() => handlePublish(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 transition-all flex items-center justify-center gap-1.5"><Eye className="w-3 h-3" />Publish</button>}
-               <button onClick={() => handleDeleteForm(form.id)} className="px-3 py-1.5 text-xs font-medium rounded-lg text-white/20 hover:text-red-400 transition-all"><Trash2 className="w-3 h-3" /></button>
-             </div>
+           <div>
+             <h4 className="text-white font-bold text-sm">{form.title}</h4>
+             <p className="text-white/40 text-xs mt-1">{form.subtitle}</p>
+             <span className={`inline-block mt-2 text-[10px] font-semibold px-2 py-1 rounded ${ form.published ? "bg-green-500/10 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
+               {form.published ? "Published" : "Draft"}
+             </span>
+           </div>
+           <div className="flex items-center gap-2">
+             <button onClick={() => setEditingForm(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.04] text-white/60 hover:bg-white/[0.08] transition-all flex items-center justify-center gap-1.5"><Pencil className="w-3 h-3" />Edit</button>
+             {form.published && <button onClick={() => setPreviewForm(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all flex items-center justify-center gap-1.5"><Eye className="w-3 h-3" />Preview</button>}
+             {!form.published && <button onClick={() => handlePublish(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 transition-all flex items-center justify-center gap-1.5"><Eye className="w-3 h-3" />Publish</button>}
+             <button onClick={() => handleDeleteForm(form.id)} className="px-3 py-1.5 text-xs font-medium rounded-lg text-white/20 hover:text-red-400 transition-all"><Trash2 className="w-3 h-3" /></button>
+           </div>
            </div>
          ))}
        </div>
@@ -257,6 +260,10 @@ export default function Documents() {
          setShowFormBuilder(false);
          setEditingForm(null);
        }} />
+      )}
+
+      {previewForm && (
+       <FormPreview form={previewForm} onClose={() => setPreviewForm(null)} />
       )}
       </div>
       );
