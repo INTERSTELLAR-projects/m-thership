@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 import MicButton from "../components/MicButton";
+import BrandProfile from "../components/crm/BrandProfile";
 import { useRef } from "react";
 
 const statusFilters = ["All", "Active", "Inactive", "Lead"];
@@ -219,63 +220,8 @@ function ContactTab({ client, update }) {
   const total = (client.services || []).reduce((s, sv) => s + (sv.price || 0), 0);
 
   return (
-    <div className="grid grid-cols-2 gap-6">
-      <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Contact Info</h3>
-          {editing ? (
-            <div className="flex gap-2">
-              <button onClick={save} className="flex items-center gap-1 text-green-400/70 hover:text-green-400 text-xs"><Save className="w-3.5 h-3.5" />Save</button>
-              <button onClick={() => setEditing(false)} className="text-white/30 hover:text-white/60 text-xs">Cancel</button>
-            </div>
-          ) : (
-            <button onClick={() => setEditing(true)} className="text-white/20 hover:text-white/50 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
-          )}
-        </div>
-        {editing ? (
-          <div className="space-y-3">
-            <EditField label="Business Name" value={form.business} onChange={(v) => setForm({ ...form, business: v })} />
-            <EditField label="Contact Name" value={form.contact} onChange={(v) => setForm({ ...form, contact: v })} />
-            <div>
-              <Label className="text-white/40 text-[10px] uppercase tracking-wider">Status</Label>
-              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                <SelectTrigger className="h-8 mt-1 bg-white/[0.04] border-white/[0.08] text-white text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-card border-white/[0.06]">
-                  {["Active", "Inactive", "Lead"].map((s) => <SelectItem key={s} value={s} className="text-white/70">{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <MultiField label="Phone" icon={Phone} values={form.phones} onAdd={() => addField("phones")} onUpdate={(i, v) => updateField("phones", i, v)} onRemove={(i) => removeField("phones", i)} />
-            <MultiField label="Email" icon={Mail} values={form.emails} onAdd={() => addField("emails")} onUpdate={(i, v) => updateField("emails", i, v)} onRemove={(i) => removeField("emails", i)} />
-            <MultiField label="Website" icon={Globe} values={form.websites} onAdd={() => addField("websites")} onUpdate={(i, v) => updateField("websites", i, v)} onRemove={(i) => removeField("websites", i)} />
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <InfoRow icon={Building} label="Business" value={client.business} />
-            <InfoRow icon={Building} label="Contact" value={client.contact} />
-            {(client.phones || []).map((p, i) => <InfoRow key={i} icon={Phone} label={i === 0 ? "Phone" : ""} value={p} />)}
-            {(client.emails || []).map((e, i) => <InfoRow key={i} icon={Mail} label={i === 0 ? "Email" : ""} value={e} />)}
-            {(client.websites || []).map((w, i) => <InfoRow key={i} icon={Globe} label={i === 0 ? "Website" : ""} value={w} />)}
-          </div>
-        )}
-      </div>
-      <div className="bg-card rounded-xl border border-white/[0.06] p-5 space-y-4">
-        <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Billing Summary</h3>
-        <div className="text-center py-4">
-          <p className="text-orange-500 text-3xl font-bold">${total}</p>
-          <p className="text-white/25 text-xs mt-1">Monthly Total</p>
-        </div>
-        <div className="space-y-2">
-          {(client.services || []).map((s) => (
-            <div key={s.id} className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2 text-white/50"><div className="w-1.5 h-1.5 rounded-full bg-orange-500/50" />{s.name}</div>
-              <span className="text-orange-500/70 text-xs font-medium">${s.price}/mo</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-6">
 }
 
 function ServicesTab({ client, update }) {
