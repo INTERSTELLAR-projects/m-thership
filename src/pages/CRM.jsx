@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { Search, Plus, Phone, Mail, Globe, Building, ChevronRight, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Plus, Phone, Mail, Globe, Building, ChevronRight, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,42 +8,50 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
-
-const INITIAL_CLIENTS = [
-  { id: 1, business: "Redline Visuals", contact: "Jake Morrison", phones: ["(503) 555-0112"], emails: ["jake@redlinevisuals.com"], websites: ["redlinevisuals.com"], services: [{ id: 1, name: "Ørbit SEO", price: 169 }, { id: 2, name: "GBP Badge", price: 50 }], status: "Active", notes: [], documents: [] },
-  { id: 2, business: "CNG & Rein", contact: "Carlos Garcia", phones: ["(503) 555-0198"], emails: ["carlos@cngrein.com"], websites: ["cngrein.com"], services: [{ id: 1, name: "Ørbit SEO", price: 500 }], status: "Active", notes: [], documents: [] },
-  { id: 3, business: "Mow Masters", contact: "Tyler Reed", phones: ["(503) 555-0245"], emails: ["tyler@mowmasters.com"], websites: ["mowmasters.com"], services: [{ id: 1, name: "Ørbit SEO", price: 470 }, { id: 2, name: "GBP Badge", price: 50 }], status: "Active", notes: [], documents: [] },
-  { id: 4, business: "Muscle Mentor", contact: "Sarah Chen", phones: ["(971) 555-0331"], emails: ["sarah@musclementor.com"], websites: ["musclementor.com"], services: [{ id: 1, name: "Ørbit SEO", price: 199 }], status: "Active", notes: [], documents: [] },
-  { id: 5, business: "NW Tree Service", contact: "Mike Thompson", phones: ["(503) 555-0478"], emails: ["mike@nwtreeservice.com"], websites: ["nwtreeservice.com"], services: [{ id: 1, name: "Ørbit SEO", price: 469 }, { id: 2, name: "GBP Badge", price: 50 }, { id: 3, name: "Ops Management", price: 500 }], status: "Active", notes: [], documents: [] },
-  { id: 6, business: "Arcane Ink", contact: "Liam Brooks", phones: ["(971) 555-0567"], emails: ["liam@arcaneink.com"], websites: ["arcaneink.com"], services: [{ id: 1, name: "Ørbit SEO", price: 269 }, { id: 2, name: "GBP Badge", price: 50 }], status: "Active", notes: [], documents: [] },
-  { id: 7, business: "Uplift Aviation", contact: "Alex Wright", phones: ["(503) 555-0623"], emails: ["alex@upliftaviation.com"], websites: ["upliftaviation.com"], services: [{ id: 1, name: "Web Øps", price: 250 }], status: "Active", notes: [], documents: [] },
-  { id: 8, business: "Maybe Not Safe", contact: "Jordan Lee", phones: ["(971) 555-0789"], emails: ["jordan@maybenotsafe.com"], websites: ["maybenotsafe.com"], services: [{ id: 1, name: "Web Øps", price: 125 }], status: "Active", notes: [], documents: [] },
-  { id: 9, business: "SMPL Social", contact: "Diana Foster", phones: ["(503) 555-0890"], emails: ["diana@smplsocial.com"], websites: ["smplsocial.com"], services: [{ id: 1, name: "Software Maintenance", price: 325 }], status: "Active", notes: [], documents: [] },
-];
-
-function loadClients() {
-  try { return JSON.parse(localStorage.getItem("crm_clients")) || INITIAL_CLIENTS; } catch { return INITIAL_CLIENTS; }
-}
-function saveClients(clients) { localStorage.setItem("crm_clients", JSON.stringify(clients)); }
+import { useRef } from "react";
 
 const statusFilters = ["All", "Active", "Inactive", "Lead"];
 
 export default function CRM() {
-  const [clients, setClients] = useState(() => loadClients());
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedId, setSelectedId] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
   const [newClient, setNewClient] = useState({ business: "", contact: "", phone: "", email: "", website: "", status: "Active" });
 
-  const updateClients = (next) => { setClients(next); saveClients(next); };
+  useEffect(() => {
+    loadClients();
+  }, []);
 
-  const updateClient = (updated) => updateClients(clients.map((c) => c.id === updated.id ? updated : c));
+  const loadClients = async () => {
+    setLoading(true);
+    const data = await base44.entities.CRMClient.list("-created_date", 200);
+    if (data.length === 0) {
+      // Migrate from localStorage if exists
+      try {
+        const local = JSON.parse(localStorage.getItem("crm_clients") || "[]");
+        if (local.length > 0) {
+          for (const c of local) {
+            const { id, ...rest } = c;
+            await base44.entities.CRMClient.create(rest);
+          }
+          localStorage.removeItem("crm_clients");
+          const migrated = await base44.entities.CRMClient.list("-created_date", 200);
+          setClients(migrated);
+          setLoading(false);
+          return;
+        }
+      } catch {}
+    }
+    setClients(data);
+    setLoading(false);
+  };
 
-  const addClient = () => {
+  const addClient = async () => {
     if (!newClient.business) return;
     const c = {
-      id: Date.now(),
       business: newClient.business,
       contact: newClient.contact,
       phones: newClient.phone ? [newClient.phone] : [],
@@ -53,17 +61,28 @@ export default function CRM() {
       status: newClient.status,
       notes: [],
       documents: [],
+      blogSchedule: [],
     };
-    updateClients([...clients, c]);
+    const created = await base44.entities.CRMClient.create(c);
+    setClients([...clients, created]);
     setAddOpen(false);
     setNewClient({ business: "", contact: "", phone: "", email: "", website: "", status: "Active" });
   };
 
-  const deleteClient = (id) => updateClients(clients.filter((c) => c.id !== id));
+  const updateClient = async (updated) => {
+    const { id, created_date, updated_date, created_by, ...fields } = updated;
+    await base44.entities.CRMClient.update(id, fields);
+    setClients(clients.map((c) => c.id === id ? updated : c));
+  };
+
+  const deleteClient = async (id) => {
+    await base44.entities.CRMClient.delete(id);
+    setClients(clients.filter((c) => c.id !== id));
+  };
 
   const filtered = clients.filter((c) => {
-    const matchSearch = c.business.toLowerCase().includes(search.toLowerCase()) ||
-      c.contact.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = c.business?.toLowerCase().includes(search.toLowerCase()) ||
+      c.contact?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "All" || c.status === statusFilter;
     return matchSearch && matchStatus;
   });
@@ -91,31 +110,35 @@ export default function CRM() {
           <Button onClick={() => setAddOpen(true)} className="bg-orange-500 hover:bg-orange-600 text-white h-9 gap-2"><Plus className="w-4 h-4" />Add Client</Button>
         </div>
 
-        <div className="space-y-2">
-          {filtered.map((client) => {
-            const total = client.services.reduce((s, sv) => s + (sv.price || 0), 0);
-            return (
-              <div key={client.id} className="w-full bg-card rounded-xl border border-white/[0.06] p-4 flex items-center gap-5 group hover:border-orange-500/15 transition-all">
-                <button onClick={() => setSelectedId(client.id)} className="flex items-center gap-5 flex-1 text-left min-w-0">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/10 to-orange-600/5 flex items-center justify-center text-orange-500/50 text-sm font-bold border border-orange-500/10 shrink-0">{client.business.charAt(0)}</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="text-white/90 text-sm font-medium">{client.business}</span>
-                      <span className="text-green-400/50 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-green-400/5 rounded">{client.status}</span>
+        {loading ? (
+          <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 text-white/20 animate-spin" /></div>
+        ) : (
+          <div className="space-y-2">
+            {filtered.map((client) => {
+              const total = (client.services || []).reduce((s, sv) => s + (sv.price || 0), 0);
+              return (
+                <div key={client.id} className="w-full bg-card rounded-xl border border-white/[0.06] p-4 flex items-center gap-5 group hover:border-orange-500/15 transition-all">
+                  <button onClick={() => setSelectedId(client.id)} className="flex items-center gap-5 flex-1 text-left min-w-0">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/10 to-orange-600/5 flex items-center justify-center text-orange-500/50 text-sm font-bold border border-orange-500/10 shrink-0">{client.business?.charAt(0)}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-white/90 text-sm font-medium">{client.business}</span>
+                        <span className="text-green-400/50 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-green-400/5 rounded">{client.status}</span>
+                      </div>
+                      <p className="text-white/30 text-xs">{client.contact} · {(client.emails || [])[0]}</p>
                     </div>
-                    <p className="text-white/30 text-xs">{client.contact} · {client.emails[0]}</p>
-                  </div>
-                  <div className="text-right mr-2 shrink-0">
-                    <p className="text-orange-500 text-sm font-bold">${total}/mo</p>
-                    <p className="text-white/15 text-xs">{client.services.length} services</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
-                </button>
-                <button onClick={() => deleteClient(client.id)} className="p-1.5 text-white/10 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
-              </div>
-            );
-          })}
-        </div>
+                    <div className="text-right mr-2 shrink-0">
+                      <p className="text-orange-500 text-sm font-bold">${total}/mo</p>
+                      <p className="text-white/15 text-xs">{(client.services || []).length} services</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
+                  </button>
+                  <button onClick={() => deleteClient(client.id)} className="p-1.5 text-white/10 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
@@ -162,35 +185,25 @@ function ClientDetail({ client, onBack, onUpdate }) {
               <TabsTrigger key={t} value={t} className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40 capitalize">{t}</TabsTrigger>
             ))}
           </TabsList>
-
-          <TabsContent value="overview">
-            <ContactTab client={client} update={update} />
-          </TabsContent>
-          <TabsContent value="services">
-            <ServicesTab client={client} update={update} />
-          </TabsContent>
-          <TabsContent value="notes">
-            <NotesTab client={client} update={update} />
-          </TabsContent>
-          <TabsContent value="documents">
-            <DocumentsTab client={client} update={update} />
-          </TabsContent>
+          <TabsContent value="overview"><ContactTab client={client} update={update} /></TabsContent>
+          <TabsContent value="services"><ServicesTab client={client} update={update} /></TabsContent>
+          <TabsContent value="notes"><NotesTab client={client} update={update} /></TabsContent>
+          <TabsContent value="documents"><DocumentsTab client={client} update={update} /></TabsContent>
         </Tabs>
       </div>
     </div>
   );
 }
 
-// ── Contact Tab ──────────────────────────────────────────────
 function ContactTab({ client, update }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     business: client.business,
     contact: client.contact,
     status: client.status,
-    phones: [...client.phones],
-    emails: [...client.emails],
-    websites: [...client.websites],
+    phones: [...(client.phones || [])],
+    emails: [...(client.emails || [])],
+    websites: [...(client.websites || [])],
   });
 
   const save = () => {
@@ -202,7 +215,7 @@ function ContactTab({ client, update }) {
   const updateField = (field, i, val) => { const arr = [...form[field]]; arr[i] = val; setForm({ ...form, [field]: arr }); };
   const removeField = (field, i) => setForm({ ...form, [field]: form[field].filter((_, idx) => idx !== i) });
 
-  const total = client.services.reduce((s, sv) => s + (sv.price || 0), 0);
+  const total = (client.services || []).reduce((s, sv) => s + (sv.price || 0), 0);
 
   return (
     <div className="grid grid-cols-2 gap-6">
@@ -239,9 +252,9 @@ function ContactTab({ client, update }) {
           <div className="space-y-3">
             <InfoRow icon={Building} label="Business" value={client.business} />
             <InfoRow icon={Building} label="Contact" value={client.contact} />
-            {client.phones.map((p, i) => <InfoRow key={i} icon={Phone} label={i === 0 ? "Phone" : ""} value={p} />)}
-            {client.emails.map((e, i) => <InfoRow key={i} icon={Mail} label={i === 0 ? "Email" : ""} value={e} />)}
-            {client.websites.map((w, i) => <InfoRow key={i} icon={Globe} label={i === 0 ? "Website" : ""} value={w} />)}
+            {(client.phones || []).map((p, i) => <InfoRow key={i} icon={Phone} label={i === 0 ? "Phone" : ""} value={p} />)}
+            {(client.emails || []).map((e, i) => <InfoRow key={i} icon={Mail} label={i === 0 ? "Email" : ""} value={e} />)}
+            {(client.websites || []).map((w, i) => <InfoRow key={i} icon={Globe} label={i === 0 ? "Website" : ""} value={w} />)}
           </div>
         )}
       </div>
@@ -252,7 +265,7 @@ function ContactTab({ client, update }) {
           <p className="text-white/25 text-xs mt-1">Monthly Total</p>
         </div>
         <div className="space-y-2">
-          {client.services.map((s) => (
+          {(client.services || []).map((s) => (
             <div key={s.id} className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2 text-white/50"><div className="w-1.5 h-1.5 rounded-full bg-orange-500/50" />{s.name}</div>
               <span className="text-orange-500/70 text-xs font-medium">${s.price}/mo</span>
@@ -264,7 +277,6 @@ function ContactTab({ client, update }) {
   );
 }
 
-// ── Services Tab ─────────────────────────────────────────────
 function ServicesTab({ client, update }) {
   const [editId, setEditId] = useState(null);
   const [editVal, setEditVal] = useState({});
@@ -272,16 +284,16 @@ function ServicesTab({ client, update }) {
   const [newSvc, setNewSvc] = useState({ name: "", price: "" });
 
   const save = (services) => update({ services });
-  const del = (id) => save(client.services.filter((s) => s.id !== id));
+  const del = (id) => save((client.services || []).filter((s) => s.id !== id));
   const startEdit = (s) => { setEditId(s.id); setEditVal({ ...s }); };
-  const saveEdit = () => { save(client.services.map((s) => s.id === editId ? { ...editVal, price: parseFloat(editVal.price) || 0 } : s)); setEditId(null); };
+  const saveEdit = () => { save((client.services || []).map((s) => s.id === editId ? { ...editVal, price: parseFloat(editVal.price) || 0 } : s)); setEditId(null); };
   const add = () => {
     if (!newSvc.name) return;
-    save([...client.services, { id: Date.now(), name: newSvc.name, price: parseFloat(newSvc.price) || 0 }]);
+    save([...(client.services || []), { id: Date.now(), name: newSvc.name, price: parseFloat(newSvc.price) || 0 }]);
     setAdding(false); setNewSvc({ name: "", price: "" });
   };
 
-  const total = client.services.reduce((s, sv) => s + (sv.price || 0), 0);
+  const total = (client.services || []).reduce((s, sv) => s + (sv.price || 0), 0);
 
   return (
     <div className="space-y-4">
@@ -291,7 +303,7 @@ function ServicesTab({ client, update }) {
           <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-orange-500/60 hover:text-orange-500 text-xs transition-colors"><Plus className="w-3.5 h-3.5" />Add Service</button>
         </div>
         <div className="space-y-2">
-          {client.services.map((s) => editId === s.id ? (
+          {(client.services || []).map((s) => editId === s.id ? (
             <div key={s.id} className="flex items-center gap-2 py-2">
               <Input value={editVal.name} onChange={(e) => setEditVal({ ...editVal, name: e.target.value })} className="flex-1 h-8 bg-white/[0.04] border-white/[0.08] text-white text-xs" placeholder="Service name" />
               <Input value={editVal.price} onChange={(e) => setEditVal({ ...editVal, price: e.target.value })} type="number" className="w-24 h-8 bg-white/[0.04] border-white/[0.08] text-white text-xs" placeholder="Price" />
@@ -300,10 +312,7 @@ function ServicesTab({ client, update }) {
             </div>
           ) : (
             <div key={s.id} className="flex items-center justify-between py-3 border-b border-white/[0.04] last:border-0 group">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-orange-500/50" />
-                <span className="text-white/70 text-sm">{s.name}</span>
-              </div>
+              <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-orange-500/50" /><span className="text-white/70 text-sm">{s.name}</span></div>
               <div className="flex items-center gap-3">
                 <span className="text-orange-500/70 text-sm font-medium">${s.price}/mo</span>
                 <button onClick={() => startEdit(s)} className="p-1 text-white/15 hover:text-white/50 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
@@ -330,7 +339,6 @@ function ServicesTab({ client, update }) {
   );
 }
 
-// ── Blog Schedule Section ────────────────────────────────────
 const FREQ_OPTIONS = ["per week", "per month"];
 
 function BlogScheduleSection({ client, update }) {
@@ -371,10 +379,7 @@ function BlogScheduleSection({ client, update }) {
           </div>
         ) : (
           <div key={s.id} className="flex items-center justify-between py-3 border-b border-white/[0.04] last:border-0 group">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-orange-500/30" />
-              <span className="text-white/70 text-sm">{s.type}</span>
-            </div>
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-orange-500/30" /><span className="text-white/70 text-sm">{s.type}</span></div>
             <div className="flex items-center gap-3">
               <span className="text-orange-500/60 text-sm font-medium">{s.count}x {s.frequency}</span>
               <button onClick={() => startEdit(s)} className="p-1 text-white/15 hover:text-white/50 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
@@ -398,7 +403,6 @@ function BlogScheduleSection({ client, update }) {
   );
 }
 
-// ── Notes Tab ────────────────────────────────────────────────
 function NotesTab({ client, update }) {
   const [newNote, setNewNote] = useState("");
   const [editId, setEditId] = useState(null);
@@ -407,41 +411,30 @@ function NotesTab({ client, update }) {
   const saveNotes = (notes) => update({ notes });
   const addNote = () => {
     if (!newNote.trim()) return;
-    saveNotes([...client.notes, { id: Date.now(), text: newNote.trim(), date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) }]);
+    saveNotes([...(client.notes || []), { id: Date.now(), text: newNote.trim(), date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) }]);
     setNewNote("");
   };
-  const delNote = (id) => saveNotes(client.notes.filter((n) => n.id !== id));
-  const saveEdit = (id) => { saveNotes(client.notes.map((n) => n.id === id ? { ...n, text: editText } : n)); setEditId(null); };
+  const delNote = (id) => saveNotes((client.notes || []).filter((n) => n.id !== id));
+  const saveEdit = (id) => { saveNotes((client.notes || []).map((n) => n.id === id ? { ...n, text: editText } : n)); setEditId(null); };
 
   return (
     <div className="bg-card rounded-xl border border-white/[0.06] p-5">
       <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase mb-4">Internal Notes</h3>
       <div className="space-y-3 mb-4">
-        {client.notes.length === 0 && <p className="text-white/25 text-sm">No notes yet.</p>}
-        {client.notes.map((n) => (
+        {(client.notes || []).length === 0 && <p className="text-white/25 text-sm">No notes yet.</p>}
+        {(client.notes || []).map((n) => (
           <div key={n.id} className="bg-white/[0.02] rounded-lg border border-white/[0.04] p-3 group">
             <div className="flex items-start justify-between gap-3">
               {editId === n.id ? (
-                <textarea
-                  autoFocus
-                  value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
-                  className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-sm text-white outline-none resize-none min-h-[60px]"
-                />
+                <textarea autoFocus value={editText} onChange={(e) => setEditText(e.target.value)} className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-sm text-white outline-none resize-none min-h-[60px]" />
               ) : (
                 <p className="flex-1 text-white/70 text-sm whitespace-pre-wrap">{n.text}</p>
               )}
               <div className="flex gap-1 shrink-0">
                 {editId === n.id ? (
-                  <>
-                    <button onClick={() => saveEdit(n.id)} className="p-1 text-green-400/70 hover:text-green-400"><Check className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => setEditId(null)} className="p-1 text-white/30 hover:text-white/60"><X className="w-3.5 h-3.5" /></button>
-                  </>
+                  <><button onClick={() => saveEdit(n.id)} className="p-1 text-green-400/70 hover:text-green-400"><Check className="w-3.5 h-3.5" /></button><button onClick={() => setEditId(null)} className="p-1 text-white/30 hover:text-white/60"><X className="w-3.5 h-3.5" /></button></>
                 ) : (
-                  <>
-                    <button onClick={() => { setEditId(n.id); setEditText(n.text); }} className="p-1 text-white/15 hover:text-white/50 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => delNote(n.id)} className="p-1 text-white/15 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
-                  </>
+                  <><button onClick={() => { setEditId(n.id); setEditText(n.text); }} className="p-1 text-white/15 hover:text-white/50 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3.5 h-3.5" /></button><button onClick={() => delNote(n.id)} className="p-1 text-white/15 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3.5 h-3.5" /></button></>
                 )}
               </div>
             </div>
@@ -450,19 +443,13 @@ function NotesTab({ client, update }) {
         ))}
       </div>
       <div className="flex gap-3">
-        <textarea
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
-          placeholder="Add a note..."
-          className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none resize-none min-h-[80px]"
-        />
+        <textarea value={newNote} onChange={(e) => setNewNote(e.target.value)} placeholder="Add a note..." className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none resize-none min-h-[80px]" />
         <button onClick={addNote} className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors self-end">Add</button>
       </div>
     </div>
   );
 }
 
-// ── Documents Tab ────────────────────────────────────────────
 function DocumentsTab({ client, update }) {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef();
@@ -483,7 +470,7 @@ function DocumentsTab({ client, update }) {
     e.target.value = "";
   };
 
-  const del = (id) => saveDocs(client.documents.filter((d) => d.id !== id));
+  const del = (id) => saveDocs((client.documents || []).filter((d) => d.id !== id));
 
   return (
     <div className="bg-card rounded-xl border border-white/[0.06] p-5">
@@ -494,17 +481,14 @@ function DocumentsTab({ client, update }) {
           <Upload className="w-3.5 h-3.5" />{uploading ? "Uploading..." : "Upload"}
         </Button>
       </div>
-      {(!client.documents || client.documents.length === 0) ? (
+      {(!(client.documents) || client.documents.length === 0) ? (
         <p className="text-white/25 text-sm">No documents uploaded yet.</p>
       ) : (
         <div className="space-y-2">
           {client.documents.map((doc) => (
             <div key={doc.id} className="flex items-center gap-3 py-2 px-3 bg-white/[0.02] rounded-lg border border-white/[0.04] group">
               <FileText className="w-4 h-4 text-orange-500/40 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-white/70 text-sm truncate">{doc.name}</p>
-                <p className="text-white/20 text-xs">{doc.date}</p>
-              </div>
+              <div className="flex-1 min-w-0"><p className="text-white/70 text-sm truncate">{doc.name}</p><p className="text-white/20 text-xs">{doc.date}</p></div>
               <a href={doc.url} target="_blank" rel="noreferrer" className="p-1.5 text-white/20 hover:text-white/60 transition-colors"><ExternalLink className="w-3.5 h-3.5" /></a>
               <button onClick={() => del(doc.id)} className="p-1.5 text-white/15 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
             </div>
@@ -515,7 +499,6 @@ function DocumentsTab({ client, update }) {
   );
 }
 
-// ── Helpers ──────────────────────────────────────────────────
 function InfoRow({ icon: Icon, label, value }) {
   return (
     <div className="flex items-center gap-3">

@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
 import { CheckCircle2, Circle, RefreshCw } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-
-function loadCRMClients() {
-  try { return JSON.parse(localStorage.getItem("crm_clients") || "[]"); } catch { return []; }
-}
 
 function getCompletionKey(year, month) {
   return `content_schedule_completions_${year}_${month}`;
@@ -29,17 +26,7 @@ export default function ClientContentSchedule() {
   const [completions, setCompletions] = useState(() => loadCompletions(year, month));
 
   useEffect(() => {
-    const refresh = () => {
-      const all = loadCRMClients();
-      setClients(all);
-    };
-    refresh();
-    window.addEventListener("focus", refresh);
-    window.addEventListener("storage", refresh);
-    return () => {
-      window.removeEventListener("focus", refresh);
-      window.removeEventListener("storage", refresh);
-    };
+    base44.entities.CRMClient.list("-created_date", 200).then(setClients);
   }, []);
 
   const toggleComplete = (clientId, entryId) => {
