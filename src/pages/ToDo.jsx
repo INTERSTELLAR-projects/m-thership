@@ -9,6 +9,61 @@ import PageHeader from "../components/PageHeader";
 const CATEGORIES = ["Priority", "NextUp"];
 const EST_UNITS = ["Hours", "Days", "Weeks", "Months"];
 
+const TO_HOURS = { Hours: 1, Days: 8, Weeks: 40, Months: 160 };
+
+function toHours(amount, unit) {
+  return (parseFloat(amount) || 0) * (TO_HOURS[unit] || 1);
+}
+
+function formatTotal(hours) {
+  if (hours >= 160) return `${(hours / 160).toFixed(1)} months`;
+  if (hours >= 40) return `${(hours / 40).toFixed(1)} weeks`;
+  if (hours >= 8) return `${(hours / 8).toFixed(1)} days`;
+  return `${hours.toFixed(0)} hours`;
+}
+
+function TimeEstimateSummary({ items }) {
+  const catData = CATEGORIES.map((cat) => {
+    const catItems = items.filter((i) => i.category === cat && !i.done);
+    const totalHours = catItems.reduce((sum, i) => sum + toHours(i.estimatedAmount, i.estimatedUnit), 0);
+    const count = catItems.length;
+    return { cat, totalHours, count };
+  });
+
+  const maxHours = Math.max(...catData.map((d) => d.totalHours), 1);
+  const catColors = { Priority: { bar: "bg-red-500/60", text: "text-red-400/80", border: "border-red-500/20" }, NextUp: { bar: "bg-blue-500/60", text: "text-blue-400/80", border: "border-blue-500/20" } };
+
+  return (
+    <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+      <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase mb-4">Time Estimate Overview</h2>
+      <div className="space-y-4">
+        {catData.map(({ cat, totalHours, count }) => {
+          const pct = maxHours > 0 ? (totalHours / maxHours) * 100 : 0;
+          const colors = catColors[cat];
+          return (
+            <div key={cat}>
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded border ${colors.border} ${colors.text}`}>{cat}</span>
+                  <span className="text-white/25 text-xs">{count} task{count !== 1 ? "s" : ""} remaining</span>
+                </div>
+                <span className={`text-sm font-bold ${colors.text}`}>{totalHours > 0 ? formatTotal(totalHours) : "—"}</span>
+              </div>
+              <div className="h-2.5 w-full bg-white/[0.04] rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${colors.bar}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <p className="text-white/20 text-[10px] mt-3">Based on estimated times for incomplete tasks only.</p>
+    </div>
+  );
+}
+
 const EMPTY_FORM = { title: "", description: "", category: "Priority", dueDate: "", estimatedAmount: "", estimatedUnit: "Hours" };
 
 export default function ToDo() {
@@ -72,6 +127,8 @@ export default function ToDo() {
             <Plus className="w-4 h-4" />Add Task
           </button>
         </div>
+
+        <TimeEstimateSummary items={items} />
 
         {adding && (
           <TaskForm form={newForm} setForm={setNewForm} onSave={add} onCancel={() => { setAdding(false); setNewForm({ ...EMPTY_FORM }); }} title="New Task" />
