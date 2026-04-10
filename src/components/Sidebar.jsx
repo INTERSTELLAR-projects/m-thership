@@ -16,7 +16,7 @@ const mainNav = [
   { label: "CRM", icon: Users, path: "/crm" },
   { label: "Idea Vault", icon: Lightbulb, path: "/idea-vault" },
   { label: "To-Do", icon: ListTodo, path: "/todo" },
-
+  { label: "Comms", icon: MessageSquare, path: "/comms" },
 ];
 
 const portalNav = [
