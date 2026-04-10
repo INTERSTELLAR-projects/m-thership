@@ -14,8 +14,8 @@
     "category": {
       "type": "string",
       "enum": [
-        "WebOps",
-        "Forge",
+        "Web \u00d8ps",
+        "F\u00f8rge",
         "\u00d8rbit SEO",
         "Performance",
         "Other"

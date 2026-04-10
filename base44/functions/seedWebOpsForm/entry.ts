@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
     const webOpsForm = {
       title: "WebOps Website Update Request",
       subtitle: "Submit a structured request for website updates, edits, or improvements.",
-      category: "WebOps",
+      category: "Web Øps",
       published: true,
       publishedDate: new Date().toISOString(),
       fields: [

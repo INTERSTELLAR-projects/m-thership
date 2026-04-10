@@ -264,7 +264,7 @@ export default function Documents() {
       function FormBuilder({ form, onClose, onSave }) {
       const [title, setTitle] = useState(form?.title || "");
       const [subtitle, setSubtitle] = useState(form?.subtitle || "");
-      const [category, setCategory] = useState(form?.category || "WebOps");
+      const [category, setCategory] = useState(form?.category || "Web Øps");
       const [saving, setSaving] = useState(false);
 
       const handleSave = async () => {
@@ -307,7 +307,7 @@ export default function Documents() {
          <div>
            <label className="text-white/40 text-xs font-medium block mb-1.5">Category *</label>
            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded px-3 py-2 text-white text-sm outline-none">
-             {["WebOps", "Forge", "Ørbit SEO", "Performance", "Other"].map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+             {["Web Øps", "Førge", "Ørbit SEO", "Performance", "Other"].map((cat) => <option key={cat} value={cat}>{cat}</option>)}
            </select>
          </div>
        </div>
