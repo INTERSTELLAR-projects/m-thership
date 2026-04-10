@@ -199,6 +199,7 @@ function ClientDetail({ client, onBack, onUpdate }) {
 
 function ContactTab({ client, update }) {
   const [editing, setEditing] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [form, setForm] = useState({
     business: client.business,
     contact: client.contact,
@@ -219,12 +220,35 @@ function ContactTab({ client, update }) {
 
   const total = (client.services || []).reduce((s, sv) => s + (sv.price || 0), 0);
 
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingLogo(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    await update({ ...client, logoUrl: file_url });
+    setUploadingLogo(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-6">
         <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Contact Info</h3>
+        <div className="flex items-center gap-4 mb-4">
+          <input type="file" accept="image/*" onChange={handleLogoUpload} disabled={uploadingLogo} className="hidden" id="logo-upload" />
+          <label htmlFor="logo-upload" className={`flex-shrink-0 w-16 h-16 rounded-lg border-2 border-dashed border-orange-500/30 flex items-center justify-center cursor-pointer hover:border-orange-500/60 transition-colors ${client.logoUrl ? 'bg-orange-500/5' : 'bg-white/[0.02]'}`}>
+            {uploadingLogo ? (
+              <Loader2 className="w-6 h-6 text-orange-500/40 animate-spin" />
+            ) : client.logoUrl ? (
+              <img src={client.logoUrl} alt="Logo" className="w-full h-full object-cover rounded" />
+            ) : (
+              <Plus className="w-5 h-5 text-orange-500/40" />
+            )}
+          </label>
+          <div className="flex-1">
+            <h3 className="text-white font-bold text-sm">{client.business}</h3>
+            <p className="text-white/30 text-xs mt-1">Click logo to upload</p>
+          </div>
+          <div className="flex items-center justify-end">
             {editing ? (
               <div className="flex gap-2">
                 <button onClick={save} className="flex items-center gap-1 text-green-400/70 hover:text-green-400 text-xs"><Save className="w-3.5 h-3.5" />Save</button>
@@ -233,6 +257,11 @@ function ContactTab({ client, update }) {
             ) : (
               <button onClick={() => setEditing(true)} className="text-white/20 hover:text-white/50 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
             )}
+          </div>
+        </div>
+        <div className="border-t border-white/[0.04] pt-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Contact Details</h3>
           </div>
           {editing ? (
             <div className="space-y-3">
@@ -280,6 +309,7 @@ function ContactTab({ client, update }) {
       <BrandProfile clientId={client.id} initialData={client.brandProfile || {}} />
     </div>
   );
+}
 }
 
 function ServicesTab({ client, update }) {
