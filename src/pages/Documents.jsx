@@ -298,7 +298,7 @@ export default function Documents() {
        <div className="space-y-3">
          <div>
            <label className="text-white/40 text-xs font-medium block mb-1.5">Form Title *</label>
-           <Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-white/[0.03] border-white/[0.06] text-white" placeholder="e.g. WebOps Website Update Request" />
+           <Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-white/[0.03] border-white/[0.06] text-white" placeholder="e.g. Web Øps Website Update Request" />
          </div>
          <div>
            <label className="text-white/40 text-xs font-medium block mb-1.5">Subtitle (optional)</label>
