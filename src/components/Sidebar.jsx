@@ -20,6 +20,7 @@ const mainNav = [
 ];
 
 const portalNav = [
+  { label: "Dashboard", icon: LayoutDashboard, path: "/portal-dashboard" },
   { label: "Requests", icon: ClipboardList, path: "/requests" },
   { label: "Ørbit SEO", icon: Globe, path: "/orbit-seo" },
   { label: "Web Øps", icon: Wrench, path: "/web-ops" },
