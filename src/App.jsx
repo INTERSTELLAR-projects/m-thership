@@ -24,6 +24,7 @@ import IdeaVault from './pages/IdeaVault';
 import Requests from './pages/Requests';
 import ToDo from './pages/ToDo';
 import ClientComms from './pages/ClientComms';
+import ClientProjects from './pages/ClientProjects';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -69,6 +70,7 @@ const AuthenticatedApp = () => {
         <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
         <Route path="/todo" element={<ProtectedRoute><ToDo /></ProtectedRoute>} />
         <Route path="/client-comms" element={<ProtectedRoute><ClientComms /></ProtectedRoute>} />
+        <Route path="/client-projects" element={<ProtectedRoute><ClientProjects /></ProtectedRoute>} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
