@@ -66,21 +66,14 @@ export default function WebOps() {
       base44.entities.CRMClient.list("business", 200),
       base44.entities.WebOpsProject.list("-created_date", 200),
     ]).then(([crmClients, dbProjects]) => {
-      // Flatten all Web Øps requests from CRM
+      // Flatten all requests from CRM clients
       const allRequests = crmClients.flatMap((client) =>
-        (client.requests || [])
-          .filter((r) =>
-            r.formType?.toLowerCase().includes("web") ||
-            r.title?.toLowerCase().includes("web") ||
-            r.formType?.toLowerCase().includes("øps") ||
-            r.formType?.toLowerCase().includes("ops")
-          )
-          .map((r, i) => ({
-            ...r,
-            _uid: `${client.id}-${i}`,
-            clientName: client.business,
-            clientId: client.id,
-          }))
+        (client.requests || []).map((r, i) => ({
+          ...r,
+          _uid: `${client.id}-${i}`,
+          clientName: client.business,
+          clientId: client.id,
+        }))
       );
       setRequests(allRequests);
       setProjects(dbProjects);
