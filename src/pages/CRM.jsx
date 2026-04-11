@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Phone, Mail, Globe, Building, ChevronRight, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2 } from "lucide-react";
+import { Search, Plus, Phone, Mail, Globe, Building, ChevronRight, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -183,7 +183,7 @@ function ClientDetail({ client, onBack, onUpdate }) {
       <div className="px-8 py-6">
         <Tabs defaultValue="overview" className="w-full">
             <TabsList className="bg-card border border-white/[0.06] mb-6">
-              {["overview", "services", "notes", "documents", "requests"].map((t) => (
+              {["overview", "services", "notes", "documents", "requests", "completed"].map((t) => (
               <TabsTrigger key={t} value={t} className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40 capitalize">{t}</TabsTrigger>
             ))}
           </TabsList>
@@ -192,6 +192,7 @@ function ClientDetail({ client, onBack, onUpdate }) {
           <TabsContent value="notes"><NotesTab client={client} update={update} /></TabsContent>
           <TabsContent value="documents"><DocumentsTab client={client} update={update} /></TabsContent>
           <TabsContent value="requests"><RequestsTab client={client} update={update} /></TabsContent>
+          <TabsContent value="completed"><CompletedTasksTab client={client} update={update} /></TabsContent>
         </Tabs>
       </div>
     </div>
@@ -586,6 +587,44 @@ function MultiField({ label, icon: Icon, values, onAdd, onUpdate, onRemove }) {
           ))}
           </div>
           )}
+          </div>
+          );
+          }
+
+          function CompletedTasksTab({ client, update }) {
+          const tasks = (client.completedTasks || []).slice().reverse();
+
+          const del = (id) => {
+            const completedTasks = (client.completedTasks || []).filter((t) => t.id !== id);
+            update({ completedTasks });
+          };
+
+          return (
+          <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Completed Tasks</h3>
+              <span className="text-white/25 text-xs">{tasks.length} total</span>
+            </div>
+            {tasks.length === 0 ? (
+              <p className="text-white/25 text-sm">No completed tasks yet. Tasks marked complete in Client Projects will appear here.</p>
+            ) : (
+              <div className="space-y-2">
+                {tasks.map((t) => (
+                  <div key={t.id} className="flex items-center gap-3 py-3 px-4 bg-white/[0.02] rounded-lg border border-white/[0.04] group">
+                    <CheckCircle2 className="w-4 h-4 text-green-400/60 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white/70 text-sm">{t.text}</p>
+                      <div className="flex items-center gap-3 mt-0.5">
+                        <span className="text-white/25 text-[10px]">{t.card}</span>
+                        {t.completedDate && <span className="text-green-400/50 text-[10px]">Completed {t.completedDate}</span>}
+                        {t.due && <span className="text-white/20 text-[10px]">Was due {new Date(t.due + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+                      </div>
+                    </div>
+                    <button onClick={() => del(t.id)} className="p-1 text-white/10 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           );
           }

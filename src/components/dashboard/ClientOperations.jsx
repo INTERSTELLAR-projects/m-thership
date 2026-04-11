@@ -41,6 +41,22 @@ function TodoCard({ title, clients }) {
     const done = status === "Completed";
     await base44.entities.ClientOperationItem.update(t.id, { status, done });
     setTodos(todos.map((x) => x.id === t.id ? { ...x, status, done } : x));
+
+    // Push to CRM client's completedTasks when marked Completed
+    if (done && t.client) {
+      const matches = await base44.entities.CRMClient.filter({ business: t.client }, "business", 1);
+      if (matches.length > 0) {
+        const crm = matches[0];
+        const completedTasks = [...(crm.completedTasks || []), {
+          id: Date.now(),
+          text: t.text,
+          card: title,
+          completedDate: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+          due: t.due || null,
+        }];
+        await base44.entities.CRMClient.update(crm.id, { completedTasks });
+      }
+    }
   };
 
   const del = async (id) => {
