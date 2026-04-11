@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Globe, MapPin, Loader2, BarChart3, Calendar, AlertCircle, Users, X, Check } from "lucide-react";
+import { Plus, Search, Globe, MapPin, Loader2, BarChart3, Calendar, AlertCircle, Users, X, Check, RefreshCw } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 import ClientDetail from "../components/orbitseo/ClientDetail";
@@ -40,6 +40,8 @@ export default function OrbitSEO() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [addOpen, setAddOpen] = useState(false);
   const [newClient, setNewClient] = useState({ businessName: "", serviceType: "Local", status: "Active" });
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState(null);
 
   useEffect(() => {
     base44.entities.OrbitSEOClient.list("-created_date", 200).then((data) => {
@@ -47,6 +49,45 @@ export default function OrbitSEO() {
       setLoading(false);
     });
   }, []);
+
+  const syncFromCRM = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    const crmClients = await base44.entities.CRMClient.list("business", 200);
+    const orbitClients = await base44.entities.OrbitSEOClient.list("businessName", 200);
+    const existingNames = new Set(orbitClients.map((c) => c.businessName?.toLowerCase()));
+
+    // Filter CRM clients that have an Orbit SEO related service OR import all active ones
+    const toImport = crmClients.filter((c) => {
+      const hasOrbitService = (c.services || []).some((s) =>
+        s.name?.toLowerCase().includes("orbit") ||
+        s.name?.toLowerCase().includes("seo") ||
+        s.name?.toLowerCase().includes("ørbit")
+      );
+      return hasOrbitService && !existingNames.has(c.business?.toLowerCase());
+    });
+
+    let added = 0;
+    for (const c of toImport) {
+      const created = await base44.entities.OrbitSEOClient.create({
+        businessName: c.business,
+        website: (c.websites || [])[0] || "",
+        primaryLocation: "",
+        serviceType: "Local",
+        status: "Active",
+        blogFrequency: (c.blogSchedule || []).map((b) => `${b.count}x ${b.frequency}`).join(", ") || "",
+        blogs: [],
+        gbpPosts: [],
+        tasks: [],
+        notes: "",
+      });
+      setClients((prev) => [...prev, created]);
+      added++;
+    }
+    setSyncing(false);
+    setSyncResult(added === 0 ? "No new clients found (already imported or no SEO service tagged in CRM)." : `${added} client${added > 1 ? "s" : ""} imported from CRM.`);
+    setTimeout(() => setSyncResult(null), 5000);
+  };
 
   const addClient = async () => {
     if (!newClient.businessName.trim()) return;
@@ -142,11 +183,23 @@ export default function OrbitSEO() {
           </div>
           <button
             onClick={() => setAddOpen(true)}
-            className="ml-auto flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />Add Client
           </button>
+          <button
+            onClick={syncFromCRM}
+            disabled={syncing}
+            className="ml-auto flex items-center gap-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/60 hover:text-white/80 text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />{syncing ? "Syncing..." : "Sync from CRM"}
+          </button>
         </div>
+        {syncResult && (
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-xs">
+            <Check className="w-3.5 h-3.5 shrink-0" />{syncResult}
+          </div>
+        )}
 
         {/* CLIENT GRID */}
         {loading ? (
