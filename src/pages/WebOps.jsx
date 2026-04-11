@@ -120,11 +120,14 @@ export default function WebOps() {
   const highPriority = requests.filter((r) => r.urgency === "High Priority" || r.priority === "High Priority").length;
 
   const filteredReqs = requests.filter((r) => {
-    const active = reqStatusFilter === "Archive" ? r.status === "Completed" : r.status !== "Completed";
-    const matchStatus = reqStatusFilter === "All" || reqStatusFilter === "Archive" || r.status === reqStatusFilter;
+    const isCompleted = r.status === "Completed";
+    if (reqStatusFilter === "Archive") return isCompleted;
+    if (reqStatusFilter !== "All") {
+      if (r.status !== reqStatusFilter) return false;
+    }
     const matchPriority = reqPriorityFilter === "All" || r.urgency === reqPriorityFilter || r.priority === reqPriorityFilter;
     const matchSearch = !reqSearch || r.title?.toLowerCase().includes(reqSearch.toLowerCase()) || r.clientName?.toLowerCase().includes(reqSearch.toLowerCase());
-    return active && matchStatus && matchPriority && matchSearch;
+    return !isCompleted && matchPriority && matchSearch;
   });
 
   const activeFilteredProjs = projects.filter((p) => {
