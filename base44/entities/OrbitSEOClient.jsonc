@@ -1,0 +1,106 @@
+{
+  "name": "OrbitSEOClient",
+  "type": "object",
+  "properties": {
+    "clientId": {
+      "type": "string"
+    },
+    "businessName": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "primaryLocation": {
+      "type": "string"
+    },
+    "serviceLocations": {
+      "type": "string"
+    },
+    "serviceType": {
+      "type": "string",
+      "enum": [
+        "Local",
+        "National",
+        "International"
+      ],
+      "default": "Local"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Needs Attention",
+        "Paused"
+      ],
+      "default": "Active"
+    },
+    "blogFrequency": {
+      "type": "string"
+    },
+    "lastBlogPosted": {
+      "type": "string"
+    },
+    "nextBlogDue": {
+      "type": "string"
+    },
+    "gbpStatus": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Needs Attention",
+        "Not Applicable",
+        "Paused"
+      ],
+      "default": "Active"
+    },
+    "gbpLastPost": {
+      "type": "string"
+    },
+    "gbpNextDue": {
+      "type": "string"
+    },
+    "googleShopStatus": {
+      "type": "string"
+    },
+    "offerPositioning": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "problemSolution": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "seoStrategy": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "blogs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "gbpPosts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "businessName"
+  ]
+}
