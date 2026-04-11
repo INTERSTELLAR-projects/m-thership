@@ -201,22 +201,20 @@ export default function Forge() {
             <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase">Forge Requests</h2>
             <span className="text-white/25 text-xs">{activeReqs.length} active</span>
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-              <input value={reqSearch} onChange={(e) => setReqSearch(e.target.value)} placeholder="Search requests..." className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none" />
-            </div>
-            <div className="flex gap-1.5 flex-wrap">
-              {["All", "Submitted", "Under Review", "Approved", "In Progress", "Completed"].map((s) => {
-                const count = s === "All" ? requests.filter(r => !isReqDone(r)).length : s === "Completed" ? requests.filter(r => isReqDone(r)).length : requests.filter(r => (r.status === s || (!r.status && s === "Submitted")) && !isReqDone(r)).length;
-                const activeStyle = s === "Completed" ? "bg-green-500/15 text-green-400 border border-green-500/20" : "bg-orange-500/15 text-orange-500 border border-orange-500/20";
-                return (
-                  <button key={s} onClick={() => setReqStatusFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${reqStatusFilter === s ? activeStyle : "text-white/30 hover:text-white/50 border border-transparent"}`}>
-                    {s} <span className="opacity-50">({count})</span>
-                  </button>
-                );
-              })}
-            </div>
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+            <input value={reqSearch} onChange={(e) => setReqSearch(e.target.value)} placeholder="Search requests..." className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none" />
+          </div>
+          <div className="flex gap-1.5 flex-wrap">
+            {["All", "Submitted", "Under Review", "Approved", "In Progress", "Completed"].map((s) => {
+              const count = s === "All" ? requests.filter(r => !isReqDone(r)).length : s === "Completed" ? requests.filter(r => isReqDone(r)).length : requests.filter(r => (r.status === s || (!r.status && s === "Submitted")) && !isReqDone(r)).length;
+              const activeStyle = s === "Completed" ? "bg-green-500/15 text-green-400 border border-green-500/20" : "bg-orange-500/15 text-orange-500 border border-orange-500/20";
+              return (
+                <button key={s} onClick={() => setReqStatusFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${reqStatusFilter === s ? activeStyle : "text-white/30 hover:text-white/50 border border-transparent"}`}>
+                  {s} <span className="opacity-50">({count})</span>
+                </button>
+              );
+            })}
           </div>
 
           {loading ? (
@@ -242,22 +240,20 @@ export default function Forge() {
               <Plus className="w-3.5 h-3.5" />New Project
             </button>
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-              <input value={projSearch} onChange={(e) => setProjSearch(e.target.value)} placeholder="Search projects..." className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none" />
-            </div>
-            <div className="flex gap-1.5 flex-wrap">
-              {["All", "Planning", "Development", "Testing", "Deployment", "Completed", "On Hold"].map((s) => {
-                const count = s === "All" ? projects.length : projects.filter(p => p.status === s).length;
-                const activeStyle = s === "Completed" ? "bg-green-500/15 text-green-400 border border-green-500/20" : s === "On Hold" ? "bg-white/[0.08] text-white/50 border border-white/[0.12]" : "bg-orange-500/15 text-orange-500 border border-orange-500/20";
-                return (
-                  <button key={s} onClick={() => setProjStatusFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${projStatusFilter === s ? activeStyle : "text-white/30 hover:text-white/50 border border-transparent"}`}>
-                    {s} <span className="opacity-50">({count})</span>
-                  </button>
-                );
-              })}
-            </div>
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+            <input value={projSearch} onChange={(e) => setProjSearch(e.target.value)} placeholder="Search projects..." className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none" />
+          </div>
+          <div className="flex gap-1.5 flex-wrap">
+            {["All", "Planning", "Development", "Testing", "Deployment", "Completed", "On Hold"].map((s) => {
+              const count = s === "All" ? projects.length : projects.filter(p => p.status === s).length;
+              const activeStyle = s === "Completed" ? "bg-green-500/15 text-green-400 border border-green-500/20" : s === "On Hold" ? "bg-white/[0.08] text-white/50 border border-white/[0.12]" : "bg-orange-500/15 text-orange-500 border border-orange-500/20";
+              return (
+                <button key={s} onClick={() => setProjStatusFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${projStatusFilter === s ? activeStyle : "text-white/30 hover:text-white/50 border border-transparent"}`}>
+                  {s} <span className="opacity-50">({count})</span>
+                </button>
+              );
+            })}
           </div>
 
           {activeFilteredProjs.length === 0 ? (
