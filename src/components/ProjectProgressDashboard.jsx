@@ -3,7 +3,6 @@ import { base44 } from "@/api/base44Client";
 import { CheckCircle2, Circle, Layers, Loader2 } from "lucide-react";
 
 const CLIENT_OPS_CARDS = ["Website Updates", "GBP Updates", "New Website Builds", "Presentations"];
-const MINUSCULE_CARDS = ["Quick Fixes", "Minor Updates", "Small Tasks", "One-Off Requests"].map((k) => `minuscule::${k}`);
 
 function ProgressBar({ value, max, color = "bg-orange-500" }) {
   const pct = max === 0 ? 0 : Math.round((value / max) * 100);
@@ -31,17 +30,16 @@ export default function ProjectProgressDashboard() {
     });
   }, []);
 
-  const clientOpsItems = items.filter((i) => CLIENT_OPS_CARDS.includes(i.card));
-  const minusculeItems = items.filter((i) => MINUSCULE_CARDS.includes(i.card));
-  const otherItems = items.filter((i) => i.card === "other-tasks");
-
-  const totalAll = items.length;
-  const doneAll = items.filter((i) => i.done).length;
+  const relevantItems = items.filter((i) => CLIENT_OPS_CARDS.includes(i.card) || i.card === "other-tasks");
+  const totalAll = relevantItems.length;
+  const doneAll = relevantItems.filter((i) => i.done).length;
 
   const sections = [
-    { label: "Client Projects", items: clientOpsItems, color: "bg-orange-500" },
-    { label: "Minuscule Projects", items: minusculeItems, color: "bg-blue-500" },
-    { label: "Other Tasks", items: otherItems, color: "bg-purple-500" },
+    { label: "Website Updates", items: items.filter((i) => i.card === "Website Updates"), color: "bg-orange-500" },
+    { label: "GBP Updates", items: items.filter((i) => i.card === "GBP Updates"), color: "bg-blue-500" },
+    { label: "New Builds", items: items.filter((i) => i.card === "New Website Builds"), color: "bg-purple-500" },
+    { label: "Presentations", items: items.filter((i) => i.card === "Presentations"), color: "bg-yellow-500" },
+    { label: "Other Tasks", items: items.filter((i) => i.card === "other-tasks"), color: "bg-green-500" },
   ];
 
   if (loading) {
@@ -85,7 +83,7 @@ export default function ProjectProgressDashboard() {
         </div>
 
         {/* Per-section */}
-        <div className="grid grid-cols-3 gap-5 pt-2 border-t border-white/[0.05]">
+        <div className="grid grid-cols-5 gap-4 pt-2 border-t border-white/[0.05]">
           {sections.map(({ label, items: sItems, color }) => {
             const done = sItems.filter((i) => i.done).length;
             return (

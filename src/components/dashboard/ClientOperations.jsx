@@ -2,6 +2,13 @@ import { useState, useEffect } from "react";
 import { Bell, Plus, Trash2, Pencil, Check, X, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
+const STATUS_OPTIONS = ["Pending", "In Progress", "Completed"];
+const STATUS_STYLES = {
+  Pending: "bg-white/5 text-white/35 border-white/10",
+  "In Progress": "bg-orange-500/15 text-orange-400 border-orange-500/25",
+  Completed: "bg-green-500/15 text-green-400 border-green-500/25",
+};
+
 const CARD_KEYS = ["Website Updates", "GBP Updates", "New Website Builds", "Presentations"];
 
 function TodoCard({ title, clients }) {
@@ -25,9 +32,15 @@ function TodoCard({ title, clients }) {
 
   const add = async () => {
     if (!newText.trim()) return;
-    const created = await base44.entities.ClientOperationItem.create({ card: title, text: newText.trim(), due: newDue.trim(), client: newClient });
+    const created = await base44.entities.ClientOperationItem.create({ card: title, text: newText.trim(), due: newDue.trim(), client: newClient, status: "Pending", done: false });
     setTodos([...todos, created]);
     setNewText(""); setNewDue(""); setNewClient(""); setAdding(false);
+  };
+
+  const setStatus = async (t, status) => {
+    const done = status === "Completed";
+    await base44.entities.ClientOperationItem.update(t.id, { status, done });
+    setTodos(todos.map((x) => x.id === t.id ? { ...x, status, done } : x));
   };
 
   const del = async (id) => {
@@ -72,15 +85,24 @@ function TodoCard({ title, clients }) {
                 <button onClick={() => setEditId(null)} className="p-0.5 text-white/30 hover:text-white/60"><X className="w-3 h-3" /></button>
               </>
             ) : (
-              <>
-                <div className="flex-1 min-w-0">
-                  <span className="text-white/60 text-xs leading-relaxed">• {t.text}</span>
-                  {t.client && <span className="ml-2 text-orange-500/60 text-[10px] font-semibold px-1.5 py-0.5 bg-orange-500/[0.06] rounded">{t.client}</span>}
-                  {t.due && <span className="ml-1 text-orange-500/50 text-[10px] font-medium">{new Date(t.due + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+              <div className="flex-1 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 min-w-0">
+                    <span className={`text-xs leading-relaxed ${t.done ? "line-through text-white/25" : "text-white/70"}`}>• {t.text}</span>
+                    {t.client && <span className="ml-2 text-orange-500/60 text-[10px] font-semibold px-1.5 py-0.5 bg-orange-500/[0.06] rounded">{t.client}</span>}
+                    {t.due && <span className="ml-1 text-orange-500/50 text-[10px] font-medium">{new Date(t.due + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+                  </div>
+                  <button onClick={() => { setEditId(t.id); setEditText(t.text); setEditDue(t.due || ""); setEditClient(t.client || ""); }} className="p-0.5 text-white/15 hover:text-white/50 opacity-0 group-hover/item:opacity-100 transition-all"><Pencil className="w-3 h-3" /></button>
+                  <button onClick={() => del(t.id)} className="p-0.5 text-white/15 hover:text-red-400/60 opacity-0 group-hover/item:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
                 </div>
-                <button onClick={() => { setEditId(t.id); setEditText(t.text); setEditDue(t.due || ""); setEditClient(t.client || ""); }} className="p-0.5 text-white/15 hover:text-white/50 opacity-0 group-hover/item:opacity-100 transition-all"><Pencil className="w-3 h-3" /></button>
-                <button onClick={() => del(t.id)} className="p-0.5 text-white/15 hover:text-red-400/60 opacity-0 group-hover/item:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
-              </>
+                <div className="flex gap-1 ml-2">
+                  {STATUS_OPTIONS.map((s) => (
+                    <button key={s} onClick={() => setStatus(t, s)} className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                      (t.status || "Pending") === s ? STATUS_STYLES[s] : "text-white/20 border-transparent hover:text-white/40"
+                    }`}>{s}</button>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         ))}
