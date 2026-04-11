@@ -13,6 +13,10 @@
     },
     "client": {
       "type": "string"
+    },
+    "done": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

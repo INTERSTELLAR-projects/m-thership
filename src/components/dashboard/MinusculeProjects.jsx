@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Plus, Trash2, Pencil, Check, X, Loader2 } from "lucide-react";
+import { Bell, Plus, Trash2, Pencil, Check, X, Loader2, CheckSquare, Square } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const CARD_KEYS = ["Quick Fixes", "Minor Updates", "Small Tasks", "One-Off Requests"];
@@ -33,6 +33,11 @@ function TodoCard({ title, clients }) {
   const del = async (id) => {
     await base44.entities.ClientOperationItem.delete(id);
     setTodos(todos.filter((t) => t.id !== id));
+  };
+
+  const toggleDone = async (t) => {
+    await base44.entities.ClientOperationItem.update(t.id, { done: !t.done });
+    setTodos(todos.map((x) => x.id === t.id ? { ...x, done: !x.done } : x));
   };
 
   const saveEdit = async (id) => {
@@ -73,8 +78,11 @@ function TodoCard({ title, clients }) {
               </>
             ) : (
               <>
+                <button onClick={() => toggleDone(t)} className="shrink-0 text-white/20 hover:text-orange-500/70 transition-colors">
+                  {t.done ? <CheckSquare className="w-3.5 h-3.5 text-green-400/70" /> : <Square className="w-3.5 h-3.5" />}
+                </button>
                 <div className="flex-1 min-w-0">
-                  <span className="text-white/60 text-xs leading-relaxed">• {t.text}</span>
+                  <span className={`text-xs leading-relaxed ${t.done ? "text-white/25 line-through" : "text-white/60"}`}>• {t.text}</span>
                   {t.client && <span className="ml-2 text-orange-500/60 text-[10px] font-semibold px-1.5 py-0.5 bg-orange-500/[0.06] rounded">{t.client}</span>}
                   {t.due && <span className="ml-1 text-orange-500/50 text-[10px] font-medium">{new Date(t.due + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
                 </div>
