@@ -1,0 +1,86 @@
+{
+  "name": "ForgeProject",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "clientName": {
+      "type": "string"
+    },
+    "clientId": {
+      "type": "string"
+    },
+    "projectType": {
+      "type": "string",
+      "enum": [
+        "Automation",
+        "App",
+        "Software",
+        "AI System",
+        "Integration",
+        "Internal Tool"
+      ],
+      "default": "App"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Planning",
+        "Development",
+        "Testing",
+        "Deployment",
+        "Completed",
+        "On Hold",
+        "Waiting on Client"
+      ],
+      "default": "Planning"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "Standard",
+        "High Priority"
+      ],
+      "default": "Standard"
+    },
+    "startDate": {
+      "type": "string"
+    },
+    "targetDate": {
+      "type": "string"
+    },
+    "progress": {
+      "type": "number",
+      "default": 0
+    },
+    "objective": {
+      "type": "string"
+    },
+    "coreFunctionality": {
+      "type": "string"
+    },
+    "buildStrategy": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "linkedRequestIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
