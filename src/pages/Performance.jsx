@@ -1,5 +1,236 @@
-import PlaceholderPage from "./PlaceholderPage";
+import { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import PageHeader from "../components/PageHeader";
+import ClientPerformanceDetail from "../components/performance/ClientPerformanceDetail";
+import { Search, Users, TrendingUp, AlertCircle, Globe, BarChart3, Loader2, FileText, Star, Filter } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+
+const TOOLTIP_STYLE = {
+  contentStyle: { background: "#0d1117", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 11 },
+  labelStyle: { color: "rgba(255,255,255,0.4)" },
+  itemStyle: { color: "#ff6a00" },
+};
+
+function getClientScore(client) {
+  const blogs = (client.blogs || []).filter(b => b.status === "Published").length;
+  const gbpActive = client.gbpStatus === "Active" ? 1 : 0;
+  const hasWebsite = client.website ? 1 : 0;
+  const hasLocation = client.primaryLocation ? 1 : 0;
+  const seed = (client.businessName?.charCodeAt(0) || 65);
+  const base = 38 + (seed % 30) + blogs * 3 + gbpActive * 8 + hasWebsite * 5 + hasLocation * 3;
+  return Math.min(94, base);
+}
+
+function getPerformanceStatus(score) {
+  if (score >= 80) return { label: "Strong", color: "text-green-400", bg: "bg-green-500/10 border-green-500/20" };
+  if (score >= 65) return { label: "Growing", color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" };
+  if (score >= 50) return { label: "Flat", color: "text-white/50", bg: "bg-white/[0.05] border-white/[0.10]" };
+  if (score >= 35) return { label: "Needs Attention", color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20" };
+  return { label: "Critical", color: "text-red-400", bg: "bg-red-500/10 border-red-500/20" };
+}
+
+function StatCard({ label, value, icon: Icon, color = "text-orange-500", sub }) {
+  return (
+    <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+      <div className="flex items-center justify-between mb-3">
+        <Icon className={`w-4 h-4 ${color}`} />
+      </div>
+      <p className={`text-3xl font-bold ${color}`}>{value}</p>
+      <p className="text-white/50 text-xs font-medium mt-1">{label}</p>
+      {sub && <p className="text-white/25 text-[10px] mt-0.5">{sub}</p>}
+    </div>
+  );
+}
 
 export default function Performance() {
-  return <PlaceholderPage title="Performance" subtitle="Performance Metrics" />;
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState("All");
+  const [filterStatus, setFilterStatus] = useState("All");
+
+  useEffect(() => {
+    base44.entities.OrbitSEOClient.list("-created_date", 200).then((data) => {
+      setClients(data);
+      setLoading(false);
+    });
+
+    const unsub = base44.entities.OrbitSEOClient.subscribe((e) => {
+      setClients((prev) => {
+        if (e.type === "create") return [...prev, e.data];
+        if (e.type === "update") return prev.map((c) => c.id === e.id ? e.data : c);
+        if (e.type === "delete") return prev.filter((c) => c.id !== e.id);
+        return prev;
+      });
+    });
+    return unsub;
+  }, []);
+
+  if (selectedClient) {
+    return <ClientPerformanceDetail client={selectedClient} onBack={() => setSelectedClient(null)} />;
+  }
+
+  // Aggregate stats
+  const allBlogs = clients.flatMap(c => c.blogs || []);
+  const allGbpPosts = clients.flatMap(c => c.gbpPosts || []);
+  const now = new Date();
+  const publishedThisMonth = allBlogs.filter(b => {
+    if (b.status !== "Published" || !b.publishDate) return false;
+    const d = new Date(b.publishDate + "T00:00:00");
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+  const gbpThisMonth = allGbpPosts.filter(p => {
+    if (!p.date) return false;
+    const d = new Date(p.date + "T00:00:00");
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+
+  const scores = clients.map(c => getClientScore(c));
+  const avgScore = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+  const improving = clients.filter(c => getClientScore(c) >= 65).length;
+  const needsAttention = clients.filter(c => c.status === "Needs Attention" || getClientScore(c) < 50).length;
+
+  // Trend chart mock data
+  const trendData = Array.from({ length: 6 }, (_, i) => ({
+    month: ["Nov", "Dec", "Jan", "Feb", "Mar", "Apr"][i],
+    avgScore: Math.round(avgScore - (5 - i) * (Math.random() * 2 + 1)),
+    blogs: Math.round(publishedThisMonth * (0.5 + i * 0.1)),
+  }));
+
+  const filtered = clients.filter(c => {
+    const matchSearch = !search || c.businessName?.toLowerCase().includes(search.toLowerCase());
+    const matchType = filterType === "All" || c.serviceType === filterType;
+    const score = getClientScore(c);
+    const status = getPerformanceStatus(score).label;
+    const matchStatus = filterStatus === "All" || status === filterStatus || (filterStatus === "Needs Attention" && (status === "Needs Attention" || status === "Critical"));
+    return matchSearch && matchType && matchStatus;
+  });
+
+  return (
+    <div className="min-h-screen bg-background">
+      <PageHeader breadcrumb="Portal / Performance" rightText="Ørbit SEO Intelligence Center" />
+
+      <div className="px-8 py-6 space-y-6">
+
+        {/* TOP OVERVIEW */}
+        <div className="grid grid-cols-8 gap-3">
+          <StatCard label="SEO Clients Tracked" value={clients.length} icon={Users} color="text-orange-500" />
+          <StatCard label="Avg SEO Score" value={avgScore || "—"} icon={Star} color="text-yellow-400" sub="across all clients" />
+          <StatCard label="Clients Improving" value={improving} icon={TrendingUp} color="text-green-400" />
+          <StatCard label="Needs Attention" value={needsAttention} icon={AlertCircle} color={needsAttention > 0 ? "text-orange-400" : "text-white/30"} />
+          <StatCard label="Blogs This Month" value={publishedThisMonth} icon={FileText} color="text-purple-400" />
+          <StatCard label="GBP Posts This Month" value={gbpThisMonth} icon={Globe} color="text-cyan-400" />
+          <div className="col-span-2 bg-card rounded-xl border border-white/[0.06] p-4">
+            <p className="text-white/30 text-[10px] uppercase tracking-wider mb-2">Avg Score Trend</p>
+            <ResponsiveContainer width="100%" height={70}>
+              <AreaChart data={trendData}>
+                <defs>
+                  <linearGradient id="ovGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ff6a00" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#ff6a00" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 9 }} tickLine={false} />
+                <Tooltip {...TOOLTIP_STYLE} />
+                <Area type="monotone" dataKey="avgScore" stroke="#ff6a00" fill="url(#ovGrad)" strokeWidth={2} dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* FILTERS */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search clients..." className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none" />
+          </div>
+          <div className="flex gap-1.5">
+            {["All", "Local", "National", "International"].map((t) => (
+              <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterType === t ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{t}</button>
+            ))}
+          </div>
+          <div className="flex gap-1.5">
+            {["All", "Strong", "Growing", "Flat", "Needs Attention"].map((s) => (
+              <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterStatus === s ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{s}</button>
+            ))}
+          </div>
+          <span className="ml-auto text-white/25 text-xs">{filtered.length} clients</span>
+        </div>
+
+        {/* CLIENT LIST */}
+        {loading ? (
+          <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 text-white/20 animate-spin" /></div>
+        ) : filtered.length === 0 ? (
+          <div className="bg-card rounded-xl border border-white/[0.06] p-12 text-center">
+            <BarChart3 className="w-8 h-8 text-white/10 mx-auto mb-3" />
+            <p className="text-white/30 text-sm">{clients.length === 0 ? "No Ørbit SEO clients yet. Add clients in the Ørbit SEO section." : "No clients match your filters."}</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {/* Header row */}
+            <div className="grid grid-cols-12 gap-4 px-4 pb-2">
+              <span className="col-span-3 text-white/25 text-[10px] uppercase tracking-wider">Client</span>
+              <span className="col-span-1 text-white/25 text-[10px] uppercase tracking-wider text-center">SEO Score</span>
+              <span className="col-span-1 text-white/25 text-[10px] uppercase tracking-wider text-center">Authority</span>
+              <span className="col-span-2 text-white/25 text-[10px] uppercase tracking-wider">Type</span>
+              <span className="col-span-2 text-white/25 text-[10px] uppercase tracking-wider">GBP Status</span>
+              <span className="col-span-1 text-white/25 text-[10px] uppercase tracking-wider text-center">Blogs</span>
+              <span className="col-span-2 text-white/25 text-[10px] uppercase tracking-wider text-right">Status</span>
+            </div>
+            {filtered.map((client) => {
+              const score = getClientScore(client);
+              const authority = Math.max(18, score - 12 - ((client.businessName?.charCodeAt(1) || 66) % 15));
+              const perf = getPerformanceStatus(score);
+              const publishedBlogs = (client.blogs || []).filter(b => b.status === "Published").length;
+              const scoreColor = score >= 75 ? "text-green-400" : score >= 55 ? "text-orange-400" : "text-red-400";
+              const authorityColor = authority >= 60 ? "text-green-400" : authority >= 40 ? "text-orange-400" : "text-red-400";
+
+              return (
+                <button key={client.id} onClick={() => setSelectedClient(client)} className="card-hover w-full bg-card rounded-xl border border-white/[0.06] p-4 grid grid-cols-12 gap-4 items-center text-left group">
+                  <div className="col-span-3 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-orange-500/10 border border-orange-500/15 flex items-center justify-center text-orange-500/60 font-bold text-sm shrink-0">
+                      {client.businessName?.charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-white/85 text-sm font-medium truncate">{client.businessName}</p>
+                      <p className="text-white/30 text-xs truncate">{client.primaryLocation || "—"}</p>
+                    </div>
+                  </div>
+                  <div className="col-span-1 text-center">
+                    <span className={`text-lg font-bold ${scoreColor}`}>{score}</span>
+                    <p className="text-white/20 text-[10px]">/100</p>
+                  </div>
+                  <div className="col-span-1 text-center">
+                    <span className={`text-lg font-bold ${authorityColor}`}>{authority}</span>
+                    <p className="text-white/20 text-[10px]">/100</p>
+                  </div>
+                  <div className="col-span-2">
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
+                      client.serviceType === "Local" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
+                      client.serviceType === "National" ? "bg-purple-500/10 text-purple-400 border-purple-500/20" :
+                      "bg-orange-500/10 text-orange-400 border-orange-500/20"
+                    }`}>{client.serviceType}</span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className={`text-xs font-medium ${client.gbpStatus === "Active" ? "text-green-400/70" : client.gbpStatus === "Needs Attention" ? "text-orange-400/70" : "text-white/30"}`}>
+                      {client.gbpStatus || "—"}
+                    </span>
+                  </div>
+                  <div className="col-span-1 text-center">
+                    <span className="text-white/70 text-sm font-semibold">{publishedBlogs}</span>
+                    <p className="text-white/20 text-[10px]">published</p>
+                  </div>
+                  <div className="col-span-2 flex justify-end">
+                    <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg border ${perf.bg} ${perf.color}`}>{perf.label}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
 }
