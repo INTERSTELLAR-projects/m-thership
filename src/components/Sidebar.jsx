@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, KeyRound, FileText, DollarSign, 
   Scale, Users, BarChart3, MessageSquare, Globe, 
-  Wrench, Flame, TrendingUp, Settings, LogOut, ClipboardList, Lightbulb, ListTodo, FolderKanban, Crown
+  Wrench, Flame, TrendingUp, Settings, LogOut, ClipboardList, Lightbulb, ListTodo, FolderKanban, Crown, Search
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
@@ -20,7 +20,6 @@ const mainNav = [
 ];
 
 const portalNav = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/portal-dashboard" },
   { label: "Client Projects", icon: FolderKanban, path: "/client-projects" },
   { label: "Requests", icon: ClipboardList, path: "/requests" },
   { label: "Ørbit SEO", icon: Globe, path: "/orbit-seo" },
@@ -30,7 +29,7 @@ const portalNav = [
   { label: "Prestige", icon: Crown, path: "/prestige" },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onOpenCommand }) {
   const location = useLocation();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -80,6 +79,16 @@ export default function Sidebar() {
 
       {/* Main Nav */}
       <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
+        {/* Command palette trigger */}
+        <button
+          onClick={onOpenCommand}
+          className="w-full flex items-center gap-2.5 px-4 py-2 mb-2 rounded-lg border border-white/[0.06] bg-white/[0.02] text-white/25 hover:text-white/50 hover:bg-white/[0.04] hover:border-white/[0.10] transition-all text-xs"
+        >
+          <Search className="w-3.5 h-3.5" />
+          <span>Quick navigate...</span>
+          <kbd className="ml-auto font-mono text-[10px] bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.06]">⌘K</kbd>
+        </button>
+
         {isAdmin && (
           <>
             <p className="font-orbitron px-4 pb-1 text-[10px] font-semibold tracking-[0.2em] text-white/25 uppercase">Command Center</p>
