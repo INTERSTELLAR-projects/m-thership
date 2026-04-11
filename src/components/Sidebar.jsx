@@ -14,14 +14,13 @@ const mainNav = [
   { label: "Financial", icon: DollarSign, path: "/financial" },
   { label: "Legal", icon: Scale, path: "/legal" },
   { label: "CRM", icon: Users, path: "/crm" },
+  { label: "Requests", icon: ClipboardList, path: "/requests" },
   { label: "Idea Vault", icon: Lightbulb, path: "/idea-vault" },
   { label: "To-Do", icon: ListTodo, path: "/todo" },
   { label: "Comms", icon: MessageSquare, path: "/comms" },
 ];
 
 const portalNav = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/portal-dashboard" },
-  { label: "Requests", icon: ClipboardList, path: "/requests" },
   { label: "Ørbit SEO", icon: Globe, path: "/orbit-seo" },
   { label: "Web Øps", icon: Wrench, path: "/web-ops" },
   { label: "Førge", icon: Flame, path: "/forge" },
