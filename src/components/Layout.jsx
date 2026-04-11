@@ -12,7 +12,7 @@ export default function Layout() {
       <main className="flex-1 overflow-y-auto relative z-10">
         <TimeZoneBar />
         <PageBackground />
-        <div className="relative z-10">
+        <div className="relative z-10 page-enter">
           <Outlet />
         </div>
       </main>

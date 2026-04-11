@@ -91,13 +91,33 @@
   }
 }
 
+/* Page fade-up entrance */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter {
+  animation: fadeUp 0.3s ease-out both;
+}
+
+.page-enter-stagger > * {
+  animation: fadeUp 0.3s ease-out both;
+}
+.page-enter-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.page-enter-stagger > *:nth-child(2) { animation-delay: 50ms; }
+.page-enter-stagger > *:nth-child(3) { animation-delay: 100ms; }
+.page-enter-stagger > *:nth-child(4) { animation-delay: 150ms; }
+.page-enter-stagger > *:nth-child(5) { animation-delay: 200ms; }
+
 /* Futuristic card hover glow */
 .card-hover {
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 .card-hover:hover {
   border-color: rgba(255, 120, 20, 0.55) !important;
   box-shadow: 0 0 18px rgba(255, 106, 0, 0.28), 0 0 48px rgba(255, 106, 0, 0.10), inset 0 0 1px rgba(255, 180, 60, 0.12);
+  transform: translateY(-1px);
 }
 
 /* Custom scrollbar */

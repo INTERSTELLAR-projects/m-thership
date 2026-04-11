@@ -44,14 +44,20 @@ export default function Sidebar() {
     return (
       <Link
         to={item.path}
-        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group
-          ${isActive 
-            ? "text-orange-500 bg-orange-500/10" 
-            : "text-white/50 hover:text-white/80 hover:bg-white/5"
+        className={`relative flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group
+          ${
+            isActive
+              ? "text-orange-500 bg-orange-500/10"
+              : "text-white/50 hover:text-white/80 hover:bg-white/5"
           }`}
       >
-        <item.icon className={`w-[18px] h-[18px] transition-colors ${isActive ? "text-orange-500" : "text-white/40 group-hover:text-white/60"}`} />
-        <span>{item.label}</span>
+        {isActive && (
+          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-orange-500 rounded-r-full" />
+        )}
+        <item.icon className={`w-[18px] h-[18px] transition-colors shrink-0 ${
+          isActive ? "text-orange-500" : "text-white/40 group-hover:text-white/60"
+        }`} />
+        <span className="truncate">{item.label}</span>
         {isActive && <div className="ml-auto w-1 h-1 rounded-full bg-orange-500" />}
       </Link>
     );
@@ -114,9 +120,12 @@ export default function Sidebar() {
         </button>
         
         {/* Profile */}
-        <div className="mt-2 px-4 py-2 rounded-lg bg-white/[0.02] border border-white/5">
-          <p className="text-white/70 text-xs font-medium truncate">justin@interstellar...</p>
-          <p className="text-orange-500/70 text-[10px] font-semibold tracking-wider uppercase">Admin</p>
+        <div className="mt-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-orange-500/[0.06] to-transparent border border-orange-500/10 flex items-center gap-2.5">
+          <div className="w-6 h-6 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-[10px] font-bold text-orange-400 shrink-0">J</div>
+          <div className="min-w-0">
+            <p className="text-white/70 text-xs font-medium truncate">justin@interstellar...</p>
+            <p className="text-orange-500/70 text-[10px] font-semibold tracking-wider uppercase">Admin</p>
+          </div>
         </div>
       </div>
     </aside>
