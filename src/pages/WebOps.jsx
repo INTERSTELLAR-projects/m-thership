@@ -120,14 +120,10 @@ export default function WebOps() {
   const highPriority = requests.filter((r) => r.urgency === "High Priority" || r.priority === "High Priority").length;
 
   const filteredReqs = requests.filter((r) => {
-    const isCompleted = r.status === "Completed";
-    if (reqStatusFilter === "Archive") return isCompleted;
-    if (reqStatusFilter !== "All") {
-      if (r.status !== reqStatusFilter) return false;
-    }
+    const matchStatus = reqStatusFilter === "All" || r.status === reqStatusFilter || (!r.status && reqStatusFilter === "Pending");
     const matchPriority = reqPriorityFilter === "All" || r.urgency === reqPriorityFilter || r.priority === reqPriorityFilter;
     const matchSearch = !reqSearch || r.title?.toLowerCase().includes(reqSearch.toLowerCase()) || r.clientName?.toLowerCase().includes(reqSearch.toLowerCase());
-    return !isCompleted && matchPriority && matchSearch;
+    return matchStatus && matchPriority && matchSearch;
   });
 
   const activeFilteredProjs = projects.filter((p) => {
@@ -183,7 +179,7 @@ export default function WebOps() {
               <input value={reqSearch} onChange={(e) => setReqSearch(e.target.value)} placeholder="Search requests..." className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none" />
             </div>
             <div className="flex gap-1.5">
-              {["All", "Pending", "In Progress"].map((s) => (
+              {["All", "Pending", "In Progress", "Completed"].map((s) => (
                 <button key={s} onClick={() => setReqStatusFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${reqStatusFilter === s ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{s}</button>
               ))}
             </div>
