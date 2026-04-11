@@ -188,6 +188,7 @@ function ClientDetail({ client, onBack, onUpdate }) {
                 { value: "services", label: "Services" },
                 { value: "notes", label: "Notes" },
                 { value: "documents", label: "Documents" },
+                { value: "tasks", label: "Tasks" },
                 { value: "requests", label: "Requests" },
                 { value: "completed-requests", label: "Completed Requests" },
                 { value: "completed-tasks", label: "Completed Tasks" },
@@ -199,6 +200,7 @@ function ClientDetail({ client, onBack, onUpdate }) {
           <TabsContent value="services"><ServicesTab client={client} update={update} /></TabsContent>
           <TabsContent value="notes"><NotesTab client={client} update={update} /></TabsContent>
           <TabsContent value="documents"><DocumentsTab client={client} update={update} /></TabsContent>
+          <TabsContent value="tasks"><TasksTab client={client} /></TabsContent>
           <TabsContent value="requests"><RequestsTab client={client} update={update} /></TabsContent>
           <TabsContent value="completed-requests"><CompletedRequestsTab client={client} update={update} /></TabsContent>
           <TabsContent value="completed-tasks"><CompletedTasksTab client={client} update={update} /></TabsContent>
@@ -570,6 +572,120 @@ function MultiField({ label, icon: Icon, values, onAdd, onUpdate, onRemove }) {
           ))}
           </div>
           );
+          }
+
+          const CARD_OPTIONS = ["Website Updates", "GBP Updates", "New Website Builds", "Presentations", "Other"];
+          const STATUS_OPTIONS = ["Pending", "In Progress", "Completed"];
+          const STATUS_STYLES = {
+            Pending: "bg-white/5 text-white/35 border-white/10",
+            "In Progress": "bg-orange-500/15 text-orange-400 border-orange-500/25",
+            Completed: "bg-green-500/15 text-green-400 border-green-500/25",
+          };
+
+          function TasksTab({ client }) {
+            const [tasks, setTasks] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [adding, setAdding] = useState(false);
+            const [newText, setNewText] = useState("");
+            const [newCard, setNewCard] = useState("Website Updates");
+            const [newDue, setNewDue] = useState("");
+
+            useEffect(() => {
+              base44.entities.ClientOperationItem.filter({ client: client.business }, "created_date", 200).then((data) => {
+                setTasks(data);
+                setLoading(false);
+              });
+            }, [client.business]);
+
+            const add = async () => {
+              if (!newText.trim()) return;
+              const created = await base44.entities.ClientOperationItem.create({
+                card: newCard,
+                text: newText.trim(),
+                client: client.business,
+                due: newDue || null,
+                status: "Pending",
+                done: false,
+              });
+              setTasks((prev) => [...prev, created]);
+              setNewText(""); setNewDue(""); setAdding(false);
+            };
+
+            const setStatus = async (t, status) => {
+              const done = status === "Completed";
+              await base44.entities.ClientOperationItem.update(t.id, { status, done });
+              setTasks((prev) => prev.map((x) => x.id === t.id ? { ...x, status, done } : x));
+
+              if (done) {
+                const completedTasks = [...(client.completedTasks || []), {
+                  id: Date.now(),
+                  text: t.text,
+                  card: t.card,
+                  completedDate: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                  due: t.due || null,
+                }];
+                await base44.entities.CRMClient.update(client.id, { completedTasks });
+              }
+            };
+
+            const del = async (id) => {
+              await base44.entities.ClientOperationItem.delete(id);
+              setTasks((prev) => prev.filter((t) => t.id !== id));
+            };
+
+            const active = tasks.filter((t) => !t.done);
+            const completed = tasks.filter((t) => t.done);
+
+            return (
+              <div className="space-y-4">
+                <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Active Tasks <span className="text-white/25 font-normal">({active.length})</span></h3>
+                    <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-orange-500/70 hover:text-orange-500 text-xs transition-colors"><Plus className="w-3.5 h-3.5" />Add Task</button>
+                  </div>
+
+                  {adding && (
+                    <div className="flex items-center gap-2 mb-4 flex-wrap border border-orange-500/15 rounded-lg p-3 bg-orange-500/[0.03]">
+                      <input autoFocus value={newText} onChange={(e) => setNewText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") add(); if (e.key === "Escape") setAdding(false); }} placeholder="Task description..." className="flex-1 min-w-[180px] bg-white/[0.04] border border-white/[0.08] rounded px-3 py-1.5 text-sm text-white placeholder:text-white/20 outline-none" />
+                      <select value={newCard} onChange={(e) => setNewCard(e.target.value)} className="bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1.5 text-xs text-white/70 outline-none">
+                        {CARD_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <input type="date" value={newDue} onChange={(e) => setNewDue(e.target.value)} className="bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1.5 text-xs text-white/60 outline-none" />
+                      <button onClick={add} className="p-1.5 text-green-400/70 hover:text-green-400"><Check className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setAdding(false)} className="p-1.5 text-white/30 hover:text-white/60"><X className="w-3.5 h-3.5" /></button>
+                    </div>
+                  )}
+
+                  {loading ? (
+                    <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 text-white/20 animate-spin" /></div>
+                  ) : active.length === 0 && !adding ? (
+                    <p className="text-white/25 text-sm">No active tasks. Add one above.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {active.map((t) => (
+                        <div key={t.id} className="flex items-start gap-3 py-3 px-4 bg-white/[0.02] rounded-lg border border-white/[0.04] group">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white/75 text-sm">{t.text}</p>
+                            <div className="flex items-center gap-3 mt-1">
+                              <span className="text-white/25 text-[10px]">{t.card}</span>
+                              {t.due && <span className="text-orange-500/50 text-[10px]">Due {new Date(t.due + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+                            </div>
+                            <div className="flex gap-1.5 mt-2">
+                              {STATUS_OPTIONS.map((s) => (
+                                <button key={s} onClick={() => setStatus(t, s)} className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                                  (t.status || "Pending") === s ? STATUS_STYLES[s] : "text-white/20 border-transparent hover:text-white/40"
+                                }`}>{s}</button>
+                              ))}
+                            </div>
+                          </div>
+                          <button onClick={() => del(t.id)} className="p-1 text-white/10 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
           }
 
           function RequestsTab({ client, update }) {
