@@ -73,7 +73,7 @@ export default function Sidebar({ onOpenCommand }) {
           </div>
           <div>
             <h1 className="font-orbitron text-white font-bold text-sm tracking-wide leading-none">ZERØ GRAVITY</h1>
-            <p className="font-orbitron text-white/30 text-[10px] tracking-widest uppercase">Portal</p>
+            <p className="font-orbitron text-white/30 text-[10px] tracking-widest uppercase">Terminal</p>
           </div>
         </div>
       </div>
