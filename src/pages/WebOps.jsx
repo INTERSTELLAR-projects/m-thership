@@ -4,12 +4,11 @@ import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 import ProjectDetail from "../components/webops/ProjectDetail";
 
-const REQ_STATUSES = ["Submitted", "Under Review", "In Progress", "Completed"];
+const REQ_STATUSES = ["Pending", "In Progress", "Completed"];
 const PROJ_STATUSES = ["Planning", "In Progress", "Review", "Completed", "On Hold", "Waiting on Client"];
 
 const REQ_STATUS_COLOR = {
-  Submitted: "bg-white/5 text-white/40",
-  "Under Review": "bg-blue-500/10 text-blue-400",
+  Pending: "bg-white/5 text-white/40",
   "In Progress": "bg-orange-500/10 text-orange-400",
   Completed: "bg-green-500/10 text-green-400",
 };
@@ -188,7 +187,7 @@ export default function WebOps() {
               <input value={reqSearch} onChange={(e) => setReqSearch(e.target.value)} placeholder="Search requests..." className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none" />
             </div>
             <div className="flex gap-1.5">
-              {["All", ...REQ_STATUSES.filter(s => s !== "Completed")].map((s) => (
+              {["All", "Pending", "In Progress"].map((s) => (
                 <button key={s} onClick={() => setReqStatusFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${reqStatusFilter === s ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{s}</button>
               ))}
             </div>
