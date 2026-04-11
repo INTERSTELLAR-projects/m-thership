@@ -1,0 +1,43 @@
+{
+  "name": "PrestigeMember",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "prestige": {
+      "type": "string",
+      "enum": [
+        "Prestige I",
+        "Prestige II",
+        "Prestige III",
+        "Prestige Master"
+      ],
+      "default": "Prestige I"
+    },
+    "totalReferrals": {
+      "type": "number",
+      "default": 0
+    },
+    "joinDate": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "prestige"
+  ]
+}

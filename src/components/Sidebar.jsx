@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, KeyRound, FileText, DollarSign, 
   Scale, Users, BarChart3, MessageSquare, Globe, 
-  Wrench, Flame, TrendingUp, Settings, LogOut, ClipboardList, Lightbulb, ListTodo, FolderKanban
+  Wrench, Flame, TrendingUp, Settings, LogOut, ClipboardList, Lightbulb, ListTodo, FolderKanban, Crown
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
@@ -27,6 +27,7 @@ const portalNav = [
   { label: "Web Øps", icon: Wrench, path: "/web-ops" },
   { label: "Førge", icon: Flame, path: "/forge" },
   { label: "Performance", icon: TrendingUp, path: "/performance" },
+  { label: "Prestige", icon: Crown, path: "/prestige" },
 ];
 
 export default function Sidebar() {

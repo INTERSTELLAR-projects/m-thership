@@ -1,0 +1,42 @@
+{
+  "name": "PrestigeReferral",
+  "type": "object",
+  "properties": {
+    "memberId": {
+      "type": "string"
+    },
+    "memberName": {
+      "type": "string"
+    },
+    "referredClientName": {
+      "type": "string"
+    },
+    "package": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "date": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Confirmed",
+        "Paid Out"
+      ],
+      "default": "Pending"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "memberId",
+    "memberName",
+    "referredClientName",
+    "date"
+  ]
+}

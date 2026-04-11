@@ -25,6 +25,7 @@ import Requests from './pages/Requests';
 import ToDo from './pages/ToDo';
 import ClientComms from './pages/ClientComms';
 import ClientProjects from './pages/ClientProjects';
+import Prestige from './pages/Prestige';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -71,6 +72,7 @@ const AuthenticatedApp = () => {
         <Route path="/todo" element={<ProtectedRoute><ToDo /></ProtectedRoute>} />
         <Route path="/client-comms" element={<ProtectedRoute><ClientComms /></ProtectedRoute>} />
         <Route path="/client-projects" element={<ProtectedRoute><ClientProjects /></ProtectedRoute>} />
+        <Route path="/prestige" element={<ProtectedRoute><Prestige /></ProtectedRoute>} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
