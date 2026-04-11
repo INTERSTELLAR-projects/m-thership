@@ -182,9 +182,17 @@ function ClientDetail({ client, onBack, onUpdate }) {
       </div>
       <div className="px-8 py-6">
         <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="bg-card border border-white/[0.06] mb-6">
-              {["overview", "services", "notes", "documents", "requests", "completed"].map((t) => (
-              <TabsTrigger key={t} value={t} className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40 capitalize">{t}</TabsTrigger>
+            <TabsList className="bg-card border border-white/[0.06] mb-6 flex-wrap h-auto gap-1">
+              {[
+                { value: "overview", label: "Overview" },
+                { value: "services", label: "Services" },
+                { value: "notes", label: "Notes" },
+                { value: "documents", label: "Documents" },
+                { value: "requests", label: "Requests" },
+                { value: "completed-requests", label: "Completed Requests" },
+                { value: "completed-tasks", label: "Completed Tasks" },
+              ].map((t) => (
+              <TabsTrigger key={t.value} value={t.value} className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40">{t.label}</TabsTrigger>
             ))}
           </TabsList>
           <TabsContent value="overview"><ContactTab client={client} update={update} /></TabsContent>
@@ -192,7 +200,8 @@ function ClientDetail({ client, onBack, onUpdate }) {
           <TabsContent value="notes"><NotesTab client={client} update={update} /></TabsContent>
           <TabsContent value="documents"><DocumentsTab client={client} update={update} /></TabsContent>
           <TabsContent value="requests"><RequestsTab client={client} update={update} /></TabsContent>
-          <TabsContent value="completed"><CompletedTasksTab client={client} update={update} /></TabsContent>
+          <TabsContent value="completed-requests"><CompletedRequestsTab client={client} update={update} /></TabsContent>
+          <TabsContent value="completed-tasks"><CompletedTasksTab client={client} update={update} /></TabsContent>
         </Tabs>
       </div>
     </div>
@@ -564,13 +573,13 @@ function MultiField({ label, icon: Icon, values, onAdd, onUpdate, onRemove }) {
           }
 
           function RequestsTab({ client, update }) {
-          const requests = client.requests || [];
+          const requests = (client.requests || []).filter((r) => r.status !== "Completed");
 
           return (
           <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase mb-4">Customer Requests</h3>
+          <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase mb-4">Active Requests</h3>
           {requests.length === 0 ? (
-          <p className="text-white/25 text-sm">No requests yet. Requests submitted through the portal will appear here.</p>
+          <p className="text-white/25 text-sm">No active requests. Requests submitted through the portal will appear here.</p>
           ) : (
           <div className="space-y-3">
           {requests.map((req, i) => (
@@ -587,6 +596,36 @@ function MultiField({ label, icon: Icon, values, onAdd, onUpdate, onRemove }) {
           ))}
           </div>
           )}
+          </div>
+          );
+          }
+
+          function CompletedRequestsTab({ client, update }) {
+          const completed = (client.requests || []).filter((r) => r.status === "Completed").slice().reverse();
+
+          return (
+          <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Completed Requests</h3>
+              <span className="text-white/25 text-xs">{completed.length} total</span>
+            </div>
+            {completed.length === 0 ? (
+              <p className="text-white/25 text-sm">No completed requests yet. Requests marked as Completed will appear here.</p>
+            ) : (
+              <div className="space-y-2">
+                {completed.map((req, i) => (
+                  <div key={i} className="flex items-center gap-3 py-3 px-4 bg-white/[0.02] rounded-lg border border-green-500/10">
+                    <CheckCircle2 className="w-4 h-4 text-green-400/60 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white/70 text-sm font-medium">{req.title}</p>
+                      {req.description && <p className="text-white/35 text-xs mt-0.5">{req.description}</p>}
+                      {req.date && <p className="text-white/20 text-[10px] mt-1">Submitted {req.date}</p>}
+                    </div>
+                    <span className="text-green-400/60 text-[10px] font-semibold px-2 py-0.5 bg-green-500/10 rounded">Completed</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           );
           }
