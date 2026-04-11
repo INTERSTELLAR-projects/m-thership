@@ -203,7 +203,7 @@ function TasksAnalytics() {
           <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Task Source Breakdown</h3>
           <div className="space-y-4">
             <div>
-              <div className="flex justify-between mb-1.5"><span className="text-white/50 text-xs">Personal To-Do</span><span className="text-purple-400 text-xs font-bold">{items.filter(t=>t.done||t.status==="Completed").length} / {items.length}</span></div>
+              <div className="flex justify-between mb-1.5"><span className="text-white/50 text-xs">Interstellar To-Do</span><span className="text-purple-400 text-xs font-bold">{items.filter(t=>t.done||t.status==="Completed").length} / {items.length}</span></div>
               <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden"><div className="h-full rounded-full bg-purple-500/70 transition-all duration-700" style={{ width: `${items.length ? Math.round((items.filter(t=>t.done||t.status==="Completed").length/items.length)*100) : 0}%` }} /></div>
             </div>
             <div>
