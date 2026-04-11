@@ -137,18 +137,22 @@ export default function Forge() {
   const completedProjs = projects.filter((p) => p.status === "Completed");
   const completedReqs = requests.filter((r) => r.status === "Completed" || r.status === "Converted to Project");
 
+  const isReqDone = (r) => r.status === "Completed" || r.status === "Converted to Project";
   const filteredReqs = requests.filter((r) => {
-    const notDone = r.status !== "Completed" && r.status !== "Converted to Project";
+    const showCompleted = reqStatusFilter === "Completed";
+    if (showCompleted) return isReqDone(r) && (!reqSearch || r.title?.toLowerCase().includes(reqSearch.toLowerCase()) || r.clientName?.toLowerCase().includes(reqSearch.toLowerCase()));
+    const notDone = !isReqDone(r);
     const matchStatus = reqStatusFilter === "All" || r.status === reqStatusFilter || (!r.status && reqStatusFilter === "Submitted");
-    const matchType = reqTypeFilter === "All" || (r.formType || r.type || "").toLowerCase().includes(reqTypeFilter.toLowerCase());
     const matchSearch = !reqSearch || r.title?.toLowerCase().includes(reqSearch.toLowerCase()) || r.clientName?.toLowerCase().includes(reqSearch.toLowerCase());
-    return notDone && matchStatus && matchType && matchSearch;
+    return notDone && matchStatus && matchSearch;
   });
 
+  const [projStatusFilter, setProjStatusFilter] = useState("All");
+
   const activeFilteredProjs = projects.filter((p) => {
-    const notDone = p.status !== "Completed";
+    const matchStatus = projStatusFilter === "All" || p.status === projStatusFilter;
     const matchSearch = !projSearch || p.name?.toLowerCase().includes(projSearch.toLowerCase()) || p.clientName?.toLowerCase().includes(projSearch.toLowerCase());
-    return notDone && matchSearch;
+    return matchStatus && matchSearch;
   });
 
   if (selectedProject) {
@@ -203,8 +207,8 @@ export default function Forge() {
               <input value={reqSearch} onChange={(e) => setReqSearch(e.target.value)} placeholder="Search requests..." className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none" />
             </div>
             <div className="flex gap-1.5 flex-wrap">
-              {["All", "Submitted", "Under Review", "Approved", "In Progress"].map((s) => (
-                <button key={s} onClick={() => setReqStatusFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${reqStatusFilter === s ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{s}</button>
+              {["All", "Submitted", "Under Review", "Approved", "In Progress", "Completed"].map((s) => (
+                <button key={s} onClick={() => setReqStatusFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${reqStatusFilter === s ? (s === "Completed" ? "bg-green-500/15 text-green-400 border border-green-500/20" : "bg-orange-500/15 text-orange-500 border border-orange-500/20") : "text-white/30 hover:text-white/50 border border-transparent"}`}>{s}</button>
               ))}
             </div>
           </div>
@@ -232,9 +236,22 @@ export default function Forge() {
               <Plus className="w-3.5 h-3.5" />New Project
             </button>
           </div>
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-            <input value={projSearch} onChange={(e) => setProjSearch(e.target.value)} placeholder="Search projects..." className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none" />
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+              <input value={projSearch} onChange={(e) => setProjSearch(e.target.value)} placeholder="Search projects..." className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none" />
+            </div>
+            <div className="flex gap-1.5 flex-wrap">
+              {["All", "Planning", "Development", "Testing", "Deployment", "Completed", "On Hold"].map((s) => {
+                const count = s === "All" ? projects.length : projects.filter(p => p.status === s).length;
+                const activeStyle = s === "Completed" ? "bg-green-500/15 text-green-400 border border-green-500/20" : s === "On Hold" ? "bg-white/[0.08] text-white/50 border border-white/[0.12]" : "bg-orange-500/15 text-orange-500 border border-orange-500/20";
+                return (
+                  <button key={s} onClick={() => setProjStatusFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${projStatusFilter === s ? activeStyle : "text-white/30 hover:text-white/50 border border-transparent"}`}>
+                    {s} <span className="opacity-50">({count})</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {activeFilteredProjs.length === 0 ? (
@@ -250,25 +267,7 @@ export default function Forge() {
           )}
         </div>
 
-        {/* ARCHIVE */}
-        {(completedReqs.length > 0 || completedProjs.length > 0) && (
-          <div className="space-y-3">
-            <button onClick={() => setArchiveOpen(!archiveOpen)} className="flex items-center gap-2 text-white/30 hover:text-white/60 text-xs font-medium transition-colors">
-              {archiveOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-              Archive ({completedReqs.length + completedProjs.length} completed)
-            </button>
-            {archiveOpen && (
-              <div className="space-y-2">
-                {completedReqs.map((req) => (
-                  <ForgeRequestRow key={req._uid} req={req} onStatusChange={(s) => updateRequestStatus(req, s)} onConvert={() => convertToProject(req)} archived />
-                ))}
-                {completedProjs.map((p) => (
-                  <ForgeProjectCard key={p.id} project={p} onClick={() => setSelectedProject(p)} archived />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+
       </div>
 
       {/* ADD PROJECT MODAL */}
