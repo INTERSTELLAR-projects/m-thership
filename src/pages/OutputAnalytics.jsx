@@ -1,0 +1,424 @@
+import { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import PageHeader from "../components/PageHeader";
+import { CheckCircle2, Clock, Zap, TrendingUp, Target, BarChart3, Loader2, Activity } from "lucide-react";
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+
+// ─── helpers ────────────────────────────────────────────────────────────────
+function dayKey(dateStr) {
+  const d = new Date(dateStr);
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+function weekLabel(dateStr) {
+  const d = new Date(dateStr);
+  const week = Math.ceil(d.getDate() / 7);
+  return `W${week} ${d.toLocaleString("default", { month: "short" })}`;
+}
+function last30Days() {
+  return Array.from({ length: 30 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (29 - i));
+    return `${d.getMonth() + 1}/${d.getDate()}`;
+  });
+}
+function last8Weeks() {
+  return Array.from({ length: 8 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (7 * (7 - i)));
+    return weekLabel(d.toISOString());
+  });
+}
+
+const TOOLTIP_STYLE = {
+  contentStyle: { background: "#0d1117", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 12 },
+  labelStyle: { color: "rgba(255,255,255,0.5)" },
+  itemStyle: { color: "#ff6a00" },
+};
+
+function StatCard({ label, value, sub, icon: Icon, color = "text-orange-500" }) {
+  return (
+    <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+      <div className="flex items-center justify-between mb-3">
+        <Icon className={`w-4 h-4 ${color}`} />
+      </div>
+      <p className={`text-3xl font-bold ${color}`}>{value}</p>
+      <p className="text-white/50 text-xs font-medium mt-1">{label}</p>
+      {sub && <p className="text-white/25 text-[10px] mt-0.5">{sub}</p>}
+    </div>
+  );
+}
+
+// ─── TASKS TAB ───────────────────────────────────────────────────────────────
+function TasksAnalytics() {
+  const [items, setItems] = useState([]);
+  const [clientItems, setClientItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      base44.entities.ToDoItem.list("created_date", 500),
+      base44.entities.ClientOperationItem.list("created_date", 500),
+    ]).then(([todos, ops]) => {
+      setItems(todos);
+      setClientItems(ops);
+      setLoading(false);
+    });
+
+    const unsub1 = base44.entities.ToDoItem.subscribe((e) => {
+      setItems((prev) => {
+        if (e.type === "create") return [...prev, e.data];
+        if (e.type === "update") return prev.map((i) => i.id === e.id ? e.data : i);
+        if (e.type === "delete") return prev.filter((i) => i.id !== e.id);
+        return prev;
+      });
+    });
+    const unsub2 = base44.entities.ClientOperationItem.subscribe((e) => {
+      setClientItems((prev) => {
+        if (e.type === "create") return [...prev, e.data];
+        if (e.type === "update") return prev.map((i) => i.id === e.id ? e.data : i);
+        if (e.type === "delete") return prev.filter((i) => i.id !== e.id);
+        return prev;
+      });
+    });
+    return () => { unsub1(); unsub2(); };
+  }, []);
+
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 text-white/20 animate-spin" /></div>;
+
+  const allTasks = [...items, ...clientItems];
+  const completed = allTasks.filter((t) => t.done || t.status === "Completed");
+  const inProgress = allTasks.filter((t) => (t.status === "In Progress") && !t.done);
+  const pending = allTasks.filter((t) => (!t.status || t.status === "Pending") && !t.done);
+
+  // Completion rate
+  const completionRate = allTasks.length ? Math.round((completed.length / allTasks.length) * 100) : 0;
+
+  // Tasks completed per day (last 30 days)
+  const days = last30Days();
+  const completedByDay = {};
+  days.forEach((d) => { completedByDay[d] = 0; });
+  completed.forEach((t) => {
+    const d = new Date(t.updated_date || t.created_date);
+    const key = `${d.getMonth() + 1}/${d.getDate()}`;
+    if (completedByDay[key] !== undefined) completedByDay[key]++;
+  });
+  const dailyData = days.map((d) => ({ day: d, completed: completedByDay[d] }));
+
+  // Avg per day (last 30 days)
+  const totalLast30 = dailyData.reduce((s, d) => s + d.completed, 0);
+  const avgPerDay = (totalLast30 / 30).toFixed(1);
+
+  // Pace — tasks per week
+  const weeks = last8Weeks();
+  const completedByWeek = {};
+  weeks.forEach((w) => { completedByWeek[w] = 0; });
+  completed.forEach((t) => {
+    const d = new Date(t.updated_date || t.created_date);
+    const key = weekLabel(d.toISOString());
+    if (completedByWeek[key] !== undefined) completedByWeek[key]++;
+  });
+  const weeklyData = weeks.map((w) => ({ week: w, completed: completedByWeek[w] }));
+
+  // Priority vs client split
+  const priorityDone = items.filter((t) => t.done || t.status === "Completed").length;
+  const clientDone = clientItems.filter((t) => t.done || t.status === "Completed").length;
+
+  // Status breakdown for bar chart
+  const statusData = [
+    { label: "Completed", count: completed.length, fill: "#22c55e" },
+    { label: "In Progress", count: inProgress.length, fill: "#ff6a00" },
+    { label: "Pending", count: pending.length, fill: "rgba(255,255,255,0.15)" },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* KPI row */}
+      <div className="grid grid-cols-5 gap-4">
+        <StatCard label="Total Tasks" value={allTasks.length} icon={Target} color="text-white/70" />
+        <StatCard label="Completed" value={completed.length} icon={CheckCircle2} color="text-green-400" />
+        <StatCard label="In Progress" value={inProgress.length} icon={Activity} color="text-orange-400" />
+        <StatCard label="Completion Rate" value={`${completionRate}%`} icon={TrendingUp} color="text-blue-400" />
+        <StatCard label="Avg / Day (30d)" value={avgPerDay} icon={Zap} color="text-purple-400" sub="tasks completed per day" />
+      </div>
+
+      {/* Charts row */}
+      <div className="grid grid-cols-2 gap-5">
+        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Tasks Completed — Last 30 Days</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <AreaChart data={dailyData}>
+              <defs>
+                <linearGradient id="gc1" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ff6a00" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#ff6a00" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <XAxis dataKey="day" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} interval={6} />
+              <YAxis allowDecimals={false} tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} axisLine={false} />
+              <Tooltip {...TOOLTIP_STYLE} />
+              <Area type="monotone" dataKey="completed" stroke="#ff6a00" fill="url(#gc1)" strokeWidth={2} dot={false} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Weekly Pace — Last 8 Weeks</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={weeklyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <XAxis dataKey="week" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} />
+              <YAxis allowDecimals={false} tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} axisLine={false} />
+              <Tooltip {...TOOLTIP_STYLE} />
+              <Bar dataKey="completed" fill="#ff6a00" radius={[4, 4, 0, 0]} opacity={0.85} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Bottom row */}
+      <div className="grid grid-cols-2 gap-5">
+        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Status Breakdown</h3>
+          <div className="space-y-3">
+            {statusData.map((s) => {
+              const pct = allTasks.length ? Math.round((s.count / allTasks.length) * 100) : 0;
+              return (
+                <div key={s.label}>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-white/50 text-xs">{s.label}</span>
+                    <span className="text-white/70 text-xs font-bold">{s.count} <span className="text-white/30 font-normal">({pct}%)</span></span>
+                  </div>
+                  <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: s.fill }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Task Source Breakdown</h3>
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between mb-1.5"><span className="text-white/50 text-xs">Personal To-Do</span><span className="text-purple-400 text-xs font-bold">{items.filter(t=>t.done||t.status==="Completed").length} / {items.length}</span></div>
+              <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden"><div className="h-full rounded-full bg-purple-500/70 transition-all duration-700" style={{ width: `${items.length ? Math.round((items.filter(t=>t.done||t.status==="Completed").length/items.length)*100) : 0}%` }} /></div>
+            </div>
+            <div>
+              <div className="flex justify-between mb-1.5"><span className="text-white/50 text-xs">Client Projects</span><span className="text-orange-400 text-xs font-bold">{clientItems.filter(t=>t.done||t.status==="Completed").length} / {clientItems.length}</span></div>
+              <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden"><div className="h-full rounded-full bg-orange-500/70 transition-all duration-700" style={{ width: `${clientItems.length ? Math.round((clientItems.filter(t=>t.done||t.status==="Completed").length/clientItems.length)*100) : 0}%` }} /></div>
+            </div>
+            <div className="pt-3 border-t border-white/[0.05] grid grid-cols-2 gap-3">
+              <div className="bg-white/[0.02] rounded-lg p-3 border border-white/[0.04] text-center">
+                <p className="text-purple-400 text-lg font-bold">{priorityDone}</p>
+                <p className="text-white/25 text-[10px] uppercase tracking-wider mt-0.5">Personal Done</p>
+              </div>
+              <div className="bg-white/[0.02] rounded-lg p-3 border border-white/[0.04] text-center">
+                <p className="text-orange-400 text-lg font-bold">{clientDone}</p>
+                <p className="text-white/25 text-[10px] uppercase tracking-wider mt-0.5">Client Done</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PROJECTS TAB ─────────────────────────────────────────────────────────────
+function ProjectsAnalytics() {
+  const [webOps, setWebOps] = useState([]);
+  const [forge, setForge] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      base44.entities.WebOpsProject.list("created_date", 200),
+      base44.entities.ForgeProject.list("created_date", 200),
+    ]).then(([w, f]) => {
+      setWebOps(w);
+      setForge(f);
+      setLoading(false);
+    });
+
+    const u1 = base44.entities.WebOpsProject.subscribe((e) => {
+      setWebOps((prev) => {
+        if (e.type === "create") return [...prev, e.data];
+        if (e.type === "update") return prev.map((i) => i.id === e.id ? e.data : i);
+        if (e.type === "delete") return prev.filter((i) => i.id !== e.id);
+        return prev;
+      });
+    });
+    const u2 = base44.entities.ForgeProject.subscribe((e) => {
+      setForge((prev) => {
+        if (e.type === "create") return [...prev, e.data];
+        if (e.type === "update") return prev.map((i) => i.id === e.id ? e.data : i);
+        if (e.type === "delete") return prev.filter((i) => i.id !== e.id);
+        return prev;
+      });
+    });
+    return () => { u1(); u2(); };
+  }, []);
+
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 text-white/20 animate-spin" /></div>;
+
+  const all = [...webOps, ...forge];
+  const completed = all.filter((p) => p.status === "Completed");
+  const active = all.filter((p) => p.status !== "Completed" && p.status !== "On Hold");
+  const onHold = all.filter((p) => p.status === "On Hold");
+  const avgProgress = active.length ? Math.round(active.reduce((s, p) => s + (p.progress || 0), 0) / active.length) : 0;
+
+  // Completion rate
+  const completionRate = all.length ? Math.round((completed.length / all.length) * 100) : 0;
+
+  // Status distribution for all projects
+  const statusGroups = {};
+  all.forEach((p) => { statusGroups[p.status || "Unknown"] = (statusGroups[p.status || "Unknown"] || 0) + 1; });
+  const statusColors = {
+    Completed: "#22c55e", Planning: "#3b82f6", Development: "#ff6a00",
+    "In Progress": "#ff6a00", Testing: "#a855f7", Deployment: "#eab308",
+    Review: "#a855f7", "On Hold": "rgba(255,255,255,0.2)", "Waiting on Client": "#eab308",
+  };
+
+  // WebOps vs Forge breakdown
+  const webOpsCompleted = webOps.filter((p) => p.status === "Completed").length;
+  const forgeCompleted = forge.filter((p) => p.status === "Completed").length;
+
+  // Weekly project completions
+  const weeks = last8Weeks();
+  const compByWeek = {};
+  weeks.forEach((w) => { compByWeek[w] = 0; });
+  completed.forEach((p) => {
+    const d = new Date(p.updated_date || p.created_date);
+    const key = weekLabel(d.toISOString());
+    if (compByWeek[key] !== undefined) compByWeek[key]++;
+  });
+  const weeklyData = weeks.map((w) => ({ week: w, completed: compByWeek[w] }));
+
+  // Progress distribution of active projects
+  const progressBuckets = [
+    { label: "0–25%", count: active.filter(p => (p.progress||0) <= 25).length },
+    { label: "26–50%", count: active.filter(p => (p.progress||0) > 25 && (p.progress||0) <= 50).length },
+    { label: "51–75%", count: active.filter(p => (p.progress||0) > 50 && (p.progress||0) <= 75).length },
+    { label: "76–99%", count: active.filter(p => (p.progress||0) > 75 && (p.progress||0) < 100).length },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* KPI row */}
+      <div className="grid grid-cols-5 gap-4">
+        <StatCard label="Total Projects" value={all.length} icon={Target} color="text-white/70" />
+        <StatCard label="Completed" value={completed.length} icon={CheckCircle2} color="text-green-400" />
+        <StatCard label="Active" value={active.length} icon={Activity} color="text-orange-400" />
+        <StatCard label="Completion Rate" value={`${completionRate}%`} icon={TrendingUp} color="text-blue-400" />
+        <StatCard label="Avg Progress" value={`${avgProgress}%`} icon={Zap} color="text-purple-400" sub="across active projects" />
+      </div>
+
+      {/* Charts row */}
+      <div className="grid grid-cols-2 gap-5">
+        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Projects Completed — Weekly Pace</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={weeklyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <XAxis dataKey="week" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} />
+              <YAxis allowDecimals={false} tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} axisLine={false} />
+              <Tooltip {...TOOLTIP_STYLE} />
+              <Bar dataKey="completed" fill="#22c55e" radius={[4, 4, 0, 0]} opacity={0.85} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Active Projects — Progress Distribution</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={progressBuckets}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} />
+              <YAxis allowDecimals={false} tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} axisLine={false} />
+              <Tooltip {...TOOLTIP_STYLE} />
+              <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} opacity={0.85} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Bottom row */}
+      <div className="grid grid-cols-2 gap-5">
+        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Status Breakdown</h3>
+          <div className="space-y-3">
+            {Object.entries(statusGroups).map(([status, count]) => {
+              const pct = all.length ? Math.round((count / all.length) * 100) : 0;
+              const color = statusColors[status] || "#ff6a00";
+              return (
+                <div key={status}>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-white/50 text-xs">{status}</span>
+                    <span className="text-white/70 text-xs font-bold">{count} <span className="text-white/30 font-normal">({pct}%)</span></span>
+                  </div>
+                  <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: color }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Division Breakdown</h3>
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between mb-1.5"><span className="text-white/50 text-xs">Web Øps</span><span className="text-blue-400 text-xs font-bold">{webOpsCompleted} / {webOps.length} completed</span></div>
+              <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden"><div className="h-full rounded-full bg-blue-500/70 transition-all duration-700" style={{ width: `${webOps.length ? Math.round((webOpsCompleted/webOps.length)*100) : 0}%` }} /></div>
+            </div>
+            <div>
+              <div className="flex justify-between mb-1.5"><span className="text-white/50 text-xs">Førge</span><span className="text-orange-400 text-xs font-bold">{forgeCompleted} / {forge.length} completed</span></div>
+              <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden"><div className="h-full rounded-full bg-orange-500/70 transition-all duration-700" style={{ width: `${forge.length ? Math.round((forgeCompleted/forge.length)*100) : 0}%` }} /></div>
+            </div>
+            <div className="pt-3 border-t border-white/[0.05] grid grid-cols-3 gap-3">
+              <div className="bg-white/[0.02] rounded-lg p-3 border border-white/[0.04] text-center">
+                <p className="text-green-400 text-lg font-bold">{completed.length}</p>
+                <p className="text-white/25 text-[10px] uppercase tracking-wider mt-0.5">Done</p>
+              </div>
+              <div className="bg-white/[0.02] rounded-lg p-3 border border-white/[0.04] text-center">
+                <p className="text-orange-400 text-lg font-bold">{active.length}</p>
+                <p className="text-white/25 text-[10px] uppercase tracking-wider mt-0.5">Active</p>
+              </div>
+              <div className="bg-white/[0.02] rounded-lg p-3 border border-white/[0.04] text-center">
+                <p className="text-white/40 text-lg font-bold">{onHold.length}</p>
+                <p className="text-white/25 text-[10px] uppercase tracking-wider mt-0.5">On Hold</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PAGE ─────────────────────────────────────────────────────────────────────
+export default function OutputAnalytics() {
+  return (
+    <div className="min-h-screen bg-background">
+      <PageHeader breadcrumb="Command Center / Output Analytics" rightText="Real-Time Performance" />
+      <div className="px-8 py-6">
+        <Tabs defaultValue="tasks" className="w-full">
+          <TabsList className="bg-card border border-white/[0.06] mb-6">
+            <TabsTrigger value="tasks" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40 gap-2">
+              <BarChart3 className="w-3.5 h-3.5" /> Task Output
+            </TabsTrigger>
+            <TabsTrigger value="projects" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40 gap-2">
+              <TrendingUp className="w-3.5 h-3.5" /> Project Output
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="tasks"><TasksAnalytics /></TabsContent>
+          <TabsContent value="projects"><ProjectsAnalytics /></TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}

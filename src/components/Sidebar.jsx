@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, KeyRound, FileText, DollarSign, 
   Scale, Users, BarChart3, MessageSquare, Globe, 
-  Wrench, Flame, TrendingUp, Settings, LogOut, ClipboardList, Lightbulb, ListTodo, FolderKanban, Crown, Search
+  Wrench, Flame, TrendingUp, Settings, LogOut, ClipboardList, Lightbulb, ListTodo, FolderKanban, Crown, Search, Activity
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
@@ -17,6 +17,7 @@ const mainNav = [
   { label: "Idea Vault", icon: Lightbulb, path: "/idea-vault" },
   { label: "To-Do", icon: ListTodo, path: "/todo" },
   { label: "Comms", icon: MessageSquare, path: "/comms" },
+  { label: "Output Analytics", icon: Activity, path: "/output-analytics" },
 ];
 
 const portalNav = [
