@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { base44 } from '@/api/base44Client';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
@@ -28,7 +29,7 @@ import ClientProjects from './pages/ClientProjects';
 import Prestige from './pages/Prestige';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -48,6 +49,20 @@ const AuthenticatedApp = () => {
       navigateToLogin();
       return null;
     }
+  }
+
+  // Block all non-admin users from the entire app
+  if (user && user.role !== 'admin') {
+    return (
+      <div className="fixed inset-0 bg-black flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+          <span className="text-red-400 text-xl">⛔</span>
+        </div>
+        <h1 className="font-orbitron text-white font-bold text-lg tracking-widest">ACCESS DENIED</h1>
+        <p className="text-white/40 text-sm text-center max-w-xs">This terminal is restricted to authorized personnel only. You do not have permission to access this system.</p>
+        <button onClick={() => base44.auth.logout()} className="mt-2 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg hover:bg-red-500/20 transition-all">Log Out</button>
+      </div>
+    );
   }
 
   // Render the main app
