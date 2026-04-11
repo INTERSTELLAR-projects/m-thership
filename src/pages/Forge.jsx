@@ -207,9 +207,15 @@ export default function Forge() {
               <input value={reqSearch} onChange={(e) => setReqSearch(e.target.value)} placeholder="Search requests..." className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none" />
             </div>
             <div className="flex gap-1.5 flex-wrap">
-              {["All", "Submitted", "Under Review", "Approved", "In Progress", "Completed"].map((s) => (
-                <button key={s} onClick={() => setReqStatusFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${reqStatusFilter === s ? (s === "Completed" ? "bg-green-500/15 text-green-400 border border-green-500/20" : "bg-orange-500/15 text-orange-500 border border-orange-500/20") : "text-white/30 hover:text-white/50 border border-transparent"}`}>{s}</button>
-              ))}
+              {["All", "Submitted", "Under Review", "Approved", "In Progress", "Completed"].map((s) => {
+                const count = s === "All" ? requests.filter(r => !isReqDone(r)).length : s === "Completed" ? requests.filter(r => isReqDone(r)).length : requests.filter(r => (r.status === s || (!r.status && s === "Submitted")) && !isReqDone(r)).length;
+                const activeStyle = s === "Completed" ? "bg-green-500/15 text-green-400 border border-green-500/20" : "bg-orange-500/15 text-orange-500 border border-orange-500/20";
+                return (
+                  <button key={s} onClick={() => setReqStatusFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${reqStatusFilter === s ? activeStyle : "text-white/30 hover:text-white/50 border border-transparent"}`}>
+                    {s} <span className="opacity-50">({count})</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
