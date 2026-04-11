@@ -9,6 +9,12 @@ import PageHeader from "../components/PageHeader";
 
 const CATEGORIES = ["Priority", "NextUp"];
 const EST_UNITS = ["Hours", "Days", "Weeks", "Months"];
+const TASK_STATUSES = ["Pending", "In Progress", "Completed"];
+const STATUS_STYLES = {
+  Pending: "bg-white/5 text-white/35 border-white/10",
+  "In Progress": "bg-orange-500/15 text-orange-400 border-orange-500/25",
+  Completed: "bg-green-500/15 text-green-400 border-green-500/25",
+};
 
 const TO_HOURS = { Hours: 1, Days: 8, Weeks: 40, Months: 160 };
 
@@ -82,11 +88,18 @@ export default function ToDo() {
     });
   }, []);
 
+  const setStatus = async (item, status) => {
+    const done = status === "Completed";
+    await base44.entities.ToDoItem.update(item.id, { status, done });
+    setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, status, done } : i));
+  };
+
   const add = async () => {
     if (!newForm.title.trim()) return;
     const created = await base44.entities.ToDoItem.create({
       ...newForm,
       estimatedAmount: parseFloat(newForm.estimatedAmount) || null,
+      status: "Pending",
       done: false,
     });
     setItems((prev) => [...prev, created]);
@@ -152,6 +165,7 @@ export default function ToDo() {
                 onCancelEdit={() => setEditId(null)}
                 onToggleDone={toggleDone}
                 onDelete={del}
+                onSetStatus={setStatus}
               />
             ))}
           </div>
@@ -161,7 +175,7 @@ export default function ToDo() {
   );
 }
 
-function CategorySection({ category, items, editId, editForm, setEditForm, onEdit, onSaveEdit, onCancelEdit, onToggleDone, onDelete }) {
+function CategorySection({ category, items, editId, editForm, setEditForm, onEdit, onSaveEdit, onCancelEdit, onToggleDone, onDelete, onSetStatus }) {
   const done = items.filter((i) => i.done).length;
   const catColor = category === "Priority" ? "text-red-400/70 bg-red-400/10 border-red-400/15" : "text-blue-400/70 bg-blue-400/10 border-blue-400/15";
 
@@ -181,7 +195,7 @@ function CategorySection({ category, items, editId, editForm, setEditForm, onEdi
             editId === item.id ? (
               <TaskForm key={item.id} form={editForm} setForm={setEditForm} onSave={onSaveEdit} onCancel={onCancelEdit} title="Edit Task" inline />
             ) : (
-              <TaskRow key={item.id} item={item} onEdit={() => onEdit(item)} onToggleDone={() => onToggleDone(item)} onDelete={() => onDelete(item.id)} />
+              <TaskRow key={item.id} item={item} onEdit={() => onEdit(item)} onToggleDone={() => onToggleDone(item)} onDelete={() => onDelete(item.id)} onSetStatus={(s) => onSetStatus(item, s)} />
             )
           ))}
         </div>
@@ -190,12 +204,10 @@ function CategorySection({ category, items, editId, editForm, setEditForm, onEdi
   );
 }
 
-function TaskRow({ item, onEdit, onToggleDone, onDelete }) {
+function TaskRow({ item, onEdit, onToggleDone, onDelete, onSetStatus }) {
+  const currentStatus = item.status || (item.done ? "Completed" : "Pending");
   return (
     <div className={`card-hover bg-card rounded-xl border p-4 flex items-start gap-4 group ${item.done ? "border-green-500/10 opacity-60" : "border-white/[0.06]"}`}>
-      <button onClick={onToggleDone} className="mt-0.5 shrink-0 text-white/25 hover:text-orange-500/70 transition-colors">
-        {item.done ? <CheckSquare className="w-4 h-4 text-green-400/70" /> : <Square className="w-4 h-4" />}
-      </button>
       <div className="flex-1 min-w-0">
         <p className={`text-sm font-medium ${item.done ? "text-white/30 line-through" : "text-white/85"}`}>{item.title}</p>
         {item.description && <p className="text-white/35 text-xs mt-1 leading-relaxed">{item.description}</p>}
@@ -210,6 +222,11 @@ function TaskRow({ item, onEdit, onToggleDone, onDelete }) {
               <Clock className="w-3 h-3" />{item.estimatedAmount} {item.estimatedUnit}
             </span>
           )}
+        </div>
+        <div className="flex gap-1.5 mt-2.5">
+          {TASK_STATUSES.map((s) => (
+            <button key={s} onClick={() => onSetStatus(s)} className={`px-2.5 py-0.5 rounded text-[10px] font-medium border transition-all ${currentStatus === s ? STATUS_STYLES[s] : "text-white/20 border-transparent hover:text-white/40"}`}>{s}</button>
+          ))}
         </div>
       </div>
       <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-all">
