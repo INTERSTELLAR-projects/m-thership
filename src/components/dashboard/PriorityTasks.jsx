@@ -26,9 +26,10 @@ export default function PriorityTasks() {
     return unsub;
   }, []);
 
-  const toggleDone = async (item) => {
-    await base44.entities.ToDoItem.update(item.id, { done: !item.done });
-    setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, done: !i.done } : i));
+  const setStatus = async (item, status) => {
+    const done = status === "Completed";
+    await base44.entities.ToDoItem.update(item.id, { status, done });
+    setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, status, done } : i));
   };
 
   const saveEdit = async (id) => {
@@ -63,11 +64,15 @@ export default function PriorityTasks() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
-          {[...pending, ...done].map((item) => (
+          {[...pending, ...done].map((item) => {
+            const currentStatus = item.status || (item.done ? "Completed" : "Pending");
+            const STATUS_STYLES = {
+              Pending: "bg-white/5 text-white/35 border-white/10",
+              "In Progress": "bg-orange-500/15 text-orange-400 border-orange-500/25",
+              Completed: "bg-green-500/15 text-green-400 border-green-500/25",
+            };
+            return (
             <div key={item.id} className={`card-hover bg-card rounded-xl border p-3 flex items-start gap-3 group ${item.done ? "border-green-500/10 opacity-60" : "border-white/[0.06]"}`}>
-              <button onClick={() => toggleDone(item)} className="mt-0.5 shrink-0 text-white/25 hover:text-orange-500/70 transition-colors">
-                {item.done ? <CheckSquare className="w-4 h-4 text-green-400/70" /> : <Square className="w-4 h-4" />}
-              </button>
               <div className="flex-1 min-w-0">
                 {editId === item.id ? (
                   <div className="flex items-center gap-1">
@@ -89,6 +94,13 @@ export default function PriorityTasks() {
                     Due {new Date(item.dueDate + 'T00:00:00').toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                   </p>
                 )}
+                <div className="flex gap-1 mt-2">
+                  {["Pending", "In Progress", "Completed"].map((s) => (
+                    <button key={s} onClick={() => setStatus(item, s)} className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                      currentStatus === s ? STATUS_STYLES[s] : "text-white/20 border-transparent hover:text-white/40"
+                    }`}>{s}</button>
+                  ))}
+                </div>
               </div>
               {editId !== item.id && (
                 <button onClick={() => { setEditId(item.id); setEditTitle(item.title); }} className="p-1 text-white/15 hover:text-white/50 opacity-0 group-hover:opacity-100 transition-all shrink-0">
@@ -96,7 +108,8 @@ export default function PriorityTasks() {
                 </button>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </section>
