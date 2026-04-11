@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Bell, Plus, Trash2, Pencil, Check, X, Loader2, CheckSquare, Square } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
-const CARD_KEYS = ["Quick Fixes", "Minor Updates", "Small Tasks", "One-Off Requests"];
+const CARD_KEYS = ["One-Off Requests"];
 
 function TodoCard({ title, clients }) {
   const [todos, setTodos] = useState([]);
