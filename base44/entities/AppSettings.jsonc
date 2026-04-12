@@ -1,0 +1,109 @@
+{
+  "name": "AppSettings",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string"
+    },
+    "appName": {
+      "type": "string",
+      "default": "Interstellar Command"
+    },
+    "appSubtitle": {
+      "type": "string",
+      "default": "Enterprise Operations Terminal"
+    },
+    "appDescription": {
+      "type": "string"
+    },
+    "defaultTimezone": {
+      "type": "string",
+      "default": "America/Los_Angeles"
+    },
+    "defaultDateFormat": {
+      "type": "string",
+      "default": "MM/DD/YYYY"
+    },
+    "defaultCurrency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "adminLandingPage": {
+      "type": "string",
+      "default": "/"
+    },
+    "clientLandingPage": {
+      "type": "string",
+      "default": "/client-projects"
+    },
+    "pageSettings": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "portalSettings": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "formSettings": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "commSettings": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "automationSettings": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "brandingSettings": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "securitySettings": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "advancedSettings": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "requestStatuses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "projectStatuses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "clientStatuses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "customTags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "crmCustomFields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": [
+    "key"
+  ]
+}
