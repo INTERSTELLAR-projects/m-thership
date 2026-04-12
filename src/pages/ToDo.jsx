@@ -195,12 +195,12 @@ function CategorySection({ category, items, editId, editForm, setEditForm, onEdi
         </div>
       ) : (
         <div className="space-y-2">
-          {items.map((item) => (
-            editId === item.id ? (
-              <TaskForm key={item.id} form={editForm} setForm={setEditForm} onSave={onSaveEdit} onCancel={onCancelEdit} title="Edit Task" inline clients={clients} /> : (
-              <TaskRow key={item.id} item={item} onEdit={() => onEdit(item)} onToggleDone={() => onToggleDone(item)} onDelete={() => onDelete(item.id)} onSetStatus={(s) => onSetStatus(item, s)} />
-            )
-          ))}
+          {items.map((item) => {
+            if (editId === item.id) {
+              return <TaskForm key={item.id} form={editForm} setForm={setEditForm} onSave={onSaveEdit} onCancel={onCancelEdit} title="Edit Task" inline={true} clients={clients} />;
+            }
+            return <TaskRow key={item.id} item={item} onEdit={() => onEdit(item)} onToggleDone={() => onToggleDone(item)} onDelete={() => onDelete(item.id)} onSetStatus={(s) => onSetStatus(item, s)} />;
+          })}
         </div>
       )}
     </div>
