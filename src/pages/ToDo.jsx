@@ -8,6 +8,7 @@ import MicButton from "../components/MicButton";
 import PageHeader from "../components/PageHeader";
 
 const CATEGORIES = ["Priority", "NextUp"];
+const INTERSTELLAR_OPTION = "Interstellar";
 const EST_UNITS = ["Hours", "Days", "Weeks", "Months"];
 const TASK_STATUSES = ["Pending", "In Progress", "Completed"];
 const STATUS_STYLES = {
@@ -71,11 +72,12 @@ function TimeEstimateSummary({ items }) {
   );
 }
 
-const EMPTY_FORM = { title: "", description: "", category: "Priority", dueDate: "", estimatedAmount: "", estimatedUnit: "Hours" };
+const EMPTY_FORM = { title: "", description: "", category: "Priority", dueDate: "", estimatedAmount: "", estimatedUnit: "Hours", assignedTo: "" };
 
 export default function ToDo() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [clients, setClients] = useState([]);
   const [adding, setAdding] = useState(false);
   const [newForm, setNewForm] = useState({ ...EMPTY_FORM });
   const [editId, setEditId] = useState(null);
@@ -86,6 +88,7 @@ export default function ToDo() {
       setItems(data);
       setLoading(false);
     });
+    base44.entities.CRMClient.list("business", 200).then((data) => setClients(data));
   }, []);
 
   const setStatus = async (item, status) => {
@@ -145,7 +148,7 @@ export default function ToDo() {
         <TimeEstimateSummary items={items} />
 
         {adding && (
-          <TaskForm form={newForm} setForm={setNewForm} onSave={add} onCancel={() => { setAdding(false); setNewForm({ ...EMPTY_FORM }); }} title="New Task" />
+          <TaskForm form={newForm} setForm={setNewForm} onSave={add} onCancel={() => { setAdding(false); setNewForm({ ...EMPTY_FORM }); }} title="New Task" clients={clients} />
         )}
 
         {loading ? (
@@ -166,6 +169,7 @@ export default function ToDo() {
                 onToggleDone={toggleDone}
                 onDelete={del}
                 onSetStatus={setStatus}
+                clients={clients}
               />
             ))}
           </div>
@@ -175,7 +179,7 @@ export default function ToDo() {
   );
 }
 
-function CategorySection({ category, items, editId, editForm, setEditForm, onEdit, onSaveEdit, onCancelEdit, onToggleDone, onDelete, onSetStatus }) {
+function CategorySection({ category, items, editId, editForm, setEditForm, onEdit, onSaveEdit, onCancelEdit, onToggleDone, onDelete, onSetStatus, clients }) {
   const done = items.filter((i) => i.done).length;
   const catColor = category === "Priority" ? "text-red-400/70 bg-red-400/10 border-red-400/15" : "text-blue-400/70 bg-blue-400/10 border-blue-400/15";
 
@@ -193,8 +197,7 @@ function CategorySection({ category, items, editId, editForm, setEditForm, onEdi
         <div className="space-y-2">
           {items.map((item) => (
             editId === item.id ? (
-              <TaskForm key={item.id} form={editForm} setForm={setEditForm} onSave={onSaveEdit} onCancel={onCancelEdit} title="Edit Task" inline />
-            ) : (
+              <TaskForm key={item.id} form={editForm} setForm={setEditForm} onSave={onSaveEdit} onCancel={onCancelEdit} title="Edit Task" inline clients={clients} /> : (
               <TaskRow key={item.id} item={item} onEdit={() => onEdit(item)} onToggleDone={() => onToggleDone(item)} onDelete={() => onDelete(item.id)} onSetStatus={(s) => onSetStatus(item, s)} />
             )
           ))}
@@ -212,6 +215,11 @@ function TaskRow({ item, onEdit, onToggleDone, onDelete, onSetStatus }) {
         <p className={`text-sm font-medium ${item.done ? "text-white/30 line-through" : "text-white/85"}`}>{item.title}</p>
         {item.description && <p className="text-white/35 text-xs mt-1 leading-relaxed">{item.description}</p>}
         <div className="flex items-center gap-3 mt-2 flex-wrap">
+          {item.assignedTo && (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400/80">
+              {item.assignedTo}
+            </span>
+          )}
           {item.dueDate && (
             <span className="flex items-center gap-1 text-orange-500/60 text-[10px] font-medium">
               <CalendarDays className="w-3 h-3" />Due {new Date(item.dueDate + 'T00:00:00').toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
@@ -237,7 +245,8 @@ function TaskRow({ item, onEdit, onToggleDone, onDelete, onSetStatus }) {
   );
 }
 
-function TaskForm({ form, setForm, onSave, onCancel, title, inline }) {
+function TaskForm({ form, setForm, onSave, onCancel, title, inline, clients = [] }) {
+  const assignOptions = [INTERSTELLAR_OPTION, ...clients.map((c) => c.business)];
   return (
     <div className={`bg-card rounded-xl border border-orange-500/20 p-5 space-y-3 ${inline ? "" : ""}`}>
       <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">{title}</h3>
@@ -257,6 +266,14 @@ function TaskForm({ form, setForm, onSave, onCancel, title, inline }) {
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
+          <Label className="text-white/40 text-xs">Assigned To</Label>
+          <select value={form.assignedTo || ""} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })}
+            className="w-full mt-1 h-9 bg-white/[0.04] border border-white/[0.08] rounded-md px-2 text-sm text-white outline-none">
+            <option value="">— Select —</option>
+            {assignOptions.map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </div>
+        <div>
           <Label className="text-white/40 text-xs">Category</Label>
           <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
             <SelectTrigger className="bg-white/[0.04] border-white/[0.08] text-white mt-1 h-9"><SelectValue /></SelectTrigger>
@@ -265,10 +282,13 @@ function TaskForm({ form, setForm, onSave, onCancel, title, inline }) {
             </SelectContent>
           </Select>
         </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
         <div>
           <Label className="text-white/40 text-xs">Due Date</Label>
           <Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="bg-white/[0.04] border-white/[0.08] text-white mt-1 h-9" />
         </div>
+        <div />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>

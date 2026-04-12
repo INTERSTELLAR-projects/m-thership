@@ -31,6 +31,9 @@
         "Months"
       ]
     },
+    "assignedTo": {
+      "type": "string"
+    },
     "done": {
       "type": "boolean",
       "default": false
