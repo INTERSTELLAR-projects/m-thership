@@ -48,7 +48,6 @@ export default function Legal() {
 
   const updateItem = async (id, changes, section) => {
     await base44.entities.LegalItem.update(id, changes);
-    if (section === "deadline") setDeadlines((p) => p.map((i) => i.id === id ? { ...i, ...changes } : i));
     if (section === "todo") setTodos((p) => p.map((i) => i.id === id ? { ...i, ...changes } : i));
     if (section === "date") setDates((p) => p.map((i) => i.id === id ? { ...i, ...changes } : i));
   };

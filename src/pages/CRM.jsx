@@ -444,6 +444,13 @@ function NotesTab({ client, update }) {
   const [editText, setEditText] = useState("");
 
   const saveNotes = (notes) => update({ notes });
+  const saveEdit = (id) => {
+    const note = (client.notes || []).find((n) => n.id === id);
+    if (!note) return;
+    saveNotes((client.notes || []).map((n) => n.id === id ? { ...n, text: editText } : n));
+    setEditId(null);
+  };
+  const delNote = (id) => saveNotes((client.notes || []).filter((n) => n.id !== id));
   const addNote = () => {
     if (!newNote.trim()) return;
     saveNotes([...(client.notes || []), { id: Date.now(), text: newNote.trim(), date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) }]);
