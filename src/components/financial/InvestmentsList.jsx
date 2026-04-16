@@ -81,12 +81,15 @@ export default function InvestmentsList() {
     saveCats(next);
   };
 
+  const [acquiredOpen, setAcquiredOpen] = useState(false);
+
   const filtered = catFilter === "All" ? items : items.filter((i) => i.category === catFilter);
   const grouped = categories.reduce((acc, cat) => {
-    acc[cat] = filtered.filter((i) => i.category === cat);
+    acc[cat] = filtered.filter((i) => i.category === cat && !i.acquired);
     return acc;
   }, {});
 
+  const acquiredItems = filtered.filter((i) => i.acquired);
   const totalPending = items.filter((i) => !i.acquired).reduce((s, i) => s + (i.estimatedCost || 0), 0);
   const acquiredCount = items.filter((i) => i.acquired).length;
 
@@ -235,6 +238,38 @@ export default function InvestmentsList() {
         <div className="bg-card rounded-xl border border-white/[0.06] p-12 text-center">
           <ShoppingBag className="w-8 h-8 text-white/10 mx-auto mb-3" />
           <p className="text-white/25 text-sm">No investments yet. Click "Add" next to a category to get started.</p>
+        </div>
+      )}
+
+      {/* Acquired Section */}
+      {acquiredItems.length > 0 && (
+        <div className="border-t border-white/[0.06] pt-5">
+          <button
+            onClick={() => setAcquiredOpen(!acquiredOpen)}
+            className="flex items-center gap-3 mb-3 w-full text-left group"
+          >
+            <h2 className="text-green-400/60 font-bold text-xs tracking-[0.2em] uppercase">Acquired</h2>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-green-500/10 text-green-400/70 border border-green-500/15">{acquiredItems.length}</span>
+            <span className="text-white/20 text-[10px] ml-auto group-hover:text-white/40 transition-colors">{acquiredOpen ? "▲ hide" : "▼ show"}</span>
+          </button>
+          {acquiredOpen && (
+            <div className="space-y-2">
+              {acquiredItems.map((item) => (
+                <div key={item.id} className="bg-card rounded-xl border border-green-500/10 p-4 flex items-center gap-4 group opacity-60 hover:opacity-80 transition-opacity">
+                  <button onClick={() => toggleAcquired(item)} className="w-5 h-5 rounded border flex items-center justify-center shrink-0 bg-green-500/20 border-green-500/40 text-green-400">
+                    <Check className="w-3 h-3" />
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium line-through text-white/30">{item.name}</p>
+                    {item.notes && <p className="text-white/20 text-xs mt-0.5 truncate">{item.notes}</p>}
+                  </div>
+                  <span className="text-white/20 text-[10px] uppercase tracking-wider">{item.category}</span>
+                  {item.estimatedCost > 0 && <span className="text-white/25 text-sm font-bold w-20 text-right shrink-0">${item.estimatedCost.toLocaleString()}</span>}
+                  <button onClick={() => deleteItem(item.id)} className="p-1.5 rounded-md hover:bg-white/5 text-white/15 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
