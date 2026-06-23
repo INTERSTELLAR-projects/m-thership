@@ -31,8 +31,32 @@
         "Months"
       ]
     },
+    "actualAmount": {
+      "type": "number"
+    },
+    "actualUnit": {
+      "type": "string",
+      "enum": [
+        "Hours",
+        "Days",
+        "Weeks",
+        "Months"
+      ]
+    },
+    "completedDate": {
+      "type": "string"
+    },
     "assignedTo": {
       "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "In Progress",
+        "Completed"
+      ],
+      "default": "Pending"
     },
     "done": {
       "type": "boolean",

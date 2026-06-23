@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PageHeader from "../components/PageHeader";
 import { CheckCircle2, Clock, Zap, TrendingUp, Target, BarChart3, Loader2, Activity } from "lucide-react";
+// Clock is used in TasksAnalytics KPI row
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -86,20 +87,37 @@ function TasksAnalytics() {
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 text-white/20 animate-spin" /></div>;
 
+  const TO_HOURS = { Hours: 1, Days: 8, Weeks: 40, Months: 160 };
+  const toHours = (amount, unit) => (parseFloat(amount) || 0) * (TO_HOURS[unit] || 1);
+  const fmtHours = (h) => {
+    if (h >= 160) return `${(h / 160).toFixed(1)}mo`;
+    if (h >= 40) return `${(h / 40).toFixed(1)}wk`;
+    if (h >= 8) return `${(h / 8).toFixed(1)}d`;
+    return `${h.toFixed(1)}h`;
+  };
+
   const allTasks = [...items, ...clientItems];
   const completed = allTasks.filter((t) => t.done || t.status === "Completed");
   const inProgress = allTasks.filter((t) => (t.status === "In Progress") && !t.done);
   const pending = allTasks.filter((t) => (!t.status || t.status === "Pending") && !t.done);
 
+  // Actual vs estimated time (ToDoItems only — they store actualAmount)
+  const todoCompleted = items.filter((t) => t.done || t.status === "Completed");
+  const totalActualHours = todoCompleted.reduce((s, t) => s + toHours(t.actualAmount, t.actualUnit), 0);
+  const totalEstHours = todoCompleted.reduce((s, t) => s + toHours(t.estimatedAmount, t.estimatedUnit), 0);
+  const avgActualPerTask = todoCompleted.filter(t => t.actualAmount).length
+    ? (totalActualHours / todoCompleted.filter(t => t.actualAmount).length).toFixed(1)
+    : "—";
+
   // Completion rate
   const completionRate = allTasks.length ? Math.round((completed.length / allTasks.length) * 100) : 0;
 
-  // Tasks completed per day (last 30 days)
+  // Tasks completed per day (last 30 days) — use completedDate when available
   const days = last30Days();
   const completedByDay = {};
   days.forEach((d) => { completedByDay[d] = 0; });
   completed.forEach((t) => {
-    const d = new Date(t.updated_date || t.created_date);
+    const d = new Date(t.completedDate || t.updated_date || t.created_date);
     const key = `${d.getMonth() + 1}/${d.getDate()}`;
     if (completedByDay[key] !== undefined) completedByDay[key]++;
   });
@@ -114,11 +132,21 @@ function TasksAnalytics() {
   const completedByWeek = {};
   weeks.forEach((w) => { completedByWeek[w] = 0; });
   completed.forEach((t) => {
-    const d = new Date(t.updated_date || t.created_date);
+    const d = new Date(t.completedDate || t.updated_date || t.created_date);
     const key = weekLabel(d.toISOString());
     if (completedByWeek[key] !== undefined) completedByWeek[key]++;
   });
   const weeklyData = weeks.map((w) => ({ week: w, completed: completedByWeek[w] }));
+
+  // Actual hours per week (for time tracking chart)
+  const actualByWeek = {};
+  weeks.forEach((w) => { actualByWeek[w] = 0; });
+  todoCompleted.filter(t => t.actualAmount).forEach((t) => {
+    const d = new Date(t.completedDate || t.updated_date || t.created_date);
+    const key = weekLabel(d.toISOString());
+    if (actualByWeek[key] !== undefined) actualByWeek[key] += toHours(t.actualAmount, t.actualUnit);
+  });
+  const actualWeeklyData = weeks.map((w) => ({ week: w, hours: parseFloat(actualByWeek[w].toFixed(1)) }));
 
   // Priority vs client split
   const priorityDone = items.filter((t) => t.done || t.status === "Completed").length;
@@ -139,7 +167,7 @@ function TasksAnalytics() {
         <StatCard label="Completed" value={completed.length} icon={CheckCircle2} color="text-green-400" />
         <StatCard label="In Progress" value={inProgress.length} icon={Activity} color="text-orange-400" />
         <StatCard label="Completion Rate" value={`${completionRate}%`} icon={TrendingUp} color="text-blue-400" />
-        <StatCard label="Avg / Day (30d)" value={avgPerDay} icon={Zap} color="text-purple-400" sub="tasks completed per day" />
+        <StatCard label="Avg Time / Task" value={avgActualPerTask === "—" ? "—" : `${avgActualPerTask}h`} icon={Clock} color="text-purple-400" sub="actual hours logged" />
       </div>
 
       {/* Charts row */}
@@ -164,16 +192,19 @@ function TasksAnalytics() {
         </div>
 
         <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Weekly Pace — Last 8 Weeks</h3>
+          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Actual Hours Logged — Weekly</h3>
           <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={weeklyData}>
+            <BarChart data={actualWeeklyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
               <XAxis dataKey="week" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} />
-              <YAxis allowDecimals={false} tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} axisLine={false} />
-              <Tooltip {...TOOLTIP_STYLE} />
-              <Bar dataKey="completed" fill="#ff6a00" radius={[4, 4, 0, 0]} opacity={0.85} />
+              <YAxis tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} axisLine={false} />
+              <Tooltip {...TOOLTIP_STYLE} formatter={(v) => [`${v}h`, "Actual Hours"]} />
+              <Bar dataKey="hours" fill="#a855f7" radius={[4, 4, 0, 0]} opacity={0.85} />
             </BarChart>
           </ResponsiveContainer>
+          {totalActualHours === 0 && (
+            <p className="text-white/20 text-[10px] text-center mt-2">Log actual time when completing tasks to populate this chart.</p>
+          )}
         </div>
       </div>
 
@@ -200,7 +231,7 @@ function TasksAnalytics() {
         </div>
 
         <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Task Source Breakdown</h3>
+          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Task Source & Time Breakdown</h3>
           <div className="space-y-4">
             <div>
               <div className="flex justify-between mb-1.5"><span className="text-white/50 text-xs">Interstellar To-Do</span><span className="text-purple-400 text-xs font-bold">{items.filter(t=>t.done||t.status==="Completed").length} / {items.length}</span></div>
@@ -212,12 +243,12 @@ function TasksAnalytics() {
             </div>
             <div className="pt-3 border-t border-white/[0.05] grid grid-cols-2 gap-3">
               <div className="bg-white/[0.02] rounded-lg p-3 border border-white/[0.04] text-center">
-                <p className="text-purple-400 text-lg font-bold">{priorityDone}</p>
-                <p className="text-white/25 text-[10px] uppercase tracking-wider mt-0.5">Personal Done</p>
+                <p className="text-purple-400 text-lg font-bold">{totalActualHours > 0 ? fmtHours(totalActualHours) : "—"}</p>
+                <p className="text-white/25 text-[10px] uppercase tracking-wider mt-0.5">Actual Time Total</p>
               </div>
               <div className="bg-white/[0.02] rounded-lg p-3 border border-white/[0.04] text-center">
-                <p className="text-orange-400 text-lg font-bold">{clientDone}</p>
-                <p className="text-white/25 text-[10px] uppercase tracking-wider mt-0.5">Client Done</p>
+                <p className="text-blue-400 text-lg font-bold">{totalEstHours > 0 ? fmtHours(totalEstHours) : "—"}</p>
+                <p className="text-white/25 text-[10px] uppercase tracking-wider mt-0.5">Estimated Total</p>
               </div>
             </div>
           </div>

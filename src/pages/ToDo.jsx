@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Check, X, Loader2, CheckSquare, Square, CalendarDays, Clock } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Loader2, CalendarDays, Clock, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { base44 } from "@/api/base44Client";
 import MicButton from "../components/MicButton";
 import PageHeader from "../components/PageHeader";
+import CompleteTaskModal from "../components/CompleteTaskModal";
 
 const CATEGORIES = ["Priority", "NextUp"];
 const INTERSTELLAR_OPTION = "Interstellar";
@@ -39,7 +41,10 @@ function TimeEstimateSummary({ items }) {
   });
 
   const maxHours = Math.max(...catData.map((d) => d.totalHours), 1);
-  const catColors = { Priority: { bar: "bg-red-500/60", text: "text-red-400/80", border: "border-red-500/20" }, NextUp: { bar: "bg-blue-500/60", text: "text-blue-400/80", border: "border-blue-500/20" } };
+  const catColors = {
+    Priority: { bar: "bg-red-500/60", text: "text-red-400/80", border: "border-red-500/20" },
+    NextUp: { bar: "bg-blue-500/60", text: "text-blue-400/80", border: "border-blue-500/20" },
+  };
 
   return (
     <div className="bg-card rounded-xl border border-white/[0.06] p-5">
@@ -58,10 +63,7 @@ function TimeEstimateSummary({ items }) {
                 <span className={`text-sm font-bold ${colors.text}`}>{totalHours > 0 ? formatTotal(totalHours) : "—"}</span>
               </div>
               <div className="h-2.5 w-full bg-white/[0.04] rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${colors.bar}`}
-                  style={{ width: `${pct}%` }}
-                />
+                <div className={`h-full rounded-full transition-all duration-500 ${colors.bar}`} style={{ width: `${pct}%` }} />
               </div>
             </div>
           );
@@ -82,19 +84,30 @@ export default function ToDo() {
   const [newForm, setNewForm] = useState({ ...EMPTY_FORM });
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [completingTask, setCompletingTask] = useState(null);
 
   useEffect(() => {
     base44.entities.ToDoItem.list("created_date", 500).then((data) => {
       setItems(data);
       setLoading(false);
     });
-    base44.entities.CRMClient.list("business", 200).then((data) => setClients(data));
+    base44.entities.CRMClient.list("business", 200).then(setClients);
   }, []);
 
-  const setStatus = async (item, status) => {
-    const done = status === "Completed";
-    await base44.entities.ToDoItem.update(item.id, { status, done });
-    setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, status, done } : i));
+  const setStatus = (item, status) => {
+    if (status === "Completed") {
+      setCompletingTask(item);
+      return;
+    }
+    base44.entities.ToDoItem.update(item.id, { status, done: false });
+    setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, status, done: false } : i));
+  };
+
+  const handleConfirmComplete = async (timeData) => {
+    const task = completingTask;
+    setCompletingTask(null);
+    await base44.entities.ToDoItem.update(task.id, { status: "Completed", done: true, ...timeData });
+    setItems((prev) => prev.map((i) => i.id === task.id ? { ...i, status: "Completed", done: true, ...timeData } : i));
   };
 
   const add = async () => {
@@ -120,74 +133,169 @@ export default function ToDo() {
     setEditId(null);
   };
 
-  const toggleDone = async (item) => {
-    await base44.entities.ToDoItem.update(item.id, { done: !item.done });
-    setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, done: !i.done } : i));
-  };
-
   const del = async (id) => {
     await base44.entities.ToDoItem.delete(id);
     setItems((prev) => prev.filter((i) => i.id !== id));
   };
 
+  const activeItems = items.filter((i) => !i.done);
+  const doneItems = items.filter((i) => i.done).sort((a, b) => new Date(b.completedDate || b.updated_date) - new Date(a.completedDate || a.updated_date));
+
   const grouped = CATEGORIES.reduce((acc, cat) => {
-    acc[cat] = items.filter((i) => i.category === cat);
+    acc[cat] = activeItems.filter((i) => i.category === cat);
     return acc;
   }, {});
 
   return (
     <div className="min-h-screen bg-background">
+      {completingTask && (
+        <CompleteTaskModal
+          task={completingTask}
+          onConfirm={handleConfirmComplete}
+          onCancel={() => setCompletingTask(null)}
+        />
+      )}
       <PageHeader breadcrumb="Command Center / To-Do" rightText="Master Task List" />
       <div className="px-8 py-6 space-y-6">
-        <div className="flex justify-end">
-          <button onClick={() => setAdding(true)} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors">
-            <Plus className="w-4 h-4" />Add Task
-          </button>
-        </div>
-
         <TimeEstimateSummary items={items} />
 
-        {adding && (
-          <TaskForm form={newForm} setForm={setNewForm} onSave={add} onCancel={() => { setAdding(false); setNewForm({ ...EMPTY_FORM }); }} title="New Task" clients={clients} />
-        )}
-
-        {loading ? (
-          <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 text-white/20 animate-spin" /></div>
-        ) : (
-          <div className="space-y-8">
-            {CATEGORIES.map((cat) => (
-              <CategorySection
-                key={cat}
-                category={cat}
-                items={grouped[cat] || []}
-                editId={editId}
-                editForm={editForm}
-                setEditForm={setEditForm}
-                onEdit={startEdit}
-                onSaveEdit={saveEdit}
-                onCancelEdit={() => setEditId(null)}
-                onToggleDone={toggleDone}
-                onDelete={del}
-                onSetStatus={setStatus}
-                clients={clients}
-              />
-            ))}
+        <Tabs defaultValue="active" className="w-full">
+          <div className="flex items-center justify-between mb-4">
+            <TabsList className="bg-card border border-white/[0.06]">
+              <TabsTrigger value="active" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40 gap-2">
+                Active <span className="text-[10px] opacity-60">({activeItems.length})</span>
+              </TabsTrigger>
+              <TabsTrigger value="done" className="data-[state=active]:bg-green-500/15 data-[state=active]:text-green-400 text-white/40 gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Done <span className="text-[10px] opacity-60">({doneItems.length})</span>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="active" className="mt-0">
+              <button onClick={() => setAdding(true)} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors">
+                <Plus className="w-4 h-4" />Add Task
+              </button>
+            </TabsContent>
           </div>
-        )}
+
+          <TabsContent value="active">
+            {adding && (
+              <div className="mb-6">
+                <TaskForm form={newForm} setForm={setNewForm} onSave={add} onCancel={() => { setAdding(false); setNewForm({ ...EMPTY_FORM }); }} title="New Task" clients={clients} />
+              </div>
+            )}
+            {loading ? (
+              <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 text-white/20 animate-spin" /></div>
+            ) : (
+              <div className="space-y-8">
+                {CATEGORIES.map((cat) => (
+                  <CategorySection
+                    key={cat}
+                    category={cat}
+                    items={grouped[cat] || []}
+                    editId={editId}
+                    editForm={editForm}
+                    setEditForm={setEditForm}
+                    onEdit={startEdit}
+                    onSaveEdit={saveEdit}
+                    onCancelEdit={() => setEditId(null)}
+                    onDelete={del}
+                    onSetStatus={setStatus}
+                    clients={clients}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="done">
+            <DoneTab items={doneItems} onDelete={del} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
 }
 
-function CategorySection({ category, items, editId, editForm, setEditForm, onEdit, onSaveEdit, onCancelEdit, onToggleDone, onDelete, onSetStatus, clients }) {
-  const done = items.filter((i) => i.done).length;
+function DoneTab({ items, onDelete }) {
+  if (items.length === 0) {
+    return (
+      <div className="bg-card rounded-xl border border-white/[0.06] p-12 text-center">
+        <CheckCircle2 className="w-8 h-8 text-white/10 mx-auto mb-3" />
+        <p className="text-white/25 text-sm">No completed tasks yet. Complete a task to see it here.</p>
+      </div>
+    );
+  }
+
+  const totalActualHours = items.reduce((sum, i) => sum + toHours(i.actualAmount, i.actualUnit), 0);
+  const totalEstHours = items.reduce((sum, i) => sum + toHours(i.estimatedAmount, i.estimatedUnit), 0);
+
+  return (
+    <div className="space-y-5">
+      {/* Summary row */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-card rounded-xl border border-white/[0.06] p-4 text-center">
+          <p className="text-green-400 text-2xl font-bold">{items.length}</p>
+          <p className="text-white/30 text-xs mt-1 uppercase tracking-wider">Tasks Completed</p>
+        </div>
+        <div className="bg-card rounded-xl border border-white/[0.06] p-4 text-center">
+          <p className="text-orange-400 text-2xl font-bold">{totalActualHours > 0 ? formatTotal(totalActualHours) : "—"}</p>
+          <p className="text-white/30 text-xs mt-1 uppercase tracking-wider">Actual Time Logged</p>
+        </div>
+        <div className="bg-card rounded-xl border border-white/[0.06] p-4 text-center">
+          <p className="text-blue-400 text-2xl font-bold">{totalEstHours > 0 ? formatTotal(totalEstHours) : "—"}</p>
+          <p className="text-white/30 text-xs mt-1 uppercase tracking-wider">Total Estimated Time</p>
+        </div>
+      </div>
+
+      {/* Completed task list */}
+      <div className="space-y-2">
+        {items.map((item) => (
+          <div key={item.id} className="bg-card rounded-xl border border-green-500/10 p-4 flex items-start gap-4 group">
+            <div className="w-5 h-5 rounded border bg-green-500/20 border-green-500/40 flex items-center justify-center shrink-0 mt-0.5">
+              <Check className="w-3 h-3 text-green-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white/60 line-through">{item.title}</p>
+              {item.description && <p className="text-white/25 text-xs mt-0.5">{item.description}</p>}
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${item.category === "Priority" ? "text-red-400/60 border-red-500/20" : "text-blue-400/60 border-blue-500/20"}`}>
+                  {item.category}
+                </span>
+                {item.completedDate && (
+                  <span className="flex items-center gap-1 text-green-500/50 text-[10px]">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Completed {new Date(item.completedDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </span>
+                )}
+                {item.actualAmount && item.actualUnit && (
+                  <span className="flex items-center gap-1 text-orange-500/50 text-[10px]">
+                    <Clock className="w-3 h-3" />Actual: {item.actualAmount} {item.actualUnit}
+                  </span>
+                )}
+                {item.estimatedAmount && item.estimatedUnit && (
+                  <span className="flex items-center gap-1 text-white/20 text-[10px]">
+                    <Clock className="w-3 h-3" />Est: {item.estimatedAmount} {item.estimatedUnit}
+                  </span>
+                )}
+              </div>
+            </div>
+            <button onClick={() => onDelete(item.id)} className="p-1.5 text-white/15 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all shrink-0">
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CategorySection({ category, items, editId, editForm, setEditForm, onEdit, onSaveEdit, onCancelEdit, onDelete, onSetStatus, clients }) {
   const catColor = category === "Priority" ? "text-red-400/70 bg-red-400/10 border-red-400/15" : "text-blue-400/70 bg-blue-400/10 border-blue-400/15";
 
   return (
     <div>
       <div className="flex items-center gap-3 mb-3">
         <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase">{category}</h2>
-        <span className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border ${catColor}`}>{done}/{items.length} done</span>
+        <span className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border ${catColor}`}>{items.length} task{items.length !== 1 ? "s" : ""}</span>
       </div>
       {items.length === 0 ? (
         <div className="bg-card rounded-xl border border-white/[0.06] p-6 text-center">
@@ -199,7 +307,7 @@ function CategorySection({ category, items, editId, editForm, setEditForm, onEdi
             if (editId === item.id) {
               return <TaskForm key={item.id} form={editForm} setForm={setEditForm} onSave={onSaveEdit} onCancel={onCancelEdit} title="Edit Task" inline={true} clients={clients} />;
             }
-            return <TaskRow key={item.id} item={item} onEdit={() => onEdit(item)} onToggleDone={() => onToggleDone(item)} onDelete={() => onDelete(item.id)} onSetStatus={(s) => onSetStatus(item, s)} />;
+            return <TaskRow key={item.id} item={item} onEdit={() => onEdit(item)} onDelete={() => onDelete(item.id)} onSetStatus={(s) => onSetStatus(item, s)} />;
           })}
         </div>
       )}
@@ -207,12 +315,12 @@ function CategorySection({ category, items, editId, editForm, setEditForm, onEdi
   );
 }
 
-function TaskRow({ item, onEdit, onToggleDone, onDelete, onSetStatus }) {
-  const currentStatus = item.status || (item.done ? "Completed" : "Pending");
+function TaskRow({ item, onEdit, onDelete, onSetStatus }) {
+  const currentStatus = item.status || "Pending";
   return (
-    <div className={`card-hover bg-card rounded-xl border p-4 flex items-start gap-4 group ${item.done ? "border-green-500/10 opacity-60" : "border-white/[0.06]"}`}>
+    <div className="card-hover bg-card rounded-xl border border-white/[0.06] p-4 flex items-start gap-4 group">
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium ${item.done ? "text-white/30 line-through" : "text-white/85"}`}>{item.title}</p>
+        <p className="text-sm font-medium text-white/85">{item.title}</p>
         {item.description && <p className="text-white/35 text-xs mt-1 leading-relaxed">{item.description}</p>}
         <div className="flex items-center gap-3 mt-2 flex-wrap">
           {item.assignedTo && (
@@ -248,7 +356,7 @@ function TaskRow({ item, onEdit, onToggleDone, onDelete, onSetStatus }) {
 function TaskForm({ form, setForm, onSave, onCancel, title, inline, clients = [] }) {
   const assignOptions = [INTERSTELLAR_OPTION, ...clients.map((c) => c.business)];
   return (
-    <div className={`bg-card rounded-xl border border-orange-500/20 p-5 space-y-3 ${inline ? "" : ""}`}>
+    <div className="bg-card rounded-xl border border-orange-500/20 p-5 space-y-3">
       <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">{title}</h3>
       <div>
         <Label className="text-white/40 text-xs">Title</Label>
