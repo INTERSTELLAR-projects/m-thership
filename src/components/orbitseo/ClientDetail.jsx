@@ -4,6 +4,17 @@ import { base44 } from "@/api/base44Client";
 
 const TABS = ["Overview", "Strategy", "Blog", "GBP", "Notes & Tasks"];
 
+const BLOG_FREQUENCIES = ["2x per month", "4x per month", "6x per month", "8x per month", "10x per month", "12x per month"];
+const WEEKDAYS = [
+  { num: 1, label: "Mon" },
+  { num: 2, label: "Tue" },
+  { num: 3, label: "Wed" },
+  { num: 4, label: "Thu" },
+  { num: 5, label: "Fri" },
+  { num: 6, label: "Sat" },
+  { num: 0, label: "Sun" },
+];
+
 function TextareaField({ label, value, onChange }) {
   return (
     <div>
@@ -54,6 +65,11 @@ export default function ClientDetail({ client, onBack, onUpdate }) {
 
   const update = (key, val) => setForm((f) => ({ ...f, [key]: val }));
   const updateNested = (key, subkey, val) => setForm((f) => ({ ...f, [key]: { ...(f[key] || {}), [subkey]: val } }));
+
+  const toggleBlogDay = (num) => {
+    const days = form.blogDays || [];
+    update("blogDays", days.includes(num) ? days.filter((d) => d !== num) : [...days, num]);
+  };
 
   const save = async () => {
     setSaving(true);
@@ -259,15 +275,29 @@ export default function ClientDetail({ client, onBack, onUpdate }) {
         {/* BLOG TAB */}
         {tab === "Blog" && (
           <SectionCard title="Blog Management">
-            <div className="grid grid-cols-3 gap-4 pb-4 border-b border-white/[0.05]">
-              <InputField label="Blog frequency" value={form.blogFrequency} onChange={(v) => update("blogFrequency", v)} placeholder="e.g. 4x/month" />
-              <div>
-                <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">Last Blog Posted</label>
-                <input type="date" value={form.lastBlogPosted || ""} onChange={(e) => update("lastBlogPosted", e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none" />
+            <div className="pb-4 border-b border-white/[0.05] space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">Blog Frequency</label>
+                  <select value={form.blogFrequency || ""} onChange={(e) => update("blogFrequency", e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none">
+                    <option value="">— Select frequency —</option>
+                    {BLOG_FREQUENCIES.map((f) => <option key={f} value={f}>{f}</option>)}
+                  </select>
+                </div>
               </div>
               <div>
-                <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">Next Blog Due</label>
-                <input type="date" value={form.nextBlogDue || ""} onChange={(e) => update("nextBlogDue", e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none" />
+                <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-2">Days of the Week · Blogs Done</label>
+                <div className="flex gap-2 flex-wrap">
+                  {WEEKDAYS.map((d) => {
+                    const selected = (form.blogDays || []).includes(d.num);
+                    return (
+                      <button key={d.num} type="button" onClick={() => toggleBlogDay(d.num)} className={`px-3.5 py-2 rounded-lg text-xs font-semibold border transition-all ${selected ? "bg-orange-500/15 border-orange-500/30 text-orange-400" : "bg-white/[0.02] border-white/[0.06] text-white/40 hover:text-white/70 hover:border-white/15"}`}>
+                        {d.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-white/25 text-[10px] mt-2">These tasks reset weekly on your dashboard on the selected days. GBP posts auto-match.</p>
               </div>
             </div>
 
@@ -327,12 +357,20 @@ export default function ClientDetail({ client, onBack, onUpdate }) {
               </div>
               <InputField label="Google Shop Status" value={form.googleShopStatus} onChange={(v) => update("googleShopStatus", v)} placeholder="e.g. Active, N/A" />
               <div>
-                <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">Last GBP Post</label>
-                <input type="date" value={form.gbpLastPost || ""} onChange={(e) => update("gbpLastPost", e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none" />
+                <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">GBP Frequency · Auto-matched to Blog</label>
+                <div className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-orange-400/80">
+                  {form.blogFrequency || <span className="text-white/25">Set blog frequency in the Blog tab</span>}
+                </div>
               </div>
               <div>
-                <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">Next GBP Post Due</label>
-                <input type="date" value={form.gbpNextDue || ""} onChange={(e) => update("gbpNextDue", e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none" />
+                <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">GBP Days · Auto-matched to Blog</label>
+                <div className="w-full min-h-[38px] bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-sm flex flex-wrap items-center gap-1.5">
+                  {(form.blogDays || []).length === 0
+                    ? <span className="text-white/25">Set blog days in the Blog tab</span>
+                    : WEEKDAYS.filter((w) => (form.blogDays || []).includes(w.num)).map((w) => (
+                        <span key={w.num} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-orange-500/10 text-orange-400/80 border border-orange-500/15">{w.label}</span>
+                      ))}
+                </div>
               </div>
             </div>
 

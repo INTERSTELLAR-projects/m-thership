@@ -1,52 +1,79 @@
 import { useState, useEffect } from "react";
-import { CheckCircle2, Circle, RefreshCw } from "lucide-react";
+import { CheckCircle2, Circle, RefreshCw, FileText, MapPin } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
-const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const WEEKDAYS = [
+  { num: 1, label: "Mon" },
+  { num: 2, label: "Tue" },
+  { num: 3, label: "Wed" },
+  { num: 4, label: "Thu" },
+  { num: 5, label: "Fri" },
+  { num: 6, label: "Sat" },
+  { num: 0, label: "Sun" },
+];
 
-function getCompletionKey(year, month) {
-  return `content_schedule_completions_${year}_${month}`;
+const dayLabel = (num) => WEEKDAYS.find((w) => w.num === num)?.label || "";
+
+// Sunday-anchored key — changes every week so completions reset automatically.
+function getWeekKey() {
+  const d = new Date();
+  const sunday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
+  return `${sunday.getFullYear()}_${sunday.getMonth() + 1}_${sunday.getDate()}`;
 }
 
-function loadCompletions(year, month) {
-  try { return JSON.parse(localStorage.getItem(getCompletionKey(year, month)) || "{}"); } catch { return {}; }
+function weekRangeLabel() {
+  const d = new Date();
+  const sunday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
+  const saturday = new Date(sunday);
+  saturday.setDate(sunday.getDate() + 6);
+  const fmt = (x) => x.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return `${fmt(sunday)} – ${fmt(saturday)}`;
 }
 
-function saveCompletions(year, month, data) {
-  localStorage.setItem(getCompletionKey(year, month), JSON.stringify(data));
+function loadCompletions(weekKey) {
+  try { return JSON.parse(localStorage.getItem(`content_schedule_week_${weekKey}`) || "{}"); } catch { return {}; }
+}
+
+function saveCompletions(weekKey, data) {
+  localStorage.setItem(`content_schedule_week_${weekKey}`, JSON.stringify(data));
 }
 
 export default function ClientContentSchedule() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  const monthLabel = `${MONTH_NAMES[month]} ${year}`;
-
+  const weekKey = getWeekKey();
   const [clients, setClients] = useState([]);
-  const [completions, setCompletions] = useState(() => loadCompletions(year, month));
+  const [completions, setCompletions] = useState(() => loadCompletions(weekKey));
 
   useEffect(() => {
-    base44.entities.CRMClient.list("-created_date", 200).then(setClients);
+    base44.entities.OrbitSEOClient.list("-created_date", 200).then(setClients);
   }, []);
 
-  const toggleComplete = (clientId, entryId) => {
-    const key = `${clientId}_${entryId}`;
+  const toggle = (key) => {
     const next = { ...completions, [key]: !completions[key] };
     setCompletions(next);
-    saveCompletions(year, month, next);
+    saveCompletions(weekKey, next);
   };
 
-  const scheduledClients = clients.filter((c) => c.blogSchedule && c.blogSchedule.length > 0);
-  const totalItems = scheduledClients.reduce((sum, c) => sum + c.blogSchedule.length, 0);
-  const completedItems = Object.values(completions).filter(Boolean).length;
+  const buildTasks = (client) => {
+    const days = WEEKDAYS.filter((w) => (client.blogDays || []).includes(w.num));
+    const tasks = [];
+    days.forEach((d) => {
+      tasks.push({ key: `${client.id}_${d.num}_blog`, type: "Blog Post", day: d.label, icon: FileText });
+      tasks.push({ key: `${client.id}_${d.num}_gbp`, type: "GBP Post", day: d.label, icon: MapPin });
+    });
+    return tasks;
+  };
+
+  const scheduledClients = clients.filter((c) => (c.blogDays || []).length > 0);
+  const allTasks = scheduledClients.flatMap(buildTasks);
+  const totalItems = allTasks.length;
+  const completedItems = allTasks.filter((t) => completions[t.key]).length;
+
   if (scheduledClients.length === 0) return (
     <section className="px-8 pt-6">
       <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase mb-2">Client Content Schedule</h2>
-      <p className="text-white/25 text-xs">No clients have a content schedule set. Add one in CRM → Services.</p>
+      <p className="text-white/25 text-xs">No clients have a content schedule set. Choose a blog frequency and weekly days in Orbit SEO → client → Blog tab.</p>
     </section>
   );
-
-
 
   return (
     <section className="px-8 pt-6">
@@ -55,7 +82,7 @@ export default function ClientContentSchedule() {
           <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase">Client Content Schedule</h2>
           <p className="text-white/30 text-[10px] mt-0.5 flex items-center gap-1.5">
             <RefreshCw className="w-2.5 h-2.5" />
-            {monthLabel} · Resets on the 1st · {completedItems}/{totalItems} completed
+            Week of {weekRangeLabel()} · Resets weekly · {completedItems}/{totalItems} completed
           </p>
         </div>
         {completedItems === totalItems && totalItems > 0 && (
@@ -65,29 +92,29 @@ export default function ClientContentSchedule() {
 
       <div className="grid grid-cols-2 gap-3">
         {scheduledClients.map((client) => {
-          const clientDone = client.blogSchedule.every((e) => completions[`${client.id}_${e.id}`]);
+          const tasks = buildTasks(client);
+          const clientDone = tasks.every((t) => completions[t.key]);
           return (
             <div key={client.id} className={`card-hover bg-card rounded-xl border p-4 ${clientDone ? "border-green-500/15 opacity-70" : "border-white/[0.06]"}`}>
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500/10 to-orange-600/5 flex items-center justify-center text-orange-500/50 text-xs font-bold border border-orange-500/10 shrink-0">
-                    {client.business.charAt(0)}
+                    {client.businessName?.charAt(0)}
                   </div>
-                  <span className="text-white/85 text-sm font-medium">{client.business}</span>
+                  <span className="text-white/85 text-sm font-medium truncate">{client.businessName}</span>
                 </div>
-                {clientDone && <CheckCircle2 className="w-4 h-4 text-green-400/60 shrink-0" />}
+                {client.blogFrequency
+                  ? <span className="text-orange-500/50 text-[10px] font-semibold shrink-0">{client.blogFrequency}</span>
+                  : clientDone && <CheckCircle2 className="w-4 h-4 text-green-400/60 shrink-0" />}
               </div>
-              {(!client.blogSchedule || client.blogSchedule.length === 0) ? (
-                <p className="text-white/20 text-xs px-1">No content schedule — add one in CRM → Services.</p>
-              ) : (
               <div className="space-y-1.5">
-                {client.blogSchedule.map((entry) => {
-                  const key = `${client.id}_${entry.id}`;
-                  const done = !!completions[key];
+                {tasks.map((task) => {
+                  const done = !!completions[task.key];
+                  const Icon = task.icon;
                   return (
                     <button
-                      key={entry.id}
-                      onClick={() => toggleComplete(client.id, entry.id)}
+                      key={task.key}
+                      onClick={() => toggle(task.key)}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border text-left transition-all ${
                         done
                           ? "bg-green-500/[0.05] border-green-500/15 opacity-60"
@@ -96,19 +123,18 @@ export default function ClientContentSchedule() {
                     >
                       {done
                         ? <CheckCircle2 className="w-3.5 h-3.5 text-green-400/70 shrink-0" />
-                        : <Circle className="w-3.5 h-3.5 text-white/20 shrink-0" />
-                      }
+                        : <Circle className="w-3.5 h-3.5 text-white/20 shrink-0" />}
+                      <Icon className={`w-3 h-3 shrink-0 ${done ? "text-white/20" : "text-white/35"}`} />
                       <span className={`text-xs flex-1 ${done ? "text-white/30 line-through" : "text-white/65"}`}>
-                        {entry.type}
+                        {task.type}
                       </span>
                       <span className={`text-[10px] font-semibold shrink-0 ${done ? "text-white/20" : "text-orange-500/50"}`}>
-                        {entry.count}x {entry.frequency}
+                        {task.day}
                       </span>
                     </button>
                   );
                 })}
               </div>
-              )}
             </div>
           );
         })}

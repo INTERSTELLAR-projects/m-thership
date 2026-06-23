@@ -38,6 +38,12 @@
     "blogFrequency": {
       "type": "string"
     },
+    "blogDays": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
     "lastBlogPosted": {
       "type": "string"
     },
