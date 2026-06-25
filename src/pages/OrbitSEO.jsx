@@ -316,10 +316,32 @@ function ClientCard({ client, onClick, onDelete }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <MiniStat label="Blog Frequency" value={client.blogFrequency || "—"} small />
+        {/* Blog frequency + posting days */}
         <div>
-          <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">GBP</p>
-          <p className={`text-xs font-semibold ${GBP_COLORS[client.gbpStatus] || "text-white/30"}`}>{client.gbpStatus || "—"}</p>
+          <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Blog Frequency</p>
+          <p className="text-xs font-semibold text-white/70">{client.blogFrequency || "—"}</p>
+          {(client.blogDays || []).length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
+                .map((lbl, idx) => ({ lbl, num: idx }))
+                .filter(({ num }) => (client.blogDays || []).includes(num))
+                .map(({ lbl, num }) => (
+                  <span key={num} className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/15">{lbl}</span>
+                ))}
+            </div>
+          )}
+        </div>
+
+        {/* GBP status + Google Shop */}
+        <div className="space-y-2">
+          <div>
+            <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">GBP</p>
+            <p className={`text-xs font-semibold ${GBP_COLORS[client.gbpStatus] || "text-white/30"}`}>{client.gbpStatus || "—"}</p>
+          </div>
+          <div>
+            <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Google Shop</p>
+            <p className={`text-xs font-semibold ${GBP_COLORS[client.googleShopStatus] || "text-white/30"}`}>{client.googleShopStatus || "—"}</p>
+          </div>
         </div>
       </div>
 
