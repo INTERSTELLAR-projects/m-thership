@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Globe, MapPin, Plus, Check, X, Pencil, Trash2, ExternalLink, CheckSquare, Square, Save } from "lucide-react";
+import { ArrowLeft, Globe, MapPin, Plus, Check, X, Pencil, Trash2, ExternalLink, CheckSquare, Square, Save, Wand2, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const TABS = ["Overview", "Strategy", "Blog", "GBP", "Notes & Tasks"];
@@ -62,6 +62,9 @@ export default function ClientDetail({ client, onBack, onUpdate }) {
   const [addingPost, setAddingPost] = useState(false);
   const [newTask, setNewTask] = useState("");
   const [addingTask, setAddingTask] = useState(false);
+  const [generatingStrategy, setGeneratingStrategy] = useState(false);
+  const [strategyBrief, setStrategyBrief] = useState("");
+  const [showBriefInput, setShowBriefInput] = useState(false);
 
   const update = (key, val) => setForm((f) => ({ ...f, [key]: val }));
   const updateNested = (key, subkey, val) => setForm((f) => ({ ...f, [key]: { ...(f[key] || {}), [subkey]: val } }));
@@ -136,6 +139,65 @@ export default function ClientDetail({ client, onBack, onUpdate }) {
     const tasks = (form.tasks || []).filter((t) => t.id !== id);
     setForm((f) => ({ ...f, tasks }));
     await base44.entities.OrbitSEOClient.update(client.id, { tasks });
+  };
+
+  const generateStrategy = async () => {
+    if (!strategyBrief.trim()) return;
+    setGeneratingStrategy(true);
+    const prompt = `You are an expert SEO strategist. Based on the following business description, generate a comprehensive SEO strategy.
+
+Business: ${form.businessName}
+Service Type: ${form.serviceType} SEO
+Primary Location: ${form.primaryLocation || "Not specified"}
+Service Locations: ${form.serviceLocations || "Not specified"}
+What they sell / core services: ${form.offerPositioning?.services || "Not specified"}
+Target audience: ${form.offerPositioning?.targetAudience || "Not specified"}
+Geographic target: ${form.offerPositioning?.geoTarget || "Not specified"}
+Problems they solve: ${form.problemSolution?.problems || "Not specified"}
+Brief / Goals: ${strategyBrief}
+
+Return a JSON with exactly these fields (no extra text):
+{
+  "primaryKeywords": "5-8 primary keyword phrases they should rank for, comma-separated",
+  "secondaryKeywords": "secondary keyword clusters and variations, comma-separated",
+  "serviceKeywords": "service-specific keywords (e.g. 'emergency plumber', 'HVAC repair'), comma-separated",
+  "locationKeywords": "location-based keywords (city + service combos), comma-separated",
+  "contentStrategy": "3-4 sentences describing the overall content approach, blog themes, and content pillars",
+  "rankingGoals": "specific ranking goals for the next 3-6 months (e.g. page 1 for X keyword in X city)"
+}`;
+
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt,
+      model: "claude_sonnet_4_6",
+      response_json_schema: {
+        type: "object",
+        properties: {
+          primaryKeywords: { type: "string" },
+          secondaryKeywords: { type: "string" },
+          serviceKeywords: { type: "string" },
+          locationKeywords: { type: "string" },
+          contentStrategy: { type: "string" },
+          rankingGoals: { type: "string" }
+        }
+      }
+    });
+
+    setForm((f) => ({
+      ...f,
+      seoStrategy: {
+        ...(f.seoStrategy || {}),
+        primaryKeywords: result.primaryKeywords || "",
+        secondaryKeywords: result.secondaryKeywords || "",
+        serviceKeywords: result.serviceKeywords || "",
+        locationKeywords: result.locationKeywords || "",
+        contentStrategy: result.contentStrategy || "",
+        rankingGoals: result.rankingGoals || "",
+      }
+    }));
+
+    setGeneratingStrategy(false);
+    setShowBriefInput(false);
+    setStrategyBrief("");
   };
 
   const blogStatusColor = { Planned: "bg-blue-500/10 text-blue-400", "In Progress": "bg-orange-500/10 text-orange-400", Published: "bg-green-500/10 text-green-400" };
@@ -238,7 +300,41 @@ export default function ClientDetail({ client, onBack, onUpdate }) {
         {/* STRATEGY TAB */}
         {tab === "Strategy" && (
           <>
-            <SectionCard title="SEO Strategy Overview">
+            <div className="bg-card rounded-xl border border-white/[0.06] p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase">SEO Strategy Overview</h3>
+                <button
+                  onClick={() => setShowBriefInput(!showBriefInput)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 text-purple-400 text-xs font-semibold rounded-lg transition-all"
+                >
+                  <Wand2 className="w-3.5 h-3.5" />AI Generate Strategy
+                </button>
+              </div>
+
+              {showBriefInput && (
+                <div className="bg-purple-500/[0.05] border border-purple-500/15 rounded-xl p-4 space-y-3">
+                  <p className="text-purple-300/70 text-xs">Describe what this business does, what they want to achieve, who their customers are, and any key goals. Claude will fill in the entire strategy.</p>
+                  <textarea
+                    autoFocus
+                    value={strategyBrief}
+                    onChange={(e) => setStrategyBrief(e.target.value)}
+                    rows={4}
+                    placeholder="e.g. Local HVAC company in Phoenix serving homeowners, wants to rank for emergency AC repair, competing with 3 large companies, goal is top 3 rankings in Phoenix + Scottsdale for main service keywords..."
+                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none resize-none focus:border-purple-500/30 transition-colors"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={generateStrategy}
+                      disabled={generatingStrategy || !strategyBrief.trim()}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors"
+                    >
+                      {generatingStrategy ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Generating...</> : <><Wand2 className="w-3.5 h-3.5" />Generate Now</>}
+                    </button>
+                    <button onClick={() => { setShowBriefInput(false); setStrategyBrief(""); }} className="px-3 py-2 text-white/30 hover:text-white/60 text-xs transition-colors">Cancel</button>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <TextareaField label="Primary keyword focus" value={form.seoStrategy?.primaryKeywords} onChange={(v) => updateNested("seoStrategy", "primaryKeywords", v)} />
                 <TextareaField label="Secondary keyword clusters" value={form.seoStrategy?.secondaryKeywords} onChange={(v) => updateNested("seoStrategy", "secondaryKeywords", v)} />
@@ -247,24 +343,20 @@ export default function ClientDetail({ client, onBack, onUpdate }) {
                 <TextareaField label="Content strategy notes" value={form.seoStrategy?.contentStrategy} onChange={(v) => updateNested("seoStrategy", "contentStrategy", v)} />
                 <TextareaField label="Ranking goals" value={form.seoStrategy?.rankingGoals} onChange={(v) => updateNested("seoStrategy", "rankingGoals", v)} />
               </div>
-            </SectionCard>
+            </div>
 
             <SectionCard title="Performance Snapshot">
               <div className="grid grid-cols-2 gap-4">
                 <TextareaField label="Traffic trend / notes" value={form.seoStrategy?.trafficTrend} onChange={(v) => updateNested("seoStrategy", "trafficTrend", v)} />
                 <TextareaField label="Keyword movement observations" value={form.seoStrategy?.keywordMovement} onChange={(v) => updateNested("seoStrategy", "keywordMovement", v)} />
               </div>
-              <div className="grid grid-cols-3 gap-4 pt-2">
+              <div className="grid grid-cols-2 gap-4 pt-2">
                 <div className="bg-white/[0.02] rounded-lg border border-white/[0.04] p-4 text-center">
-                  <p className="text-orange-500 text-2xl font-bold">{(form.blogs || []).filter(b => b.status === "Published").length}</p>
+                  <p className="text-orange-500 text-2xl font-bold">{form.blogsPublishedCount || 0}</p>
                   <p className="text-white/30 text-xs mt-1">Blogs Published</p>
                 </div>
                 <div className="bg-white/[0.02] rounded-lg border border-white/[0.04] p-4 text-center">
-                  <p className="text-blue-400 text-2xl font-bold">{(form.blogs || []).filter(b => b.status !== "Published").length}</p>
-                  <p className="text-white/30 text-xs mt-1">Blogs Planned</p>
-                </div>
-                <div className="bg-white/[0.02] rounded-lg border border-white/[0.04] p-4 text-center">
-                  <p className="text-green-400 text-2xl font-bold">{(form.gbpPosts || []).filter(p => p.done).length}</p>
+                  <p className="text-green-400 text-2xl font-bold">{form.gbpPostsDoneCount || 0}</p>
                   <p className="text-white/30 text-xs mt-1">GBP Posts Done</p>
                 </div>
               </div>
@@ -355,7 +447,13 @@ export default function ClientDetail({ client, onBack, onUpdate }) {
                   {["Active", "Needs Attention", "Not Applicable", "Paused"].map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
-              <InputField label="Google Shop Status" value={form.googleShopStatus} onChange={(v) => update("googleShopStatus", v)} placeholder="e.g. Active, N/A" />
+              <div>
+                <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">Google Shop Status</label>
+                <select value={form.googleShopStatus || ""} onChange={(e) => update("googleShopStatus", e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none">
+                  <option value="">— Select —</option>
+                  {["Active", "Needs Attention", "Not Applicable", "Paused"].map((s) => <option key={s}>{s}</option>)}
+                </select>
+              </div>
               <div>
                 <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">GBP Frequency · Auto-matched to Blog</label>
                 <div className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-orange-400/80">

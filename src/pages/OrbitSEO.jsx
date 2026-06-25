@@ -268,8 +268,6 @@ function StatCard({ label, value, icon: Icon, color }) {
 
 function ClientCard({ client, onClick }) {
   const overdueBlogs = (client.blogs || []).filter((b) => b.status !== "Published" && isOverdue(b.publishDate)).length;
-  const publishedBlogs = (client.blogs || []).filter((b) => b.status === "Published").length;
-  const plannedBlogs = (client.blogs || []).filter((b) => b.status !== "Published").length;
   const gbpOverdue = isOverdue(client.gbpNextDue);
 
   return (
@@ -301,10 +299,8 @@ function ClientCard({ client, onClick }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-3">
-        <MiniStat label="Blogs Live" value={publishedBlogs} />
-        <MiniStat label="Planned" value={plannedBlogs} />
-        <MiniStat label="Blog Freq" value={client.blogFrequency || "—"} small />
+      <div className="grid grid-cols-2 gap-3">
+        <MiniStat label="Blog Frequency" value={client.blogFrequency || "—"} small />
         <div>
           <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">GBP</p>
           <p className={`text-xs font-semibold ${GBP_COLORS[client.gbpStatus] || "text-white/30"}`}>{client.gbpStatus || "—"}</p>

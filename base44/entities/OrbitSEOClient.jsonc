@@ -69,6 +69,14 @@
     "googleShopStatus": {
       "type": "string"
     },
+    "blogsPublishedCount": {
+      "type": "number",
+      "default": 0
+    },
+    "gbpPostsDoneCount": {
+      "type": "number",
+      "default": 0
+    },
     "offerPositioning": {
       "type": "object",
       "additionalProperties": true

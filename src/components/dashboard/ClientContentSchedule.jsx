@@ -47,10 +47,19 @@ export default function ClientContentSchedule() {
     base44.entities.OrbitSEOClient.list("-created_date", 200).then(setClients);
   }, []);
 
-  const toggle = (key) => {
-    const next = { ...completions, [key]: !completions[key] };
+  const toggle = (key, client, taskType) => {
+    const wasCompleted = !!completions[key];
+    const next = { ...completions, [key]: !wasCompleted };
     setCompletions(next);
     saveCompletions(weekKey, next);
+
+    // Increment the cumulative counter on the entity when marking done
+    if (!wasCompleted) {
+      const field = taskType === "Blog Post" ? "blogsPublishedCount" : "gbpPostsDoneCount";
+      const current = client[field] || 0;
+      base44.entities.OrbitSEOClient.update(client.id, { [field]: current + 1 });
+      setClients((prev) => prev.map((c) => c.id === client.id ? { ...c, [field]: current + 1 } : c));
+    }
   };
 
   const buildTasks = (client) => {
@@ -114,7 +123,7 @@ export default function ClientContentSchedule() {
                   return (
                     <button
                       key={task.key}
-                      onClick={() => toggle(task.key)}
+                      onClick={() => toggle(task.key, client, task.type)}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border text-left transition-all ${
                         done
                           ? "bg-green-500/[0.05] border-green-500/15 opacity-60"
