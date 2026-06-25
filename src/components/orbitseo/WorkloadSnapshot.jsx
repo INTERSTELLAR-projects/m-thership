@@ -23,21 +23,21 @@ export default function WorkloadSnapshot({ clients }) {
 
   const activeClients = clients.filter((c) => c.status === "Active" && (c.blogDays || []).length > 0);
 
-  // Total blogs per month across all clients (sum of frequencies)
+  // Blogs/week = sum of how many days per week each client posts (directly from blogDays)
+  const totalBlogsPerWeek = activeClients.reduce((sum, c) => sum + (c.blogDays || []).length, 0);
+
+  // Blogs/month = sum of declared monthly frequency per client
   const totalBlogsPerMonth = activeClients.reduce((sum, c) => sum + parseFrequencyCount(c.blogFrequency), 0);
 
-  // Total blogs per week = monthly / ~4.33
-  const totalBlogsPerWeek = Math.round(totalBlogsPerMonth / 4.33 * 10) / 10;
-
-  // GBP posts per month (non-international clients with blog days)
+  // GBP posts: same counts but only non-international clients
   const gbpActiveClients = clients.filter(
     (c) => c.status === "Active" && c.serviceType !== "International" && (c.blogDays || []).length > 0
   );
+  const totalGBPPerWeek = gbpActiveClients.reduce((sum, c) => sum + (c.blogDays || []).length, 0);
   const totalGBPPerMonth = gbpActiveClients.reduce((sum, c) => sum + parseFrequencyCount(c.blogFrequency), 0);
-  const totalGBPPerWeek = Math.round(totalGBPPerMonth / 4.33 * 10) / 10;
 
-  // Combined content pieces per week (blog + GBP)
-  const totalContentPerWeek = Math.round((totalBlogsPerWeek + totalGBPPerWeek) * 10) / 10;
+  // Combined totals
+  const totalContentPerWeek = totalBlogsPerWeek + totalGBPPerWeek;
   const totalContentPerMonth = totalBlogsPerMonth + totalGBPPerMonth;
 
   // Per-day breakdown: count how many clients post on each day
