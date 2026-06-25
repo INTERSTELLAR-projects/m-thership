@@ -66,6 +66,15 @@
     "gbpNextDue": {
       "type": "string"
     },
+    "gbpFrequency": {
+      "type": "string"
+    },
+    "gbpDays": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
     "googleShopStatus": {
       "type": "string"
     },
