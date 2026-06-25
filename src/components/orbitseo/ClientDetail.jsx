@@ -440,100 +440,90 @@ Return a JSON with exactly these fields (no extra text):
         {/* GBP TAB */}
         {tab === "GBP" && (
           <SectionCard title="Google Business Profile">
-            <div className="grid grid-cols-2 gap-4 pb-4 border-b border-white/[0.05]">
-              <div>
-                <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">GBP Status</label>
-                <select value={form.gbpStatus || "Active"} onChange={(e) => update("gbpStatus", e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none">
-                  {["Active", "Needs Attention", "Not Applicable", "Paused"].map((s) => <option key={s}>{s}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">Google Shop Status</label>
-                <select value={form.googleShopStatus || ""} onChange={(e) => update("googleShopStatus", e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none">
-                  <option value="">— Select —</option>
-                  {["Active", "Needs Attention", "Not Applicable", "Paused"].map((s) => <option key={s}>{s}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">
-                  GBP Frequency {form.serviceType !== "International" ? "· Auto-matched to Blog" : ""}
-                </label>
-                {form.serviceType === "International" ? (
-                  <select value={form.gbpFrequency || ""} onChange={(e) => update("gbpFrequency", e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none">
-                    <option value="">— Select frequency —</option>
-                    {BLOG_FREQUENCIES.map((f) => <option key={f} value={f}>{f}</option>)}
+            {form.serviceType === "International" ? (
+              <>
+                <div className="bg-white/[0.02] border border-white/[0.05] rounded-lg px-4 py-3 text-white/30 text-xs">
+                  GBP posting is not applicable for international clients. Only Google Shop status is tracked below.
+                </div>
+                <div className="max-w-xs">
+                  <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">Google Shop Status</label>
+                  <select value={form.googleShopStatus || ""} onChange={(e) => update("googleShopStatus", e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none">
+                    <option value="">— Select —</option>
+                    {["Active", "Needs Attention", "Not Applicable", "Paused"].map((s) => <option key={s}>{s}</option>)}
                   </select>
-                ) : (
-                  <div className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-orange-400/80">
-                    {form.blogFrequency || <span className="text-white/25">Set blog frequency in the Blog tab</span>}
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">
-                  GBP Days {form.serviceType !== "International" ? "· Auto-matched to Blog" : ""}
-                </label>
-                {form.serviceType === "International" ? (
-                  <div className="flex gap-2 flex-wrap">
-                    {WEEKDAYS.map((d) => {
-                      const selected = (form.gbpDays || []).includes(d.num);
-                      return (
-                        <button key={d.num} type="button" onClick={() => {
-                          const days = form.gbpDays || [];
-                          update("gbpDays", selected ? days.filter((x) => x !== d.num) : [...days, d.num]);
-                        }} className={`px-3.5 py-2 rounded-lg text-xs font-semibold border transition-all ${selected ? "bg-orange-500/15 border-orange-500/30 text-orange-400" : "bg-white/[0.02] border-white/[0.06] text-white/40 hover:text-white/70 hover:border-white/15"}`}>
-                          {d.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="w-full min-h-[38px] bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-sm flex flex-wrap items-center gap-1.5">
-                    {(form.blogDays || []).length === 0
-                      ? <span className="text-white/25">Set blog days in the Blog tab</span>
-                      : WEEKDAYS.filter((w) => (form.blogDays || []).includes(w.num)).map((w) => (
-                          <span key={w.num} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-orange-500/10 text-orange-400/80 border border-orange-500/15">{w.label}</span>
-                        ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-white/60 text-xs font-semibold uppercase tracking-wider">Post Ideas & Tracking</h4>
-              <button onClick={() => setAddingPost(true)} className="flex items-center gap-1.5 text-orange-500/70 hover:text-orange-500 text-xs transition-colors">
-                <Plus className="w-3.5 h-3.5" />Add Post
-              </button>
-            </div>
-
-            {addingPost && (
-              <div className="bg-white/[0.02] border border-orange-500/15 rounded-lg p-4 space-y-3 mb-3">
-                <input autoFocus value={newPost.idea} onChange={(e) => setNewPost({ ...newPost, idea: e.target.value })} placeholder="Post idea..." className="w-full bg-white/[0.04] border border-white/[0.08] rounded px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none" />
-                <div className="flex gap-3">
-                  <input type="date" value={newPost.dueDate} onChange={(e) => setNewPost({ ...newPost, dueDate: e.target.value })} className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded px-3 py-2 text-sm text-white outline-none" />
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={addPost} className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded-lg transition-colors">Add</button>
-                  <button onClick={() => setAddingPost(false)} className="px-3 py-1.5 text-white/30 hover:text-white/60 text-xs transition-colors">Cancel</button>
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-4 pb-4 border-b border-white/[0.05]">
+                  <div>
+                    <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">GBP Status</label>
+                    <select value={form.gbpStatus || "Active"} onChange={(e) => update("gbpStatus", e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none">
+                      {["Active", "Needs Attention", "Not Applicable", "Paused"].map((s) => <option key={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">Google Shop Status</label>
+                    <select value={form.googleShopStatus || ""} onChange={(e) => update("googleShopStatus", e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none">
+                      <option value="">— Select —</option>
+                      {["Active", "Needs Attention", "Not Applicable", "Paused"].map((s) => <option key={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">GBP Frequency · Auto-matched to Blog</label>
+                    <div className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-orange-400/80">
+                      {form.blogFrequency || <span className="text-white/25">Set blog frequency in the Blog tab</span>}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">GBP Days · Auto-matched to Blog</label>
+                    <div className="w-full min-h-[38px] bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-sm flex flex-wrap items-center gap-1.5">
+                      {(form.blogDays || []).length === 0
+                        ? <span className="text-white/25">Set blog days in the Blog tab</span>
+                        : WEEKDAYS.filter((w) => (form.blogDays || []).includes(w.num)).map((w) => (
+                            <span key={w.num} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-orange-500/10 text-orange-400/80 border border-orange-500/15">{w.label}</span>
+                          ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
 
-            <div className="space-y-2">
-              {(form.gbpPosts || []).length === 0 && <p className="text-white/20 text-xs text-center py-4">No GBP posts tracked yet.</p>}
-              {(form.gbpPosts || []).map((post) => (
-                <div key={post.id} className="flex items-center gap-3 py-3 px-4 bg-white/[0.02] rounded-lg border border-white/[0.04] group">
-                  <button onClick={() => togglePost(post.id)} className="shrink-0">
-                    {post.done ? <CheckSquare className="w-4 h-4 text-green-400/70" /> : <Square className="w-4 h-4 text-white/20" />}
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-white/60 text-xs font-semibold uppercase tracking-wider">Post Ideas & Tracking</h4>
+                  <button onClick={() => setAddingPost(true)} className="flex items-center gap-1.5 text-orange-500/70 hover:text-orange-500 text-xs transition-colors">
+                    <Plus className="w-3.5 h-3.5" />Add Post
                   </button>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm ${post.done ? "text-white/30 line-through" : "text-white/80"}`}>{post.idea}</p>
-                    {post.dueDate && <p className="text-white/25 text-xs mt-0.5">Due: {new Date(post.dueDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}</p>}
-                  </div>
-                  {post.done && <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-green-500/10 text-green-400">Done</span>}
                 </div>
-              ))}
-            </div>
+
+                {addingPost && (
+                  <div className="bg-white/[0.02] border border-orange-500/15 rounded-lg p-4 space-y-3 mb-3">
+                    <input autoFocus value={newPost.idea} onChange={(e) => setNewPost({ ...newPost, idea: e.target.value })} placeholder="Post idea..." className="w-full bg-white/[0.04] border border-white/[0.08] rounded px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none" />
+                    <div className="flex gap-3">
+                      <input type="date" value={newPost.dueDate} onChange={(e) => setNewPost({ ...newPost, dueDate: e.target.value })} className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded px-3 py-2 text-sm text-white outline-none" />
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={addPost} className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded-lg transition-colors">Add</button>
+                      <button onClick={() => setAddingPost(false)} className="px-3 py-1.5 text-white/30 hover:text-white/60 text-xs transition-colors">Cancel</button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  {(form.gbpPosts || []).length === 0 && <p className="text-white/20 text-xs text-center py-4">No GBP posts tracked yet.</p>}
+                  {(form.gbpPosts || []).map((post) => (
+                    <div key={post.id} className="flex items-center gap-3 py-3 px-4 bg-white/[0.02] rounded-lg border border-white/[0.04] group">
+                      <button onClick={() => togglePost(post.id)} className="shrink-0">
+                        {post.done ? <CheckSquare className="w-4 h-4 text-green-400/70" /> : <Square className="w-4 h-4 text-white/20" />}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm ${post.done ? "text-white/30 line-through" : "text-white/80"}`}>{post.idea}</p>
+                        {post.dueDate && <p className="text-white/25 text-xs mt-0.5">Due: {new Date(post.dueDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}</p>}
+                      </div>
+                      {post.done && <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-green-500/10 text-green-400">Done</span>}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </SectionCard>
         )}
 
