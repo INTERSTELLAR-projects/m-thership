@@ -87,7 +87,7 @@ export default function DailyBriefing() {
 
     // Fetch data in parallel
     const [tasks, orbitClients, crmClients] = await Promise.all([
-      base44.entities.ToDoItem.filter({ status: "Pending", category: "Priority" }, "-created_date", 50),
+      base44.entities.ToDoItem.filter({ status: "In Progress" }, "-created_date", 50),
       base44.entities.OrbitSEOClient.list("-created_date", 200),
       base44.entities.CRMClient.filter({ status: "Active" }, "business", 200),
     ]);
