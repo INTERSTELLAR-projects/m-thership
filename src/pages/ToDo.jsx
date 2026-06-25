@@ -85,6 +85,7 @@ export default function ToDo() {
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [completingTask, setCompletingTask] = useState(null);
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem("todo_tab") || "active");
 
   useEffect(() => {
     base44.entities.ToDoItem.list("created_date", 500).then((data) => {
@@ -159,7 +160,7 @@ export default function ToDo() {
       <div className="px-8 py-6 space-y-6">
         <TimeEstimateSummary items={items} />
 
-        <Tabs defaultValue="active" className="w-full">
+        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); localStorage.setItem("todo_tab", v); }} className="w-full">
           <div className="flex items-center justify-between mb-4">
             <TabsList className="bg-card border border-white/[0.06]">
               <TabsTrigger value="active" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40 gap-2">
