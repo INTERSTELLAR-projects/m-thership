@@ -7,6 +7,7 @@ import ClientOperations from "../components/dashboard/ClientOperations";
 import ActiveSubscriptions from "../components/dashboard/ActiveSubscriptions";
 import FinancialPanel from "../components/dashboard/FinancialPanel";
 import PriorityTasks from "../components/dashboard/PriorityTasks";
+import DailyBriefing from "../components/dashboard/DailyBriefing";
 
 const DEFAULT_WIDGETS = [
   { id: "priority", label: "Priority Tasks" },
@@ -58,7 +59,9 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <div className="flex items-center justify-between pr-8">
         <PageHeader breadcrumb="Command Center / Dashboard" />
-        <button
+        <div className="flex items-center gap-3">
+          <DailyBriefing />
+          <button
           onClick={() => setEditing(!editing)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
             editing
@@ -68,6 +71,7 @@ export default function Dashboard() {
         >
           {editing ? <><X className="w-3.5 h-3.5" />Done</> : <><Settings className="w-3.5 h-3.5" />Customize</>}
         </button>
+        </div>
       </div>
 
       {editing ? (
