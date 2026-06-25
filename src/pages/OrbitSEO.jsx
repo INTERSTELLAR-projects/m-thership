@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Globe, MapPin, Loader2, BarChart3, Calendar, AlertCircle, Users, X, Check, RefreshCw } from "lucide-react";
+import { Plus, Search, Globe, MapPin, Loader2, BarChart3, Calendar, AlertCircle, Users, X, Check, RefreshCw, Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 import ClientDetail from "../components/orbitseo/ClientDetail";
@@ -104,6 +104,12 @@ export default function OrbitSEO() {
 
   const updateClient = (updated) => {
     setClients((prev) => prev.map((c) => c.id === updated.id ? updated : c));
+  };
+
+  const deleteClient = async (id) => {
+    if (!window.confirm("Delete this client? This cannot be undone.")) return;
+    await base44.entities.OrbitSEOClient.delete(id);
+    setClients((prev) => prev.filter((c) => c.id !== id));
   };
 
   const filtered = clients.filter((c) => {
@@ -214,7 +220,7 @@ export default function OrbitSEO() {
         ) : (
           <div className="grid grid-cols-2 gap-4">
             {filtered.map((client) => (
-              <ClientCard key={client.id} client={client} onClick={() => setSelectedId(client.id)} />
+              <ClientCard key={client.id} client={client} onClick={() => setSelectedId(client.id)} onDelete={() => deleteClient(client.id)} />
             ))}
           </div>
         )}
@@ -266,7 +272,7 @@ function StatCard({ label, value, icon: Icon, color }) {
   );
 }
 
-function ClientCard({ client, onClick }) {
+function ClientCard({ client, onClick, onDelete }) {
   const overdueBlogs = (client.blogs || []).filter((b) => b.status !== "Published" && isOverdue(b.publishDate)).length;
   const gbpOverdue = isOverdue(client.gbpNextDue);
 
@@ -296,6 +302,12 @@ function ClientCard({ client, onClick }) {
             client.status === "Paused" ? "bg-white/5 text-white/30" :
             "bg-orange-500/10 text-orange-400"
           }`}>{client.status}</span>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="p-1 text-white/15 hover:text-red-400/70 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 
