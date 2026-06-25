@@ -416,15 +416,16 @@ export default function BriefingHUD({ data, onClose }) {
             position: "absolute", inset: 0, top: 44,
             display: "grid",
             gridTemplateColumns: "1fr 300px 1fr",
-            gridTemplateRows: "1fr auto",
+            gridTemplateRows: "auto auto",
             gap: 16,
-            padding: "20px 28px 24px",
-            alignItems: "center",
+            padding: "20px 28px 16px",
+            alignItems: "start",
+            alignContent: "start",
           }}
         >
           {/* TOP-LEFT: Priority Tasks */}
           <HudPanel title="Priority Tasks // In Progress" active={section === 1} done={section > 1}
-            style={{ alignSelf: "center", maxHeight: 200, overflowY: "auto" }}>
+            style={{ alignSelf: "start", maxHeight: 220, overflowY: "auto" }}>
             {taskTitles.length === 0
               ? <span style={{ color: "#3FC6FF", opacity: 0.5 }}>ALL CLEAR</span>
               : taskTitles.slice(0, 7).map((t, i) => (
@@ -437,7 +438,7 @@ export default function BriefingHUD({ data, onClose }) {
           </HudPanel>
 
           {/* CENTER: Arc reactor + visualizer */}
-          <div style={{ position: "relative", width: 300, height: 300, margin: "0 auto", justifySelf: "center", alignSelf: "center" }}>
+          <div style={{ position: "relative", width: 300, height: 300, margin: "0 auto", justifySelf: "center", alignSelf: "start" }}>
             <AudioBars isSpeaking={isSpeaking} pulseRef={pulseRef} />
             <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <ArcReactor pulse={pulse} isSpeaking={isSpeaking} />
@@ -456,7 +457,7 @@ export default function BriefingHUD({ data, onClose }) {
 
           {/* TOP-RIGHT: Orbit SEO */}
           <HudPanel title="Orbit SEO // Today's Schedule" active={section === 2} done={section > 2}
-            style={{ alignSelf: "center", maxHeight: 200, overflowY: "auto" }}>
+            style={{ alignSelf: "start", maxHeight: 220, overflowY: "auto" }}>
             {todayOrbit.length === 0
               ? <span style={{ color: "#3FC6FF", opacity: 0.5 }}>ALL CLEAR</span>
               : todayOrbit.slice(0, 7).map((c, i) => (
