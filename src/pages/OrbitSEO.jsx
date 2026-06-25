@@ -3,6 +3,7 @@ import { Plus, Search, Globe, MapPin, Loader2, BarChart3, Calendar, AlertCircle,
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 import ClientDetail from "../components/orbitseo/ClientDetail";
+import WorkloadSnapshot from "../components/orbitseo/WorkloadSnapshot";
 
 const SERVICE_TYPE_COLORS = {
   Local: "bg-blue-500/10 text-blue-400 border-blue-500/20",
@@ -165,6 +166,9 @@ export default function OrbitSEO() {
             </div>
           </div>
         </div>
+
+        {/* WORKLOAD SNAPSHOT */}
+        {!loading && <WorkloadSnapshot clients={clients} />}
 
         {/* FILTERS + ADD */}
         <div className="flex items-center gap-3 flex-wrap">
