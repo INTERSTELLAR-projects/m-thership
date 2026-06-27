@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Plus, Trash2, Pencil, Check, X, Loader2 } from "lucide-react";
+import { Bell, Plus, Trash2, Pencil, Check, X, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const STATUS_OPTIONS = ["Pending", "In Progress", "Completed"];
@@ -22,6 +22,7 @@ function TodoCard({ title, clients }) {
   const [editText, setEditText] = useState("");
   const [editDue, setEditDue] = useState("");
   const [editClient, setEditClient] = useState("");
+  const [showCompleted, setShowCompleted] = useState(false);
 
   useEffect(() => {
     base44.entities.ClientOperationItem.filter({ card: title }, "created_date", 100).then((data) => {
@@ -86,8 +87,8 @@ function TodoCard({ title, clients }) {
 
       <div className="space-y-1">
         {loading && <Loader2 className="w-3.5 h-3.5 text-white/20 animate-spin" />}
-        {!loading && todos.length === 0 && !adding && <p className="text-white/15 text-xs">No items yet</p>}
-        {todos.map((t) => (
+        {!loading && todos.filter(t => !t.done).length === 0 && !adding && <p className="text-white/15 text-xs">No active items</p>}
+        {todos.filter(t => !t.done).map((t) => (
           <div key={t.id} className="flex items-center gap-2 group/item">
             {editId === t.id ? (
               <>
@@ -132,6 +133,33 @@ function TodoCard({ title, clients }) {
             <input type="date" value={newDue} onChange={(e) => setNewDue(e.target.value)} className="bg-white/[0.04] border border-white/[0.08] rounded px-2 py-0.5 text-xs text-white/60 outline-none w-32" />
             <button onClick={add} className="p-0.5 text-green-400/70 hover:text-green-400"><Check className="w-3 h-3" /></button>
             <button onClick={() => { setAdding(false); setNewText(""); setNewDue(""); setNewClient(""); }} className="p-0.5 text-white/30 hover:text-white/60"><X className="w-3 h-3" /></button>
+          </div>
+        )}
+
+        {/* Completed section */}
+        {todos.filter(t => t.done).length > 0 && (
+          <div className="pt-2 mt-1 border-t border-white/[0.04]">
+            <button
+              onClick={() => setShowCompleted(!showCompleted)}
+              className="flex items-center gap-1.5 text-white/25 hover:text-white/50 text-[10px] font-semibold uppercase tracking-wider transition-colors"
+            >
+              {showCompleted ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+              Completed ({todos.filter(t => t.done).length})
+            </button>
+            {showCompleted && (
+              <div className="mt-2 space-y-1">
+                {todos.filter(t => t.done).map((t) => (
+                  <div key={t.id} className="flex items-center gap-2 group/item opacity-50">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs text-white/30 line-through">• {t.text}</span>
+                      {t.client && <span className="ml-2 text-orange-500/40 text-[10px] font-semibold px-1.5 py-0.5 bg-orange-500/[0.04] rounded">{t.client}</span>}
+                    </div>
+                    <button onClick={() => { setStatus(t, "Pending"); }} className="p-0.5 text-white/15 hover:text-orange-400/60 opacity-0 group-hover/item:opacity-100 transition-all text-[10px]" title="Reopen"><X className="w-3 h-3" /></button>
+                    <button onClick={() => del(t.id)} className="p-0.5 text-white/15 hover:text-red-400/60 opacity-0 group-hover/item:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
