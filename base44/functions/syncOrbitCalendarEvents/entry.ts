@@ -6,12 +6,29 @@ function addDays(dateStr, days) {
   return d.toISOString().slice(0, 10);
 }
 
-async function upsertEvent(accessToken, existingEventId, summary, dateStr) {
+const RRULE_DAYS = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
+
+// Finds the next date (today or later) whose weekday is in dayNumbers (0=Sun..6=Sat)
+function nextOccurrence(dayNumbers) {
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+  for (let i = 0; i < 7; i++) {
+    const candidate = addDays(todayStr, i);
+    const weekday = new Date(candidate + "T00:00:00Z").getUTCDay();
+    if (dayNumbers.includes(weekday)) return candidate;
+  }
+  return todayStr;
+}
+
+async function upsertEvent(accessToken, existingEventId, summary, dateStr, dayNumbers) {
   const body = {
     summary,
     start: { date: dateStr },
     end: { date: addDays(dateStr, 1) },
   };
+  if (dayNumbers && dayNumbers.length > 0) {
+    body.recurrence = [`RRULE:FREQ=WEEKLY;BYDAY=${dayNumbers.map((d) => RRULE_DAYS[d]).join(",")}`];
+  }
 
   const headers = {
     Authorization: `Bearer ${accessToken}`,
@@ -56,7 +73,18 @@ Deno.serve(async (req) => {
     for (const client of clients) {
       const updates = {};
 
-      if (client.nextBlogDue) {
+      if ((client.blogDays || []).length > 0) {
+        const dateStr = client.nextBlogDue || nextOccurrence(client.blogDays);
+        const eventId = await upsertEvent(
+          accessToken,
+          client.blogCalendarEventId,
+          `${client.businessName} — Blog Post Due`,
+          dateStr,
+          client.blogDays
+        );
+        if (eventId !== client.blogCalendarEventId) updates.blogCalendarEventId = eventId;
+        synced++;
+      } else if (client.nextBlogDue) {
         const eventId = await upsertEvent(
           accessToken,
           client.blogCalendarEventId,
@@ -67,7 +95,19 @@ Deno.serve(async (req) => {
         synced++;
       }
 
-      if (client.gbpNextDue) {
+      // GBP days auto-match blog days (per the UI), and don't apply to International clients
+      if (client.serviceType !== "International" && (client.blogDays || []).length > 0) {
+        const dateStr = client.gbpNextDue || nextOccurrence(client.blogDays);
+        const eventId = await upsertEvent(
+          accessToken,
+          client.gbpCalendarEventId,
+          `${client.businessName} — GBP Post Due`,
+          dateStr,
+          client.blogDays
+        );
+        if (eventId !== client.gbpCalendarEventId) updates.gbpCalendarEventId = eventId;
+        synced++;
+      } else if (client.gbpNextDue) {
         const eventId = await upsertEvent(
           accessToken,
           client.gbpCalendarEventId,
