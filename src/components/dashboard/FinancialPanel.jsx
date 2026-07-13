@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Pencil, Check, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import MarketingIdeas from "./MarketingIdeas";
 
 const SETTINGS_KEY = "financial_panel";
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -62,7 +63,7 @@ export default function FinancialPanel() {
   const [clients, setClients] = useState([]);
   const [settingsId, setSettingsId] = useState(null);
   const [planToExecute, setPlanToExecute] = useState("14 more Ørbit SEO base level subs");
-  const [marketing, setMarketing] = useState("Referral Program");
+  const [marketingItems, setMarketingItems] = useState(["Referral Program"]);
   const mrrGoal = 10000;
 
   useEffect(() => {
@@ -78,14 +79,14 @@ export default function FinancialPanel() {
       if (rows.length > 0) {
         setSettingsId(rows[0].id);
         if (rows[0].pageSettings?.planToExecute) setPlanToExecute(rows[0].pageSettings.planToExecute);
-        if (rows[0].pageSettings?.marketing) setMarketing(rows[0].pageSettings.marketing);
+        if (Array.isArray(rows[0].pageSettings?.marketingItems)) setMarketingItems(rows[0].pageSettings.marketingItems);
       }
     });
   }, []);
 
   const savePageSetting = async (field, value) => {
     if (field === "planToExecute") setPlanToExecute(value);
-    if (field === "marketing") setMarketing(value);
+    if (field === "marketingItems") setMarketingItems(value);
 
     if (settingsId) {
       const current = await base44.entities.AppSettings.get(settingsId);
@@ -181,7 +182,7 @@ export default function FinancialPanel() {
       {/* Plan & Marketing */}
       <div className="space-y-3">
         <EditableField label="Plan to Execute" value={planToExecute} onSave={(v) => savePageSetting("planToExecute", v)} />
-        <EditableField label="Marketing" value={marketing} onSave={(v) => savePageSetting("marketing", v)} />
+        <MarketingIdeas items={marketingItems} onChange={(v) => savePageSetting("marketingItems", v)} />
       </div>
     </div>
   );
