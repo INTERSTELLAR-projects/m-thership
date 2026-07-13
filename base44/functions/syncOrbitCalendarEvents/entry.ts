@@ -61,9 +61,15 @@ async function upsertEvent(accessToken, existingEventId, summary, dateStr, dayNu
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
-    if (user.role !== "admin") return Response.json({ error: "Forbidden" }, { status: 403 });
+    // Manual calls (the "Sync to Calendar" button) carry a user session and must be admin.
+    // Automation-triggered calls (on client update) run without a user session — allow those through.
+    let user = null;
+    try {
+      user = await base44.auth.me();
+    } catch (_e) {
+      user = null;
+    }
+    if (user && user.role !== "admin") return Response.json({ error: "Forbidden" }, { status: 403 });
 
     const { accessToken } = await base44.asServiceRole.connectors.getConnection("googlecalendar");
     const clients = await base44.asServiceRole.entities.OrbitSEOClient.list("-created_date", 200);
