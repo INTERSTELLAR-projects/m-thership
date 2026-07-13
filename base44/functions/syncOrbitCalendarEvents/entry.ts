@@ -20,7 +20,35 @@ function nextOccurrence(dayNumbers) {
   return todayStr;
 }
 
-async function upsertEvent(accessToken, existingEventId, summary, dateStr, dayNumbers) {
+// Finds every existing (non-cancelled) event on the calendar with this exact summary/title.
+// We match by title instead of trusting a stored event id, so stale/duplicate events are
+// always found and cleaned up, however they got created.
+async function findEventIds(accessToken, summary) {
+  const params = new URLSearchParams({ q: summary, singleEvents: "false", maxResults: "50" });
+  const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data.items || []).filter((e) => e.summary === summary && e.status !== "cancelled").map((e) => e.id);
+}
+
+async function deleteEvent(accessToken, eventId) {
+  await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+// Deletes any existing event(s) with this title, then creates exactly one fresh event.
+// This guarantees there is never more than one event per client per type (blog/GBP),
+// even if a previous sync left behind duplicates or a stale event id.
+async function replaceEvent(accessToken, summary, dateStr, dayNumbers) {
+  const existingIds = await findEventIds(accessToken, summary);
+  for (const id of existingIds) {
+    await deleteEvent(accessToken, id);
+  }
+
   const body = {
     summary,
     start: { date: dateStr },
@@ -30,27 +58,11 @@ async function upsertEvent(accessToken, existingEventId, summary, dateStr, dayNu
     body.recurrence = [`RRULE:FREQ=WEEKLY;BYDAY=${dayNumbers.map((d) => RRULE_DAYS[d]).join(",")}`];
   }
 
-  const headers = {
-    Authorization: `Bearer ${accessToken}`,
-    "Content-Type": "application/json",
-  };
-
-  if (existingEventId) {
-    const res = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/primary/events/${existingEventId}`,
-      { method: "PATCH", headers, body: JSON.stringify(body) }
-    );
-    if (res.ok) {
-      const data = await res.json();
-      return data.id;
-    }
-    // Event may have been deleted on the calendar side — fall through to create a new one
-  }
-
-  const createRes = await fetch(
-    "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-    { method: "POST", headers, body: JSON.stringify(body) }
-  );
+  const createRes = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
   if (!createRes.ok) {
     throw new Error(`Failed to create calendar event: ${await createRes.text()}`);
   }
@@ -71,8 +83,20 @@ Deno.serve(async (req) => {
     }
     if (user && user.role !== "admin") return Response.json({ error: "Forbidden" }, { status: 403 });
 
+    const payload = await req.json().catch(() => ({}));
+    const entityId = payload?.event?.entity_id || null;
+
     const { accessToken } = await base44.asServiceRole.connectors.getConnection("googlecalendar");
-    const clients = await base44.asServiceRole.entities.OrbitSEOClient.list("-created_date", 200);
+
+    let clients;
+    if (entityId) {
+      // Automation-triggered: only re-sync the single client that changed.
+      const single = await base44.asServiceRole.entities.OrbitSEOClient.get(entityId);
+      clients = single ? [single] : [];
+    } else {
+      // Manual "Sync to Calendar" button: re-sync everyone.
+      clients = await base44.asServiceRole.entities.OrbitSEOClient.list("-created_date", 200);
+    }
 
     let synced = 0;
 
@@ -81,46 +105,18 @@ Deno.serve(async (req) => {
 
       if ((client.blogDays || []).length > 0) {
         const dateStr = client.nextBlogDue || nextOccurrence(client.blogDays);
-        const eventId = await upsertEvent(
-          accessToken,
-          client.blogCalendarEventId,
-          `${client.businessName} — Blog Post Due`,
-          dateStr,
-          client.blogDays
-        );
-        if (eventId !== client.blogCalendarEventId) updates.blogCalendarEventId = eventId;
-        synced++;
-      } else if (client.nextBlogDue) {
-        const eventId = await upsertEvent(
-          accessToken,
-          client.blogCalendarEventId,
-          `${client.businessName} — Blog Post Due`,
-          client.nextBlogDue
-        );
-        if (eventId !== client.blogCalendarEventId) updates.blogCalendarEventId = eventId;
+        const summary = `${client.businessName} — Blog Post Due`;
+        const eventId = await replaceEvent(accessToken, summary, dateStr, client.blogDays);
+        updates.blogCalendarEventId = eventId;
         synced++;
       }
 
       // GBP days auto-match blog days (per the UI), and don't apply to International clients
       if (client.serviceType !== "International" && (client.blogDays || []).length > 0) {
         const dateStr = client.gbpNextDue || nextOccurrence(client.blogDays);
-        const eventId = await upsertEvent(
-          accessToken,
-          client.gbpCalendarEventId,
-          `${client.businessName} — GBP Post Due`,
-          dateStr,
-          client.blogDays
-        );
-        if (eventId !== client.gbpCalendarEventId) updates.gbpCalendarEventId = eventId;
-        synced++;
-      } else if (client.gbpNextDue) {
-        const eventId = await upsertEvent(
-          accessToken,
-          client.gbpCalendarEventId,
-          `${client.businessName} — GBP Post Due`,
-          client.gbpNextDue
-        );
-        if (eventId !== client.gbpCalendarEventId) updates.gbpCalendarEventId = eventId;
+        const summary = `${client.businessName} — GBP Post Due`;
+        const eventId = await replaceEvent(accessToken, summary, dateStr, client.blogDays);
+        updates.gbpCalendarEventId = eventId;
         synced++;
       }
 
