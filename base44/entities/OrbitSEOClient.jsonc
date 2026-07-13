@@ -50,6 +50,9 @@
     "nextBlogDue": {
       "type": "string"
     },
+    "blogCalendarEventId": {
+      "type": "string"
+    },
     "gbpStatus": {
       "type": "string",
       "enum": [
@@ -64,6 +67,9 @@
       "type": "string"
     },
     "gbpNextDue": {
+      "type": "string"
+    },
+    "gbpCalendarEventId": {
       "type": "string"
     },
     "gbpFrequency": {
