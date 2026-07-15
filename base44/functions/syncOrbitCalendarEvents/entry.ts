@@ -111,13 +111,17 @@ Deno.serve(async (req) => {
         synced++;
       }
 
-      // GBP days auto-match blog days (per the UI), and don't apply to International clients
-      if (client.serviceType !== "International" && (client.blogDays || []).length > 0) {
+      // GBP days auto-match blog days (per the UI), and don't apply when GBP is Not Applicable or for International clients
+      const gbpSummary = `${client.businessName} — GBP Post Due`;
+      if (client.serviceType !== "International" && client.gbpStatus !== "Not Applicable" && (client.blogDays || []).length > 0) {
         const dateStr = client.gbpNextDue || nextOccurrence(client.blogDays);
-        const summary = `${client.businessName} — GBP Post Due`;
-        const eventId = await replaceEvent(accessToken, summary, dateStr, client.blogDays);
+        const eventId = await replaceEvent(accessToken, gbpSummary, dateStr, client.blogDays);
         updates.gbpCalendarEventId = eventId;
         synced++;
+      } else {
+        // Clean up any previously synced GBP event since it no longer applies
+        const staleIds = await findEventIds(accessToken, gbpSummary);
+        for (const id of staleIds) await deleteEvent(accessToken, id);
       }
 
       if (Object.keys(updates).length > 0) {

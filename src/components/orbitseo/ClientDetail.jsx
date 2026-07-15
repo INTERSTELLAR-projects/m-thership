@@ -477,7 +477,7 @@ Return a JSON with exactly these fields (no extra text):
                   <div>
                     <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">GBP Frequency · Auto-matched to Blog</label>
                     <div className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-orange-400/80">
-                      {form.blogFrequency || <span className="text-white/25">Set blog frequency in the Blog tab</span>}
+                      {form.gbpStatus === "Not Applicable" ? <span className="text-white/25">Not applicable</span> : (form.blogFrequency || <span className="text-white/25">Set blog frequency in the Blog tab</span>)}
                     </div>
                   </div>
                   <div>
@@ -488,7 +488,9 @@ Return a JSON with exactly these fields (no extra text):
                   <div>
                     <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">GBP Days · Auto-matched to Blog</label>
                     <div className="w-full min-h-[38px] bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-sm flex flex-wrap items-center gap-1.5">
-                      {(form.blogDays || []).length === 0
+                      {form.gbpStatus === "Not Applicable"
+                        ? <span className="text-white/25">Not applicable</span>
+                        : (form.blogDays || []).length === 0
                         ? <span className="text-white/25">Set blog days in the Blog tab</span>
                         : WEEKDAYS.filter((w) => (form.blogDays || []).includes(w.num)).map((w) => (
                             <span key={w.num} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-orange-500/10 text-orange-400/80 border border-orange-500/15">{w.label}</span>
