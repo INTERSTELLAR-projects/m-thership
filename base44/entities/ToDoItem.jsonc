@@ -25,6 +25,7 @@
     "estimatedUnit": {
       "type": "string",
       "enum": [
+        "Minutes",
         "Hours",
         "Days",
         "Weeks",
@@ -37,6 +38,7 @@
     "actualUnit": {
       "type": "string",
       "enum": [
+        "Minutes",
         "Hours",
         "Days",
         "Weeks",

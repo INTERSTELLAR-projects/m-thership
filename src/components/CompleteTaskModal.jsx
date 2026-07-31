@@ -4,7 +4,7 @@ import { Check, X, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const UNITS = ["Hours", "Days", "Weeks", "Months"];
+const UNITS = ["Minutes", "Hours", "Days", "Weeks", "Months"];
 
 export default function CompleteTaskModal({ task, onConfirm, onCancel }) {
   const [amount, setAmount] = useState(task.estimatedAmount ? String(task.estimatedAmount) : "");
