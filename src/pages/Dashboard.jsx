@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { GripVertical, Settings, X } from "lucide-react";
+import { GripVertical, Settings, X, Plus } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import ClientContentSchedule from "../components/dashboard/ClientContentSchedule";
 import ClientOperations from "../components/dashboard/ClientOperations";
@@ -8,23 +8,29 @@ import ActiveSubscriptions from "../components/dashboard/ActiveSubscriptions";
 import FinancialPanel from "../components/dashboard/FinancialPanel";
 import PriorityTasks from "../components/dashboard/PriorityTasks";
 import DailyBriefing from "../components/dashboard/DailyBriefing";
+import ProjectProgressDashboard from "../components/ProjectProgressDashboard";
+import MinusculeProjects from "../components/dashboard/MinusculeProjects";
 
-const DEFAULT_WIDGETS = [
+const ALL_WIDGETS = [
   { id: "priority", label: "Priority Tasks" },
   { id: "content-schedule", label: "Client Content Schedule" },
   { id: "client-ops", label: "Client Operations" },
   { id: "subscriptions", label: "Active Subscriptions" },
   { id: "financial", label: "Financial Panel" },
+  { id: "project-progress", label: "Project Progress" },
+  { id: "minuscule-projects", label: "Minuscule Projects" },
 ];
 
-const STORAGE_KEY = "dashboard_widget_order_v2";
+const DEFAULT_ACTIVE = ["priority", "content-schedule", "client-ops", "subscriptions", "financial"];
+
+const STORAGE_KEY = "dashboard_widget_order_v3";
 
 function loadOrder() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (Array.isArray(saved) && saved.length === DEFAULT_WIDGETS.length) return saved;
+    if (Array.isArray(saved) && saved.every((id) => ALL_WIDGETS.some((w) => w.id === id))) return saved;
   } catch {}
-  return DEFAULT_WIDGETS.map((w) => w.id);
+  return DEFAULT_ACTIVE;
 }
 
 function saveOrder(order) {
@@ -38,6 +44,8 @@ function WidgetRenderer({ id }) {
     case "client-ops": return <ClientOperations />;
     case "subscriptions": return <div className="px-8 pt-6"><ActiveSubscriptions /></div>;
     case "financial": return <div className="px-8 pt-6"><FinancialPanel /></div>;
+    case "project-progress": return <ProjectProgressDashboard />;
+    case "minuscule-projects": return <MinusculeProjects />;
     default: return null;
   }
 }
@@ -54,6 +62,20 @@ export default function Dashboard() {
     setOrder(next);
     saveOrder(next);
   };
+
+  const removeWidget = (id) => {
+    const next = order.filter((w) => w !== id);
+    setOrder(next);
+    saveOrder(next);
+  };
+
+  const addWidget = (id) => {
+    const next = [...order, id];
+    setOrder(next);
+    saveOrder(next);
+  };
+
+  const availableToAdd = ALL_WIDGETS.filter((w) => !order.includes(w.id));
 
   return (
     <div className="min-h-screen bg-background">
@@ -75,41 +97,71 @@ export default function Dashboard() {
       </div>
 
       {editing ? (
-        <div className="px-8 py-3">
-          <p className="text-white/30 text-xs mb-3">Drag widgets to reorder them on your dashboard.</p>
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="dashboard-widgets">
-              {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-2">
-                  {order.map((id, index) => {
-                    const widget = DEFAULT_WIDGETS.find((w) => w.id === id);
-                    return (
-                      <Draggable key={id} draggableId={id} index={index}>
-                        {(drag, snapshot) => (
-                          <div
-                            ref={drag.innerRef}
-                            {...drag.draggableProps}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
-                              snapshot.isDragging
-                                ? "bg-orange-500/10 border-orange-500/30 shadow-lg"
-                                : "bg-card border-white/[0.06]"
-                            }`}
-                          >
-                            <span {...drag.dragHandleProps} className="text-white/20 hover:text-white/50 cursor-grab active:cursor-grabbing">
-                              <GripVertical className="w-4 h-4" />
-                            </span>
-                            <span className="text-white/70 text-sm font-medium">{widget?.label}</span>
-                            <span className="ml-auto text-white/20 text-xs">#{index + 1}</span>
-                          </div>
-                        )}
-                      </Draggable>
-                    );
-                  })}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+        <div className="px-8 py-3 space-y-6">
+          <div>
+            <p className="text-white/30 text-xs mb-3">Drag widgets to reorder them, or remove ones you don't want.</p>
+            <DragDropContext onDragEnd={onDragEnd}>
+              <Droppable droppableId="dashboard-widgets">
+                {(provided) => (
+                  <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-2">
+                    {order.map((id, index) => {
+                      const widget = ALL_WIDGETS.find((w) => w.id === id);
+                      return (
+                        <Draggable key={id} draggableId={id} index={index}>
+                          {(drag, snapshot) => (
+                            <div
+                              ref={drag.innerRef}
+                              {...drag.draggableProps}
+                              className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
+                                snapshot.isDragging
+                                  ? "bg-orange-500/10 border-orange-500/30 shadow-lg"
+                                  : "bg-card border-white/[0.06]"
+                              }`}
+                            >
+                              <span {...drag.dragHandleProps} className="text-white/20 hover:text-white/50 cursor-grab active:cursor-grabbing">
+                                <GripVertical className="w-4 h-4" />
+                              </span>
+                              <span className="text-white/70 text-sm font-medium">{widget?.label}</span>
+                              <span className="ml-auto text-white/20 text-xs">#{index + 1}</span>
+                              <button
+                                onClick={() => removeWidget(id)}
+                                className="p-1 text-white/20 hover:text-red-400/70 transition-colors"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </Draggable>
+                      );
+                    })}
+                    {provided.placeholder}
+                    {order.length === 0 && (
+                      <p className="text-white/20 text-xs py-4 text-center">No widgets on your dashboard. Add some below.</p>
+                    )}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          </div>
+
+          {availableToAdd.length > 0 && (
+            <div>
+              <p className="text-white/30 text-xs mb-3">Add a widget to your dashboard.</p>
+              <div className="space-y-2">
+                {availableToAdd.map((widget) => (
+                  <div key={widget.id} className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-white/10 bg-white/[0.02]">
+                    <span className="text-white/50 text-sm font-medium">{widget.label}</span>
+                    <button
+                      onClick={() => addWidget(widget.id)}
+                      className="ml-auto flex items-center gap-1.5 px-3 py-1 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500/70 hover:text-orange-500 text-xs font-medium rounded-lg border border-orange-500/15 transition-all"
+                    >
+                      <Plus className="w-3.5 h-3.5" />Add
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="pb-8">
