@@ -11,7 +11,7 @@ import CompleteTaskModal from "../components/CompleteTaskModal";
 
 const CATEGORIES = ["Priority", "NextUp"];
 const INTERSTELLAR_OPTION = "Interstellar";
-const EST_UNITS = ["Hours", "Days", "Weeks", "Months"];
+const EST_UNITS = ["Minutes", "Hours", "Days", "Weeks", "Months"];
 const TASK_STATUSES = ["Pending", "In Progress", "Completed"];
 const STATUS_STYLES = {
   Pending: "bg-white/5 text-white/35 border-white/10",
@@ -19,7 +19,7 @@ const STATUS_STYLES = {
   Completed: "bg-green-500/15 text-green-400 border-green-500/25",
 };
 
-const TO_HOURS = { Hours: 1, Days: 8, Weeks: 40, Months: 160 };
+const TO_HOURS = { Minutes: 1 / 60, Hours: 1, Days: 8, Weeks: 40, Months: 160 };
 
 function toHours(amount, unit) {
   return (parseFloat(amount) || 0) * (TO_HOURS[unit] || 1);
@@ -29,7 +29,8 @@ function formatTotal(hours) {
   if (hours >= 160) return `${(hours / 160).toFixed(1)} months`;
   if (hours >= 40) return `${(hours / 40).toFixed(1)} weeks`;
   if (hours >= 8) return `${(hours / 8).toFixed(1)} days`;
-  return `${hours.toFixed(0)} hours`;
+  if (hours >= 1) return `${hours.toFixed(0)} hours`;
+  return `${(hours * 60).toFixed(0)} minutes`;
 }
 
 const SUMMARY_META = {
