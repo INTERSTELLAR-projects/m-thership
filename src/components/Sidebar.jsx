@@ -45,7 +45,7 @@ export default function Sidebar({ onOpenCommand }) {
           ${
             isActive
               ? "text-white bg-gradient-to-r from-orange-500/20 to-orange-500/[0.03] shadow-[0_0_18px_rgba(255,106,0,0.18)]"
-              : "text-white/55 hover:text-white hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-transparent hover:shadow-[0_0_14px_rgba(255,106,0,0.12)] hover:translate-x-0.5"
+              : "text-white/90 hover:text-white hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-transparent hover:shadow-[0_0_14px_rgba(255,106,0,0.12)] hover:translate-x-0.5"
           }`}
       >
         {isActive && (
@@ -55,7 +55,7 @@ export default function Sidebar({ onOpenCommand }) {
           className="w-[18px] h-[18px] shrink-0 transition-all duration-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_6px_rgba(255,106,0,0.7)]"
           color="url(#navIconGrad)"
         />
-        <span className="truncate transition-colors duration-200 group-hover:text-white">{item.label}</span>
+        <span className="truncate transition-colors duration-200">{item.label}</span>
         {isActive && <div className="ml-auto w-1 h-1 rounded-full bg-orange-400 shadow-[0_0_6px_rgba(255,106,0,0.9)]" />}
       </Link>
     );
