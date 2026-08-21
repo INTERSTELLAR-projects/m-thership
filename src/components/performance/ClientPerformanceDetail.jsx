@@ -15,7 +15,7 @@ function ScoreRing({ score, size = 96, color = "#ff8c00" }) {
   const dash = (score / 100) * circ;
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <div className="absolute inset-2 rounded-full blur-xl opacity-30" style={{ background: color }} />
+      <div className="absolute inset-4 rounded-full blur-2xl opacity-25" style={{ background: color }} />
       <svg width={size} height={size} className="relative rotate-[-90deg]">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={7} />
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={7}
@@ -232,7 +232,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
               { label: "Local Visibility", score: data.localScore || 0, sub: client.serviceType === "Local" ? "GBP & Local" : "N/A" },
               { label: "Conversion Ready", score: data.conversionScore, sub: "CTA Coverage" },
             ].map(({ label, score, sub }) => (
-              <div key={label} className="card-hover relative overflow-hidden rounded-xl border border-orange-500/10 bg-gradient-to-b from-orange-500/[0.05] to-transparent p-4 flex flex-col items-center text-center gap-3 shadow-[0_0_16px_rgba(255,106,0,0.08)]">
+              <div key={label} className="card-hover relative rounded-xl border border-orange-500/10 bg-gradient-to-b from-orange-500/[0.05] to-transparent p-4 flex flex-col items-center text-center gap-3 shadow-[0_0_16px_rgba(255,106,0,0.08)]">
                 <ScoreRing score={score} color={scoreColor(score)} />
                 <div>
                   <p className="text-white/80 text-xs font-semibold font-display">{label}</p>
