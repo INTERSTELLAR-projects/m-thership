@@ -104,7 +104,7 @@ export default function ClientContentSchedule() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-white font-bold text-xs tracking-[0.25em] uppercase">Client Content Schedule</h2>
+          <h2 className="text-white font-bold text-xs tracking-[0.25em] uppercase">Ørbit SEO Schedule</h2>
           <p className="text-white/30 text-[10px] mt-0.5 flex items-center gap-1.5">
             <RefreshCw className="w-2.5 h-2.5" />
             Week of {weekRangeLabel()} · Resets weekly · {completedItems}/{totalItems} done
