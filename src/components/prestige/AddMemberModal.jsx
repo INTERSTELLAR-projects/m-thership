@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { getProgress, earnedTier } from "@/lib/prestige";
+import ServiceLineItems from "./ServiceLineItems";
 
 const TIERS = [
   { tier: "Prestige I", threshold: 3, icon: Shield },
@@ -13,7 +14,7 @@ const TIERS = [
   { tier: "Prestige Master", threshold: 15, icon: Crown },
 ];
 
-const EMPTY_REF = { referredClientName: "", package: "", amount: "", date: "", status: "Confirmed", notes: "" };
+const EMPTY_REF = { referredClientName: "", lineItems: [{ service: "", subscription: false, amount: "" }], date: "", status: "Confirmed", notes: "" };
 
 function ClientAutocomplete({ value, onChange, onSelectClient, clients, placeholder, exclude }) {
   const [focused, setFocused] = useState(false);
@@ -89,14 +90,20 @@ export default function AddMemberModal({ open, onOpenChange, onSave, clients }) 
     if (!name.trim()) return;
     onSave(
       { name: name.trim(), email, phone, prestige: projectedTier, joinDate, active: true, notes: "" },
-      validReferrals.map((r) => ({
-        referredClientName: r.referredClientName.trim(),
-        package: r.package || "",
-        amount: parseFloat(r.amount) || 0,
-        date: r.date || "",
-        status: r.status,
-        notes: r.notes || "",
-      }))
+      validReferrals.map((r) => {
+        const lineItems = (r.lineItems || [])
+          .map((li) => ({ service: li.service, subscription: !!li.subscription, amount: parseFloat(li.amount) || 0 }))
+          .filter((li) => li.service);
+        return {
+          referredClientName: r.referredClientName.trim(),
+          lineItems,
+          package: lineItems.map((li) => li.service).join(", "),
+          amount: lineItems.reduce((s, li) => s + li.amount, 0),
+          date: r.date || "",
+          status: r.status,
+          notes: r.notes || "",
+        };
+      })
     );
   };
 
@@ -166,20 +173,15 @@ export default function AddMemberModal({ open, onOpenChange, onSave, clients }) 
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="col-span-2"><Label className="text-white/40 text-[11px]">Package</Label><Input value={r.package} onChange={(e) => updateRef(i, { package: e.target.value })} placeholder="e.g. Web Ops" className="mt-1 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-white/20 h-9" /></div>
-                  <div><Label className="text-white/40 text-[11px]">Amount $</Label><Input type="number" value={r.amount} onChange={(e) => updateRef(i, { amount: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white h-9" /></div>
+                <ServiceLineItems value={r.lineItems} onChange={(lv) => updateRef(i, { lineItems: lv })} />
+                <div className="grid grid-cols-2 gap-2">
                   <div><Label className="text-white/40 text-[11px]">Date</Label><Input type="date" value={r.date} onChange={(e) => updateRef(i, { date: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white h-9" /></div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Label className="text-white/40 text-[11px]">Status</Label>
-                  <select
-                    value={r.status}
-                    onChange={(e) => updateRef(i, { status: e.target.value })}
-                    className="bg-white/[0.03] border border-white/[0.06] rounded-md px-2 py-1 text-xs text-white outline-none flex-1"
-                  >
-                    {["Pending", "Confirmed", "Paid Out"].map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
+                  <div>
+                    <Label className="text-white/40 text-[11px]">Status</Label>
+                    <select value={r.status} onChange={(e) => updateRef(i, { status: e.target.value })} className="mt-1 w-full bg-white/[0.03] border border-white/[0.06] rounded-md px-2 py-1.5 text-xs text-white outline-none">
+                      {["Pending", "Confirmed", "Paid Out"].map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
                 </div>
               </div>
             ))}

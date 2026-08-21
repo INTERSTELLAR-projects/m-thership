@@ -14,6 +14,26 @@
     "package": {
       "type": "string"
     },
+    "lineItems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "service": {
+            "type": "string"
+          },
+          "subscription": {
+            "type": "boolean",
+            "default": false
+          },
+          "amount": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
     "amount": {
       "type": "number"
     },

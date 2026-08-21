@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { earnedTier, getProgress } from "@/lib/prestige";
 import AddMemberModal from "../components/prestige/AddMemberModal";
+import ServiceLineItems from "../components/prestige/ServiceLineItems";
 
 const PRESTIGE_TIERS = {
   "Prestige I": {
@@ -41,7 +42,7 @@ const PRESTIGE_TIERS = {
 };
 
 const EMPTY_MEMBER = { name: "", email: "", phone: "", prestige: "Prestige I", joinDate: "", notes: "", active: true };
-const EMPTY_REFERRAL = { referredClientName: "", package: "", amount: "", date: "", status: "Pending", notes: "" };
+const EMPTY_REFERRAL = { referredClientName: "", package: "", amount: "", lineItems: [{ service: "", subscription: false, amount: "" }], date: "", status: "Pending", notes: "" };
 
 export default function Prestige() {
   const [members, setMembers] = useState([]);
@@ -127,13 +128,27 @@ export default function Prestige() {
 
   const openEditReferral = (r) => {
     setEditingReferral(r);
-    setReferralForm({ referredClientName: r.referredClientName, package: r.package || "", amount: r.amount || "", date: r.date || "", status: r.status, notes: r.notes || "" });
+    const li = (r.lineItems && r.lineItems.length)
+      ? r.lineItems.map((x) => ({ service: x.service || "", subscription: !!x.subscription, amount: x.amount != null ? String(x.amount) : "" }))
+      : [{ service: r.package || "", subscription: false, amount: r.amount != null ? String(r.amount) : "" }];
+    setReferralForm({ referredClientName: r.referredClientName, package: r.package || "", amount: r.amount || "", lineItems: li, date: r.date || "", status: r.status, notes: r.notes || "" });
     setReferralModal(true);
   };
 
   const saveReferral = async () => {
     if (!referralForm.referredClientName.trim()) return;
-    const data = { ...referralForm, amount: parseFloat(referralForm.amount) || 0 };
+    const lineItems = (referralForm.lineItems || [])
+      .map((li) => ({ service: li.service, subscription: !!li.subscription, amount: parseFloat(li.amount) || 0 }))
+      .filter((li) => li.service);
+    const data = {
+      referredClientName: referralForm.referredClientName.trim(),
+      lineItems,
+      package: lineItems.map((li) => li.service).join(", "),
+      amount: lineItems.reduce((s, li) => s + li.amount, 0),
+      date: referralForm.date || "",
+      status: referralForm.status,
+      notes: referralForm.notes || "",
+    };
     if (editingReferral) {
       await base44.entities.PrestigeReferral.update(editingReferral.id, data);
       const updated = referrals.map((r) => (r.id === editingReferral.id ? { ...r, ...data } : r));
@@ -301,10 +316,7 @@ export default function Prestige() {
           <DialogHeader><DialogTitle className="text-white">{editingReferral ? "Edit Referral" : "Add Referral"}</DialogTitle></DialogHeader>
           <div className="space-y-3 pt-2">
             <div><Label className="text-white/40 text-xs">Referred Client Name *</Label><Input value={referralForm.referredClientName} onChange={(e) => setReferralForm({ ...referralForm, referredClientName: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white" /></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label className="text-white/40 text-xs">Package / Service</Label><Input value={referralForm.package} onChange={(e) => setReferralForm({ ...referralForm, package: e.target.value })} placeholder="e.g. Web Ops" className="mt-1 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-white/20" /></div>
-              <div><Label className="text-white/40 text-xs">Amount Paid ($)</Label><Input type="number" value={referralForm.amount} onChange={(e) => setReferralForm({ ...referralForm, amount: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white" /></div>
-            </div>
+            <ServiceLineItems value={referralForm.lineItems} onChange={(lv) => setReferralForm({ ...referralForm, lineItems: lv })} />
             <div className="grid grid-cols-2 gap-3">
               <div><Label className="text-white/40 text-xs">Date</Label><Input type="date" value={referralForm.date} onChange={(e) => setReferralForm({ ...referralForm, date: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white" /></div>
               <div>
@@ -404,8 +416,12 @@ function MembersTab({ members, referrals, tiers, memberConfirmed, onAdd, onEdit,
                         <div key={r.id} className="flex items-center gap-3 bg-white/[0.02] rounded-lg px-3 py-2 group">
                           <div className="flex-1 min-w-0">
                             <span className="text-white/70 text-xs font-medium">{r.referredClientName}</span>
-                            {r.package && <span className="ml-2 text-white/30 text-[10px]">{r.package}</span>}
-                            {r.amount > 0 && <span className="ml-2 text-orange-500/60 text-[10px] font-semibold">${r.amount.toLocaleString()}</span>}
+                            {(r.lineItems || []).map((li, idx) => (
+                              <span key={idx} className="ml-2 inline-flex items-center gap-1 text-white/30 text-[10px]">
+                                {li.service}{li.subscription && <span className="text-orange-400/70">· Sub</span>}{li.amount > 0 && <span className="text-orange-500/60 font-semibold">${li.amount.toLocaleString()}</span>}
+                              </span>
+                            ))}
+                            {(!r.lineItems || r.lineItems.length === 0) && r.amount > 0 && <span className="ml-2 text-orange-500/60 text-[10px] font-semibold">${r.amount.toLocaleString()}</span>}
                             {r.date && <span className="ml-2 text-white/20 text-[10px]">{new Date(r.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
                           </div>
                           <select value={r.status} onChange={(e) => onUpdateReferralStatus(r, e.target.value)} className={`text-[10px] font-semibold px-2 py-0.5 rounded border-0 outline-none cursor-pointer ${statusColors[r.status]}`}>
@@ -448,8 +464,12 @@ function ReferralsTab({ referrals, members, tiers, memberConfirmed, onEdit, onDe
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-white/85 text-sm font-medium">{r.referredClientName}</span>
-                {r.package && <span className="text-white/30 text-xs">{r.package}</span>}
-                {r.amount > 0 && <span className="text-orange-500/70 text-xs font-semibold">${r.amount.toLocaleString()}</span>}
+                {(r.lineItems || []).map((li, idx) => (
+                  <span key={idx} className="inline-flex items-center gap-1 text-white/30 text-xs">
+                    {li.service}{li.subscription && <span className="text-orange-400/70">· Sub</span>}{li.amount > 0 && <span className="text-orange-500/70 font-semibold">${li.amount.toLocaleString()}</span>}
+                  </span>
+                ))}
+                {(!r.lineItems || r.lineItems.length === 0) && r.amount > 0 && <span className="text-orange-500/70 text-xs font-semibold">${r.amount.toLocaleString()}</span>}
               </div>
               <div className="flex items-center gap-3 mt-1 text-[10px] text-white/30">
                 <span className={`font-semibold ${tier.color}`}>via {r.memberName}</span>
