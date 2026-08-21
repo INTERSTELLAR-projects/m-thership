@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X, Sparkles, ListChecks, Globe, TrendingUp, DollarSign, Rocket, CheckCircle2, ArrowUp, Target, Flame } from "lucide-react";
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -159,6 +160,7 @@ export default function BriefingHUD({ data, onClose }) {
   const [selURI, setSelURI] = useState(() => (typeof localStorage !== "undefined" && localStorage.getItem("briefing_voice_uri")) || "");
   const [started, setStarted] = useState(false);
   const [activeItem, setActiveItem] = useState(-1);
+  const [greetLeaving, setGreetLeaving] = useState(false);
   const pulseRef = useRef(0);
   const cancelledRef = useRef(false);
   const audioRef = useRef(null);
@@ -217,8 +219,8 @@ export default function BriefingHUD({ data, onClose }) {
   };
   const beginBriefing = () => {
     window.speechSynthesis.cancel();
-    setStarted(true);
-    startBriefing();
+    setGreetLeaving(true);
+    setTimeout(() => { setStarted(true); startBriefing(); }, 450);
   };
 
 
@@ -335,7 +337,7 @@ export default function BriefingHUD({ data, onClose }) {
         style={{ display: "none" }}
       />
 
-      <div onClick={dismiss} style={{
+      {createPortal(<div onClick={dismiss} style={{
         position: "fixed", inset: 0, zIndex: 1000,
         background: "rgba(10,6,2,0.94)", backdropFilter: "blur(10px)",
         opacity: exiting ? 0 : visible ? 1 : 0,
@@ -619,7 +621,7 @@ export default function BriefingHUD({ data, onClose }) {
         )}
 
         {booted && !started && (
-          <div style={{ position: "absolute", inset: 0, top: 44, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(12,8,2,0.6)" }} onClick={e => e.stopPropagation()}>
+          <div style={{ position: "absolute", inset: 0, top: 44, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(12,8,2,0.6)", opacity: greetLeaving ? 0 : 1, transform: greetLeaving ? "scale(1.05)" : "scale(1)", transition: "opacity 0.45s ease, transform 0.45s ease", pointerEvents: greetLeaving ? "none" : "auto" }} onClick={e => e.stopPropagation()}>
             <button onClick={beginBriefing} style={{ display: "flex", alignItems: "center", gap: 8, padding: "13px 26px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#F47C20,#FACC15)", color: "#1a0d00", fontWeight: 800, fontSize: 14, letterSpacing: "0.12em", cursor: "pointer", boxShadow: "0 0 18px rgba(255,170,0,0.4)" }}>BEGIN BRIEFING →</button>
           </div>
         )}
@@ -630,7 +632,7 @@ export default function BriefingHUD({ data, onClose }) {
             <BootLog onDone={() => setBooted(true)} />
           </div>
         )}
-      </div>
+      </div>, document.body)}
     </>
   );
 }
