@@ -32,6 +32,29 @@ function formatTotal(hours) {
   return `${hours.toFixed(0)} hours`;
 }
 
+const SUMMARY_META = {
+  Priority: {
+    solid: "bg-orange-500",
+    grad: "from-orange-500 to-amber-400",
+    text: "text-orange-400",
+    textSoft: "text-orange-400/70",
+    border: "border-orange-500/30",
+    chip: "bg-orange-500/10 border-orange-500/25",
+    glow: "shadow-[0_0_12px_rgba(255,106,0,0.35)]",
+    dot: "bg-orange-500",
+  },
+  NextUp: {
+    solid: "bg-yellow-400",
+    grad: "from-yellow-400 to-amber-300",
+    text: "text-yellow-300",
+    textSoft: "text-yellow-300/70",
+    border: "border-yellow-400/30",
+    chip: "bg-yellow-400/10 border-yellow-400/25",
+    glow: "shadow-[0_0_12px_rgba(250,204,21,0.30)]",
+    dot: "bg-yellow-400",
+  },
+};
+
 function TimeEstimateSummary({ items }) {
   const catData = CATEGORIES.map((cat) => {
     const catItems = items.filter((i) => i.category === cat && !i.done);
@@ -40,36 +63,50 @@ function TimeEstimateSummary({ items }) {
     return { cat, totalHours, count };
   });
 
+  const totalAll = catData.reduce((sum, d) => sum + d.totalHours, 0);
   const maxHours = Math.max(...catData.map((d) => d.totalHours), 1);
-  const catColors = {
-    Priority: { bar: "bg-red-500/60", text: "text-red-400/80", border: "border-red-500/20" },
-    NextUp: { bar: "bg-blue-500/60", text: "text-blue-400/80", border: "border-blue-500/20" },
-  };
 
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-      <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase mb-4">Time Estimate Overview</h2>
-      <div className="space-y-4">
+    <div className="relative overflow-hidden bg-card rounded-2xl border border-white/[0.07] p-5">
+      <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-orange-500/[0.06] blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-20 -left-10 w-40 h-40 rounded-full bg-yellow-400/[0.04] blur-3xl pointer-events-none" />
+
+      <div className="relative flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(255,106,0,0.8)]" />
+          <h2 className="text-white/85 font-display font-bold text-[11px] tracking-[0.25em] uppercase">Time Estimate Overview</h2>
+        </div>
+        <span className="text-white/25 text-[10px] tracking-widest uppercase font-medium">
+          {totalAll > 0 ? formatTotal(totalAll) : "—"} total
+        </span>
+      </div>
+
+      <div className="relative space-y-5">
         {catData.map(({ cat, totalHours, count }) => {
           const pct = maxHours > 0 ? (totalHours / maxHours) * 100 : 0;
-          const colors = catColors[cat];
+          const c = SUMMARY_META[cat];
           return (
             <div key={cat}>
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded border ${colors.border} ${colors.text}`}>{cat}</span>
-                  <span className="text-white/25 text-xs">{count} task{count !== 1 ? "s" : ""} remaining</span>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2.5">
+                  <span className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-md border ${c.chip} ${c.textSoft}`}>{cat}</span>
+                  <span className="text-white/30 text-xs">{count} task{count !== 1 ? "s" : ""} remaining</span>
                 </div>
-                <span className={`text-sm font-bold ${colors.text}`}>{totalHours > 0 ? formatTotal(totalHours) : "—"}</span>
+                <span className={`text-sm font-bold ${c.text} drop-shadow`}>{totalHours > 0 ? formatTotal(totalHours) : "—"}</span>
               </div>
-              <div className="h-2.5 w-full bg-white/[0.04] rounded-full overflow-hidden">
-                <div className={`h-full rounded-full transition-all duration-500 ${colors.bar}`} style={{ width: `${pct}%` }} />
+              <div className="relative h-2.5 w-full bg-white/[0.04] rounded-full overflow-hidden border border-white/[0.04]">
+                <div
+                  className={`h-full rounded-full bg-gradient-to-r ${c.grad} ${c.glow} transition-all duration-700`}
+                  style={{ width: `${pct}%` }}
+                />
+                <div className="absolute inset-0 rounded-full pointer-events-none" style={{ background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent)", opacity: 0.5 }} />
               </div>
             </div>
           );
         })}
       </div>
-      <p className="text-white/20 text-[10px] mt-3">Based on estimated times for incomplete tasks only.</p>
+
+      <p className="relative text-white/20 text-[10px] mt-4 tracking-wide">Based on estimated times for incomplete tasks only.</p>
     </div>
   );
 }
