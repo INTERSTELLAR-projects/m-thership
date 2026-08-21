@@ -9,20 +9,22 @@ const TOOLTIP_STYLE = {
   itemStyle: { color: "#ff6a00" },
 };
 
-function ScoreRing({ score, size = 80, color = "#ff6a00" }) {
-  const r = (size - 10) / 2;
+function ScoreRing({ score, size = 96, color = "#ff8c00" }) {
+  const r = (size - 14) / 2;
   const circ = 2 * Math.PI * r;
   const dash = (score / 100) * circ;
   return (
-    <svg width={size} height={size} className="rotate-[-90deg]">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={6} />
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={6}
-        strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" style={{ transition: "stroke-dasharray 0.8s ease", filter: `drop-shadow(0 0 5px ${color})` }} />
-      <text x={size / 2} y={size / 2} dominantBaseline="middle" textAnchor="middle"
-        fill="white" fontSize={size === 80 ? 16 : 12} fontWeight="bold" style={{ transform: `rotate(90deg)`, transformOrigin: `${size / 2}px ${size / 2}px` }}>
-        {score}
-      </text>
-    </svg>
+    <div className="relative" style={{ width: size, height: size }}>
+      <div className="absolute inset-2 rounded-full blur-xl opacity-30" style={{ background: color }} />
+      <svg width={size} height={size} className="relative rotate-[-90deg]">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={7} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={7}
+          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" style={{ transition: "stroke-dasharray 0.9s ease", filter: `drop-shadow(0 0 6px ${color})` }} />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="font-display font-extrabold leading-none text-white" style={{ fontSize: size > 80 ? 26 : 18, textShadow: `0 0 12px ${color}cc` }}>{score}</span>
+      </div>
+    </div>
   );
 }
 
@@ -167,17 +169,19 @@ export default function ClientPerformanceDetail({ client, onBack }) {
           </div>
           <div>
             <h1 className="font-display font-bold text-sm bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{client.businessName}</h1>
-            <p className="text-white/30 text-xs flex items-center gap-2">
-              <MapPin className="w-3 h-3" />{client.primaryLocation || "—"}
-              <span className="text-white/15">·</span>
-              {client.serviceType}
-            </p>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-white/55 text-[11px]">
+                <MapPin className="w-3 h-3 text-orange-400/70" />{client.primaryLocation || "—"}
+              </span>
+              <span className="text-white/25 text-xs">·</span>
+              <span className="text-white/40 text-[11px]">{client.serviceType}</span>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5">
             {["7d", "30d", "90d", "1y"].map((r) => (
-              <button key={r} onClick={() => setDateRange(r)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${dateRange === r ? "bg-gradient-to-r from-orange-500/25 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{r === "1y" ? "1 Year" : r === "7d" ? "7 Days" : r === "30d" ? "30 Days" : "90 Days"}</button>
+              <button key={r} onClick={() => setDateRange(r)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${dateRange === r ? "bg-gradient-to-r from-orange-500 to-amber-400 text-black border border-orange-400 shadow-[0_0_14px_rgba(255,106,0,0.35)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{r === "1y" ? "1 Year" : r === "7d" ? "7 Days" : r === "30d" ? "30 Days" : "90 Days"}</button>
             ))}
           </div>
           <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] text-white/50 text-xs rounded-lg transition-colors">
@@ -243,15 +247,16 @@ export default function ClientPerformanceDetail({ client, onBack }) {
         <div className="game-panel p-6">
           <SectionHeader title="Interstellar SEO Score Breakdown" icon={Shield} color="text-purple-400" />
           <p className="text-white/25 text-xs mb-5">Proprietary weighted scoring system — each category contributes to the overall SEO Score</p>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {data.categories.map((cat) => (
-              <div key={cat.label} className="flex items-center gap-4">
-                <span className="text-white/55 text-xs w-36 shrink-0">{cat.label}</span>
-                <div className="relative flex-1 h-2.5 bg-white/[0.04] rounded-full overflow-hidden border border-white/[0.03]">
-                  <div className="relative h-full rounded-full transition-all duration-700 shimmer" style={{ width: `${cat.score}%`, background: `linear-gradient(90deg, ${cat.color}, ${cat.color}aa)`, boxShadow: `0 0 10px ${cat.color}66` }} />
+              <div key={cat.label} className="flex items-center gap-3">
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: cat.color, boxShadow: `0 0 8px ${cat.color}` }} />
+                <span className="text-white/60 text-xs w-40 shrink-0">{cat.label}</span>
+                <div className="relative flex-1 h-3 bg-white/[0.04] rounded-full overflow-hidden border border-white/[0.03]">
+                  <div className="relative h-full rounded-full transition-all duration-700 shimmer" style={{ width: `${cat.score}%`, background: `linear-gradient(90deg, ${cat.color}, ${cat.color}99)`, boxShadow: `0 0 10px ${cat.color}66` }} />
                 </div>
-                <span className="text-xs font-display font-bold w-8 text-right" style={{ color: cat.color }}>{cat.score}</span>
-                <span className="text-white/30 text-[10px] w-16">{cat.weight}% weight</span>
+                <span className="text-sm font-display font-extrabold w-9 text-right" style={{ color: cat.color, textShadow: `0 0 8px ${cat.color}55` }}>{cat.score}</span>
+                <span className="text-white/35 text-[10px] w-12 text-right">{cat.weight}% wt</span>
               </div>
             ))}
           </div>
