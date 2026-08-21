@@ -21,9 +21,10 @@ function fmt$(n) { return "$" + Math.round(n).toLocaleString("en-US"); }
 
 function pickVoice() {
   const voices = window.speechSynthesis.getVoices();
-  const kw = ["Google US English","Microsoft David","Microsoft Mark","Alex","Daniel","Oliver","Male"];
+  const kw = ["Daniel","Oliver","Google UK English Male","UK English Male","Microsoft George","Microsoft Ryan","Arthur","Rishi"];
   return voices.find(v => kw.some(k => v.name.toLowerCase().includes(k.toLowerCase())))
-    || voices.find(v => v.lang.startsWith("en-US") && /male|david|mark|alex/i.test(v.name))
+    || voices.find(v => v.lang.startsWith("en-GB") && /male|daniel|oliver|george|ryan|arthur/i.test(v.name))
+    || voices.find(v => v.lang.startsWith("en-GB"))
     || voices.find(v => /male/i.test(v.name) && v.lang.startsWith("en"))
     || voices.find(v => v.lang.startsWith("en-US"))
     || voices[0] || null;
@@ -40,7 +41,7 @@ function applyVoice(utt) {
   } catch (e) {}
   if (!v) v = pickVoice();
   if (v) utt.voice = v;
-  utt.rate = 0.95; utt.pitch = 0.92; utt.volume = 1.0;
+  utt.rate = 0.93; utt.pitch = 0.95; utt.volume = 1.0;
 }
 
 // ── Count-up helper for animated metrics ────────────────────────────────────
@@ -199,7 +200,20 @@ export default function BriefingHUD({ data, onClose }) {
 
   // Load available speech voices
   useEffect(() => {
-    const load = () => setVoices(window.speechSynthesis.getVoices());
+    const load = () => {
+      const vs = window.speechSynthesis.getVoices();
+      setVoices(vs);
+      try {
+        if (!localStorage.getItem("briefing_voice_uri")) {
+          const pref = pickVoice();
+          if (pref) {
+            localStorage.setItem("briefing_voice_uri", pref.voiceURI);
+            localStorage.setItem("briefing_voice_name", pref.name);
+            setSelURI(pref.voiceURI);
+          }
+        }
+      } catch (e) {}
+    };
     load();
     window.speechSynthesis.onvoiceschanged = load;
     return () => { window.speechSynthesis.onvoiceschanged = null; };
@@ -237,33 +251,33 @@ export default function BriefingHUD({ data, onClose }) {
     if (cancelledRef.current) return;
     window.speechSynthesis.cancel();
     const scripts = [
-      `Good morning, Justin. Here is your daily briefing for ${weekday}, ${month} ${day}.`,
+      `Good morning, sir. Your daily briefing for ${weekday}, ${month} ${day} is ready.`,
       taskTitles.length === 0
-        ? "Your priority list is clear today — nice work staying ahead."
+        ? "Your priority list is clear today, sir — well done."
         : (() => {
             const spoken = taskTitles.slice(0, 5);
             const extra = taskTitles.length > 5 ? ` …and ${taskTitles.length - 5} more on your dashboard.` : "";
-            return `Your priority tasks. You have ${taskTitles.length} on the list: ${spoken.join(", ")}.${extra}`;
+            return `Priority tasks, sir. You have ${taskTitles.length} on the list: ${spoken.join(", ")}.${extra}`;
           })(),
       todayOrbit.length === 0
-        ? "Nothing scheduled on Orbit SEO today — clear runway."
+        ? "Nothing scheduled on Orbit SEO today, sir — clear runway."
         : (() => {
             const names = todayOrbit.slice(0, 5).map(c => c.businessName);
             const extra = todayOrbit.length > 5 ? " …and a few more on your dashboard." : "";
-            return `Your Orbit SEO schedule. Today you're focused on ${names.join(", ")}.${extra}`;
+            return `Your Orbit SEO schedule, sir. Today you're focused on ${names.join(", ")}.${extra}`;
           })(),
       (() => {
         const dir = gainedSafe >= 0 ? "up" : "down";
-        return `Your momentum over the last 30 days. Recurring revenue went from ${fmt$(pastSafe)} to ${fmt$(mrr)}, ${dir} ${fmt$(Math.abs(gainedSafe))}. You added ${addedSafe} ${addedSafe === 1 ? "client" : "clients"} in that window.`;
+        return `Momentum over the last 30 days, sir. Recurring revenue moved from ${fmt$(pastSafe)} to ${fmt$(mrr)}, ${dir} ${fmt$(Math.abs(gainedSafe))}. You added ${addedSafe} ${addedSafe === 1 ? "client" : "clients"} in that window.`;
       })(),
       (() => {
-        const gapText = gap > 0 ? `${fmt$(gap)} to go` : "you've hit your goal — brilliant";
-        return `Your financial snapshot. Monthly recurring revenue sits at ${fmt$(mrr)}. Annually, that's ${fmt$(arr)}. Your goal is ${fmt$(MRR_GOAL)} — ${gapText}.`;
+        const gapText = gap > 0 ? `${fmt$(gap)} to go` : "you've reached your target, sir — excellent";
+        return `Your financial status, sir. Monthly recurring revenue stands at ${fmt$(mrr)}. Annualized, that's ${fmt$(arr)}. Target is ${fmt$(MRR_GOAL)} — ${gapText}.`;
       })(),
       (() => gap > 0
-        ? `Here's your mission. ${GOAL_PLAN}. At ${fmt$(mrr)} a month, you're ${fmt$(gap)} from your ${fmt$(MRR_GOAL)} goal. Push hard today — land one more site this month and close that gap.`
-        : `Here's your mission. ${GOAL_PLAN}. You've hit your goal — keep the momentum and aim higher.`)(),
-      "That's everything, Justin. Have a wonderfully productive day.",
+        ? `Your directive, sir. ${GOAL_PLAN}. At ${fmt$(mrr)} a month, you're ${fmt$(gap)} from your ${fmt$(MRR_GOAL)} target. Push to secure one more site this month and close the gap.`
+        : `Your directive, sir. ${GOAL_PLAN}. You've reached your target — keep the momentum and aim higher.`)(),
+      "That concludes your briefing, sir. Do have a productive day.",
     ];
 
     let idx = 0;
