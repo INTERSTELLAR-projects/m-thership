@@ -1,27 +1,32 @@
 import { useState, useEffect } from "react";
 import { Loader2, Zap } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
 import CompleteTaskModal from "@/components/CompleteTaskModal";
 import PriorityTaskCard from "@/components/dashboard/PriorityTaskCard";
+import TaskForm from "@/components/tasks/TaskForm";
+import { EMPTY_FORM } from "@/lib/tasks";
 
 export default function PriorityTasks() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editId, setEditId] = useState(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [completingTask, setCompletingTask] = useState(null); // task pending confirmation
+  const [completingTask, setCompletingTask] = useState(null);
+  const [editingTask, setEditingTask] = useState(null);
+  const [editForm, setEditForm] = useState({ ...EMPTY_FORM });
+  const [clients, setClients] = useState([]);
 
   useEffect(() => {
     base44.entities.ToDoItem.filter({ category: "Priority", done: false }, "created_date", 100).then((data) => {
       setItems(data.filter((i) => !i.done));
       setLoading(false);
     });
+    base44.entities.CRMClient.list("business", 200).then(setClients);
 
     const unsub = base44.entities.ToDoItem.subscribe((event) => {
       if (event.type === "create" && event.data?.category === "Priority" && !event.data?.done) {
-        setItems((prev) => [...prev, event.data]);
+        setItems((prev) => (prev.some((i) => i.id === event.id) ? prev : [...prev, event.data]));
       } else if (event.type === "update") {
-        if (event.data?.done || event.data?.status === "Completed") {
+        if (event.data?.done || event.data?.status === "Completed" || event.data?.category !== "Priority") {
           setItems((prev) => prev.filter((i) => i.id !== event.id));
         } else {
           setItems((prev) => prev.map((i) => i.id === event.id ? event.data : i).filter((i) => i.category === "Priority" && !i.done));
@@ -53,11 +58,21 @@ export default function PriorityTasks() {
     setItems((prev) => prev.filter((i) => i.id !== task.id));
   };
 
-  const saveEdit = async (id) => {
-    if (!editTitle.trim()) return;
-    await base44.entities.ToDoItem.update(id, { title: editTitle.trim() });
-    setItems((prev) => prev.map((i) => i.id === id ? { ...i, title: editTitle.trim() } : i));
-    setEditId(null);
+  const openEdit = (item) => {
+    setEditingTask(item);
+    const { id, created_date, updated_date, created_by, ...rest } = item;
+    setEditForm({ ...EMPTY_FORM, ...rest });
+  };
+
+  const saveEdit = async () => {
+    if (!editForm.title?.trim() || !editingTask) return;
+    const { id, created_date, updated_date, created_by, ...fields } = editForm;
+    const updated = { ...fields, estimatedAmount: parseFloat(editForm.estimatedAmount) || null };
+    await base44.entities.ToDoItem.update(editingTask.id, updated);
+    setItems((prev) => prev
+      .map((i) => (i.id === editingTask.id ? { ...i, ...updated } : i))
+      .filter((i) => i.category === "Priority" && !i.done));
+    setEditingTask(null);
   };
 
   const inProgressItems = items.filter((i) => (i.status || "Pending") === "In Progress");
@@ -72,6 +87,17 @@ export default function PriorityTasks() {
           onCancel={() => setCompletingTask(null)}
         />
       )}
+
+      <Dialog open={!!editingTask} onOpenChange={(o) => { if (!o) setEditingTask(null); }}>
+        <DialogContent className="bg-card border-white/[0.08] max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display text-white/80 text-sm tracking-widest uppercase">Edit Task</DialogTitle>
+          </DialogHeader>
+          {editingTask && (
+            <TaskForm form={editForm} setForm={setEditForm} onSave={saveEdit} onCancel={() => setEditingTask(null)} title="Edit Task" clients={clients} />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <section className="px-8 pt-6">
         <div className="flex items-center justify-between mb-4">
@@ -102,17 +128,7 @@ export default function PriorityTasks() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {inProgressItems.map((item) => (
-                    <PriorityTaskCard
-                      key={item.id}
-                      item={item}
-                      glow
-                      editId={editId}
-                      editTitle={editTitle}
-                      setEditTitle={setEditTitle}
-                      setEditId={setEditId}
-                      saveEdit={saveEdit}
-                      setStatus={setStatus}
-                    />
+                    <PriorityTaskCard key={item.id} item={item} glow onEdit={openEdit} setStatus={setStatus} />
                   ))}
                 </div>
               </div>
@@ -121,16 +137,7 @@ export default function PriorityTasks() {
             {otherItems.length > 0 && (
               <div className="grid grid-cols-2 gap-3">
                 {otherItems.map((item) => (
-                  <PriorityTaskCard
-                    key={item.id}
-                    item={item}
-                    editId={editId}
-                    editTitle={editTitle}
-                    setEditTitle={setEditTitle}
-                    setEditId={setEditId}
-                    saveEdit={saveEdit}
-                    setStatus={setStatus}
-                  />
+                  <PriorityTaskCard key={item.id} item={item} onEdit={openEdit} setStatus={setStatus} />
                 ))}
               </div>
             )}
