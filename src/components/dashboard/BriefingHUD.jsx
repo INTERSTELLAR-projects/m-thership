@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const MRR_GOAL = 10000;
-const GOAL_PLAN = "14 more Ørbit SEO base-level subscriptions, supported by the Prestige referral programme";
+const FALLBACK_PLAN = "14 more Ørbit SEO base-level subscriptions, supported by the Prestige referral programme";
 const WEEKDAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
@@ -202,7 +202,8 @@ function HudPanel({ title, active, done, children, style }) {
 
 // ── Main HUD overlay ─────────────────────────────────────────────────────────
 export default function BriefingHUD({ data, onClose }) {
-  const { tasks, orbitClients, mrr, weekday, month, day } = data;
+  const { tasks, orbitClients, mrr, weekday, month, day, planToExecute } = data;
+  const GOAL_PLAN = planToExecute || FALLBACK_PLAN;
   const arr = mrr * 12;
   const gap = MRR_GOAL - mrr;
   const mrrProgress = Math.min((mrr / MRR_GOAL) * 100, 100);

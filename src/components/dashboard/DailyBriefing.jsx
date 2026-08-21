@@ -46,12 +46,20 @@ export default function DailyBriefing() {
     const mrr = (crmClients || []).reduce((sum, c) =>
       sum + (c.services || []).reduce((s, sv) => s + (sv.price || 0), 0), 0
     );
+
+    let planToExecute = null;
+    try {
+      const rows = await base44.entities.AppSettings.filter({ key: "financial_panel" }, "-created_date", 1);
+      if (rows[0]?.pageSettings?.planToExecute) planToExecute = rows[0].pageSettings.planToExecute;
+    } catch (e) { /* ignore */ }
+
     const today = new Date();
 
     setHudData({
       tasks: tasks || [],
       orbitClients: orbitClients || [],
       mrr,
+      planToExecute,
       weekday: WEEKDAY_NAMES[today.getDay()],
       month: MONTH_NAMES[today.getMonth()],
       day: today.getDate(),
