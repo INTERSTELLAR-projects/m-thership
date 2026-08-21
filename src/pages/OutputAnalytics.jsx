@@ -5,6 +5,7 @@ import PageHeader from "../components/PageHeader";
 import { CheckCircle2, Clock, Zap, TrendingUp, Target, BarChart3, Loader2, Activity } from "lucide-react";
 // Clock is used in TasksAnalytics KPI row
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import GameChartTooltip from "../components/charts/GameChartTooltip";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 function dayKey(dateStr) {
@@ -178,15 +179,15 @@ function TasksAnalytics() {
             <AreaChart data={dailyData}>
               <defs>
                 <linearGradient id="gc1" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ff6a00" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#ff6a00" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#FF6A00" stopOpacity={0.6} />
+                  <stop offset="100%" stopColor="#FACC15" stopOpacity={0.04} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
               <XAxis dataKey="day" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} interval={6} />
               <YAxis allowDecimals={false} tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} axisLine={false} />
-              <Tooltip {...TOOLTIP_STYLE} />
-              <Area type="monotone" dataKey="completed" stroke="#ff6a00" fill="url(#gc1)" strokeWidth={2} dot={false} />
+              <Tooltip content={<GameChartTooltip />} cursor={{ stroke: 'rgba(255,170,0,0.25)', strokeWidth: 1 }} />
+              <Area type="monotone" dataKey="completed" stroke="#FF8C00" fill="url(#gc1)" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#FF8C00', stroke: '#FACC15', strokeWidth: 1 }} style={{ filter: 'drop-shadow(0 0 5px rgba(255,170,0,0.4))' }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -198,8 +199,9 @@ function TasksAnalytics() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
               <XAxis dataKey="week" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} />
               <YAxis tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} axisLine={false} />
-              <Tooltip {...TOOLTIP_STYLE} formatter={(v) => [`${v}h`, "Actual Hours"]} />
-              <Bar dataKey="hours" fill="#a855f7" radius={[4, 4, 0, 0]} opacity={0.85} />
+              <defs><linearGradient id="oaBarPurple" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#C084FC" /><stop offset="100%" stopColor="#7C3AED" stopOpacity="0.7" /></linearGradient></defs>
+              <Tooltip content={<GameChartTooltip suffix="h" />} cursor={{ fill: 'rgba(168,85,247,0.08)' }} />
+              <Bar dataKey="hours" fill="url(#oaBarPurple)" radius={[6, 6, 0, 0]} style={{ filter: 'drop-shadow(0 0 6px rgba(168,85,247,0.3))' }} />
             </BarChart>
           </ResponsiveContainer>
           {totalActualHours === 0 && (
@@ -356,8 +358,9 @@ function ProjectsAnalytics() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
               <XAxis dataKey="week" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} />
               <YAxis allowDecimals={false} tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} axisLine={false} />
-              <Tooltip {...TOOLTIP_STYLE} />
-              <Bar dataKey="completed" fill="#22c55e" radius={[4, 4, 0, 0]} opacity={0.85} />
+              <defs><linearGradient id="oaBarGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#4ADE80" /><stop offset="100%" stopColor="#16A34A" stopOpacity="0.7" /></linearGradient></defs>
+              <Tooltip content={<GameChartTooltip />} cursor={{ fill: 'rgba(34,197,94,0.08)' }} />
+              <Bar dataKey="completed" fill="url(#oaBarGreen)" radius={[6, 6, 0, 0]} style={{ filter: 'drop-shadow(0 0 6px rgba(34,197,94,0.3))' }} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -369,8 +372,9 @@ function ProjectsAnalytics() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
               <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} />
               <YAxis allowDecimals={false} tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} axisLine={false} />
-              <Tooltip {...TOOLTIP_STYLE} />
-              <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} opacity={0.85} />
+              <defs><linearGradient id="oaBarBlue" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#60A5FA" /><stop offset="100%" stopColor="#2563EB" stopOpacity="0.7" /></linearGradient></defs>
+              <Tooltip content={<GameChartTooltip />} cursor={{ fill: 'rgba(59,130,246,0.08)' }} />
+              <Bar dataKey="count" fill="url(#oaBarBlue)" radius={[6, 6, 0, 0]} style={{ filter: 'drop-shadow(0 0 6px rgba(59,130,246,0.3))' }} />
             </BarChart>
           </ResponsiveContainer>
         </div>

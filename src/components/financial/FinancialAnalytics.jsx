@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid, LineChart, Line, Tooltip } from "recharts";
+import { BarChart, Bar, Cell, XAxis, YAxis, ResponsiveContainer, CartesianGrid, AreaChart, Area, Tooltip } from "recharts";
 import { TrendingUp, DollarSign, Percent, Target, ArrowUpRight, Loader2 } from "lucide-react";
+import GameChartTooltip from "../charts/GameChartTooltip";
 
 const MRR_GOAL = 10000;
 
@@ -106,13 +107,19 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
           <p className="font-display text-[10px] tracking-[0.2em] uppercase mb-3 bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Revenue Trend</p>
           <div className="h-[160px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
-                <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <AreaChart data={chartData} margin={{ top: 5, right: 4, left: 4, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="faRevGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#FF6A00" stopOpacity="0.65" />
+                    <stop offset="100%" stopColor="#FACC15" stopOpacity="0.05" />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis hide />
-                <Tooltip contentStyle={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, color: '#fff', fontSize: 11 }} formatter={(v) => [`$${v.toLocaleString()}`, "Revenue"]} />
-                <Line type="monotone" dataKey="revenue" stroke="#FF6A00" strokeWidth={2} dot={{ fill: '#FF6A00', r: 3 }} />
-              </LineChart>
+                <Tooltip content={<GameChartTooltip prefix="$" />} cursor={{ stroke: 'rgba(255,170,0,0.25)', strokeWidth: 1 }} />
+                <Area type="monotone" dataKey="revenue" stroke="#FF8C00" strokeWidth={2} fill="url(#faRevGrad)" dot={false} activeDot={{ r: 4, fill: '#FF8C00', stroke: '#FACC15', strokeWidth: 1 }} style={{ filter: 'drop-shadow(0 0 5px rgba(255,170,0,0.4))' }} />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -121,12 +128,21 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
           <p className="font-display text-[10px] tracking-[0.2em] uppercase mb-3 bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Revenue vs Expenses (Monthly)</p>
           <div className="h-[160px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={expVsRev} barSize={32}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
-                <XAxis dataKey="label" tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <BarChart data={expVsRev} barSize={36} margin={{ top: 5, right: 4, left: 4, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="faBarRev" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#FF8C00" /><stop offset="100%" stopColor="#FACC15" stopOpacity="0.85" /></linearGradient>
+                  <linearGradient id="faBarExp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#60A5FA" /><stop offset="100%" stopColor="#2563EB" stopOpacity="0.85" /></linearGradient>
+                  <linearGradient id="faBarProfit" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#4ADE80" /><stop offset="100%" stopColor="#16A34A" stopOpacity="0.85" /></linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="label" tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis hide />
-                <Tooltip contentStyle={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, color: '#fff', fontSize: 11 }} formatter={(v) => [`$${v.toLocaleString()}`, ""]} />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]} fill="#FF6A00" />
+                <Tooltip content={<GameChartTooltip prefix="$" />} cursor={{ fill: 'rgba(255,170,0,0.06)' }} />
+                <Bar dataKey="value" radius={[6, 6, 0, 0]} style={{ filter: 'drop-shadow(0 0 6px rgba(255,170,0,0.2))' }}>
+                  <Cell fill="url(#faBarRev)" />
+                  <Cell fill="url(#faBarExp)" />
+                  <Cell fill="url(#faBarProfit)" />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -4,6 +4,7 @@ import PageHeader from "../components/PageHeader";
 import ClientPerformanceDetail from "../components/performance/ClientPerformanceDetail";
 import { Search, Users, TrendingUp, AlertCircle, Globe, BarChart3, Loader2, FileText, Star, Filter } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import GameChartTooltip from "../components/charts/GameChartTooltip";
 
 const TOOLTIP_STYLE = {
   contentStyle: { background: "#0d1117", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 11 },
@@ -127,13 +128,13 @@ export default function Performance() {
               <AreaChart data={trendData}>
                 <defs>
                   <linearGradient id="ovGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ff6a00" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#ff6a00" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#FF6A00" stopOpacity={0.6} />
+                      <stop offset="100%" stopColor="#FACC15" stopOpacity={0.04} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 9 }} tickLine={false} />
-                <Tooltip {...TOOLTIP_STYLE} />
-                <Area type="monotone" dataKey="avgScore" stroke="#ff6a00" fill="url(#ovGrad)" strokeWidth={2} dot={false} />
+                <Tooltip content={<GameChartTooltip />} cursor={{ stroke: 'rgba(255,170,0,0.25)', strokeWidth: 1 }} />
+                <Area type="monotone" dataKey="avgScore" stroke="#FF8C00" fill="url(#ovGrad)" strokeWidth={2} dot={false} activeDot={{ r: 3, fill: '#FF8C00', stroke: '#FACC15', strokeWidth: 1 }} style={{ filter: 'drop-shadow(0 0 5px rgba(255,170,0,0.4))' }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
