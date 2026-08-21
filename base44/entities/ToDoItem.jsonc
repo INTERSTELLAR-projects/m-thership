@@ -11,12 +11,13 @@
     "taskType": {
       "type": "string",
       "enum": [
-        "Forge Development",
-        "WebOps",
+        "F\u00f8rge Development",
+        "Web \u00d8ps",
         "GBP Update",
         "Presentation",
         "New Website Build",
         "Website Update",
+        "Internal Tasks",
         "Other Task"
       ]
     },

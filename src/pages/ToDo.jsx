@@ -10,7 +10,7 @@ import PageHeader from "../components/PageHeader";
 import CompleteTaskModal from "../components/CompleteTaskModal";
 
 const CATEGORIES = ["Priority", "NextUp"];
-const TASK_TYPES = ["Forge Development", "WebOps", "GBP Update", "Presentation", "New Website Build", "Website Update", "Other Task"];
+const TASK_TYPES = ["Førge Development", "Web Øps", "GBP Update", "Presentation", "New Website Build", "Website Update", "Internal Tasks", "Other Task"];
 const INTERSTELLAR_OPTION = "Interstellar";
 const EST_UNITS = ["Minutes", "Hours", "Days", "Weeks", "Months"];
 const TASK_STATUSES = ["Pending", "In Progress", "Completed"];
