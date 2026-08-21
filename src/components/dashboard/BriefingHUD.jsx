@@ -169,6 +169,7 @@ export default function BriefingHUD({ data, onClose }) {
   const [started, setStarted] = useState(false);
   const pulseRef = useRef(0);
   const cancelledRef = useRef(false);
+  const audioRef = useRef(null);
   const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
   useEffect(() => { requestAnimationFrame(() => setVisible(true)); }, []);
@@ -221,7 +222,7 @@ export default function BriefingHUD({ data, onClose }) {
 
   const previewVoice = (v) => {
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance("Good morning, Justin. Here is your daily briefing.");
+    const u = new SpeechSynthesisUtterance("Good morning, sir. Here is your daily briefing.");
     u.voice = v; u.rate = 0.95; u.pitch = 0.92; window.speechSynthesis.speak(u);
   };
   const selectVoice = (v) => {
@@ -240,9 +241,9 @@ export default function BriefingHUD({ data, onClose }) {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
-  useEffect(() => () => { cancelledRef.current = true; window.speechSynthesis.cancel(); }, []);
+  useEffect(() => () => { cancelledRef.current = true; window.speechSynthesis.cancel(); if (audioRef.current) { audioRef.current.pause(); } }, []);
 
-  const dismiss = () => { cancelledRef.current = true; window.speechSynthesis.cancel(); setExiting(true); setTimeout(onClose, 500); };
+  const dismiss = () => { cancelledRef.current = true; window.speechSynthesis.cancel(); if (audioRef.current) { audioRef.current.pause(); } setExiting(true); setTimeout(onClose, 500); };
 
   const taskTitles = (tasks || []).map(t => t.title).filter(Boolean);
   const todayOrbit = (orbitClients || []).filter(c => (c.blogDays || []).includes(new Date().getDay()) && c.status === "Active");
@@ -290,7 +291,17 @@ export default function BriefingHUD({ data, onClose }) {
       const utt = new SpeechSynthesisUtterance(scripts[idx]);
       applyVoice(utt);
       const currentIdx = idx;
-      utt.onstart = () => { setSection(currentIdx); setIsSpeaking(true); };
+      utt.onstart = () => {
+        setSection(currentIdx);
+        setIsSpeaking(true);
+        if (currentIdx === 0 && audioRef.current) {
+          try {
+            audioRef.current.currentTime = 5;
+            audioRef.current.volume = 0.22;
+            audioRef.current.play().catch(() => {});
+          } catch (e) {}
+        }
+      };
       utt.onboundary = () => { pulseRef.current = Math.min(1, pulseRef.current + 0.4); };
       utt.onend = () => { idx++; speakNext(); };
       utt.onerror = () => { idx++; speakNext(); };
@@ -317,6 +328,14 @@ export default function BriefingHUD({ data, onClose }) {
         @keyframes goal-pulse { 0%,100% { box-shadow: 0 0 16px rgba(255,170,0,0.35); } 50% { box-shadow: 0 0 28px rgba(255,170,0,0.65); } }
         @keyframes badge-pop { from { opacity: 0; transform: translateY(10px) scale(0.9); } 12% { opacity: 1; transform: none; } 80% { opacity: 1; } to { opacity: 0; transform: translateY(-8px); } }
       `}</style>
+
+      <audio
+        ref={audioRef}
+        src="https://media.base44.com/files/public/69d80bb06c5ad07a795df54e/65d40ba9f_TheClash-ShouldIStayorShouldIGoinstrumental.mp3"
+        loop
+        preload="auto"
+        style={{ display: "none" }}
+      />
 
       <div onClick={dismiss} style={{
         position: "fixed", inset: 0, zIndex: 1000,
@@ -424,7 +443,7 @@ export default function BriefingHUD({ data, onClose }) {
                     <h1 style={{ fontSize: 42, fontWeight: 800, letterSpacing: "0.08em", margin: 0,
                       background: "linear-gradient(90deg,#FF8C00,#FACC15)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
                       textShadow: "0 0 30px rgba(255,170,0,0.4)" }}>
-                      GOOD MORNING, JUSTIN
+                      GOOD MORNING, SIR
                     </h1>
                     <p style={{ fontFamily: "monospace", fontSize: 13, letterSpacing: "0.2em", color: "#FFE7B3", opacity: 0.7, marginTop: 10 }}>
                       {weekday.toUpperCase()} · {month.toUpperCase()} {day}
@@ -559,7 +578,7 @@ export default function BriefingHUD({ data, onClose }) {
                     BRIEFING COMPLETE
                   </h2>
                   <p style={{ fontFamily: "monospace", fontSize: 13, letterSpacing: "0.2em", color: "#FFE7B3", opacity: 0.7 }}>
-                    HAVE A PRODUCTIVE DAY, JUSTIN.
+                    HAVE A PRODUCTIVE DAY, SIR.
                   </p>
                 </div>
               )}
