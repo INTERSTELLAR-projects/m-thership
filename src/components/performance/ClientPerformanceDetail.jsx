@@ -15,11 +15,10 @@ function ScoreRing({ score, size = 96, color = "#ff8c00" }) {
   const dash = (score / 100) * circ;
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <div className="absolute inset-4 rounded-full blur-2xl opacity-25" style={{ background: color }} />
-      <svg width={size} height={size} className="relative rotate-[-90deg]">
+      <svg width={size} height={size} className="relative rotate-[-90deg]" style={{ filter: `drop-shadow(0 0 6px ${color}88)` }}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={7} />
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={7}
-          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" style={{ transition: "stroke-dasharray 0.9s ease", filter: `drop-shadow(0 0 6px ${color})` }} />
+          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" style={{ transition: "stroke-dasharray 0.9s ease" }} />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         <span className="font-display font-extrabold leading-none text-white" style={{ fontSize: size > 80 ? 26 : 18, textShadow: `0 0 12px ${color}cc` }}>{score}</span>
