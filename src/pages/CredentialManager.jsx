@@ -184,7 +184,7 @@ export default function CredentialManager() {
           </div>
           <div className="flex gap-1.5 flex-wrap items-center">
             {categoryList.map((cat) => (
-              <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeCategory === cat ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{cat}</button>
+              <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeCategory === cat ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{cat}</button>
             ))}
             <button onClick={() => setManageCatsOpen(true)} className="px-2 py-1.5 rounded-lg text-xs text-white/20 hover:text-white/50 border border-dashed border-white/10 hover:border-white/20 transition-all" title="Manage categories"><Edit className="w-3 h-3" /></button>
           </div>
@@ -227,7 +227,7 @@ export default function CredentialManager() {
                 </DragDropContext>
                 <div className="flex gap-2 pt-1">
                   <Input placeholder="New category name..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAddCategory()} className="flex-1 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-white/20 h-9" />
-                  <Button onClick={handleAddCategory} className="bg-orange-500 hover:bg-orange-600 text-white h-9 px-3"><Plus className="w-4 h-4" /></Button>
+                  <Button onClick={handleAddCategory} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 px-3"><Plus className="w-4 h-4" /></Button>
                 </div>
               </div>
             </DialogContent>
@@ -261,7 +261,7 @@ export default function CredentialManager() {
                   </div>
                   {editingLogin.loginType === "Email + Password" && <div><Label className="text-white/50 text-xs">Password</Label><Input value={editingLogin.password} onChange={(e) => setEditingLogin({ ...editingLogin, password: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>}
                   <div><Label className="text-white/50 text-xs">Notes</Label><div className="flex items-center gap-1 mt-1"><Input value={editingLogin.notes} onChange={(e) => setEditingLogin({ ...editingLogin, notes: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white flex-1" /><MicButton onResult={(t) => setEditingLogin((p) => ({ ...p, notes: p.notes + (p.notes ? " " : "") + t }))} /></div></div>
-                  <Button onClick={handleEditSave} className="w-full bg-orange-500 hover:bg-orange-600 text-white">Save Changes</Button>
+                  <Button onClick={handleEditSave} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">Save Changes</Button>
                 </div>
               )}
             </DialogContent>
@@ -270,7 +270,7 @@ export default function CredentialManager() {
           {/* Add Login Dialog */}
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-orange-500 hover:bg-orange-600 text-white h-9 gap-2"><Plus className="w-4 h-4" />Add Login</Button>
+              <Button className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Plus className="w-4 h-4" />Add Login</Button>
             </DialogTrigger>
             <DialogContent className="bg-card border-white/[0.06] text-white">
               <DialogHeader><DialogTitle className="text-white">Add New Login</DialogTitle></DialogHeader>
@@ -297,7 +297,7 @@ export default function CredentialManager() {
                 </div>
                 {newLogin.loginType === "Email + Password" && <div><Label className="text-white/50 text-xs">Password</Label><Input value={newLogin.password} onChange={(e) => setNewLogin({ ...newLogin, password: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>}
                 <div><Label className="text-white/50 text-xs">Notes</Label><div className="flex items-center gap-1 mt-1"><Input value={newLogin.notes} onChange={(e) => setNewLogin({ ...newLogin, notes: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white flex-1" /><MicButton onResult={(t) => setNewLogin((p) => ({ ...p, notes: p.notes + (p.notes ? " " : "") + t }))} /></div></div>
-                <Button onClick={handleAdd} className="w-full bg-orange-500 hover:bg-orange-600 text-white">Save Login</Button>
+                <Button onClick={handleAdd} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">Save Login</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -308,12 +308,13 @@ export default function CredentialManager() {
         ) : (
           <div className="space-y-2">
             {filtered.map((login) => (
-              <div key={login.id} className="card-hover bg-card rounded-xl border border-white/[0.06] p-4 flex items-center gap-6 group">
-                <div className="w-10 h-10 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/30 text-xs font-bold">{login.platform?.charAt(0)}</div>
+              <div key={login.id} className="card-hover relative overflow-hidden bg-card rounded-xl border border-white/[0.07] p-4 flex items-center gap-6 group">
+                <div className="absolute -top-12 -right-10 w-24 h-24 rounded-full bg-orange-500/[0.05] blur-2xl pointer-events-none" />
+                <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 text-sm font-display font-extrabold">{login.platform?.charAt(0)}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-1">
                     <span className="text-white/90 text-sm font-medium">{login.platform}</span>
-                    <span className="text-orange-500/50 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-orange-500/5 rounded">{login.category}</span>
+                    <span className="text-orange-300/80 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded">{login.category}</span>
                   </div>
                   <p className="text-white/30 text-xs">{login.email}</p>
                 </div>
