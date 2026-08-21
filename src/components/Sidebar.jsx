@@ -41,27 +41,38 @@ export default function Sidebar({ onOpenCommand }) {
     return (
       <Link
         to={item.path}
-        className={`relative flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group
+        className={`relative flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group overflow-hidden
           ${
             isActive
-              ? "text-orange-500 bg-orange-500/10"
-              : "text-white/50 hover:text-white/80 hover:bg-white/5"
+              ? "text-white bg-gradient-to-r from-orange-500/20 to-orange-500/[0.03] shadow-[0_0_18px_rgba(255,106,0,0.18)]"
+              : "text-white/55 hover:text-white hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-transparent hover:shadow-[0_0_14px_rgba(255,106,0,0.12)] hover:translate-x-0.5"
           }`}
       >
         {isActive && (
-          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-orange-500 rounded-r-full" />
+          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-gradient-to-b from-orange-300 to-orange-600 shadow-[0_0_8px_rgba(255,106,0,0.7)]" />
         )}
-        <item.icon className={`w-[18px] h-[18px] transition-colors shrink-0 ${
-          isActive ? "text-orange-500" : "text-white/40 group-hover:text-white/60"
-        }`} />
-        <span className="truncate">{item.label}</span>
-        {isActive && <div className="ml-auto w-1 h-1 rounded-full bg-orange-500" />}
+        <item.icon
+          className="w-[18px] h-[18px] shrink-0 transition-all duration-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_6px_rgba(255,106,0,0.7)]"
+          color="url(#navIconGrad)"
+        />
+        <span className="truncate transition-colors duration-200 group-hover:text-white">{item.label}</span>
+        {isActive && <div className="ml-auto w-1 h-1 rounded-full bg-orange-400 shadow-[0_0_6px_rgba(255,106,0,0.9)]" />}
       </Link>
     );
   };
 
   return (
     <aside className="w-[220px] min-w-[220px] h-screen bg-sidebar flex flex-col border-r border-sidebar-border">
+      {/* Shared orange gradient for nav icons */}
+      <svg width="0" height="0" className="absolute" aria-hidden="true">
+        <defs>
+          <linearGradient id="navIconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FFD08A" />
+            <stop offset="55%" stopColor="#FF9100" />
+            <stop offset="100%" stopColor="#FF6A00" />
+          </linearGradient>
+        </defs>
+      </svg>
       {/* Logo */}
       <div className="px-5 pt-6 pb-4">
         <div className="flex items-center gap-2">
@@ -113,16 +124,16 @@ export default function Sidebar({ onOpenCommand }) {
       <div className="p-3 border-t border-white/5 space-y-1">
         <Link
           to="/settings"
-          className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-white/40 hover:text-white/70 hover:bg-white/5 transition-all"
+          className="group flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-white/40 hover:text-white/80 hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-transparent transition-all"
         >
-          <Settings className="w-[18px] h-[18px]" />
+          <Settings className="w-[18px] h-[18px] transition-all duration-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_6px_rgba(255,106,0,0.7)]" color="url(#navIconGrad)" />
           <span>Settings</span>
         </Link>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-white/40 hover:text-red-400 hover:bg-white/5 transition-all w-full"
+          className="group flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-white/40 hover:text-red-400 hover:bg-red-500/5 transition-all w-full"
         >
-          <LogOut className="w-[18px] h-[18px]" />
+          <LogOut className="w-[18px] h-[18px] transition-all duration-200 group-hover:scale-110" color="url(#navIconGrad)" />
           <span>Log Out</span>
         </button>
         
