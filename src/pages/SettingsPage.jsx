@@ -155,7 +155,7 @@ function SettingsCard({ title, description, children, defaultOpen = false }) {
     <div className="bg-card rounded-xl border border-white/[0.06] overflow-hidden">
       <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors">
         <div className="text-left">
-          <h3 className="text-white font-bold text-sm">{title}</h3>
+          <h3 className="font-display font-bold text-sm tracking-wide bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{title}</h3>
           {description && <p className="text-white/40 text-xs mt-0.5">{description}</p>}
         </div>
         {open ? <ChevronUp className="w-4 h-4 text-white/30 shrink-0" /> : <ChevronDown className="w-4 h-4 text-white/30 shrink-0" />}
@@ -347,7 +347,7 @@ export default function SettingsPage() {
             const Icon = typeof sec.icon === "string" ? null : sec.icon;
             return (
               <button key={sec.id} onClick={() => setActiveSection(sec.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left ${activeSection === sec.id ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"}`}>
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left ${activeSection === sec.id ? "bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"}`}>
                 {Icon ? <Icon className="w-3.5 h-3.5 shrink-0" /> : <span className="text-sm shrink-0">{sec.icon}</span>}
                 {sec.label}
               </button>
@@ -367,7 +367,7 @@ export default function SettingsPage() {
                   className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none" />
               </div>
               <button onClick={handleSave} disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white text-xs font-semibold rounded-lg transition-colors">
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 disabled:opacity-60 text-black font-semibold text-xs rounded-lg shadow-[0_0_14px_rgba(255,106,0,0.25)] transition-colors">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                 {saved ? "Saved!" : saving ? "Saving..." : "Save Settings"}
               </button>
@@ -673,7 +673,7 @@ export default function SettingsPage() {
                     <input value={newCrmField} onChange={(e) => setNewCrmField(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && addCrmField()}
                       placeholder="New field name..." className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none" />
-                    <button onClick={addCrmField} className="px-3 py-2 bg-orange-500/15 text-orange-500 border border-orange-500/20 rounded-lg text-xs font-medium hover:bg-orange-500/20 transition-colors">
+                    <button onClick={addCrmField} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg text-xs font-medium hover:bg-orange-500/20 transition-colors">
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
@@ -774,7 +774,7 @@ export default function SettingsPage() {
                         <p className="text-white/70 text-sm font-medium">{name}</p>
                         <p className="text-white/25 text-xs mt-0.5">Not connected</p>
                       </div>
-                      <button className="px-3 py-1.5 text-xs font-medium bg-orange-500/15 text-orange-500 border border-orange-500/20 rounded-lg hover:bg-orange-500/20 transition-colors">
+                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors">
                         Connect
                       </button>
                     </div>
@@ -788,7 +788,7 @@ export default function SettingsPage() {
                         <p className="text-white/70 text-sm font-medium">{name}</p>
                         <p className="text-white/25 text-xs mt-0.5">Not connected</p>
                       </div>
-                      <button className="px-3 py-1.5 text-xs font-medium bg-orange-500/15 text-orange-500 border border-orange-500/20 rounded-lg hover:bg-orange-500/20 transition-colors">
+                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors">
                         Connect
                       </button>
                     </div>
@@ -802,7 +802,7 @@ export default function SettingsPage() {
                         <p className="text-white/70 text-sm font-medium">{name}</p>
                         <p className="text-white/25 text-xs mt-0.5">Not connected</p>
                       </div>
-                      <button className="px-3 py-1.5 text-xs font-medium bg-orange-500/15 text-orange-500 border border-orange-500/20 rounded-lg hover:bg-orange-500/20 transition-colors">
+                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors">
                         Connect
                       </button>
                     </div>
@@ -884,7 +884,7 @@ export default function SettingsPage() {
                         <input autoFocus value={newStatus.label} onChange={(e) => setNewStatus({ ...newStatus, label: e.target.value })}
                           onKeyDown={(e) => { if (e.key === "Enter") addStatus(key); if (e.key === "Escape") setNewStatus({ section: null, label: "", color: "#ff6a00" }); }}
                           placeholder="Status label..." className="flex-1 bg-white/[0.03] border border-orange-500/30 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none" />
-                        <button onClick={() => addStatus(key)} className="p-2 bg-orange-500/15 text-orange-500 border border-orange-500/20 rounded-lg hover:bg-orange-500/20 transition-colors"><Check className="w-4 h-4" /></button>
+                        <button onClick={() => addStatus(key)} className="p-2 bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors"><Check className="w-4 h-4" /></button>
                         <button onClick={() => setNewStatus({ section: null, label: "", color: "#ff6a00" })} className="p-2 text-white/30 hover:text-white/60 transition-colors"><X className="w-4 h-4" /></button>
                       </div>
                     ) : (
@@ -908,7 +908,7 @@ export default function SettingsPage() {
                   <div className="flex gap-2">
                     <input value={newTag} onChange={(e) => setNewTag(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addTag()}
                       placeholder="New tag..." className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none" />
-                    <button onClick={addTag} className="px-3 py-2 bg-orange-500/15 text-orange-500 border border-orange-500/20 rounded-lg text-xs font-medium hover:bg-orange-500/20 transition-colors">
+                    <button onClick={addTag} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg text-xs font-medium hover:bg-orange-500/20 transition-colors">
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>

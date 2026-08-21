@@ -133,7 +133,7 @@ export default function Requests() {
 function RequestList({ requests, emptyText }) {
   if (requests.length === 0) {
     return (
-      <div className="bg-card rounded-xl border border-white/[0.06] p-10 text-center">
+      <div className="game-panel p-10 text-center">
         <FileText className="w-8 h-8 text-white/10 mx-auto mb-3" />
         <p className="text-white/30 text-sm">{emptyText}</p>
       </div>
@@ -157,7 +157,7 @@ function RequestCard({ req, showClient }) {
   };
 
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-4 flex items-start gap-4">
+    <div className="game-panel p-4 flex items-start gap-4">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-3 flex-wrap">
           <p className="text-white/85 text-sm font-medium">{req.title}</p>
@@ -190,7 +190,7 @@ function ByClientView({ clients, search }) {
 
   if (filtered.length === 0) {
     return (
-      <div className="bg-card rounded-xl border border-white/[0.06] p-10 text-center">
+      <div className="game-panel p-10 text-center">
         <User className="w-8 h-8 text-white/10 mx-auto mb-3" />
         <p className="text-white/30 text-sm">No clients have submitted requests yet.</p>
       </div>
@@ -200,9 +200,9 @@ function ByClientView({ clients, search }) {
   return (
     <div className="space-y-6">
       {filtered.map((client) => (
-        <div key={client.id} className="bg-card rounded-xl border border-white/[0.06] p-5">
+        <div key={client.id} className="game-panel p-5">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500/50 text-xs font-bold border border-orange-500/10">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 text-xs font-display font-extrabold">
               {client.business?.charAt(0)}
             </div>
             <div>

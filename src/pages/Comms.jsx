@@ -162,7 +162,7 @@ export default function Comms() {
       <PageHeader breadcrumb="Portal / Comms" rightText="Private Messaging" />
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar - Client List */}
-        <div className="w-64 border-r border-white/5 flex flex-col">
+        <div className="w-64 border-r border-orange-500/[0.12] flex flex-col">
           <div className="p-4 border-b border-white/5">
             <div className="relative">
               <button
@@ -197,7 +197,7 @@ export default function Comms() {
                   onClick={() => handleClientSelect(client)}
                   className={`w-full text-left px-4 py-3 border-b border-white/5 transition-colors ${
                     selectedClient?.id === client.id
-                      ? "bg-orange-500/10 border-l-2 border-l-orange-500 text-orange-400"
+                      ? "bg-gradient-to-r from-orange-500/15 to-amber-400/5 border-l-2 border-l-orange-500 text-orange-300"
                       : "hover:bg-white/[0.02] text-white/60"
                   }`}
                 >
@@ -253,7 +253,7 @@ export default function Comms() {
                         <div
                           className={`max-w-md rounded-lg px-4 py-2 ${
                             msg.senderEmail === user.email
-                              ? "bg-orange-500/20 border border-orange-500/30 text-white"
+                              ? "bg-gradient-to-br from-orange-500/25 to-amber-400/10 border border-orange-500/40 text-white"
                               : "bg-white/[0.05] border border-white/[0.06] text-white/80"
                           }`}
                         >
@@ -368,7 +368,7 @@ export default function Comms() {
                   <button
                     onClick={() => sendMessage(messageText)}
                     disabled={!messageText.trim() || sending}
-                    className="px-4 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-[0_0_14px_rgba(255,106,0,0.25)] flex items-center gap-2"
                   >
                     {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </button>

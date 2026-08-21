@@ -35,8 +35,8 @@ export default function Analytics() {
 
         {/* Charts */}
         <div className="grid grid-cols-2 gap-6">
-          <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-            <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase mb-4">Traffic Overview</h3>
+          <div className="game-panel p-5">
+            <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Traffic Overview</h3>
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={trafficData}>
@@ -60,8 +60,8 @@ export default function Analytics() {
             </div>
           </div>
 
-          <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-            <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase mb-4">Conversion Rate</h3>
+          <div className="game-panel p-5">
+            <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Conversion Rate</h3>
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={conversionData}>
@@ -82,9 +82,9 @@ export default function Analytics() {
 function MetricCard({ label, value, change, positive }) {
   const isPositive = change.startsWith("+") || positive;
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+    <div className="game-panel p-5">
       <p className="text-white/25 text-xs mb-2">{label}</p>
-      <p className="text-white/85 text-xl font-bold">{value}</p>
+      <p className="text-xl font-display font-extrabold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{value}</p>
       <p className={`text-xs mt-1 font-medium ${isPositive ? "text-green-400/60" : "text-red-400/60"}`}>{change} vs last month</p>
     </div>
   );

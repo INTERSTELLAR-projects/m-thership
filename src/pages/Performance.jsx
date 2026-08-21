@@ -31,7 +31,7 @@ function getPerformanceStatus(score) {
 
 function StatCard({ label, value, icon: Icon, color = "text-orange-500", sub }) {
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+    <div className="game-panel p-5">
       <div className="flex items-center justify-between mb-3">
         <Icon className={`w-4 h-4 ${color}`} />
       </div>
@@ -121,7 +121,7 @@ export default function Performance() {
           <StatCard label="Needs Attention" value={needsAttention} icon={AlertCircle} color={needsAttention > 0 ? "text-orange-400" : "text-white/30"} />
           <StatCard label="Blogs This Month" value={publishedThisMonth} icon={FileText} color="text-purple-400" />
           <StatCard label="GBP Posts This Month" value={gbpThisMonth} icon={Globe} color="text-cyan-400" />
-          <div className="col-span-2 bg-card rounded-xl border border-white/[0.06] p-4">
+          <div className="col-span-2 game-panel p-4">
             <p className="text-white/30 text-[10px] uppercase tracking-wider mb-2">Avg Score Trend</p>
             <ResponsiveContainer width="100%" height={70}>
               <AreaChart data={trendData}>
@@ -147,12 +147,12 @@ export default function Performance() {
           </div>
           <div className="flex gap-1.5">
             {["All", "Local", "National", "International"].map((t) => (
-              <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterType === t ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{t}</button>
+              <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterType === t ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{t}</button>
             ))}
           </div>
           <div className="flex gap-1.5">
             {["All", "Strong", "Growing", "Flat", "Needs Attention"].map((s) => (
-              <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterStatus === s ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{s}</button>
+              <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterStatus === s ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{s}</button>
             ))}
           </div>
           <span className="ml-auto text-white/25 text-xs">{filtered.length} clients</span>
@@ -162,7 +162,7 @@ export default function Performance() {
         {loading ? (
           <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 text-white/20 animate-spin" /></div>
         ) : filtered.length === 0 ? (
-          <div className="bg-card rounded-xl border border-white/[0.06] p-12 text-center">
+          <div className="game-panel p-12 text-center">
             <BarChart3 className="w-8 h-8 text-white/10 mx-auto mb-3" />
             <p className="text-white/30 text-sm">{clients.length === 0 ? "No Ørbit SEO clients yet. Add clients in the Ørbit SEO section." : "No clients match your filters."}</p>
           </div>
@@ -187,9 +187,9 @@ export default function Performance() {
               const authorityColor = authority >= 60 ? "text-green-400" : authority >= 40 ? "text-orange-400" : "text-red-400";
 
               return (
-                <button key={client.id} onClick={() => setSelectedClient(client)} className="card-hover w-full bg-card rounded-xl border border-white/[0.06] p-4 grid grid-cols-12 gap-4 items-center text-left group">
+                <button key={client.id} onClick={() => setSelectedClient(client)} className="card-hover w-full game-panel p-4 grid grid-cols-12 gap-4 items-center text-left group">
                   <div className="col-span-3 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-orange-500/10 border border-orange-500/15 flex items-center justify-center text-orange-500/60 font-bold text-sm shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 font-display font-extrabold text-sm shrink-0">
                       {client.businessName?.charAt(0)}
                     </div>
                     <div className="min-w-0">

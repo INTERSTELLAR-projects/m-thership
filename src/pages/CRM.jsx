@@ -106,10 +106,10 @@ export default function CRM() {
           </div>
           <div className="flex gap-1.5">
             {statusFilters.map((f) => (
-              <button key={f} onClick={() => setStatusFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${statusFilter === f ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{f}</button>
+              <button key={f} onClick={() => setStatusFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${statusFilter === f ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{f}</button>
             ))}
           </div>
-          <Button onClick={() => setAddOpen(true)} className="bg-orange-500 hover:bg-orange-600 text-white h-9 gap-2"><Plus className="w-4 h-4" />Add Client</Button>
+          <Button onClick={() => setAddOpen(true)} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Plus className="w-4 h-4" />Add Client</Button>
         </div>
 
         {loading ? (
@@ -121,25 +121,25 @@ export default function CRM() {
               return (
                 <div key={client.id} className="card-hover w-full bg-card rounded-xl border border-white/[0.06] p-4 flex items-center gap-5 group">
                   <button onClick={() => setSelectedId(client.id)} className="flex items-center gap-5 flex-1 text-left min-w-0">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/10 to-orange-600/5 flex items-center justify-center border border-orange-500/10 shrink-0 overflow-hidden">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center shrink-0 overflow-hidden">
                       {client.logoUrl ? (
                         <img src={client.logoUrl} alt={client.business} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-orange-500/50 text-sm font-bold">{client.business?.charAt(0)}</span>
+                        <span className="text-orange-300 font-display font-extrabold text-sm">{client.business?.charAt(0)}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1">
                         <span className="text-white/90 text-sm font-medium">{client.business}</span>
-                        <span className="text-green-400/50 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-green-400/5 rounded">{client.status}</span>
+                        <span className="text-green-400/60 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-green-400/10 border border-green-400/20 rounded">{client.status}</span>
                       </div>
                       <p className="text-white/30 text-xs">{client.contact} · {(client.emails || [])[0]}</p>
                     </div>
                     <div className="text-right mr-2 shrink-0">
-                      <p className="text-orange-500 text-sm font-bold">${total}/mo</p>
-                      <p className="text-white/15 text-xs">{(client.services || []).length} services</p>
+                      <p className="text-orange-300 text-sm font-display font-bold">${total}/mo</p>
+                      <p className="text-orange-300/40 text-xs">{(client.services || []).length} services</p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
+                    <ChevronRight className="w-4 h-4 text-white/15 group-hover:text-orange-400/60 transition-colors shrink-0" />
                   </button>
                   <button onClick={() => deleteClient(client.id)} className="p-1.5 text-white/10 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
@@ -168,7 +168,7 @@ export default function CRM() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={addClient} className="w-full bg-orange-500 hover:bg-orange-600 text-white">Add Client</Button>
+            <Button onClick={addClient} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">Add Client</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -181,10 +181,12 @@ function ClientDetail({ client, onBack, onUpdate }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex items-center gap-3 px-8 py-5 border-b border-white/5">
-        <button onClick={onBack} className="text-white/30 hover:text-white/60 text-sm transition-colors">← Back</button>
-        <span className="text-white/15">/</span>
-        <span className="text-white font-bold text-sm tracking-wide">{client.business}</span>
+      <div className="relative overflow-hidden flex items-center gap-3 px-8 py-5 border-b border-orange-500/[0.12]">
+        <div className="absolute -top-8 right-1/3 w-32 h-32 rounded-full bg-orange-500/[0.05] blur-3xl pointer-events-none" />
+        <button onClick={onBack} className="relative text-white/30 hover:text-orange-400/70 text-sm transition-colors">← Back</button>
+        <span className="relative text-orange-500/40">/</span>
+        <div className="relative w-1 h-4 rounded-full bg-gradient-to-b from-orange-500 to-yellow-400 shadow-[0_0_10px_rgba(255,106,0,0.7)]" />
+        <span className="relative font-display font-bold text-sm tracking-[0.1em] bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{client.business}</span>
       </div>
       <div className="px-8 py-6">
         <Tabs defaultValue="overview" className="w-full">
@@ -251,7 +253,7 @@ function ContactTab({ client, update }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-6">
-        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+        <div className="game-panel p-5">
         <div className="flex items-center gap-4 mb-4">
           <input type="file" accept="image/*" onChange={handleLogoUpload} disabled={uploadingLogo} className="hidden" id="logo-upload" />
           <label htmlFor="logo-upload" className={`flex-shrink-0 w-16 h-16 rounded-lg border-2 border-dashed border-orange-500/30 flex items-center justify-center cursor-pointer hover:border-orange-500/60 transition-colors ${client.logoUrl ? 'bg-orange-500/5' : 'bg-white/[0.02]'}`}>
@@ -280,7 +282,7 @@ function ContactTab({ client, update }) {
         </div>
         <div className="border-t border-white/[0.04] pt-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Contact Details</h3>
+            <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Contact Details</h3>
           </div>
           {editing ? (
             <div className="space-y-3">
@@ -338,9 +340,9 @@ function ServicesTab({ client, update }) {
 
   return (
     <div className="space-y-4">
-      <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+      <div className="game-panel p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Services & Billing</h3>
+          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Services & Billing</h3>
           <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-orange-500/60 hover:text-orange-500 text-xs transition-colors"><Plus className="w-3.5 h-3.5" />Add Service</button>
         </div>
         <div className="space-y-2">
@@ -372,7 +374,7 @@ function ServicesTab({ client, update }) {
         </div>
         <div className="mt-4 pt-4 border-t border-white/[0.06] flex justify-between items-center">
           <span className="text-white/40 text-xs uppercase tracking-wider">Total Monthly</span>
-          <span className="text-orange-500 font-bold text-lg">${total}/mo</span>
+          <span className="font-display font-bold text-lg bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">${total}/mo</span>
         </div>
       </div>
       <BlogScheduleSection client={client} update={update} />
@@ -401,9 +403,9 @@ function BlogScheduleSection({ client, update }) {
   };
 
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+    <div className="game-panel p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Blog & Content Schedule</h3>
+        <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Blog & Content Schedule</h3>
         <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-orange-500/60 hover:text-orange-500 text-xs transition-colors"><Plus className="w-3.5 h-3.5" />Add Entry</button>
       </div>
       <div className="space-y-2">
@@ -464,8 +466,8 @@ function NotesTab({ client, update }) {
   };
 
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-      <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase mb-4">Internal Notes</h3>
+    <div className="game-panel p-5">
+      <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Internal Notes</h3>
       <div className="space-y-3 mb-4">
         {(client.notes || []).length === 0 && <p className="text-white/25 text-sm">No notes yet.</p>}
         {(client.notes || []).map((n) => (
@@ -493,7 +495,7 @@ function NotesTab({ client, update }) {
           <textarea value={newNote} onChange={(e) => setNewNote(e.target.value)} placeholder="Add a note..." className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 pr-9 text-sm text-white placeholder:text-white/20 outline-none resize-none min-h-[80px]" />
           <MicButton onResult={(t) => setNewNote((p) => p + (p ? " " : "") + t)} className="absolute top-2 right-1" />
         </div>
-        <button onClick={addNote} className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors self-end">Add</button>
+        <button onClick={addNote} className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-xs font-semibold rounded-lg transition-colors self-end">Add</button>
       </div>
     </div>
   );
@@ -522,11 +524,11 @@ function DocumentsTab({ client, update }) {
   const del = (id) => saveDocs((client.documents || []).filter((d) => d.id !== id));
 
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+    <div className="game-panel p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Documents</h3>
+        <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Documents</h3>
         <input ref={fileRef} type="file" multiple className="hidden" onChange={handleUpload} />
-        <Button onClick={() => fileRef.current.click()} disabled={uploading} className="bg-orange-500 hover:bg-orange-600 text-white h-8 gap-2 text-xs">
+        <Button onClick={() => fileRef.current.click()} disabled={uploading} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-8 gap-2 text-xs">
           <Upload className="w-3.5 h-3.5" />{uploading ? "Uploading..." : "Upload"}
         </Button>
       </div>
@@ -651,9 +653,9 @@ function MultiField({ label, icon: Icon, values, onAdd, onUpdate, onRemove }) {
 
             return (
               <div className="space-y-4">
-                <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+                <div className="game-panel p-5">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Active Tasks <span className="text-white/25 font-normal">({active.length})</span></h3>
+                    <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Active Tasks <span className="text-white/25 font-normal">({active.length})</span></h3>
                     <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-orange-500/70 hover:text-orange-500 text-xs transition-colors"><Plus className="w-3.5 h-3.5" />Add Task</button>
                   </div>
 
@@ -705,8 +707,8 @@ function MultiField({ label, icon: Icon, values, onAdd, onUpdate, onRemove }) {
           const requests = (client.requests || []).filter((r) => r.status !== "Completed");
 
           return (
-          <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase mb-4">Active Requests</h3>
+          <div className="game-panel p-5">
+          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Active Requests</h3>
           {requests.length === 0 ? (
           <p className="text-white/25 text-sm">No active requests. Requests submitted through the portal will appear here.</p>
           ) : (
@@ -733,9 +735,9 @@ function MultiField({ label, icon: Icon, values, onAdd, onUpdate, onRemove }) {
           const completed = (client.requests || []).filter((r) => r.status === "Completed").slice().reverse();
 
           return (
-          <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+          <div className="game-panel p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Completed Requests</h3>
+              <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Completed Requests</h3>
               <span className="text-white/25 text-xs">{completed.length} total</span>
             </div>
             {completed.length === 0 ? (
@@ -768,9 +770,9 @@ function MultiField({ label, icon: Icon, values, onAdd, onUpdate, onRemove }) {
           };
 
           return (
-          <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+          <div className="game-panel p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Completed Tasks</h3>
+              <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Completed Tasks</h3>
               <span className="text-white/25 text-xs">{tasks.length} total</span>
             </div>
             {tasks.length === 0 ? (

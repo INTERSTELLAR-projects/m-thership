@@ -39,7 +39,7 @@ const TOOLTIP_STYLE = {
 
 function StatCard({ label, value, sub, icon: Icon, color = "text-orange-500" }) {
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+    <div className="game-panel p-5">
       <div className="flex items-center justify-between mb-3">
         <Icon className={`w-4 h-4 ${color}`} />
       </div>
@@ -172,8 +172,8 @@ function TasksAnalytics() {
 
       {/* Charts row */}
       <div className="grid grid-cols-2 gap-5">
-        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Tasks Completed — Last 30 Days</h3>
+        <div className="game-panel p-5">
+          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Tasks Completed — Last 30 Days</h3>
           <ResponsiveContainer width="100%" height={180}>
             <AreaChart data={dailyData}>
               <defs>
@@ -191,8 +191,8 @@ function TasksAnalytics() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Actual Hours Logged — Weekly</h3>
+        <div className="game-panel p-5">
+          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Actual Hours Logged — Weekly</h3>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={actualWeeklyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
@@ -210,8 +210,8 @@ function TasksAnalytics() {
 
       {/* Bottom row */}
       <div className="grid grid-cols-2 gap-5">
-        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Status Breakdown</h3>
+        <div className="game-panel p-5">
+          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Status Breakdown</h3>
           <div className="space-y-3">
             {statusData.map((s) => {
               const pct = allTasks.length ? Math.round((s.count / allTasks.length) * 100) : 0;
@@ -230,8 +230,8 @@ function TasksAnalytics() {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Task Source & Time Breakdown</h3>
+        <div className="game-panel p-5">
+          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Task Source & Time Breakdown</h3>
           <div className="space-y-4">
             <div>
               <div className="flex justify-between mb-1.5"><span className="text-white/50 text-xs">Interstellar To-Do</span><span className="text-purple-400 text-xs font-bold">{items.filter(t=>t.done||t.status==="Completed").length} / {items.length}</span></div>
@@ -349,8 +349,8 @@ function ProjectsAnalytics() {
 
       {/* Charts row */}
       <div className="grid grid-cols-2 gap-5">
-        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Projects Completed — Weekly Pace</h3>
+        <div className="game-panel p-5">
+          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Projects Completed — Weekly Pace</h3>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={weeklyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
@@ -362,8 +362,8 @@ function ProjectsAnalytics() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Active Projects — Progress Distribution</h3>
+        <div className="game-panel p-5">
+          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Active Projects — Progress Distribution</h3>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={progressBuckets}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
@@ -378,8 +378,8 @@ function ProjectsAnalytics() {
 
       {/* Bottom row */}
       <div className="grid grid-cols-2 gap-5">
-        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Status Breakdown</h3>
+        <div className="game-panel p-5">
+          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Status Breakdown</h3>
           <div className="space-y-3">
             {Object.entries(statusGroups).map(([status, count]) => {
               const pct = all.length ? Math.round((count / all.length) * 100) : 0;
@@ -399,8 +399,8 @@ function ProjectsAnalytics() {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase mb-4">Division Breakdown</h3>
+        <div className="game-panel p-5">
+          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Division Breakdown</h3>
           <div className="space-y-4">
             <div>
               <div className="flex justify-between mb-1.5"><span className="text-white/50 text-xs">Web Øps</span><span className="text-blue-400 text-xs font-bold">{webOpsCompleted} / {webOps.length} completed</span></div>

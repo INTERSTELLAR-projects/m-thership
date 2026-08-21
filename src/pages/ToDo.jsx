@@ -53,7 +53,7 @@ function TimeEstimateSummary({ items }) {
       <div className="relative flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
           <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(255,106,0,0.8)]" />
-          <h2 className="text-white/85 font-display font-bold text-[11px] tracking-[0.25em] uppercase">Time Estimate Overview</h2>
+          <h2 className="font-display font-bold text-[11px] tracking-[0.25em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Time Estimate Overview</h2>
         </div>
         <span className="text-white/25 text-[10px] tracking-widest uppercase font-medium">
           {totalAll > 0 ? formatTotal(totalAll) : "—"} total
@@ -185,7 +185,7 @@ export default function ToDo() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="active" className="mt-0">
-              <button onClick={() => setAdding(true)} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors">
+              <button onClick={() => setAdding(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-xs font-semibold rounded-lg transition-colors">
                 <Plus className="w-4 h-4" />Add Task
               </button>
             </TabsContent>
@@ -247,15 +247,15 @@ function DoneTab({ items, onDelete }) {
     <div className="space-y-5">
       {/* Summary row */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-card rounded-xl border border-white/[0.06] p-4 text-center">
+        <div className="game-panel p-4 text-center">
           <p className="text-green-400 text-2xl font-bold">{items.length}</p>
           <p className="text-white/30 text-xs mt-1 uppercase tracking-wider">Tasks Completed</p>
         </div>
-        <div className="bg-card rounded-xl border border-white/[0.06] p-4 text-center">
+        <div className="game-panel p-4 text-center">
           <p className="text-orange-400 text-2xl font-bold">{totalActualHours > 0 ? formatTotal(totalActualHours) : "—"}</p>
           <p className="text-white/30 text-xs mt-1 uppercase tracking-wider">Actual Time Logged</p>
         </div>
-        <div className="bg-card rounded-xl border border-white/[0.06] p-4 text-center">
+        <div className="game-panel p-4 text-center">
           <p className="text-blue-400 text-2xl font-bold">{totalEstHours > 0 ? formatTotal(totalEstHours) : "—"}</p>
           <p className="text-white/30 text-xs mt-1 uppercase tracking-wider">Total Estimated Time</p>
         </div>
@@ -309,11 +309,11 @@ function CategorySection({ category, items, editId, editForm, setEditForm, onEdi
   return (
     <div>
       <div className="flex items-center gap-3 mb-3">
-        <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase">{category}</h2>
+        <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{category}</h2>
         <span className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border ${catColor}`}>{items.length} task{items.length !== 1 ? "s" : ""}</span>
       </div>
       {items.length === 0 ? (
-        <div className="bg-card rounded-xl border border-white/[0.06] p-6 text-center">
+        <div className="game-panel p-6 text-center">
           <p className="text-white/20 text-sm">No {category} tasks yet.</p>
         </div>
       ) : (
@@ -333,7 +333,7 @@ function CategorySection({ category, items, editId, editForm, setEditForm, onEdi
 function TaskRow({ item, onEdit, onDelete, onSetStatus }) {
   const currentStatus = item.status || "Pending";
   return (
-    <div className="card-hover bg-card rounded-xl border border-white/[0.06] p-4 flex items-start gap-4 group">
+    <div className="card-hover game-panel p-4 flex items-start gap-4 group">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-white/85">{item.title}</p>
         {item.description && <p className="text-white/35 text-xs mt-1 leading-relaxed">{item.description}</p>}

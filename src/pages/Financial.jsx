@@ -155,13 +155,13 @@ export default function Financial() {
             </div>
             {upcoming.length > 0 && (
               <div>
-                <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase mb-3">Upcoming Expenses</h2>
+                <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-3">Upcoming Expenses</h2>
                 <div className="grid grid-cols-2 gap-3">
                   {upcoming.map((e) => (
                     <div key={e.id} className={`bg-card rounded-xl border p-4 flex items-center gap-4 ${e.status === "Overdue" ? "border-red-500/20" : "border-white/[0.06]"}`}>
-                      <div className="w-9 h-9 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/30 text-xs font-bold shrink-0">{e.platform?.charAt(0)}</div>
+                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 font-display font-extrabold text-xs shrink-0">{e.platform?.charAt(0)}</div>
                       <div className="flex-1 min-w-0"><p className="text-white/85 text-sm font-medium truncate">{e.platform}</p><p className="text-white/25 text-xs">{formatDueDate(e.dueDate)}</p></div>
-                      <div className="text-right shrink-0"><p className="text-orange-500 text-sm font-bold">${e.amount.toFixed(2)}</p><StatusBadge status={e.status} /></div>
+                      <div className="text-right shrink-0"><p className="text-sm font-display font-bold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">${e.amount.toFixed(2)}</p><StatusBadge status={e.status} /></div>
                     </div>
                   ))}
                 </div>
@@ -169,7 +169,7 @@ export default function Financial() {
             )}
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase mr-2">All Expenses</h2>
+                <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mr-2">All Expenses</h2>
                 {["All", "Monthly", "Quarterly", "Annually"].map((f) => <FilterPill key={f} label={f} active={freqFilter === f} onClick={() => setFreqFilter(f)} />)}
                 <span className="text-white/10 mx-1">|</span>
                 {["All", "Upcoming", "Paid", "Overdue"].map((f) => <FilterPill key={f} label={f} active={statusFilter === f} onClick={() => setStatusFilter(f)} danger={f === "Overdue"} />)}
@@ -200,7 +200,7 @@ export default function Financial() {
 
             {managingCats && (
               <div className="bg-card rounded-xl border border-white/[0.08] p-5 space-y-3">
-                <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Manage Categories</h3>
+                <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Manage Categories</h3>
                 <DragDropContext onDragEnd={(result) => {
                   if (!result.destination) return;
                   const next = Array.from(categories);
@@ -243,7 +243,7 @@ export default function Financial() {
                 </DragDropContext>
                 <div className="flex gap-2 pt-1">
                   <input placeholder="New category..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } } }} className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none" />
-                  <button onClick={() => { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } }} className="px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
+                  <button onClick={() => { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } }} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
                 </div>
               </div>
             )}
@@ -256,8 +256,8 @@ export default function Financial() {
                 return (
                   <div key={cat}>
                     <div className="flex items-center justify-between mb-3">
-                      <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase">{cat}</h2>
-                      <span className="text-orange-500 text-xs font-bold">${total.toFixed(2)}/mo equiv.</span>
+                      <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{cat}</h2>
+                      <span className="text-xs font-display font-bold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">${total.toFixed(2)}/mo equiv.</span>
                     </div>
                     <div className="space-y-2">
                       {items.map((expense) => (
@@ -305,7 +305,7 @@ function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave,
 
   return (
     <div className={`card-hover bg-card rounded-xl border p-4 flex items-center gap-5 group ${expense.status === "Overdue" ? "border-red-500/15" : expense.status === "Paid" ? "border-green-500/10 opacity-70" : "border-white/[0.06]"}`}>
-      <div className="w-10 h-10 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/30 text-xs font-bold shrink-0">{expense.platform?.charAt(0)}</div>
+      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 font-display font-extrabold text-xs shrink-0">{expense.platform?.charAt(0)}</div>
       <div className="flex-1 min-w-0">
         <span className="text-white/85 text-sm font-medium">{expense.platform}</span>
         <div className="flex items-center gap-2 mt-0.5">
@@ -314,7 +314,7 @@ function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave,
           <span className="text-white/20 text-xs">Due {formatDueDate(expense.dueDate)}</span>
         </div>
       </div>
-      <p className="text-orange-500 text-sm font-bold w-16 text-right shrink-0">${expense.amount.toFixed(2)}</p>
+      <p className="text-sm font-display font-bold w-16 text-right shrink-0 bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">${expense.amount.toFixed(2)}</p>
       <button onClick={onEdit} className="p-1.5 rounded-md hover:bg-white/5 text-white/15 hover:text-white/50 transition-all shrink-0"><Edit className="w-3.5 h-3.5" /></button>
       <button onClick={onDelete} className="p-1.5 rounded-md hover:bg-white/5 text-white/15 hover:text-red-400/50 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
       <div className="shrink-0">
@@ -342,7 +342,7 @@ function AddExpenseDialog({ onAdd, categories }) {
   };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button className="bg-orange-500 hover:bg-orange-600 text-white h-9 gap-2"><Plus className="w-4 h-4" />Add Expense</Button></DialogTrigger>
+      <DialogTrigger asChild><Button className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Plus className="w-4 h-4" />Add Expense</Button></DialogTrigger>
       <DialogContent className="bg-card border-white/[0.06] text-white">
         <DialogHeader><DialogTitle className="text-white">Add New Expense</DialogTitle></DialogHeader>
         <div className="space-y-4 pt-2">
@@ -366,7 +366,7 @@ function AddExpenseDialog({ onAdd, categories }) {
               <SelectContent className="bg-card border-white/[0.06]">{categories.map((c) => <SelectItem key={c} value={c} className="text-white/70">{c}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <Button onClick={handleAdd} className="w-full bg-orange-500 hover:bg-orange-600 text-white">Add Expense</Button>
+          <Button onClick={handleAdd} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">Add Expense</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -380,12 +380,12 @@ function StatusBadge({ status }) {
 }
 
 function FilterPill({ label, active, onClick, danger }) {
-  return <button onClick={onClick} className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${active ? danger ? "bg-red-500/15 text-red-400 border border-red-500/20" : "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{label}</button>;
+  return <button onClick={onClick} className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${active ? danger ? "bg-red-500/15 text-red-400 border border-red-500/20" : "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{label}</button>;
 }
 
 function SummaryCard({ icon: Icon, label, value, danger }) {
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+    <div className="game-panel p-5">
       <div className="flex items-center gap-2 mb-3"><Icon className={`w-4 h-4 ${danger ? "text-red-400/60" : "text-white/25"}`} /><span className="text-white/30 text-xs">{label}</span></div>
       <p className={`text-xl font-bold ${danger ? "text-red-400/80" : "text-white/80"}`}>{value}</p>
     </div>
