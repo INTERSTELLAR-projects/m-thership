@@ -34,6 +34,24 @@ function applyVoice(utt) {
   utt.rate = 0.96; utt.pitch = 1.04; utt.volume = 1.0;
 }
 
+// ── Count-up helper for animated metrics ────────────────────────────────────
+function CountUp({ target, prefix = "$", duration = 900 }) {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    let raf;
+    const start = performance.now();
+    const step = (t) => {
+      const p = Math.min(1, (t - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setVal(target * eased);
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target]);
+  return <>{prefix}{Math.round(val).toLocaleString("en-US")}</>;
+}
+
 // ── Arc reactor (orange/yellow) ──────────────────────────────────────────────
 function ArcReactor({ pulse, isSpeaking }) {
   const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -135,6 +153,7 @@ export default function BriefingHUD({ data, onClose }) {
   const [exiting, setExiting] = useState(false);
   const [time, setTime] = useState(new Date());
   const [cycle, setCycle] = useState(0);
+  const [badge, setBadge] = useState(null);
   const pulseRef = useRef(0);
   const cancelledRef = useRef(false);
   const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -156,6 +175,14 @@ export default function BriefingHUD({ data, onClose }) {
     if (section !== 1 && section !== 2) return;
     const id = setInterval(() => setCycle(c => c + 1), 2100);
     return () => clearInterval(id);
+  }, [section]);
+
+  // Achievement pop whenever a new section begins
+  useEffect(() => {
+    if (section <= 0) return;
+    setBadge(`${STEPS[section].label} cleared`);
+    const id = setTimeout(() => setBadge(null), 1700);
+    return () => clearTimeout(id);
   }, [section]);
 
   useEffect(() => {
@@ -238,6 +265,7 @@ export default function BriefingHUD({ data, onClose }) {
         @keyframes grid-drift { 0% { background-position: 0 0; } 100% { background-position: 40px 40px; } }
         @keyframes particle-float { 0%,100% { transform: translateY(0px) translateX(0px); opacity:0.4; } 50% { transform: translateY(-18px) translateX(8px); opacity: 0.7; } }
         @keyframes goal-pulse { 0%,100% { box-shadow: 0 0 16px rgba(255,170,0,0.35); } 50% { box-shadow: 0 0 28px rgba(255,170,0,0.65); } }
+        @keyframes badge-pop { from { opacity: 0; transform: translateY(10px) scale(0.9); } 12% { opacity: 1; transform: none; } 80% { opacity: 1; } to { opacity: 0; transform: translateY(-8px); } }
       `}</style>
 
       <div onClick={dismiss} style={{
@@ -391,8 +419,8 @@ export default function BriefingHUD({ data, onClose }) {
               {section === 3 && (
                 <StageCard title="30-DAY MOMENTUM" sub="revenue & client growth" icon={TrendingUp}>
                   <div className="slide-in" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 18 }}>
-                    <Metric label="30 DAYS AGO" value={fmt$(pastSafe)} color="#FACC15" />
-                    <Metric label="TODAY" value={fmt$(mrr)} color="#FF8C00" highlight />
+                    <Metric label="30 DAYS AGO" num={pastSafe} color="#FACC15" />
+                    <Metric label="TODAY" num={mrr} color="#FF8C00" highlight />
                   </div>
                   <div className="slide-in" style={{
                     display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 12,
@@ -404,12 +432,12 @@ export default function BriefingHUD({ data, onClose }) {
                     <div>
                       <div style={{ fontSize: 10, letterSpacing: "0.2em", color: "#FACC15", opacity: 0.7 }}>MRR {gainedSafe >= 0 ? "GAINED" : "DROPPED"}</div>
                       <div style={{ fontSize: 24, fontWeight: 800, color: gainedSafe >= 0 ? "#4ADE80" : "#F47C20" }}>
-                        {gainedSafe >= 0 ? "+" : "−"}{fmt$(Math.abs(gainedSafe))}
+                        {gainedSafe >= 0 ? "+" : "−"}<CountUp target={Math.abs(gainedSafe)} prefix="$" />
                       </div>
                     </div>
                     <div style={{ marginLeft: "auto", textAlign: "right" }}>
                       <div style={{ fontSize: 10, letterSpacing: "0.2em", color: "#FACC15", opacity: 0.7 }}>NEW CLIENTS</div>
-                      <div style={{ fontSize: 24, fontWeight: 800, color: "#FFE7B3" }}>{addedSafe}</div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: "#FFE7B3" }}><CountUp target={addedSafe} prefix="" /></div>
                     </div>
                   </div>
                 </StageCard>
@@ -419,10 +447,10 @@ export default function BriefingHUD({ data, onClose }) {
               {section === 4 && (
                 <StageCard title="FINANCIAL SNAPSHOT" sub="monthly recurring revenue" icon={DollarSign}>
                   <div className="slide-in" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 22 }}>
-                    <Metric label="MRR" value={fmt$(mrr)} color="#FF8C00" highlight />
-                    <Metric label="ARR" value={fmt$(arr)} color="#FACC15" />
-                    <Metric label="GOAL" value={fmt$(MRR_GOAL)} color="#FFE7B3" />
-                    <Metric label="GAP" value={gap > 0 ? fmt$(gap) : "✓"} color={gap > 0 ? "#F47C20" : "#4ADE80"} />
+                    <Metric label="MRR" num={mrr} color="#FF8C00" highlight />
+                    <Metric label="ARR" num={arr} color="#FACC15" />
+                    <Metric label="GOAL" num={MRR_GOAL} color="#FFE7B3" />
+                    <Metric label="GAP" num={gap > 0 ? gap : undefined} value={gap > 0 ? undefined : "✓"} color={gap > 0 ? "#F47C20" : "#4ADE80"} />
                   </div>
                   <div className="slide-in">
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
@@ -489,6 +517,40 @@ export default function BriefingHUD({ data, onClose }) {
           </div>
         </div>
 
+        {/* Gamified session XP bar */}
+        <div style={{ position: "absolute", left: 28, right: 28, bottom: 16, pointerEvents: "none" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
+            <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.22em", color: "#FACC15", opacity: 0.85 }}>SESSION XP</span>
+            <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.15em", color: section >= 6 ? "#4ADE80" : "#FF8C00" }}>
+              {section >= 0 ? `${String(section + 1).padStart(2, "0")} / 07` : "STANDBY"} · {section >= 0 ? STEPS[section].label.toUpperCase() : "READY"}
+            </span>
+          </div>
+          <div style={{ height: 8, background: "rgba(255,150,0,0.08)", borderRadius: 4, overflow: "hidden", border: "1px solid rgba(255,150,0,0.12)" }}>
+            <div style={{
+              height: "100%", borderRadius: 4,
+              background: section >= 6 ? "linear-gradient(90deg,#4ADE80,#FACC15)" : "linear-gradient(90deg,#F47C20,#FF8C00,#FACC15)",
+              width: `${((Math.max(0, section) + 1) / STEPS.length) * 100}%`,
+              transition: "width 0.7s ease",
+              boxShadow: "0 0 12px rgba(255,170,0,0.6)",
+            }} />
+          </div>
+        </div>
+
+        {badge && section > 0 && (
+          <div style={{
+            position: "absolute", right: 32, bottom: 46, pointerEvents: "none",
+            display: "flex", alignItems: "center", gap: 10,
+            padding: "10px 16px", borderRadius: 10,
+            border: "1px solid rgba(244,124,32,0.45)",
+            background: "linear-gradient(135deg, rgba(244,124,32,0.18), rgba(250,204,21,0.06))",
+            boxShadow: "0 0 20px rgba(255,170,0,0.3)",
+            animation: "badge-pop 1.7s ease-out forwards",
+          }}>
+            <CheckCircle2 size={16} color="#FACC15" style={{ filter: "drop-shadow(0 0 6px rgba(250,204,21,0.7))" }} />
+            <span style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: "0.15em", color: "#FFE7B3", textTransform: "uppercase" }}>{badge}</span>
+          </div>
+        )}
+
         {!booted && (
           <div style={{ position: "absolute", inset: 0, top: 44, display: "flex", alignItems: "center", justifyContent: "center" }}
             onClick={e => e.stopPropagation()}>
@@ -542,7 +604,7 @@ function SpotlightRow({ children, active, index, accent = "orange" }) {
   );
 }
 
-function Metric({ label, value, color, highlight }) {
+function Metric({ label, value, num, prefix = "$", color, highlight }) {
   return (
     <div style={{
       padding: "14px 16px", borderRadius: 12,
@@ -551,7 +613,9 @@ function Metric({ label, value, color, highlight }) {
       boxShadow: highlight ? "0 0 16px rgba(255,170,0,0.2)" : "none",
     }}>
       <div style={{ fontSize: 9, letterSpacing: "0.2em", color: "#FACC15", opacity: 0.65, marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 22, fontWeight: 800, color, textShadow: highlight ? `0 0 12px ${color}` : "none" }}>{value}</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color, textShadow: highlight ? `0 0 12px ${color}` : "none" }}>
+        {num !== undefined ? <CountUp target={num} prefix={prefix} /> : value}
+      </div>
     </div>
   );
 }
