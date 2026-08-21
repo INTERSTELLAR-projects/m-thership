@@ -30,7 +30,16 @@ function pickVoice() {
 }
 
 function applyVoice(utt) {
-  const v = pickVoice(); if (v) utt.voice = v;
+  const voices = window.speechSynthesis.getVoices();
+  let v = null;
+  try {
+    const uri = localStorage.getItem("briefing_voice_uri");
+    const name = localStorage.getItem("briefing_voice_name");
+    if (uri) v = voices.find((x) => x.voiceURI === uri);
+    if (!v && name) v = voices.find((x) => x.name === name);
+  } catch (e) {}
+  if (!v) v = pickVoice();
+  if (v) utt.voice = v;
   utt.rate = 0.95; utt.pitch = 0.92; utt.volume = 1.0;
 }
 
@@ -154,6 +163,9 @@ export default function BriefingHUD({ data, onClose }) {
   const [time, setTime] = useState(new Date());
   const [cycle, setCycle] = useState(0);
   const [badge, setBadge] = useState(null);
+  const [voices, setVoices] = useState([]);
+  const [selURI, setSelURI] = useState(() => (typeof localStorage !== "undefined" && localStorage.getItem("briefing_voice_uri")) || "");
+  const [started, setStarted] = useState(false);
   const pulseRef = useRef(0);
   const cancelledRef = useRef(false);
   const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -184,6 +196,29 @@ export default function BriefingHUD({ data, onClose }) {
     const id = setTimeout(() => setBadge(null), 1700);
     return () => clearTimeout(id);
   }, [section]);
+
+  // Load available speech voices
+  useEffect(() => {
+    const load = () => setVoices(window.speechSynthesis.getVoices());
+    load();
+    window.speechSynthesis.onvoiceschanged = load;
+    return () => { window.speechSynthesis.onvoiceschanged = null; };
+  }, []);
+
+  const previewVoice = (v) => {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance("Good morning, Justin. Here is your daily briefing.");
+    u.voice = v; u.rate = 0.95; u.pitch = 0.92; window.speechSynthesis.speak(u);
+  };
+  const selectVoice = (v) => {
+    setSelURI(v.voiceURI);
+    try { localStorage.setItem("briefing_voice_uri", v.voiceURI); localStorage.setItem("briefing_voice_name", v.name); } catch (e) {}
+  };
+  const beginBriefing = () => {
+    window.speechSynthesis.cancel();
+    setStarted(true);
+    startBriefing();
+  };
 
 
   useEffect(() => {
@@ -552,14 +587,59 @@ export default function BriefingHUD({ data, onClose }) {
           </div>
         )}
 
+        {booted && !started && (
+          <VoicePicker
+            voices={voices}
+            selURI={selURI}
+            onSelect={selectVoice}
+            onPreview={previewVoice}
+            onBegin={beginBriefing}
+          />
+        )}
+
         {!booted && (
           <div style={{ position: "absolute", inset: 0, top: 44, display: "flex", alignItems: "center", justifyContent: "center" }}
             onClick={e => e.stopPropagation()}>
-            <BootLog onDone={() => { setBooted(true); startBriefing(); }} />
+            <BootLog onDone={() => setBooted(true)} />
           </div>
         )}
       </div>
     </>
+  );
+}
+
+// ── Voice picker (shown before briefing begins) ───────────────────────────────
+function VoicePicker({ voices, selURI, onSelect, onPreview, onBegin }) {
+  const en = voices.filter((v) => v.lang && v.lang.toLowerCase().startsWith("en")).sort((a, b) => a.name.localeCompare(b.name));
+  const list = en.length ? en : voices;
+  return (
+    <div style={{ position: "absolute", inset: 0, top: 44, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(12,8,2,0.6)", pointerEvents: "auto" }} onClick={(e) => e.stopPropagation()}>
+      <div style={{ width: 540, maxHeight: "72vh", display: "flex", flexDirection: "column", borderRadius: 16, border: "1px solid rgba(244,124,32,0.4)", background: "linear-gradient(160deg, rgba(20,12,4,0.96), rgba(30,18,6,0.94))", boxShadow: "0 0 40px rgba(255,170,0,0.18)", overflow: "hidden" }}>
+        <div style={{ padding: "18px 20px 12px", borderBottom: "1px solid rgba(255,150,0,0.12)" }}>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: "0.08em", background: "linear-gradient(90deg,#FF8C00,#FACC15)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>SELECT BRIEFING VOICE</h2>
+          <p style={{ margin: "4px 0 0", fontFamily: "monospace", fontSize: 10, letterSpacing: "0.15em", color: "#FACC15", opacity: 0.6 }}>TAP A VOICE · HIT PREVIEW TO HEAR IT</p>
+        </div>
+        <div style={{ flex: 1, overflowY: "auto", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
+          {list.length === 0 && <div style={{ padding: 24, textAlign: "center", color: "#FACC15", opacity: 0.5, fontFamily: "monospace", fontSize: 11 }}>LOADING VOICES…</div>}
+          {list.map((v) => {
+            const active = selURI === v.voiceURI;
+            return (
+              <div key={v.voiceURI} onClick={() => onSelect(v)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 9, border: `1px solid ${active ? "rgba(244,124,32,0.55)" : "rgba(255,150,0,0.08)"}`, background: active ? "linear-gradient(90deg, rgba(244,124,32,0.16), transparent)" : "transparent", cursor: "pointer", transition: "all 0.2s" }}>
+                <div style={{ width: 10, height: 10, borderRadius: "50%", border: `2px solid ${active ? "#FF8C00" : "rgba(255,150,0,0.3)"}`, background: active ? "#FF8C00" : "transparent", boxShadow: active ? "0 0 8px rgba(255,170,0,0.6)" : "none" }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ color: active ? "#FFE7B3" : "rgba(255,220,180,0.85)", fontSize: 13, fontWeight: 600 }}>{v.name}</div>
+                  <div style={{ color: "#FACC15", fontSize: 10, fontFamily: "monospace", opacity: 0.55 }}>{v.lang}</div>
+                </div>
+                <button onClick={(e) => { e.stopPropagation(); onPreview(v); }} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid rgba(244,124,32,0.4)", background: "rgba(244,124,32,0.1)", color: "#FF8C00", fontSize: 10, letterSpacing: "0.1em", cursor: "pointer" }}>PREVIEW</button>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ padding: 14, borderTop: "1px solid rgba(255,150,0,0.12)", display: "flex", justifyContent: "flex-end" }}>
+          <button onClick={onBegin} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#F47C20,#FACC15)", color: "#1a0d00", fontWeight: 800, fontSize: 13, letterSpacing: "0.1em", cursor: "pointer", boxShadow: "0 0 18px rgba(255,170,0,0.4)" }}>BEGIN BRIEFING →</button>
+        </div>
+      </div>
+    </div>
   );
 }
 
