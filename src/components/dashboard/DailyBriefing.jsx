@@ -47,6 +47,12 @@ export default function DailyBriefing() {
       sum + (c.services || []).reduce((s, sv) => s + (sv.price || 0), 0), 0
     );
 
+    const now = new Date();
+    const thirtyAgo = new Date(now); thirtyAgo.setDate(thirtyAgo.getDate() - 30);
+    const pastMrr = (crmClients || []).filter((c) => new Date(c.created_date) <= thirtyAgo)
+      .reduce((sum, c) => sum + (c.services || []).reduce((s, sv) => s + (sv.price || 0), 0), 0);
+    const clientsAdded30 = (crmClients || []).filter((c) => new Date(c.created_date) >= thirtyAgo).length;
+
     let planToExecute = null;
     try {
       const rows = await base44.entities.AppSettings.filter({ key: "financial_panel" }, "-created_date", 1);
@@ -59,6 +65,9 @@ export default function DailyBriefing() {
       tasks: tasks || [],
       orbitClients: orbitClients || [],
       mrr,
+      pastMrr,
+      mrrGained: mrr - pastMrr,
+      clientsAdded30,
       planToExecute,
       weekday: WEEKDAY_NAMES[today.getDay()],
       month: MONTH_NAMES[today.getMonth()],
