@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Loader2, Zap } from "lucide-react";
+import { Loader2, Zap, Hammer } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
 import CompleteTaskModal from "@/components/CompleteTaskModal";
@@ -50,11 +50,7 @@ export default function PriorityTasks() {
   const handleConfirmComplete = async (timeData) => {
     const task = completingTask;
     setCompletingTask(null);
-    await base44.entities.ToDoItem.update(task.id, {
-      status: "Completed",
-      done: true,
-      ...timeData,
-    });
+    await base44.entities.ToDoItem.update(task.id, { status: "Completed", done: true, ...timeData });
     setItems((prev) => prev.filter((i) => i.id !== task.id));
   };
 
@@ -75,8 +71,9 @@ export default function PriorityTasks() {
     setEditingTask(null);
   };
 
-  const inProgressItems = items.filter((i) => (i.status || "Pending") === "In Progress");
-  const otherItems = items.filter((i) => (i.status || "Pending") !== "In Progress");
+  const websiteBuilds = items.filter((i) => i.taskType === "New Website Build");
+  const inProgressItems = items.filter((i) => (i.status || "Pending") === "In Progress" && i.taskType !== "New Website Build");
+  const otherItems = items.filter((i) => (i.status || "Pending") !== "In Progress" && i.taskType !== "New Website Build");
 
   return (
     <>
@@ -120,6 +117,21 @@ export default function PriorityTasks() {
           </div>
         ) : (
           <div className="space-y-4">
+            {websiteBuilds.length > 0 && (
+              <div className="rounded-xl border border-yellow-400/25 bg-gradient-to-b from-yellow-500/[0.07] to-yellow-500/[0.02] p-3 shadow-[0_0_18px_rgba(250,204,21,0.16)]">
+                <div className="flex items-center gap-1.5 mb-2.5 px-1">
+                  <Hammer className="w-3.5 h-3.5 text-yellow-400" />
+                  <span className="text-yellow-400 text-[10px] font-bold tracking-[0.15em] uppercase">Newest Websites to Build</span>
+                  <span className="ml-auto text-yellow-400/50 text-[10px] font-semibold">{websiteBuilds.length} queued</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {websiteBuilds.map((item) => (
+                    <PriorityTaskCard key={item.id} item={item} glowYellow onEdit={openEdit} setStatus={setStatus} />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {inProgressItems.length > 0 && (
               <div className="rounded-xl border border-orange-500/25 bg-orange-500/[0.04] p-3 shadow-orange-glow">
                 <div className="flex items-center gap-1.5 mb-2.5 px-1">

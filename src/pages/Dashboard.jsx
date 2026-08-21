@@ -3,7 +3,6 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { GripVertical, Settings, X, Plus } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import ClientContentSchedule from "../components/dashboard/ClientContentSchedule";
-import ClientOperations from "../components/dashboard/ClientOperations";
 import ActiveSubscriptions from "../components/dashboard/ActiveSubscriptions";
 import FinancialPanel from "../components/dashboard/FinancialPanel";
 import PriorityTasks from "../components/dashboard/PriorityTasks";
@@ -14,14 +13,13 @@ import MinusculeProjects from "../components/dashboard/MinusculeProjects";
 const ALL_WIDGETS = [
   { id: "priority", label: "Priority Tasks" },
   { id: "content-schedule", label: "Client Content Schedule" },
-  { id: "client-ops", label: "Client Operations" },
   { id: "subscriptions", label: "Active Subscriptions" },
   { id: "financial", label: "Financial Panel" },
   { id: "project-progress", label: "Project Progress" },
   { id: "minuscule-projects", label: "Minuscule Projects" },
 ];
 
-const DEFAULT_ACTIVE = ["priority", "content-schedule", "client-ops", "subscriptions", "financial"];
+const DEFAULT_ACTIVE = ["priority", "content-schedule", "subscriptions", "financial"];
 
 const STORAGE_KEY = "dashboard_widget_order_v3";
 
@@ -41,7 +39,6 @@ function WidgetRenderer({ id }) {
   switch (id) {
     case "priority": return <PriorityTasks />;
     case "content-schedule": return <ClientContentSchedule />;
-    case "client-ops": return <ClientOperations />;
     case "subscriptions": return <div className="px-8 pt-6"><ActiveSubscriptions /></div>;
     case "financial": return <div className="px-8 pt-6"><FinancialPanel /></div>;
     case "project-progress": return <ProjectProgressDashboard />;
