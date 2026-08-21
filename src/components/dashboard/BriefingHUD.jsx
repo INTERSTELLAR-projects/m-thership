@@ -21,17 +21,17 @@ function fmt$(n) { return "$" + Math.round(n).toLocaleString("en-US"); }
 
 function pickVoice() {
   const voices = window.speechSynthesis.getVoices();
-  const kw = ["Female","Sonia","Libby","Hazel","Kate","Serena","Stephanie","Aria","Jenny","Google UK English Female","Google US English"];
-  return voices.find(v => kw.some(k => v.name.includes(k)))
-    || voices.find(v => v.lang.startsWith("en-US"))
+  const kw = ["Daniel","Oliver","George","Arthur","Rishi","Google UK English Male","UK English Male","Male UK","Jack","Thomas","Microsoft George"];
+  return voices.find(v => kw.some(k => v.name.toLowerCase().includes(k.toLowerCase())))
+    || voices.find(v => v.lang.startsWith("en-GB") && /male|daniel|oliver|george|arthur/i.test(v.name))
     || voices.find(v => v.lang.startsWith("en-GB"))
-    || voices.find(v => v.name.includes("Female"))
+    || voices.find(v => /male/i.test(v.name) && v.lang.startsWith("en"))
     || voices[0] || null;
 }
 
 function applyVoice(utt) {
   const v = pickVoice(); if (v) utt.voice = v;
-  utt.rate = 0.96; utt.pitch = 1.04; utt.volume = 1.0;
+  utt.rate = 0.88; utt.pitch = 0.76; utt.volume = 1.0;
 }
 
 // ── Count-up helper for animated metrics ────────────────────────────────────
@@ -155,6 +155,9 @@ export default function BriefingHUD({ data, onClose }) {
   const [cycle, setCycle] = useState(0);
   const [badge, setBadge] = useState(null);
   const pulseRef = useRef(0);
+  const beatCtx = useRef(null);
+  const beatTimer = useRef(null);
+  const beatDrone = useRef(null);
   const cancelledRef = useRef(false);
   const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
@@ -185,6 +188,57 @@ export default function BriefingHUD({ data, onClose }) {
     return () => clearTimeout(id);
   }, [section]);
 
+  // Mission beat — rolling low electronic bed
+  useEffect(() => {
+    const beatActive = booted && !exiting;
+    if (!beatActive) {
+      try {
+        if (beatTimer.current) { clearInterval(beatTimer.current); beatTimer.current = null; }
+        const d = beatDrone.current; if (d) { d.o1.stop(); d.o2.stop(); d.lfo.stop(); }
+        if (beatCtx.current) { beatCtx.current.close(); }
+      } catch (e) {}
+      beatDrone.current = null; beatCtx.current = null;
+      return;
+    }
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      const ctxX = new AC();
+      beatCtx.current = ctxX;
+      ctxX.resume && ctxX.resume();
+      const master = ctxX.createGain(); master.gain.value = 0.12; master.connect(ctxX.destination);
+      const lp = ctxX.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 240;
+      const o1 = ctxX.createOscillator(); o1.type = "sawtooth"; o1.frequency.value = 55;
+      const o2 = ctxX.createOscillator(); o2.type = "sawtooth"; o2.frequency.value = 58.7;
+      const dg = ctxX.createGain(); dg.gain.value = 0.045;
+      const lfo = ctxX.createOscillator(); lfo.frequency.value = 0.16;
+      const lfoG = ctxX.createGain(); lfoG.gain.value = 0.022;
+      o1.connect(dg); o2.connect(dg); dg.connect(lp); lp.connect(master);
+      lfo.connect(lfoG); lfoG.connect(dg.gain);
+      o1.start(); o2.start(); lfo.start();
+      beatDrone.current = { o1, o2, lfo };
+      const kick = () => {
+        const t = ctxX.currentTime;
+        const o = ctxX.createOscillator(); o.type = "sine";
+        o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.13);
+        const g = ctxX.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.6, t + 0.005);
+        g.gain.exponentialRampToValueAtTime(0.0008, t + 0.22);
+        o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.24);
+      };
+      kick();
+      beatTimer.current = setInterval(kick, 600);
+    } catch (e) {}
+    return () => {
+      try {
+        if (beatTimer.current) { clearInterval(beatTimer.current); beatTimer.current = null; }
+        const d = beatDrone.current; if (d) { d.o1.stop(); d.o2.stop(); d.lfo.stop(); }
+        if (beatCtx.current) { beatCtx.current.close(); }
+      } catch (e) {}
+      beatDrone.current = null; beatCtx.current = null;
+    };
+  }, [booted, exiting]);
+
   useEffect(() => {
     const handler = (e) => { if (e.key === "Escape") dismiss(); };
     window.addEventListener("keydown", handler);
@@ -201,7 +255,7 @@ export default function BriefingHUD({ data, onClose }) {
     if (cancelledRef.current) return;
     window.speechSynthesis.cancel();
     const scripts = [
-      `Good morning, Justin. Here's your briefing for ${weekday}, ${month} ${day}. Let's get into it.`,
+      `Good morning, Justin. This is your mission briefing for ${weekday}, ${month} ${day}. Stand by.`,
       taskTitles.length === 0
         ? "Your priority list is clear today — nice work staying ahead."
         : (() => {
