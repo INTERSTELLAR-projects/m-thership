@@ -21,27 +21,18 @@ function fmt$(n) { return "$" + Math.round(n).toLocaleString("en-US"); }
 
 function pickVoice() {
   const voices = window.speechSynthesis.getVoices();
-  const kw = ["Daniel","Oliver","Google UK English Male","UK English Male","Microsoft George","Microsoft Ryan","Arthur","Rishi"];
-  return voices.find(v => kw.some(k => v.name.toLowerCase().includes(k.toLowerCase())))
-    || voices.find(v => v.lang.startsWith("en-GB") && /male|daniel|oliver|george|ryan|arthur/i.test(v.name))
-    || voices.find(v => v.lang.startsWith("en-GB"))
-    || voices.find(v => /male/i.test(v.name) && v.lang.startsWith("en"))
-    || voices.find(v => v.lang.startsWith("en-US"))
+  return voices.find(v => v.name === "Google UK English Female")
+    || voices.find(v => /Google UK English Female/i.test(v.name))
+    || voices.find(v => /UK English Female/i.test(v.name))
+    || voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en-GB"))
+    || voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en"))
     || voices[0] || null;
 }
 
 function applyVoice(utt) {
-  const voices = window.speechSynthesis.getVoices();
-  let v = null;
-  try {
-    const uri = localStorage.getItem("briefing_voice_uri");
-    const name = localStorage.getItem("briefing_voice_name");
-    if (uri) v = voices.find((x) => x.voiceURI === uri);
-    if (!v && name) v = voices.find((x) => x.name === name);
-  } catch (e) {}
-  if (!v) v = pickVoice();
+  const v = pickVoice();
   if (v) utt.voice = v;
-  utt.rate = 0.93; utt.pitch = 0.95; utt.volume = 1.0;
+  utt.rate = 0.92; utt.pitch = 1.0; utt.volume = 1.0;
 }
 
 // ── Count-up helper for animated metrics ────────────────────────────────────
@@ -105,7 +96,7 @@ function ArcReactor({ pulse, isSpeaking }) {
 
 // ── Boot log ─────────────────────────────────────────────────────────────────
 function BootLog({ onDone }) {
-  const lines = ["INITIALIZING…", "INTERSTELLAR OS ONLINE", "GOOD MORNING, JUSTIN."];
+  const lines = ["INITIALIZING…", "INTERSTELLAR OS ONLINE", "GOOD MORNING, SIR."];
   const [shown, setShown] = useState([]);
   const [done, setDone] = useState(false);
   useEffect(() => {
@@ -167,6 +158,7 @@ export default function BriefingHUD({ data, onClose }) {
   const [voices, setVoices] = useState([]);
   const [selURI, setSelURI] = useState(() => (typeof localStorage !== "undefined" && localStorage.getItem("briefing_voice_uri")) || "");
   const [started, setStarted] = useState(false);
+  const [activeItem, setActiveItem] = useState(-1);
   const pulseRef = useRef(0);
   const cancelledRef = useRef(false);
   const audioRef = useRef(null);
@@ -183,13 +175,7 @@ export default function BriefingHUD({ data, onClose }) {
     return () => cancelAnimationFrame(raf);
   }, [isSpeaking]);
 
-  // Cycle highlight through list items while on tasks/orbit slides
-  useEffect(() => {
-    setCycle(0);
-    if (section !== 1 && section !== 2) return;
-    const id = setInterval(() => setCycle(c => c + 1), 2100);
-    return () => clearInterval(id);
-  }, [section]);
+  // List highlight now tracks the item she is currently saying (see startBriefing)
 
   // Achievement pop whenever a new section begins
   useEffect(() => {
@@ -251,50 +237,62 @@ export default function BriefingHUD({ data, onClose }) {
   const startBriefing = () => {
     if (cancelledRef.current) return;
     window.speechSynthesis.cancel();
-    const scripts = [
-      `Good morning, sir. Your daily briefing for ${weekday}, ${month} ${day} is ready.`,
-      taskTitles.length === 0
-        ? "Your priority list is clear today, sir — well done."
-        : (() => {
-            const spoken = taskTitles.slice(0, 5);
-            const extra = taskTitles.length > 5 ? ` …and ${taskTitles.length - 5} more on your dashboard.` : "";
-            return `Priority tasks, sir. You have ${taskTitles.length} on the list: ${spoken.join(", ")}.${extra}`;
-          })(),
-      todayOrbit.length === 0
-        ? "Nothing scheduled on Orbit SEO today, sir — clear runway."
-        : (() => {
-            const names = todayOrbit.slice(0, 5).map(c => c.businessName);
-            const extra = todayOrbit.length > 5 ? " …and a few more on your dashboard." : "";
-            return `Your Orbit SEO schedule, sir. Today you're focused on ${names.join(", ")}.${extra}`;
-          })(),
-      (() => {
-        const dir = gainedSafe >= 0 ? "up" : "down";
-        return `Momentum over the last 30 days, sir. Recurring revenue moved from ${fmt$(pastSafe)} to ${fmt$(mrr)}, ${dir} ${fmt$(Math.abs(gainedSafe))}. You added ${addedSafe} ${addedSafe === 1 ? "client" : "clients"} in that window.`;
-      })(),
-      (() => {
-        const gapText = gap > 0 ? `${fmt$(gap)} to go` : "you've reached your target, sir — excellent";
-        return `Your financial status, sir. Monthly recurring revenue stands at ${fmt$(mrr)}. Annualized, that's ${fmt$(arr)}. Target is ${fmt$(MRR_GOAL)} — ${gapText}.`;
-      })(),
-      (() => gap > 0
-        ? `Your directive, sir. ${GOAL_PLAN}. At ${fmt$(mrr)} a month, you're ${fmt$(gap)} from your ${fmt$(MRR_GOAL)} target. Push to secure one more site this month and close the gap.`
-        : `Your directive, sir. ${GOAL_PLAN}. You've reached your target — keep the momentum and aim higher.`)(),
-      "That concludes your briefing, sir. Do have a productive day.",
-    ];
+
+    // Build spoken segments: { text, section, item, gap }
+    const segs = [];
+    const seg = (text, section, item = null, gap = 300) => ({ text, section, item, gap });
+
+    segs.push(seg(`Good morning, sir. Your daily briefing for ${weekday}, ${month} ${day} is ready.`, 0, null, 420));
+
+    if (taskTitles.length === 0) {
+      segs.push(seg("Your priority list is clear today, sir — well done.", 1, null, 340));
+    } else {
+      segs.push(seg(`Priority tasks, sir. You have ${taskTitles.length} on the list.`, 1, null, 380));
+      taskTitles.slice(0, 5).forEach((t, i) => segs.push(seg(t, 1, i, 520)));
+      if (taskTitles.length > 5) segs.push(seg(`…and ${taskTitles.length - 5} more on your dashboard.`, 1, null, 340));
+    }
+
+    if (todayOrbit.length === 0) {
+      segs.push(seg("Nothing scheduled on Orbit S. E. O. today, sir — clear runway.", 2, null, 340));
+    } else {
+      segs.push(seg(`Your Orbit S. E. O. schedule, sir. Today you're focused on ${todayOrbit.length} clients.`, 2, null, 380));
+      todayOrbit.slice(0, 5).forEach((c, i) => segs.push(seg(c.businessName, 2, i, 520)));
+      if (todayOrbit.length > 5) segs.push(seg("…and a few more on your dashboard.", 2, null, 340));
+    }
+
+    segs.push(seg((() => {
+      const dir = gainedSafe >= 0 ? "up" : "down";
+      return `Momentum over the last 30 days, sir. Recurring revenue moved from ${fmt$(pastSafe)} to ${fmt$(mrr)}, ${dir} ${fmt$(Math.abs(gainedSafe))}. You added ${addedSafe} ${addedSafe === 1 ? "client" : "clients"} in that window.`;
+    })(), 3, null, 340));
+
+    segs.push(seg((() => {
+      const gapText = gap > 0 ? `${fmt$(gap)} to go` : "you've reached your target, sir — excellent";
+      return `Your financial status, sir. Monthly recurring revenue stands at ${fmt$(mrr)}. Annualized, that's ${fmt$(arr)}. Target is ${fmt$(MRR_GOAL)} — ${gapText}.`;
+    })(), 4, null, 340));
+
+    segs.push(seg(gap > 0
+      ? `Your directive, sir. ${GOAL_PLAN}. At ${fmt$(mrr)} a month, you're ${fmt$(gap)} from your ${fmt$(MRR_GOAL)} target. Push to secure one more site this month and close the gap.`
+      : `Your directive, sir. ${GOAL_PLAN}. You've reached your target — keep the momentum and aim higher.`, 5, null, 340));
+
+    segs.push(seg("That concludes your briefing, sir. Do have a productive day.", 6, null, 340));
 
     let idx = 0;
     const speakNext = () => {
-      if (cancelledRef.current || idx >= scripts.length) {
+      if (cancelledRef.current || idx >= segs.length) {
         setIsSpeaking(false);
+        setActiveItem(-1);
         if (!cancelledRef.current) setTimeout(dismiss, 3000);
         return;
       }
-      const utt = new SpeechSynthesisUtterance(scripts[idx]);
+      const s = segs[idx];
+      const utt = new SpeechSynthesisUtterance(s.text);
       applyVoice(utt);
-      const currentIdx = idx;
+      const first = idx === 0;
       utt.onstart = () => {
-        setSection(currentIdx);
+        setSection(s.section);
         setIsSpeaking(true);
-        if (currentIdx === 0 && audioRef.current) {
+        setActiveItem(s.item != null ? s.item : -1);
+        if (first && audioRef.current) {
           try {
             audioRef.current.currentTime = 5;
             audioRef.current.volume = 0.22;
@@ -303,8 +301,8 @@ export default function BriefingHUD({ data, onClose }) {
         }
       };
       utt.onboundary = () => { pulseRef.current = Math.min(1, pulseRef.current + 0.4); };
-      utt.onend = () => { idx++; speakNext(); };
-      utt.onerror = () => { idx++; speakNext(); };
+      utt.onend = () => { idx++; setTimeout(speakNext, s.gap); };
+      utt.onerror = () => { idx++; setTimeout(speakNext, s.gap); };
       window.speechSynthesis.speak(utt);
     };
     speakNext();
@@ -313,7 +311,7 @@ export default function BriefingHUD({ data, onClose }) {
   const timeStr = time.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const dateStr = `${WEEKDAY_NAMES[time.getDay()].toUpperCase()} ${time.getDate()} ${MONTH_NAMES[time.getMonth()].toUpperCase()} ${time.getFullYear()}`;
 
-  const activeRow = (list) => list.length ? cycle % list.length : -1;
+  // active highlight is driven by `activeItem` (set as she names each row)
 
   return (
     <>
@@ -459,7 +457,7 @@ export default function BriefingHUD({ data, onClose }) {
                     ? <Empty text="ALL CLEAR TODAY" />
                     : <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                         {taskTitles.slice(0, 7).map((t, i) => (
-                          <SpotlightRow key={i} active={activeRow(taskTitles.slice(0, 7)) === i} index={i + 1}>
+                          <SpotlightRow key={i} active={activeItem === i} index={i + 1}>
                             {t}
                           </SpotlightRow>
                         ))}
@@ -475,7 +473,7 @@ export default function BriefingHUD({ data, onClose }) {
                     ? <Empty text="CLEAR RUNWAY" />
                     : <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                         {todayOrbit.slice(0, 7).map((c, i) => (
-                          <SpotlightRow key={i} active={activeRow(todayOrbit.slice(0, 7)) === i} index={i + 1} accent="yellow">
+                          <SpotlightRow key={i} active={activeItem === i} index={i + 1} accent="yellow">
                             {c.businessName}
                           </SpotlightRow>
                         ))}
@@ -621,13 +619,9 @@ export default function BriefingHUD({ data, onClose }) {
         )}
 
         {booted && !started && (
-          <VoicePicker
-            voices={voices}
-            selURI={selURI}
-            onSelect={selectVoice}
-            onPreview={previewVoice}
-            onBegin={beginBriefing}
-          />
+          <div style={{ position: "absolute", inset: 0, top: 44, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(12,8,2,0.6)" }} onClick={e => e.stopPropagation()}>
+            <button onClick={beginBriefing} style={{ display: "flex", alignItems: "center", gap: 8, padding: "13px 26px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#F47C20,#FACC15)", color: "#1a0d00", fontWeight: 800, fontSize: 14, letterSpacing: "0.12em", cursor: "pointer", boxShadow: "0 0 18px rgba(255,170,0,0.4)" }}>BEGIN BRIEFING →</button>
+          </div>
         )}
 
         {!booted && (
