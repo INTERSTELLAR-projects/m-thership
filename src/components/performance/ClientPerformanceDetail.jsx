@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowLeft, Globe, MapPin, RefreshCw, AlertCircle, TrendingUp, TrendingDown, Minus, CheckCircle2, XCircle, Clock, ExternalLink, ChevronRight, Zap, Target, Shield, FileText, Search, BarChart3, Users, Eye, MousePointer, Star, Phone, Navigation } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from "recharts";
+import GameChartTooltip from "../charts/GameChartTooltip";
 
 const TOOLTIP_STYLE = {
   contentStyle: { background: "#0d1117", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 11 },
@@ -16,7 +17,7 @@ function ScoreRing({ score, size = 80, color = "#ff6a00" }) {
     <svg width={size} height={size} className="rotate-[-90deg]">
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={6} />
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={6}
-        strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" style={{ transition: "stroke-dasharray 0.8s ease" }} />
+        strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" style={{ transition: "stroke-dasharray 0.8s ease", filter: `drop-shadow(0 0 5px ${color})` }} />
       <text x={size / 2} y={size / 2} dominantBaseline="middle" textAnchor="middle"
         fill="white" fontSize={size === 80 ? 16 : 12} fontWeight="bold" style={{ transform: `rotate(90deg)`, transformOrigin: `${size / 2}px ${size / 2}px` }}>
         {score}
@@ -33,7 +34,7 @@ function TrendBadge({ trend }) {
 
 function ConnectionPill({ label, connected }) {
   return (
-    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border ${connected ? "bg-green-500/10 border-green-500/20 text-green-400" : "bg-white/[0.04] border-white/[0.08] text-white/30"}`}>
+    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border ${connected ? "bg-green-500/15 border-green-500/30 text-green-300 shadow-[0_0_10px_rgba(34,197,94,0.2)]" : "bg-white/[0.04] border-white/[0.08] text-white/30"}`}>
       <div className={`w-1.5 h-1.5 rounded-full ${connected ? "bg-green-400" : "bg-white/20"}`} />
       {label}
     </div>
@@ -43,8 +44,9 @@ function ConnectionPill({ label, connected }) {
 function SectionHeader({ title, icon: Icon, color = "text-orange-500" }) {
   return (
     <div className="flex items-center gap-2 mb-4">
+      <div className="w-1 h-4 rounded-full bg-gradient-to-b from-orange-500 to-yellow-400 shadow-[0_0_8px_rgba(255,170,0,0.5)]" />
       <Icon className={`w-4 h-4 ${color}`} />
-      <h3 className="text-white font-bold text-xs tracking-[0.18em] uppercase">{title}</h3>
+      <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{title}</h3>
     </div>
   );
 }
@@ -160,11 +162,11 @@ export default function ClientPerformanceDetail({ client, onBack }) {
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
           <span className="text-white/15">/</span>
-          <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/15 flex items-center justify-center text-orange-500/70 font-bold text-sm">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 font-display font-extrabold text-sm shadow-[0_0_12px_rgba(255,106,0,0.2)]">
             {client.businessName?.charAt(0)}
           </div>
           <div>
-            <h1 className="text-white font-bold text-sm">{client.businessName}</h1>
+            <h1 className="font-display font-bold text-sm bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{client.businessName}</h1>
             <p className="text-white/30 text-xs flex items-center gap-2">
               <MapPin className="w-3 h-3" />{client.primaryLocation || "—"}
               <span className="text-white/15">·</span>
@@ -175,7 +177,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5">
             {["7d", "30d", "90d", "1y"].map((r) => (
-              <button key={r} onClick={() => setDateRange(r)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${dateRange === r ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{r === "1y" ? "1 Year" : r === "7d" ? "7 Days" : r === "30d" ? "30 Days" : "90 Days"}</button>
+              <button key={r} onClick={() => setDateRange(r)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${dateRange === r ? "bg-gradient-to-r from-orange-500/25 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{r === "1y" ? "1 Year" : r === "7d" ? "7 Days" : r === "30d" ? "30 Days" : "90 Days"}</button>
             ))}
           </div>
           <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] text-white/50 text-xs rounded-lg transition-colors">
@@ -205,7 +207,8 @@ export default function ClientPerformanceDetail({ client, onBack }) {
         {data.alerts.length > 0 && (
           <div className="space-y-2">
             {data.alerts.map((a, i) => (
-              <div key={i} className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border text-xs ${a.type === "critical" ? "bg-red-500/10 border-red-500/20 text-red-400" : a.type === "warning" ? "bg-orange-500/10 border-orange-500/20 text-orange-400" : "bg-blue-500/10 border-blue-500/20 text-blue-400"}`}>
+              <div key={i} className={`relative overflow-hidden flex items-center gap-3 px-4 py-2.5 rounded-lg border text-xs ${a.type === "critical" ? "bg-red-500/10 border-red-500/25 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.2)]" : a.type === "warning" ? "bg-orange-500/10 border-orange-500/25 text-orange-400 shadow-[0_0_12px_rgba(255,106,0,0.2)]" : "bg-blue-500/10 border-blue-500/25 text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.2)]"}`}>
+                <span className={`absolute left-0 top-0 bottom-0 w-1 ${a.type === "critical" ? "bg-red-500" : a.type === "warning" ? "bg-gradient-to-b from-orange-500 to-amber-400" : "bg-blue-500"}`} />
                 <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                 {a.msg}
               </div>
@@ -214,7 +217,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
         )}
 
         {/* SCORECARDS */}
-        <div className="bg-card rounded-xl border border-white/[0.06] p-6">
+        <div className="game-panel p-6">
           <SectionHeader title="Performance Scorecards" icon={Target} />
           <div className="grid grid-cols-6 gap-4">
             {[
@@ -225,11 +228,11 @@ export default function ClientPerformanceDetail({ client, onBack }) {
               { label: "Local Visibility", score: data.localScore || 0, sub: client.serviceType === "Local" ? "GBP & Local" : "N/A" },
               { label: "Conversion Ready", score: data.conversionScore, sub: "CTA Coverage" },
             ].map(({ label, score, sub }) => (
-              <div key={label} className="bg-white/[0.02] rounded-xl border border-white/[0.05] p-4 flex flex-col items-center text-center gap-3">
+              <div key={label} className="card-hover relative overflow-hidden rounded-xl border border-orange-500/10 bg-gradient-to-b from-orange-500/[0.05] to-transparent p-4 flex flex-col items-center text-center gap-3 shadow-[0_0_16px_rgba(255,106,0,0.08)]">
                 <ScoreRing score={score} color={scoreColor(score)} />
                 <div>
-                  <p className="text-white/70 text-xs font-semibold">{label}</p>
-                  <p className="text-white/25 text-[10px]">{sub}</p>
+                  <p className="text-white/80 text-xs font-semibold font-display">{label}</p>
+                  <p className="text-white/30 text-[10px] mt-0.5">{sub}</p>
                 </div>
               </div>
             ))}
@@ -237,18 +240,18 @@ export default function ClientPerformanceDetail({ client, onBack }) {
         </div>
 
         {/* WEIGHTED SCORE BREAKDOWN */}
-        <div className="bg-card rounded-xl border border-white/[0.06] p-6">
+        <div className="game-panel p-6">
           <SectionHeader title="Interstellar SEO Score Breakdown" icon={Shield} color="text-purple-400" />
           <p className="text-white/25 text-xs mb-5">Proprietary weighted scoring system — each category contributes to the overall SEO Score</p>
           <div className="space-y-3">
             {data.categories.map((cat) => (
               <div key={cat.label} className="flex items-center gap-4">
-                <span className="text-white/50 text-xs w-36 shrink-0">{cat.label}</span>
-                <div className="flex-1 h-2.5 bg-white/[0.04] rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${cat.score}%`, background: cat.color, opacity: 0.8 }} />
+                <span className="text-white/55 text-xs w-36 shrink-0">{cat.label}</span>
+                <div className="relative flex-1 h-2.5 bg-white/[0.04] rounded-full overflow-hidden border border-white/[0.03]">
+                  <div className="relative h-full rounded-full transition-all duration-700 shimmer" style={{ width: `${cat.score}%`, background: `linear-gradient(90deg, ${cat.color}, ${cat.color}aa)`, boxShadow: `0 0 10px ${cat.color}66` }} />
                 </div>
-                <span className="text-white/70 text-xs font-bold w-8 text-right">{cat.score}</span>
-                <span className="text-white/20 text-[10px] w-16">{cat.weight}% weight</span>
+                <span className="text-xs font-display font-bold w-8 text-right" style={{ color: cat.color }}>{cat.score}</span>
+                <span className="text-white/30 text-[10px] w-16">{cat.weight}% weight</span>
               </div>
             ))}
           </div>
@@ -256,7 +259,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
 
         {/* SEARCH AUTHORITY + TRAFFIC */}
         <div className="grid grid-cols-2 gap-5">
-          <div className="bg-card rounded-xl border border-white/[0.06] p-6">
+          <div className="game-panel p-6">
             <SectionHeader title="Search Authority Trend" icon={TrendingUp} color="text-yellow-400" />
             <div className="flex items-center gap-4 mb-4">
               <div>
@@ -270,20 +273,20 @@ export default function ClientPerformanceDetail({ client, onBack }) {
               <AreaChart data={data.authorityTrend}>
                 <defs>
                   <linearGradient id="authGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#eab308" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#eab308" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#eab308" stopOpacity={0.6} />
+                    <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.04} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                 <XAxis dataKey="week" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 9 }} tickLine={false} />
                 <YAxis domain={[0, 100]} tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 9 }} tickLine={false} axisLine={false} />
-                <Tooltip {...TOOLTIP_STYLE} />
-                <Area type="monotone" dataKey="authority" stroke="#eab308" fill="url(#authGrad)" strokeWidth={2} dot={false} />
+                <Tooltip content={<GameChartTooltip />} cursor={{ stroke: 'rgba(234,179,8,0.3)', strokeWidth: 1 }} />
+                <Area type="monotone" dataKey="authority" stroke="#fbbf24" fill="url(#authGrad)" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#fbbf24', stroke: '#fef08a', strokeWidth: 1 }} style={{ filter: 'drop-shadow(0 0 5px rgba(234,179,8,0.4))' }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-card rounded-xl border border-white/[0.06] p-6">
+          <div className="game-panel p-6">
             <SectionHeader title="Traffic & Analytics" icon={BarChart3} color="text-blue-400" />
             <div className="grid grid-cols-4 gap-3 mb-4">
               {[
@@ -302,20 +305,21 @@ export default function ClientPerformanceDetail({ client, onBack }) {
               <AreaChart data={data.trafficTrend}>
                 <defs>
                   <linearGradient id="trafGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.6} />
+                    <stop offset="100%" stopColor="#60a5fa" stopOpacity={0.04} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 9 }} tickLine={false} />
-                <Tooltip {...TOOLTIP_STYLE} />
-                <Area type="monotone" dataKey="organic" stroke="#3b82f6" fill="url(#trafGrad)" strokeWidth={2} dot={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 9 }} tickLine={false} />
+                <Tooltip content={<GameChartTooltip />} cursor={{ stroke: 'rgba(59,130,246,0.3)', strokeWidth: 1 }} />
+                <Area type="monotone" dataKey="organic" stroke="#60a5fa" fill="url(#trafGrad)" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#60a5fa', stroke: '#bfdbfe', strokeWidth: 1 }} style={{ filter: 'drop-shadow(0 0 5px rgba(59,130,246,0.4))' }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* SEARCH CONSOLE */}
-        <div className="bg-card rounded-xl border border-white/[0.06] p-6">
+        <div className="game-panel p-6">
           <SectionHeader title="Search Visibility / Search Console" icon={Search} color="text-green-400" />
           <div className="grid grid-cols-4 gap-4 mb-5">
             {[
@@ -347,7 +351,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
         </div>
 
         {/* CONTENT PERFORMANCE */}
-        <div className="bg-card rounded-xl border border-white/[0.06] p-6">
+        <div className="game-panel p-6">
           <SectionHeader title="Content & Keyword Performance" icon={FileText} color="text-purple-400" />
           <div className="grid grid-cols-3 gap-4 mb-5">
             <div className="bg-white/[0.02] rounded-xl border border-white/[0.05] p-4">
@@ -387,7 +391,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
 
         {/* GBP / LOCAL */}
         {client.serviceType === "Local" && data.gbpMetrics && (
-          <div className="bg-card rounded-xl border border-white/[0.06] p-6">
+          <div className="game-panel p-6">
             <SectionHeader title="Local SEO & GBP Performance" icon={MapPin} color="text-cyan-400" />
             <div className="grid grid-cols-4 gap-4 mb-5">
               {[
@@ -426,7 +430,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
         )}
 
         {/* TECHNICAL HEALTH */}
-        <div className="bg-card rounded-xl border border-white/[0.06] p-6">
+        <div className="game-panel p-6">
           <SectionHeader title="Technical SEO Health" icon={Shield} color="text-red-400" />
           <div className="grid grid-cols-2 gap-5">
             <div>
@@ -466,7 +470,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
         </div>
 
         {/* OPPORTUNITIES */}
-        <div className="bg-card rounded-xl border border-white/[0.06] p-6">
+        <div className="game-panel p-6">
           <SectionHeader title="Opportunities & Recommended Actions" icon={Zap} color="text-green-400" />
           <div className="space-y-3">
             {data.opportunities.map((opp, i) => (
