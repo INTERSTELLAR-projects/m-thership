@@ -327,7 +327,7 @@ function DoneTab({ items, onDelete }) {
 }
 
 function CategorySection({ category, items, editId, editForm, setEditForm, onEdit, onSaveEdit, onCancelEdit, onDelete, onSetStatus, clients }) {
-  const catColor = category === "Priority" ? "text-red-400/70 bg-red-400/10 border-red-400/15" : "text-blue-400/70 bg-blue-400/10 border-blue-400/15";
+  const catColor = category === "Priority" ? "text-orange-400/80 bg-orange-500/10 border-orange-500/25" : "text-yellow-300/80 bg-yellow-400/10 border-yellow-400/25";
 
   return (
     <div>
