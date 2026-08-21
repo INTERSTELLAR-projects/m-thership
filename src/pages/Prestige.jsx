@@ -305,7 +305,7 @@ export default function Prestige() {
               </div>
             </div>
             <div><Label className="text-white/40 text-xs">Notes</Label><textarea value={memberForm.notes} onChange={(e) => setMemberForm({ ...memberForm, notes: e.target.value })} className="mt-1 w-full bg-white/[0.03] border border-white/[0.06] rounded-md px-3 py-2 text-white text-sm outline-none resize-none min-h-[60px]" /></div>
-            <Button onClick={saveMember} className="w-full bg-orange-500 hover:bg-orange-600 text-white">Save Changes</Button>
+            <Button onClick={saveMember} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">Save Changes</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -327,7 +327,7 @@ export default function Prestige() {
               </div>
             </div>
             <div><Label className="text-white/40 text-xs">Notes</Label><textarea value={referralForm.notes} onChange={(e) => setReferralForm({ ...referralForm, notes: e.target.value })} className="mt-1 w-full bg-white/[0.03] border border-white/[0.06] rounded-md px-3 py-2 text-white text-sm outline-none resize-none min-h-[60px]" /></div>
-            <Button onClick={saveReferral} className="w-full bg-orange-500 hover:bg-orange-600 text-white">{editingReferral ? "Save Changes" : "Add Referral"}</Button>
+            <Button onClick={saveReferral} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">{editingReferral ? "Save Changes" : "Add Referral"}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -341,10 +341,10 @@ function MembersTab({ members, referrals, tiers, memberConfirmed, onAdd, onEdit,
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={onAdd} className="bg-orange-500 hover:bg-orange-600 text-white gap-2 h-9 shadow-[0_0_16px_rgba(255,106,0,0.3)]"><Plus className="w-4 h-4" />Add Member</Button>
+        <Button onClick={onAdd} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] gap-2 h-9 shadow-[0_0_16px_rgba(255,106,0,0.3)]"><Plus className="w-4 h-4" />Add Member</Button>
       </div>
       {members.length === 0 && (
-        <div className="bg-card rounded-xl border border-white/[0.06] p-10 text-center">
+        <div className="game-panel p-10 text-center">
           <Star className="w-8 h-8 text-white/10 mx-auto mb-3" />
           <p className="text-white/30 text-sm">No Prestige members yet. Add your first member!</p>
         </div>
@@ -447,7 +447,7 @@ function ReferralsTab({ referrals, members, tiers, memberConfirmed, onEdit, onDe
   const statusColors = { Pending: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20", Confirmed: "text-blue-400 bg-blue-500/10 border-blue-500/20", "Paid Out": "text-green-400 bg-green-500/10 border-green-500/20" };
 
   if (referrals.length === 0) return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-10 text-center">
+    <div className="game-panel p-10 text-center">
       <Users className="w-8 h-8 text-white/10 mx-auto mb-3" />
       <p className="text-white/30 text-sm">No referrals recorded yet.</p>
     </div>
@@ -460,7 +460,7 @@ function ReferralsTab({ referrals, members, tiers, memberConfirmed, onEdit, onDe
         const earnedT = member ? earnedTier(memberConfirmed(member.id)) : "Prestige I";
         const tier = tiers[earnedT] || tiers["Prestige I"];
         return (
-          <div key={r.id} className="bg-card rounded-xl border border-white/[0.06] p-4 flex items-center gap-4 group">
+          <div key={r.id} className="game-panel p-4 flex items-center gap-4 group">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-white/85 text-sm font-medium">{r.referredClientName}</span>

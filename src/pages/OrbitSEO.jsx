@@ -169,7 +169,7 @@ export default function OrbitSEO() {
           <StatCard label="Blogs Due This Week" value={upcomingBlogs} icon={Calendar} color="text-blue-400" />
           <StatCard label="GBP Due This Week" value={gbpDueThisWeek} icon={Globe} color="text-purple-400" />
           <StatCard label="Needs Attention" value={needsAttention} icon={AlertCircle} color={needsAttention > 0 ? "text-orange-400" : "text-white/25"} />
-          <div className="bg-card rounded-xl border border-white/[0.06] p-4">
+          <div className="game-panel p-4">
             <p className="text-white/30 text-[10px] uppercase tracking-wider mb-2">Client Breakdown</p>
             <div className="space-y-1">
               {Object.entries(byType).map(([type, count]) => (
@@ -198,17 +198,17 @@ export default function OrbitSEO() {
           </div>
           <div className="flex gap-1.5">
             {["All", "Local", "National", "International"].map((t) => (
-              <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterType === t ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{t}</button>
+              <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterType === t ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{t}</button>
             ))}
           </div>
           <div className="flex gap-1.5">
             {["All", "Active", "Needs Attention", "Paused"].map((s) => (
-              <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterStatus === s ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{s}</button>
+              <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterStatus === s ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{s}</button>
             ))}
           </div>
           <button
             onClick={() => setAddOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-xs font-semibold rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />Add Client
           </button>
@@ -244,7 +244,7 @@ export default function OrbitSEO() {
             <Loader2 className="w-6 h-6 text-white/20 animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="bg-card rounded-xl border border-white/[0.06] p-12 text-center">
+          <div className="game-panel p-12 text-center">
             <Globe className="w-8 h-8 text-white/10 mx-auto mb-3" />
             <p className="text-white/30 text-sm">{clients.length === 0 ? "No SEO clients yet. Add your first one." : "No clients match your filters."}</p>
           </div>
@@ -262,7 +262,7 @@ export default function OrbitSEO() {
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
           <div className="bg-card border border-white/[0.08] rounded-2xl p-6 w-full max-w-sm space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-white font-bold text-sm">Add Ørbit SEO Client</h3>
+              <h3 className="font-display font-bold text-sm tracking-wide bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Add Ørbit SEO Client</h3>
               <button onClick={() => setAddOpen(false)} className="text-white/30 hover:text-white/60"><X className="w-4 h-4" /></button>
             </div>
             <div className="space-y-3">
@@ -283,7 +283,7 @@ export default function OrbitSEO() {
                 </select>
               </div>
             </div>
-            <button onClick={addClient} className="w-full py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg transition-colors">Add Client</button>
+            <button onClick={addClient} className="w-full py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-sm font-semibold rounded-lg transition-colors">Add Client</button>
           </div>
         </div>
       )}
@@ -293,7 +293,7 @@ export default function OrbitSEO() {
 
 function StatCard({ label, value, icon: Icon, color }) {
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-4">
+    <div className="game-panel p-4">
       <div className="flex items-center justify-between mb-3">
         <Icon className={`w-4 h-4 ${color}`} />
       </div>
@@ -310,11 +310,11 @@ function ClientCard({ client, onClick, onDelete }) {
   return (
     <button
       onClick={onClick}
-      className="card-hover text-left bg-card rounded-xl border border-white/[0.06] p-5 space-y-4 w-full"
+      className="card-hover text-left game-panel p-5 space-y-4 w-full"
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-orange-500/10 border border-orange-500/15 flex items-center justify-center text-orange-500/60 font-bold shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 font-display font-extrabold shrink-0">
             {client.businessName?.charAt(0)}
           </div>
           <div>
