@@ -84,26 +84,26 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
       </div>
 
       {/* MRR Goal Progress */}
-      <div className="bg-card rounded-xl border border-white/[0.06] p-5">
+      <div className="game-panel p-5">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">MRR Goal Progress</h3>
+            <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">MRR Goal Progress</h3>
             <p className="text-white/25 text-xs mt-0.5">Target: ${MRR_GOAL.toLocaleString()}/mo</p>
           </div>
           <div className="text-right">
-            <p className="text-orange-500 font-bold text-lg">{mrrProgress.toFixed(0)}%</p>
+            <p className="font-display font-bold text-lg bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{mrrProgress.toFixed(0)}%</p>
             <p className="text-white/25 text-xs">${(MRR_GOAL - mrr).toLocaleString()} to go</p>
           </div>
         </div>
-        <div className="h-3 bg-white/[0.05] rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-orange-600 to-orange-400 rounded-full transition-all duration-700" style={{ width: `${Math.min(mrrProgress, 100)}%` }} />
+        <div className="h-3 bg-white/[0.05] rounded-full overflow-hidden border border-white/[0.04]">
+          <div className="relative h-full rounded-full overflow-hidden bg-gradient-to-r from-orange-500 to-amber-300 shadow-[0_0_12px_rgba(255,106,0,0.5)] transition-all duration-700 shimmer" style={{ width: `${Math.min(mrrProgress, 100)}%` }} />
         </div>
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <p className="text-white/30 text-[10px] tracking-wider uppercase mb-3">Revenue Trend</p>
+        <div className="game-panel p-5">
+          <p className="font-display text-[10px] tracking-[0.2em] uppercase mb-3 bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Revenue Trend</p>
           <div className="h-[160px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
@@ -117,8 +117,8 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-          <p className="text-white/30 text-[10px] tracking-wider uppercase mb-3">Revenue vs Expenses (Monthly)</p>
+        <div className="game-panel p-5">
+          <p className="font-display text-[10px] tracking-[0.2em] uppercase mb-3 bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Revenue vs Expenses (Monthly)</p>
           <div className="h-[160px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={expVsRev} barSize={32}>
@@ -134,15 +134,15 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
       </div>
 
       {/* Breakdown Table */}
-      <div className="bg-card rounded-xl border border-white/[0.06] p-5">
-        <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase mb-4">P&amp;L Summary</h3>
+      <div className="game-panel p-5">
+        <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">P&amp;L Summary</h3>
         <div className="space-y-2">
           {[
-            { label: "Monthly Revenue (MRR)", value: `$${mrr.toLocaleString()}`, color: "text-orange-500" },
+            { label: "Monthly Revenue (MRR)", value: `$${mrr.toLocaleString()}`, color: "font-display bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent" },
             { label: "Monthly Expenses", value: `-$${monthlyExpenses.toFixed(2)}`, color: "text-red-400/70" },
             { label: "Monthly Net Profit", value: `$${grossProfit.toFixed(2)}`, color: "text-green-400" },
             { label: "", value: "" },
-            { label: "Annual Revenue (ARR)", value: `$${arr.toLocaleString()}`, color: "text-orange-500" },
+            { label: "Annual Revenue (ARR)", value: `$${arr.toLocaleString()}`, color: "font-display bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent" },
             { label: "Annual Expenses", value: `-$${annualExpenses.toFixed(2)}`, color: "text-red-400/70" },
             { label: "Annual Net Profit", value: `$${annualProfit.toFixed(2)}`, color: "text-green-400" },
             { label: "", value: "" },
@@ -165,12 +165,12 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
 
 function MetricCard({ label, value, sub, icon: Icon, highlight, good }) {
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] p-4">
+    <div className="game-panel p-4">
       <div className="flex items-center gap-2 mb-2">
         {Icon && <Icon className={`w-3.5 h-3.5 ${highlight ? "text-orange-500" : good ? "text-green-400/60" : "text-white/20"}`} />}
         <span className="text-white/30 text-[10px] tracking-wider uppercase">{label}</span>
       </div>
-      <p className={`text-xl font-bold ${highlight ? "text-orange-500" : good ? "text-green-400" : "text-white/80"}`}>{value}</p>
+      <p className={`text-xl font-display font-extrabold ${highlight ? "bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent" : good ? "text-green-400" : "text-white/80"}`}>{value}</p>
       {sub && <p className="text-white/25 text-[10px] mt-1">{sub}</p>}
     </div>
   );

@@ -60,14 +60,14 @@ export default function WorkloadSnapshot({ clients }) {
   const unscheduledCount = clients.filter((c) => c.status === "Active" && (c.blogDays || []).length === 0).length;
 
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] overflow-hidden">
+    <div className="game-panel">
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="w-1.5 h-4 rounded-full bg-orange-500/60" />
-          <h2 className="text-white font-bold text-xs tracking-[0.18em] uppercase">Workload Snapshot</h2>
+          <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-orange-500 to-yellow-400 shadow-[0_0_8px_rgba(255,106,0,0.7)]" />
+          <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Workload Snapshot</h2>
           <span className="text-white/25 text-[10px]">Active client content obligations</span>
         </div>
         {expanded ? <ChevronUp className="w-4 h-4 text-white/25" /> : <ChevronDown className="w-4 h-4 text-white/25" />}
@@ -88,7 +88,7 @@ export default function WorkloadSnapshot({ clients }) {
 
           {/* Per-day breakdown */}
           <div>
-            <p className="text-white/30 text-[10px] uppercase tracking-wider mb-3">Content Due by Day of Week</p>
+            <p className="font-display text-[10px] tracking-[0.2em] uppercase mb-3 bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Content Due by Day of Week</p>
             {dayBreakdown.length === 0 ? (
               <p className="text-white/20 text-xs">No clients have blog days scheduled yet.</p>
             ) : (
@@ -99,7 +99,7 @@ export default function WorkloadSnapshot({ clients }) {
                   return (
                     <div
                       key={wd.num}
-                      className={`rounded-lg border p-3 text-center ${isEmpty ? "border-white/[0.03] bg-white/[0.01] opacity-40" : "border-white/[0.07] bg-white/[0.03]"}`}
+                      className={`rounded-lg border p-3 text-center ${isEmpty ? "border-white/[0.03] bg-white/[0.01] opacity-40" : "border-orange-500/20 bg-orange-500/[0.04]"}`}
                     >
                       <p className="text-white/40 text-[10px] font-semibold uppercase tracking-wider mb-2">{wd.label}</p>
                       {isEmpty ? (
@@ -114,7 +114,7 @@ export default function WorkloadSnapshot({ clients }) {
                             <MapPin className="w-3 h-3 text-purple-400/70" />
                             <span className="text-purple-400 font-bold text-sm">{d.gbp}</span>
                           </div>
-                          <div className="text-[10px] font-bold text-orange-400/80 bg-orange-500/10 rounded px-1.5 py-0.5">
+                          <div className="text-[10px] font-bold text-orange-300 bg-gradient-to-r from-orange-500/15 to-amber-400/10 border border-orange-500/25 rounded px-1.5 py-0.5">
                             {d.total} total
                           </div>
                         </>
@@ -153,9 +153,10 @@ export default function WorkloadSnapshot({ clients }) {
 
 function KPI({ label, value, color }) {
   return (
-    <div className="bg-white/[0.02] rounded-lg border border-white/[0.05] p-3 text-center">
-      <p className={`text-xl font-bold ${color}`}>{value}</p>
-      <p className="text-white/30 text-[10px] uppercase tracking-wider mt-1">{label}</p>
+    <div className="relative overflow-hidden bg-white/[0.02] rounded-lg border border-orange-500/10 p-3 text-center">
+      <div className="absolute -top-8 -right-8 w-12 h-12 rounded-full bg-orange-500/[0.05] blur-2xl pointer-events-none" />
+      <p className={`relative text-xl font-display font-extrabold ${color}`}>{value}</p>
+      <p className="relative text-white/30 text-[10px] uppercase tracking-wider mt-1">{label}</p>
     </div>
   );
 }

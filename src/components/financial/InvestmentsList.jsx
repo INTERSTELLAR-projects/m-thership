@@ -109,7 +109,7 @@ export default function InvestmentsList() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {["All", ...categories].map((c) => (
-            <button key={c} onClick={() => setCatFilter(c)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${catFilter === c ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{c}</button>
+            <button key={c} onClick={() => setCatFilter(c)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${catFilter === c ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{c}</button>
           ))}
           <button onClick={() => setManagingCats(!managingCats)} className={`p-1.5 rounded-lg border transition-all ${managingCats ? "bg-orange-500/15 text-orange-500 border-orange-500/20" : "text-white/20 hover:text-white/50 border-dashed border-white/10 hover:border-white/20"}`}><Settings className="w-3.5 h-3.5" /></button>
         </div>
@@ -117,7 +117,7 @@ export default function InvestmentsList() {
 
       {/* Manage categories */}
       {managingCats && (
-        <div className="bg-card rounded-xl border border-white/[0.08] p-5 space-y-3">
+        <div className="relative overflow-hidden bg-card rounded-xl border border-orange-500/25 p-5 space-y-3 shadow-[0_0_16px_rgba(255,106,0,0.12)]">
           <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Manage Categories</h3>
           <DragDropContext onDragEnd={onDragEndCats}>
             <Droppable droppableId="inv-cats">
@@ -152,7 +152,7 @@ export default function InvestmentsList() {
           </DragDropContext>
           <div className="flex gap-2 pt-1">
             <input placeholder="New category..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } } }} className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none" />
-            <button onClick={() => { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } }} className="px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
+            <button onClick={() => { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } }} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
           </div>
         </div>
       )}
@@ -166,14 +166,14 @@ export default function InvestmentsList() {
           return (
             <div key={cat}>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase">{cat}</h2>
+                <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{cat}</h2>
                 <button onClick={() => setAddingCat(isAdding ? null : cat)} className="flex items-center gap-1 text-[10px] font-semibold text-white/25 hover:text-orange-500/70 transition-colors">
                   <Plus className="w-3 h-3" />Add
                 </button>
               </div>
 
               {isAdding && (
-                <div className="bg-card rounded-xl border border-orange-500/20 p-4 mb-2 flex items-center gap-3 flex-wrap">
+                <div className="relative overflow-hidden bg-card rounded-xl border border-orange-500/35 p-4 mb-2 flex items-center gap-3 flex-wrap shadow-[0_0_16px_rgba(255,106,0,0.16)]">
                   <input value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} placeholder="Item name..." className="flex-1 min-w-[160px] bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-white/25 outline-none" autoFocus />
                   <input value={newItem.estimatedCost} onChange={(e) => setNewItem({ ...newItem, estimatedCost: e.target.value })} type="number" placeholder="Est. cost $" className="w-28 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-white/25 outline-none" />
                   <select value={newItem.priority} onChange={(e) => setNewItem({ ...newItem, priority: e.target.value })} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1.5 text-xs text-white outline-none">
@@ -194,7 +194,7 @@ export default function InvestmentsList() {
               ) : (
                 <div className="space-y-2">
                   {catItems.map((item) => (
-                    <div key={item.id} className={`card-hover bg-card rounded-xl border p-4 flex items-center gap-4 group ${item.acquired ? "border-green-500/10 opacity-60" : "border-white/[0.06]"}`}>
+                    <div key={item.id} className={`card-hover relative overflow-hidden game-panel p-4 flex items-center gap-4 group ${item.acquired ? "border-green-500/10 opacity-60" : "border-white/[0.06]"}`}>
                       {editId === item.id ? (
                         <div className="flex-1 flex items-center gap-3 flex-wrap">
                           <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="flex-1 min-w-[140px] bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-white outline-none" />
@@ -235,7 +235,7 @@ export default function InvestmentsList() {
       </div>
 
       {items.length === 0 && (
-        <div className="bg-card rounded-xl border border-white/[0.06] p-12 text-center">
+        <div className="game-panel p-12 text-center">
           <ShoppingBag className="w-8 h-8 text-white/10 mx-auto mb-3" />
           <p className="text-white/25 text-sm">No investments yet. Click "Add" next to a category to get started.</p>
         </div>
