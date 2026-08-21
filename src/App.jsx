@@ -17,15 +17,13 @@ import CRM from './pages/CRM';
 import Analytics from './pages/Analytics';
 import Comms from './pages/Comms';
 import OrbitSEO from './pages/OrbitSEO';
-import WebOps from './pages/WebOps';
-import Forge from './pages/Forge';
+
 import Performance from './pages/Performance';
 import SettingsPage from './pages/SettingsPage';
 import IdeaVault from './pages/IdeaVault';
 import Requests from './pages/Requests';
 import ToDo from './pages/ToDo';
 import ClientComms from './pages/ClientComms';
-import ClientProjects from './pages/ClientProjects';
 import Prestige from './pages/Prestige';
 import OutputAnalytics from './pages/OutputAnalytics';
 
@@ -79,15 +77,13 @@ const AuthenticatedApp = () => {
         <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
         <Route path="/comms" element={<ProtectedRoute><Comms /></ProtectedRoute>} />
         <Route path="/orbit-seo" element={<ProtectedRoute><OrbitSEO /></ProtectedRoute>} />
-        <Route path="/web-ops" element={<ProtectedRoute><WebOps /></ProtectedRoute>} />
-        <Route path="/forge" element={<ProtectedRoute><Forge /></ProtectedRoute>} />
+
         <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/idea-vault" element={<ProtectedRoute><IdeaVault /></ProtectedRoute>} />
         <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
         <Route path="/todo" element={<ProtectedRoute><ToDo /></ProtectedRoute>} />
         <Route path="/client-comms" element={<ProtectedRoute><ClientComms /></ProtectedRoute>} />
-        <Route path="/client-projects" element={<ProtectedRoute><ClientProjects /></ProtectedRoute>} />
         <Route path="/prestige" element={<ProtectedRoute><Prestige /></ProtectedRoute>} />
         <Route path="/output-analytics" element={<ProtectedRoute><OutputAnalytics /></ProtectedRoute>} />
         <Route path="*" element={<PageNotFound />} />

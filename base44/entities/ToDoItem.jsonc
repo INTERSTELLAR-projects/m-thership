@@ -8,6 +8,18 @@
     "description": {
       "type": "string"
     },
+    "taskType": {
+      "type": "string",
+      "enum": [
+        "Forge Development",
+        "WebOps",
+        "GBP Update",
+        "Presentation",
+        "New Website Build",
+        "Website Update",
+        "Other Task"
+      ]
+    },
     "category": {
       "type": "string",
       "enum": [

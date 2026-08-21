@@ -10,6 +10,7 @@ import PageHeader from "../components/PageHeader";
 import CompleteTaskModal from "../components/CompleteTaskModal";
 
 const CATEGORIES = ["Priority", "NextUp"];
+const TASK_TYPES = ["Forge Development", "WebOps", "GBP Update", "Presentation", "New Website Build", "Website Update", "Other Task"];
 const INTERSTELLAR_OPTION = "Interstellar";
 const EST_UNITS = ["Minutes", "Hours", "Days", "Weeks", "Months"];
 const TASK_STATUSES = ["Pending", "In Progress", "Completed"];
@@ -112,7 +113,7 @@ function TimeEstimateSummary({ items }) {
   );
 }
 
-const EMPTY_FORM = { title: "", description: "", category: "Priority", dueDate: "", estimatedAmount: "", estimatedUnit: "Hours", assignedTo: "" };
+const EMPTY_FORM = { title: "", description: "", taskType: "", category: "Priority", dueDate: "", estimatedAmount: "", estimatedUnit: "Hours", assignedTo: "" };
 
 export default function ToDo() {
   const [items, setItems] = useState([]);
@@ -362,6 +363,11 @@ function TaskRow({ item, onEdit, onDelete, onSetStatus }) {
         <p className="text-sm font-medium text-white/85">{item.title}</p>
         {item.description && <p className="text-white/35 text-xs mt-1 leading-relaxed">{item.description}</p>}
         <div className="flex items-center gap-3 mt-2 flex-wrap">
+          {item.taskType && (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/15 text-white/55">
+              {item.taskType}
+            </span>
+          )}
           {item.assignedTo && (
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400/80">
               {item.assignedTo}
@@ -413,6 +419,15 @@ function TaskForm({ form, setForm, onSave, onCancel, title, inline, clients = []
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
+          <Label className="text-white/40 text-xs">Task Type</Label>
+          <Select value={form.taskType || ""} onValueChange={(v) => setForm({ ...form, taskType: v })}>
+            <SelectTrigger className="bg-white/[0.04] border-white/[0.08] text-white mt-1 h-9"><SelectValue placeholder="— Select —" /></SelectTrigger>
+            <SelectContent className="bg-card border-white/[0.06]">
+              {TASK_TYPES.map((t) => <SelectItem key={t} value={t} className="text-white/70">{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
           <Label className="text-white/40 text-xs">Assigned To</Label>
           <select value={form.assignedTo || ""} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })}
             className="w-full mt-1 h-9 bg-white/[0.04] border border-white/[0.08] rounded-md px-2 text-sm text-white outline-none">
@@ -420,6 +435,8 @@ function TaskForm({ form, setForm, onSave, onCancel, title, inline, clients = []
             {assignOptions.map((o) => <option key={o} value={o}>{o}</option>)}
           </select>
         </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
         <div>
           <Label className="text-white/40 text-xs">Category</Label>
           <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
@@ -429,13 +446,10 @@ function TaskForm({ form, setForm, onSave, onCancel, title, inline, clients = []
             </SelectContent>
           </Select>
         </div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
         <div>
           <Label className="text-white/40 text-xs">Due Date</Label>
           <Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="bg-white/[0.04] border-white/[0.08] text-white mt-1 h-9" />
         </div>
-        <div />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>

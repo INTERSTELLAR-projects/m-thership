@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, KeyRound, FileText, DollarSign, Scale, Users,
-  Lightbulb, ListTodo, MessageSquare, Globe, Wrench, Flame,
-  TrendingUp, Settings, FolderKanban, ClipboardList, Crown, Search, X
+  Lightbulb, ListTodo, MessageSquare, Globe,
+  TrendingUp, Settings, ClipboardList, Crown, Search, X
 } from "lucide-react";
 
 const COMMANDS = [
@@ -16,11 +16,8 @@ const COMMANDS = [
   { label: "Idea Vault", icon: Lightbulb, path: "/idea-vault" },
   { label: "To-Do", icon: ListTodo, path: "/todo" },
   { label: "Comms", icon: MessageSquare, path: "/comms" },
-  { label: "Client Projects", icon: FolderKanban, path: "/client-projects" },
   { label: "Requests", icon: ClipboardList, path: "/requests" },
   { label: "Ørbit SEO", icon: Globe, path: "/orbit-seo" },
-  { label: "Web Øps", icon: Wrench, path: "/web-ops" },
-  { label: "Førge", icon: Flame, path: "/forge" },
   { label: "Performance", icon: TrendingUp, path: "/performance" },
   { label: "Prestige", icon: Crown, path: "/prestige" },
   { label: "Settings", icon: Settings, path: "/settings" },
