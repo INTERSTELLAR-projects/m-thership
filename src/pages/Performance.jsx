@@ -184,8 +184,8 @@ export default function Performance() {
               const authority = Math.max(18, score - 12 - ((client.businessName?.charCodeAt(1) || 66) % 15));
               const perf = getPerformanceStatus(score);
               const publishedBlogs = (client.blogs || []).filter(b => b.status === "Published").length;
-              const scoreColor = score >= 75 ? "text-green-400" : score >= 55 ? "text-orange-400" : "text-red-400";
-              const authorityColor = authority >= 60 ? "text-green-400" : authority >= 40 ? "text-orange-400" : "text-red-400";
+              const scoreColor = score >= 75 ? "text-[#34D399]" : score >= 55 ? "text-[#FF6A00]" : "text-red-400";
+              const authorityColor = authority >= 60 ? "text-[#34D399]" : authority >= 40 ? "text-[#FF6A00]" : "text-red-400";
 
               return (
                 <button key={client.id} onClick={() => setSelectedClient(client)} className="card-hover w-full game-panel p-4 grid grid-cols-12 gap-4 items-center text-left group">
