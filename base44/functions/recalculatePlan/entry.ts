@@ -41,7 +41,7 @@ function collectNumbers(obj) {
     set.add(n);
     set.add(Math.round(n));
     set.add(round2(n));
-    set.add(n * 100); // percent form
+    set.add(n * 100);
     set.add(Math.round(n * 100));
     set.add(round2(n * 100));
   }
@@ -121,6 +121,14 @@ function safeParse(s) {
   try { return JSON.parse(s); } catch { return null; }
 }
 
+async function resolvePrimaryGoal(base44) {
+  const primary = await base44.entities.Goal.filter({ is_primary: true }, "priority", 50);
+  const found = (primary || []).find((g) => g.status !== "archived") || (primary || [])[0];
+  if (found) return found;
+  const active = await base44.entities.Goal.filter({ status: "active" }, "priority", 50);
+  return (active || [])[0] || null;
+}
+
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -131,23 +139,17 @@ export default async function (req) {
     const body = await req.json().catch(() => ({}));
     const trigger = body.trigger || (body.event ? "mrr_change" : "manual");
 
-    // Compute current MRR from active CRM clients.
     const clients = await base44.entities.CRMClient.list("-created_date", 500);
     const currentMrr = (clients || [])
       .filter((c) => c.status === "Active")
       .reduce((s, c) => s + (c.services || []).reduce((t, sv) => t + (Number(sv.price) || 0), 0), 0);
 
-    // Resolve the active plan.
-    let plan;
-    if (body.planId) plan = await base44.entities.ExecutionPlan.get(body.planId);
-    if (!plan) {
-      const plans = await base44.entities.ExecutionPlan.filter({ status: "active" }, "-created_date", 5);
-      plan = (plans || [])[0];
-    }
-    if (!plan) return Response.json({ error: "No active plan" }, { status: 404 });
+    let goal;
+    if (body.goalId) goal = await base44.entities.Goal.get(body.goalId);
+    if (!goal) goal = await resolvePrimaryGoal(base44);
+    if (!goal) return Response.json({ error: "No goal" }, { status: 404 });
 
-    // Debounce: max one run per 60s on mrr_change.
-    const recent = await base44.entities.PlanAnalysis.filter({ plan_id: plan.id }, "-created_date", 1);
+    const recent = await base44.entities.PlanAnalysis.filter({ goal_id: goal.id }, "-created_date", 1);
     const last = (recent || [])[0];
     if (trigger === "mrr_change" && last) {
       const ageMs = Date.now() - new Date(last.created_date).getTime();
@@ -156,10 +158,9 @@ export default async function (req) {
       }
     }
 
-    const computed = computePlan(plan, currentMrr);
+    const computed = computePlan(goal, currentMrr);
 
-    // Previous analysis for delta awareness (the latest existing one before this run).
-    const prevList = await base44.entities.PlanAnalysis.filter({ plan_id: plan.id }, "-created_date", 1);
+    const prevList = await base44.entities.PlanAnalysis.filter({ goal_id: goal.id }, "-created_date", 1);
     const previousAnalysis = (prevList || [])[0] || null;
 
     let aiSummary = null;
@@ -169,19 +170,33 @@ export default async function (req) {
       aiSummary = null;
     }
 
+    const assumptions_snapshot = {
+      blended_mix: goal.blended_mix == null ? null : goal.blended_mix,
+      routes: (goal.routes || []).map((r) => ({
+        name: r.name,
+        monthly_price: Number(r.monthly_price) || 0,
+        clients_per_month: Number(r.clients_per_month) || 0,
+        monthly_churn_rate: Number(r.monthly_churn_rate) || 0,
+        has_addons: !!r.has_addons,
+        addon_attach_rate: r.has_addons ? Number(r.addon_attach_rate) || 0 : null,
+        addon_avg: r.has_addons ? Number(r.addon_avg) || 0 : null,
+      })),
+    };
+
     const created = await base44.entities.PlanAnalysis.create({
-      plan_id: plan.id,
+      goal_id: goal.id,
+      target_mrr: computed.target_mrr,
       mrr_at_run: computed.current_mrr,
       gap_at_run: computed.gap_at_run,
       computed,
       ai_summary: aiSummary,
+      assumptions_snapshot,
       previous_analysis_id: previousAnalysis ? previousAnalysis.id : null,
       trigger,
     });
 
-    // Goal achieved: archive the plan so the UI prompts for the next goal.
-    if (computed.achieved && plan.status !== "achieved") {
-      await base44.entities.ExecutionPlan.update(plan.id, { status: "achieved" });
+    if (computed.achieved && goal.status !== "achieved") {
+      await base44.entities.Goal.update(goal.id, { status: "achieved" });
     }
 
     return Response.json({ ok: true, analysis_id: created.id, computed, ai_summary: aiSummary, mrr: currentMrr });

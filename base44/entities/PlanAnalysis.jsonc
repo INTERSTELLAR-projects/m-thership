@@ -2,8 +2,11 @@
   "name": "PlanAnalysis",
   "type": "object",
   "properties": {
-    "plan_id": {
+    "goal_id": {
       "type": "string"
+    },
+    "target_mrr": {
+      "type": "number"
     },
     "mrr_at_run": {
       "type": "number"
@@ -16,6 +19,10 @@
       "additionalProperties": true
     },
     "ai_summary": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "assumptions_snapshot": {
       "type": "object",
       "additionalProperties": true
     },
@@ -33,6 +40,6 @@
     }
   },
   "required": [
-    "plan_id"
+    "goal_id"
   ]
 }

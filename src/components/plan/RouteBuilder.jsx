@@ -3,8 +3,6 @@ import { HelpCircle, Plus, X, Rocket } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { computeRoute, ROUTE_PRESETS } from "../../../base44/shared/planEngine.js";
 
-function nan(v, d) { return v === null || v === undefined || v === "" || (typeof v === "number" && isNaN(v)) ? d : v; }
-
 function Field({ label, value, onChange, type, placeholder, tooltip }) {
   return (
     <div>
@@ -31,8 +29,21 @@ function RouteCard({ route, setRoute, idx, onRemove, canRemove }) {
   const applyPreset = (key) => {
     const p = ROUTE_PRESETS.find((r) => r.key === key);
     if (!p) return;
-    setRoute({ ...route, name: p.name, monthly_price: p.monthly_price, has_addons: p.has_addons, addon_low: p.addon_low, addon_high: p.addon_high, addon_avg: p.addon_avg, addon_attach_rate: p.addon_attach_rate, clients_per_month: p.clients_per_month, monthly_churn_rate: p.monthly_churn_rate, delivery_hours_per_client: p.delivery_hours_per_client });
+    setRoute({
+      ...route,
+      preset: key,
+      name: p.name,
+      monthly_price: p.monthly_price,
+      has_addons: p.has_addons,
+      addon_low: p.addon_low,
+      addon_high: p.addon_high,
+      addon_avg: p.addon_avg,
+      addon_attach_rate: p.addon_attach_rate,
+      clients_per_month: p.clients_per_month,
+      monthly_churn_rate: p.monthly_churn_rate,
+    });
   };
+  const currentPreset = route.preset || (route.name === "Ørbit SEO Base" ? "orbit_seo_base" : route.name === "Starshïp App Maintenance" ? "starship_maintenance" : "custom");
   return (
     <div className="rounded-xl border border-white/[0.07] bg-white/[0.015] p-3.5 space-y-3 relative">
       <div className="flex items-center justify-between gap-2">
@@ -47,50 +58,46 @@ function RouteCard({ route, setRoute, idx, onRemove, canRemove }) {
         placeholder="Route name"
         className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-2.5 py-1.5 text-sm text-white outline-none focus:border-orange-500/40"
       />
-      {/* Preset picker */}
       <div className="flex gap-1">
         {ROUTE_PRESETS.map((p) => (
           <button key={p.key} onClick={() => applyPreset(p.key)}
-            className={`flex-1 px-2 py-1 rounded-md text-[10px] font-semibold tracking-wide transition-all ${route.name === p.name ? "bg-gradient-to-r from-orange-500/25 to-amber-400/15 text-orange-300 border border-orange-500/30" : "bg-white/[0.03] text-white/40 border border-white/[0.05] hover:border-orange-500/20"}`}>
+            className={`flex-1 px-2 py-1 rounded-md text-[10px] font-semibold tracking-wide transition-all ${currentPreset === p.key ? "bg-gradient-to-r from-orange-500/25 to-amber-400/15 text-orange-300 border border-orange-500/30" : "bg-white/[0.03] text-white/40 border border-white/[0.05] hover:border-orange-500/20"}`}>
             {p.key === "orbit_seo_base" ? "Ørbit SEO" : p.key === "starship_maintenance" ? "Starshïp" : "Custom"}
           </button>
         ))}
       </div>
       <div className="grid grid-cols-2 gap-2.5">
         <Field label="Monthly Price $" value={route.monthly_price} onChange={(v) => setRoute({ ...route, monthly_price: v })} tooltip="Recurring revenue per client per month." />
-        <Field label="Clients / Month" value={route.clients_per_month} onChange={(v) => setRoute({ ...route, clients_per_month: v })} tooltip="Realistic acquisition velocity. The engine adds this many new clients each month." />
+        <Field label="Clients / Month" value={route.clients_per_month} onChange={(v) => setRoute({ ...route, clients_per_month: v })} tooltip="Realistic acquisition velocity — the primary lever. The engine adds this many new clients each month." />
         <Field label="Churn / mo" value={route.monthly_churn_rate} onChange={(v) => setRoute({ ...route, monthly_churn_rate: v })} tooltip="Fraction of clients lost per month (0.03 = 3%). Applied to existing revenue before new adds." />
-        <Field label="Delivery hrs / client" value={route.delivery_hours_per_client} onChange={(v) => setRoute({ ...route, delivery_hours_per_client: v })} tooltip="Monthly fulfillment hours one client costs you. Drives the capacity ceiling flag." />
+        <div className="flex items-end">
+          <button onClick={() => setRoute({ ...route, has_addons: !route.has_addons })}
+            className={`w-full px-2.5 py-1.5 rounded-md text-[10px] font-semibold tracking-wide transition-all ${route.has_addons ? "bg-orange-500/20 text-orange-300 border border-orange-500/30" : "bg-white/[0.03] text-white/40 border border-white/[0.05]"}`}>
+            Add-ons {route.has_addons ? "ON" : "OFF"}
+          </button>
+        </div>
       </div>
-      <div className="flex items-center gap-2 pt-1">
-        <button
-          onClick={() => setRoute({ ...route, has_addons: !route.has_addons })}
-          className={`px-2.5 py-1 rounded-md text-[10px] font-semibold tracking-wide transition-all ${route.has_addons ? "bg-orange-500/20 text-orange-300 border border-orange-500/30" : "bg-white/[0.03] text-white/40 border border-white/[0.05]"}`}
-        >
-          Add-ons
-        </button>
-        {route.has_addons && (
-          <div className="flex-1 grid grid-cols-3 gap-1.5">
-            <Field label="Avg $" value={route.addon_avg} onChange={(v) => setRoute({ ...route, addon_avg: v })} tooltip="Default = midpoint of low/high. One-time cash per attached add-on." />
-            <Field label="Low $" value={route.addon_low} onChange={(v) => setRoute({ ...route, addon_low: v })} />
-            <Field label="High $" value={route.addon_high} onChange={(v) => setRoute({ ...route, addon_high: v })} />
-            <Field label="Attach %" value={route.addon_attach_rate} onChange={(v) => setRoute({ ...route, addon_attach_rate: v })} tooltip="Fraction of new clients who buy an add-on. 0.5 = 50%." />
-          </div>
-        )}
-      </div>
+      {route.has_addons && (
+        <div className="grid grid-cols-4 gap-1.5">
+          <Field label="Avg $" value={route.addon_avg} onChange={(v) => setRoute({ ...route, addon_avg: v })} tooltip="Default = midpoint of low/high. One-time cash per attached add-on." />
+          <Field label="Low $" value={route.addon_low} onChange={(v) => setRoute({ ...route, addon_low: v })} />
+          <Field label="High $" value={route.addon_high} onChange={(v) => setRoute({ ...route, addon_high: v })} />
+          <Field label="Attach %" value={route.addon_attach_rate} onChange={(v) => setRoute({ ...route, addon_attach_rate: v })} tooltip="Fraction of new clients who buy an add-on. 0.5 = 50%." />
+        </div>
+      )}
     </div>
   );
 }
 
-export default function RouteBuilder({ open, initialPlan, currentMrr, onClose, onSave }) {
-  const [title, setTitle] = useState(initialPlan?.title || "");
-  const [goal, setGoal] = useState(initialPlan?.goal_mrr || 10000);
+export default function RouteBuilder({ open, initialGoal, currentMrr, onClose, onSave }) {
+  const [title, setTitle] = useState(initialGoal?.title || "");
+  const [goal, setGoal] = useState(initialGoal?.target_mrr || 10000);
   const [routes, setRoutes] = useState(
-    initialPlan?.routes?.length
-      ? JSON.parse(JSON.stringify(initialPlan.routes))
+    initialGoal?.routes?.length
+      ? JSON.parse(JSON.stringify(initialGoal.routes))
       : [
-          { id: "r1", name: "Ørbit SEO Base", monthly_price: 500, has_addons: false, clients_per_month: 1, monthly_churn_rate: 0.03, delivery_hours_per_client: 6 },
-          { id: "r2", name: "Starshïp App Maintenance", monthly_price: 150, has_addons: true, addon_low: 250, addon_high: 5000, addon_avg: 1200, addon_attach_rate: 0.5, clients_per_month: 2, monthly_churn_rate: 0.02, delivery_hours_per_client: 2 },
+          { id: "r1", preset: "orbit_seo_base", name: "Ørbit SEO Base", monthly_price: 500, has_addons: false, clients_per_month: 1, monthly_churn_rate: 0.03 },
+          { id: "r2", preset: "starship_maintenance", name: "Starshïp App Maintenance", monthly_price: 150, has_addons: true, addon_low: 250, addon_high: 5000, addon_avg: 1200, addon_attach_rate: 0.5, clients_per_month: 2, monthly_churn_rate: 0.02 },
         ]
   );
 
@@ -106,8 +113,8 @@ export default function RouteBuilder({ open, initialPlan, currentMrr, onClose, o
 
   const setRoute = (i, val) => setRoutes((prev) => prev.map((r, idx) => (idx === i ? val : r)));
   const addRoute = () => {
-    if (routes.length >= 4) return;
-    setRoutes([...routes, { id: "r" + (routes.length + 1), name: "Custom Route", monthly_price: 0, has_addons: false, clients_per_month: 0, monthly_churn_rate: 0.03, delivery_hours_per_client: 1 }]);
+    if (routes.length >= 3) return;
+    setRoutes([...routes, { id: "r" + (routes.length + 1), preset: "custom", name: "Custom Route", monthly_price: 0, has_addons: false, clients_per_month: 0, monthly_churn_rate: 0.03 }]);
   };
   const removeRoute = (i) => setRoutes((prev) => prev.filter((_, idx) => idx !== i));
 
@@ -117,33 +124,32 @@ export default function RouteBuilder({ open, initialPlan, currentMrr, onClose, o
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="bg-card border-white/[0.06] text-white max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="text-white flex items-center gap-2"><Rocket className="w-4 h-4 text-orange-400" />Define Your Routes</DialogTitle>
+          <DialogTitle className="text-white flex items-center gap-2"><Rocket className="w-4 h-4 text-orange-400" />{initialGoal ? "Edit Goal" : "Define a New Goal"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="flex items-center gap-3">
             <div className="flex-1">
-              <span className="text-white/45 text-[10px] tracking-wider uppercase block mb-1">Plan Title</span>
+              <span className="text-white/45 text-[10px] tracking-wider uppercase block mb-1">Goal Title</span>
               <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={"Path to $" + (goal || 0).toLocaleString()} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-2.5 py-1.5 text-sm text-white outline-none focus:border-orange-500/40" />
             </div>
             <div className="w-40">
-              <span className="text-white/45 text-[10px] tracking-wider uppercase block mb-1">Goal MRR $</span>
+              <span className="text-white/45 text-[10px] tracking-wider uppercase block mb-1">Target MRR $</span>
               <input type="number" value={goal} onChange={(e) => setGoal(e.target.value === "" ? "" : Number(e.target.value))} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-2.5 py-1.5 text-sm text-white outline-none focus:border-orange-500/40 font-mono" />
             </div>
           </div>
 
-          <div className={`grid gap-3 ${routes.length === 2 ? "grid-cols-2" : routes.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
+          <div className={`grid gap-3 ${routes.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
             {routes.map((r, i) => (
               <RouteCard key={r.id || i} route={r} setRoute={(v) => setRoute(i, v)} idx={i} onRemove={() => removeRoute(i)} canRemove={routes.length > 2} />
             ))}
           </div>
 
-          {routes.length < 4 && (
+          {routes.length < 3 && (
             <button onClick={addRoute} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-white/10 hover:border-orange-500/30 text-white/40 hover:text-orange-400 text-xs transition-all">
-              <Plus className="w-3.5 h-3.5" />Add third route
+              <Plus className="w-3.5 h-3.5" />Add a third route
             </button>
           )}
 
-          {/* Live preview strip */}
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 flex items-center gap-3 text-[11px] font-mono flex-wrap">
             <span className="text-white/30 uppercase tracking-wider">Preview</span>
             {preview.length === 0 ? (
@@ -162,10 +168,10 @@ export default function RouteBuilder({ open, initialPlan, currentMrr, onClose, o
 
           <button
             disabled={!valid}
-            onClick={() => onSave({ title, goal_mrr: Number(goal) || 0, routes })}
+            onClick={() => onSave({ title, target_mrr: Number(goal) || 0, routes })}
             className={`w-full py-2.5 rounded-lg text-sm font-bold tracking-wide transition-all ${valid ? "bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black shadow-[0_0_14px_rgba(255,106,0,0.25)]" : "bg-white/[0.04] text-white/30 cursor-not-allowed"}`}
           >
-            Run Analysis
+            {initialGoal ? "Save & Re-run" : "Run Analysis"}
           </button>
         </div>
       </DialogContent>

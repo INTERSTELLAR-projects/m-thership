@@ -1,0 +1,84 @@
+{
+  "name": "Goal",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "target_mrr": {
+      "type": "number"
+    },
+    "baseline_mrr": {
+      "type": "number"
+    },
+    "priority": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "achieved",
+        "archived"
+      ],
+      "default": "active"
+    },
+    "is_primary": {
+      "type": "boolean",
+      "default": false
+    },
+    "blended_mix": {
+      "type": "number"
+    },
+    "routes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "preset": {
+            "type": "string"
+          },
+          "monthly_price": {
+            "type": "number"
+          },
+          "has_addons": {
+            "type": "boolean"
+          },
+          "addon_low": {
+            "type": "number"
+          },
+          "addon_high": {
+            "type": "number"
+          },
+          "addon_avg": {
+            "type": "number"
+          },
+          "addon_attach_rate": {
+            "type": "number"
+          },
+          "clients_per_month": {
+            "type": "number"
+          },
+          "monthly_churn_rate": {
+            "type": "number"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "title",
+    "target_mrr"
+  ]
+}

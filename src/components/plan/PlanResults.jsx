@@ -1,32 +1,21 @@
-import { useState } from "react";
+import { useState, useMemo, useRef } from "react";
 import { AreaChart, Area, XAxis, ResponsiveContainer, Tooltip, ReferenceLine, BarChart, Bar, Cell, YAxis } from "recharts";
-import { RefreshCw, ChevronDown, ChevronUp, AlertTriangle, Check, Shield, X, Pencil, ArrowUp, ArrowDown, TrendingUp } from "lucide-react";
+import { RefreshCw, ChevronDown, ChevronUp, AlertTriangle, Check, Pencil, ArrowUp, ArrowDown, RotateCcw } from "lucide-react";
 import GameChartTooltip from "@/components/charts/GameChartTooltip";
+import { computePlan, autoMixWeight, presetFor, round2 } from "../../../base44/shared/planEngine.js";
 
-const ROUTE_COLORS = ["#F47C20", "#FFC14D", "#FF9F1C", "#FFD27A"];
+const ROUTE_COLORS = ["#F47C20", "#FFC14D", "#FF9F1C"];
 const BLENDED_COLOR = "#67B5FF";
 
-function rowWinner(routes, key) {
-  const candidates = routes.filter((r) => r[key] != null && r[key] !== 0 && !Number.isNaN(r[key]));
-  if (candidates.length === 0) return null;
-  // lower is better for: clients_needed_real, months_to_goal, delivery_hours_at_goal. higher better for rest.
-  const lowerBetter = ["clients_needed_real", "months_to_goal", "delivery_hours_at_goal", "churn_drag"];
-  return lowerBetter.includes(key)
-    ? candidates.reduce((a, b) => (a[key] < b[key] ? a : b))
-    : candidates.reduce((a, b) => (a[key] > b[key] ? a : b));
-}
+const stepRound = (n, step) => Math.round(n / step) * step;
+const clampN = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
-function fmt(n, prefix) {
-  if (n === null || n === undefined) return "—";
-  if (typeof n === "number") return prefix + Math.round(n).toLocaleString();
-  return n;
-}
 function fmtMoney(n) {
   if (n === null || n === undefined) return "—";
   return "$" + Math.round(n).toLocaleString();
 }
 function fmtMonth(n) {
-  if (n === null || n === undefined) return "Not reachable at these assumptions";
+  if (n === null || n === undefined) return "Not reachable";
   return n + (n === 1 ? " month" : " months");
 }
 
@@ -39,25 +28,46 @@ function FlagChip({ flag, label }) {
   );
 }
 
-function TableRow({ label, children }) {
+function MiniSlider({ value, min, max, step, onDrag, onCommit, fmt }) {
+  const v = clampN(Number(value) || 0, min, max);
+  const stepPlus = (dir) => {
+    const n = clampN(stepRound(v + dir * step, step), min, max);
+    onDrag(n);
+    onCommit && onCommit();
+  };
   return (
-    <div className="grid items-center py-1.5" style={{ gridTemplateColumns: "140px 1fr" }}>
-      <span className="text-white/40 text-[10px] uppercase tracking-wider font-mono">{label}</span>
-      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${children.length}, minmax(0,1fr))` }}>{children}</div>
+    <div className="space-y-1 w-full">
+      <input
+        type="range" min={min} max={max} step={step} value={v}
+        onChange={(e) => onDrag(Number(e.target.value))}
+        onPointerUp={onCommit} onMouseUp={onCommit} onTouchEnd={onCommit} onKeyUp={onCommit}
+        className="w-full h-1 accent-orange-500 cursor-pointer bg-white/10 rounded-full"
+      />
+      <div className="flex items-center justify-between gap-1">
+        <span className="text-white/80 text-[10px] font-mono leading-none truncate">{fmt ? fmt(v) : v}</span>
+        <div className="flex items-center gap-0.5 shrink-0">
+          <button onClick={() => stepPlus(-1)} className="w-4 h-4 rounded bg-white/[0.06] hover:bg-orange-500/25 text-white/60 hover:text-white text-[11px] leading-none flex items-center justify-center">−</button>
+          <button onClick={() => stepPlus(1)} className="w-4 h-4 rounded bg-white/[0.06] hover:bg-orange-500/25 text-white/60 hover:text-white text-[11px] leading-none flex items-center justify-center">+</button>
+        </div>
+      </div>
     </div>
   );
 }
 
-function Cell2({ win, children }) {
+function Row({ label, children, bold }) {
   return (
-    <div className={`text-[11px] font-mono px-2 py-1 rounded ${win ? "text-white border-l-2 border-orange-500 bg-orange-500/[0.05]" : "text-white/55"}`}>
-      {children}
+    <div className="grid items-center py-1.5" style={{ gridTemplateColumns: "128px minmax(0,1fr)" }}>
+      <span className={`text-white/40 text-[10px] uppercase tracking-wider font-mono ${bold ? "text-orange-400/60" : ""}`}>{label}</span>
+      <div className="grid gap-2 min-w-0" style={{ gridTemplateColumns: `repeat(${children.length}, minmax(0,1fr))` }}>{children}</div>
     </div>
   );
 }
+function Cell2({ children, className = "" }) {
+  return <div className={`text-[11px] font-mono px-2 py-1 rounded text-white/55 ${className}`}>{children}</div>;
+}
 
-function ChecklistItem({ index, analysisId, planId, item }) {
-  const key = `plan_check_${planId}_${analysisId}_${index}`;
+function ChecklistItem({ index, analysisId, goalId, item }) {
+  const key = `goal_check_${goalId}_${analysisId}_${index}`;
   const [done, setDone] = useState(() => {
     try { return JSON.parse(localStorage.getItem(key) || "false"); } catch { return false; }
   });
@@ -75,129 +85,263 @@ function ChecklistItem({ index, analysisId, planId, item }) {
   );
 }
 
-export default function PlanResults({ plan, analysis, running, onRerun, onEdit, relTime }) {
-  const [open, setOpen] = useState(true);
-  const c = analysis?.computed;
-  const ai = analysis?.ai_summary;
-  if (!c) return null;
-  const allRoutes = [...(c.routes || []), c.blended].filter(Boolean);
-  const labels = ["Monthly Price", "Clients Needed", "Time to Goal", "New MRR Added", "One-time Cash by Goal", "Total Cash at Goal", "Delivery hrs/mo", "Revenue / Del. Hour", "Risk Flags"];
-  const wClients = rowWinner(allRoutes, "clients_needed_real");
-  const wMonths = rowWinner(allRoutes, "months_to_goal");
-  const wDH = rowWinner(allRoutes, "delivery_hours_at_goal");
-  const wPrice = rowWinner(allRoutes, "total_cash_at_goal");
-  const wRph = rowWinner(allRoutes, "revenue_per_delivery_hour");
+function assumptionKey(routes, blendedMix) {
+  return JSON.stringify({
+    mix: blendedMix == null ? null : round2(blendedMix),
+    routes: (routes || []).map((r) => ({
+      price: round2(Number(r.monthly_price) || 0),
+      cpm: round2(Number(r.clients_per_month) || 0),
+      churn: round2(Number(r.monthly_churn_rate) || 0),
+      has_addons: !!r.has_addons,
+      attach: r.has_addons ? round2(Number(r.addon_attach_rate) || 0) : null,
+      avg: r.has_addons ? round2(Number(r.addon_avg) || 0) : null,
+    })),
+  });
+}
 
-  // Chart 1: projection to goal, 24 months
+export default function PlanResults({ goal, analysis, mrr, running, onRerun, onEdit, onAssumptionsSave, onStaleReRun, relTime }) {
+  const [open, setOpen] = useState(true);
+  const [assumptionsOpen, setAssumptionsOpen] = useState(false);
+  const baselineRef = useRef(JSON.parse(JSON.stringify(goal.routes || [])));
+  const [routes, setRoutes] = useState(() => JSON.parse(JSON.stringify(goal.routes || [])));
+  const [blendedMix, setBlendedMix] = useState(goal.blended_mix == null ? null : goal.blended_mix);
+
+  const c = useMemo(
+    () => computePlan({ target_mrr: goal.target_mrr, baseline_mrr: goal.baseline_mrr || 0, routes, blended_mix: blendedMix }, mrr || 0),
+    [goal.target_mrr, goal.baseline_mrr, routes, blendedMix, mrr]
+  );
+  const ai = analysis?.ai_summary;
+  const allRoutes = [...(c.routes || []), c.blended].filter(Boolean);
+
+  const snapshot = analysis?.assumptions_snapshot;
+  const stale = !!(snapshot && assumptionKey(routes, blendedMix) !== assumptionKey(snapshot.routes, snapshot.blended_mix));
+
+  const autoMix = autoMixWeight(routes);
+  const mixValue = blendedMix == null ? (autoMix ?? 0.5) : blendedMix;
+
+  const commitRef = useRef(null);
+  commitRef.current = () => onAssumptionsSave(routes, blendedMix);
+  const onSliderCommit = () => {
+    if (assumptionKey(routes, blendedMix) !== assumptionKey(baselineRef.current, goal.blended_mix == null ? null : goal.blended_mix)) {
+      baselineRef.current = JSON.parse(JSON.stringify(routes));
+      onAssumptionsSave(routes, blendedMix);
+    }
+  };
+
+  const setRouteField = (i, patch) => setRoutes((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+  const resetRoute = (i) => {
+    const r = routes[i];
+    const preset = r.preset ? presetFor(r.preset) : null;
+    const base = preset
+      ? { ...r, clients_per_month: preset.clients_per_month, monthly_churn_rate: preset.monthly_churn_rate, has_addons: preset.has_addons, addon_low: preset.addon_low, addon_high: preset.addon_high, addon_avg: preset.addon_avg, addon_attach_rate: preset.addon_attach_rate }
+      : { ...r, ...baselineRef.current[i] };
+    setRoutes((prev) => prev.map((rr, idx) => (idx === i ? base : rr)));
+    setTimeout(() => {
+      const next = routes.map((rr, idx) => (idx === i ? base : rr));
+      onAssumptionsSave(next, blendedMix);
+    }, 0);
+  };
+
+  // charts
   const months24 = Array.from({ length: 24 }, (_, i) => {
     const m = i + 1;
     const point = { month: "M" + m };
-    allRoutes.forEach((r) => {
-      point[r.name] = r.series && r.series[m - 1] ? Math.round(r.series[m - 1].mrr) : null;
-    });
+    allRoutes.forEach((r) => { point[r.name] = r.series && r.series[m - 1] ? Math.round(r.series[m - 1].mrr) : null; });
     return point;
   });
-
-  // Chart 2: time to goal
   const timeData = allRoutes.map((r) => ({ name: r.name, months: r.months_to_goal || 0, reached: !!r.reached }));
   const minMonths = Math.min(...timeData.map((t) => t.months).filter((m) => m > 0));
-
-  // Chart 3: cash composition (winner or blended)
-  const winner = (c.routes || []).concat(c.blended ? [c.blended] : []).find((r) => r.name === c.winner_name) || c.blended;
+  const winner = allRoutes.find((r) => r.name === c.winner_name) || c.blended;
+  const winnerColor = winner?.system_generated ? BLENDED_COLOR : (allRoutes.indexOf(winner) >= 0 ? ROUTE_COLORS[allRoutes.indexOf(winner) % ROUTE_COLORS.length] : "#F47C20");
   const cashData = Array.from({ length: 12 }, (_, i) => {
     const m = i + 1;
     const s = winner?.series?.[m - 1];
-    return {
-      month: "M" + m,
-      Recurring: s ? Math.max(0, Math.round(s.mrr - c.current_mrr)) : 0,
-      "One-time": s ? Math.round(s.cumulative_one_time) : 0,
-    };
+    return { month: "M" + m, Recurring: s ? Math.max(0, Math.round(s.mrr - c.current_mrr)) : 0, "One-time": s ? Math.round(s.cumulative_one_time) : 0 };
   });
+  const crossMonth = winner?.reached && winner.months_to_goal <= 24 ? "M" + winner.months_to_goal : null;
 
   const deltaUp = ai?.delta_since_last_run && !/dro|down|fell|lower|negative/i.test(JSON.stringify(ai.delta_since_last_run).toLowerCase());
 
   return (
     <div className="p-3.5 space-y-3">
-      {/* a) Verdict bar */}
+      {/* verdict bar */}
       <div className="flex items-start gap-2">
         <div className="flex-1">
           {ai ? (
-            <p className="text-white text-[15px] font-medium leading-snug">
-              {ai.verdict ? ai.verdict.replace(/\[winner\]/g, c.winner_name || "") : ""}
-            </p>
+            <p className="text-white text-[15px] font-medium leading-snug">{ai.verdict ? ai.verdict.replace(/\[winner\]/g, c.winner_name || "") : ""}</p>
           ) : (
-            <p className="text-white/40 text-sm italic flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5" />Analysis unavailable — retry
-            </p>
+            <p className="text-white/40 text-sm italic flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" />Analysis unavailable — retry</p>
           )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <button onClick={onEdit} title="Edit routes" className="p-1.5 rounded-md hover:bg-white/5 text-white/30 hover:text-orange-400 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
-          <button onClick={onRerun} disabled={running} title="Re-run analysis" className="p-1.5 rounded-md hover:bg-white/5 text-white/30 hover:text-orange-400 transition-all disabled:opacity-40">
-            {running ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-          </button>
+          <button onClick={onEdit} title="Edit goal" className="p-1.5 rounded-md hover:bg-white/5 text-white/30 hover:text-orange-400 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
+          <button onClick={onRerun} disabled={running} title="Re-run analysis" className="p-1.5 rounded-md hover:bg-white/5 text-white/30 hover:text-orange-400 transition-all disabled:opacity-40">{running ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}</button>
           <span className="text-white/25 text-[10px] font-mono">{relTime || ""}</span>
-          <button onClick={() => setOpen(!open)} className="p-1 rounded-md hover:bg-white/5 text-white/30 transition-all">
-            {open ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          </button>
+          <button onClick={() => setOpen(!open)} className="p-1 rounded-md hover:bg-white/5 text-white/30 transition-all">{open ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}</button>
         </div>
       </div>
 
+      {stale && (
+        <button onClick={() => onStaleReRun(routes, blendedMix)}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-semibold tracking-wide uppercase hover:bg-amber-500/25 transition-all">
+          <AlertTriangle className="w-3 h-3" />Assumptions changed — re-run analysis
+        </button>
+      )}
+
       {open && (
         <div className="space-y-3">
-          {/* b) Comparison table */}
-          <div className="rounded-lg border border-white/[0.06] bg-white/[0.015] p-3">
-            <div className="grid items-center pb-2 mb-1 border-b border-white/[0.05]" style={{ gridTemplateColumns: "140px 1fr" }}>
-              <span />
-              <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${allRoutes.length}, minmax(0,1fr))` }}>
-                {allRoutes.map((r, i) => (
-                  <div key={i} className="text-center">
-                    <span className="text-[11px] font-semibold" style={{ color: r.system_generated ? BLENDED_COLOR : ROUTE_COLORS[i % ROUTE_COLORS.length] }}>{r.name}</span>
-                    {r.system_generated && <span className="block text-[8px] text-white/30 uppercase tracking-wider">auto</span>}
-                  </div>
-                ))}
+          {/* comparison table */}
+          <div className="rounded-lg border border-white/[0.06] bg-white/[0.015] p-3 overflow-x-auto">
+            <div className="min-w-[460px]">
+              {/* header */}
+              <div className="grid items-end pb-2 mb-1 border-b border-white/[0.05]" style={{ gridTemplateColumns: "128px minmax(0,1fr)" }}>
+                <span />
+                <div className="grid gap-2 min-w-0" style={{ gridTemplateColumns: `repeat(${allRoutes.length}, minmax(0,1fr))` }}>
+                  {allRoutes.map((r, i) => {
+                    const col = r.system_generated ? BLENDED_COLOR : ROUTE_COLORS[i % ROUTE_COLORS.length];
+                    return (
+                      <div key={i} className="text-center">
+                        <span className="text-[11px] font-semibold block leading-tight" style={{ color: col }}>{r.name}</span>
+                        {r.system_generated ? (
+                          <span className="text-[8px] text-white/30 uppercase tracking-wider">auto</span>
+                        ) : (
+                          <button onClick={() => resetRoute(i)} className="text-[8px] text-white/25 hover:text-orange-400 uppercase tracking-wider inline-flex items-center gap-0.5"><RotateCcw className="w-2 h-2" />reset</button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+
+              <Row label="Monthly price">
+                {allRoutes.map((r, i) => <Cell2 key={i}>{fmtMoney(r.monthly_price)}</Cell2>)}
+              </Row>
+
+              {/* Clients/mo — live sliders */}
+              <Row label="Clients / mo">
+                {allRoutes.map((r, i) =>
+                  r.system_generated ? (
+                    <div key={i} className="px-1">
+                      <MiniSlider value={mixValue} min={0} max={1} step={0.01}
+                        onDrag={(v) => setBlendedMix(round2(v))}
+                        onCommit={onSliderCommit}
+                        fmt={(v) => blendedMix == null ? "AUTO" : Math.round(v * 100) + "%"} />
+                      {blendedMix != null ? (
+                        <button onClick={() => { setBlendedMix(null); setTimeout(onSliderCommit, 0); }} className="mt-1 text-[8px] text-white/35 hover:text-orange-400 uppercase tracking-wider">→ auto</button>
+                      ) : (
+                        <span className="block mt-1 text-[8px] text-white/30 uppercase tracking-wider">mix</span>
+                      )}
+                    </div>
+                  ) : (
+                    <div key={i} className="px-1">
+                      <MiniSlider value={routes[i].clients_per_month} min={0.25} max={8} step={0.25}
+                        onDrag={(v) => setRouteField(i, { clients_per_month: v })}
+                        onCommit={onSliderCommit}
+                        fmt={(v) => `${v} cli/mo`} />
+                    </div>
+                  )
+                )}
+              </Row>
+
+              {/* assumptions disclosure */}
+              <div className="py-1.5">
+                <button onClick={() => setAssumptionsOpen(!assumptionsOpen)} className="text-white/40 hover:text-orange-400 text-[10px] uppercase tracking-wider font-mono flex items-center gap-1">
+                  {assumptionsOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}Assumptions
+                </button>
+              </div>
+              {assumptionsOpen && (
+                <>
+                  <Row label="Churn / mo">
+                    {allRoutes.map((r, i) =>
+                      r.system_generated ? (
+                        <Cell2 key={i}>—</Cell2>
+                      ) : (
+                        <div key={i} className="px-1">
+                          <MiniSlider value={routes[i].monthly_churn_rate} min={0} max={0.15} step={0.005}
+                            onDrag={(v) => setRouteField(i, { monthly_churn_rate: v })}
+                            onCommit={onSliderCommit}
+                            fmt={(v) => (v * 100).toFixed(1) + "%"} />
+                        </div>
+                      )
+                    )}
+                  </Row>
+                  <Row label="Add-on attach">
+                    {allRoutes.map((r, i) =>
+                      r.system_generated ? (
+                        <Cell2 key={i}>—</Cell2>
+                      ) : routes[i].has_addons ? (
+                        <div key={i} className="px-1">
+                          <MiniSlider value={routes[i].addon_attach_rate} min={0} max={1} step={0.05}
+                            onDrag={(v) => setRouteField(i, { addon_attach_rate: v })}
+                            onCommit={onSliderCommit}
+                            fmt={(v) => Math.round(v * 100) + "%"} />
+                        </div>
+                      ) : (
+                        <Cell2 key={i}>—</Cell2>
+                      )
+                    )}
+                  </Row>
+                  <Row label="Add-on avg $">
+                    {allRoutes.map((r, i) => {
+                      if (r.system_generated) return <Cell2 key={i}>—</Cell2>;
+                      if (!routes[i].has_addons) return <Cell2 key={i}>—</Cell2>;
+                      const lo = Number(routes[i].addon_low) || 0;
+                      const hi = Number(routes[i].addon_high) || (lo + 1000);
+                      return (
+                        <div key={i} className="px-1">
+                          <MiniSlider value={routes[i].addon_avg} min={lo} max={hi} step={50}
+                            onDrag={(v) => setRouteField(i, { addon_avg: v })}
+                            onCommit={onSliderCommit}
+                            fmt={(v) => "$" + Math.round(v).toLocaleString()} />
+                        </div>
+                      );
+                    })}
+                  </Row>
+                </>
+              )}
+
+              <Row label="Clients needed">
+                {allRoutes.map((r, i) => <Cell2 key={i}>{r.clients_needed_real != null ? r.clients_needed_real : "—"}</Cell2>)}
+              </Row>
+
+              <Row label="Time to goal" bold>
+                {allRoutes.map((r, i) => (
+                  <Cell2 key={i} className={r.reached ? "text-orange-400 text-[13px] font-bold" : "text-white/35"}>
+                    {r.reached ? `${fmtMonth(r.months_to_goal)} · ${r.goal_date}` : "Not reachable"}
+                  </Cell2>
+                ))}
+              </Row>
+
+              <Row label="New MRR added">
+                {allRoutes.map((r, i) => <Cell2 key={i}>{r.reached ? fmtMoney(c.goal_mrr - c.current_mrr) : "—"}</Cell2>)}
+              </Row>
+
+              <Row label="MRR Total at Goal">
+                {allRoutes.map((r, i) => (
+                  <Cell2 key={i} className={r.reached ? "text-white/85" : "text-white/35"}>{r.reached ? fmtMoney(r.mrr_total_at_goal) : "Not reachable"}</Cell2>
+                ))}
+              </Row>
+
+              <Row label="One-time cash">
+                {allRoutes.map((r, i) => <Cell2 key={i}>{r.has_addons ? fmtMoney(r.one_time_cash_at_goal) : "—"}</Cell2>)}
+              </Row>
+
+              <Row label="Risk flags">
+                {allRoutes.map((r, i) => (
+                  <Cell2 key={i}>
+                    <div className="flex flex-wrap gap-1">
+                      <FlagChip flag={r.flags?.churn_trap} label="Churn Trap" />
+                      <FlagChip flag={r.flags?.never_reaches} label="Unreachable" />
+                      <FlagChip flag={r.flags?.addon_dependency} label="Addon-heavy" />
+                      {!r.flags?.churn_trap && !r.flags?.never_reaches && !r.flags?.addon_dependency && <span className="text-white/20 text-[9px]">—</span>}
+                    </div>
+                  </Cell2>
+                ))}
+              </Row>
             </div>
-            <TableRow label="Monthly Price">
-              {allRoutes.map((r, i) => <Cell2 key={i}>{fmtMoney(r.monthly_price)}</Cell2>)}
-            </TableRow>
-            <TableRow label="Clients Needed">
-              {allRoutes.map((r, i) => <Cell2 key={i} win={wClients && wClients.name === r.name}>{r.clients_needed_real != null ? r.clients_needed_real : "—"}</Cell2>)}
-            </TableRow>
-            <TableRow label="Time to Goal">
-              {allRoutes.map((r, i) => <Cell2 key={i} win={wMonths && wMonths.name === r.name}>{r.reached ? `${fmtMonth(r.months_to_goal)} · ${r.goal_date}` : "Not reachable"}</Cell2>)}
-            </TableRow>
-            <TableRow label="New MRR Added">
-              {allRoutes.map((r, i) => <Cell2 key={i}>{fmtMoney(r.reached ? c.goal_mrr - c.current_mrr : null)}</Cell2>)}
-            </TableRow>
-            <TableRow label="One-time Cash">
-              {allRoutes.map((r, i) => <Cell2 key={i}>{r.has_addons ? fmtMoney(r.one_time_cash_at_goal) : "—"}</Cell2>)}
-            </TableRow>
-            <TableRow label="Total Cash at Goal">
-              {allRoutes.map((r, i) => <Cell2 key={i} win={wPrice && wPrice.name === r.name}>{fmtMoney(r.total_cash_at_goal)}</Cell2>)}
-            </TableRow>
-            <TableRow label="Delivery hrs/mo">
-              {allRoutes.map((r, i) => <Cell2 key={i} win={wDH && wDH.name === r.name}>{r.delivery_hours_at_goal != null ? r.delivery_hours_at_goal + "h" : "—"}</Cell2>)}
-            </TableRow>
-            <TableRow label="Rev / Del. Hour">
-              {allRoutes.map((r, i) => <Cell2 key={i} win={wRph && wRph.name === r.name}>{fmtMoney(r.revenue_per_delivery_hour)}</Cell2>)}
-            </TableRow>
-            <TableRow label="Risk Flags">
-              {allRoutes.map((r, i) => (
-                <Cell2 key={i}>
-                  <div className="flex flex-wrap gap-1">
-                    <FlagChip flag={r.flags?.capacity_risk} label="Capacity" />
-                    <FlagChip flag={r.flags?.churn_trap} label="Churn Trap" />
-                    <FlagChip flag={r.flags?.never_reaches} label="Unreachable" />
-                    <FlagChip flag={r.flags?.addon_dependency} label="Addon-heavy" />
-                    {!r.flags?.capacity_risk && !r.flags?.churn_trap && !r.flags?.never_reaches && !r.flags?.addon_dependency && <span className="text-white/20 text-[9px]">—</span>}
-                  </div>
-                </Cell2>
-              ))}
-            </TableRow>
           </div>
 
-          {/* c) Chart 1 projection */}
+          {/* projection chart */}
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.015] p-3">
             <p className="text-white/40 text-[10px] uppercase tracking-widest font-mono mb-2">Projection to Goal</p>
             <div className="h-[180px]">
@@ -218,15 +362,17 @@ export default function PlanResults({ plan, analysis, running, onRerun, onEdit, 
                   <YAxis hide />
                   <Tooltip content={<GameChartTooltip />} cursor={{ stroke: "rgba(255,170,0,0.2)", strokeWidth: 1 }} />
                   <ReferenceLine y={c.goal_mrr} stroke="#F47C20" strokeDasharray="5 4" strokeWidth={1.5} label={{ value: `GOAL $${Math.round(c.goal_mrr).toLocaleString()}`, fill: "#F47C20", fontSize: 9, position: "insideTopRight" }} />
-                  {allRoutes.map((r, i) => (
-                    <Area key={i} type="monotone" dataKey={r.name} stroke={r.system_generated ? BLENDED_COLOR : ROUTE_COLORS[i % ROUTE_COLORS.length]} strokeWidth={2} fill={`url(#projGrad_${i})`} style={{ filter: `drop-shadow(0 0 4px ${r.system_generated ? BLENDED_COLOR : ROUTE_COLORS[i % ROUTE_COLORS.length]}66)` }} dot={false} />
-                  ))}
+                  {crossMonth && <ReferenceLine x={crossMonth} stroke={winnerColor} strokeDasharray="3 3" strokeWidth={1.5} label={{ value: winner?.name?.split(" ")[0], fill: winnerColor, fontSize: 8, position: "top" }} />}
+                  {allRoutes.map((r, i) => {
+                    const col = r.system_generated ? BLENDED_COLOR : ROUTE_COLORS[i % ROUTE_COLORS.length];
+                    return <Area key={i} type="monotone" dataKey={r.name} stroke={col} strokeWidth={2} fill={`url(#projGrad_${i})`} style={{ filter: `drop-shadow(0 0 4px ${col}66)` }} dot={false} isAnimationActive animationDuration={250} />;
+                  })}
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* d & e) Time to goal + Cash composition */}
+          {/* time to goal + cash composition */}
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-lg border border-white/[0.06] bg-white/[0.015] p-3">
               <p className="text-white/40 text-[10px] uppercase tracking-widest font-mono mb-2">Time to Goal</p>
@@ -236,7 +382,7 @@ export default function PlanResults({ plan, analysis, running, onRerun, onEdit, 
                     <XAxis type="number" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 9 }} axisLine={false} tickLine={false} />
                     <YAxis type="category" dataKey="name" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 9 }} axisLine={false} tickLine={false} width={70} />
                     <Tooltip content={<GameChartTooltip />} cursor={{ fill: "rgba(255,170,0,0.05)" }} />
-                    <Bar dataKey="months" radius={[3, 3, 3, 3]}>
+                    <Bar dataKey="months" radius={[3, 3, 3, 3]} isAnimationActive animationDuration={250}>
                       {timeData.map((t, i) => (
                         <Cell key={i} fill={t.reached && t.months === minMonths ? "url(#barWin)" : t.reached ? "rgba(255,143,0,0.35)" : "rgba(255,255,255,0.08)"} />
                       ))}
@@ -259,16 +405,16 @@ export default function PlanResults({ plan, analysis, running, onRerun, onEdit, 
                     <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 9 }} axisLine={false} tickLine={false} />
                     <YAxis hide />
                     <Tooltip content={<GameChartTooltip />} cursor={{ fill: "rgba(255,170,0,0.05)" }} />
-                    <Bar dataKey="Recurring" stackId="a" fill="#F47C20" fillOpacity={0.7} radius={[0, 0, 0, 0]} />
-                    <Bar dataKey="One-time" stackId="a" fill="#FFC14D" fillOpacity={0.55} radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="Recurring" stackId="a" fill="#F47C20" fillOpacity={0.7} isAnimationActive animationDuration={250} />
+                    <Bar dataKey="One-time" stackId="a" fill="#FFC14D" fillOpacity={0.55} radius={[3, 3, 0, 0]} isAnimationActive animationDuration={250} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
           </div>
 
-          {/* f) AI insight block */}
-          <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3 space-y-3">
+          {/* AI insight block (dimmed when stale) */}
+          <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3 space-y-3 transition-opacity" style={{ opacity: stale ? 0.6 : 1 }}>
             {ai ? (
               <>
                 <div>
@@ -285,18 +431,16 @@ export default function PlanResults({ plan, analysis, running, onRerun, onEdit, 
                 <div>
                   <p className="text-orange-400/70 text-[10px] uppercase tracking-widest font-mono mb-1.5">Next 30 Days</p>
                   <div className="space-y-1.5">
-                    {(ai.next_30_days || []).map((a, i) => <ChecklistItem key={i} index={i} analysisId={analysis.id} planId={plan.id} item={a} />)}
+                    {(ai.next_30_days || []).map((a, i) => <ChecklistItem key={i} index={i} analysisId={analysis.id} goalId={goal.id} item={a} />)}
                   </div>
                 </div>
               </>
             ) : (
-              <div className="flex items-center gap-2 text-white/40 text-xs">
-                <AlertTriangle className="w-3.5 h-3.5" />Analysis unavailable —<button onClick={onRerun} className="text-orange-400 underline">retry</button>
-              </div>
+              <div className="flex items-center gap-2 text-white/40 text-xs"><AlertTriangle className="w-3.5 h-3.5" />Analysis unavailable —<button onClick={onRerun} className="text-orange-400 underline">retry</button></div>
             )}
           </div>
 
-          {/* g) Delta strip */}
+          {/* delta strip */}
           {ai?.delta_since_last_run && (
             <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${deltaUp ? "border-green-500/20 bg-green-500/[0.05]" : "border-orange-500/20 bg-orange-500/[0.05]"}`}>
               {deltaUp ? <ArrowUp className="w-3.5 h-3.5 text-green-400" /> : <ArrowDown className="w-3.5 h-3.5 text-orange-400" />}

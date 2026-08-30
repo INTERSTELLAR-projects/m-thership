@@ -4,6 +4,7 @@
 
 export const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 export const round1 = (n) => Math.round((Number(n) || 0) * 10) / 10;
+export const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
 export const ROUTE_PRESETS = [
   {
@@ -13,7 +14,6 @@ export const ROUTE_PRESETS = [
     has_addons: false,
     clients_per_month: 1,
     monthly_churn_rate: 0.03,
-    delivery_hours_per_client: 6,
   },
   {
     key: "starship_maintenance",
@@ -26,7 +26,6 @@ export const ROUTE_PRESETS = [
     addon_attach_rate: 0.5,
     clients_per_month: 2,
     monthly_churn_rate: 0.02,
-    delivery_hours_per_client: 2,
   },
   {
     key: "custom",
@@ -35,9 +34,12 @@ export const ROUTE_PRESETS = [
     has_addons: false,
     clients_per_month: 0,
     monthly_churn_rate: 0.03,
-    delivery_hours_per_client: 1,
   },
 ];
+
+export function presetFor(key) {
+  return ROUTE_PRESETS.find((r) => r.key === key) || null;
+}
 
 const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -61,7 +63,6 @@ function normalizeInflow(route) {
     has_addons: hasAddons,
     addon_avg: round2(addonAvg),
     attach: Number(route.addon_attach_rate) || 0,
-    dhpc: Number(route.delivery_hours_per_client) || 0,
   };
 }
 
@@ -88,20 +89,18 @@ function simulate(inflows, baseChurn, currentMrr, goalMrr) {
     });
     const mrr = base + buckets.reduce((s, b) => s + b, 0);
     const clientsTotal = clients.reduce((s, c) => s + c, 0);
-    const dhTotal = inflows.reduce((s, inf, k) => s + clients[k] * inf.dhpc, 0);
     series.push({
       month: m,
       mrr: round2(mrr),
       cumulative_one_time: round2(cumulative),
       clients: round1(clientsTotal),
-      delivery_hours: round1(dhTotal),
     });
     if (mrr >= goalMrr && monthsToGoal === null) {
       monthsToGoal = m;
       clientsAtGoal = clients.slice();
     }
   }
-  return { series, monthsToGoal, clientsAtGoal, clientsAt36: clients.slice() };
+  return { series, monthsToGoal, clientsAtGoal };
 }
 
 function deriveRoute(route, inflows, sim, currentMrr, goalMrr) {
@@ -112,13 +111,10 @@ function deriveRoute(route, inflows, sim, currentMrr, goalMrr) {
   const clientsAtGoalArr = reached ? clientsAtGoal : inflows.map(() => 0);
   const clientsTotalAtGoal = clientsAtGoalArr.reduce((s, c) => s + c, 0);
   const one_time_cash = reached ? round2(point.cumulative_one_time) : 0;
-  const total_cash = round2(goalMrr + one_time_cash);
-  const delivery_hours_at_goal = reached ? round1(inflows.reduce((s, inf, k) => s + clientsAtGoalArr[k] * inf.dhpc, 0)) : null;
+  const mrr_total_at_goal = reached ? round2(point.mrr) : null;
 
   const totalCpm = inflows.reduce((s, inf) => s + inf.cpm, 0);
   const monthly_add = round2(inflows.reduce((s, inf) => s + inf.cpm * inf.price, 0));
-  const monthly_dh = round1(inflows.reduce((s, inf) => s + inf.cpm * inf.dhpc, 0));
-  const revenue_per_delivery_hour = monthly_dh > 0 ? round2(monthly_add / monthly_dh) : 0;
   const pricePerClient = totalCpm > 0 ? round2(monthly_add / totalCpm) : 0;
   const churnUsed = inflows.length === 1
     ? inflows[0].churn
@@ -127,7 +123,6 @@ function deriveRoute(route, inflows, sim, currentMrr, goalMrr) {
   const gap = Math.max(0, goalMrr - currentMrr);
   const clients_needed_raw = pricePerClient > 0 ? Math.ceil(gap / pricePerClient) : null;
   const flags = {
-    capacity_risk: delivery_hours_at_goal !== null && delivery_hours_at_goal > 120,
     churn_trap: round2(churnUsed * goalMrr) > pricePerClient && pricePerClient > 0,
     never_reaches: !reached,
     addon_dependency: one_time_cash > goalMrr * 3,
@@ -143,9 +138,7 @@ function deriveRoute(route, inflows, sim, currentMrr, goalMrr) {
     months_to_goal: monthsToGoal,
     goal_date: goalDateFromMonths(monthsToGoal),
     one_time_cash_at_goal: round2(one_time_cash),
-    total_cash_at_goal: total_cash,
-    delivery_hours_at_goal,
-    revenue_per_delivery_hour,
+    mrr_total_at_goal: mrr_total_at_goal,
     mrr_per_client: pricePerClient,
     churn_drag,
     reached,
@@ -161,13 +154,13 @@ export function computeRoute(route, currentMrr, goalMrr) {
   return deriveRoute(route, [inf], sim, currentMrr, goalMrr);
 }
 
-// Auto "Blended" route: split total acquisition velocity across the two most
-// efficient user routes, 70/30 by revenue-per-delivery-hour.
-function buildBlended(routes, currentMrr, goalMrr) {
-  const valid = routes
-    .map(normalizeInflow)
-    .filter((inf) => inf.cpm > 0 && inf.price > 0);
-  if (valid.length < 2) {
+// Auto "Blended (auto)" route: split total acquisition velocity across the two
+// primary routes weighted by monthly_price, capped 30/70. A manual mixOverride
+// (0..1, fraction going to the first primary route) replaces the auto weight.
+function buildBlended(routes, currentMrr, goalMrr, mixOverride) {
+  const valid = routes.map(normalizeInflow).filter((inf) => inf.cpm > 0 && inf.price > 0);
+  const primary = valid.slice(0, 2);
+  if (primary.length < 2) {
     return {
       id: "blended",
       name: "Blended (auto)",
@@ -179,46 +172,55 @@ function buildBlended(routes, currentMrr, goalMrr) {
       months_to_goal: null,
       goal_date: null,
       one_time_cash_at_goal: 0,
-      total_cash_at_goal: round2(goalMrr),
-      delivery_hours_at_goal: null,
-      revenue_per_delivery_hour: 0,
+      mrr_total_at_goal: null,
       mrr_per_client: 0,
       churn_drag: 0,
       reached: false,
       mrr_at_36: round2(currentMrr),
-      flags: { capacity_risk: false, churn_trap: false, never_reaches: true, addon_dependency: false },
+      flags: { churn_trap: false, never_reaches: true, addon_dependency: false },
       series: [],
     };
   }
-  const eff = valid.map((inf) => (inf.dhpc > 0 ? inf.price / inf.dhpc : 0));
-  const order = valid.map((_, i) => i).sort((a, b) => eff[b] - eff[a]);
-  const topIdx = order[0];
-  const botIdx = order[1];
-  const totalCpm = valid[topIdx].cpm + valid[botIdx].cpm;
+  const [a, b] = primary;
+  const totalVelocity = a.cpm + b.cpm;
+  let w0 = a.price + b.price > 0 ? a.price / (a.price + b.price) : 0.5;
+  w0 = clamp(w0, 0.3, 0.7);
+  if (mixOverride != null && !Number.isNaN(mixOverride)) w0 = clamp(mixOverride, 0, 1);
+  const w1 = 1 - w0;
   const inflows = [
-    { ...valid[topIdx], cpm: round2(totalCpm * 0.7) },
-    { ...valid[botIdx], cpm: round2(totalCpm * 0.3) },
+    { ...a, cpm: round2(totalVelocity * w0) },
+    { ...b, cpm: round2(totalVelocity * w1) },
   ];
   const monthlyAdd = inflows.reduce((s, inf) => s + inf.cpm * inf.price, 0) || 1;
-  const baseChurn = round2(
-    inflows.reduce((s, inf) => s + inf.cpm * inf.price * inf.churn, 0) / monthlyAdd
-  );
+  const baseChurn = round2(inflows.reduce((s, inf) => s + inf.cpm * inf.price * inf.churn, 0) / monthlyAdd);
   const sim = simulate(inflows, baseChurn, currentMrr, goalMrr);
   return deriveRoute({ id: "blended", name: "Blended (auto)", system_generated: true }, inflows, sim, currentMrr, goalMrr);
 }
 
+export function autoMixWeight(routes) {
+  const valid = routes
+    .map((r) => ({ price: Number(r.monthly_price) || 0, cpm: Number(r.clients_per_month) || 0 }))
+    .filter((r) => r.cpm > 0 && r.price > 0)
+    .slice(0, 2);
+  if (valid.length < 2) return null;
+  const [a, b] = valid;
+  const w = a.price + b.price > 0 ? a.price / (a.price + b.price) : 0.5;
+  return clamp(w, 0.3, 0.7);
+}
+
 export function computePlan(plan, currentMrr) {
-  const goal = Number(plan.goal_mrr) || 0;
+  const goal = Number(plan.target_mrr != null ? plan.target_mrr : plan.goal_mrr) || 0;
   const cur = Number(currentMrr) || 0;
   const routes = (plan.routes || []).map((r) => computeRoute(r, cur, goal));
-  const blended = buildBlended(plan.routes || [], cur, goal);
+  const blended = buildBlended(plan.routes || [], cur, goal, plan.blended_mix);
   const all = [...routes, blended];
   const reachedRoutes = all
     .filter((r) => r.reached)
-    .sort((a, b) => a.months_to_goal - b.months_to_goal || (a.delivery_hours_at_goal || 0) - (b.delivery_hours_at_goal || 0));
+    .sort((a, b) => a.months_to_goal - b.months_to_goal || b.mrr_at_36 - a.mrr_at_36);
   const winner = reachedRoutes[0] || all.slice().sort((a, b) => b.mrr_at_36 - a.mrr_at_36)[0];
   return {
     goal_mrr: round2(goal),
+    target_mrr: round2(goal),
     current_mrr: round2(cur),
     gap_at_run: round2(Math.max(0, goal - cur)),
     baseline_mrr: plan.baseline_mrr != null ? round2(plan.baseline_mrr) : round2(cur),
