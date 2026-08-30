@@ -297,7 +297,7 @@ function StatCard({ label, value, icon: Icon, color }) {
       <div className="flex items-center justify-between mb-3">
         <Icon className={`w-4 h-4 ${color}`} />
       </div>
-      <p className={`text-2xl font-bold ${color}`}>{value}</p>
+      <p className={`text-2xl font-bold font-display ${color}`}>{value}</p>
       <p className="text-white/30 text-[10px] uppercase tracking-wider mt-1">{label}</p>
     </div>
   );
