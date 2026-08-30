@@ -64,7 +64,7 @@ export default function DailyBriefing() {
           const gap = Math.max(0, la.computed.goal_mrr - la.computed.current_mrr);
           const winner = (la.computed.routes || []).concat(la.computed.blended ? [la.computed.blended] : []).find((r) => r.name === la.computed.winner_name);
           const route = la.computed.winner_name || "";
-          const n = winner?.clients_needed_real;
+          const n = winner?.clients_needed_raw;
           const m = winner?.months_to_goal;
           const firstAction = la.ai_summary?.next_30_days?.[0] || "";
           planToExecute = `You're $${Math.round(gap).toLocaleString()} from your $${Math.round(la.computed.goal_mrr).toLocaleString()} goal. Fastest path: ${route}${n != null ? `, ${n} clients` : ""}${m != null ? ` over ${m} months` : ""}.${firstAction ? ` Today, ${firstAction}.` : ""}`;

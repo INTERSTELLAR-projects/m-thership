@@ -95,17 +95,12 @@ function assumptionKey(routes, blendedVelocities) {
     routes: (routes || []).map((r) => ({
       price: round2(Number(r.monthly_price) || 0),
       cpm: round2(Number(r.clients_per_month) || 0),
-      churn: round2(Number(r.monthly_churn_rate) || 0),
-      has_addons: !!r.has_addons,
-      attach: r.has_addons ? round2(Number(r.addon_attach_rate) || 0) : null,
-      avg: r.has_addons ? round2(Number(r.addon_avg) || 0) : null,
     })),
   });
 }
 
 export default function PlanResults({ goal, analysis, mrr, running, onRerun, onEdit, onAssumptionsSave, onStaleReRun, relTime }) {
   const [open, setOpen] = useState(true);
-  const [assumptionsOpen, setAssumptionsOpen] = useState(false);
   const baselineRef = useRef(JSON.parse(JSON.stringify(goal.routes || [])));
   const [routes, setRoutes] = useState(() => JSON.parse(JSON.stringify(goal.routes || [])));
   const [blendedVelocities, setBlendedVelocities] = useState(() => {
@@ -140,7 +135,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
     const r = routes[i];
     const preset = r.preset ? presetFor(r.preset) : null;
     const base = preset
-      ? { ...r, clients_per_month: preset.clients_per_month, monthly_churn_rate: preset.monthly_churn_rate, has_addons: preset.has_addons, addon_low: preset.addon_low, addon_high: preset.addon_high, addon_avg: preset.addon_avg, addon_attach_rate: preset.addon_attach_rate }
+      ? { ...r, clients_per_month: preset.clients_per_month, monthly_price: preset.monthly_price, has_addons: preset.has_addons, addon_low: preset.addon_low, addon_high: preset.addon_high, addon_avg: preset.addon_avg, addon_attach_rate: preset.addon_attach_rate }
       : { ...r, ...baselineRef.current[i] };
     setRoutes((prev) => prev.map((rr, idx) => (idx === i ? base : rr)));
     setTimeout(() => {
@@ -162,11 +157,6 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
   const winner = allRoutes.find((r) => r.name === c.winner_name) || c.blended;
   const winnerIdx = allRoutes.indexOf(winner);
   const winnerColor = winner?.system_generated ? BLENDED_COLOR : ROUTE_COLORS[winnerIdx % ROUTE_COLORS.length] || "#F47C20";
-  const cashData = Array.from({ length: 12 }, (_, i) => {
-    const m = i + 1;
-    const s = winner?.series?.[m - 1];
-    return { month: "M" + m, Recurring: s ? Math.max(0, Math.round(s.mrr - c.current_mrr)) : 0, "One-time": s ? Math.round(s.cumulative_one_time) : 0 };
-  });
   const crossMonth = winner?.reached && winner.months_to_goal <= 24 ? "M" + winner.months_to_goal : null;
 
   const deltaUp = ai?.delta_since_last_run && !/dro|down|fell|lower|negative/i.test(JSON.stringify(ai.delta_since_last_run).toLowerCase());
@@ -212,7 +202,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
                       <div key={i} className="text-center">
                         <span className="text-[11px] font-semibold block leading-tight" style={{ color: col }}>{r.name}</span>
                         {r.system_generated ? (
-                          <span className="text-[8px] text-white/30 uppercase tracking-wider">brand both</span>
+                          <span className="text-[8px] text-white/30 uppercase tracking-wider">run both</span>
                         ) : (
                           <button onClick={() => resetRoute(i)} className="text-[8px] text-white/25 hover:text-orange-400 uppercase tracking-wider inline-flex items-center gap-0.5"><RotateCcw className="w-2 h-2" />reset</button>
                         )}
@@ -226,7 +216,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
                 {allRoutes.map((r, i) => <Cell2 key={i}>{fmtMoney(r.monthly_price)}</Cell2>)}
               </Row>
 
-              {/* Clients/mo — live sliders (blended shows one per primary route) */}
+              {/* Clients/mo — live whole-number sliders (blended shows one per primary route) */}
               <Row label="Clients / mo">
                 {allRoutes.map((r, i) =>
                   r.system_generated ? (
@@ -258,63 +248,6 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
                 )}
               </Row>
 
-              {/* assumptions disclosure */}
-              <div className="py-1.5">
-                <button onClick={() => setAssumptionsOpen(!assumptionsOpen)} className="text-white/40 hover:text-orange-400 text-[10px] uppercase tracking-wider font-mono flex items-center gap-1">
-                  {assumptionsOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}Assumptions
-                </button>
-              </div>
-              {assumptionsOpen && (
-                <>
-                  <Row label="Churn / mo">
-                    {allRoutes.map((r, i) =>
-                      r.system_generated ? (
-                        <Cell2 key={i}>—</Cell2>
-                      ) : (
-                        <div key={i} className="px-1">
-                          <MiniSlider value={routes[i].monthly_churn_rate} min={0} max={0.15} step={0.005}
-                            onDrag={(v) => setRouteField(i, { monthly_churn_rate: v })}
-                            onCommit={onSliderCommit}
-                            fmt={(v) => (v * 100).toFixed(1) + "%"} />
-                        </div>
-                      )
-                    )}
-                  </Row>
-                  <Row label="Add-on attach">
-                    {allRoutes.map((r, i) =>
-                      r.system_generated ? (
-                        <Cell2 key={i}>—</Cell2>
-                      ) : routes[i].has_addons ? (
-                        <div key={i} className="px-1">
-                          <MiniSlider value={routes[i].addon_attach_rate} min={0} max={1} step={0.05}
-                            onDrag={(v) => setRouteField(i, { addon_attach_rate: v })}
-                            onCommit={onSliderCommit}
-                            fmt={(v) => Math.round(v * 100) + "%"} />
-                        </div>
-                      ) : (
-                        <Cell2 key={i}>—</Cell2>
-                      )
-                    )}
-                  </Row>
-                  <Row label="Add-on avg $">
-                    {allRoutes.map((r, i) => {
-                      if (r.system_generated) return <Cell2 key={i}>—</Cell2>;
-                      if (!routes[i].has_addons) return <Cell2 key={i}>—</Cell2>;
-                      const lo = Number(routes[i].addon_low) || 0;
-                      const hi = Number(routes[i].addon_high) || (lo + 1000);
-                      return (
-                        <div key={i} className="px-1">
-                          <MiniSlider value={routes[i].addon_avg} min={lo} max={hi} step={50}
-                            onDrag={(v) => setRouteField(i, { addon_avg: v })}
-                            onCommit={onSliderCommit}
-                            fmt={(v) => "$" + Math.round(v).toLocaleString()} />
-                        </div>
-                      );
-                    })}
-                  </Row>
-                </>
-              )}
-
               <Row label="Clients needed">
                 {allRoutes.map((r, i) => <Cell2 key={i}>{r.clients_needed_raw != null ? r.clients_needed_raw : "—"}</Cell2>)}
               </Row>
@@ -327,28 +260,24 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
                 ))}
               </Row>
 
+              {/* New MRR added — route-specific, tied to current MRR (auto-updates as MRR changes) */}
               <Row label="New MRR added">
-                {allRoutes.map((r, i) => <Cell2 key={i}>{r.reached ? fmtMoney(c.goal_mrr - c.current_mrr) : "—"}</Cell2>)}
+                {allRoutes.map((r, i) => <Cell2 key={i} className={r.reached ? "text-white/80" : "text-white/35"}>{r.reached ? fmtMoney(r.new_mrr_added) : "—"}</Cell2>)}
               </Row>
 
-              <Row label="MRR Total at Goal">
+              {/* MRR Total at Goal — the MRR you actually land at the crossing month (e.g. $10,202) */}
+              <Row label="MRR Total at Goal" bold>
                 {allRoutes.map((r, i) => (
-                  <Cell2 key={i} className={r.reached ? "text-white/85" : "text-white/35"}>{r.reached ? fmtMoney(r.mrr_total_at_goal) : "Not reachable"}</Cell2>
+                  <Cell2 key={i} className={r.reached ? "text-orange-400/90 text-[12px] font-semibold" : "text-white/35"}>{r.reached ? fmtMoney(r.mrr_total_at_goal) : "Not reachable"}</Cell2>
                 ))}
-              </Row>
-
-              <Row label="One-time cash">
-                {allRoutes.map((r, i) => <Cell2 key={i}>{r.has_addons ? fmtMoney(r.one_time_cash_at_goal) : "—"}</Cell2>)}
               </Row>
 
               <Row label="Risk flags">
                 {allRoutes.map((r, i) => (
                   <Cell2 key={i}>
                     <div className="flex flex-wrap gap-1">
-                      <FlagChip flag={r.flags?.churn_trap} label="Churn Trap" />
                       <FlagChip flag={r.flags?.never_reaches} label="Unreachable" />
-                      <FlagChip flag={r.flags?.addon_dependency} label="Addon-heavy" />
-                      {!r.flags?.churn_trap && !r.flags?.never_reaches && !r.flags?.addon_dependency && <span className="text-white/20 text-[9px]">—</span>}
+                      {!r.flags?.never_reaches && <span className="text-white/20 text-[9px]">—</span>}
                     </div>
                   </Cell2>
                 ))}
@@ -387,44 +316,28 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
             </div>
           </div>
 
-          {/* time to goal + cash composition */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-lg border border-white/[0.06] bg-white/[0.015] p-3">
-              <p className="text-white/40 text-[10px] uppercase tracking-widest font-mono mb-2">Time to Goal</p>
-              <div className="h-[160px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={timeData} layout="vertical" margin={{ top: 2, right: 8, left: 8, bottom: 0 }}>
-                    <XAxis type="number" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 9 }} axisLine={false} tickLine={false} />
-                    <YAxis type="category" dataKey="name" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 9 }} axisLine={false} tickLine={false} width={70} />
-                    <Tooltip content={<GameChartTooltip />} cursor={{ fill: "rgba(255,170,0,0.05)" }} />
-                    <Bar dataKey="months" radius={[3, 3, 3, 3]} isAnimationActive animationDuration={250}>
-                      {timeData.map((t, i) => (
-                        <Cell key={i} fill={t.reached && t.months === minMonths ? "url(#barWin)" : t.reached ? "rgba(255,143,0,0.35)" : "rgba(255,255,255,0.08)"} />
-                      ))}
-                    </Bar>
-                    <defs>
-                      <linearGradient id="barWin" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#F47C20" />
-                        <stop offset="100%" stopColor="#FFC14D" />
-                      </linearGradient>
-                    </defs>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-            <div className="rounded-lg border border-white/[0.06] bg-white/[0.015] p-3">
-              <p className="text-white/40 text-[10px] uppercase tracking-widest font-mono mb-2">Cash Composition · {winner?.name || ""}</p>
-              <div className="h-[160px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={cashData} margin={{ top: 2, right: 6, left: 6, bottom: 0 }}>
-                    <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 9 }} axisLine={false} tickLine={false} />
-                    <YAxis hide />
-                    <Tooltip content={<GameChartTooltip />} cursor={{ fill: "rgba(255,170,0,0.05)" }} />
-                    <Bar dataKey="Recurring" stackId="a" fill="#F47C20" fillOpacity={0.7} isAnimationActive animationDuration={250} />
-                    <Bar dataKey="One-time" stackId="a" fill="#FFC14D" fillOpacity={0.55} radius={[3, 3, 0, 0]} isAnimationActive animationDuration={250} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+          {/* time to goal */}
+          <div className="rounded-lg border border-white/[0.06] bg-white/[0.015] p-3">
+            <p className="text-white/40 text-[10px] uppercase tracking-widest font-mono mb-2">Time to Goal</p>
+            <div className="h-[180px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={timeData} layout="vertical" margin={{ top: 2, right: 8, left: 8, bottom: 0 }}>
+                  <XAxis type="number" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 9 }} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 9 }} axisLine={false} tickLine={false} width={70} />
+                  <Tooltip content={<GameChartTooltip />} cursor={{ fill: "rgba(255,170,0,0.05)" }} />
+                  <Bar dataKey="months" radius={[3, 3, 3, 3]} isAnimationActive animationDuration={250}>
+                    {timeData.map((t, i) => (
+                      <Cell key={i} fill={t.reached && t.months === minMonths ? "url(#barWin)" : t.reached ? "rgba(255,143,0,0.35)" : "rgba(255,255,255,0.08)"} />
+                    ))}
+                  </Bar>
+                  <defs>
+                    <linearGradient id="barWin" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#F47C20" />
+                      <stop offset="100%" stopColor="#FFC14D" />
+                    </linearGradient>
+                  </defs>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
 

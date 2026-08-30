@@ -1,6 +1,16 @@
 // Deterministic Plan-to-Execute math engine.
 // Pure JS — no SDK, shared by backend function and frontend live preview.
 // The LLM is NEVER allowed to compute numbers; everything here is authoritative.
+//
+// Model: pure linear subscription accumulation. We are just counting
+// subscriptions. Each route adds (clients_per_month × monthly_price) of
+// recurring revenue every month. No churn decay, no one-time cash.
+//   MRR(month m) = currentMrr + m × monthlyAdd
+//   months_to_goal = ceil(gap / monthlyAdd)
+//   mrr_total_at_goal = currentMrr + months_to_goal × monthlyAdd   (= the MRR
+//     you actually land at the moment you cross the goal — e.g. $10,202)
+//   new_mrr_added = months_to_goal × monthlyAdd  (route-specific, auto-updates
+//     off currentMrr)
 
 export const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 export const round1 = (n) => Math.round((Number(n) || 0) * 10) / 10;
@@ -13,7 +23,7 @@ export const ROUTE_PRESETS = [
     monthly_price: 500,
     has_addons: false,
     clients_per_month: 1,
-    monthly_churn_rate: 0.03,
+    monthly_churn_rate: 0,
   },
   {
     key: "starship_maintenance",
@@ -25,7 +35,7 @@ export const ROUTE_PRESETS = [
     addon_avg: 1200,
     addon_attach_rate: 0.5,
     clients_per_month: 2,
-    monthly_churn_rate: 0.02,
+    monthly_churn_rate: 0,
   },
   {
     key: "custom",
@@ -33,7 +43,7 @@ export const ROUTE_PRESETS = [
     monthly_price: 0,
     has_addons: false,
     clients_per_month: 0,
-    monthly_churn_rate: 0.03,
+    monthly_churn_rate: 0,
   },
 ];
 
@@ -50,149 +60,121 @@ export function goalDateFromMonths(months) {
   return MONTH_ABBR[d.getMonth()] + " " + d.getFullYear();
 }
 
-function normalizeInflow(route) {
-  const price = Number(route.monthly_price) || 0;
-  const hasAddons = !!route.has_addons;
-  const addonAvg = hasAddons
-    ? Number(route.addon_avg) || (route.addon_low != null && route.addon_high != null ? (Number(route.addon_low) + Number(route.addon_high)) / 2 : 0)
-    : 0;
-  return {
-    price,
-    cpm: Number(route.clients_per_month) || 0,
-    churn: Number(route.monthly_churn_rate) || 0,
-    has_addons: hasAddons,
-    addon_avg: round2(addonAvg),
-    attach: Number(route.addon_attach_rate) || 0,
-  };
-}
-
-// 36-month simulation with per-inflow buckets. Base (existing) MRR depreciates
-// at baseChurn; each inflow's bucket depreciates at its own churn then grows.
-function simulate(inflows, baseChurn, currentMrr, goalMrr) {
-  let base = Number(currentMrr) || 0;
-  const buckets = inflows.map(() => 0);
-  const clients = inflows.map(() => 0);
-  let cumulative = 0;
-  let monthsToGoal = null;
-  let clientsAtGoal = null;
-  const series = [];
-
-  for (let m = 1; m <= 36; m++) {
-    base = base * (1 - baseChurn);
-    inflows.forEach((inf, k) => {
-      buckets[k] = buckets[k] * (1 - inf.churn);
-      buckets[k] += inf.cpm * inf.price;
-      clients[k] += inf.cpm;
-      if (inf.has_addons && inf.addon_avg) {
-        cumulative += inf.cpm * inf.attach * inf.addon_avg;
-      }
-    });
-    const mrr = base + buckets.reduce((s, b) => s + b, 0);
-    const clientsTotal = clients.reduce((s, c) => s + c, 0);
-    series.push({
+function buildSeries(currentMrr, monthlyAdd, cpmTotal, months) {
+  const horizon = months != null ? Math.min(24, months + 2) : 24;
+  const out = [];
+  for (let m = 1; m <= horizon; m++) {
+    out.push({
       month: m,
-      mrr: round2(mrr),
-      cumulative_one_time: round2(cumulative),
-      clients: round1(clientsTotal),
+      mrr: round2(currentMrr + m * monthlyAdd),
+      clients: round1(cpmTotal * m),
     });
-    if (mrr >= goalMrr && monthsToGoal === null) {
-      monthsToGoal = m;
-      clientsAtGoal = clients.slice();
-    }
   }
-  return { series, monthsToGoal, clientsAtGoal };
+  return out;
 }
 
-function deriveRoute(route, inflows, sim, currentMrr, goalMrr) {
-  const { series, monthsToGoal, clientsAtGoal } = sim;
-  const reached = monthsToGoal !== null;
-  const idx = reached ? monthsToGoal - 1 : 35;
-  const point = series[idx];
-  const one_time_cash = reached ? round2(point.cumulative_one_time) : 0;
-  const mrr_total_at_goal = reached ? round2(point.mrr) : null;
+function solveLinear(currentMrr, goalMrr, monthlyAdd) {
+  const cur = Number(currentMrr) || 0;
+  const goal = Number(goalMrr) || 0;
+  const gap = Math.max(0, goal - cur);
+  if (gap <= 0) return { months: 0, mrrAtGoal: round2(cur), newAdded: 0, reached: true };
+  if (monthlyAdd > 0) {
+    const months = Math.ceil(gap / monthlyAdd);
+    return { months, mrrAtGoal: round2(cur + months * monthlyAdd), newAdded: round2(months * monthlyAdd), reached: true };
+  }
+  return { months: null, mrrAtGoal: null, newAdded: null, reached: false };
+}
 
-  const totalCpm = inflows.reduce((s, inf) => s + inf.cpm, 0);
-  const monthly_add = round2(inflows.reduce((s, inf) => s + inf.cpm * inf.price, 0));
-  const pricePerClient = totalCpm > 0 ? round2(monthly_add / totalCpm) : 0;
-  const churnUsed = inflows.length === 1
-    ? inflows[0].churn
-    : monthly_add > 0 ? round2(inflows.reduce((s, inf) => s + inf.cpm * inf.price * inf.churn, 0) / monthly_add) : 0;
-  const churn_drag = round2(churnUsed * currentMrr);
-  const gap = Math.max(0, goalMrr - currentMrr);
-  const clients_needed_raw = pricePerClient > 0 ? Math.ceil(gap / pricePerClient) : null;
-  const flags = {
-    churn_trap: round2(churnUsed * goalMrr) > pricePerClient && pricePerClient > 0,
-    never_reaches: !reached,
-    addon_dependency: one_time_cash > goalMrr * 3,
-  };
+export function computeRoute(route, currentMrr, goalMrr) {
+  const cur = Number(currentMrr) || 0;
+  const goal = Number(goalMrr) || 0;
+  const price = Number(route.monthly_price) || 0;
+  const cpm = Number(route.clients_per_month) || 0;
+  const monthlyAdd = round2(price * cpm);
+  const gap = Math.max(0, goal - cur);
+  const { months, mrrAtGoal, newAdded, reached } = solveLinear(cur, goal, monthlyAdd);
+  const clients_needed_raw = gap <= 0 ? 0 : price > 0 ? Math.ceil(gap / price) : null;
   return {
     id: route.id || null,
     name: route.name,
     system_generated: !!route.system_generated,
-    monthly_price: pricePerClient,
-    has_addons: inflows.some((i) => i.has_addons),
+    monthly_price: round2(price),
+    has_addons: !!route.has_addons,
     clients_needed_raw,
-    clients_needed_real: reached ? round1(clientsAtGoal ? clientsAtGoal.reduce((s, c) => s + c, 0) : 0) : null,
-    months_to_goal: monthsToGoal,
-    goal_date: goalDateFromMonths(monthsToGoal),
-    one_time_cash_at_goal: round2(one_time_cash),
-    mrr_total_at_goal: mrr_total_at_goal,
-    mrr_per_client: pricePerClient,
-    churn_drag,
+    months_to_goal: months,
+    goal_date: goalDateFromMonths(months),
+    mrr_total_at_goal: mrrAtGoal,
+    new_mrr_added: newAdded,
+    mrr_per_client: round2(price),
     reached,
-    mrr_at_36: series[35].mrr,
-    flags,
-    series,
+    mrr_at_36: round2(cur + 36 * monthlyAdd),
+    flags: { never_reaches: !reached },
+    series: buildSeries(cur, monthlyAdd, cpm, months),
   };
 }
 
-export function computeRoute(route, currentMrr, goalMrr) {
-  const inf = normalizeInflow(route);
-  const sim = simulate([inf], inf.churn, currentMrr, goalMrr);
-  return deriveRoute(route, [inf], sim, currentMrr, goalMrr);
-}
-
-// Auto "Blended (auto)" route: run BOTH primary routes at once, each at the
-// velocity you choose. blendedVelocities is an array (per primary route index)
-// of explicit clients-per-month; a null/missing entry falls back to that
-// route's own clients_per_month.
+// Blended (auto): run BOTH primary routes at once, each at the velocity you
+// choose (blendedVelocities array, per primary route index; null/missing falls
+// back to that route's own clients_per_month). "Monthly price" for the blend
+// is the total recurring added per month (Σ velocity × price), e.g.
+// 1 × $500 + 1 × $150 = $650.
 function buildBlended(routes, currentMrr, goalMrr, blendedVelocities) {
-  const norm = routes.map(normalizeInflow);
-  const primary = norm.slice(0, 2).filter((inf) => inf.price > 0);
+  const cur = Number(currentMrr) || 0;
+  const goal = Number(goalMrr) || 0;
+  const norm = routes.map((r) => ({
+    price: Number(r.monthly_price) || 0,
+    cpm: Number(r.clients_per_month) || 0,
+    has_addons: !!r.has_addons,
+  }));
+  const primary = norm.slice(0, 2).filter((r) => r.price > 0);
   if (primary.length < 2) {
     return {
       id: "blended",
       name: "Blended (auto)",
       system_generated: true,
       monthly_price: 0,
-      has_addons: norm.some((v) => v.has_addons),
+      has_addons: norm.some((r) => r.has_addons),
       clients_needed_raw: null,
-      clients_needed_real: null,
       months_to_goal: null,
       goal_date: null,
-      one_time_cash_at_goal: 0,
       mrr_total_at_goal: null,
+      new_mrr_added: null,
       mrr_per_client: 0,
-      churn_drag: 0,
       reached: false,
-      mrr_at_36: round2(currentMrr),
-      flags: { churn_trap: false, never_reaches: true, addon_dependency: false },
+      mrr_at_36: round2(cur),
+      flags: { never_reaches: true },
       series: [],
     };
   }
   const bv = blendedVelocities || [];
-  const inflows = primary.map((inf, i) => ({
-    ...inf,
-    cpm: bv[i] != null && !Number.isNaN(Number(bv[i])) ? Number(bv[i]) || 0 : inf.cpm,
+  const inflows = primary.map((r, i) => ({
+    price: r.price,
+    cpm: bv[i] != null && !Number.isNaN(Number(bv[i])) ? Number(bv[i]) || 0 : r.cpm,
+    has_addons: r.has_addons,
   }));
-  const monthlyAdd = inflows.reduce((s, inf) => s + inf.cpm * inf.price, 0) || 1;
-  const baseChurn = round2(inflows.reduce((s, inf) => s + inf.cpm * inf.price * inf.churn, 0) / monthlyAdd);
-  const sim = simulate(inflows, baseChurn, currentMrr, goalMrr);
-  const blended = deriveRoute({ id: "blended", name: "Blended (auto)", system_generated: true }, inflows, sim, currentMrr, goalMrr);
-  // For the Blended row, "Monthly price" = the total recurring added per month
-  // (sum of each primary route's chosen velocity × price), e.g. 1×$500 + 1×$150 = $650.
-  blended.monthly_price = round2(inflows.reduce((s, inf) => s + inf.cpm * inf.price, 0));
-  return blended;
+  const monthlyAdd = round2(inflows.reduce((s, inf) => s + inf.cpm * inf.price, 0));
+  const totalCpm = inflows.reduce((s, inf) => s + inf.cpm, 0);
+  const pricePerClient = totalCpm > 0 ? round2(monthlyAdd / totalCpm) : 0;
+  const gap = Math.max(0, goal - cur);
+  const { months, mrrAtGoal, newAdded, reached } = solveLinear(cur, goal, monthlyAdd);
+  const clients_needed_raw = gap <= 0 ? 0 : totalCpm > 0 ? Math.ceil(gap / pricePerClient) : null;
+  return {
+    id: "blended",
+    name: "Blended (auto)",
+    system_generated: true,
+    monthly_price: monthlyAdd,
+    has_addons: inflows.some((inf) => inf.has_addons),
+    clients_needed_raw,
+    months_to_goal: months,
+    goal_date: goalDateFromMonths(months),
+    mrr_total_at_goal: mrrAtGoal,
+    new_mrr_added: newAdded,
+    mrr_per_client: pricePerClient,
+    reached,
+    mrr_at_36: round2(cur + 36 * monthlyAdd),
+    flags: { never_reaches: !reached },
+    series: buildSeries(cur, monthlyAdd, totalCpm, months),
+  };
 }
 
 export function computePlan(plan, currentMrr) {
