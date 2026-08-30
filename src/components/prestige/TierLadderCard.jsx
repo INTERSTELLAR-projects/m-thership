@@ -36,7 +36,7 @@ export default function TierLadderCard({ tier, info, state, within, pct, group }
       </div>
 
       {/* $ amount — largest element */}
-      <div className={`relative text-[40px] leading-none font-bold font-mono tracking-tight tabular-nums ${locked ? "text-white/40" : "text-white"}`}>{info.credit}</div>
+      <div className={`relative text-[40px] leading-none font-bold tracking-tight tabular-nums font-display ${locked ? "text-white/40" : "text-[#FFB424]"}`}>{info.credit}</div>
       <div className="relative text-[11px] font-mono uppercase tracking-[0.14em] text-white/40 mt-1">In Interstellar Credit</div>
 
       {/* referral requirement + lifetime total */}
