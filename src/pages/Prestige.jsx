@@ -1,45 +1,23 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Loader2, Crown, Trophy, Award, Shield, Users, ChevronDown, ChevronRight, Star, Sparkles, Zap } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Crown, Trophy, Award, Shield, Users, ChevronDown, ChevronRight, Star, Sparkles, Zap, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { earnedTier, getProgress } from "@/lib/prestige";
+import { TIERS, earnedTier, getProgress } from "@/lib/prestige";
 import AddMemberModal from "../components/prestige/AddMemberModal";
+import TierLadderCard from "../components/prestige/TierLadderCard";
 import ServiceLineItems from "../components/prestige/ServiceLineItems";
 
-const PRESTIGE_TIERS = {
-  "Prestige I": {
-    credit: "$1,000", referrals: 3, icon: Shield,
-    color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20",
-    grad: "from-orange-500/20 to-transparent", glow: "shadow-[0_0_22px_rgba(255,106,0,0.18)]",
-    badge: "bg-orange-500/15 text-orange-400 border-orange-500/25", ring: "ring-orange-500/30",
-    perks: ["Small automation", "Minor system integration", "Micro build or optimization", "Internal projects valued at $1000 or less", "No Expiration"],
-  },
-  "Prestige II": {
-    credit: "$2,500", referrals: 5, icon: Award,
-    color: "text-sky-400", bg: "bg-sky-500/10", border: "border-sky-500/20",
-    grad: "from-sky-500/20 to-transparent", glow: "shadow-[0_0_22px_rgba(56,189,248,0.18)]",
-    badge: "bg-sky-500/15 text-sky-400 border-sky-500/25", ring: "ring-sky-500/30",
-    perks: ["Intermediate automation", "Medium system integration", "Standard build or optimization", "Internal projects valued at $2500 or less", "No Expiration"],
-  },
-  "Prestige III": {
-    credit: "$3,500", referrals: 8, icon: Trophy,
-    color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20",
-    grad: "from-purple-500/20 to-transparent", glow: "shadow-[0_0_22px_rgba(168,85,247,0.18)]",
-    badge: "bg-purple-500/15 text-purple-400 border-purple-500/25", ring: "ring-purple-500/30",
-    perks: ["Advanced automation", "Elite system integration", "High-tier build or optimization", "Internal projects valued at $3500 or less", "No Expiration"],
-  },
-  "Prestige Master": {
-    credit: "$10,000", referrals: 15, icon: Crown,
-    color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20",
-    grad: "from-yellow-500/25 to-transparent", glow: "shadow-[0_0_26px_rgba(250,204,21,0.25)]",
-    badge: "bg-yellow-500/15 text-yellow-400 border-yellow-500/25", ring: "ring-yellow-500/30",
-    perks: ["Set of high-end automations", "Stack of system integration", "Massive build or optimization", "Internal projects valued at $10,000 or less", "10% on subs up to $500/mo | 7% above", "Recurring payouts while client is active", "Partner status & direct collaboration"],
-  },
+const TIER_STYLING = {
+  "Prestige I": { icon: Shield, color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20", grad: "from-orange-500/20 to-transparent", glow: "shadow-[0_0_22px_rgba(255,106,0,0.18)]", badge: "bg-orange-500/15 text-orange-400 border-orange-500/25", ring: "ring-orange-500/30" },
+  "Prestige II": { icon: Award, color: "text-sky-400", bg: "bg-sky-500/10", border: "border-sky-500/20", grad: "from-sky-500/20 to-transparent", glow: "shadow-[0_0_22px_rgba(56,189,248,0.18)]", badge: "bg-sky-500/15 text-sky-400 border-sky-500/25", ring: "ring-sky-500/30" },
+  "Prestige III": { icon: Trophy, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20", grad: "from-purple-500/20 to-transparent", glow: "shadow-[0_0_22px_rgba(168,85,247,0.18)]", badge: "bg-purple-500/15 text-purple-400 border-purple-500/25", ring: "ring-purple-500/30" },
+  "Prestige Master": { icon: Crown, color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", grad: "from-yellow-500/25 to-transparent", glow: "shadow-[0_0_26px_rgba(250,204,21,0.25)]", badge: "bg-yellow-500/15 text-yellow-400 border-yellow-500/25", ring: "ring-yellow-500/30" },
 };
+const PRESTIGE_TIERS = TIERS.reduce((acc, t) => { acc[t.tier] = { ...t, ...TIER_STYLING[t.tier] }; return acc; }, {});
 
 const EMPTY_MEMBER = { name: "", email: "", phone: "", prestige: "Prestige I", joinDate: "", notes: "", active: true };
 const EMPTY_REFERRAL = { referredClientName: "", package: "", amount: "", lineItems: [{ service: "", subscription: false, amount: "" }], date: "", status: "Pending", notes: "" };
@@ -59,6 +37,7 @@ export default function Prestige() {
   const [referralForm, setReferralForm] = useState({ ...EMPTY_REFERRAL });
   const [selectedMemberId, setSelectedMemberId] = useState(null);
   const [expandedMember, setExpandedMember] = useState(null);
+  const [termsOpen, setTermsOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -195,52 +174,51 @@ export default function Prestige() {
     return acc;
   }, {});
 
+  const activeMembers = members.filter((m) => m.active !== false);
+  const leaderConfirmed = activeMembers.length ? Math.max(...activeMembers.map((m) => memberConfirmed(m.id))) : 0;
+  const fullLadderCredit = TIERS.reduce((s, t) => s + t.amount, 0);
+  const fullLadderReferrals = TIERS[TIERS.length - 1].lifetime;
+  const availableCredit = TIERS.filter((t) => t.lifetime <= leaderConfirmed).reduce((s, t) => s + t.amount, 0);
+  const unlockedCount = TIERS.filter((t) => t.lifetime <= leaderConfirmed).length;
+
   return (
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Portal / Prestige" rightText="Referral Program Management" />
 
       <div className="px-8 py-6 space-y-6">
-        {/* Tier Showcase */}
-        <div className="grid grid-cols-4 gap-4">
-          {Object.entries(PRESTIGE_TIERS).map(([tier, info]) => {
-            const group = tierGroups[tier] || [];
-            const TierIcon = info.icon;
-            return (
-              <div key={tier} className={`relative overflow-hidden rounded-2xl border ${info.border} bg-gradient-to-b ${info.grad} bg-card p-4 ${group.length ? info.glow : ""}`}>
-                <div className="absolute -top-10 -right-10 w-28 h-28 rounded-full blur-3xl opacity-40 pointer-events-none" style={{ background: tier === "Prestige I" ? "#FF6A00" : tier === "Prestige II" ? "#38BDF8" : tier === "Prestige III" ? "#A855F7" : "#FACC15" }} />
-                <div className="relative flex items-center justify-between mb-2">
-                  <div className={`text-[10px] font-bold tracking-[0.18em] uppercase ${info.color}`}>// {tier}</div>
-                  <div className={`w-8 h-8 rounded-lg ${info.bg} border ${info.border} flex items-center justify-center ${info.color}`}>
-                    <TierIcon className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className={`relative text-2xl font-bold ${info.color} drop-shadow`}>{info.credit}</div>
-                <div className="text-white/40 text-[11px] mt-0.5">Interstellar Credit</div>
-                <div className="text-white/60 text-[11px] mt-2 font-medium">{info.referrals} Successful Referrals</div>
+        {/* Available credit (program leader) */}
+        {unlockedCount >= 2 && (
+          <div className="flex justify-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/30 shadow-[0_0_18px_rgba(255,106,0,0.25)]">
+              <Sparkles className="w-4 h-4 text-orange-400" />
+              <span className="text-[11px] font-mono tracking-[0.12em] uppercase text-white/60">Available Credit:</span>
+              <span className="text-sm font-bold font-mono tabular-nums text-orange-400">${availableCredit.toLocaleString()}</span>
+            </div>
+          </div>
+        )}
 
-                {/* Members placed beneath their achieved tier */}
-                <div className="relative mt-3 pt-3 border-t border-white/[0.06]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`text-lg font-bold ${info.color}`}>{group.length}</span>
-                    <span className="text-[9px] text-white/30 tracking-widest uppercase">members</span>
-                  </div>
-                  {group.length > 0 ? (
-                    <div className="flex flex-wrap gap-1.5">
-                      {group.slice(0, 6).map((m) => (
-                        <div key={m.id} title={m.name} className={`w-7 h-7 rounded-full ${info.bg} border ${info.border} flex items-center justify-center text-[11px] font-bold ${info.color} ring-1 ${info.ring}`}>
-                          {m.name.charAt(0).toUpperCase()}
-                        </div>
-                      ))}
-                      {group.length > 6 && (
-                        <div className="w-7 h-7 rounded-full bg-white/[0.04] border border-white/10 flex items-center justify-center text-[10px] text-white/40">+{group.length - 6}</div>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-white/20 text-[10px]">No members ranked here yet.</p>
-                  )}
-                </div>
-              </div>
-            );
+        {/* Full ladder strip */}
+        <div className="flex justify-center">
+          <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl border border-white/[0.08] bg-white/[0.02]">
+            <span className="text-[12px] font-mono uppercase tracking-[0.1em] text-white/45">Full Ladder</span>
+            <span className="text-white/15">·</span>
+            <span className="text-[12px] font-mono uppercase tracking-[0.1em] text-white/45">{fullLadderReferrals} Referrals</span>
+            <span className="text-white/15">·</span>
+            <span className="text-[13px] font-mono font-bold tracking-[0.08em] bg-gradient-to-r from-orange-500 to-amber-300 bg-clip-text text-transparent">${fullLadderCredit.toLocaleString()} in Total Credit</span>
+          </div>
+        </div>
+
+        {/* Tier ladder */}
+        <div className="grid grid-cols-4 gap-4">
+          {TIERS.map((t, i) => {
+            const info = PRESTIGE_TIERS[t.tier];
+            const prev = i === 0 ? 0 : TIERS[i - 1].lifetime;
+            const lt = t.lifetime;
+            let state = "locked"; let within = 0; let pct = 0;
+            if (leaderConfirmed >= lt) { state = "unlocked"; within = t.perTier; pct = 100; }
+            else if (leaderConfirmed >= prev) { state = "in-progress"; within = leaderConfirmed - prev; pct = Math.min(100, (within / t.perTier) * 100); }
+            const group = tierGroups[t.tier] || [];
+            return <TierLadderCard key={t.tier} tier={t.tier} info={info} state={state} within={within} pct={pct} group={group} />;
           })}
         </div>
 
@@ -274,6 +252,11 @@ export default function Prestige() {
         ) : (
           <ReferralsTab referrals={referrals} members={members} tiers={PRESTIGE_TIERS} memberConfirmed={memberConfirmed} onEdit={openEditReferral} onDelete={deleteReferral} onUpdateStatus={updateReferralStatus} />
         )}
+
+        {/* Program terms */}
+        <div className="flex justify-center pt-2">
+          <button onClick={() => setTermsOpen(true)} className="text-[11px] font-mono uppercase tracking-[0.12em] text-white/35 hover:text-orange-400 transition-colors">Program Terms</button>
+        </div>
       </div>
 
       {/* Add Member (CRM + referrals) */}
@@ -331,6 +314,19 @@ export default function Prestige() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Program Terms Modal */}
+      <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
+        <DialogContent className="bg-card border-white/[0.08] text-white max-w-md">
+          <DialogHeader><DialogTitle className="text-white">Program Terms</DialogTitle></DialogHeader>
+          <div className="space-y-3 pt-2 text-sm text-white/60 leading-relaxed">
+            <p>Credit applies to any Interstellar build or service. Stackable across tiers. Valid 12 months from unlock.</p>
+            <p>Credit is non-transferable, has no cash value, and applies to new work only.</p>
+            <p>A referral counts as qualified once the referred client's first invoice is paid.</p>
+          </div>
+          <Button onClick={() => setTermsOpen(false)} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold">Close</Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -386,7 +382,7 @@ function MembersTab({ members, referrals, tiers, memberConfirmed, onAdd, onEdit,
                   {/* Progress bar */}
                   <div className="mt-2.5">
                     <div className="flex items-center justify-between text-[10px] mb-1">
-                      <span className={`font-semibold ${tier.color}`}>{confirmed} / {progress.maxed ? confirmed : progress.target} referrals</span>
+                      <span className={`font-semibold ${tier.color}`}>{progress.maxed ? `${confirmed} lifetime` : `${progress.within} / ${progress.target} new`}</span>
                       <span className="text-white/30">{progress.maxed ? "Peak rank reached" : `${progress.remaining} to ${progress.nextTier}`}</span>
                     </div>
                     <div className="h-1.5 w-full bg-white/[0.04] rounded-full overflow-hidden">

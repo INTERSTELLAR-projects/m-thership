@@ -4,15 +4,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { getProgress, earnedTier } from "@/lib/prestige";
+import { TIERS, getProgress, earnedTier } from "@/lib/prestige";
 import ServiceLineItems from "./ServiceLineItems";
 
-const TIERS = [
-  { tier: "Prestige I", threshold: 3, icon: Shield },
-  { tier: "Prestige II", threshold: 5, icon: Award },
-  { tier: "Prestige III", threshold: 8, icon: Trophy },
-  { tier: "Prestige Master", threshold: 15, icon: Crown },
-];
+const ICONS = { "Prestige I": Shield, "Prestige II": Award, "Prestige III": Trophy, "Prestige Master": Crown };
+const LADDER = TIERS.map((t) => ({ tier: t.tier, threshold: t.lifetime, perTier: t.perTier, icon: ICONS[t.tier] }));
 
 const EMPTY_REF = { referredClientName: "", lineItems: [{ service: "", subscription: false, amount: "" }], date: "", status: "Confirmed", notes: "" };
 
@@ -201,7 +197,7 @@ export default function AddMemberModal({ open, onOpenChange, onSave, clients }) 
             </div>
 
             <div className="flex items-center justify-between mb-3">
-              {TIERS.map((t, i) => {
+              {LADDER.map((t, i) => {
                 const reached = confirmed >= t.threshold;
                 const Icon = t.icon;
                 return (
@@ -212,9 +208,9 @@ export default function AddMemberModal({ open, onOpenChange, onSave, clients }) 
                       </div>
                       <span className="text-[8px] tracking-wider uppercase text-white/40 text-center leading-tight">{t.tier.replace("Prestige ", "")}</span>
                     </div>
-                    {i < TIERS.length - 1 && (
+                    {i < LADDER.length - 1 && (
                       <div className="flex-1 h-px mx-1 bg-white/[0.06] relative">
-                        <div className="absolute inset-y-0 left-0 bg-orange-500/60" style={{ width: `${confirmed >= t.threshold && confirmed >= TIERS[i + 1].threshold ? 100 : confirmed >= t.threshold ? ((confirmed - t.threshold) / (TIERS[i + 1].threshold - t.threshold)) * 100 : 0}%` }} />
+                        <div className="absolute inset-y-0 left-0 bg-orange-500/60" style={{ width: `${confirmed >= t.threshold && confirmed >= LADDER[i + 1].threshold ? 100 : confirmed >= t.threshold ? ((confirmed - t.threshold) / (LADDER[i + 1].threshold - t.threshold)) * 100 : 0}%` }} />
                       </div>
                     )}
                   </div>
