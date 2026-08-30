@@ -188,7 +188,11 @@ function buildBlended(routes, currentMrr, goalMrr, blendedVelocities) {
   const monthlyAdd = inflows.reduce((s, inf) => s + inf.cpm * inf.price, 0) || 1;
   const baseChurn = round2(inflows.reduce((s, inf) => s + inf.cpm * inf.price * inf.churn, 0) / monthlyAdd);
   const sim = simulate(inflows, baseChurn, currentMrr, goalMrr);
-  return deriveRoute({ id: "blended", name: "Blended (auto)", system_generated: true }, inflows, sim, currentMrr, goalMrr);
+  const blended = deriveRoute({ id: "blended", name: "Blended (auto)", system_generated: true }, inflows, sim, currentMrr, goalMrr);
+  // For the Blended row, "Monthly price" = the total recurring added per month
+  // (sum of each primary route's chosen velocity × price), e.g. 1×$500 + 1×$150 = $650.
+  blended.monthly_price = round2(inflows.reduce((s, inf) => s + inf.cpm * inf.price, 0));
+  return blended;
 }
 
 export function computePlan(plan, currentMrr) {

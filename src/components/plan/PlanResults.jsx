@@ -239,7 +239,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
                               <span className="text-[9px] text-white/45 font-mono truncate">{shortLabel(rr.name)}</span>
                               {blendedVelocities[j] == null && <span className="text-[7px] text-white/25 uppercase tracking-wider">auto</span>}
                             </div>
-                            <MiniSlider value={eff} min={0.25} max={8} step={0.25}
+                            <MiniSlider value={eff} min={0} max={8} step={1}
                               onDrag={(v) => setBv(j, v)}
                               onCommit={onSliderCommit}
                               fmt={(v) => `${v} cli/mo`} />
@@ -249,7 +249,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
                     </div>
                   ) : (
                     <div key={i} className="px-1">
-                      <MiniSlider value={routes[i].clients_per_month} min={0.25} max={8} step={0.25}
+                      <MiniSlider value={routes[i].clients_per_month} min={0} max={8} step={1}
                         onDrag={(v) => setRouteField(i, { clients_per_month: v })}
                         onCommit={onSliderCommit}
                         fmt={(v) => `${v} cli/mo`} />
