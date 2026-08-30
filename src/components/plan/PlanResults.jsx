@@ -1,7 +1,5 @@
 import { useState, useMemo, useRef } from "react";
-import { AreaChart, Area, XAxis, ResponsiveContainer, Tooltip, ReferenceLine, BarChart, Bar, Cell, YAxis } from "recharts";
-import { RefreshCw, ChevronDown, ChevronUp, AlertTriangle, Check, Pencil, ArrowUp, ArrowDown, RotateCcw } from "lucide-react";
-import GameChartTooltip from "@/components/charts/GameChartTooltip";
+import { RefreshCw, ChevronDown, ChevronUp, AlertTriangle, Pencil, ArrowUp, ArrowDown, RotateCcw } from "lucide-react";
 import { computePlan, presetFor, round2 } from "../../../base44/shared/planEngine.js";
 
 const ROUTE_COLORS = ["#F47C20", "#FFC14D", "#FF9F1C"];
@@ -67,25 +65,6 @@ function Cell2({ children, className = "" }) {
   return <div className={`text-[11px] font-mono px-2 py-1 rounded text-white/55 ${className}`}>{children}</div>;
 }
 
-function ChecklistItem({ index, analysisId, goalId, item }) {
-  const key = `goal_check_${goalId}_${analysisId}_${index}`;
-  const [done, setDone] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(key) || "false"); } catch { return false; }
-  });
-  const toggle = () => {
-    const v = !done; setDone(v);
-    try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {}
-  };
-  return (
-    <button onClick={toggle} className="flex items-start gap-2 text-left w-full group">
-      <span className={`mt-0.5 w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all ${done ? "bg-green-500/20 border-green-500/40" : "border-white/15 group-hover:border-orange-500/40"}`}>
-        {done && <Check className="w-2.5 h-2.5 text-green-400" />}
-      </span>
-      <span className={`text-xs ${done ? "text-white/30 line-through" : "text-white/70"}`}>{item}</span>
-    </button>
-  );
-}
-
 function assumptionKey(routes, blendedVelocities) {
   const bv = (routes || []).slice(0, 2).map((r, j) =>
     round2(blendedVelocities && blendedVelocities[j] != null ? blendedVelocities[j] : (Number(r.clients_per_month) || 0))
@@ -144,20 +123,6 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
       onAssumptionsSave(next, next.slice(0, 2).map((rr, j) => (blendedVelocities[j] != null ? blendedVelocities[j] : Number(rr.clients_per_month) || 0)));
     }, 0);
   };
-
-  // charts
-  const months24 = Array.from({ length: 24 }, (_, i) => {
-    const m = i + 1;
-    const point = { month: "M" + m };
-    allRoutes.forEach((r) => { point[r.name] = r.series && r.series[m - 1] ? Math.round(r.series[m - 1].mrr) : null; });
-    return point;
-  });
-  const timeData = allRoutes.map((r) => ({ name: r.name, months: r.months_to_goal || 0, reached: !!r.reached }));
-  const minMonths = Math.min(...timeData.map((t) => t.months).filter((m) => m > 0));
-  const winner = allRoutes.find((r) => r.name === c.winner_name) || c.blended;
-  const winnerIdx = allRoutes.indexOf(winner);
-  const winnerColor = winner?.system_generated ? BLENDED_COLOR : ROUTE_COLORS[winnerIdx % ROUTE_COLORS.length] || "#F47C20";
-  const crossMonth = winner?.reached && winner.months_to_goal <= 24 ? "M" + winner.months_to_goal : null;
 
   const deltaUp = ai?.delta_since_last_run && !/dro|down|fell|lower|negative/i.test(JSON.stringify(ai.delta_since_last_run).toLowerCase());
 
@@ -283,89 +248,6 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
                 ))}
               </Row>
             </div>
-          </div>
-
-          {/* projection chart */}
-          <div className="rounded-lg border border-white/[0.06] bg-white/[0.015] p-3">
-            <p className="text-white/40 text-[10px] uppercase tracking-widest font-mono mb-2">Projection to Goal</p>
-            <div className="h-[180px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={months24} margin={{ top: 5, right: 6, left: 6, bottom: 0 }}>
-                  <defs>
-                    {allRoutes.map((r, i) => {
-                      const col = r.system_generated ? BLENDED_COLOR : ROUTE_COLORS[i % ROUTE_COLORS.length];
-                      return (
-                        <linearGradient key={i} id={`projGrad_${i}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={col} stopOpacity={0.4} />
-                          <stop offset="100%" stopColor={col} stopOpacity={0.02} />
-                        </linearGradient>
-                      );
-                    })}
-                  </defs>
-                  <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 9 }} axisLine={false} tickLine={false} interval={3} />
-                  <YAxis hide />
-                  <Tooltip content={<GameChartTooltip />} cursor={{ stroke: "rgba(255,170,0,0.2)", strokeWidth: 1 }} />
-                  <ReferenceLine y={c.goal_mrr} stroke="#F47C20" strokeDasharray="5 4" strokeWidth={1.5} label={{ value: `GOAL $${Math.round(c.goal_mrr).toLocaleString()}`, fill: "#F47C20", fontSize: 9, position: "insideTopRight" }} />
-                  {crossMonth && <ReferenceLine x={crossMonth} stroke={winnerColor} strokeDasharray="3 3" strokeWidth={1.5} label={{ value: winner?.name?.split(" ")[0], fill: winnerColor, fontSize: 8, position: "top" }} />}
-                  {allRoutes.map((r, i) => {
-                    const col = r.system_generated ? BLENDED_COLOR : ROUTE_COLORS[i % ROUTE_COLORS.length];
-                    return <Area key={i} type="monotone" dataKey={r.name} stroke={col} strokeWidth={2} fill={`url(#projGrad_${i})`} style={{ filter: `drop-shadow(0 0 4px ${col}66)` }} dot={false} isAnimationActive animationDuration={250} />;
-                  })}
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* time to goal */}
-          <div className="rounded-lg border border-white/[0.06] bg-white/[0.015] p-3">
-            <p className="text-white/40 text-[10px] uppercase tracking-widest font-mono mb-2">Time to Goal</p>
-            <div className="h-[180px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={timeData} layout="vertical" margin={{ top: 2, right: 8, left: 8, bottom: 0 }}>
-                  <XAxis type="number" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 9 }} axisLine={false} tickLine={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 9 }} axisLine={false} tickLine={false} width={70} />
-                  <Tooltip content={<GameChartTooltip />} cursor={{ fill: "rgba(255,170,0,0.05)" }} />
-                  <Bar dataKey="months" radius={[3, 3, 3, 3]} isAnimationActive animationDuration={250}>
-                    {timeData.map((t, i) => (
-                      <Cell key={i} fill={t.reached && t.months === minMonths ? "url(#barWin)" : t.reached ? "rgba(255,143,0,0.35)" : "rgba(255,255,255,0.08)"} />
-                    ))}
-                  </Bar>
-                  <defs>
-                    <linearGradient id="barWin" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#F47C20" />
-                      <stop offset="100%" stopColor="#FFC14D" />
-                    </linearGradient>
-                  </defs>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* AI insight block (dimmed when stale) */}
-          <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3 space-y-3 transition-opacity" style={{ opacity: stale ? 0.6 : 1 }}>
-            {ai ? (
-              <>
-                <div>
-                  <p className="text-orange-400/70 text-[10px] uppercase tracking-widest font-mono mb-1.5">Why</p>
-                  <ul className="space-y-1">
-                    {(ai.reasoning || []).map((r, i) => <li key={i} className="text-white/70 text-xs flex gap-2"><span className="text-orange-500/60">·</span>{r}</li>)}
-                  </ul>
-                </div>
-                <div>
-                  <p className="text-orange-400/70 text-[10px] uppercase tracking-widest font-mono mb-1.5">Watch For</p>
-                  <p className="text-white/70 text-xs mb-1">{ai.hidden_insight}</p>
-                  <p className="text-white/50 text-xs italic">{ai.switch_trigger}</p>
-                </div>
-                <div>
-                  <p className="text-orange-400/70 text-[10px] uppercase tracking-widest font-mono mb-1.5">Next 30 Days</p>
-                  <div className="space-y-1.5">
-                    {(ai.next_30_days || []).map((a, i) => <ChecklistItem key={i} index={i} analysisId={analysis.id} goalId={goal.id} item={a} />)}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center gap-2 text-white/40 text-xs"><AlertTriangle className="w-3.5 h-3.5" />Analysis unavailable —<button onClick={onRerun} className="text-orange-400 underline">retry</button></div>
-            )}
           </div>
 
           {/* delta strip */}
