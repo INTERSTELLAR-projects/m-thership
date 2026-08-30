@@ -175,6 +175,71 @@
   z-index: 1;
 }
 
+/* Goal bubble — orbiting conic-gradient border */
+@property --goal-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes goal-bubble-spin { to { --goal-angle: 360deg; } }
+@keyframes goal-num-breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.85; } }
+
+.goal-bubble {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(244, 124, 32, 0.07);
+  background-image: radial-gradient(130% 130% at 50% 0%, rgba(244, 124, 32, 0.18), rgba(244, 124, 32, 0) 60%);
+  box-shadow: 0 0 20px rgba(244, 124, 32, 0.18);
+  cursor: pointer;
+  isolation: isolate;
+  border: 0;
+}
+.goal-bubble .goal-num {
+  font-variant-numeric: tabular-nums;
+  animation: goal-num-breathe 3s ease-in-out infinite;
+}
+.goal-bubble::before {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 9999px;
+  padding: 1.5px;
+  background: conic-gradient(from var(--goal-angle), #F47C20, #FFC14D, #F47C20 35%, rgba(255, 193, 77, 0) 55%, rgba(255, 124, 32, 0) 78%, #F47C20);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  animation: goal-bubble-spin 4s linear infinite;
+  z-index: -1;
+}
+.goal-bubble:hover { box-shadow: 0 0 26px rgba(244, 124, 32, 0.30); }
+.goal-bubble:hover::before { animation-duration: 2s; }
+
+.goal-bubble.achieved {
+  background: rgba(34, 197, 94, 0.08);
+  box-shadow: 0 0 18px rgba(34, 197, 94, 0.18);
+}
+.goal-bubble.achieved::before {
+  animation: none;
+  background: linear-gradient(90deg, #22c55e, #86efac, #22c55e);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .goal-bubble::before { animation: none; }
+  .goal-bubble .goal-num { animation: none; }
+}
+
+/* Goal crossfade on switch */
+@keyframes goal-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.goal-crossfade { animation: goal-fade 200ms ease-out both; }
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

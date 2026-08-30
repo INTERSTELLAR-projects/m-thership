@@ -55,10 +55,10 @@ export default function DailyBriefing() {
 
     let planToExecute = null;
     try {
-      const plans = await base44.entities.ExecutionPlan.filter({ status: "active" }, "-created_date", 1);
-      const ap = (plans || [])[0];
-      if (ap) {
-        const an = await base44.entities.PlanAnalysis.filter({ plan_id: ap.id }, "-created_date", 1);
+      const goals = await base44.entities.Goal.filter({ is_primary: true }, "priority", 10);
+      const pg = (goals || []).find((g) => g.status !== "archived") || (goals || [])[0];
+      if (pg) {
+        const an = await base44.entities.PlanAnalysis.filter({ goal_id: pg.id }, "-created_date", 1);
         const la = (an || [])[0];
         if (la?.computed) {
           const gap = Math.max(0, la.computed.goal_mrr - la.computed.current_mrr);

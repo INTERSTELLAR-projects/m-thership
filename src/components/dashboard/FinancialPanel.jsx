@@ -68,7 +68,8 @@ export default function FinancialPanel() {
   const [settingsId, setSettingsId] = useState(null);
   const [planToExecute, setPlanToExecute] = useState("14 more Ørbit SEO base level subs");
   const [marketingItems, setMarketingItems] = useState(["Referral Program"]);
-  const mrrGoal = 10000;
+  const [goalTarget, setGoalTarget] = useState(10000);
+  const mrrGoal = goalTarget;
 
   useEffect(() => {
     base44.entities.CRMClient.list("-created_date", 200).then((data) => {
@@ -85,6 +86,19 @@ export default function FinancialPanel() {
         if (Array.isArray(rows[0].pageSettings?.marketingItems)) setMarketingItems(rows[0].pageSettings.marketingItems);
       }
     });
+  }, []);
+
+  useEffect(() => {
+    const loadTarget = async () => {
+      try {
+        const goals = await base44.entities.Goal.filter({ is_primary: true }, "priority", 10);
+        const g = (goals || []).find((x) => x.status !== "archived") || (goals || [])[0];
+        if (g && g.target_mrr) setGoalTarget(Number(g.target_mrr));
+      } catch (e) {}
+    };
+    loadTarget();
+    const unsub = base44.entities.Goal.subscribe(() => loadTarget());
+    return unsub;
   }, []);
 
   const savePageSetting = async (field, value) => {
