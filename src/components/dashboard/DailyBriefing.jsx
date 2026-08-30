@@ -55,8 +55,25 @@ export default function DailyBriefing() {
 
     let planToExecute = null;
     try {
-      const rows = await base44.entities.AppSettings.filter({ key: "financial_panel" }, "-created_date", 1);
-      if (rows[0]?.pageSettings?.planToExecute) planToExecute = rows[0].pageSettings.planToExecute;
+      const plans = await base44.entities.ExecutionPlan.filter({ status: "active" }, "-created_date", 1);
+      const ap = (plans || [])[0];
+      if (ap) {
+        const an = await base44.entities.PlanAnalysis.filter({ plan_id: ap.id }, "-created_date", 1);
+        const la = (an || [])[0];
+        if (la?.computed) {
+          const gap = Math.max(0, la.computed.goal_mrr - la.computed.current_mrr);
+          const winner = (la.computed.routes || []).concat(la.computed.blended ? [la.computed.blended] : []).find((r) => r.name === la.computed.winner_name);
+          const route = la.computed.winner_name || "";
+          const n = winner?.clients_needed_real;
+          const m = winner?.months_to_goal;
+          const firstAction = la.ai_summary?.next_30_days?.[0] || "";
+          planToExecute = `You're $${Math.round(gap).toLocaleString()} from your $${Math.round(la.computed.goal_mrr).toLocaleString()} goal. Fastest path: ${route}${n != null ? `, ${n} clients` : ""}${m != null ? ` over ${m} months` : ""}.${firstAction ? ` Today, ${firstAction}.` : ""}`;
+        }
+      }
+      if (!planToExecute) {
+        const rows = await base44.entities.AppSettings.filter({ key: "financial_panel" }, "-created_date", 1);
+        if (rows[0]?.pageSettings?.planToExecute) planToExecute = rows[0].pageSettings.planToExecute;
+      }
     } catch (e) { /* ignore */ }
 
     const today = new Date();

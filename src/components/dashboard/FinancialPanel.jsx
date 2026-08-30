@@ -3,6 +3,7 @@ import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tool
 import { Pencil, Check, X, Flame, Target, Rocket, TrendingUp } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import MarketingIdeas from "./MarketingIdeas";
+import PlanToExecute from "./PlanToExecute";
 
 const SETTINGS_KEY = "financial_panel";
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -226,7 +227,7 @@ export default function FinancialPanel() {
 
       {/* Plan & Marketing */}
       <div className="relative space-y-3">
-        <EditableField label="Plan to Execute · syncs to Daily Briefing" value={planToExecute} onSave={(v) => savePageSetting("planToExecute", v)} />
+        <PlanToExecute mrr={mrr} />
         <MarketingIdeas items={marketingItems} onChange={(v) => savePageSetting("marketingItems", v)} />
       </div>
     </div>

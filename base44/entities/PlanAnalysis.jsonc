@@ -1,0 +1,38 @@
+{
+  "name": "PlanAnalysis",
+  "type": "object",
+  "properties": {
+    "plan_id": {
+      "type": "string"
+    },
+    "mrr_at_run": {
+      "type": "number"
+    },
+    "gap_at_run": {
+      "type": "number"
+    },
+    "computed": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "ai_summary": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "previous_analysis_id": {
+      "type": "string"
+    },
+    "trigger": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "mrr_change",
+        "scheduled"
+      ],
+      "default": "manual"
+    }
+  },
+  "required": [
+    "plan_id"
+  ]
+}
