@@ -170,7 +170,7 @@ export default function Prestige() {
   };
 
   // === TEMPORARY MOCK (screenshot) — revert when done ===
-  const MOCK_NAMES = ["Acme Co","Brightside","Clarity Labs","Delta Group","Ember Studio","Forge Co","Glow Agency","Helix Brands","Ionix","Juniper","Kinetik","Lumen","Meridian","Northwind","Orbit","Pulse Co","Quanta"];
+  const MOCK_NAMES = ["Sage Co","Onyx Labs","Vivid Group","Bramble Studio","Kestrel Co","Pulse Labs","Tundra Group","Cobalt Co","Halo Studio","Noble Group","Drift Labs","Quanta Co","Ember Group","Lumen Co","Forge Labs","Atlas Group","Meadow Co"];
   const MOCK_MEMBERS = [
     ...Array.from({ length: 4 }, (_, i) => ({ id: `mock-1-${i}`, name: MOCK_NAMES[i], prestige: "Prestige I", active: true })),
     ...Array.from({ length: 6 }, (_, i) => ({ id: `mock-2-${i}`, name: MOCK_NAMES[4 + i], prestige: "Prestige II", active: true })),
