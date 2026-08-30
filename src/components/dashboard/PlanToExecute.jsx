@@ -86,7 +86,7 @@ export default function PlanToExecute({ mrr }) {
       status: "active",
       is_primary: isPrimary,
       routes: data.routes,
-      blended_mix: null,
+      blended_velocities: null,
     });
     setBuilderOpen(false);
     setEditingGoal(null);
@@ -131,18 +131,19 @@ export default function PlanToExecute({ mrr }) {
     try { await base44.entities.Goal.bulkUpdate(ord.map((g, i) => ({ id: g.id, priority: i }))); } catch (e) {}
   };
 
-  const saveAssumptions = async (routes, blendedMix) => {
+  const saveAssumptions = async (routes, blendedVelocities) => {
     if (!selected) return;
     const id = selected.id;
+    const bv = Array.isArray(blendedVelocities) ? blendedVelocities.map((v) => (v == null ? null : Number(v))) : null;
     try {
-      await base44.entities.Goal.update(id, { routes, blended_mix: blendedMix == null ? null : blendedMix });
-      setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, routes, blended_mix: blendedMix == null ? null : blendedMix } : g)));
+      await base44.entities.Goal.update(id, { routes, blended_velocities: bv });
+      setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, routes, blended_velocities: bv } : g)));
     } catch (e) {}
   };
 
-  const reRunStale = async (routes, blendedMix) => {
+  const reRunStale = async (routes, blendedVelocities) => {
     if (!selected) return;
-    await saveAssumptions(routes, blendedMix);
+    await saveAssumptions(routes, blendedVelocities);
     runAnalysis(selected.id);
   };
 

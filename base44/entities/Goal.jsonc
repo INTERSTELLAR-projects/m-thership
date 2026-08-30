@@ -28,8 +28,11 @@
       "type": "boolean",
       "default": false
     },
-    "blended_mix": {
-      "type": "number"
+    "blended_velocities": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
     },
     "routes": {
       "type": "array",

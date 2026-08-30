@@ -2,13 +2,14 @@ import { useState, useMemo, useRef } from "react";
 import { AreaChart, Area, XAxis, ResponsiveContainer, Tooltip, ReferenceLine, BarChart, Bar, Cell, YAxis } from "recharts";
 import { RefreshCw, ChevronDown, ChevronUp, AlertTriangle, Check, Pencil, ArrowUp, ArrowDown, RotateCcw } from "lucide-react";
 import GameChartTooltip from "@/components/charts/GameChartTooltip";
-import { computePlan, autoMixWeight, presetFor, round2 } from "../../../base44/shared/planEngine.js";
+import { computePlan, presetFor, round2 } from "../../../base44/shared/planEngine.js";
 
 const ROUTE_COLORS = ["#F47C20", "#FFC14D", "#FF9F1C"];
 const BLENDED_COLOR = "#67B5FF";
 
 const stepRound = (n, step) => Math.round(n / step) * step;
 const clampN = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
+const shortLabel = (name) => (name || "").split(" ")[0].slice(0, 9);
 
 function fmtMoney(n) {
   if (n === null || n === undefined) return "—";
@@ -85,9 +86,12 @@ function ChecklistItem({ index, analysisId, goalId, item }) {
   );
 }
 
-function assumptionKey(routes, blendedMix) {
+function assumptionKey(routes, blendedVelocities) {
+  const bv = (routes || []).slice(0, 2).map((r, j) =>
+    round2(blendedVelocities && blendedVelocities[j] != null ? blendedVelocities[j] : (Number(r.clients_per_month) || 0))
+  );
   return JSON.stringify({
-    mix: blendedMix == null ? null : round2(blendedMix),
+    bv,
     routes: (routes || []).map((r) => ({
       price: round2(Number(r.monthly_price) || 0),
       cpm: round2(Number(r.clients_per_month) || 0),
@@ -104,31 +108,34 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
   const [assumptionsOpen, setAssumptionsOpen] = useState(false);
   const baselineRef = useRef(JSON.parse(JSON.stringify(goal.routes || [])));
   const [routes, setRoutes] = useState(() => JSON.parse(JSON.stringify(goal.routes || [])));
-  const [blendedMix, setBlendedMix] = useState(goal.blended_mix == null ? null : goal.blended_mix);
+  const [blendedVelocities, setBlendedVelocities] = useState(() => {
+    const bv = goal.blended_velocities;
+    return [bv && bv[0] != null ? Number(bv[0]) : null, bv && bv[1] != null ? Number(bv[1]) : null];
+  });
+  const lastSavedKey = useRef(assumptionKey(goal.routes || [], goal.blended_velocities || []));
 
   const c = useMemo(
-    () => computePlan({ target_mrr: goal.target_mrr, baseline_mrr: goal.baseline_mrr || 0, routes, blended_mix: blendedMix }, mrr || 0),
-    [goal.target_mrr, goal.baseline_mrr, routes, blendedMix, mrr]
+    () => computePlan({ target_mrr: goal.target_mrr, baseline_mrr: goal.baseline_mrr || 0, routes, blended_velocities: blendedVelocities }, mrr || 0),
+    [goal.target_mrr, goal.baseline_mrr, routes, blendedVelocities, mrr]
   );
   const ai = analysis?.ai_summary;
   const allRoutes = [...(c.routes || []), c.blended].filter(Boolean);
 
   const snapshot = analysis?.assumptions_snapshot;
-  const stale = !!(snapshot && assumptionKey(routes, blendedMix) !== assumptionKey(snapshot.routes, snapshot.blended_mix));
+  const stale = !!(snapshot?.routes && assumptionKey(routes, blendedVelocities) !== assumptionKey(snapshot.routes, snapshot.blended_velocities));
 
-  const autoMix = autoMixWeight(routes);
-  const mixValue = blendedMix == null ? (autoMix ?? 0.5) : blendedMix;
+  const setBv = (j, v) => setBlendedVelocities((prev) => { const n = [...prev]; n[j] = v; return n; });
+  const setRouteField = (i, patch) => setRoutes((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
 
-  const commitRef = useRef(null);
-  commitRef.current = () => onAssumptionsSave(routes, blendedMix);
+  const effectiveBv = () => routes.slice(0, 2).map((r, j) => (blendedVelocities[j] != null ? blendedVelocities[j] : Number(r.clients_per_month) || 0));
+
   const onSliderCommit = () => {
-    if (assumptionKey(routes, blendedMix) !== assumptionKey(baselineRef.current, goal.blended_mix == null ? null : goal.blended_mix)) {
-      baselineRef.current = JSON.parse(JSON.stringify(routes));
-      onAssumptionsSave(routes, blendedMix);
-    }
+    const key = assumptionKey(routes, blendedVelocities);
+    if (key === lastSavedKey.current) return;
+    lastSavedKey.current = key;
+    onAssumptionsSave(routes, effectiveBv());
   };
 
-  const setRouteField = (i, patch) => setRoutes((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
   const resetRoute = (i) => {
     const r = routes[i];
     const preset = r.preset ? presetFor(r.preset) : null;
@@ -138,7 +145,8 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
     setRoutes((prev) => prev.map((rr, idx) => (idx === i ? base : rr)));
     setTimeout(() => {
       const next = routes.map((rr, idx) => (idx === i ? base : rr));
-      onAssumptionsSave(next, blendedMix);
+      lastSavedKey.current = assumptionKey(next, blendedVelocities);
+      onAssumptionsSave(next, next.slice(0, 2).map((rr, j) => (blendedVelocities[j] != null ? blendedVelocities[j] : Number(rr.clients_per_month) || 0)));
     }, 0);
   };
 
@@ -152,7 +160,8 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
   const timeData = allRoutes.map((r) => ({ name: r.name, months: r.months_to_goal || 0, reached: !!r.reached }));
   const minMonths = Math.min(...timeData.map((t) => t.months).filter((m) => m > 0));
   const winner = allRoutes.find((r) => r.name === c.winner_name) || c.blended;
-  const winnerColor = winner?.system_generated ? BLENDED_COLOR : (allRoutes.indexOf(winner) >= 0 ? ROUTE_COLORS[allRoutes.indexOf(winner) % ROUTE_COLORS.length] : "#F47C20");
+  const winnerIdx = allRoutes.indexOf(winner);
+  const winnerColor = winner?.system_generated ? BLENDED_COLOR : ROUTE_COLORS[winnerIdx % ROUTE_COLORS.length] || "#F47C20";
   const cashData = Array.from({ length: 12 }, (_, i) => {
     const m = i + 1;
     const s = winner?.series?.[m - 1];
@@ -182,7 +191,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
       </div>
 
       {stale && (
-        <button onClick={() => onStaleReRun(routes, blendedMix)}
+        <button onClick={() => onStaleReRun(routes, effectiveBv())}
           className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-semibold tracking-wide uppercase hover:bg-amber-500/25 transition-all">
           <AlertTriangle className="w-3 h-3" />Assumptions changed — re-run analysis
         </button>
@@ -192,7 +201,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
         <div className="space-y-3">
           {/* comparison table */}
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.015] p-3 overflow-x-auto">
-            <div className="min-w-[460px]">
+            <div className="min-w-[480px]">
               {/* header */}
               <div className="grid items-end pb-2 mb-1 border-b border-white/[0.05]" style={{ gridTemplateColumns: "128px minmax(0,1fr)" }}>
                 <span />
@@ -203,7 +212,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
                       <div key={i} className="text-center">
                         <span className="text-[11px] font-semibold block leading-tight" style={{ color: col }}>{r.name}</span>
                         {r.system_generated ? (
-                          <span className="text-[8px] text-white/30 uppercase tracking-wider">auto</span>
+                          <span className="text-[8px] text-white/30 uppercase tracking-wider">brand both</span>
                         ) : (
                           <button onClick={() => resetRoute(i)} className="text-[8px] text-white/25 hover:text-orange-400 uppercase tracking-wider inline-flex items-center gap-0.5"><RotateCcw className="w-2 h-2" />reset</button>
                         )}
@@ -217,20 +226,26 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
                 {allRoutes.map((r, i) => <Cell2 key={i}>{fmtMoney(r.monthly_price)}</Cell2>)}
               </Row>
 
-              {/* Clients/mo — live sliders */}
+              {/* Clients/mo — live sliders (blended shows one per primary route) */}
               <Row label="Clients / mo">
                 {allRoutes.map((r, i) =>
                   r.system_generated ? (
-                    <div key={i} className="px-1">
-                      <MiniSlider value={mixValue} min={0} max={1} step={0.01}
-                        onDrag={(v) => setBlendedMix(round2(v))}
-                        onCommit={onSliderCommit}
-                        fmt={(v) => blendedMix == null ? "AUTO" : Math.round(v * 100) + "%"} />
-                      {blendedMix != null ? (
-                        <button onClick={() => { setBlendedMix(null); setTimeout(onSliderCommit, 0); }} className="mt-1 text-[8px] text-white/35 hover:text-orange-400 uppercase tracking-wider">→ auto</button>
-                      ) : (
-                        <span className="block mt-1 text-[8px] text-white/30 uppercase tracking-wider">mix</span>
-                      )}
+                    <div key={i} className="px-1 space-y-1.5">
+                      {routes.slice(0, 2).map((rr, j) => {
+                        const eff = blendedVelocities[j] != null ? blendedVelocities[j] : (Number(rr.clients_per_month) || 0);
+                        return (
+                          <div key={j}>
+                            <div className="flex items-center justify-between mb-0.5">
+                              <span className="text-[9px] text-white/45 font-mono truncate">{shortLabel(rr.name)}</span>
+                              {blendedVelocities[j] == null && <span className="text-[7px] text-white/25 uppercase tracking-wider">auto</span>}
+                            </div>
+                            <MiniSlider value={eff} min={0.25} max={8} step={0.25}
+                              onDrag={(v) => setBv(j, v)}
+                              onCommit={onSliderCommit}
+                              fmt={(v) => `${v} cli/mo`} />
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (
                     <div key={i} className="px-1">
@@ -301,7 +316,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
               )}
 
               <Row label="Clients needed">
-                {allRoutes.map((r, i) => <Cell2 key={i}>{r.clients_needed_real != null ? r.clients_needed_real : "—"}</Cell2>)}
+                {allRoutes.map((r, i) => <Cell2 key={i}>{r.clients_needed_raw != null ? r.clients_needed_raw : "—"}</Cell2>)}
               </Row>
 
               <Row label="Time to goal" bold>

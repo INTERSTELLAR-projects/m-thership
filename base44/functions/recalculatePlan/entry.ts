@@ -171,7 +171,7 @@ export default async function (req) {
     }
 
     const assumptions_snapshot = {
-      blended_mix: goal.blended_mix == null ? null : goal.blended_mix,
+      blended_velocities: (goal.blended_velocities || []).map((v) => (v == null ? null : Number(v))),
       routes: (goal.routes || []).map((r) => ({
         name: r.name,
         monthly_price: Number(r.monthly_price) || 0,

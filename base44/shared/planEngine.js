@@ -108,8 +108,6 @@ function deriveRoute(route, inflows, sim, currentMrr, goalMrr) {
   const reached = monthsToGoal !== null;
   const idx = reached ? monthsToGoal - 1 : 35;
   const point = series[idx];
-  const clientsAtGoalArr = reached ? clientsAtGoal : inflows.map(() => 0);
-  const clientsTotalAtGoal = clientsAtGoalArr.reduce((s, c) => s + c, 0);
   const one_time_cash = reached ? round2(point.cumulative_one_time) : 0;
   const mrr_total_at_goal = reached ? round2(point.mrr) : null;
 
@@ -134,7 +132,7 @@ function deriveRoute(route, inflows, sim, currentMrr, goalMrr) {
     monthly_price: pricePerClient,
     has_addons: inflows.some((i) => i.has_addons),
     clients_needed_raw,
-    clients_needed_real: reached ? round1(clientsTotalAtGoal) : null,
+    clients_needed_real: reached ? round1(clientsAtGoal ? clientsAtGoal.reduce((s, c) => s + c, 0) : 0) : null,
     months_to_goal: monthsToGoal,
     goal_date: goalDateFromMonths(monthsToGoal),
     one_time_cash_at_goal: round2(one_time_cash),
@@ -154,19 +152,20 @@ export function computeRoute(route, currentMrr, goalMrr) {
   return deriveRoute(route, [inf], sim, currentMrr, goalMrr);
 }
 
-// Auto "Blended (auto)" route: split total acquisition velocity across the two
-// primary routes weighted by monthly_price, capped 30/70. A manual mixOverride
-// (0..1, fraction going to the first primary route) replaces the auto weight.
-function buildBlended(routes, currentMrr, goalMrr, mixOverride) {
-  const valid = routes.map(normalizeInflow).filter((inf) => inf.cpm > 0 && inf.price > 0);
-  const primary = valid.slice(0, 2);
+// Auto "Blended (auto)" route: run BOTH primary routes at once, each at the
+// velocity you choose. blendedVelocities is an array (per primary route index)
+// of explicit clients-per-month; a null/missing entry falls back to that
+// route's own clients_per_month.
+function buildBlended(routes, currentMrr, goalMrr, blendedVelocities) {
+  const norm = routes.map(normalizeInflow);
+  const primary = norm.slice(0, 2).filter((inf) => inf.price > 0);
   if (primary.length < 2) {
     return {
       id: "blended",
       name: "Blended (auto)",
       system_generated: true,
       monthly_price: 0,
-      has_addons: valid.some((v) => v.has_addons),
+      has_addons: norm.some((v) => v.has_addons),
       clients_needed_raw: null,
       clients_needed_real: null,
       months_to_goal: null,
@@ -181,38 +180,22 @@ function buildBlended(routes, currentMrr, goalMrr, mixOverride) {
       series: [],
     };
   }
-  const [a, b] = primary;
-  const totalVelocity = a.cpm + b.cpm;
-  let w0 = a.price + b.price > 0 ? a.price / (a.price + b.price) : 0.5;
-  w0 = clamp(w0, 0.3, 0.7);
-  if (mixOverride != null && !Number.isNaN(mixOverride)) w0 = clamp(mixOverride, 0, 1);
-  const w1 = 1 - w0;
-  const inflows = [
-    { ...a, cpm: round2(totalVelocity * w0) },
-    { ...b, cpm: round2(totalVelocity * w1) },
-  ];
+  const bv = blendedVelocities || [];
+  const inflows = primary.map((inf, i) => ({
+    ...inf,
+    cpm: bv[i] != null && !Number.isNaN(Number(bv[i])) ? Number(bv[i]) || 0 : inf.cpm,
+  }));
   const monthlyAdd = inflows.reduce((s, inf) => s + inf.cpm * inf.price, 0) || 1;
   const baseChurn = round2(inflows.reduce((s, inf) => s + inf.cpm * inf.price * inf.churn, 0) / monthlyAdd);
   const sim = simulate(inflows, baseChurn, currentMrr, goalMrr);
   return deriveRoute({ id: "blended", name: "Blended (auto)", system_generated: true }, inflows, sim, currentMrr, goalMrr);
 }
 
-export function autoMixWeight(routes) {
-  const valid = routes
-    .map((r) => ({ price: Number(r.monthly_price) || 0, cpm: Number(r.clients_per_month) || 0 }))
-    .filter((r) => r.cpm > 0 && r.price > 0)
-    .slice(0, 2);
-  if (valid.length < 2) return null;
-  const [a, b] = valid;
-  const w = a.price + b.price > 0 ? a.price / (a.price + b.price) : 0.5;
-  return clamp(w, 0.3, 0.7);
-}
-
 export function computePlan(plan, currentMrr) {
   const goal = Number(plan.target_mrr != null ? plan.target_mrr : plan.goal_mrr) || 0;
   const cur = Number(currentMrr) || 0;
   const routes = (plan.routes || []).map((r) => computeRoute(r, cur, goal));
-  const blended = buildBlended(plan.routes || [], cur, goal, plan.blended_mix);
+  const blended = buildBlended(plan.routes || [], cur, goal, plan.blended_velocities);
   const all = [...routes, blended];
   const reachedRoutes = all
     .filter((r) => r.reached)
