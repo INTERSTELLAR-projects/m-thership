@@ -97,10 +97,11 @@ export default function TierLadderCard({ tier, info, state, within, pct, group }
       </div>
 
       {/* unlocked credit chip */}
+      {/* MOCK: credit available scaled to member count — revert when done */}
       {unlocked && (
         <div className="relative mt-3">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/15 border border-orange-500/30">
-            <span className="text-[9px] font-mono uppercase tracking-wider text-orange-400">Credit Available: {info.credit}</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 shadow-[0_0_14px_rgba(255,106,0,0.35)]">
+            <span className="text-[10px] font-display font-bold uppercase tracking-wider text-orange-400">Credit Available: ${(info.amount * Math.max(group.length, 1)).toLocaleString()}</span>
           </span>
         </div>
       )}
