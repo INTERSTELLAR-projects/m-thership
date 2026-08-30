@@ -36,7 +36,7 @@ function StatCard({ label, value, icon: Icon, color = "text-orange-500", sub }) 
       <div className="flex items-center justify-between mb-3">
         <Icon className={`w-4 h-4 ${color}`} />
       </div>
-      <p className={`text-3xl font-bold ${color}`}>{value}</p>
+      <p className={`text-3xl font-bold font-display ${color}`}>{value}</p>
       <p className="text-white/50 text-xs font-medium mt-1">{label}</p>
       {sub && <p className="text-white/25 text-[10px] mt-0.5">{sub}</p>}
     </div>
@@ -199,12 +199,12 @@ export default function Performance() {
                     </div>
                   </div>
                   <div className="col-span-1 text-center">
-                    <span className={`text-lg font-bold ${scoreColor}`}>{score}</span>
-                    <p className="text-white/20 text-[10px]">/100</p>
+                    <span className={`text-lg font-bold font-display ${scoreColor}`}>{score}</span>
+                    <p className="text-white/20 text-[10px] font-display">/100</p>
                   </div>
                   <div className="col-span-1 text-center">
-                    <span className={`text-lg font-bold ${authorityColor}`}>{authority}</span>
-                    <p className="text-white/20 text-[10px]">/100</p>
+                    <span className={`text-lg font-bold font-display ${authorityColor}`}>{authority}</span>
+                    <p className="text-white/20 text-[10px] font-display">/100</p>
                   </div>
                   <div className="col-span-2">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
@@ -219,7 +219,7 @@ export default function Performance() {
                     </span>
                   </div>
                   <div className="col-span-1 text-center">
-                    <span className="text-white/70 text-sm font-semibold">{publishedBlogs}</span>
+                    <span className="text-white/70 text-sm font-semibold font-display">{publishedBlogs}</span>
                     <p className="text-white/20 text-[10px]">published</p>
                   </div>
                   <div className="col-span-2 flex justify-end">
