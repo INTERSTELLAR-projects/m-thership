@@ -169,19 +169,10 @@ export default function Prestige() {
     }
   };
 
-  // === TEMPORARY MOCK (screenshot) — revert when done ===
-  const MOCK_NAMES = ["Sage Co","Onyx Labs","Vivid Group","Bramble Studio","Kestrel Co","Pulse Labs","Tundra Group","Cobalt Co","Halo Studio","Noble Group","Drift Labs","Quanta Co","Ember Group","Lumen Co","Forge Labs","Atlas Group","Meadow Co"];
-  const MOCK_MEMBERS = [
-    ...Array.from({ length: 4 }, (_, i) => ({ id: `mock-1-${i}`, name: MOCK_NAMES[i], prestige: "Prestige I", active: true })),
-    ...Array.from({ length: 6 }, (_, i) => ({ id: `mock-2-${i}`, name: MOCK_NAMES[4 + i], prestige: "Prestige II", active: true })),
-    ...Array.from({ length: 3 }, (_, i) => ({ id: `mock-3-${i}`, name: MOCK_NAMES[10 + i], prestige: "Prestige III", active: true })),
-    ...Array.from({ length: 4 }, (_, i) => ({ id: `mock-m-${i}`, name: MOCK_NAMES[13 + i], prestige: "Prestige Master", active: true })),
-  ];
   const tierGroups = Object.keys(PRESTIGE_TIERS).reduce((acc, t) => {
-    acc[t] = MOCK_MEMBERS.filter((m) => m.prestige === t && m.active !== false);
+    acc[t] = members.filter((m) => earnedTier(memberConfirmed(m.id)) === t && m.active !== false);
     return acc;
   }, {});
-  // === END MOCK ===
 
   const activeMembers = members.filter((m) => m.active !== false);
   const leaderConfirmed = activeMembers.length ? Math.max(...activeMembers.map((m) => memberConfirmed(m.id))) : 0;
@@ -221,9 +212,13 @@ export default function Prestige() {
         <div className="grid grid-cols-4 gap-4">
           {TIERS.map((t, i) => {
             const info = PRESTIGE_TIERS[t.tier];
+            const prev = i === 0 ? 0 : TIERS[i - 1].lifetime;
+            const lt = t.lifetime;
+            let state = "locked"; let within = 0; let pct = 0;
+            if (leaderConfirmed >= lt) { state = "unlocked"; within = t.perTier; pct = 100; }
+            else if (leaderConfirmed >= prev) { state = "in-progress"; within = leaderConfirmed - prev; pct = Math.min(100, (within / t.perTier) * 100); }
             const group = tierGroups[t.tier] || [];
-            // MOCK: force all four cards lit/unlocked
-            return <TierLadderCard key={t.tier} tier={t.tier} info={info} state="unlocked" within={t.perTier} pct={100} group={group} />;
+            return <TierLadderCard key={t.tier} tier={t.tier} info={info} state={state} within={within} pct={pct} group={group} />;
           })}
         </div>
 
