@@ -379,7 +379,6 @@ Return a JSON with exactly these fields (no extra text):
                 <div>
                   <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">Next Blog Due Date</label>
                   <input type="date" value={form.nextBlogDue || ""} onChange={(e) => update("nextBlogDue", e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none" />
-                  <p className="text-white/25 text-[10px] mt-1">Syncs to Google Calendar when you click "Sync to Calendar".</p>
                 </div>
               </div>
               <div>
@@ -483,7 +482,6 @@ Return a JSON with exactly these fields (no extra text):
                   <div>
                     <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">Next GBP Post Due Date</label>
                     <input type="date" value={form.gbpNextDue || ""} onChange={(e) => update("gbpNextDue", e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none" />
-                    <p className="text-white/25 text-[10px] mt-1">Syncs to Google Calendar when you click "Sync to Calendar".</p>
                   </div>
                   <div>
                     <label className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">GBP Days · Auto-matched to Blog</label>

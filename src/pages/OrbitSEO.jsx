@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Globe, MapPin, Loader2, BarChart3, Calendar, AlertCircle, Users, X, Check, RefreshCw, Trash2, CalendarClock } from "lucide-react";
+import { Plus, Search, Globe, MapPin, Loader2, BarChart3, Calendar, AlertCircle, Users, X, Check, RefreshCw, Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 import ClientDetail from "../components/orbitseo/ClientDetail";
@@ -43,8 +43,6 @@ export default function OrbitSEO() {
   const [newClient, setNewClient] = useState({ businessName: "", serviceType: "Local", status: "Active" });
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState(null);
-  const [calendarSyncing, setCalendarSyncing] = useState(false);
-  const [calendarSyncResult, setCalendarSyncResult] = useState(null);
 
   useEffect(() => {
     base44.entities.OrbitSEOClient.list("-created_date", 200).then((data) => {
@@ -90,19 +88,6 @@ export default function OrbitSEO() {
     setSyncing(false);
     setSyncResult(added === 0 ? "No new clients found (already imported or no SEO service tagged in CRM)." : `${added} client${added > 1 ? "s" : ""} imported from CRM.`);
     setTimeout(() => setSyncResult(null), 5000);
-  };
-
-  const syncToCalendar = async () => {
-    setCalendarSyncing(true);
-    setCalendarSyncResult(null);
-    try {
-      const res = await base44.functions.invoke("syncOrbitCalendarEvents", {});
-      setCalendarSyncResult(`Synced ${res.data.eventsSynced} due date${res.data.eventsSynced === 1 ? "" : "s"} to Google Calendar.`);
-    } catch (err) {
-      setCalendarSyncResult("Failed to sync to Google Calendar.");
-    }
-    setCalendarSyncing(false);
-    setTimeout(() => setCalendarSyncResult(null), 5000);
   };
 
   const addClient = async () => {
@@ -219,22 +204,10 @@ export default function OrbitSEO() {
           >
             <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />{syncing ? "Syncing..." : "Sync from CRM"}
           </button>
-          <button
-            onClick={syncToCalendar}
-            disabled={calendarSyncing}
-            className="flex items-center gap-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/60 hover:text-white/80 text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
-          >
-            <CalendarClock className={`w-3.5 h-3.5 ${calendarSyncing ? "animate-spin" : ""}`} />{calendarSyncing ? "Syncing..." : "Sync to Calendar"}
-          </button>
         </div>
         {syncResult && (
           <div className="flex items-center gap-2 px-4 py-2.5 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-xs">
             <Check className="w-3.5 h-3.5 shrink-0" />{syncResult}
-          </div>
-        )}
-        {calendarSyncResult && (
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-xs">
-            <Check className="w-3.5 h-3.5 shrink-0" />{calendarSyncResult}
           </div>
         )}
 
