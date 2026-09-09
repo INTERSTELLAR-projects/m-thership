@@ -1,0 +1,39 @@
+{
+  "name": "Plan to Execute \u2014 re-run on MRR change",
+  "description": "Automatically re-runs the Plan to Execute analysis (deterministic math + AI layer) whenever a CRM client is created, updated, or deleted \u2014 keeping the route projections synced to live MRR. Debounced to one run per 60s inside the function.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create",
+        "update",
+        "delete"
+      ],
+      "entity_name": "CRMClient"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "plan_to_execute_re_run_on_mrr_change",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "recalculatePlan",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "recalculatePlan"
+  }
+}
