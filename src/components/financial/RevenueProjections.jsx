@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Plus, Pencil, Trash2, Loader2, TrendingUp, DollarSign, Target, Rocket, CalendarClock, Check, X } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip, BarChart, Bar, Cell } from "recharts";
+import { BarChart, Bar, Cell, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip, LabelList } from "recharts";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -14,6 +14,10 @@ const STATUS_STYLES = {
   Won: "bg-green-500/10 text-green-400 border-green-500/20",
   Lost: "bg-red-500/10 text-red-400 border-red-500/20",
 };
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTH_COLORS = ["#FF6A00", "#FF8515", "#FF9E33", "#FFB74D", "#FFC964", "#FACC15", "#FBD94A", "#FDE047", "#FCE766", "#FDEE89", "#FEF3B8", "#FEF7D4"];
+function monthLabel(d) { return `${MONTHS[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`; }
 
 function fmtMoney(n) { return `$${Math.round(n).toLocaleString()}`; }
 function fmtDate(d) { return d ? new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "\u2014"; }
@@ -64,25 +68,68 @@ export default function RevenueProjections() {
   const next14Total = next14.reduce((s, p) => s + (p.amount || 0), 0);
   const next30Total = next30.reduce((s, p) => s + (p.amount || 0), 0);
 
-  // Cumulative MRR ramp chart — start at current MRR, step up at each pending close date
+  // Monthly cumulative MRR ramp — buckets pending deals by close month, running total per month
   const rampData = useMemo(() => {
-    const sorted = [...pending].filter((p) => p.expectedCloseDate).sort((a, b) => new Date(a.expectedCloseDate) - new Date(b.expectedCloseDate));
-    const points = [{ label: "Now", mrr: currentMrr }];
-    let cum = currentMrr;
-    sorted.forEach((p, i) => {
-      cum += p.amount || 0;
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const dated = pending.filter((p) => p.expectedCloseDate);
+    let endMonth = start;
+    if (dated.length) {
+      const maxD = new Date(Math.max(...dated.map((p) => new Date(p.expectedCloseDate + "T00:00:00").getTime())));
+      endMonth = new Date(maxD.getFullYear(), maxD.getMonth(), 1);
+    }
+    const minEnd = new Date(start.getFullYear(), start.getMonth() + 5, 1);
+    if (endMonth < minEnd) endMonth = minEnd;
+    const cap = new Date(start.getFullYear(), start.getMonth() + 11, 1);
+    if (endMonth > cap) endMonth = cap;
+
+    const addByMonth = {};
+    dated.forEach((p) => {
       const d = new Date(p.expectedCloseDate + "T00:00:00");
-      points.push({ label: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }), mrr: cum });
+      const k = `${d.getFullYear()}-${d.getMonth()}`;
+      addByMonth[k] = (addByMonth[k] || 0) + (p.amount || 0);
     });
-    if (points.length === 1) points.push({ label: "No dates", mrr: currentMrr });
-    return points;
+
+    const months = [];
+    let cursor = new Date(start);
+    let cum = currentMrr;
+    while (cursor <= endMonth) {
+      const k = `${cursor.getFullYear()}-${cursor.getMonth()}`;
+      cum += addByMonth[k] || 0;
+      months.push({ label: monthLabel(cursor), mrr: cum, added: addByMonth[k] || 0 });
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+    }
+    return months;
   }, [pending, currentMrr]);
 
-  // Per-client pipeline bar
-  const clientBars = useMemo(() => {
+  // Per-client pipeline stacked by close month — total labeled at bar end, months color-coded
+  const clientStacked = useMemo(() => {
+    const monthKeys = new Set();
+    pending.forEach((p) => {
+      if (p.expectedCloseDate) {
+        const d = new Date(p.expectedCloseDate + "T00:00:00");
+        monthKeys.add(`${d.getFullYear()}-${d.getMonth()}`);
+      }
+    });
+    const sortedKeys = [...monthKeys].sort();
+    const mLabels = sortedKeys.map((k) => {
+      const [y, m] = k.split("-");
+      return monthLabel(new Date(+y, +m, 1));
+    });
+
     const map = {};
-    pending.forEach((p) => { map[p.clientName] = (map[p.clientName] || 0) + (p.amount || 0); });
-    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 8);
+    pending.forEach((p) => {
+      if (!p.clientName) return;
+      if (!map[p.clientName]) map[p.clientName] = { name: p.clientName, total: 0 };
+      const mLabel = p.expectedCloseDate
+        ? monthLabel(new Date(p.expectedCloseDate + "T00:00:00"))
+        : "Undated";
+      map[p.clientName][mLabel] = (map[p.clientName][mLabel] || 0) + (p.amount || 0);
+      map[p.clientName].total += p.amount || 0;
+    });
+
+    const rows = Object.values(map).sort((a, b) => b.total - a.total).slice(0, 8);
+    return { rows, monthLabels: mLabels };
   }, [pending]);
 
   const openAdd = () => { setEditing(null); setForm({ ...EMPTY }); setModalOpen(true); };
@@ -137,47 +184,62 @@ export default function RevenueProjections() {
       {/* Charts */}
       <div className="grid grid-cols-2 gap-4">
         <div className="game-panel p-5">
-          <p className="font-display text-[10px] tracking-[0.2em] uppercase mb-3 bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Projected MRR Ramp</p>
-          <div className="h-[180px]">
+          <p className="font-display text-[10px] tracking-[0.2em] uppercase mb-3 bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Projected MRR by Month</p>
+          <div className="h-[210px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={rampData} margin={{ top: 5, right: 8, left: 8, bottom: 0 }}>
+              <BarChart data={rampData} margin={{ top: 26, right: 8, left: 8, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="projRamp" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#FF6A00" stopOpacity="0.65" />
-                    <stop offset="100%" stopColor="#FACC15" stopOpacity="0.05" />
+                  <linearGradient id="projRampBar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#FF8C00" />
+                    <stop offset="100%" stopColor="#FACC15" stopOpacity="0.85" />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 10 }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }} axisLine={false} tickLine={false} interval={0} />
                 <YAxis hide />
-                <Tooltip content={<ChartTooltip />} cursor={{ stroke: "rgba(255,170,0,0.25)", strokeWidth: 1 }} />
-                <Area type="stepAfter" dataKey="mrr" stroke="#FF8C00" strokeWidth={2} fill="url(#projRamp)" dot={{ r: 3, fill: "#FF8C00", stroke: "#FACC15", strokeWidth: 1 }} activeDot={{ r: 5 }} style={{ filter: "drop-shadow(0 0 5px rgba(255,170,0,0.4))" }} />
-              </AreaChart>
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(255,170,0,0.06)" }} />
+                <Bar dataKey="mrr" radius={[6, 6, 0, 0]} fill="url(#projRampBar)" style={{ filter: "drop-shadow(0 0 6px rgba(255,170,0,0.2))" }} maxBarSize={64}>
+                  <LabelList dataKey="mrr" position="top" formatter={fmtMoney} style={{ fill: "#FFB424", fontSize: 11, fontWeight: 700 }} />
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
           </div>
-          <p className="text-white/30 text-[10px] mt-2">Starts at current MRR and steps up at each expected close date.</p>
+          <p className="text-white/30 text-[10px] mt-2">Cumulative MRR if pending deals close on their expected dates. Each bar is a month — no hovering needed.</p>
         </div>
 
         <div className="game-panel p-5">
           <p className="font-display text-[10px] tracking-[0.2em] uppercase mb-3 bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Pipeline by Client</p>
-          <div className="h-[180px]">
-            {clientBars.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-white/25 text-xs">No pending deals yet.</div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={clientBars} layout="vertical" margin={{ top: 0, right: 12, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="projBar" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#FF8C00" /><stop offset="100%" stopColor="#FACC15" stopOpacity="0.85" /></linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
-                  <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" width={110} tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<GameChartTooltip prefix="$" />} cursor={{ fill: "rgba(255,170,0,0.06)" }} />
-                  <Bar dataKey="value" radius={[0, 6, 6, 0]} fill="url(#projBar)" style={{ filter: "drop-shadow(0 0 6px rgba(255,170,0,0.2))" }} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+          <div className="space-y-2.5 pt-1">
+            {clientStacked.rows.length === 0 ? (
+              <p className="text-white/25 text-xs py-10 text-center">No pending deals yet.</p>
+            ) : clientStacked.rows.map((row) => {
+              const segments = clientStacked.monthLabels
+                .map((m, i) => ({ m, i, amount: row[m] || 0 }))
+                .filter((s) => s.amount > 0);
+              return (
+                <div key={row.name} className="flex items-center gap-2">
+                  <span className="text-white/55 text-[11px] w-28 truncate shrink-0" title={row.name}>{row.name}</span>
+                  <div className="relative flex-1 h-6 rounded-md overflow-hidden bg-white/[0.03] border border-white/[0.05] flex">
+                    {segments.map((s) => (
+                      <div key={s.m} className="h-full flex items-center justify-center transition-all" style={{ width: `${(s.amount / row.total) * 100}%`, background: MONTH_COLORS[s.i % MONTH_COLORS.length] }} title={`${s.m}: ${fmtMoney(s.amount)}`}>
+                        {s.amount / row.total > 0.2 && <span className="text-black/75 text-[9px] font-bold">{fmtMoney(s.amount)}</span>}
+                      </div>
+                    ))}
+                  </div>
+                  <span className="text-orange-400 text-xs font-bold w-16 text-right shrink-0 tabular-nums">{fmtMoney(row.total)}</span>
+                </div>
+              );
+            })}
           </div>
+          {clientStacked.monthLabels.length > 0 && (
+            <div className="flex flex-wrap gap-x-3 gap-y-1 mt-3 pt-3 border-t border-white/[0.05]">
+              {clientStacked.monthLabels.map((m, i) => (
+                <span key={m} className="flex items-center gap-1 text-[10px] text-white/40">
+                  <span className="w-2.5 h-2.5 rounded-sm" style={{ background: MONTH_COLORS[i % MONTH_COLORS.length] }} />{m}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
