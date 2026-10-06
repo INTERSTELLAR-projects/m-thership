@@ -1,5 +1,5 @@
 export const CATEGORIES = ["Priority", "NextUp"];
-export const TASK_TYPES = ["Førge Development", "GBP Update", "Presentation", "New Website Build", "Website Update", "Internal Tasks", "Other Task"];
+export const TASK_TYPES = ["Førge Development", "GBP Update", "Presentation", "New Website Build", "New App Build", "Website Update", "Internal Tasks", "Other Task"];
 export const INTERSTELLAR_OPTION = "Interstellar";
 export const EST_UNITS = ["Minutes", "Hours", "Days", "Weeks", "Months"];
 export const TASK_STATUSES = ["Pending", "In Progress", "Completed"];

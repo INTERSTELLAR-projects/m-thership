@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Loader2, Zap, Hammer } from "lucide-react";
+import { Loader2, Zap, Hammer, Smartphone } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
 import CompleteTaskModal from "@/components/CompleteTaskModal";
@@ -72,8 +72,9 @@ export default function PriorityTasks() {
   };
 
   const websiteBuilds = items.filter((i) => i.taskType === "New Website Build");
-  const inProgressItems = items.filter((i) => (i.status || "Pending") === "In Progress" && i.taskType !== "New Website Build");
-  const otherItems = items.filter((i) => (i.status || "Pending") !== "In Progress" && i.taskType !== "New Website Build");
+  const appBuilds = items.filter((i) => i.taskType === "New App Build");
+  const inProgressItems = items.filter((i) => (i.status || "Pending") === "In Progress" && i.taskType !== "New Website Build" && i.taskType !== "New App Build");
+  const otherItems = items.filter((i) => (i.status || "Pending") !== "In Progress" && i.taskType !== "New Website Build" && i.taskType !== "New App Build");
 
   return (
     <>
@@ -127,6 +128,21 @@ export default function PriorityTasks() {
                 <div className="grid grid-cols-2 gap-3">
                   {websiteBuilds.map((item) => (
                     <PriorityTaskCard key={item.id} item={item} glowYellow onEdit={openEdit} setStatus={setStatus} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {appBuilds.length > 0 && (
+              <div className="rounded-xl border border-blue-500/30 bg-gradient-to-b from-blue-500/[0.08] to-blue-500/[0.02] p-3 shadow-[0_0_20px_rgba(59,130,246,0.28)]">
+                <div className="flex items-center gap-1.5 mb-2.5 px-1">
+                  <Smartphone className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-blue-400 text-[10px] font-bold tracking-[0.15em] uppercase">Newest Apps to Build</span>
+                  <span className="ml-auto text-blue-400/50 text-[10px] font-semibold">{appBuilds.length} queued</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {appBuilds.map((item) => (
+                    <PriorityTaskCard key={item.id} item={item} glowBlue onEdit={openEdit} setStatus={setStatus} />
                   ))}
                 </div>
               </div>

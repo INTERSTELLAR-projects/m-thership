@@ -1,13 +1,13 @@
 import { Pencil, CalendarDays, Clock } from "lucide-react";
 import { TASK_STATUSES, STATUS_STYLES } from "@/lib/tasks";
 
-export default function PriorityTaskCard({ item, glow, glowYellow, onEdit, setStatus }) {
+export default function PriorityTaskCard({ item, glow, glowYellow, glowBlue, onEdit, setStatus }) {
   const currentStatus = item.status || "Pending";
 
   return (
     <div
       className={`card-hover bg-card rounded-xl p-3 flex items-start gap-3 group transition-all ${
-        glow ? "border border-orange-500/40 shadow-orange-glow" : glowYellow ? "border border-yellow-400/40 shadow-[0_0_16px_rgba(250,204,21,0.25)]" : "border border-white/[0.06]"
+        glow ? "border border-orange-500/40 shadow-orange-glow" : glowYellow ? "border border-yellow-400/40 shadow-[0_0_16px_rgba(250,204,21,0.25)]" : glowBlue ? "border border-blue-500/45 shadow-[0_0_16px_rgba(59,130,246,0.30)]" : "border border-white/[0.06]"
       }`}
     >
       <div className="flex-1 min-w-0">
