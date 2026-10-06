@@ -1,0 +1,36 @@
+{
+  "name": "RevenueProjection",
+  "type": "object",
+  "properties": {
+    "clientName": {
+      "type": "string"
+    },
+    "serviceTitle": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number",
+      "default": 0
+    },
+    "expectedCloseDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "note": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Won",
+        "Lost"
+      ],
+      "default": "Pending"
+    }
+  },
+  "required": [
+    "clientName",
+    "amount"
+  ]
+}

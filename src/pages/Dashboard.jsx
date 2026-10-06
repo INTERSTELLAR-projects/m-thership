@@ -9,12 +9,14 @@ import PriorityTasks from "../components/dashboard/PriorityTasks";
 import DailyBriefing from "../components/dashboard/DailyBriefing";
 import ProjectProgressDashboard from "../components/ProjectProgressDashboard";
 import MinusculeProjects from "../components/dashboard/MinusculeProjects";
+import ProjectionWidget from "../components/dashboard/ProjectionWidget";
 
 const ALL_WIDGETS = [
   { id: "priority", label: "Priority Tasks" },
   { id: "content-schedule", label: "Client Content Schedule" },
   { id: "subscriptions", label: "Active Subscriptions" },
   { id: "financial", label: "Financial Panel" },
+  { id: "projections", label: "Revenue Projections" },
   { id: "project-progress", label: "Project Progress" },
   { id: "minuscule-projects", label: "Minuscule Projects" },
 ];
@@ -41,6 +43,7 @@ function WidgetRenderer({ id }) {
     case "content-schedule": return <ClientContentSchedule />;
     case "subscriptions": return <div className="px-8 pt-6"><ActiveSubscriptions /></div>;
     case "financial": return <div className="px-8 pt-6"><FinancialPanel /></div>;
+    case "projections": return <div className="px-8 pt-6"><ProjectionWidget /></div>;
     case "project-progress": return <ProjectProgressDashboard />;
     case "minuscule-projects": return <MinusculeProjects />;
     default: return null;
