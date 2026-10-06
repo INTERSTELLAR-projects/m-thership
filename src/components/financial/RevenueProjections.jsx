@@ -52,7 +52,8 @@ export default function RevenueProjections() {
     });
   }, []);
 
-  const pending = useMemo(() => projections.filter((p) => p.status === "Pending"), [projections]);
+  // Active pipeline = everything not Lost (Pending deals you're working + Won deals not yet in CRM).
+  const pending = useMemo(() => projections.filter((p) => p.status !== "Lost"), [projections]);
 
   const projectedMrr = pending.reduce((s, p) => s + (p.amount || 0), 0);
   const potentialMrr = currentMrr + projectedMrr;
