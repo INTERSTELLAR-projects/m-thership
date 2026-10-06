@@ -27,6 +27,14 @@
         "Lost"
       ],
       "default": "Pending"
+    },
+    "projectionType": {
+      "type": "string",
+      "enum": [
+        "Recurring",
+        "One-Time"
+      ],
+      "default": "Recurring"
     }
   },
   "required": [

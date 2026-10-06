@@ -56,7 +56,8 @@ export default function RevenueProjections() {
     });
   }, []);
 
-  const pending = useMemo(() => projections.filter((p) => p.status === "Pending"), [projections]);
+  const recurring = useMemo(() => projections.filter((p) => (p.projectionType || "Recurring") === "Recurring"), [projections]);
+  const pending = useMemo(() => recurring.filter((p) => p.status === "Pending"), [recurring]);
 
   const projectedMrr = pending.reduce((s, p) => s + (p.amount || 0), 0);
   const potentialMrr = currentMrr + projectedMrr;
@@ -148,6 +149,7 @@ export default function RevenueProjections() {
       expectedCloseDate: form.expectedCloseDate || "",
       note: form.note.trim(),
       status: form.status,
+      projectionType: "Recurring",
     };
     if (editing) {
       await base44.entities.RevenueProjection.update(editing.id, data);
@@ -249,14 +251,14 @@ export default function RevenueProjections() {
         <Button onClick={openAdd} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Plus className="w-4 h-4" />Add Projection</Button>
       </div>
 
-      {projections.length === 0 ? (
+      {recurring.length === 0 ? (
         <div className="game-panel p-10 text-center">
           <Target className="w-8 h-8 text-white/10 mx-auto mb-3" />
-          <p className="text-white/30 text-sm">No projections yet. Add a potential deal to track its impact on your MRR.</p>
+          <p className="text-white/30 text-sm">No recurring projections yet. Add a potential deal to track its impact on your MRR.</p>
         </div>
       ) : (
         <div className="space-y-2">
-          {projections.map((p) => {
+          {recurring.map((p) => {
             const d = daysUntil(p.expectedCloseDate);
             const overdue = d !== null && d < 0 && p.status === "Pending";
             return (

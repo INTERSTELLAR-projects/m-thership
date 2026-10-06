@@ -4,6 +4,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import FinancialAnalytics from "../components/financial/FinancialAnalytics";
 import InvestmentsList from "../components/financial/InvestmentsList";
 import RevenueProjections from "../components/financial/RevenueProjections";
+import ProjectProjections from "../components/financial/ProjectProjections";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -189,7 +190,10 @@ export default function Financial() {
         ) : subPage === "analytics" ? (
           <FinancialAnalytics totalMonthlyExpenses={totalMonthly} />
         ) : subPage === "projections" ? (
-          <RevenueProjections />
+          <>
+            <RevenueProjections />
+            <ProjectProjections />
+          </>
         ) : subPage === "investments" ? (
           <InvestmentsList />
         ) : (
