@@ -48,17 +48,6 @@ export default function ProjectProjections() {
       setClients(c);
       setLoading(false);
     });
-
-    const unsub = base44.entities.RevenueProjection.subscribe((event) => {
-      const isOneTime = (event.data?.projectionType === "One-Time");
-      setProjections((prev) => {
-        if (event.type === "delete") return prev.filter((x) => x.id !== event.id);
-        if (!isOneTime) return prev.filter((x) => x.id !== event.id);
-        if (event.type === "create") return prev.some((x) => x.id === event.id) ? prev : [event.data, ...prev];
-        return prev.map((x) => (x.id === event.id ? event.data : x));
-      });
-    });
-    return unsub;
   }, []);
 
   const pending = useMemo(() => projections.filter((p) => p.status === "Pending"), [projections]);
