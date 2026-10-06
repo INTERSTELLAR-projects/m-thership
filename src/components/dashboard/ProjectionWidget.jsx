@@ -32,7 +32,7 @@ export default function ProjectionWidget() {
     );
   }
 
-  const pending = projections.filter((p) => p.status !== "Lost");
+  const pending = projections.filter((p) => p.status === "Pending");
   const projected = pending.reduce((s, p) => s + (p.amount || 0), 0);
   const potential = currentMrr + projected;
 
