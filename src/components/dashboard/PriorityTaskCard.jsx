@@ -14,7 +14,7 @@ export default function PriorityTaskCard({ item, glow, glowYellow, glowBlue, onE
         <p className="text-xs font-medium leading-relaxed text-white/80">{item.title}</p>
 
         {item.description && (
-          <p className="text-white/30 text-[11px] mt-1 leading-relaxed">{item.description}</p>
+          <p className="text-white/45 text-[11px] mt-1 leading-relaxed whitespace-pre-wrap break-words">{item.description}</p>
         )}
 
         <div className="flex items-center gap-2 mt-1.5 flex-wrap">

@@ -20,7 +20,7 @@ export default function TaskForm({ form, setForm, onSave, onCancel, title, inlin
       <div>
         <Label className="text-white/40 text-xs">Description (optional)</Label>
         <div className="relative mt-1">
-          <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Add more detail..." className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 pr-9 text-sm text-white placeholder:text-white/20 outline-none resize-none min-h-[60px]" />
+          <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Add more detail... (line breaks are preserved)" className="w-full bg-white/[0.06] border border-white/[0.12] focus:border-orange-500/40 rounded-lg px-3 py-2.5 pr-9 text-sm leading-relaxed text-white placeholder:text-white/25 outline-none resize-y min-h-[140px] font-mono" />
           <MicButton onResult={(t) => setForm((p) => ({ ...p, description: p.description + (p.description ? " " : "") + t }))} className="absolute top-2 right-1" />
         </div>
       </div>
