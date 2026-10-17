@@ -29,7 +29,7 @@ export default function TimeZoneBar() {
   }, []);
 
   return (
-    <div className="relative z-20 flex items-center gap-0 border-b border-white/[0.05] bg-black/40 backdrop-blur-sm px-6 py-1.5">
+    <div className="relative z-20 flex items-center gap-0 border-b border-white/[0.05] bg-black/40 backdrop-blur-sm px-3 py-1.5 overflow-x-auto no-scrollbar md:px-6">
       {ZONES.map((z, i) => (
         <div key={z.label} className="flex items-center">
           <div className="flex items-center gap-1.5 px-3">

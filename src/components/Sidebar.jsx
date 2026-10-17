@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, KeyRound, FileText, DollarSign, 
   Scale, Users, BarChart3, MessageSquare, Globe,
-  TrendingUp, Settings, LogOut, ClipboardList, Lightbulb, ListTodo, Crown, Search, Activity
+  TrendingUp, Settings, LogOut, ClipboardList, Lightbulb, ListTodo, Crown, Search, Activity, X
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
@@ -27,7 +27,7 @@ const portalNav = [
   { label: "Prestige", icon: Crown, path: "/prestige" },
 ];
 
-export default function Sidebar({ onOpenCommand }) {
+export default function Sidebar({ onOpenCommand, open, onClose }) {
   const location = useLocation();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -41,6 +41,7 @@ export default function Sidebar({ onOpenCommand }) {
     return (
       <Link
         to={item.path}
+        onClick={onClose}
         className={`relative flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group overflow-hidden
           ${
             isActive
@@ -62,7 +63,7 @@ export default function Sidebar({ onOpenCommand }) {
   };
 
   return (
-    <aside className="w-[220px] min-w-[220px] h-screen bg-sidebar flex flex-col border-r border-sidebar-border">
+    <aside className={`fixed inset-y-0 left-0 z-50 w-[240px] bg-sidebar flex flex-col border-r border-sidebar-border transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"} md:static md:translate-x-0 md:w-[220px] md:min-w-[220px]`}>
       {/* Shared orange gradient for nav icons */}
       <svg width="0" height="0" className="absolute" aria-hidden="true">
         <defs>
@@ -75,7 +76,7 @@ export default function Sidebar({ onOpenCommand }) {
       </svg>
       {/* Logo */}
       <div className="px-5 pt-6 pb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2">
           <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center overflow-hidden border border-white/10">
             <img src="https://framerusercontent.com/images/lYN9zTgbln1GtT6KOSpG27mq3Q.png?scale-down-to=512&width=1563&height=1563" alt="Logo" className="w-full h-full object-contain" />
           </div>
@@ -83,6 +84,9 @@ export default function Sidebar({ onOpenCommand }) {
             <h1 className="font-orbitron text-white font-bold text-sm tracking-wide leading-none">ZERØ GRAVITY</h1>
             <p className="font-orbitron text-white/30 text-[10px] tracking-widest uppercase">Terminal</p>
           </div>
+          <button onClick={onClose} className="md:hidden p-1.5 -mr-1 text-white/40 hover:text-white/80 transition-colors" aria-label="Close menu">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
@@ -124,6 +128,7 @@ export default function Sidebar({ onOpenCommand }) {
       <div className="p-3 border-t border-white/5 space-y-1">
         <Link
           to="/settings"
+          onClick={onClose}
           className="group flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-white/40 hover:text-white/80 hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-transparent transition-all"
         >
           <Settings className="w-[18px] h-[18px] transition-all duration-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_6px_rgba(255,106,0,0.7)]" color="url(#navIconGrad)" />
