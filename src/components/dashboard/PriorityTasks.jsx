@@ -64,7 +64,7 @@ export default function PriorityTasks() {
   const saveNew = async () => {
     if (!addForm.title?.trim()) return;
     const { id, created_date, updated_date, created_by, ...fields } = addForm;
-    const payload = { ...fields, estimatedAmount: parseFloat(addForm.estimatedAmount) || null };
+    const payload = { ...fields, price: parseFloat(addForm.price) || null, estimatedAmount: parseFloat(addForm.estimatedAmount) || null };
     const created = await base44.entities.ToDoItem.create(payload);
     if (created?.category === "Priority" && !created.done) {
       setItems((prev) => (prev.some((i) => i.id === created.id) ? prev : [...prev, created]));
@@ -81,7 +81,7 @@ export default function PriorityTasks() {
   const saveEdit = async () => {
     if (!editForm.title?.trim() || !editingTask) return;
     const { id, created_date, updated_date, created_by, ...fields } = editForm;
-    const updated = { ...fields, estimatedAmount: parseFloat(editForm.estimatedAmount) || null };
+    const updated = { ...fields, price: parseFloat(editForm.price) || null, estimatedAmount: parseFloat(editForm.estimatedAmount) || null };
     await base44.entities.ToDoItem.update(editingTask.id, updated);
     setItems((prev) => prev
       .map((i) => (i.id === editingTask.id ? { ...i, ...updated } : i))
@@ -89,10 +89,12 @@ export default function PriorityTasks() {
     setEditingTask(null);
   };
 
-  const websiteBuilds = items.filter((i) => i.taskType === "New Website Build");
-  const appBuilds = items.filter((i) => i.taskType === "New App Build");
+  const byPriceDesc = (a, b) => (Number(b.price) || 0) - (Number(a.price) || 0);
+  const websiteBuilds = items.filter((i) => i.taskType === "New Website Build").sort(byPriceDesc);
+  const appBuilds = items.filter((i) => i.taskType === "New App Build").sort(byPriceDesc);
   const inProgressItems = items.filter((i) => (i.status || "Pending") === "In Progress" && i.taskType !== "New Website Build" && i.taskType !== "New App Build");
-  const otherItems = items.filter((i) => (i.status || "Pending") !== "In Progress" && i.taskType !== "New Website Build" && i.taskType !== "New App Build");
+  const otherItems = items.filter((i) => (i.status || "Pending") !== "In Progress" && i.taskType !== "New Website Build" && i.taskType !== "New App Build").sort(byPriceDesc);
+  const totalValue = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
 
   return (
     <>
@@ -129,7 +131,7 @@ export default function PriorityTasks() {
           <div>
             <h2 className="text-white font-bold text-xs tracking-[0.2em] uppercase">Priority Tasks</h2>
             <p className="text-white/30 text-[10px] mt-0.5">
-              {items.length} remaining · <a href="/todo" className="text-orange-500/50 hover:text-orange-500/80 transition-colors">manage in To-Do →</a>
+              {items.length} remaining{totalValue > 0 ? " · " : ""}{totalValue > 0 && <span className="text-green-400/90 font-semibold">${totalValue.toLocaleString()} potential</span>} · <a href="/todo" className="text-orange-500/50 hover:text-orange-500/80 transition-colors">manage in To-Do →</a>
             </p>
           </div>
           <div className="flex items-center gap-2">

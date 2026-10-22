@@ -1,4 +1,4 @@
-import { Pencil, CalendarDays, Clock } from "lucide-react";
+import { Pencil, CalendarDays, Clock, DollarSign } from "lucide-react";
 import { TASK_STATUSES, STATUS_STYLES } from "@/lib/tasks";
 
 export default function PriorityTaskCard({ item, glow, glowYellow, glowBlue, onEdit, setStatus }) {
@@ -18,6 +18,11 @@ export default function PriorityTaskCard({ item, glow, glowYellow, glowBlue, onE
         )}
 
         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+          {Number(item.price) > 0 && (
+            <span className="flex items-center gap-1 text-green-400 text-[11px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.25)]">
+              <DollarSign className="w-3 h-3" />{Number(item.price).toLocaleString()}
+            </span>
+          )}
           {item.taskType && (
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/15 text-white/55">
               {item.taskType}

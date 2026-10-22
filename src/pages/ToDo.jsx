@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Check, X, Loader2, CalendarDays, Clock, CheckCircle2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Loader2, CalendarDays, Clock, CheckCircle2, DollarSign } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -129,6 +129,7 @@ export default function ToDo() {
     if (!newForm.title.trim()) return;
     const created = await base44.entities.ToDoItem.create({
       ...newForm,
+      price: parseFloat(newForm.price) || null,
       estimatedAmount: parseFloat(newForm.estimatedAmount) || null,
       status: "Pending",
       done: false,
@@ -142,7 +143,7 @@ export default function ToDo() {
 
   const saveEdit = async () => {
     const { id, created_date, updated_date, created_by, ...fields } = editForm;
-    const updated = { ...fields, estimatedAmount: parseFloat(editForm.estimatedAmount) || null };
+    const updated = { ...fields, price: parseFloat(editForm.price) || null, estimatedAmount: parseFloat(editForm.estimatedAmount) || null };
     await base44.entities.ToDoItem.update(id, updated);
     setItems((prev) => prev.map((i) => i.id === id ? { ...i, ...updated } : i));
     setEditId(null);
@@ -156,8 +157,9 @@ export default function ToDo() {
   const activeItems = items.filter((i) => !i.done);
   const doneItems = items.filter((i) => i.done).sort((a, b) => new Date(b.completedDate || b.updated_date) - new Date(a.completedDate || a.updated_date));
 
+  const byPriceDesc = (a, b) => (Number(b.price) || 0) - (Number(a.price) || 0);
   const grouped = CATEGORIES.reduce((acc, cat) => {
-    acc[cat] = activeItems.filter((i) => i.category === cat);
+    acc[cat] = activeItems.filter((i) => i.category === cat).sort(byPriceDesc);
     return acc;
   }, {});
 
@@ -338,6 +340,11 @@ function TaskRow({ item, onEdit, onDelete, onSetStatus }) {
         <p className="text-sm font-medium text-white/85">{item.title}</p>
         {item.description && <p className="text-white/35 text-xs mt-1 leading-relaxed">{item.description}</p>}
         <div className="flex items-center gap-3 mt-2 flex-wrap">
+          {Number(item.price) > 0 && (
+            <span className="flex items-center gap-1 text-green-400 text-[11px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.25)]">
+              <DollarSign className="w-3 h-3" />{Number(item.price).toLocaleString()}
+            </span>
+          )}
           {item.taskType && (
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/15 text-white/55">
               {item.taskType}

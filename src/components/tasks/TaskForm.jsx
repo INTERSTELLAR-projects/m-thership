@@ -58,9 +58,13 @@ export default function TaskForm({ form, setForm, onSave, onCancel, title, inlin
           <Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="bg-white/[0.04] border-white/[0.08] text-white mt-1 h-9" />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <div>
-          <Label className="text-white/40 text-xs">Est. Time (amount)</Label>
+          <Label className="text-white/40 text-xs">Price ($)</Label>
+          <Input type="number" min="0" step="any" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="e.g. 1000" className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/20 mt-1 h-9" />
+        </div>
+        <div>
+          <Label className="text-white/40 text-xs">Est. Time</Label>
           <Input type="number" min="0" value={form.estimatedAmount} onChange={(e) => setForm({ ...form, estimatedAmount: e.target.value })} placeholder="e.g. 3" className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/20 mt-1 h-9" />
         </div>
         <div>

@@ -32,8 +32,13 @@
     "dueDate": {
       "type": "string"
     },
+    "price": {
+      "type": "number",
+      "default": 0
+    },
     "estimatedAmount": {
-      "type": "number"
+      "type": "number",
+      "default": 0
     },
     "estimatedUnit": {
       "type": "string",

@@ -8,7 +8,7 @@ export const STATUS_STYLES = {
   "In Progress": "bg-orange-500/15 text-orange-400 border-orange-500/25",
   Completed: "bg-green-500/15 text-green-400 border-green-500/25",
 };
-export const EMPTY_FORM = { title: "", description: "", taskType: "", category: "Priority", dueDate: "", estimatedAmount: "", estimatedUnit: "Hours", assignedTo: "" };
+export const EMPTY_FORM = { title: "", description: "", taskType: "", category: "Priority", dueDate: "", price: "", estimatedAmount: "", estimatedUnit: "Hours", assignedTo: "" };
 
 const TO_HOURS = { Minutes: 1 / 60, Hours: 1, Days: 8, Weeks: 40, Months: 160 };
 
