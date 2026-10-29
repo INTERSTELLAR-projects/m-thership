@@ -1,5 +1,6 @@
 {
   "name": "TaskTemplate",
+  "description": "SOP playbook: the checklist a service runs. Started services copy these items into Tasks.",
   "type": "object",
   "properties": {
     "name": {
@@ -58,7 +59,7 @@
     },
     "service_key": {
       "type": "string",
-      "description": "Playbook key used when a service is started (onboarding, website, system, orbit_local…)"
+      "description": "Playbook key used when a service is started (onboarding, website, system, orbit_local\u2026)"
     },
     "sop_code": {
       "type": "string",
