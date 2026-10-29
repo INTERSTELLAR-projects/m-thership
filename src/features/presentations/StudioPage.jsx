@@ -192,7 +192,6 @@ export default function StudioPage() {
       }
     }, 900);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deck]);
 
   const generateVisualsFor = async (slides, themeId, brand) => {

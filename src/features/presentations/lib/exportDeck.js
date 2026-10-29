@@ -64,11 +64,11 @@ async function prepareImage(img, theme) {
 
   try {
     await trySet(original);
-  } catch (firstError) {
+  } catch {
     try {
       await pause(300);
       await trySet(original);
-    } catch (secondError) {
+    } catch {
       gradientFallback(img, theme);
     }
   }
@@ -83,7 +83,7 @@ async function waitForFonts() {
   if (document.fonts && document.fonts.ready) {
     try {
       await document.fonts.ready;
-    } catch (fontError) {
+    } catch {
       /* fonts unavailable: fall back to whatever is loaded */
     }
   }

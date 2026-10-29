@@ -46,7 +46,6 @@ export default function ProjectsPage() {
     return () => {
       active = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const decksFor = (projectId) => decks.filter((deck) => (deck.project_id || '') === projectId);
