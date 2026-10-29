@@ -14,9 +14,9 @@
     "category": {
       "type": "string",
       "enum": [
-        "Web \u00d8ps",
-        "F\u00f8rge",
-        "\u00d8rbit SEO",
+        "Web Øps",
+        "Førge",
+        "Ørbit SEO",
         "Performance",
         "Other"
       ]
@@ -48,5 +48,27 @@
     "title",
     "category",
     "fields"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

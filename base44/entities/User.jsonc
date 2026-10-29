@@ -7,6 +7,19 @@
         "admin",
         "user"
       ]
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id this portal login belongs to (client users only)"
+    },
+    "portal_role": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "staff"
+      ],
+      "default": "owner",
+      "description": "Client-side role inside the portal"
     }
   },
   "required": [
