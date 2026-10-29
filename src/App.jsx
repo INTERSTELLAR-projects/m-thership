@@ -23,6 +23,8 @@ import Requests from './pages/Requests';
 import Reviews from './pages/Reviews';
 import SignaturesPage from '@/features/signatures/SignaturesPage';
 import SignatureEditor from '@/features/signatures/EditorPage';
+import PresentationStudio from '@/features/presentations/StudioPage';
+import PresentationProjects from '@/features/presentations/ProjectsPage';
 import Prestige from './pages/Prestige';
 import OutputAnalytics from './pages/OutputAnalytics';
 import ClientCockpit from './pages/ClientCockpit';
@@ -92,6 +94,9 @@ const AuthenticatedApp = () => {
         <Route path="/signatures" element={<ProtectedRoute><SignaturesPage /></ProtectedRoute>} />
         <Route path="/signatures/new" element={<ProtectedRoute><SignatureEditor /></ProtectedRoute>} />
         <Route path="/signatures/:id" element={<ProtectedRoute><SignatureEditor /></ProtectedRoute>} />
+        <Route path="/presentations" element={<ProtectedRoute><PresentationStudio /></ProtectedRoute>} />
+        <Route path="/presentations/deck/:id" element={<ProtectedRoute><PresentationStudio /></ProtectedRoute>} />
+        <Route path="/presentations/projects" element={<ProtectedRoute><PresentationProjects /></ProtectedRoute>} />
         <Route path="/todo" element={<Navigate to="/tasks" replace />} />
         <Route path="/tasks" element={<ProtectedRoute><LegacyImportBanner /><TaskBoard /></ProtectedRoute>} />
         <Route path="/tasks/inbox" element={<ProtectedRoute><TaskInbox /></ProtectedRoute>} />
