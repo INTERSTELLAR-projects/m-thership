@@ -319,7 +319,7 @@ function ContactTab({ client, update }) {
         );
         }
 
-function ServicesTab({ client, update }) {
+export function ServicesTab({ client, update }) {
   const [editId, setEditId] = useState(null);
   const [editVal, setEditVal] = useState({});
   const [adding, setAdding] = useState(false);
@@ -445,7 +445,7 @@ function BlogScheduleSection({ client, update }) {
   );
 }
 
-function NotesTab({ client, update }) {
+export function NotesTab({ client, update }) {
   const [newNote, setNewNote] = useState("");
   const [editId, setEditId] = useState(null);
   const [editText, setEditText] = useState("");
@@ -500,7 +500,7 @@ function NotesTab({ client, update }) {
   );
 }
 
-function DocumentsTab({ client, update }) {
+export function DocumentsTab({ client, update }) {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef();
 
