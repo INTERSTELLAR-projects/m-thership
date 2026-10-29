@@ -1,0 +1,34 @@
+{
+  "name": "Process automation runs",
+  "description": "When an automation reports a run, update that automation's health, log the work for the client, and check the URL is actually live.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "AutomationRun"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "process_automation_runs",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "process-runs",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
