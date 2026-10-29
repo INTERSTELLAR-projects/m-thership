@@ -1,8 +1,8 @@
-export default function ShimmerBar({ value, max, grad = "from-orange-500 to-amber-400", glow = "shadow-[0_0_12px_rgba(255,106,0,0.35)]" }) {
+export default function ShimmerBar({ value, max, grad = "from-orange-500 to-amber-400" }) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   return (
-    <div className="relative h-2.5 w-full bg-ink/[0.04] rounded-full overflow-hidden border border-ink/[0.13]">
-      <div className={`relative h-full rounded-full overflow-hidden bg-gradient-to-r ${grad} ${glow} transition-all duration-700 shimmer`} style={{ width: `${pct}%` }} />
+    <div className="relative h-2 w-full overflow-hidden bg-ink/[0.07]">
+      <div className={`shimmer relative h-full overflow-hidden bg-gradient-to-r ${grad} transition-all duration-700`} style={{ width: `${pct}%` }} />
     </div>
   );
 }

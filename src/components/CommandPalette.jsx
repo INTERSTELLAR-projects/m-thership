@@ -1,27 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard, KeyRound, FileText, DollarSign, Scale, Users,
-  Lightbulb, ListTodo, MessageSquare, Globe,
-  TrendingUp, Settings, ClipboardList, Crown, Search, X
-} from "lucide-react";
+import { Search, X } from "lucide-react";
+import { ALL_NAV } from "@/lib/nav";
 
-const COMMANDS = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/" },
-  { label: "Logins", icon: KeyRound, path: "/logins" },
-  { label: "Documents", icon: FileText, path: "/documents" },
-  { label: "Financial", icon: DollarSign, path: "/financial" },
-  { label: "Legal", icon: Scale, path: "/legal" },
-  { label: "CRM", icon: Users, path: "/crm" },
-  { label: "Idea Vault", icon: Lightbulb, path: "/idea-vault" },
-  { label: "To-Do", icon: ListTodo, path: "/todo" },
-  { label: "Comms", icon: MessageSquare, path: "/comms" },
-  { label: "Requests", icon: ClipboardList, path: "/requests" },
-  { label: "Ørbit SEO", icon: Globe, path: "/orbit-seo" },
-  { label: "Performance", icon: TrendingUp, path: "/performance" },
-  { label: "Prestige", icon: Crown, path: "/prestige" },
-  { label: "Settings", icon: Settings, path: "/settings" },
-];
+const COMMANDS = ALL_NAV;
 
 export default function CommandPalette({ open, onClose }) {
   const [query, setQuery] = useState("");

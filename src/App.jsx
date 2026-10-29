@@ -14,7 +14,6 @@ import Documents from './pages/Documents';
 import Financial from './pages/Financial';
 import Legal from './pages/Legal';
 import CRM from './pages/CRM';
-import Analytics from './pages/Analytics';
 import Comms from './pages/Comms';
 import OrbitSEO from './pages/OrbitSEO';
 
@@ -74,7 +73,6 @@ const AuthenticatedApp = () => {
         <Route path="/financial" element={<ProtectedRoute><Financial /></ProtectedRoute>} />
         <Route path="/legal" element={<ProtectedRoute><Legal /></ProtectedRoute>} />
         <Route path="/crm" element={<ProtectedRoute><CRM /></ProtectedRoute>} />
-        <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
         <Route path="/comms" element={<ProtectedRoute><Comms /></ProtectedRoute>} />
         <Route path="/orbit-seo" element={<ProtectedRoute><OrbitSEO /></ProtectedRoute>} />
 
