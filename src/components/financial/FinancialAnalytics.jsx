@@ -97,7 +97,7 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
           </div>
         </div>
         <div className="h-3 bg-ink/5 rounded-full overflow-hidden border border-ink/[0.13]">
-          <div className="relative h-full rounded-full overflow-hidden bg-gradient-to-r from-orange-500 to-amber-300 shadow-[0_0_12px_rgba(255,106,0,0.5)] transition-all duration-700 shimmer" style={{ width: `${Math.min(mrrProgress, 100)}%` }} />
+          <div className="relative h-full rounded-full overflow-hidden bg-gradient-to-r from-orange-500 to-amber-300 transition-all duration-700 shimmer" style={{ width: `${Math.min(mrrProgress, 100)}%` }} />
         </div>
       </div>
 

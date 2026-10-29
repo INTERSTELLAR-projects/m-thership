@@ -71,7 +71,7 @@ export default function Legal() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command Center / Legal" rightText="Legal Management" />
+      <PageHeader breadcrumb="Agency / Legal" rightText="Legal Management" />
       <div className="px-8 py-6 space-y-6">
         <div className="grid grid-cols-3 gap-4">
           <StatTile label="Open To-Dos" value={openCount} color="orange" />
@@ -109,7 +109,7 @@ function TodosSection({ items, onAdd, onUpdate, onDelete }) {
             ) : (
               <>
                 <span className={`text-sm flex-1 ${t.done ? "text-ink/[0.48] line-through" : "text-ink/75"}`}>{t.task}</span>
-                <button onClick={() => { setEditId(t.id); setEditVal(t.task); }} className="p-1 text-ink/[0.33] hover:text-orange-400/70 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3 h-3" /></button>
+                <button onClick={() => { setEditId(t.id); setEditVal(t.task); }} className="p-1 text-ink/[0.33] hover:text-orange-600 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3 h-3" /></button>
                 <button onClick={() => onDelete(t.id)} className="p-1 text-ink/[0.33] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
               </>
             )}
@@ -123,7 +123,7 @@ function TodosSection({ items, onAdd, onUpdate, onDelete }) {
             <button onClick={() => setAdding(false)} className="p-1 text-ink/[0.48] hover:text-ink/60"><X className="w-3.5 h-3.5" /></button>
           </div>
         ) : (
-          <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-orange-300/60 hover:text-orange-300 text-xs pt-3 transition-colors"><Plus className="w-3.5 h-3.5" />Add task</button>
+          <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-orange-600/80 hover:text-orange-600 text-xs pt-3 transition-colors"><Plus className="w-3.5 h-3.5" />Add task</button>
         )}
       </div>
     </GlowCard>
@@ -149,11 +149,10 @@ function DatesSection({ items, onAdd, onUpdate, onDelete }) {
           </div>
         ) : (
           <div key={d.id} className="relative overflow-hidden flex items-center justify-between py-2.5 px-3.5 bg-ink/[0.02] rounded-lg border border-ink/[0.13] hover:border-orange-500/30 hover:bg-orange-500/[0.03] transition-all group">
-            <div className="absolute -left-6 -top-6 w-14 h-14 rounded-full bg-orange-500/[0.05] blur-2xl pointer-events-none" />
             <span className="relative text-ink/75 text-sm">{d.task}</span>
             <div className="relative flex items-center gap-2">
-              <span className="text-[11px] font-display font-bold tracking-wider px-2 py-1 rounded bg-gradient-to-r from-orange-500/15 to-amber-400/10 border border-orange-500/20 text-orange-300">{d.dueDate}</span>
-              <button onClick={() => { setEditId(d.id); setEditVal({ task: d.task, dueDate: d.dueDate }); }} className="p-1 text-ink/[0.33] hover:text-orange-400/70 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3 h-3" /></button>
+              <span className="text-[11px] font-display font-bold tracking-wider px-2 py-1 rounded bg-gradient-to-r from-orange-500/15 to-amber-400/10 border border-orange-500/20 text-orange-600">{d.dueDate}</span>
+              <button onClick={() => { setEditId(d.id); setEditVal({ task: d.task, dueDate: d.dueDate }); }} className="p-1 text-ink/[0.33] hover:text-orange-600 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3 h-3" /></button>
               <button onClick={() => onDelete(d.id)} className="p-1 text-ink/[0.33] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
             </div>
           </div>
@@ -166,7 +165,7 @@ function DatesSection({ items, onAdd, onUpdate, onDelete }) {
             <button onClick={() => setAdding(false)} className="p-1 text-ink/[0.48] hover:text-ink/60"><X className="w-3.5 h-3.5" /></button>
           </div>
         ) : (
-          <button onClick={() => setAdding(true)} className="relative flex items-center gap-2 py-2 px-3 bg-ink/[0.02] rounded-lg border border-dashed border-orange-500/20 text-orange-300/50 hover:text-orange-300/80 hover:border-orange-500/40 transition-all text-xs"><Plus className="w-3.5 h-3.5" />Add date</button>
+          <button onClick={() => setAdding(true)} className="relative flex items-center gap-2 py-2 px-3 bg-ink/[0.02] rounded-lg border border-dashed border-orange-500/20 text-orange-600/80 hover:text-orange-600 hover:border-orange-500/40 transition-all text-xs"><Plus className="w-3.5 h-3.5" />Add date</button>
         )}
       </div>
     </GlowCard>

@@ -117,20 +117,20 @@ export default function ClientContentSchedule() {
 
       {/* Stat pills */}
       <div className="grid grid-cols-4 gap-3 mb-4">
-        <div className="bg-card rounded-xl border border-ink/[0.13] p-3">
+        <div className="bg-card rounded-md border border-ink/[0.13] p-3">
           <div className="flex items-center gap-1.5 text-ink/[0.53] text-[10px] uppercase tracking-wider mb-1"><Users className="w-3 h-3" /> Clients</div>
           <div className="text-ink text-xl font-bold">{scheduledClients.length}</div>
         </div>
-        <div className="bg-card rounded-xl border border-orange-500/15 p-3 shadow-orange-glow-sm">
-          <div className="flex items-center gap-1.5 text-orange-400/70 text-[10px] uppercase tracking-wider mb-1"><FileText className="w-3 h-3" /> Blog Posts</div>
-          <div className="text-orange-400 text-xl font-bold">{blogTotal}</div>
+        <div className="bg-card rounded-md border border-orange-500/15 p-3 shadow-orange-glow-sm">
+          <div className="flex items-center gap-1.5 text-orange-600 text-[10px] uppercase tracking-wider mb-1"><FileText className="w-3 h-3" /> Blog Posts</div>
+          <div className="text-orange-600 text-xl font-bold">{blogTotal}</div>
         </div>
-        <div className="bg-card rounded-xl border border-yellow-500/15 p-3 shadow-[0_0_10px_rgba(250,204,21,0.12)]">
+        <div className="bg-card rounded-md border border-yellow-500/15 p-3 shadow-[0_0_10px_rgba(250,204,21,0.12)]">
           <div className="flex items-center gap-1.5 text-yellow-600/70 text-[10px] uppercase tracking-wider mb-1"><MapPin className="w-3 h-3" /> GBP Posts</div>
           <div className="text-yellow-600 text-xl font-bold">{blogTotal}</div>
         </div>
-        <div className="relative overflow-hidden bg-gradient-to-br from-orange-500/15 to-yellow-400/10 rounded-xl border border-orange-400/30 p-3 shadow-[0_0_16px_rgba(255,170,0,0.22)]">
-          <div className="flex items-center gap-1.5 text-orange-300 text-[10px] uppercase tracking-wider mb-1"><Flame className="w-3 h-3" /> Today · {dayMeta(todayNum)?.full}</div>
+        <div className="relative overflow-hidden bg-gradient-to-br from-orange-500/15 to-yellow-400/10 rounded-md border border-orange-400/30 p-3">
+          <div className="flex items-center gap-1.5 text-orange-600 text-[10px] uppercase tracking-wider mb-1"><Flame className="w-3 h-3" /> Today · {dayMeta(todayNum)?.full}</div>
           <div className="text-ink text-xl font-bold">{todayDone}/{todayPosts} <span className="text-[10px] text-ink/[0.58] font-normal">done</span></div>
         </div>
       </div>
@@ -142,7 +142,7 @@ export default function ClientContentSchedule() {
           <span className="font-semibold text-ink/50">{pct}%</span>
         </div>
         <div className="h-2.5 w-full bg-ink/[0.04] rounded-full overflow-hidden border border-ink/[0.13]">
-          <div className="h-full rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-300 shadow-[0_0_10px_rgba(255,170,0,0.5)] transition-all duration-500" style={{ width: `${pct}%` }} />
+          <div className="h-full rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-300 transition-all duration-500" style={{ width: `${pct}%` }} />
         </div>
       </div>
 
@@ -159,9 +159,9 @@ export default function ClientContentSchedule() {
           return (
             <div
               key={w.num}
-              className={`relative overflow-hidden rounded-xl border p-2.5 transition-all ${
+              className={`relative overflow-hidden rounded-md border p-2.5 transition-all ${
                 isToday
-                  ? "border-orange-400/40 bg-gradient-to-b from-orange-500/20 to-yellow-400/[0.06] shadow-[0_0_18px_rgba(255,170,0,0.30)]"
+                  ? "border-orange-400/40 bg-gradient-to-b from-orange-500/20 to-yellow-400/[0.06]"
                   : allDone
                     ? "border-green-500/25 bg-green-500/[0.05]"
                     : isPast
@@ -172,7 +172,7 @@ export default function ClientContentSchedule() {
               }`}
             >
               {isToday && <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-500 to-yellow-300" />}
-              <div className={`text-[10px] font-bold tracking-widest uppercase ${isToday ? "text-orange-300" : isPast ? "text-ink/[0.48]" : "text-ink/55"}`}>{w.label}</div>
+              <div className={`text-[10px] font-bold tracking-widest uppercase ${isToday ? "text-orange-600" : isPast ? "text-ink/[0.48]" : "text-ink/55"}`}>{w.label}</div>
               <div className={`text-xl font-bold mt-0.5 ${isToday ? "text-ink" : count > 0 ? "text-ink/85" : "text-ink/[0.43]"}`}>{count}</div>
               <div className="text-[8px] text-ink/[0.48] uppercase tracking-wider">{count === 1 ? "post" : "posts"}</div>
               <div className="flex -space-x-1.5 mt-1.5">
@@ -200,20 +200,20 @@ export default function ClientContentSchedule() {
           return (
             <div
               key={w.num}
-              className={`relative overflow-hidden rounded-2xl border p-4 transition-all ${
+              className={`relative overflow-hidden rounded-md border p-4 transition-all ${
                 isToday
-                  ? "border-orange-400/40 bg-gradient-to-br from-orange-500/[0.08] via-card to-yellow-400/[0.04] shadow-[0_0_22px_rgba(255,170,0,0.18)]"
+                  ? "border-orange-400/40 bg-gradient-to-br from-orange-500/[0.08] via-card to-yellow-400/[0.04]"
                   : "border-ink/[0.13] bg-card"
               }`}
             >
-              {isToday && <div className="absolute -top-16 -right-10 w-32 h-32 rounded-full bg-orange-500/20 blur-3xl pointer-events-none" />}
+              {isToday &&}
               <div className="relative flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <CalendarDays className={`w-3.5 h-3.5 ${isToday ? "text-orange-400" : isPast ? "text-ink/[0.43]" : "text-ink/[0.63]"}`} />
+                  <CalendarDays className={`w-3.5 h-3.5 ${isToday ? "text-orange-600" : isPast ? "text-ink/[0.43]" : "text-ink/[0.63]"}`} />
                   <span className={`font-display font-bold text-sm tracking-wide ${isToday ? "text-ink" : isPast ? "text-ink/[0.63]" : "text-ink/80"}`}>{w.full}</span>
-                  {isToday && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-400/30 uppercase tracking-wider">Today</span>}
+                  {isToday && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-600 border border-orange-400/30 uppercase tracking-wider">Today</span>}
                 </div>
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${doneCount === tasks.length ? "text-green-600 border-green-500/25 bg-green-500/10" : isToday ? "text-orange-300 border-orange-400/30 bg-orange-500/10" : "text-ink/[0.58] border-ink/[0.13] bg-ink/[0.03]"}`}>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${doneCount === tasks.length ? "text-green-600 border-green-500/25 bg-green-500/10" : isToday ? "text-orange-600 border-orange-400/30 bg-orange-500/10" : "text-ink/[0.58] border-ink/[0.13] bg-ink/[0.03]"}`}>
                   {doneCount}/{tasks.length} done
                 </span>
               </div>
@@ -227,7 +227,7 @@ export default function ClientContentSchedule() {
                   const gDone = !!completions[gKey];
                   return (
                     <div key={client.id} className="flex items-center gap-2">
-                      <div className={`w-7 h-7 rounded-lg border flex items-center justify-center text-[11px] font-bold shrink-0 ${isToday ? "bg-orange-500/15 border-orange-400/30 text-orange-300" : "bg-ink/[0.04] border-ink/[0.13] text-ink/60"}`}>
+                      <div className={`w-7 h-7 rounded-lg border flex items-center justify-center text-[11px] font-bold shrink-0 ${isToday ? "bg-orange-500/15 border-orange-400/30 text-orange-600" : "bg-ink/[0.04] border-ink/[0.13] text-ink/60"}`}>
                         {client.businessName?.charAt(0)}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -239,7 +239,7 @@ export default function ClientContentSchedule() {
                       <button
                         onClick={() => toggle(bKey, client, "Blog Post")}
                         className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-medium transition-all shrink-0 ${
-                          bDone ? "bg-green-500/[0.08] border-green-500/20 text-green-600/80" : "bg-orange-500/[0.06] border-orange-500/20 text-orange-300 hover:bg-orange-500/15"
+                          bDone ? "bg-green-500/[0.08] border-green-500/20 text-green-600/80" : "bg-orange-500/[0.06] border-orange-500/20 text-orange-600 hover:bg-orange-500/15"
                         }`}
                       >
                         {bDone ? <CheckCircle2 className="w-3 h-3" /> : <FileText className="w-3 h-3" />} Blog

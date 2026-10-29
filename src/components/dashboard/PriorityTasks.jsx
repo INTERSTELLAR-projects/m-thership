@@ -138,7 +138,7 @@ export default function PriorityTasks() {
             {items.length === 0 && !loading && (
               <span className="text-green-600/70 text-xs font-semibold tracking-wider uppercase px-2.5 py-1 bg-green-400/10 rounded-lg border border-green-500/15">All Done!</span>
             )}
-            <button onClick={openAdd} className="flex items-center gap-1 px-2.5 py-1 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 text-xs font-semibold rounded-lg border border-orange-500/25 transition-colors">
+            <button onClick={openAdd} className="flex items-center gap-1 px-2.5 py-1 bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 text-xs font-semibold rounded-lg border border-orange-500/25 transition-colors">
               <Plus className="w-3.5 h-3.5" />Add Task
             </button>
           </div>
@@ -147,16 +147,16 @@ export default function PriorityTasks() {
         {loading ? (
           <div className="flex items-center gap-2 py-4"><Loader2 className="w-4 h-4 text-ink/[0.38] animate-spin" /></div>
         ) : items.length === 0 ? (
-          <div className="bg-card rounded-xl border border-ink/[0.13] p-6 text-center">
+          <div className="bg-card rounded-md border border-ink/[0.13] p-6 text-center">
             <p className="text-ink/[0.43] text-sm">No priority tasks yet.</p>
-            <button onClick={openAdd} className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 text-xs font-semibold rounded-lg border border-orange-500/25 transition-colors">
+            <button onClick={openAdd} className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 text-xs font-semibold rounded-lg border border-orange-500/25 transition-colors">
               <Plus className="w-3.5 h-3.5" />Add Priority Task
             </button>
           </div>
         ) : (
           <div className="space-y-4">
             {websiteBuilds.length > 0 && (
-              <div className="rounded-xl border border-yellow-500/25 bg-gradient-to-b from-yellow-500/[0.07] to-yellow-500/[0.02] p-3 shadow-[0_0_18px_rgba(250,204,21,0.16)]">
+              <div className="rounded-md border border-yellow-500/25 bg-gradient-to-b from-yellow-500/[0.07] to-yellow-500/[0.02] p-3 shadow-[0_0_18px_rgba(250,204,21,0.16)]">
                 <div className="flex items-center gap-1.5 mb-2.5 px-1">
                   <Hammer className="w-3.5 h-3.5 text-yellow-600" />
                   <span className="text-yellow-600 text-[10px] font-bold tracking-[0.15em] uppercase">Newest Websites to Build</span>
@@ -171,7 +171,7 @@ export default function PriorityTasks() {
             )}
 
             {appBuilds.length > 0 && (
-              <div className="rounded-xl border border-blue-500/30 bg-gradient-to-b from-blue-500/[0.08] to-blue-500/[0.02] p-3 shadow-[0_0_20px_rgba(59,130,246,0.28)]">
+              <div className="rounded-md border border-blue-500/30 bg-gradient-to-b from-blue-500/[0.08] to-blue-500/[0.02] p-3 shadow-[0_0_20px_rgba(59,130,246,0.28)]">
                 <div className="flex items-center gap-1.5 mb-2.5 px-1">
                   <Smartphone className="w-3.5 h-3.5 text-blue-600" />
                   <span className="text-blue-600 text-[10px] font-bold tracking-[0.15em] uppercase">Newest Apps to Build</span>
@@ -186,10 +186,10 @@ export default function PriorityTasks() {
             )}
 
             {inProgressItems.length > 0 && (
-              <div className="rounded-xl border border-orange-500/25 bg-orange-500/[0.04] p-3 shadow-orange-glow">
+              <div className="rounded-md border border-orange-500/25 bg-orange-500/[0.04] p-3 shadow-orange-glow">
                 <div className="flex items-center gap-1.5 mb-2.5 px-1">
-                  <Zap className="w-3.5 h-3.5 text-orange-400" />
-                  <span className="text-orange-400 text-[10px] font-bold tracking-[0.15em] uppercase">In Progress Now</span>
+                  <Zap className="w-3.5 h-3.5 text-orange-600" />
+                  <span className="text-orange-600 text-[10px] font-bold tracking-[0.15em] uppercase">In Progress Now</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {inProgressItems.map((item) => (

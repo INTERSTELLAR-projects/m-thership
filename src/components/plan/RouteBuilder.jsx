@@ -9,7 +9,7 @@ function Field({ label, value, onChange, type, placeholder, tooltip }) {
       <div className="flex items-center gap-1 mb-1">
         <span className="text-ink/[0.63] text-[10px] tracking-wider uppercase">{label}</span>
         {tooltip && (
-          <span title={tooltip} className="text-ink/[0.43] hover:text-orange-400/70 cursor-help">
+          <span title={tooltip} className="text-ink/[0.43] hover:text-orange-600 cursor-help">
             <HelpCircle className="w-3 h-3" />
           </span>
         )}
@@ -45,7 +45,7 @@ function RouteCard({ route, setRoute, idx, onRemove, canRemove }) {
   };
   const currentPreset = route.preset || (route.name === "Ørbit SEO Base" ? "orbit_seo_base" : route.name === "Starshïp App Maintenance" ? "starship_maintenance" : "custom");
   return (
-    <div className="rounded-xl border border-ink/[0.13] bg-ink/[0.01] p-3.5 space-y-3 relative">
+    <div className="rounded-md border border-ink/[0.13] bg-ink/[0.01] p-3.5 space-y-3 relative">
       <div className="flex items-center justify-between gap-2">
         <span className="text-ink/[0.48] text-[10px] uppercase tracking-widest font-mono">Route {String.fromCharCode(65 + idx)}</span>
         {canRemove && (
@@ -61,7 +61,7 @@ function RouteCard({ route, setRoute, idx, onRemove, canRemove }) {
       <div className="flex gap-1">
         {ROUTE_PRESETS.map((p) => (
           <button key={p.key} onClick={() => applyPreset(p.key)}
-            className={`flex-1 px-2 py-1 rounded-md text-[10px] font-semibold tracking-wide transition-all ${currentPreset === p.key ? "bg-gradient-to-r from-orange-500/25 to-amber-400/15 text-orange-300 border border-orange-500/30" : "bg-ink/[0.03] text-ink/[0.58] border border-ink/[0.13] hover:border-orange-500/20"}`}>
+            className={`flex-1 px-2 py-1 rounded-md text-[10px] font-semibold tracking-wide transition-all ${currentPreset === p.key ? "bg-gradient-to-r from-orange-500/25 to-amber-400/15 text-orange-600 border border-orange-500/30" : "bg-ink/[0.03] text-ink/[0.58] border border-ink/[0.13] hover:border-orange-500/20"}`}>
             {p.key === "orbit_seo_base" ? "Ørbit SEO" : p.key === "starship_maintenance" ? "Starshïp" : "Custom"}
           </button>
         ))}
@@ -72,7 +72,7 @@ function RouteCard({ route, setRoute, idx, onRemove, canRemove }) {
         <Field label="Churn / mo" value={route.monthly_churn_rate} onChange={(v) => setRoute({ ...route, monthly_churn_rate: v })} tooltip="Fraction of clients lost per month (0.03 = 3%). Applied to existing revenue before new adds." />
         <div className="flex items-end">
           <button onClick={() => setRoute({ ...route, has_addons: !route.has_addons })}
-            className={`w-full px-2.5 py-1.5 rounded-md text-[10px] font-semibold tracking-wide transition-all ${route.has_addons ? "bg-orange-500/20 text-orange-300 border border-orange-500/30" : "bg-ink/[0.03] text-ink/[0.58] border border-ink/[0.13]"}`}>
+            className={`w-full px-2.5 py-1.5 rounded-md text-[10px] font-semibold tracking-wide transition-all ${route.has_addons ? "bg-orange-500/20 text-orange-600 border border-orange-500/30" : "bg-ink/[0.03] text-ink/[0.58] border border-ink/[0.13]"}`}>
             Add-ons {route.has_addons ? "ON" : "OFF"}
           </button>
         </div>
@@ -124,7 +124,7 @@ export default function RouteBuilder({ open, initialGoal, currentMrr, onClose, o
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="bg-card border-ink/[0.13] text-ink max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="text-ink flex items-center gap-2"><Rocket className="w-4 h-4 text-orange-400" />{initialGoal ? "Edit Goal" : "Define a New Goal"}</DialogTitle>
+          <DialogTitle className="text-ink flex items-center gap-2"><Rocket className="w-4 h-4 text-orange-600" />{initialGoal ? "Edit Goal" : "Define a New Goal"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="flex items-center gap-3">
@@ -145,7 +145,7 @@ export default function RouteBuilder({ open, initialGoal, currentMrr, onClose, o
           </div>
 
           {routes.length < 3 && (
-            <button onClick={addRoute} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-ink/[0.13] hover:border-orange-500/30 text-ink/[0.58] hover:text-orange-400 text-xs transition-all">
+            <button onClick={addRoute} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-ink/[0.13] hover:border-orange-500/30 text-ink/[0.58] hover:text-orange-600 text-xs transition-all">
               <Plus className="w-3.5 h-3.5" />Add a third route
             </button>
           )}
@@ -157,7 +157,7 @@ export default function RouteBuilder({ open, initialGoal, currentMrr, onClose, o
             ) : (
               preview.map((p, i) => (
                 <span key={i} className="text-ink/60">
-                  <span className="text-orange-400/80">{p.name}:</span>{" "}
+                  <span className="text-orange-600">{p.name}:</span>{" "}
                   {p.clients != null ? `${p.clients} clients` : "—"}{" · "}
                   {p.months != null ? `${p.months} months` : "not reachable"}
                   {i < preview.length - 1 && <span className="text-ink/[0.38] mx-1">|</span>}
@@ -169,7 +169,7 @@ export default function RouteBuilder({ open, initialGoal, currentMrr, onClose, o
           <button
             disabled={!valid}
             onClick={() => onSave({ title, target_mrr: Number(goal) || 0, routes })}
-            className={`w-full py-2.5 rounded-lg text-sm font-bold tracking-wide transition-all ${valid ? "bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white shadow-[0_0_14px_rgba(255,106,0,0.25)]" : "bg-ink/[0.04] text-ink/[0.48] cursor-not-allowed"}`}
+            className={`w-full py-2.5 rounded-lg text-sm font-bold tracking-wide transition-all ${valid ? "bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white" : "bg-ink/[0.04] text-ink/[0.48] cursor-not-allowed"}`}
           >
             {initialGoal ? "Save & Re-run" : "Run Analysis"}
           </button>

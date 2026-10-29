@@ -120,7 +120,7 @@ export default function BrandProfile({ clientId, initialData = {} }) {
 
 function Section({ title, collapsed, toggle, children }) {
   return (
-    <div className="bg-card rounded-xl border border-ink/[0.13] overflow-hidden">
+    <div className="bg-card rounded-md border border-ink/[0.13] overflow-hidden">
       <button onClick={toggle} className="w-full flex items-center justify-between px-4 py-3 hover:bg-ink/[0.02] transition-colors">
         <h3 className="text-ink/70 text-xs font-semibold tracking-wide uppercase">{title}</h3>
         {collapsed ? <ChevronDown className="w-4 h-4 text-ink/[0.43]" /> : <ChevronUp className="w-4 h-4 text-ink/[0.43]" />}

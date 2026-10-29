@@ -48,7 +48,7 @@ export default function OtherTasksBox({ clients = [] }) {
 
   return (
     <section className="px-8 pt-4 pb-6">
-      <div className="bg-card rounded-xl border border-ink/[0.13] p-5">
+      <div className="bg-card rounded-md border border-ink/[0.13] p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-ink font-bold text-xs tracking-[0.2em] uppercase">Other Small Tasks</h2>

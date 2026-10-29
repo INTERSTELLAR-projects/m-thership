@@ -132,7 +132,7 @@ export default function ClientComms() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <PageHeader breadcrumb="Portal / Comms" rightText="Message with Admin" />
+        <PageHeader breadcrumb="Command / Comms" rightText="Message with Admin" />
         <div className="flex items-center justify-center py-16">
           <Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" />
         </div>
@@ -142,7 +142,7 @@ export default function ClientComms() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <PageHeader breadcrumb="Portal / Comms" rightText="Message with Admin" />
+      <PageHeader breadcrumb="Command / Comms" rightText="Message with Admin" />
       <div className="flex-1 flex flex-col">
         {/* Search Bar */}
         <div className="px-6 py-4 border-b border-ink/[0.13]">
@@ -203,7 +203,7 @@ export default function ClientComms() {
                         href={msg.attachments[0].url}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-2 text-orange-400 hover:text-orange-300 text-sm"
+                        className="flex items-center gap-2 text-orange-600 hover:text-orange-600 text-sm"
                       >
                         <FileText className="w-4 h-4" />
                         {msg.attachments[0].name}
@@ -299,7 +299,7 @@ export default function ClientComms() {
             <button
               onClick={() => sendMessage(messageText)}
               disabled={!messageText.trim() || sending}
-              className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-[0_0_14px_rgba(255,106,0,0.25)] flex items-center gap-2"
+              className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed rounded-lg flex items-center gap-2"
             >
               {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </button>

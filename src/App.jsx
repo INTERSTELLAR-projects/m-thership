@@ -53,7 +53,7 @@ const AuthenticatedApp = () => {
   if (user && user.role !== 'admin') {
     return (
       <div className="fixed inset-0 bg-ink flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-md bg-red-500/10 border border-red-500/20 flex items-center justify-center">
           <span className="text-red-600 text-xl">⛔</span>
         </div>
         <h1 className="font-orbitron text-ink font-bold text-lg tracking-widest">ACCESS DENIED</h1>

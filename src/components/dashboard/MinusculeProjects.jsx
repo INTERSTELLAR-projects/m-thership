@@ -48,7 +48,7 @@ function TodoCard({ title, clients }) {
   };
 
   return (
-    <div className="card-hover relative bg-card rounded-xl border border-ink/[0.13] p-5 min-h-[120px] group">
+    <div className="card-hover relative bg-card rounded-md border border-ink/[0.13] p-5 min-h-[120px] group">
       <div className="flex items-start justify-between mb-3">
         <h3 className="text-ink/80 text-sm font-medium">{title}</h3>
         <div className="flex items-center gap-2">

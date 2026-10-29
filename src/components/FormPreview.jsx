@@ -27,7 +27,7 @@ export default function FormPreview({ form, onClose, clientId }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center p-4">
-      <div className="bg-card border border-ink/[0.13] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-card border border-ink/[0.13] rounded-md w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-card border-b border-ink/[0.13] px-6 py-4 flex items-center justify-between">
           <div>
             <h3 className="text-ink font-bold text-sm">{form.title}</h3>
@@ -210,7 +210,7 @@ export default function FormPreview({ form, onClose, clientId }) {
                     <button
                       onClick={() => fileInputRef.current[field.id]?.click()}
                       disabled={uploadingField === field.id}
-                      className="w-full border-2 border-dashed border-orange-500/30 rounded-lg p-4 text-center text-orange-400/70 text-sm hover:border-orange-500/60 hover:bg-orange-500/5 transition-all disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full border-2 border-dashed border-orange-500/30 rounded-lg p-4 text-center text-orange-600 text-sm hover:border-orange-500/60 hover:bg-orange-500/5 transition-all disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       <Upload className="w-4 h-4" />
                       {uploadingField === field.id ? "Uploading..." : "Click to upload or drag files"}
@@ -225,7 +225,7 @@ export default function FormPreview({ form, onClose, clientId }) {
             <p className="text-ink/[0.43] text-sm text-center py-8">No fields in this form yet.</p>
           )}
 
-          <button disabled className="w-full mt-8 px-4 py-2.5 bg-orange-500/20 text-orange-400 rounded-lg text-sm font-medium cursor-not-allowed">
+          <button disabled className="w-full mt-8 px-4 py-2.5 bg-orange-500/20 text-orange-600 rounded-lg text-sm font-medium cursor-not-allowed">
             Submit
           </button>
         </div>

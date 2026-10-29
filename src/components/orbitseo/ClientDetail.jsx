@@ -45,7 +45,7 @@ function InputField({ label, value, onChange, placeholder }) {
 
 function SectionCard({ title, children }) {
   return (
-    <div className="bg-card rounded-xl border border-ink/[0.13] p-5 space-y-4">
+    <div className="bg-card rounded-md border border-ink/[0.13] p-5 space-y-4">
       <h3 className="text-ink font-bold text-xs tracking-[0.18em] uppercase">{title}</h3>
       {children}
     </div>
@@ -200,7 +200,7 @@ Return a JSON with exactly these fields (no extra text):
     setStrategyBrief("");
   };
 
-  const blogStatusColor = { Planned: "bg-blue-500/10 text-blue-600", "In Progress": "bg-orange-500/10 text-orange-400", Published: "bg-green-500/10 text-green-600" };
+  const blogStatusColor = { Planned: "bg-blue-500/10 text-blue-600", "In Progress": "bg-orange-500/10 text-orange-600", Published: "bg-green-500/10 text-green-600" };
 
   return (
     <div className="min-h-screen bg-background">
@@ -219,7 +219,7 @@ Return a JSON with exactly these fields (no extra text):
             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
               form.status === "Active" ? "bg-green-500/10 text-green-600" :
               form.status === "Paused" ? "bg-ink/5 text-ink/[0.48]" :
-              "bg-orange-500/10 text-orange-400"
+              "bg-orange-500/10 text-orange-600"
             }`}>{form.status}</span>
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-500/10 text-blue-600">{form.serviceType}</span>
           </div>
@@ -300,7 +300,7 @@ Return a JSON with exactly these fields (no extra text):
         {/* STRATEGY TAB */}
         {tab === "Strategy" && (
           <>
-            <div className="bg-card rounded-xl border border-ink/[0.13] p-5 space-y-4">
+            <div className="bg-card rounded-md border border-ink/[0.13] p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-ink font-bold text-xs tracking-[0.18em] uppercase">SEO Strategy Overview</h3>
                 <button
@@ -312,7 +312,7 @@ Return a JSON with exactly these fields (no extra text):
               </div>
 
               {showBriefInput && (
-                <div className="bg-purple-500/[0.05] border border-purple-500/15 rounded-xl p-4 space-y-3">
+                <div className="bg-purple-500/[0.05] border border-purple-500/15 rounded-md p-4 space-y-3">
                   <p className="text-purple-600/70 text-xs">Describe what this business does, what they want to achieve, who their customers are, and any key goals. Claude will fill in the entire strategy.</p>
                   <textarea
                     autoFocus
@@ -387,7 +387,7 @@ Return a JSON with exactly these fields (no extra text):
                   {WEEKDAYS.map((d) => {
                     const selected = (form.blogDays || []).includes(d.num);
                     return (
-                      <button key={d.num} type="button" onClick={() => toggleBlogDay(d.num)} className={`px-3.5 py-2 rounded-lg text-xs font-semibold border transition-all ${selected ? "bg-orange-500/15 border-orange-500/30 text-orange-400" : "bg-ink/[0.02] border-ink/[0.13] text-ink/[0.58] hover:text-ink/70 hover:border-ink/15"}`}>
+                      <button key={d.num} type="button" onClick={() => toggleBlogDay(d.num)} className={`px-3.5 py-2 rounded-lg text-xs font-semibold border transition-all ${selected ? "bg-orange-500/15 border-orange-500/30 text-orange-600" : "bg-ink/[0.02] border-ink/[0.13] text-ink/[0.58] hover:text-ink/70 hover:border-ink/15"}`}>
                         {d.label}
                       </button>
                     );
@@ -475,7 +475,7 @@ Return a JSON with exactly these fields (no extra text):
                   </div>
                   <div>
                     <label className="text-ink/[0.58] text-[10px] uppercase tracking-wider block mb-1">GBP Frequency · Auto-matched to Blog</label>
-                    <div className="w-full bg-ink/[0.02] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-orange-400/80">
+                    <div className="w-full bg-ink/[0.02] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-orange-600">
                       {form.gbpStatus === "Not Applicable" ? <span className="text-ink/[0.43]">Not applicable</span> : (form.blogFrequency || <span className="text-ink/[0.43]">Set blog frequency in the Blog tab</span>)}
                     </div>
                   </div>
@@ -491,7 +491,7 @@ Return a JSON with exactly these fields (no extra text):
                         : (form.blogDays || []).length === 0
                         ? <span className="text-ink/[0.43]">Set blog days in the Blog tab</span>
                         : WEEKDAYS.filter((w) => (form.blogDays || []).includes(w.num)).map((w) => (
-                            <span key={w.num} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-orange-500/10 text-orange-400/80 border border-orange-500/15">{w.label}</span>
+                            <span key={w.num} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-orange-500/10 text-orange-600 border border-orange-500/15">{w.label}</span>
                           ))}
                     </div>
                   </div>

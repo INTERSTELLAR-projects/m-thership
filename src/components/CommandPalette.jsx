@@ -54,7 +54,7 @@ export default function CommandPalette({ open, onClose }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg mx-4 bg-[#0f1117] border border-ink/[0.13] rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full max-w-lg mx-4 bg-[#0f1117] border border-ink/[0.13] rounded-md shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input */}

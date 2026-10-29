@@ -125,7 +125,7 @@ export default function ClientCommsTab({ clientEmail }) {
                     href={msg.attachments[0].url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-2 text-orange-400 hover:text-orange-300 text-sm"
+                    className="flex items-center gap-2 text-orange-600 hover:text-orange-600 text-sm"
                   >
                     <FileText className="w-4 h-4" />
                     {msg.attachments[0].name}

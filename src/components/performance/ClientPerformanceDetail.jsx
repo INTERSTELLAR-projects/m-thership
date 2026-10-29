@@ -45,7 +45,7 @@ function ConnectionPill({ label, connected }) {
 function SectionHeader({ title, icon: Icon, color = "text-orange-500" }) {
   return (
     <div className="flex items-center gap-2 mb-4">
-      <div className="w-1 h-4 rounded-full bg-gradient-to-b from-orange-500 to-yellow-400 shadow-[0_0_8px_rgba(255,170,0,0.5)]" />
+      <div className="w-1 h-4 rounded-full bg-gradient-to-b from-orange-500 to-yellow-400" />
       <Icon className={`w-4 h-4 ${color}`} />
       <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{title}</h3>
     </div>
@@ -163,14 +163,14 @@ export default function ClientPerformanceDetail({ client, onBack }) {
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
           <span className="text-ink/[0.33]">/</span>
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 font-display font-extrabold text-sm shadow-[0_0_12px_rgba(255,106,0,0.2)]">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-600 font-display font-extrabold text-sm">
             {client.businessName?.charAt(0)}
           </div>
           <div>
             <h1 className="font-display font-bold text-sm bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{client.businessName}</h1>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-ink/[0.04] border border-ink/[0.13] text-ink/55 text-[11px]">
-                <MapPin className="w-3 h-3 text-orange-400/70" />{client.primaryLocation || "—"}
+                <MapPin className="w-3 h-3 text-orange-600" />{client.primaryLocation || "—"}
               </span>
               <span className="text-ink/[0.43] text-xs">·</span>
               <span className="text-ink/[0.58] text-[11px]">{client.serviceType}</span>
@@ -180,7 +180,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5">
             {["7d", "30d", "90d", "1y"].map((r) => (
-              <button key={r} onClick={() => setDateRange(r)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${dateRange === r ? "bg-gradient-to-r from-orange-500 to-amber-400 text-white border border-orange-400 shadow-[0_0_14px_rgba(255,106,0,0.35)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{r === "1y" ? "1 Year" : r === "7d" ? "7 Days" : r === "30d" ? "30 Days" : "90 Days"}</button>
+              <button key={r} onClick={() => setDateRange(r)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${dateRange === r ? "bg-gradient-to-r from-orange-500 to-amber-400 text-white border border-orange-400" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{r === "1y" ? "1 Year" : r === "7d" ? "7 Days" : r === "30d" ? "30 Days" : "90 Days"}</button>
             ))}
           </div>
           <button className="flex items-center gap-1.5 px-3 py-1.5 bg-ink/[0.04] hover:bg-ink/[0.07] border border-ink/[0.13] text-ink/50 text-xs rounded-lg transition-colors">
@@ -210,7 +210,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
         {data.alerts.length > 0 && (
           <div className="space-y-2">
             {data.alerts.map((a, i) => (
-              <div key={i} className={`relative overflow-hidden flex items-center gap-3 px-4 py-2.5 rounded-lg border text-xs ${a.type === "critical" ? "bg-red-500/10 border-red-500/25 text-red-600 shadow-[0_0_12px_rgba(239,68,68,0.2)]" : a.type === "warning" ? "bg-orange-500/10 border-orange-500/25 text-orange-400 shadow-[0_0_12px_rgba(255,106,0,0.2)]" : "bg-blue-500/10 border-blue-500/25 text-blue-600 shadow-[0_0_12px_rgba(59,130,246,0.2)]"}`}>
+              <div key={i} className={`relative overflow-hidden flex items-center gap-3 px-4 py-2.5 rounded-lg border text-xs ${a.type === "critical" ? "bg-red-500/10 border-red-500/25 text-red-600 shadow-[0_0_12px_rgba(239,68,68,0.2)]" : a.type === "warning" ? "bg-orange-500/10 border-orange-500/25 text-orange-600" : "bg-blue-500/10 border-blue-500/25 text-blue-600 shadow-[0_0_12px_rgba(59,130,246,0.2)]"}`}>
                 <span className={`absolute left-0 top-0 bottom-0 w-1 ${a.type === "critical" ? "bg-red-500" : a.type === "warning" ? "bg-gradient-to-b from-orange-500 to-amber-400" : "bg-blue-500"}`} />
                 <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                 {a.msg}
@@ -231,7 +231,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
               { label: "Local Visibility", score: data.localScore || 0, sub: client.serviceType === "Local" ? "GBP & Local" : "N/A" },
               { label: "Conversion Ready", score: data.conversionScore, sub: "CTA Coverage" },
             ].map(({ label, score, sub }) => (
-              <div key={label} className="card-hover relative rounded-xl border border-orange-500/10 bg-gradient-to-b from-orange-500/[0.05] to-transparent p-4 flex flex-col items-center text-center gap-3 shadow-[0_0_16px_rgba(255,106,0,0.08)]">
+              <div key={label} className="card-hover relative rounded-md border border-orange-500/10 bg-gradient-to-b from-orange-500/[0.05] to-transparent p-4 flex flex-col items-center text-center gap-3">
                 <ScoreRing score={score} color={scoreColor(score)} />
                 <div>
                   <p className="text-ink/80 text-xs font-semibold font-display">{label}</p>
@@ -296,7 +296,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
               {[
                 { label: "Total Users", value: data.totalUsers.toLocaleString(), color: "text-blue-600" },
                 { label: "Organic Sessions", value: data.organicSessions.toLocaleString(), color: "text-green-600" },
-                { label: "Engagement Rate", value: data.engagementRate, color: "text-orange-400" },
+                { label: "Engagement Rate", value: data.engagementRate, color: "text-orange-600" },
                 { label: "Avg Duration", value: data.avgDuration, color: "text-purple-600" },
               ].map(({ label, value, color }) => (
                 <div key={label} className="bg-ink/[0.02] rounded-lg p-2.5 border border-ink/[0.13]">
@@ -328,11 +328,11 @@ export default function ClientPerformanceDetail({ client, onBack }) {
           <div className="grid grid-cols-4 gap-4 mb-5">
             {[
               { label: "Total Impressions", value: data.impressions.toLocaleString(), color: "text-ink/80" },
-              { label: "Total Clicks", value: data.clicks.toLocaleString(), color: "text-orange-400" },
+              { label: "Total Clicks", value: data.clicks.toLocaleString(), color: "text-orange-600" },
               { label: "Avg CTR", value: `${data.ctr}%`, color: "text-blue-600" },
               { label: "Avg Position", value: `#${data.avgPos}`, color: "text-green-600" },
             ].map(({ label, value, color }) => (
-              <div key={label} className="bg-ink/[0.02] rounded-xl border border-ink/[0.13] p-4">
+              <div key={label} className="bg-ink/[0.02] rounded-md border border-ink/[0.13] p-4">
                 <p className={`text-2xl font-bold ${color}`}>{value}</p>
                 <p className="text-ink/[0.48] text-xs mt-1">{label}</p>
               </div>
@@ -345,7 +345,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
                 <div key={i} className="flex items-center gap-4 py-2 px-3 bg-ink/[0.02] rounded-lg border border-ink/[0.13]">
                   <span className="text-ink/[0.38] text-xs w-4">{i + 1}</span>
                   <span className="flex-1 text-ink/70 text-xs">{q.query}</span>
-                  <span className="text-orange-400/70 text-xs font-medium w-16 text-right">{q.clicks} clicks</span>
+                  <span className="text-orange-600 text-xs font-medium w-16 text-right">{q.clicks} clicks</span>
                   <span className="text-ink/[0.48] text-xs w-24 text-right">{q.impressions.toLocaleString()} impr.</span>
                   <span className="text-green-600/70 text-xs w-16 text-right">Pos #{q.pos}</span>
                 </div>
@@ -358,17 +358,17 @@ export default function ClientPerformanceDetail({ client, onBack }) {
         <div className="game-panel p-6">
           <SectionHeader title="Content & Keyword Performance" icon={FileText} color="text-purple-600" />
           <div className="grid grid-cols-3 gap-4 mb-5">
-            <div className="bg-ink/[0.02] rounded-xl border border-ink/[0.13] p-4">
+            <div className="bg-ink/[0.02] rounded-md border border-ink/[0.13] p-4">
               <p className="text-3xl font-bold text-purple-600">{data.publishedBlogs}</p>
               <p className="text-ink/[0.48] text-xs mt-1">Published Blogs</p>
               <p className="text-ink/[0.38] text-[10px] mt-0.5">{data.blogCount} total including drafts</p>
             </div>
-            <div className="bg-ink/[0.02] rounded-xl border border-ink/[0.13] p-4">
+            <div className="bg-ink/[0.02] rounded-md border border-ink/[0.13] p-4">
               <p className="text-3xl font-bold text-blue-600">{client.blogFrequency || "—"}</p>
               <p className="text-ink/[0.48] text-xs mt-1">Blog Frequency</p>
               <p className="text-ink/[0.38] text-[10px] mt-0.5">Contracted schedule</p>
             </div>
-            <div className="bg-ink/[0.02] rounded-xl border border-ink/[0.13] p-4">
+            <div className="bg-ink/[0.02] rounded-md border border-ink/[0.13] p-4">
               <p className={`text-3xl font-bold ${client.nextBlogDue && new Date(client.nextBlogDue + "T00:00:00") < new Date() ? "text-red-600" : "text-green-600"}`}>
                 {client.nextBlogDue ? new Date(client.nextBlogDue + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
               </p>
@@ -401,10 +401,10 @@ export default function ClientPerformanceDetail({ client, onBack }) {
               {[
                 { label: "Calls", value: data.gbpMetrics.calls, icon: Phone, color: "text-green-600" },
                 { label: "Direction Requests", value: data.gbpMetrics.directions, icon: Navigation, color: "text-blue-600" },
-                { label: "Website Clicks", value: data.gbpMetrics.websiteClicks, icon: MousePointer, color: "text-orange-400" },
+                { label: "Website Clicks", value: data.gbpMetrics.websiteClicks, icon: MousePointer, color: "text-orange-600" },
                 { label: "Impressions", value: data.gbpMetrics.impressions.toLocaleString(), icon: Eye, color: "text-purple-600" },
               ].map(({ label, value, icon: Icon, color }) => (
-                <div key={label} className="bg-ink/[0.02] rounded-xl border border-ink/[0.13] p-4">
+                <div key={label} className="bg-ink/[0.02] rounded-md border border-ink/[0.13] p-4">
                   <div className="flex items-center gap-2 mb-2"><Icon className={`w-4 h-4 ${color}`} /></div>
                   <p className={`text-2xl font-bold ${color}`}>{value}</p>
                   <p className="text-ink/[0.48] text-xs mt-1">{label}</p>
@@ -412,18 +412,18 @@ export default function ClientPerformanceDetail({ client, onBack }) {
               ))}
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-ink/[0.02] rounded-xl border border-ink/[0.13] p-4">
+              <div className="bg-ink/[0.02] rounded-md border border-ink/[0.13] p-4">
                 <div className="flex items-center gap-1 mb-2"><Star className="w-3.5 h-3.5 text-yellow-600" /></div>
                 <p className="text-2xl font-bold text-yellow-600">{data.gbpMetrics.avgRating}</p>
                 <p className="text-ink/[0.48] text-xs mt-1">Avg Rating</p>
                 <p className="text-ink/[0.38] text-[10px]">{data.gbpMetrics.reviews} reviews</p>
               </div>
-              <div className="bg-ink/[0.02] rounded-xl border border-ink/[0.13] p-4">
+              <div className="bg-ink/[0.02] rounded-md border border-ink/[0.13] p-4">
                 <p className="text-2xl font-bold text-cyan-600">{data.gbpMetrics.postCount}</p>
                 <p className="text-ink/[0.48] text-xs mt-1">GBP Posts</p>
-                <p className={`text-[10px] mt-0.5 ${client.gbpStatus === "Active" ? "text-green-600/70" : "text-orange-400/70"}`}>{client.gbpStatus}</p>
+                <p className={`text-[10px] mt-0.5 ${client.gbpStatus === "Active" ? "text-green-600/70" : "text-orange-600"}`}>{client.gbpStatus}</p>
               </div>
-              <div className="bg-ink/[0.02] rounded-xl border border-ink/[0.13] p-4">
+              <div className="bg-ink/[0.02] rounded-md border border-ink/[0.13] p-4">
                 <p className={`text-2xl font-bold ${client.gbpNextDue && new Date(client.gbpNextDue + "T00:00:00") < new Date() ? "text-red-600" : "text-green-600"}`}>
                   {client.gbpNextDue ? new Date(client.gbpNextDue + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
                 </p>
@@ -455,9 +455,9 @@ export default function ClientPerformanceDetail({ client, onBack }) {
                   { label: "Canonical / Redirects", status: data.technicalScore > 75 ? "pass" : "warn" },
                 ].map(({ label, status }) => (
                   <div key={label} className="flex items-center gap-3 py-1.5">
-                    {status === "pass" ? <CheckCircle2 className="w-3.5 h-3.5 text-green-600/70 shrink-0" /> : status === "warn" ? <AlertCircle className="w-3.5 h-3.5 text-orange-400/70 shrink-0" /> : <XCircle className="w-3.5 h-3.5 text-red-600/70 shrink-0" />}
+                    {status === "pass" ? <CheckCircle2 className="w-3.5 h-3.5 text-green-600/70 shrink-0" /> : status === "warn" ? <AlertCircle className="w-3.5 h-3.5 text-orange-600 shrink-0" /> : <XCircle className="w-3.5 h-3.5 text-red-600/70 shrink-0" />}
                     <span className="text-ink/60 text-xs">{label}</span>
-                    <span className={`ml-auto text-[10px] font-semibold ${status === "pass" ? "text-green-600/60" : status === "warn" ? "text-orange-400/60" : "text-red-600/60"}`}>{status === "pass" ? "Pass" : status === "warn" ? "Review" : "Fix"}</span>
+                    <span className={`ml-auto text-[10px] font-semibold ${status === "pass" ? "text-green-600/60" : status === "warn" ? "text-orange-600/80" : "text-red-600/60"}`}>{status === "pass" ? "Pass" : status === "warn" ? "Review" : "Fix"}</span>
                   </div>
                 ))}
               </div>
@@ -465,7 +465,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
             <div>
               <p className="text-ink/[0.48] text-[10px] uppercase tracking-wider mb-3">Priority Issues</p>
               <div className="space-y-2">
-                {data.technicalScore < 85 && <div className="flex items-start gap-2 p-3 bg-orange-500/[0.06] border border-orange-500/15 rounded-lg"><AlertCircle className="w-3.5 h-3.5 text-orange-400 shrink-0 mt-0.5" /><div><p className="text-orange-400/90 text-xs font-medium">Missing schema markup on service pages</p><p className="text-ink/[0.48] text-[10px] mt-0.5">Add LocalBusiness and Service schema to improve rich results</p></div></div>}
+                {data.technicalScore < 85 && <div className="flex items-start gap-2 p-3 bg-orange-500/[0.06] border border-orange-500/15 rounded-lg"><AlertCircle className="w-3.5 h-3.5 text-orange-600 shrink-0 mt-0.5" /><div><p className="text-orange-600 text-xs font-medium">Missing schema markup on service pages</p><p className="text-ink/[0.48] text-[10px] mt-0.5">Add LocalBusiness and Service schema to improve rich results</p></div></div>}
                 {data.technicalScore < 75 && <div className="flex items-start gap-2 p-3 bg-red-500/[0.06] border border-red-500/15 rounded-lg"><XCircle className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" /><div><p className="text-red-600/90 text-xs font-medium">Page speed below benchmark</p><p className="text-ink/[0.48] text-[10px] mt-0.5">Optimize images and defer non-critical scripts</p></div></div>}
                 <div className="flex items-start gap-2 p-3 bg-ink/[0.02] border border-ink/[0.13] rounded-lg"><CheckCircle2 className="w-3.5 h-3.5 text-green-600/60 shrink-0 mt-0.5" /><div><p className="text-green-600/80 text-xs font-medium">Mobile usability confirmed</p><p className="text-ink/[0.48] text-[10px] mt-0.5">Site passes mobile-friendliness assessment</p></div></div>
               </div>
@@ -478,8 +478,8 @@ export default function ClientPerformanceDetail({ client, onBack }) {
           <SectionHeader title="Opportunities & Recommended Actions" icon={Zap} color="text-green-600" />
           <div className="space-y-3">
             {data.opportunities.map((opp, i) => (
-              <div key={i} className={`flex items-start gap-3 p-4 rounded-xl border ${opp.priority === "high" ? "bg-orange-500/[0.06] border-orange-500/15" : opp.priority === "medium" ? "bg-blue-500/[0.06] border-blue-500/15" : "bg-ink/[0.02] border-ink/[0.13]"}`}>
-                <div className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${opp.priority === "high" ? "bg-orange-500/20 text-orange-400" : opp.priority === "medium" ? "bg-blue-500/20 text-blue-600" : "bg-ink/10 text-ink/[0.58]"}`}>{opp.priority}</div>
+              <div key={i} className={`flex items-start gap-3 p-4 rounded-md border ${opp.priority === "high" ? "bg-orange-500/[0.06] border-orange-500/15" : opp.priority === "medium" ? "bg-blue-500/[0.06] border-blue-500/15" : "bg-ink/[0.02] border-ink/[0.13]"}`}>
+                <div className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${opp.priority === "high" ? "bg-orange-500/20 text-orange-600" : opp.priority === "medium" ? "bg-blue-500/20 text-blue-600" : "bg-ink/10 text-ink/[0.58]"}`}>{opp.priority}</div>
                 <div className="flex-1">
                   <p className="text-ink/80 text-sm font-medium">{opp.label}</p>
                   <p className="text-ink/[0.48] text-xs mt-0.5">Expected impact: {opp.impact}</p>

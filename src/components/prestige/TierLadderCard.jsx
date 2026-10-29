@@ -21,7 +21,7 @@ export default function TierLadderCard({ tier, info, state, within, pct, group }
     : "Locked";
 
   return (
-    <div className={`relative flex flex-col overflow-hidden rounded-2xl border ${info.border} bg-gradient-to-b ${info.grad} bg-card p-4 card-hover ${unlocked ? info.glow : ""} ${inProgress ? "border-l-2 border-l-orange-500" : ""} ${locked ? "opacity-55" : "opacity-100"}`}>
+    <div className={`relative flex flex-col overflow-hidden rounded-md border ${info.border} bg-gradient-to-b ${info.grad} bg-card p-4 card-hover ${unlocked ? info.glow : ""} ${inProgress ? "border-l-2 border-l-orange-500" : ""} ${locked ? "opacity-55" : "opacity-100"}`}>
       <div className="absolute -top-10 -right-10 w-28 h-28 rounded-full blur-3xl opacity-40 pointer-events-none" style={{ background: tier === "Prestige I" ? "#ff3c00" : tier === "Prestige II" ? "#38BDF8" : tier === "Prestige III" ? "#A855F7" : "#ffaa00" }} />
 
       {/* tier name + icon */}
@@ -48,7 +48,7 @@ export default function TierLadderCard({ tier, info, state, within, pct, group }
       {/* progress indicator (per-tier denominator) */}
       <div className="relative mt-2.5">
         <div className="flex items-center justify-between text-[10px] mb-1">
-          <span className={`font-mono font-semibold ${inProgress ? "text-orange-400" : locked ? "text-ink/[0.48]" : "text-ink/50"}`}>{locked ? 0 : within} / {info.perTier}</span>
+          <span className={`font-mono font-semibold ${inProgress ? "text-orange-600" : locked ? "text-ink/[0.48]" : "text-ink/50"}`}>{locked ? 0 : within} / {info.perTier}</span>
           <span className="text-ink/[0.43] font-mono">{pill}</span>
         </div>
         <div className="h-1.5 w-full bg-ink/5 rounded-full overflow-hidden">
@@ -60,7 +60,7 @@ export default function TierLadderCard({ tier, info, state, within, pct, group }
       <p className="relative mt-3 text-[13px] leading-[1.6] text-ink/60 line-clamp-3">{info.description}</p>
 
       {/* example builds disclosure */}
-      <button onClick={() => setShowBuilds(!showBuilds)} className="relative mt-2.5 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-[0.1em] text-orange-400/70 hover:text-orange-400 transition-colors">
+      <button onClick={() => setShowBuilds(!showBuilds)} className="relative mt-2.5 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-[0.1em] text-orange-600 hover:text-orange-600 transition-colors">
         <ChevronDown className={`w-3 h-3 transition-transform ${showBuilds ? "rotate-180" : ""}`} />See what it builds
       </button>
       {showBuilds && (
@@ -100,7 +100,7 @@ export default function TierLadderCard({ tier, info, state, within, pct, group }
       {unlocked && (
         <div className="relative mt-3">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/15 border border-orange-500/30">
-            <span className="text-[9px] font-mono uppercase tracking-wider text-orange-400">Credit Available: {info.credit}</span>
+            <span className="text-[9px] font-mono uppercase tracking-wider text-orange-600">Credit Available: {info.credit}</span>
           </span>
         </div>
       )}

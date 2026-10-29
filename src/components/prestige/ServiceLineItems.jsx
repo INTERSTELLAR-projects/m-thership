@@ -17,9 +17,9 @@ export default function ServiceLineItems({ value, onChange }) {
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <Label className="text-ink/[0.58] text-[11px] flex items-center gap-1.5">
-          <Repeat className="w-3 h-3 text-orange-400/70" /> Packages & Services
+          <Repeat className="w-3 h-3 text-orange-600" /> Packages & Services
         </Label>
-        <span className="text-[10px] text-orange-400/80 font-semibold tracking-wide">Total ${total.toLocaleString()}</span>
+        <span className="text-[10px] text-orange-600 font-semibold tracking-wide">Total ${total.toLocaleString()}</span>
       </div>
       <div className="space-y-2">
         {items.map((it, i) => (
@@ -35,7 +35,7 @@ export default function ServiceLineItems({ value, onChange }) {
             <button
               type="button"
               onClick={() => update(i, { subscription: !it.subscription })}
-              className={`shrink-0 flex items-center gap-1 px-2 py-1.5 rounded-md border text-[10px] font-semibold transition-all ${it.subscription ? "bg-orange-500/15 border-orange-500/40 text-orange-400 shadow-[0_0_10px_rgba(255,106,0,0.35)]" : "bg-ink/[0.03] border-ink/[0.13] text-ink/[0.58] hover:text-ink/70"}`}
+              className={`shrink-0 flex items-center gap-1 px-2 py-1.5 rounded-md border text-[10px] font-semibold transition-all ${it.subscription ? "bg-orange-500/15 border-orange-500/40 text-orange-600" : "bg-ink/[0.03] border-ink/[0.13] text-ink/[0.58] hover:text-ink/70"}`}
             >
               <Repeat className="w-3 h-3" /> Sub
             </button>
@@ -49,7 +49,7 @@ export default function ServiceLineItems({ value, onChange }) {
           </div>
         ))}
       </div>
-      <button type="button" onClick={add} className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-dashed border-ink/15 text-ink/[0.58] hover:text-orange-400 hover:border-orange-500/40 transition-colors text-[11px] font-medium">
+      <button type="button" onClick={add} className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-dashed border-ink/15 text-ink/[0.58] hover:text-orange-600 hover:border-orange-500/40 transition-colors text-[11px] font-medium">
         <Plus className="w-3.5 h-3.5" /> Add Service / Package
       </button>
     </div>

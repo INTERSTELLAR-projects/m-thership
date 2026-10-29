@@ -66,7 +66,7 @@ export default function WorkloadSnapshot({ clients }) {
         className="w-full flex items-center justify-between px-5 py-4 hover:bg-ink/[0.02] transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-orange-500 to-yellow-400 shadow-[0_0_8px_rgba(255,106,0,0.7)]" />
+          <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-orange-500 to-yellow-400" />
           <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Workload Snapshot</h2>
           <span className="text-ink/[0.43] text-[10px]">Active client content obligations</span>
         </div>
@@ -82,8 +82,8 @@ export default function WorkloadSnapshot({ clients }) {
             <KPI label="Blogs / Month" value={totalBlogsPerMonth} color="text-blue-600" />
             <KPI label="GBP Posts / Week" value={totalGBPPerWeek} color="text-purple-600" />
             <KPI label="GBP Posts / Month" value={totalGBPPerMonth} color="text-purple-600" />
-            <KPI label="Total Content / Week" value={totalContentPerWeek} color="text-orange-400" />
-            <KPI label="Total Content / Month" value={totalContentPerMonth} color="text-orange-400" />
+            <KPI label="Total Content / Week" value={totalContentPerWeek} color="text-orange-600" />
+            <KPI label="Total Content / Month" value={totalContentPerMonth} color="text-orange-600" />
           </div>
 
           {/* Per-day breakdown */}
@@ -114,7 +114,7 @@ export default function WorkloadSnapshot({ clients }) {
                             <MapPin className="w-3 h-3 text-purple-600/70" />
                             <span className="text-purple-600 font-bold text-sm">{d.gbp}</span>
                           </div>
-                          <div className="text-[10px] font-bold text-orange-300 bg-gradient-to-r from-orange-500/15 to-amber-400/10 border border-orange-500/25 rounded px-1.5 py-0.5">
+                          <div className="text-[10px] font-bold text-orange-600 bg-gradient-to-r from-orange-500/15 to-amber-400/10 border border-orange-500/25 rounded px-1.5 py-0.5">
                             {d.total} total
                           </div>
                         </>
@@ -131,13 +131,13 @@ export default function WorkloadSnapshot({ clients }) {
             {busiestDay && (
               <div className="flex items-center gap-2">
                 <span className="text-ink/[0.48] text-xs">Busiest day:</span>
-                <span className="text-orange-400 text-xs font-semibold">{busiestDay.label} ({busiestDay.total} pieces)</span>
+                <span className="text-orange-600 text-xs font-semibold">{busiestDay.label} ({busiestDay.total} pieces)</span>
               </div>
             )}
             {unscheduledCount > 0 && (
               <div className="flex items-center gap-2">
                 <span className="text-ink/[0.48] text-xs">No schedule set:</span>
-                <span className="text-orange-400/70 text-xs font-semibold">{unscheduledCount} client{unscheduledCount > 1 ? "s" : ""}</span>
+                <span className="text-orange-600 text-xs font-semibold">{unscheduledCount} client{unscheduledCount > 1 ? "s" : ""}</span>
               </div>
             )}
             <div className="ml-auto flex items-center gap-4">
@@ -154,7 +154,6 @@ export default function WorkloadSnapshot({ clients }) {
 function KPI({ label, value, color }) {
   return (
     <div className="relative overflow-hidden bg-ink/[0.02] rounded-lg border border-orange-500/10 p-3 text-center">
-      <div className="absolute -top-8 -right-8 w-12 h-12 rounded-full bg-orange-500/[0.05] blur-2xl pointer-events-none" />
       <p className={`relative text-xl font-display font-extrabold ${color}`}>{value}</p>
       <p className="relative text-ink/[0.48] text-[10px] uppercase tracking-wider mt-1">{label}</p>
     </div>

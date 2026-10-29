@@ -26,7 +26,7 @@ function getPerformanceStatus(score) {
   if (score >= 80) return { label: "Strong", color: "text-green-600", bg: "bg-green-500/10 border-green-500/20" };
   if (score >= 65) return { label: "Growing", color: "text-blue-600", bg: "bg-blue-500/10 border-blue-500/20" };
   if (score >= 50) return { label: "Flat", color: "text-ink/50", bg: "bg-ink/5 border-ink/[0.13]" };
-  if (score >= 35) return { label: "Needs Attention", color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20" };
+  if (score >= 35) return { label: "Needs Attention", color: "text-orange-600", bg: "bg-orange-500/10 border-orange-500/20" };
   return { label: "Critical", color: "text-red-600", bg: "bg-red-500/10 border-red-500/20" };
 }
 
@@ -110,7 +110,7 @@ export default function Performance() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Portal / Performance" rightText="Ørbit SEO Intelligence Center" />
+      <PageHeader breadcrumb="Command / Performance" rightText="Ørbit SEO Intelligence Center" />
 
       <div className="px-8 py-6 space-y-6">
 
@@ -119,7 +119,7 @@ export default function Performance() {
           <StatCard label="SEO Clients Tracked" value={clients.length} icon={Users} color="text-orange-500" />
           <StatCard label="Avg SEO Score" value={avgScore || "—"} icon={Star} color="text-yellow-600" sub="across all clients" />
           <StatCard label="Clients Improving" value={improving} icon={TrendingUp} color="text-green-600" />
-          <StatCard label="Needs Attention" value={needsAttention} icon={AlertCircle} color={needsAttention > 0 ? "text-orange-400" : "text-ink/[0.48]"} />
+          <StatCard label="Needs Attention" value={needsAttention} icon={AlertCircle} color={needsAttention > 0 ? "text-orange-600" : "text-ink/[0.48]"} />
           <StatCard label="Blogs This Month" value={publishedThisMonth} icon={FileText} color="text-purple-600" />
           <StatCard label="GBP Posts This Month" value={gbpThisMonth} icon={Globe} color="text-cyan-600" />
           <div className="col-span-2 game-panel p-4">
@@ -148,12 +148,12 @@ export default function Performance() {
           </div>
           <div className="flex gap-1.5">
             {["All", "Local", "National", "International"].map((t) => (
-              <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterType === t ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{t}</button>
+              <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterType === t ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-600 border border-orange-500/30" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{t}</button>
             ))}
           </div>
           <div className="flex gap-1.5">
             {["All", "Strong", "Growing", "Flat", "Needs Attention"].map((s) => (
-              <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterStatus === s ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{s}</button>
+              <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterStatus === s ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-600 border border-orange-500/30" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{s}</button>
             ))}
           </div>
           <span className="ml-auto text-ink/[0.43] text-xs">{filtered.length} clients</span>
@@ -190,7 +190,7 @@ export default function Performance() {
               return (
                 <button key={client.id} onClick={() => setSelectedClient(client)} className="card-hover w-full game-panel p-4 grid grid-cols-12 gap-4 items-center text-left group">
                   <div className="col-span-3 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 font-display font-extrabold text-sm shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-600 font-display font-extrabold text-sm shrink-0">
                       {client.businessName?.charAt(0)}
                     </div>
                     <div className="min-w-0">
@@ -210,11 +210,11 @@ export default function Performance() {
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
                       client.serviceType === "Local" ? "bg-blue-500/10 text-blue-600 border-blue-500/20" :
                       client.serviceType === "National" ? "bg-purple-500/10 text-purple-600 border-purple-500/20" :
-                      "bg-orange-500/10 text-orange-400 border-orange-500/20"
+                      "bg-orange-500/10 text-orange-600 border-orange-500/20"
                     }`}>{client.serviceType}</span>
                   </div>
                   <div className="col-span-2">
-                    <span className={`text-xs font-medium ${client.gbpStatus === "Active" ? "text-green-600/70" : client.gbpStatus === "Needs Attention" ? "text-orange-400/70" : "text-ink/[0.48]"}`}>
+                    <span className={`text-xs font-medium ${client.gbpStatus === "Active" ? "text-green-600/70" : client.gbpStatus === "Needs Attention" ? "text-orange-600" : "text-ink/[0.48]"}`}>
                       {client.gbpStatus || "—"}
                     </span>
                   </div>

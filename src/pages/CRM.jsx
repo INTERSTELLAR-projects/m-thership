@@ -97,7 +97,7 @@ export default function CRM() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command Center / CRM" rightText="Customer Management" />
+      <PageHeader breadcrumb="Command / Clients" rightText="Customer Management" />
       <div className="px-8 py-6 space-y-5">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
@@ -106,10 +106,10 @@ export default function CRM() {
           </div>
           <div className="flex gap-1.5">
             {statusFilters.map((f) => (
-              <button key={f} onClick={() => setStatusFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${statusFilter === f ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{f}</button>
+              <button key={f} onClick={() => setStatusFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${statusFilter === f ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-600 border border-orange-500/30" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{f}</button>
             ))}
           </div>
-          <Button onClick={() => setAddOpen(true)} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Plus className="w-4 h-4" />Add Client</Button>
+          <Button onClick={() => setAddOpen(true)} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold h-9 gap-2"><Plus className="w-4 h-4" />Add Client</Button>
         </div>
 
         {loading ? (
@@ -119,13 +119,13 @@ export default function CRM() {
             {filtered.map((client) => {
               const total = (client.services || []).reduce((s, sv) => s + (sv.price || 0), 0);
               return (
-                <div key={client.id} className="card-hover w-full bg-card rounded-xl border border-ink/[0.13] p-4 flex items-center gap-5 group">
+                <div key={client.id} className="card-hover w-full bg-card rounded-md border border-ink/[0.13] p-4 flex items-center gap-5 group">
                   <button onClick={() => setSelectedId(client.id)} className="flex items-center gap-5 flex-1 text-left min-w-0">
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center shrink-0 overflow-hidden">
                       {client.logoUrl ? (
                         <img src={client.logoUrl} alt={client.business} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-orange-300 font-display font-extrabold text-sm">{client.business?.charAt(0)}</span>
+                        <span className="text-orange-600 font-display font-extrabold text-sm">{client.business?.charAt(0)}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -136,10 +136,10 @@ export default function CRM() {
                       <p className="text-ink/[0.48] text-xs">{client.contact} · {(client.emails || [])[0]}</p>
                     </div>
                     <div className="text-right mr-2 shrink-0">
-                      <p className="text-orange-300 text-sm font-display font-bold">${total}/mo</p>
-                      <p className="text-orange-300/40 text-xs">{(client.services || []).length} services</p>
+                      <p className="text-orange-600 text-sm font-display font-bold">${total}/mo</p>
+                      <p className="text-orange-600/80 text-xs">{(client.services || []).length} services</p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-ink/[0.33] group-hover:text-orange-400/60 transition-colors shrink-0" />
+                    <ChevronRight className="w-4 h-4 text-ink/[0.33] group-hover:text-orange-600/80 transition-colors shrink-0" />
                   </button>
                   <button onClick={() => deleteClient(client.id)} className="p-1.5 text-ink/[0.28] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
@@ -168,7 +168,7 @@ export default function CRM() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={addClient} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">Add Client</Button>
+            <Button onClick={addClient} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold">Add Client</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -182,10 +182,9 @@ function ClientDetail({ client, onBack, onUpdate }) {
   return (
     <div className="min-h-screen bg-background">
       <div className="relative overflow-hidden flex items-center gap-3 px-8 py-5 border-b border-orange-500/[0.12]">
-        <div className="absolute -top-8 right-1/3 w-32 h-32 rounded-full bg-orange-500/[0.05] blur-3xl pointer-events-none" />
-        <button onClick={onBack} className="relative text-ink/[0.48] hover:text-orange-400/70 text-sm transition-colors">← Back</button>
+        <button onClick={onBack} className="relative text-ink/[0.48] hover:text-orange-600 text-sm transition-colors">← Back</button>
         <span className="relative text-orange-500/40">/</span>
-        <div className="relative w-1 h-4 rounded-full bg-gradient-to-b from-orange-500 to-yellow-400 shadow-[0_0_10px_rgba(255,106,0,0.7)]" />
+        <div className="relative w-1 h-4 rounded-full bg-gradient-to-b from-orange-500 to-yellow-400" />
         <span className="relative font-display font-bold text-sm tracking-[0.1em] bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{client.business}</span>
       </div>
       <div className="px-8 py-6">
@@ -495,7 +494,7 @@ function NotesTab({ client, update }) {
           <textarea value={newNote} onChange={(e) => setNewNote(e.target.value)} placeholder="Add a note..." className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 pr-9 text-sm text-ink placeholder:text-ink/[0.38] outline-none resize-none min-h-[80px]" />
           <MicButton onResult={(t) => setNewNote((p) => p + (p ? " " : "") + t)} className="absolute top-2 right-1" />
         </div>
-        <button onClick={addNote} className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-xs font-semibold rounded-lg transition-colors self-end">Add</button>
+        <button onClick={addNote} className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold text-xs font-semibold rounded-lg transition-colors self-end">Add</button>
       </div>
     </div>
   );
@@ -528,7 +527,7 @@ function DocumentsTab({ client, update }) {
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Documents</h3>
         <input ref={fileRef} type="file" multiple className="hidden" onChange={handleUpload} />
-        <Button onClick={() => fileRef.current.click()} disabled={uploading} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-8 gap-2 text-xs">
+        <Button onClick={() => fileRef.current.click()} disabled={uploading} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold h-8 gap-2 text-xs">
           <Upload className="w-3.5 h-3.5" />{uploading ? "Uploading..." : "Upload"}
         </Button>
       </div>
@@ -593,7 +592,7 @@ function MultiField({ label, icon: Icon, values, onAdd, onUpdate, onRemove }) {
           const STATUS_OPTIONS = ["Pending", "In Progress", "Completed"];
           const STATUS_STYLES = {
             Pending: "bg-ink/5 text-ink/[0.53] border-ink/[0.13]",
-            "In Progress": "bg-orange-500/15 text-orange-400 border-orange-500/25",
+            "In Progress": "bg-orange-500/15 text-orange-600 border-orange-500/25",
             Completed: "bg-green-500/15 text-green-600 border-green-500/25",
           };
 

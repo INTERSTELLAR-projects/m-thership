@@ -8,7 +8,7 @@ import { CATEGORIES, TASK_TYPES, EST_UNITS, INTERSTELLAR_OPTION } from "@/lib/ta
 export default function TaskForm({ form, setForm, onSave, onCancel, title, inline, clients = [] }) {
   const assignOptions = [INTERSTELLAR_OPTION, ...clients.map((c) => c.business)];
   return (
-    <div className="bg-card rounded-xl border border-orange-500/20 p-5 space-y-3">
+    <div className="bg-card rounded-md border border-orange-500/20 p-5 space-y-3">
       <h3 className="text-ink font-bold text-xs tracking-[0.15em] uppercase">{title}</h3>
       <div>
         <Label className="text-ink/[0.58] text-xs">Title</Label>

@@ -152,7 +152,7 @@ const SECTIONS = [
 function SettingsCard({ title, description, children, defaultOpen = false }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="bg-card rounded-xl border border-ink/[0.13] overflow-hidden">
+    <div className="bg-card rounded-md border border-ink/[0.13] overflow-hidden">
       <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between p-5 hover:bg-ink/[0.02] transition-colors">
         <div className="text-left">
           <h3 className="font-display font-bold text-sm tracking-wide bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{title}</h3>
@@ -338,7 +338,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Settings" rightText="System Control Center" />
+      <PageHeader breadcrumb="System / Settings" rightText="System Control Center" />
 
       <div className="flex h-[calc(100vh-57px)]">
         {/* SIDEBAR NAV */}
@@ -347,7 +347,7 @@ export default function SettingsPage() {
             const Icon = typeof sec.icon === "string" ? null : sec.icon;
             return (
               <button key={sec.id} onClick={() => setActiveSection(sec.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left ${activeSection === sec.id ? "bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.58] hover:text-ink/70 hover:bg-ink/[0.04]"}`}>
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left ${activeSection === sec.id ? "bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40" : "text-ink/[0.58] hover:text-ink/70 hover:bg-ink/[0.04]"}`}>
                 {Icon ? <Icon className="w-3.5 h-3.5 shrink-0" /> : <span className="text-sm shrink-0">{sec.icon}</span>}
                 {sec.label}
               </button>
@@ -367,7 +367,7 @@ export default function SettingsPage() {
                   className="w-full pl-10 pr-4 py-2 bg-card border border-ink/[0.13] rounded-lg text-sm text-ink placeholder:text-ink/[0.38] outline-none" />
               </div>
               <button onClick={handleSave} disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 disabled:opacity-60 text-white font-semibold text-xs rounded-lg shadow-[0_0_14px_rgba(255,106,0,0.25)] transition-colors">
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 disabled:opacity-60 text-white font-semibold text-xs rounded-lg transition-colors">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                 {saved ? "Saved!" : saving ? "Saving..." : "Save Settings"}
               </button>
@@ -448,14 +448,14 @@ export default function SettingsPage() {
                     <div className="space-y-3">
                       {users.map((u) => (
                         <div key={u.id} className="flex items-center gap-4 p-3 bg-ink/[0.02] rounded-lg border border-ink/[0.13]">
-                          <div className="w-8 h-8 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-[11px] font-bold text-orange-400 shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-[11px] font-bold text-orange-600 shrink-0">
                             {u.full_name?.charAt(0) || u.email?.charAt(0)}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-ink/80 text-sm font-medium truncate">{u.full_name || "—"}</p>
                             <p className="text-ink/[0.48] text-xs truncate">{u.email}</p>
                           </div>
-                          <span className={`text-[10px] font-bold px-2 py-1 rounded border ${u.role === "admin" ? "bg-orange-500/15 text-orange-400 border-orange-500/20" : "bg-ink/5 text-ink/[0.48] border-ink/[0.13]"}`}>
+                          <span className={`text-[10px] font-bold px-2 py-1 rounded border ${u.role === "admin" ? "bg-orange-500/15 text-orange-600 border-orange-500/20" : "bg-ink/5 text-ink/[0.48] border-ink/[0.13]"}`}>
                             {u.role === "admin" ? "Admin" : "User"}
                           </span>
                         </div>
@@ -467,7 +467,7 @@ export default function SettingsPage() {
                 <SettingsCard title="Invite New User">
                   <p className="text-ink/[0.58] text-xs mb-4">Use the platform's invite system to add new team members and assign roles.</p>
                   <div className="p-4 bg-orange-500/[0.06] rounded-lg border border-orange-500/15">
-                    <p className="text-orange-400/80 text-xs font-medium">To invite users, go to the platform dashboard → Members → Invite.</p>
+                    <p className="text-orange-600 text-xs font-medium">To invite users, go to the platform dashboard → Members → Invite.</p>
                     <p className="text-ink/[0.48] text-xs mt-1">Invited users must be registered before they appear here.</p>
                   </div>
                 </SettingsCard>
@@ -479,7 +479,7 @@ export default function SettingsPage() {
                       { role: "User", desc: "Limited access based on page visibility settings" },
                     ].map(({ role, desc }) => (
                       <div key={role} className="flex items-center gap-3 p-3 bg-ink/[0.02] rounded-lg border border-ink/[0.13]">
-                        <span className="text-orange-400 text-xs font-bold w-24 shrink-0">{role}</span>
+                        <span className="text-orange-600 text-xs font-bold w-24 shrink-0">{role}</span>
                         <span className="text-ink/[0.58] text-xs">{desc}</span>
                       </div>
                     ))}
@@ -673,7 +673,7 @@ export default function SettingsPage() {
                     <input value={newCrmField} onChange={(e) => setNewCrmField(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && addCrmField()}
                       placeholder="New field name..." className="flex-1 bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink placeholder:text-ink/[0.38] outline-none" />
-                    <button onClick={addCrmField} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg text-xs font-medium hover:bg-orange-500/20 transition-colors">
+                    <button onClick={addCrmField} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 rounded-lg text-xs font-medium hover:bg-orange-500/20 transition-colors">
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
@@ -774,7 +774,7 @@ export default function SettingsPage() {
                         <p className="text-ink/70 text-sm font-medium">{name}</p>
                         <p className="text-ink/[0.43] text-xs mt-0.5">Not connected</p>
                       </div>
-                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors">
+                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 rounded-lg hover:bg-orange-500/20 transition-colors">
                         Connect
                       </button>
                     </div>
@@ -788,7 +788,7 @@ export default function SettingsPage() {
                         <p className="text-ink/70 text-sm font-medium">{name}</p>
                         <p className="text-ink/[0.43] text-xs mt-0.5">Not connected</p>
                       </div>
-                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors">
+                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 rounded-lg hover:bg-orange-500/20 transition-colors">
                         Connect
                       </button>
                     </div>
@@ -802,7 +802,7 @@ export default function SettingsPage() {
                         <p className="text-ink/70 text-sm font-medium">{name}</p>
                         <p className="text-ink/[0.43] text-xs mt-0.5">Not connected</p>
                       </div>
-                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors">
+                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 rounded-lg hover:bg-orange-500/20 transition-colors">
                         Connect
                       </button>
                     </div>
@@ -884,7 +884,7 @@ export default function SettingsPage() {
                         <input autoFocus value={newStatus.label} onChange={(e) => setNewStatus({ ...newStatus, label: e.target.value })}
                           onKeyDown={(e) => { if (e.key === "Enter") addStatus(key); if (e.key === "Escape") setNewStatus({ section: null, label: "", color: "#ff3c00" }); }}
                           placeholder="Status label..." className="flex-1 bg-ink/[0.03] border border-orange-500/30 rounded-lg px-3 py-2 text-sm text-ink placeholder:text-ink/[0.38] outline-none" />
-                        <button onClick={() => addStatus(key)} className="p-2 bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors"><Check className="w-4 h-4" /></button>
+                        <button onClick={() => addStatus(key)} className="p-2 bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 rounded-lg hover:bg-orange-500/20 transition-colors"><Check className="w-4 h-4" /></button>
                         <button onClick={() => setNewStatus({ section: null, label: "", color: "#ff3c00" })} className="p-2 text-ink/[0.48] hover:text-ink/60 transition-colors"><X className="w-4 h-4" /></button>
                       </div>
                     ) : (
@@ -898,9 +898,9 @@ export default function SettingsPage() {
                 <SettingsCard title="Custom Tags">
                   <div className="flex flex-wrap gap-2 mb-4">
                     {(settings.customTags || []).map((tag) => (
-                      <span key={tag} className="flex items-center gap-1.5 px-2.5 py-1 bg-orange-500/10 border border-orange-500/20 text-orange-400/80 text-xs font-medium rounded-full">
+                      <span key={tag} className="flex items-center gap-1.5 px-2.5 py-1 bg-orange-500/10 border border-orange-500/20 text-orange-600 text-xs font-medium rounded-full">
                         {tag}
-                        <button onClick={() => removeTag(tag)} className="text-orange-400/40 hover:text-red-600/70 transition-colors"><X className="w-3 h-3" /></button>
+                        <button onClick={() => removeTag(tag)} className="text-orange-600/80 hover:text-red-600/70 transition-colors"><X className="w-3 h-3" /></button>
                       </span>
                     ))}
                     {(settings.customTags || []).length === 0 && <p className="text-ink/[0.43] text-xs">No tags yet.</p>}
@@ -908,7 +908,7 @@ export default function SettingsPage() {
                   <div className="flex gap-2">
                     <input value={newTag} onChange={(e) => setNewTag(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addTag()}
                       placeholder="New tag..." className="flex-1 bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink placeholder:text-ink/[0.38] outline-none" />
-                    <button onClick={addTag} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg text-xs font-medium hover:bg-orange-500/20 transition-colors">
+                    <button onClick={addTag} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 rounded-lg text-xs font-medium hover:bg-orange-500/20 transition-colors">
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>

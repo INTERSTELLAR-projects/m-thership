@@ -100,7 +100,7 @@ export default function Documents() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command Center / Documents" rightText="Document Management" />
+      <PageHeader breadcrumb="Agency / Documents" rightText="Document Management" />
       <div className="px-8 py-6 space-y-6">
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="bg-card border border-ink/[0.13] mb-6">
@@ -114,14 +114,13 @@ export default function Documents() {
             <Input placeholder="Search documents..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 bg-card border-ink/[0.13] text-ink placeholder:text-ink/[0.38] h-9" />
           </div>
           <input ref={fileRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
-          <Button onClick={() => fileRef.current.click()} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Upload className="w-4 h-4" />Upload</Button>
+          <Button onClick={() => fileRef.current.click()} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold h-9 gap-2"><Upload className="w-4 h-4" />Upload</Button>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
           {CATEGORIES.map((cat) => (
-            <button key={cat} onClick={() => setActiveFilter(activeFilter === cat ? "All" : cat)} className={`relative overflow-hidden bg-card rounded-xl border p-4 text-left transition-all card-hover ${activeFilter === cat ? "border-orange-500/40 bg-orange-500/[0.06] shadow-[0_0_16px_rgba(255,106,0,0.2)]" : "border-ink/[0.13]"}`}>
-              <div className="absolute -top-8 -right-8 w-16 h-16 rounded-full bg-orange-500/[0.06] blur-2xl pointer-events-none" />
-              <div className="relative flex items-center justify-between mb-2"><Folder className="w-4 h-4 text-orange-400" /><span className="text-orange-300/70 text-sm font-display font-bold">{categoryCounts[cat] || 0}</span></div>
+            <button key={cat} onClick={() => setActiveFilter(activeFilter === cat ? "All" : cat)} className={`relative overflow-hidden bg-card rounded-md border p-4 text-left transition-all card-hover ${activeFilter === cat ? "border-orange-500/40 bg-orange-500/[0.06]" : "border-ink/[0.13]"}`}>
+              <div className="relative flex items-center justify-between mb-2"><Folder className="w-4 h-4 text-orange-600" /><span className="text-orange-600 text-sm font-display font-bold">{categoryCounts[cat] || 0}</span></div>
               <p className="relative text-ink/80 text-sm font-medium">{cat}</p>
             </button>
           ))}
@@ -136,16 +135,15 @@ export default function Documents() {
         {loading ? (
           <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" /></div>
         ) : filtered.length === 0 ? (
-          <div className="bg-card rounded-xl border border-ink/[0.13] p-10 text-center">
+          <div className="bg-card rounded-md border border-ink/[0.13] p-10 text-center">
             <Folder className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
             <p className="text-ink/[0.48] text-sm">{activeFilter === "All" ? "No documents yet. Upload your first file." : `No documents in ${activeFilter}.`}</p>
           </div>
         ) : (
           <div className="space-y-2">
             {filtered.map((doc) => (
-              <div key={doc.id} className="card-hover relative overflow-hidden bg-card rounded-xl border border-ink/[0.13] p-4 flex items-center gap-4 group">
-                <div className="absolute -top-10 -left-8 w-20 h-20 rounded-full bg-orange-500/[0.05] blur-2xl pointer-events-none" />
-                <button onClick={() => window.open(doc.url, "_blank")} className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center shrink-0 hover:from-orange-500/30 hover:to-yellow-400/20 transition-all"><FileText className="w-4 h-4 text-orange-300" /></button>
+              <div key={doc.id} className="card-hover relative overflow-hidden bg-card rounded-md border border-ink/[0.13] p-4 flex items-center gap-4 group">
+                <button onClick={() => window.open(doc.url, "_blank")} className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center shrink-0 hover:from-orange-500/30 hover:to-yellow-400/20 transition-all"><FileText className="w-4 h-4 text-orange-600" /></button>
                 <div className="flex-1 min-w-0">
                   {renamingId === doc.id ? (
                     <div className="flex items-center gap-2">
@@ -154,7 +152,7 @@ export default function Documents() {
                       <button onClick={() => setRenamingId(null)} className="p-1 text-ink/[0.48] hover:text-ink/60"><X className="w-3.5 h-3.5" /></button>
                     </div>
                   ) : (
-                    <button onClick={() => window.open(doc.url, "_blank")} className="flex items-center gap-2 text-left hover:text-orange-400/80 transition-colors">
+                    <button onClick={() => window.open(doc.url, "_blank")} className="flex items-center gap-2 text-left hover:text-orange-600 transition-colors">
                       <span className="text-ink/85 text-sm font-medium truncate">{doc.name}</span>
                       <ExternalLink className="w-3 h-3 text-ink/[0.38] shrink-0" />
                       {doc.pinned && <Pin className="w-3 h-3 text-orange-500/50 shrink-0" />}
@@ -180,7 +178,7 @@ export default function Documents() {
 
       {showUploadModal && (
         <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center">
-          <div className="bg-card border border-ink/[0.13] rounded-2xl p-6 w-full max-w-sm space-y-4">
+          <div className="bg-card border border-ink/[0.13] rounded-md p-6 w-full max-w-sm space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-ink font-bold text-sm">Upload Documents</h3>
               <button onClick={() => { setShowUploadModal(false); setPendingFiles([]); }} className="text-ink/[0.48] hover:text-ink/60"><X className="w-4 h-4" /></button>
@@ -194,7 +192,7 @@ export default function Documents() {
                 ))}
               </div>
             </div>
-            <Button onClick={handleUpload} disabled={uploading} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">{uploading ? "Uploading..." : `Upload ${pendingFiles.length} file${pendingFiles.length > 1 ? "s" : ""}`}</Button>
+            <Button onClick={handleUpload} disabled={uploading} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold">{uploading ? "Uploading..." : `Upload ${pendingFiles.length} file${pendingFiles.length > 1 ? "s" : ""}`}</Button>
           </div>
         </div>
       )}
@@ -228,18 +226,18 @@ export default function Documents() {
 
       <div className="flex items-center justify-between">
        <h3 className="text-ink font-bold text-sm">{selectedType === "request" ? "Request" : "Intake"} Forms</h3>
-       <Button onClick={() => { setEditingForm(null); setShowFormBuilder(true); }} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Plus className="w-4 h-4" />New Form</Button>
+       <Button onClick={() => { setEditingForm(null); setShowFormBuilder(true); }} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold h-9 gap-2"><Plus className="w-4 h-4" />New Form</Button>
       </div>
 
       {forms.filter(f => (f.formType || "request") === selectedType).length === 0 ? (
-       <div className="bg-card rounded-xl border border-ink/[0.13] p-10 text-center">
+       <div className="bg-card rounded-md border border-ink/[0.13] p-10 text-center">
          <FileText className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
          <p className="text-ink/[0.48] text-sm">No request forms yet. Create one to get started.</p>
        </div>
       ) : (
        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
          {forms.filter(f => (f.formType || "request") === selectedType).map((form) => (
-           <div key={form.id} className="card-hover relative overflow-hidden bg-card rounded-xl border border-ink/[0.13] p-5 space-y-3">
+           <div key={form.id} className="card-hover relative overflow-hidden bg-card rounded-md border border-ink/[0.13] p-5 space-y-3">
            <div>
              <h4 className="text-ink font-bold text-sm">{form.title}</h4>
              <p className="text-ink/[0.58] text-xs mt-1">{form.subtitle}</p>
@@ -250,7 +248,7 @@ export default function Documents() {
            <div className="flex items-center gap-2">
              <button onClick={() => { setEditingForm(form); setShowFormBuilder(true); }} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-ink/[0.04] text-ink/60 hover:bg-ink/[0.08] transition-all flex items-center justify-center gap-1.5"><Pencil className="w-3 h-3" />Edit</button>
              {form.published && <button onClick={() => setPreviewForm(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 transition-all flex items-center justify-center gap-1.5"><Eye className="w-3 h-3" />Preview</button>}
-             {!form.published && <button onClick={() => handlePublish(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 transition-all flex items-center justify-center gap-1.5"><Eye className="w-3 h-3" />Publish</button>}
+             {!form.published && <button onClick={() => handlePublish(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 transition-all flex items-center justify-center gap-1.5"><Eye className="w-3 h-3" />Publish</button>}
              <button onClick={() => handleDeleteForm(form.id)} className="px-3 py-1.5 text-xs font-medium rounded-lg text-ink/[0.38] hover:text-red-600 transition-all"><Trash2 className="w-3 h-3" /></button>
            </div>
            </div>
@@ -314,7 +312,7 @@ export default function Documents() {
       if (step === "builder") {
       return (
       <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center">
-      <div className="bg-card border border-ink/[0.13] rounded-2xl p-6 w-full max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-card border border-ink/[0.13] rounded-md p-6 w-full max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
        <div className="flex items-center justify-between">
          <div className="flex items-center gap-2">
            <button onClick={() => setStep("basic")} className="text-ink/[0.58] hover:text-ink/70 transition-colors">
@@ -327,7 +325,7 @@ export default function Documents() {
        <FormEditor fields={fields} setFields={setFields} />
        <div className="flex gap-2 pt-2">
          <Button onClick={() => setStep("basic")} variant="outline" className="flex-1">Back</Button>
-         <Button onClick={handleSave} disabled={!title.trim() || fields.length === 0 || saving} className="flex-1 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">{saving ? "Saving..." : "Save Form"}</Button>
+         <Button onClick={handleSave} disabled={!title.trim() || fields.length === 0 || saving} className="flex-1 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold">{saving ? "Saving..." : "Save Form"}</Button>
        </div>
       </div>
       </div>
@@ -336,7 +334,7 @@ export default function Documents() {
 
       return (
       <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center">
-      <div className="bg-card border border-ink/[0.13] rounded-2xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-card border border-ink/[0.13] rounded-md p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto">
        <div className="flex items-center justify-between">
          <h3 className="text-ink font-bold text-sm">{form ? "Edit Form" : "Create Form"}</h3>
          <button onClick={onClose} className="text-ink/[0.48] hover:text-ink/60"><X className="w-4 h-4" /></button>
@@ -359,7 +357,7 @@ export default function Documents() {
        </div>
        <div className="flex gap-2 pt-2">
          <Button onClick={onClose} variant="outline" className="flex-1">Cancel</Button>
-         <Button onClick={() => setStep("builder")} disabled={!title.trim()} className="flex-1 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">Continue to Builder</Button>
+         <Button onClick={() => setStep("builder")} disabled={!title.trim()} className="flex-1 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold">Continue to Builder</Button>
        </div>
       </div>
       </div>

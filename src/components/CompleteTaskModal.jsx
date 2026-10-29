@@ -20,7 +20,7 @@ export default function CompleteTaskModal({ task, onConfirm, onCancel }) {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 backdrop-blur-sm">
-      <div className="bg-card border border-ink/[0.13] rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <div className="bg-card border border-ink/[0.13] rounded-md p-6 w-full max-w-md shadow-2xl">
         {/* Header */}
         <div className="flex items-center gap-3 mb-5">
           <div className="w-9 h-9 rounded-lg bg-green-500/15 border border-green-500/25 flex items-center justify-center shrink-0">
@@ -73,7 +73,7 @@ export default function CompleteTaskModal({ task, onConfirm, onCancel }) {
         <div className="flex gap-2">
           <button
             onClick={handleConfirm}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 text-green-600 text-sm font-semibold rounded-xl transition-all"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 text-green-600 text-sm font-semibold rounded-md transition-all"
           >
             <Check className="w-4 h-4" />
             Yes, Mark Complete

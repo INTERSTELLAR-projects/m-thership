@@ -45,7 +45,7 @@ function EditableField({ label, value, onSave }) {
       ) : (
         <div className="flex items-center justify-between gap-2">
           <p className="text-ink/70 text-xs font-medium">{value}</p>
-          <button onClick={() => setEditing(true)} className="p-0.5 text-orange-400/40 hover:text-orange-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"><Pencil className="w-3 h-3" /></button>
+          <button onClick={() => setEditing(true)} className="p-0.5 text-orange-600/80 hover:text-orange-600 opacity-0 group-hover:opacity-100 transition-all shrink-0"><Pencil className="w-3 h-3" /></button>
         </div>
       )}
     </div>
@@ -55,9 +55,9 @@ function EditableField({ label, value, onSave }) {
 function ChartTooltip({ active, payload, label, prefix }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-card border border-orange-500/30 rounded-lg px-2.5 py-1.5 shadow-[0_0_12px_rgba(255,170,0,0.25)]">
+    <div className="bg-card border border-orange-500/30 rounded-lg px-2.5 py-1.5">
       <p className="text-[9px] text-ink/[0.58] uppercase tracking-wider">{label}</p>
-      <p className="text-orange-400 text-xs font-bold">{prefix}{payload[0].value.toLocaleString()}</p>
+      <p className="text-orange-600 text-xs font-bold">{prefix}{payload[0].value.toLocaleString()}</p>
     </div>
   );
 }
@@ -141,29 +141,26 @@ export default function FinancialPanel() {
   const atGoal = remaining === 0;
 
   return (
-    <div className="relative overflow-hidden bg-card rounded-2xl border border-ink/[0.13] p-5">
-      <div className="absolute -top-20 -right-16 w-44 h-44 rounded-full bg-orange-500/[0.08] blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-20 -left-12 w-40 h-40 rounded-full bg-yellow-400/[0.05] blur-3xl pointer-events-none" />
+    <div className="relative overflow-hidden bg-card rounded-md border border-ink/[0.13] p-5">
 
       <div className="relative flex items-center gap-2.5 mb-5">
-        <div className="w-1.5 h-5 rounded-full bg-gradient-to-b from-orange-500 to-yellow-400 shadow-[0_0_10px_rgba(255,170,0,0.5)]" />
+        <div className="w-1.5 h-5 rounded-full bg-gradient-to-b from-orange-500 to-yellow-400" />
         <h2 className="font-display text-ink/85 font-bold text-xs tracking-[0.22em] uppercase">Financial</h2>
       </div>
 
       {/* Metric cards */}
       <div className="relative grid grid-cols-3 gap-3 mb-5">
-        <div className="relative overflow-hidden rounded-xl border border-orange-500/25 bg-gradient-to-b from-orange-500/10 to-transparent p-3 shadow-[0_0_14px_rgba(255,106,0,0.18)]">
-          <div className="absolute -top-8 -right-6 w-16 h-16 rounded-full bg-orange-500/20 blur-2xl" />
-          <div className="relative flex items-center gap-1 text-orange-400/70 text-[10px] uppercase tracking-wider mb-1"><Flame className="w-3 h-3" /> MRR</div>
-          <div className="relative font-display text-xl font-extrabold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,170,0,0.4)]">
+        <div className="relative overflow-hidden rounded-md border border-orange-500/25 bg-gradient-to-b from-orange-500/10 to-transparent p-3">
+          <div className="relative flex items-center gap-1 text-orange-600 text-[10px] uppercase tracking-wider mb-1"><Flame className="w-3 h-3" /> MRR</div>
+          <div className="relative font-display text-xl font-extrabold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent drop-">
             ${mrr.toLocaleString()}
           </div>
         </div>
-        <div className="relative overflow-hidden rounded-xl border border-yellow-500/20 bg-gradient-to-b from-yellow-400/8 to-transparent p-3 shadow-[0_0_12px_rgba(250,204,21,0.14)]">
+        <div className="relative overflow-hidden rounded-md border border-yellow-500/20 bg-gradient-to-b from-yellow-400/8 to-transparent p-3 shadow-[0_0_12px_rgba(250,204,21,0.14)]">
           <div className="relative flex items-center gap-1 text-yellow-600/70 text-[10px] uppercase tracking-wider mb-1"><TrendingUp className="w-3 h-3" /> ARR</div>
           <div className="relative font-display text-xl font-extrabold text-ink/90">${(mrr * 12).toLocaleString()}</div>
         </div>
-        <div className="relative overflow-hidden rounded-xl border border-ink/[0.13] bg-ink/[0.02] p-3">
+        <div className="relative overflow-hidden rounded-md border border-ink/[0.13] bg-ink/[0.02] p-3">
           <div className="relative flex items-center gap-1 text-ink/[0.58] text-[10px] uppercase tracking-wider mb-1"><Target className="w-3 h-3" /> Goal</div>
           <div className="relative font-display text-xl font-extrabold text-ink/80">${mrrGoal.toLocaleString()}</div>
         </div>
@@ -173,7 +170,7 @@ export default function FinancialPanel() {
       <div className="relative mb-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-ink/[0.58] text-[10px] uppercase tracking-widest flex items-center gap-1.5">
-            <Rocket className="w-3 h-3 text-orange-400" /> Progress to Goal
+            <Rocket className="w-3 h-3 text-orange-600" /> Progress to Goal
           </span>
           <span className={`font-display text-lg font-extrabold ${atGoal ? "text-green-600" : "bg-gradient-to-r from-orange-400 to-yellow-300 bg-clip-text text-transparent"}`}>
             {capped.toFixed(0)}%
@@ -181,14 +178,14 @@ export default function FinancialPanel() {
         </div>
         <div className="relative h-3 w-full bg-ink/[0.04] rounded-full overflow-hidden border border-ink/[0.13]">
           <div
-            className="relative h-full rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-300 shadow-[0_0_12px_rgba(255,170,0,0.55)] transition-all duration-1000"
+            className="relative h-full rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-300 transition-all duration-1000"
             style={{ width: `${capped}%` }}
           >
             <div className="absolute inset-0 shimmer rounded-full" />
           </div>
         </div>
         <div className="flex items-center justify-between mt-1.5">
-          <span className={`text-[10px] ${atGoal ? "text-green-600 font-semibold" : "text-orange-400/70"}`}>
+          <span className={`text-[10px] ${atGoal ? "text-green-600 font-semibold" : "text-orange-600"}`}>
             {atGoal ? "Goal achieved!" : `$${remaining.toLocaleString()} to go`}
           </span>
           <span className="text-ink/[0.48] text-[10px]">Target ${mrrGoal.toLocaleString()}/mo</span>
@@ -197,8 +194,8 @@ export default function FinancialPanel() {
 
       {/* Charts */}
       <div className="relative grid grid-cols-2 gap-4 mb-6">
-        <div className="rounded-xl border border-orange-500/15 bg-ink/[0.01] p-3">
-          <p className="text-orange-400/70 text-[10px] tracking-widest uppercase mb-2 flex items-center gap-1.5"><Flame className="w-3 h-3" /> Monthly Revenue</p>
+        <div className="rounded-md border border-orange-500/15 bg-ink/[0.01] p-3">
+          <p className="text-orange-600 text-[10px] tracking-widest uppercase mb-2 flex items-center gap-1.5"><Flame className="w-3 h-3" /> Monthly Revenue</p>
           <div className="h-[110px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={revenueData} margin={{ top: 5, right: 4, left: 4, bottom: 0 }}>
@@ -217,7 +214,7 @@ export default function FinancialPanel() {
             </ResponsiveContainer>
           </div>
         </div>
-        <div className="rounded-xl border border-yellow-500/15 bg-ink/[0.01] p-3">
+        <div className="rounded-md border border-yellow-500/15 bg-ink/[0.01] p-3">
           <p className="text-yellow-600/70 text-[10px] tracking-widest uppercase mb-2 flex items-center gap-1.5"><TrendingUp className="w-3 h-3" /> Growth Trend</p>
           <div className="h-[110px]">
             <ResponsiveContainer width="100%" height="100%">

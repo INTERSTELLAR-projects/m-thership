@@ -141,7 +141,7 @@ export default function Financial() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command Center / Financial" rightText="Expense Management" />
+      <PageHeader breadcrumb="Agency / Financial" rightText="Expense Management" />
       <div className="px-8 pt-4 flex gap-1 border-b border-ink/[0.13]">
         {["overview", "categories", "analytics", "projections", "investments"].map((tab) => (
           <button key={tab} onClick={() => setSubPage(tab)} className={`px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all rounded-t-lg ${subPage === tab ? "bg-orange-500/15 text-orange-500 border-b-2 border-orange-500" : "text-ink/[0.48] hover:text-ink/60"}`}>{tab === "overview" ? "Overview" : tab === "categories" ? "Categories" : tab === "analytics" ? "Analytics" : tab === "projections" ? "Projections" : "Investments"}</button>
@@ -160,8 +160,8 @@ export default function Financial() {
                 <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-3">Upcoming Expenses</h2>
                 <div className="grid grid-cols-2 gap-3">
                   {upcoming.map((e) => (
-                    <div key={e.id} className={`bg-card rounded-xl border p-4 flex items-center gap-4 ${e.status === "Overdue" ? "border-red-500/20" : "border-ink/[0.13]"}`}>
-                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 font-display font-extrabold text-xs shrink-0">{e.platform?.charAt(0)}</div>
+                    <div key={e.id} className={`bg-card rounded-md border p-4 flex items-center gap-4 ${e.status === "Overdue" ? "border-red-500/20" : "border-ink/[0.13]"}`}>
+                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-600 font-display font-extrabold text-xs shrink-0">{e.platform?.charAt(0)}</div>
                       <div className="flex-1 min-w-0"><p className="text-ink/85 text-sm font-medium truncate">{e.platform}</p><p className="text-ink/[0.43] text-xs">{formatDueDate(e.dueDate)}</p></div>
                       <div className="text-right shrink-0"><p className="text-sm font-display font-bold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">${e.amount.toFixed(2)}</p><StatusBadge status={e.status} /></div>
                     </div>
@@ -206,7 +206,7 @@ export default function Financial() {
             </div>
 
             {managingCats && (
-              <div className="bg-card rounded-xl border border-ink/[0.13] p-5 space-y-3">
+              <div className="bg-card rounded-md border border-ink/[0.13] p-5 space-y-3">
                 <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Manage Categories</h3>
                 <DragDropContext onDragEnd={(result) => {
                   if (!result.destination) return;
@@ -229,7 +229,7 @@ export default function Financial() {
                                       if (e.key === "Enter") { const t = editCat.val.trim(); if (t) { saveCats(categories.map((c, idx) => idx === i ? t : c)); setEditCat(null); } }
                                       if (e.key === "Escape") setEditCat(null);
                                     }} className="flex-1 bg-ink/[0.04] border border-ink/[0.13] rounded px-2 py-0.5 text-xs text-ink outline-none" autoFocus />
-                                    <button onClick={() => { const t = editCat.val.trim(); if (t) { saveCats(categories.map((c, idx) => idx === i ? t : c)); setEditCat(null); } }} className="text-orange-500 text-xs font-semibold hover:text-orange-400">Save</button>
+                                    <button onClick={() => { const t = editCat.val.trim(); if (t) { saveCats(categories.map((c, idx) => idx === i ? t : c)); setEditCat(null); } }} className="text-orange-500 text-xs font-semibold hover:text-orange-600">Save</button>
                                     <button onClick={() => setEditCat(null)} className="text-ink/[0.48] text-xs hover:text-ink/60">Cancel</button>
                                   </>
                                 ) : (
@@ -250,7 +250,7 @@ export default function Financial() {
                 </DragDropContext>
                 <div className="flex gap-2 pt-1">
                   <input placeholder="New category..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } } }} className="flex-1 bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink placeholder:text-ink/[0.38] outline-none" />
-                  <button onClick={() => { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } }} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
+                  <button onClick={() => { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } }} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
                 </div>
               </div>
             )}
@@ -286,7 +286,7 @@ function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave,
   categories = categories || DEFAULT_CATEGORIES;
   if (isEditing) {
     return (
-      <div className="bg-card rounded-xl border border-orange-500/20 p-4 flex items-center gap-3 flex-wrap">
+      <div className="bg-card rounded-md border border-orange-500/20 p-4 flex items-center gap-3 flex-wrap">
         <Input value={editForm.platform} onChange={(e) => setEditForm({ ...editForm, platform: e.target.value })} className="bg-ink/[0.04] border-ink/[0.13] text-ink h-8 w-40" placeholder="Platform" />
         <Input value={editForm.amount} onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })} type="number" className="bg-ink/[0.04] border-ink/[0.13] text-ink h-8 w-24" placeholder="Amount" />
         <Select value={editForm.frequency} onValueChange={(v) => setEditForm({ ...editForm, frequency: v })}>
@@ -311,8 +311,8 @@ function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave,
   }
 
   return (
-    <div className={`card-hover bg-card rounded-xl border p-4 flex items-center gap-5 group ${expense.status === "Overdue" ? "border-red-500/15" : expense.status === "Paid" ? "border-green-500/10 opacity-70" : "border-ink/[0.13]"}`}>
-      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 font-display font-extrabold text-xs shrink-0">{expense.platform?.charAt(0)}</div>
+    <div className={`card-hover bg-card rounded-md border p-4 flex items-center gap-5 group ${expense.status === "Overdue" ? "border-red-500/15" : expense.status === "Paid" ? "border-green-500/10 opacity-70" : "border-ink/[0.13]"}`}>
+      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-600 font-display font-extrabold text-xs shrink-0">{expense.platform?.charAt(0)}</div>
       <div className="flex-1 min-w-0">
         <span className="text-ink/85 text-sm font-medium">{expense.platform}</span>
         <div className="flex items-center gap-2 mt-0.5">
@@ -349,7 +349,7 @@ function AddExpenseDialog({ onAdd, categories }) {
   };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Plus className="w-4 h-4" />Add Expense</Button></DialogTrigger>
+      <DialogTrigger asChild><Button className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold h-9 gap-2"><Plus className="w-4 h-4" />Add Expense</Button></DialogTrigger>
       <DialogContent className="bg-card border-ink/[0.13] text-ink">
         <DialogHeader><DialogTitle className="text-ink">Add New Expense</DialogTitle></DialogHeader>
         <div className="space-y-4 pt-2">
@@ -373,7 +373,7 @@ function AddExpenseDialog({ onAdd, categories }) {
               <SelectContent className="bg-card border-ink/[0.13]">{categories.map((c) => <SelectItem key={c} value={c} className="text-ink/70">{c}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <Button onClick={handleAdd} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">Add Expense</Button>
+          <Button onClick={handleAdd} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold">Add Expense</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -383,11 +383,11 @@ function AddExpenseDialog({ onAdd, categories }) {
 function StatusBadge({ status }) {
   if (status === "Paid") return <span className="text-[10px] font-semibold text-green-600/60">Paid</span>;
   if (status === "Overdue") return <span className="text-[10px] font-semibold text-red-600/70">Overdue</span>;
-  return <span className="text-[10px] font-semibold text-orange-400/60">Upcoming</span>;
+  return <span className="text-[10px] font-semibold text-orange-600/80">Upcoming</span>;
 }
 
 function FilterPill({ label, active, onClick, danger }) {
-  return <button onClick={onClick} className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${active ? danger ? "bg-red-500/15 text-red-600 border border-red-500/20" : "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{label}</button>;
+  return <button onClick={onClick} className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${active ? danger ? "bg-red-500/15 text-red-600 border border-red-500/20" : "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-600 border border-orange-500/30" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{label}</button>;
 }
 
 function SummaryCard({ icon: Icon, label, value, danger }) {

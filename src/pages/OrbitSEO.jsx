@@ -8,12 +8,12 @@ import WorkloadSnapshot from "../components/orbitseo/WorkloadSnapshot";
 const SERVICE_TYPE_COLORS = {
   Local: "bg-blue-500/10 text-blue-600 border-blue-500/20",
   National: "bg-purple-500/10 text-purple-600 border-purple-500/20",
-  International: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+  International: "bg-orange-500/10 text-orange-600 border-orange-500/20",
 };
 
 const GBP_COLORS = {
   Active: "text-green-600",
-  "Needs Attention": "text-orange-400",
+  "Needs Attention": "text-orange-600",
   "Not Applicable": "text-ink/[0.43]",
   Paused: "text-ink/[0.43]",
 };
@@ -143,7 +143,7 @@ export default function OrbitSEO() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Portal / Ørbit SEO" rightText="SEO Command Center" />
+      <PageHeader breadcrumb="Command / Ørbit SEO" rightText="SEO Command Center" />
 
       <div className="px-8 py-6 space-y-6">
 
@@ -153,7 +153,7 @@ export default function OrbitSEO() {
           <StatCard label="Published This Month" value={publishedThisMonth} icon={BarChart3} color="text-green-600" />
           <StatCard label="Blogs Due This Week" value={upcomingBlogs} icon={Calendar} color="text-blue-600" />
           <StatCard label="GBP Due This Week" value={gbpDueThisWeek} icon={Globe} color="text-purple-600" />
-          <StatCard label="Needs Attention" value={needsAttention} icon={AlertCircle} color={needsAttention > 0 ? "text-orange-400" : "text-ink/[0.43]"} />
+          <StatCard label="Needs Attention" value={needsAttention} icon={AlertCircle} color={needsAttention > 0 ? "text-orange-600" : "text-ink/[0.43]"} />
           <div className="game-panel p-4">
             <p className="text-ink/[0.48] text-[10px] uppercase tracking-wider mb-2">Client Breakdown</p>
             <div className="space-y-1">
@@ -183,17 +183,17 @@ export default function OrbitSEO() {
           </div>
           <div className="flex gap-1.5">
             {["All", "Local", "National", "International"].map((t) => (
-              <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterType === t ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{t}</button>
+              <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterType === t ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-600 border border-orange-500/30" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{t}</button>
             ))}
           </div>
           <div className="flex gap-1.5">
             {["All", "Active", "Needs Attention", "Paused"].map((s) => (
-              <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterStatus === s ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{s}</button>
+              <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterStatus === s ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-600 border border-orange-500/30" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{s}</button>
             ))}
           </div>
           <button
             onClick={() => setAddOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-xs font-semibold rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold text-xs font-semibold rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />Add Client
           </button>
@@ -233,7 +233,7 @@ export default function OrbitSEO() {
       {/* ADD MODAL */}
       {addOpen && (
         <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center">
-          <div className="bg-card border border-ink/[0.13] rounded-2xl p-6 w-full max-w-sm space-y-4">
+          <div className="bg-card border border-ink/[0.13] rounded-md p-6 w-full max-w-sm space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-display font-bold text-sm tracking-wide bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Add Ørbit SEO Client</h3>
               <button onClick={() => setAddOpen(false)} className="text-ink/[0.48] hover:text-ink/60"><X className="w-4 h-4" /></button>
@@ -256,7 +256,7 @@ export default function OrbitSEO() {
                 </select>
               </div>
             </div>
-            <button onClick={addClient} className="w-full py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-sm font-semibold rounded-lg transition-colors">Add Client</button>
+            <button onClick={addClient} className="w-full py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold text-sm font-semibold rounded-lg transition-colors">Add Client</button>
           </div>
         </div>
       )}
@@ -287,7 +287,7 @@ function ClientCard({ client, onClick, onDelete }) {
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 font-display font-extrabold shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-600 font-display font-extrabold shrink-0">
             {client.businessName?.charAt(0)}
           </div>
           <div>
@@ -304,7 +304,7 @@ function ClientCard({ client, onClick, onDelete }) {
           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
             client.status === "Active" ? "bg-green-500/10 text-green-600" :
             client.status === "Paused" ? "bg-ink/5 text-ink/[0.48]" :
-            "bg-orange-500/10 text-orange-400"
+            "bg-orange-500/10 text-orange-600"
           }`}>{client.status}</span>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
@@ -347,8 +347,8 @@ function ClientCard({ client, onClick, onDelete }) {
 
       {(overdueBlogs > 0 || gbpOverdue) && (
         <div className="flex items-center gap-2 pt-1 border-t border-ink/[0.13]">
-          <AlertCircle className="w-3.5 h-3.5 text-orange-400" />
-          <p className="text-orange-400 text-xs">
+          <AlertCircle className="w-3.5 h-3.5 text-orange-600" />
+          <p className="text-orange-600 text-xs">
             {overdueBlogs > 0 && `${overdueBlogs} overdue blog${overdueBlogs > 1 ? "s" : ""}`}
             {overdueBlogs > 0 && gbpOverdue && " · "}
             {gbpOverdue && "GBP post overdue"}
@@ -359,7 +359,7 @@ function ClientCard({ client, onClick, onDelete }) {
       {client.nextBlogDue && (
         <div className="flex items-center justify-between pt-1 border-t border-ink/[0.13]">
           <span className="text-ink/[0.43] text-[10px]">Next blog due</span>
-          <span className={`text-xs font-medium ${isOverdue(client.nextBlogDue) ? "text-orange-400" : "text-ink/50"}`}>
+          <span className={`text-xs font-medium ${isOverdue(client.nextBlogDue) ? "text-orange-600" : "text-ink/50"}`}>
             {new Date(client.nextBlogDue + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
           </span>
         </div>

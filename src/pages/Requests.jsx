@@ -46,7 +46,7 @@ export default function Requests() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <PageHeader breadcrumb="Command Center / Requests" rightText="All Client Requests" />
+        <PageHeader breadcrumb="Command / Requests" rightText="All Client Requests" />
         <div className="flex items-center justify-center py-16">
           <Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" />
         </div>
@@ -56,7 +56,7 @@ export default function Requests() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command Center / Requests" rightText="All Client Requests" />
+      <PageHeader breadcrumb="Command / Requests" rightText="All Client Requests" />
       <div className="px-8 py-6 space-y-6">
         {/* Filters */}
         <div className="flex items-center gap-4 flex-wrap">
@@ -151,7 +151,7 @@ function RequestList({ requests, emptyText }) {
 
 function RequestCard({ req, showClient }) {
   const statusColors = {
-    "Pending": "bg-orange-500/10 text-orange-400",
+    "Pending": "bg-orange-500/10 text-orange-600",
     "In Progress": "bg-blue-500/10 text-blue-600",
     "Completed": "bg-green-500/10 text-green-600",
   };
@@ -202,7 +202,7 @@ function ByClientView({ clients, search }) {
       {filtered.map((client) => (
         <div key={client.id} className="game-panel p-5">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 text-xs font-display font-extrabold">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-600 text-xs font-display font-extrabold">
               {client.business?.charAt(0)}
             </div>
             <div>
@@ -223,7 +223,7 @@ function ByClientView({ clients, search }) {
 
 function StatBadge({ label, count, color }) {
   const colors = {
-    orange: "text-orange-400 bg-orange-500/10 border-orange-500/20",
+    orange: "text-orange-600 bg-orange-500/10 border-orange-500/20",
     blue: "text-blue-600 bg-blue-500/10 border-blue-500/20",
     green: "text-green-600 bg-green-500/10 border-green-500/20",
   };

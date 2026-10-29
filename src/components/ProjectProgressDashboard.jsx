@@ -45,7 +45,7 @@ export default function ProjectProgressDashboard() {
   if (loading) {
     return (
       <div className="px-8 pt-6">
-        <div className="bg-card rounded-xl border border-ink/[0.13] p-6 flex items-center justify-center">
+        <div className="bg-card rounded-md border border-ink/[0.13] p-6 flex items-center justify-center">
           <Loader2 className="w-5 h-5 text-ink/[0.38] animate-spin" />
         </div>
       </div>
@@ -54,7 +54,7 @@ export default function ProjectProgressDashboard() {
 
   return (
     <div className="px-8 pt-6">
-      <div className="bg-card rounded-xl border border-ink/[0.13] p-6 space-y-5">
+      <div className="bg-card rounded-md border border-ink/[0.13] p-6 space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

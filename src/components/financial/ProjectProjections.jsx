@@ -186,7 +186,7 @@ export default function ProjectProjections() {
             const d = daysUntil(p.expectedCloseDate);
             const overdue = d !== null && d < 0 && p.status === "Pending";
             return (
-              <div key={p.id} className={`card-hover bg-card rounded-xl border p-4 flex items-center gap-4 group ${p.status === "Lost" ? "border-ink/[0.13] opacity-50" : p.status === "Won" ? "border-green-500/20" : overdue ? "border-red-500/20" : "border-ink/[0.13]"}`}>
+              <div key={p.id} className={`card-hover bg-card rounded-md border p-4 flex items-center gap-4 group ${p.status === "Lost" ? "border-ink/[0.13] opacity-50" : p.status === "Won" ? "border-green-500/20" : overdue ? "border-red-500/20" : "border-ink/[0.13]"}`}>
                 <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/25 to-fuchsia-400/10 border border-purple-500/25 flex items-center justify-center text-purple-600 font-display font-extrabold text-xs shrink-0">{p.clientName?.charAt(0)}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">

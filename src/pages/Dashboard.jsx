@@ -80,7 +80,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex items-center justify-between pr-8">
-        <PageHeader breadcrumb="Command Center / Dashboard" />
+        <PageHeader breadcrumb="Command / Mission Control" rightText="Everything, live" />
         <div className="flex items-center gap-3">
           <DailyBriefing />
           <button
@@ -112,7 +112,7 @@ export default function Dashboard() {
                             <div
                               ref={drag.innerRef}
                               {...drag.draggableProps}
-                              className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
+                              className={`flex items-center gap-3 px-4 py-3 rounded-md border transition-all ${
                                 snapshot.isDragging
                                   ? "bg-orange-500/10 border-orange-500/30 shadow-lg"
                                   : "bg-card border-ink/[0.13]"
@@ -149,7 +149,7 @@ export default function Dashboard() {
               <p className="text-ink/[0.48] text-xs mb-3">Add a widget to your dashboard.</p>
               <div className="space-y-2">
                 {availableToAdd.map((widget) => (
-                  <div key={widget.id} className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-ink/[0.13] bg-ink/[0.02]">
+                  <div key={widget.id} className="flex items-center gap-3 px-4 py-3 rounded-md border border-dashed border-ink/[0.13] bg-ink/[0.02]">
                     <span className="text-ink/50 text-sm font-medium">{widget.label}</span>
                     <button
                       onClick={() => addWidget(widget.id)}

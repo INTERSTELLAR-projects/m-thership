@@ -149,7 +149,7 @@ export default function Comms() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <PageHeader breadcrumb="Portal / Comms" rightText="Private Messaging" />
+        <PageHeader breadcrumb="Command / Comms" rightText="Private Messaging" />
         <div className="flex items-center justify-center py-16">
           <Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" />
         </div>
@@ -159,7 +159,7 @@ export default function Comms() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <PageHeader breadcrumb="Portal / Comms" rightText="Private Messaging" />
+      <PageHeader breadcrumb="Command / Comms" rightText="Private Messaging" />
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar - Client List */}
         <div className="w-64 border-r border-orange-500/[0.12] flex flex-col">
@@ -197,7 +197,7 @@ export default function Comms() {
                   onClick={() => handleClientSelect(client)}
                   className={`w-full text-left px-4 py-3 border-b border-ink/[0.13] transition-colors ${
                     selectedClient?.id === client.id
-                      ? "bg-gradient-to-r from-orange-500/15 to-amber-400/5 border-l-2 border-l-orange-500 text-orange-300"
+                      ? "bg-gradient-to-r from-orange-500/15 to-amber-400/5 border-l-2 border-l-orange-500 text-orange-600"
                       : "hover:bg-ink/[0.02] text-ink/60"
                   }`}
                 >
@@ -272,7 +272,7 @@ export default function Comms() {
                               href={msg.attachments[0].url}
                               target="_blank"
                               rel="noreferrer"
-                              className="flex items-center gap-2 text-orange-400 hover:text-orange-300 text-sm"
+                              className="flex items-center gap-2 text-orange-600 hover:text-orange-600 text-sm"
                             >
                               <FileText className="w-4 h-4" />
                               {msg.attachments[0].name}
@@ -368,7 +368,7 @@ export default function Comms() {
                   <button
                     onClick={() => sendMessage(messageText)}
                     disabled={!messageText.trim() || sending}
-                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-[0_0_14px_rgba(255,106,0,0.25)] flex items-center gap-2"
+                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed rounded-lg flex items-center gap-2"
                   >
                     {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </button>

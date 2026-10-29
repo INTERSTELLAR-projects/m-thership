@@ -26,9 +26,9 @@ function daysUntil(d) { if (!d) return null; const diff = new Date(d + "T00:00:0
 function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-card border border-orange-500/30 rounded-lg px-2.5 py-1.5 shadow-[0_0_12px_rgba(255,170,0,0.25)]">
+    <div className="bg-card border border-orange-500/30 rounded-lg px-2.5 py-1.5">
       <p className="text-[9px] text-ink/[0.58] uppercase tracking-wider">{label}</p>
-      <p className="text-orange-400 text-xs font-bold">{fmtMoney(payload[0].value)}</p>
+      <p className="text-orange-600 text-xs font-bold">{fmtMoney(payload[0].value)}</p>
     </div>
   );
 }
@@ -228,7 +228,7 @@ export default function RevenueProjections() {
                       </div>
                     ))}
                   </div>
-                  <span className="text-orange-400 text-xs font-bold w-16 text-right shrink-0 tabular-nums">{fmtMoney(row.total)}</span>
+                  <span className="text-orange-600 text-xs font-bold w-16 text-right shrink-0 tabular-nums">{fmtMoney(row.total)}</span>
                 </div>
               );
             })}
@@ -248,7 +248,7 @@ export default function RevenueProjections() {
       {/* Projection list */}
       <div className="flex items-center justify-between">
         <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Pipeline Projections</h2>
-        <Button onClick={openAdd} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Plus className="w-4 h-4" />Add Projection</Button>
+        <Button onClick={openAdd} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold h-9 gap-2"><Plus className="w-4 h-4" />Add Projection</Button>
       </div>
 
       {recurring.length === 0 ? (
@@ -262,8 +262,8 @@ export default function RevenueProjections() {
             const d = daysUntil(p.expectedCloseDate);
             const overdue = d !== null && d < 0 && p.status === "Pending";
             return (
-              <div key={p.id} className={`card-hover bg-card rounded-xl border p-4 flex items-center gap-4 group ${p.status === "Lost" ? "border-ink/[0.13] opacity-50" : p.status === "Won" ? "border-green-500/20" : overdue ? "border-red-500/20" : "border-ink/[0.13]"}`}>
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 font-display font-extrabold text-xs shrink-0">{p.clientName?.charAt(0)}</div>
+              <div key={p.id} className={`card-hover bg-card rounded-md border p-4 flex items-center gap-4 group ${p.status === "Lost" ? "border-ink/[0.13] opacity-50" : p.status === "Won" ? "border-green-500/20" : overdue ? "border-red-500/20" : "border-ink/[0.13]"}`}>
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-600 font-display font-extrabold text-xs shrink-0">{p.clientName?.charAt(0)}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-ink/85 text-sm font-medium">{p.clientName}</span>
@@ -327,7 +327,7 @@ export default function RevenueProjections() {
               </div>
             </div>
             <div><Label className="text-ink/[0.58] text-xs">Note</Label><textarea value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} className="mt-1 w-full bg-ink/[0.03] border border-ink/[0.13] rounded-md px-3 py-2 text-ink text-sm outline-none resize-none min-h-[60px]" placeholder="Context on the deal..." /></div>
-            <Button onClick={save} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">{editing ? "Save Changes" : "Add Projection"}</Button>
+            <Button onClick={save} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold">{editing ? "Save Changes" : "Add Projection"}</Button>
           </div>
         </DialogContent>
       </Dialog>

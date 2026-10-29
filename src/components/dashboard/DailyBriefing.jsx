@@ -109,7 +109,7 @@ export default function DailyBriefing() {
         disabled={loading}
         className={`relative flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold border transition-all ${
           isNew
-            ? "bg-orange-500/15 border-orange-500/30 text-orange-400 animate-pulse"
+            ? "bg-orange-500/15 border-orange-500/30 text-orange-600 animate-pulse"
             : "bg-ink/5 border-ink/[0.13] text-ink/60 hover:text-ink/80 hover:bg-ink/[0.08]"
         }`}
       >

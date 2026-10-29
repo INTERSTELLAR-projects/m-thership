@@ -48,7 +48,7 @@ export default function ProjectDetail({ project, requests, onBack, onUpdate }) {
 
   const statusColor = {
     Planning: "bg-blue-500/10 text-blue-600",
-    "In Progress": "bg-orange-500/10 text-orange-400",
+    "In Progress": "bg-orange-500/10 text-orange-600",
     Review: "bg-purple-500/10 text-purple-600",
     Completed: "bg-green-500/10 text-green-600",
     "On Hold": "bg-ink/5 text-ink/[0.48]",
@@ -75,7 +75,7 @@ export default function ProjectDetail({ project, requests, onBack, onUpdate }) {
         {/* LEFT: Main details */}
         <div className="col-span-2 space-y-5">
           {/* Project info */}
-          <div className="bg-card rounded-xl border border-ink/[0.13] p-5 space-y-4">
+          <div className="bg-card rounded-md border border-ink/[0.13] p-5 space-y-4">
             <h3 className="text-ink font-bold text-xs tracking-[0.18em] uppercase">Project Details</h3>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Project Name" value={form.name} onChange={(v) => update("name", v)} />
@@ -111,7 +111,7 @@ export default function ProjectDetail({ project, requests, onBack, onUpdate }) {
           </div>
 
           {/* Tasks */}
-          <div className="bg-card rounded-xl border border-ink/[0.13] p-5 space-y-3">
+          <div className="bg-card rounded-md border border-ink/[0.13] p-5 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-ink font-bold text-xs tracking-[0.18em] uppercase">Tasks {totalTasks > 0 && <span className="text-ink/[0.48] font-normal">({doneTasks}/{totalTasks})</span>}</h3>
               <button onClick={() => setAddingTask(true)} className="flex items-center gap-1.5 text-orange-500/70 hover:text-orange-500 text-xs transition-colors"><Plus className="w-3.5 h-3.5" />Add Task</button>
@@ -138,7 +138,7 @@ export default function ProjectDetail({ project, requests, onBack, onUpdate }) {
           </div>
 
           {/* Notes */}
-          <div className="bg-card rounded-xl border border-ink/[0.13] p-5 space-y-3">
+          <div className="bg-card rounded-md border border-ink/[0.13] p-5 space-y-3">
             <h3 className="text-ink font-bold text-xs tracking-[0.18em] uppercase">Notes</h3>
             <textarea value={form.notes || ""} onChange={(e) => update("notes", e.target.value)} rows={5} placeholder="Project notes, context, instructions..." className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink placeholder:text-ink/[0.38] outline-none resize-none focus:border-orange-500/30 transition-colors" />
           </div>
@@ -146,17 +146,17 @@ export default function ProjectDetail({ project, requests, onBack, onUpdate }) {
 
         {/* RIGHT: Sidebar */}
         <div className="space-y-5">
-          <div className="bg-card rounded-xl border border-ink/[0.13] p-5 space-y-3">
+          <div className="bg-card rounded-md border border-ink/[0.13] p-5 space-y-3">
             <h3 className="text-ink font-bold text-xs tracking-[0.18em] uppercase">Priority</h3>
             <div className="flex gap-2">
               {["Standard", "High Priority"].map((p) => (
-                <button key={p} onClick={() => update("priority", p)} className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all border ${form.priority === p ? (p === "High Priority" ? "bg-orange-500/15 text-orange-400 border-orange-500/25" : "bg-ink/[0.06] text-ink/70 border-ink/[0.13]") : "text-ink/[0.43] border-ink/[0.13] hover:border-ink/[0.13]"}`}>{p}</button>
+                <button key={p} onClick={() => update("priority", p)} className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all border ${form.priority === p ? (p === "High Priority" ? "bg-orange-500/15 text-orange-600 border-orange-500/25" : "bg-ink/[0.06] text-ink/70 border-ink/[0.13]") : "text-ink/[0.43] border-ink/[0.13] hover:border-ink/[0.13]"}`}>{p}</button>
               ))}
             </div>
           </div>
 
           {linkedRequests.length > 0 && (
-            <div className="bg-card rounded-xl border border-ink/[0.13] p-5 space-y-3">
+            <div className="bg-card rounded-md border border-ink/[0.13] p-5 space-y-3">
               <h3 className="text-ink font-bold text-xs tracking-[0.18em] uppercase">Linked Requests</h3>
               {linkedRequests.map((r, i) => (
                 <div key={i} className="p-3 bg-ink/[0.02] rounded-lg border border-ink/[0.13]">

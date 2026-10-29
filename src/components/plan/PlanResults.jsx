@@ -56,7 +56,7 @@ function MiniSlider({ value, min, max, step, onDrag, onCommit, fmt }) {
 function Row({ label, children, bold }) {
   return (
     <div className="grid items-center py-1.5" style={{ gridTemplateColumns: "128px minmax(0,1fr)" }}>
-      <span className={`text-ink/[0.58] text-[10px] uppercase tracking-wider font-mono ${bold ? "text-orange-400/60" : ""}`}>{label}</span>
+      <span className={`text-ink/[0.58] text-[10px] uppercase tracking-wider font-mono ${bold ? "text-orange-600/80" : ""}`}>{label}</span>
       <div className="grid gap-2 min-w-0" style={{ gridTemplateColumns: `repeat(${children.length}, minmax(0,1fr))` }}>{children}</div>
     </div>
   );
@@ -138,8 +138,8 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
           )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <button onClick={onEdit} title="Edit goal" className="p-1.5 rounded-md hover:bg-ink/5 text-ink/[0.48] hover:text-orange-400 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
-          <button onClick={onRerun} disabled={running} title="Re-run analysis" className="p-1.5 rounded-md hover:bg-ink/5 text-ink/[0.48] hover:text-orange-400 transition-all disabled:opacity-40">{running ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}</button>
+          <button onClick={onEdit} title="Edit goal" className="p-1.5 rounded-md hover:bg-ink/5 text-ink/[0.48] hover:text-orange-600 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
+          <button onClick={onRerun} disabled={running} title="Re-run analysis" className="p-1.5 rounded-md hover:bg-ink/5 text-ink/[0.48] hover:text-orange-600 transition-all disabled:opacity-40">{running ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}</button>
           <span className="text-ink/[0.43] text-[10px] font-mono">{relTime || ""}</span>
           <button onClick={() => setOpen(!open)} className="p-1 rounded-md hover:bg-ink/5 text-ink/[0.48] transition-all">{open ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}</button>
         </div>
@@ -147,7 +147,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
 
       {stale && (
         <button onClick={() => onStaleReRun(routes, effectiveBv())}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-semibold tracking-wide uppercase hover:bg-amber-500/25 transition-all">
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-700 text-[10px] font-semibold tracking-wide uppercase hover:bg-amber-500/25 transition-all">
           <AlertTriangle className="w-3 h-3" />Assumptions changed — re-run analysis
         </button>
       )}
@@ -169,7 +169,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
                         {r.system_generated ? (
                           <span className="text-[8px] text-ink/[0.48] uppercase tracking-wider">run both</span>
                         ) : (
-                          <button onClick={() => resetRoute(i)} className="text-[8px] text-ink/[0.43] hover:text-orange-400 uppercase tracking-wider inline-flex items-center gap-0.5"><RotateCcw className="w-2 h-2" />reset</button>
+                          <button onClick={() => resetRoute(i)} className="text-[8px] text-ink/[0.43] hover:text-orange-600 uppercase tracking-wider inline-flex items-center gap-0.5"><RotateCcw className="w-2 h-2" />reset</button>
                         )}
                       </div>
                     );
@@ -219,7 +219,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
 
               <Row label="Time to goal" bold>
                 {allRoutes.map((r, i) => (
-                  <Cell2 key={i} className={r.reached ? "text-orange-400 text-[13px] font-bold" : "text-ink/[0.53]"}>
+                  <Cell2 key={i} className={r.reached ? "text-orange-600 text-[13px] font-bold" : "text-ink/[0.53]"}>
                     {r.reached ? `${fmtMonth(r.months_to_goal)} · ${r.goal_date}` : "Not reachable"}
                   </Cell2>
                 ))}
@@ -233,7 +233,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
               {/* MRR Total at Goal — the MRR you actually land at the crossing month (e.g. $10,202) */}
               <Row label="MRR Total at Goal" bold>
                 {allRoutes.map((r, i) => (
-                  <Cell2 key={i} className={r.reached ? "text-orange-400/90 text-[12px] font-semibold" : "text-ink/[0.53]"}>{r.reached ? fmtMoney(r.mrr_total_at_goal) : "Not reachable"}</Cell2>
+                  <Cell2 key={i} className={r.reached ? "text-orange-600 text-[12px] font-semibold" : "text-ink/[0.53]"}>{r.reached ? fmtMoney(r.mrr_total_at_goal) : "Not reachable"}</Cell2>
                 ))}
               </Row>
 
@@ -253,7 +253,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
           {/* delta strip */}
           {ai?.delta_since_last_run && (
             <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${deltaUp ? "border-green-500/20 bg-green-500/[0.05]" : "border-orange-500/20 bg-orange-500/[0.05]"}`}>
-              {deltaUp ? <ArrowUp className="w-3.5 h-3.5 text-green-600" /> : <ArrowDown className="w-3.5 h-3.5 text-orange-400" />}
+              {deltaUp ? <ArrowUp className="w-3.5 h-3.5 text-green-600" /> : <ArrowDown className="w-3.5 h-3.5 text-orange-600" />}
               <span className="text-ink/70 text-xs">{ai.delta_since_last_run}</span>
             </div>
           )}

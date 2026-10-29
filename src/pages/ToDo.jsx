@@ -15,11 +15,11 @@ const SUMMARY_META = {
   Priority: {
     solid: "bg-orange-500",
     grad: "from-orange-500 to-amber-400",
-    text: "text-orange-400",
-    textSoft: "text-orange-400/70",
+    text: "text-orange-600",
+    textSoft: "text-orange-600",
     border: "border-orange-500/30",
     chip: "bg-orange-500/10 border-orange-500/25",
-    glow: "shadow-[0_0_12px_rgba(255,106,0,0.35)]",
+    glow: "",
     dot: "bg-orange-500",
   },
   NextUp: {
@@ -46,13 +46,11 @@ function TimeEstimateSummary({ items }) {
   const maxHours = Math.max(...catData.map((d) => d.totalHours), 1);
 
   return (
-    <div className="relative overflow-hidden bg-card rounded-2xl border border-ink/[0.13] p-5">
-      <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-orange-500/[0.06] blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-20 -left-10 w-40 h-40 rounded-full bg-yellow-400/[0.04] blur-3xl pointer-events-none" />
+    <div className="relative overflow-hidden bg-card rounded-md border border-ink/[0.13] p-5">
 
       <div className="relative flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(255,106,0,0.8)]" />
+          <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
           <h2 className="font-display font-bold text-[11px] tracking-[0.25em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Time Estimate Overview</h2>
         </div>
         <span className="text-ink/[0.43] text-[10px] tracking-widest uppercase font-medium">
@@ -172,7 +170,7 @@ export default function ToDo() {
           onCancel={() => setCompletingTask(null)}
         />
       )}
-      <PageHeader breadcrumb="Command Center / To-Do" rightText="Master Task List" />
+      <PageHeader breadcrumb="Command / Tasks" rightText="Master Task List" />
       <div className="px-8 py-6 space-y-6">
         <TimeEstimateSummary items={items} />
 
@@ -187,7 +185,7 @@ export default function ToDo() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="active" className="mt-0">
-              <button onClick={() => setAdding(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-xs font-semibold rounded-lg transition-colors">
+              <button onClick={() => setAdding(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold text-xs font-semibold rounded-lg transition-colors">
                 <Plus className="w-4 h-4" />Add Task
               </button>
             </TabsContent>
@@ -235,7 +233,7 @@ export default function ToDo() {
 function DoneTab({ items, onDelete }) {
   if (items.length === 0) {
     return (
-      <div className="bg-card rounded-xl border border-ink/[0.13] p-12 text-center">
+      <div className="bg-card rounded-md border border-ink/[0.13] p-12 text-center">
         <CheckCircle2 className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
         <p className="text-ink/[0.43] text-sm">No completed tasks yet. Complete a task to see it here.</p>
       </div>
@@ -254,7 +252,7 @@ function DoneTab({ items, onDelete }) {
           <p className="text-ink/[0.48] text-xs mt-1 uppercase tracking-wider">Tasks Completed</p>
         </div>
         <div className="game-panel p-4 text-center">
-          <p className="text-orange-400 text-2xl font-bold">{totalActualHours > 0 ? formatTotal(totalActualHours) : "—"}</p>
+          <p className="text-orange-600 text-2xl font-bold">{totalActualHours > 0 ? formatTotal(totalActualHours) : "—"}</p>
           <p className="text-ink/[0.48] text-xs mt-1 uppercase tracking-wider">Actual Time Logged</p>
         </div>
         <div className="game-panel p-4 text-center">
@@ -266,7 +264,7 @@ function DoneTab({ items, onDelete }) {
       {/* Completed task list */}
       <div className="space-y-2">
         {items.map((item) => (
-          <div key={item.id} className="bg-card rounded-xl border border-green-500/10 p-4 flex items-start gap-4 group">
+          <div key={item.id} className="bg-card rounded-md border border-green-500/10 p-4 flex items-start gap-4 group">
             <div className="w-5 h-5 rounded border bg-green-500/20 border-green-500/40 flex items-center justify-center shrink-0 mt-0.5">
               <Check className="w-3 h-3 text-green-600" />
             </div>
@@ -306,7 +304,7 @@ function DoneTab({ items, onDelete }) {
 }
 
 function CategorySection({ category, items, editId, editForm, setEditForm, onEdit, onSaveEdit, onCancelEdit, onDelete, onSetStatus, clients }) {
-  const catColor = category === "Priority" ? "text-orange-400/80 bg-orange-500/10 border-orange-500/25" : "text-yellow-600/80 bg-yellow-400/10 border-yellow-500/25";
+  const catColor = category === "Priority" ? "text-orange-600 bg-orange-500/10 border-orange-500/25" : "text-yellow-600/80 bg-yellow-400/10 border-yellow-500/25";
 
   return (
     <div>
@@ -351,7 +349,7 @@ function TaskRow({ item, onEdit, onDelete, onSetStatus }) {
             </span>
           )}
           {item.assignedTo && (
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400/80">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600">
               {item.assignedTo}
             </span>
           )}

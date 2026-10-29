@@ -166,7 +166,7 @@ function TasksAnalytics() {
       <div className="grid grid-cols-5 gap-4">
         <StatCard label="Total Tasks" value={allTasks.length} icon={Target} color="text-ink/70" />
         <StatCard label="Completed" value={completed.length} icon={CheckCircle2} color="text-green-600" />
-        <StatCard label="In Progress" value={inProgress.length} icon={Activity} color="text-orange-400" />
+        <StatCard label="In Progress" value={inProgress.length} icon={Activity} color="text-orange-600" />
         <StatCard label="Completion Rate" value={`${completionRate}%`} icon={TrendingUp} color="text-blue-600" />
         <StatCard label="Avg Time / Task" value={avgActualPerTask === "—" ? "—" : `${avgActualPerTask}h`} icon={Clock} color="text-purple-600" sub="actual hours logged" />
       </div>
@@ -240,7 +240,7 @@ function TasksAnalytics() {
               <div className="h-2 bg-ink/[0.04] rounded-full overflow-hidden"><div className="h-full rounded-full bg-purple-500/70 transition-all duration-700" style={{ width: `${items.length ? Math.round((items.filter(t=>t.done||t.status==="Completed").length/items.length)*100) : 0}%` }} /></div>
             </div>
             <div>
-              <div className="flex justify-between mb-1.5"><span className="text-ink/50 text-xs">Client Projects</span><span className="text-orange-400 text-xs font-bold">{clientItems.filter(t=>t.done||t.status==="Completed").length} / {clientItems.length}</span></div>
+              <div className="flex justify-between mb-1.5"><span className="text-ink/50 text-xs">Client Projects</span><span className="text-orange-600 text-xs font-bold">{clientItems.filter(t=>t.done||t.status==="Completed").length} / {clientItems.length}</span></div>
               <div className="h-2 bg-ink/[0.04] rounded-full overflow-hidden"><div className="h-full rounded-full bg-orange-500/70 transition-all duration-700" style={{ width: `${clientItems.length ? Math.round((clientItems.filter(t=>t.done||t.status==="Completed").length/clientItems.length)*100) : 0}%` }} /></div>
             </div>
             <div className="pt-3 border-t border-ink/[0.13] grid grid-cols-2 gap-3">
@@ -344,7 +344,7 @@ function ProjectsAnalytics() {
       <div className="grid grid-cols-5 gap-4">
         <StatCard label="Total Projects" value={all.length} icon={Target} color="text-ink/70" />
         <StatCard label="Completed" value={completed.length} icon={CheckCircle2} color="text-green-600" />
-        <StatCard label="Active" value={active.length} icon={Activity} color="text-orange-400" />
+        <StatCard label="Active" value={active.length} icon={Activity} color="text-orange-600" />
         <StatCard label="Completion Rate" value={`${completionRate}%`} icon={TrendingUp} color="text-blue-600" />
         <StatCard label="Avg Progress" value={`${avgProgress}%`} icon={Zap} color="text-purple-600" sub="across active projects" />
       </div>
@@ -411,7 +411,7 @@ function ProjectsAnalytics() {
               <div className="h-2 bg-ink/[0.04] rounded-full overflow-hidden"><div className="h-full rounded-full bg-blue-500/70 transition-all duration-700" style={{ width: `${webOps.length ? Math.round((webOpsCompleted/webOps.length)*100) : 0}%` }} /></div>
             </div>
             <div>
-              <div className="flex justify-between mb-1.5"><span className="text-ink/50 text-xs">Førge</span><span className="text-orange-400 text-xs font-bold">{forgeCompleted} / {forge.length} completed</span></div>
+              <div className="flex justify-between mb-1.5"><span className="text-ink/50 text-xs">Førge</span><span className="text-orange-600 text-xs font-bold">{forgeCompleted} / {forge.length} completed</span></div>
               <div className="h-2 bg-ink/[0.04] rounded-full overflow-hidden"><div className="h-full rounded-full bg-orange-500/70 transition-all duration-700" style={{ width: `${forge.length ? Math.round((forgeCompleted/forge.length)*100) : 0}%` }} /></div>
             </div>
             <div className="pt-3 border-t border-ink/[0.13] grid grid-cols-3 gap-3">
@@ -420,7 +420,7 @@ function ProjectsAnalytics() {
                 <p className="text-ink/[0.43] text-[10px] uppercase tracking-wider mt-0.5">Done</p>
               </div>
               <div className="bg-ink/[0.02] rounded-lg p-3 border border-ink/[0.13] text-center">
-                <p className="text-orange-400 text-lg font-bold">{active.length}</p>
+                <p className="text-orange-600 text-lg font-bold">{active.length}</p>
                 <p className="text-ink/[0.43] text-[10px] uppercase tracking-wider mt-0.5">Active</p>
               </div>
               <div className="bg-ink/[0.02] rounded-lg p-3 border border-ink/[0.13] text-center">
@@ -439,7 +439,7 @@ function ProjectsAnalytics() {
 export default function OutputAnalytics() {
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command Center / Output Analytics" rightText="Real-Time Performance" />
+      <PageHeader breadcrumb="Agency / Output" rightText="Real-Time Performance" />
       <div className="px-8 py-6">
         <Tabs defaultValue="tasks" className="w-full">
           <TabsList className="bg-card border border-ink/[0.13] mb-6">

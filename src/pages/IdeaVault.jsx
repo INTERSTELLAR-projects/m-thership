@@ -143,7 +143,7 @@ Category: ${idea.category}`;
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command Center / Idea Vault" rightText="Idea Management" />
+      <PageHeader breadcrumb="Agency / Idea Vault" rightText="Idea Management" />
       <div className="px-8 py-6 space-y-5">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
@@ -151,17 +151,17 @@ Category: ${idea.category}`;
             <Input placeholder="Search ideas..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 bg-card border-ink/[0.13] text-ink placeholder:text-ink/[0.38] h-9" />
           </div>
           <div className="flex gap-1.5 flex-wrap items-center">
-            <button onClick={() => setCatFilter("All")} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${catFilter === "All" ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>All</button>
+            <button onClick={() => setCatFilter("All")} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${catFilter === "All" ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-600 border border-orange-500/30" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>All</button>
             {categories.map((c) => (
-              <button key={c} onClick={() => setCatFilter(c)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${catFilter === c ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{c}</button>
+              <button key={c} onClick={() => setCatFilter(c)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${catFilter === c ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-600 border border-orange-500/30" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{c}</button>
             ))}
             <button onClick={() => setManagingCats(true)} className="p-1.5 rounded-lg text-ink/[0.38] hover:text-ink/50 border border-dashed border-ink/[0.13] hover:border-ink/20 transition-all"><Settings className="w-3.5 h-3.5" /></button>
           </div>
-          <button onClick={() => setAdding(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-xs font-semibold rounded-lg transition-colors"><Plus className="w-4 h-4" />Add Idea</button>
+          <button onClick={() => setAdding(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold text-xs font-semibold rounded-lg transition-colors"><Plus className="w-4 h-4" />Add Idea</button>
         </div>
 
         {managingCats && (
-          <div className="relative overflow-hidden bg-card rounded-xl border border-orange-500/25 p-5 space-y-3 shadow-[0_0_16px_rgba(255,106,0,0.12)]">
+          <div className="relative overflow-hidden bg-card rounded-md border border-orange-500/25 p-5 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Manage Categories</h3>
               <button onClick={() => setManagingCats(false)} className="text-ink/[0.48] hover:text-ink/60"><X className="w-4 h-4" /></button>
@@ -178,7 +178,7 @@ Category: ${idea.category}`;
                             {editCat?.index === i ? (
                               <>
                                 <Input value={editCat.val} onChange={(e) => setEditCat({ ...editCat, val: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") saveEditCat(i); if (e.key === "Escape") setEditCat(null); }} className="h-7 flex-1 bg-ink/[0.04] border-ink/[0.13] text-ink text-xs" autoFocus />
-                                <button onClick={() => saveEditCat(i)} className="text-orange-500 text-xs font-semibold hover:text-orange-400">Save</button>
+                                <button onClick={() => saveEditCat(i)} className="text-orange-500 text-xs font-semibold hover:text-orange-600">Save</button>
                                 <button onClick={() => setEditCat(null)} className="text-ink/[0.48] text-xs hover:text-ink/60">Cancel</button>
                               </>
                             ) : (
@@ -199,13 +199,13 @@ Category: ${idea.category}`;
             </DragDropContext>
             <div className="flex gap-2 pt-1">
               <Input placeholder="New category..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addCat()} className="flex-1 bg-ink/[0.03] border-ink/[0.13] text-ink placeholder:text-ink/[0.38] h-9" />
-              <button onClick={addCat} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
+              <button onClick={addCat} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
             </div>
           </div>
         )}
 
         {adding && (
-          <div className="relative overflow-hidden bg-card rounded-xl border border-orange-500/35 p-5 space-y-3 shadow-[0_0_16px_rgba(255,106,0,0.18)]">
+          <div className="relative overflow-hidden bg-card rounded-md border border-orange-500/35 p-5 space-y-3">
             <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">New Idea</h3>
             <div className="flex items-center gap-2">
               <Input value={newIdea.title} onChange={(e) => setNewIdea({ ...newIdea, title: e.target.value })} placeholder="Idea title..." className="bg-ink/[0.04] border-ink/[0.13] text-ink placeholder:text-ink/[0.43] flex-1" autoFocus />
@@ -230,7 +230,7 @@ Category: ${idea.category}`;
               </div>
             </div>
             <div className="flex gap-2">
-              <button onClick={add} className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-xs font-semibold rounded-lg transition-colors"><Check className="w-3.5 h-3.5" />Save Idea</button>
+              <button onClick={add} className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold text-xs font-semibold rounded-lg transition-colors"><Check className="w-3.5 h-3.5" />Save Idea</button>
               <button onClick={() => setAdding(false)} className="px-4 py-2 text-ink/[0.48] hover:text-ink/60 text-xs transition-colors">Cancel</button>
             </div>
           </div>
@@ -274,7 +274,7 @@ Category: ${idea.category}`;
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={saveEdit} className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-xs font-semibold rounded-lg transition-colors"><Check className="w-3.5 h-3.5" />Save</button>
+                        <button onClick={saveEdit} className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold text-xs font-semibold rounded-lg transition-colors"><Check className="w-3.5 h-3.5" />Save</button>
                         <button onClick={() => setEditId(null)} className="px-4 py-2 text-ink/[0.48] hover:text-ink/60 text-xs transition-colors">Cancel</button>
                       </div>
                     </div>
@@ -285,7 +285,7 @@ Category: ${idea.category}`;
                           <button onClick={() => setCollapsed((p) => ({ ...p, [idea.id]: !p[idea.id] }))} className="text-left">
                             <h3 className="text-ink/90 text-sm font-semibold hover:text-ink transition-colors">{idea.title}</h3>
                           </button>
-                          <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border bg-orange-500/15 border-orange-500/25 text-orange-300/80">{idea.category}</span>
+                          <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border bg-orange-500/15 border-orange-500/25 text-orange-600">{idea.category}</span>
                           <StatusBadge status={idea.status} />
                         </div>
                         {!collapsed[idea.id] && (
