@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, KeyRound, FileText, DollarSign, Scale, Users, Lightbulb, ListTodo,
-  MessageSquare, Globe, TrendingUp, ClipboardList, Crown, Activity, Settings,
+  MessageSquare, Globe, TrendingUp, ClipboardList, Crown, Activity, Settings, FolderKanban,
 } from "lucide-react";
 
 export const LOGO_URL =
@@ -13,7 +13,8 @@ export const NAV_GROUPS = [
     items: [
       { label: "Mission Control", icon: LayoutDashboard, path: "/" },
       { label: "Clients", icon: Users, path: "/crm" },
-      { label: "Tasks", icon: ListTodo, path: "/todo" },
+      { label: "Tasks", icon: ListTodo, path: "/tasks" },
+      { label: "Projects", icon: FolderKanban, path: "/projects" },
       { label: "Requests", icon: ClipboardList, path: "/requests" },
       { label: "Ørbit SEO", icon: Globe, path: "/orbit-seo" },
       { label: "Performance", icon: TrendingUp, path: "/performance" },

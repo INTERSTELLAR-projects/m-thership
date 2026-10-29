@@ -21,12 +21,19 @@ import Performance from './pages/Performance';
 import SettingsPage from './pages/SettingsPage';
 import IdeaVault from './pages/IdeaVault';
 import Requests from './pages/Requests';
-import ToDo from './pages/ToDo';
 import ClientComms from './pages/ClientComms';
 import Prestige from './pages/Prestige';
 import OutputAnalytics from './pages/OutputAnalytics';
 import ClientCockpit from './pages/ClientCockpit';
 import PortalApp from '@/features/portal/PortalApp';
+import TaskBoard from './pages/TaskBoard';
+import TaskInbox from './pages/TaskInbox';
+import TaskPatterns from './pages/TaskPatterns';
+import TaskSops from './pages/TaskSops';
+import Projects from './pages/Projects';
+import ProjectDetail from './pages/ProjectDetail';
+import LegacyImportBanner from '@/features/tasks/LegacyImportBanner';
+import { Navigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 
 function PortalPreview() {
@@ -81,7 +88,13 @@ const AuthenticatedApp = () => {
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/idea-vault" element={<ProtectedRoute><IdeaVault /></ProtectedRoute>} />
         <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
-        <Route path="/todo" element={<ProtectedRoute><ToDo /></ProtectedRoute>} />
+        <Route path="/todo" element={<Navigate to="/tasks" replace />} />
+        <Route path="/tasks" element={<ProtectedRoute><LegacyImportBanner /><TaskBoard /></ProtectedRoute>} />
+        <Route path="/tasks/inbox" element={<ProtectedRoute><TaskInbox /></ProtectedRoute>} />
+        <Route path="/tasks/patterns" element={<ProtectedRoute><TaskPatterns /></ProtectedRoute>} />
+        <Route path="/tasks/sops" element={<ProtectedRoute><TaskSops /></ProtectedRoute>} />
+        <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+        <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
         <Route path="/client-comms" element={<ProtectedRoute><ClientComms /></ProtectedRoute>} />
         <Route path="/prestige" element={<ProtectedRoute><Prestige /></ProtectedRoute>} />
         <Route path="/output-analytics" element={<ProtectedRoute><OutputAnalytics /></ProtectedRoute>} />
