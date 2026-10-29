@@ -41,6 +41,25 @@
     },
     "work_log_id": {
       "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "description": "What was produced, e.g. the blog title"
+    },
+    "domain": {
+      "type": "string",
+      "description": "Client domain, used when client_id is unknown"
+    },
+    "automation_name": {
+      "type": "string"
+    },
+    "processed": {
+      "type": "boolean",
+      "default": false
+    },
+    "verified_live": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [
