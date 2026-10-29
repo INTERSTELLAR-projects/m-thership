@@ -76,7 +76,6 @@ export default function EditorPage() {
       if (dirtyRef.current) doSave();
     }, 2500);
     return () => saveTimer.current && clearTimeout(saveTimer.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fields, theme, templateId, name, loading]);
 
   const doSave = async () => {
