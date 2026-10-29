@@ -1,6 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 
-// Stärboard · public Google-reviews endpoint for every Interstellar client site (moved into Møthership).
+// Stärboard (in Møthership) · public Google-reviews endpoint for every Interstellar client site (moved into Møthership).
 // Google is asked at most ONCE PER DAY PER CLIENT; every other request is served from ReviewClient.cache.
 // A failed refresh is retried at most every 6 hours, and the last good copy is always served.
 //   GET  /functions/reviews?client=<slug>     or     POST /functions/reviews { "client": "<slug>" }
