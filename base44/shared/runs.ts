@@ -51,6 +51,10 @@ export async function processPendingRuns(db: any, limit = 40) {
       const c = (clients || []).find((x: Record<string, unknown>) => bareDomain(String(x.domain || "")) === d || ((x.websites as string[]) || []).some((w) => bareDomain(w) === d));
       if (c) { clientId = c.id; clientName = c.business; }
     }
+    if (clientId && !clientName) {
+      const c = await db.CRMClient.get(clientId).catch(() => null);
+      clientName = c?.business || "";
+    }
     if (!auto && clientId) {
       const list = (await db.Automation.filter({ client_id: clientId }, "-created_date", 100)) || [];
       auto = list.find((a: Record<string, unknown>) => run.automation_name && String(a.name).toLowerCase() === String(run.automation_name).toLowerCase())
