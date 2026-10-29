@@ -46,6 +46,16 @@
     "submitted_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "website_prompt": {
+      "type": "string"
+    },
+    "system_prompt": {
+      "type": "string"
+    },
+    "analyzed_at": {
+      "type": "string",
+      "format": "date-time"
     }
   },
   "required": [
