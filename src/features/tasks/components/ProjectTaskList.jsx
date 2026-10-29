@@ -36,7 +36,8 @@ function Row({ task, onToggle, onEdit, onAddSubtask, child = false }) {
           </span>
           {task.estimated_days ? <span>est {days(task.estimated_days)}</span> : null}
           <span className={dueTone(task.due_date, task.status)}>{dueLabel(task.due_date, task.status)}</span>
-          {task.source && task.source !== "manual" ? <span className="mono-label text-[8.5px] text-[#ff3c00]">{task.source}</span> : null}
+          {task.source === "sop" && task.notes ? <span className="mono-label text-[8.5px] text-ink/45">{task.notes}</span> : null}
+          {task.source && task.source !== "manual" && !(task.source === "sop" && task.notes) ? <span className="mono-label text-[8.5px] text-[#ff3c00]">{task.source}</span> : null}
         </div>
       </div>
 
@@ -71,6 +72,49 @@ export default function ProjectTaskList({ tasks = [], onToggle, onEdit, onAddSub
           </button>
         }
       />
+    );
+  }
+
+  // Services started from the catalog: group the SOP steps by playbook, in date order.
+  const grouped = roots.some((t) => t.source === "sop" && t.labels?.length);
+  if (grouped) {
+    const order = [];
+    const groups = new Map();
+    [...roots]
+      .sort((a, b) => (a.due_date || "9999").localeCompare(b.due_date || "9999") || (a.priority || 3) - (b.priority || 3))
+      .forEach((t) => {
+        const k = (t.source === "sop" && t.labels?.[0]) || "Other tasks";
+        if (!groups.has(k)) { groups.set(k, []); order.push(k); }
+        groups.get(k).push(t);
+      });
+    return (
+      <div>
+        {order.map((k) => {
+          const list = groups.get(k);
+          const done = list.filter((t) => t.status === "done").length;
+          return (
+            <section key={k} className="border-b border-hair last:border-b-0">
+              <header className="flex items-center justify-between gap-3 bg-ink/[0.03] px-4 py-2">
+                <p className="text-[12.5px] font-semibold tracking-[-0.01em]">{k}</p>
+                <div className="flex items-center gap-2">
+                  <div className="h-1 w-20 bg-ink/10"><div className="h-1 bg-[#ff3c00]" style={{ width: `${list.length ? (done / list.length) * 100 : 0}%` }} /></div>
+                  <span className="font-mono text-[10.5px] tabular-nums text-ink/50">{done}/{list.length}</span>
+                </div>
+              </header>
+              <div className="divide-y divide-hair">
+                {list.map((task) => (
+                  <div key={task.id}>
+                    <Row task={task} onToggle={onToggle} onEdit={onEdit} onAddSubtask={onAddSubtask} />
+                    {childrenOf(task.id).map((child) => (
+                      <Row key={child.id} task={child} onToggle={onToggle} onEdit={onEdit} onAddSubtask={onAddSubtask} child />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
     );
   }
 
