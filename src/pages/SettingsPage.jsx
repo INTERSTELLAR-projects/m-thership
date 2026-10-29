@@ -412,7 +412,7 @@ export default function SettingsPage() {
                     <SelectInput value={settings.adminLandingPage} onChange={(v) => update("adminLandingPage", v)} options={[
                       { value: "/", label: "Dashboard" },
                       { value: "/crm", label: "CRM" },
-                      { value: "/todo", label: "To-Do" },
+                      { value: "/tasks", label: "Tasks" },
                     ]} />
                   </Field>
                   <Field label="Client Portal Landing Page">

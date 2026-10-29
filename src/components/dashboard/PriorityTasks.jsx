@@ -131,7 +131,7 @@ export default function PriorityTasks() {
           <div>
             <h2 className="text-ink font-bold text-xs tracking-[0.2em] uppercase">Priority Tasks</h2>
             <p className="text-ink/[0.48] text-[10px] mt-0.5">
-              {items.length} remaining{totalValue > 0 ? " · " : ""}{totalValue > 0 && <span className="text-green-600/90 font-semibold">${totalValue.toLocaleString()} potential</span>} · <a href="/todo" className="text-orange-500/50 hover:text-orange-500/80 transition-colors">manage in To-Do →</a>
+              {items.length} remaining{totalValue > 0 ? " · " : ""}{totalValue > 0 && <span className="text-green-600/90 font-semibold">${totalValue.toLocaleString()} potential</span>} · <a href="/tasks" className="text-orange-500/50 hover:text-orange-500/80 transition-colors">open Task matrix →</a>
             </p>
           </div>
           <div className="flex items-center gap-2">

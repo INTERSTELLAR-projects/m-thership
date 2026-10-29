@@ -11,11 +11,13 @@ import ProjectProgressDashboard from "../components/ProjectProgressDashboard";
 import MinusculeProjects from "../components/dashboard/MinusculeProjects";
 import ProjectionWidget from "../components/dashboard/ProjectionWidget";
 import LiveOps, { ClientHealthStrip } from "@/features/mission/LiveOps";
+import FocusWidget from "@/features/mission/FocusWidget";
 
 const ALL_WIDGETS = [
   { id: "live-ops", label: "Live Operations (feed, automations, requests)" },
   { id: "client-health", label: "Client Health" },
-  { id: "priority", label: "Priority Tasks" },
+  { id: "focus", label: "Focus now + Next up (task engine)" },
+  { id: "priority", label: "Priority Tasks (old To-Do list)" },
   { id: "content-schedule", label: "Client Content Schedule" },
   { id: "subscriptions", label: "Active Subscriptions" },
   { id: "financial", label: "Financial Panel" },
@@ -24,7 +26,7 @@ const ALL_WIDGETS = [
   { id: "minuscule-projects", label: "Minuscule Projects" },
 ];
 
-const DEFAULT_ACTIVE = ["live-ops", "client-health", "priority", "content-schedule", "subscriptions", "financial"];
+const DEFAULT_ACTIVE = ["live-ops", "focus", "client-health", "content-schedule", "subscriptions", "financial"];
 
 const STORAGE_KEY = "dashboard_widget_order_v4";
 const LEGACY_KEY = "dashboard_widget_order_v3";
@@ -36,7 +38,7 @@ function loadOrder() {
     // Carry over the old layout, with the new Mission Control widgets on top.
     const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY));
     if (Array.isArray(legacy) && legacy.every((id) => ALL_WIDGETS.some((w) => w.id === id))) {
-      return ["live-ops", "client-health", ...legacy.filter((id) => id !== "live-ops" && id !== "client-health")];
+      return ["live-ops", "focus", "client-health", ...legacy.filter((id) => !["live-ops", "client-health", "focus", "priority"].includes(id))];
     }
   } catch { /* ignore */ }
   return DEFAULT_ACTIVE;
@@ -50,6 +52,7 @@ function WidgetRenderer({ id }) {
   switch (id) {
     case "live-ops": return <LiveOps />;
     case "client-health": return <ClientHealthStrip />;
+    case "focus": return <FocusWidget />;
     case "priority": return <PriorityTasks />;
     case "content-schedule": return <ClientContentSchedule />;
     case "subscriptions": return <div className="px-8 pt-6"><ActiveSubscriptions /></div>;
