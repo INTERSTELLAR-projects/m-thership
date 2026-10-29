@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { HelpCircle, Plus, X, Rocket } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { computeRoute, ROUTE_PRESETS } from "../../../base44/shared/planEngine.js";
+import { computeRoute, ROUTE_PRESETS } from "@/lib/planEngine.js";
 
 function Field({ label, value, onChange, type, placeholder, tooltip }) {
   return (

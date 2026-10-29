@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from "react";
 import { RefreshCw, ChevronDown, ChevronUp, AlertTriangle, Pencil, ArrowUp, ArrowDown, RotateCcw } from "lucide-react";
-import { computePlan, presetFor, round2 } from "../../../base44/shared/planEngine.js";
+import { computePlan, presetFor, round2 } from "@/lib/planEngine.js";
 
 const ROUTE_COLORS = ["#ff3c00", "#FFC14D", "#FF9F1C"];
 const BLENDED_COLOR = "#67B5FF";
