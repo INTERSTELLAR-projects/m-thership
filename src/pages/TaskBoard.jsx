@@ -17,7 +17,7 @@ import { btnGhost } from "@/features/tasks/lib/ui";
 const ALL = "__all__";
 const PAGE = 40;
 
-function TaskBoardInner() {
+function TaskBoardInner({ withDock = false }) {
   const assistant = useAssistant();
   const [filters, setFilters] = useState({ search: "", status: ALL, category: ALL, priority: ALL, client: ALL });
   const [tasks, setTasks] = useState([]);
@@ -213,18 +213,19 @@ function TaskBoardInner() {
         }}
       />
 
-      <AssistantDock />
+      {withDock ? <AssistantDock /> : null}
     </div>
   );
 }
 
-// Uses a global AssistantProvider if one is mounted later; otherwise scopes one to this page.
+// If a global AssistantProvider (+ global AssistantDock) is mounted later, the page reuses it and
+// does not render a second dock. Otherwise it scopes a provider and the dock to this page.
 export default function TaskBoard() {
   const ctx = useAssistant();
   if (ctx) return <TaskBoardInner />;
   return (
     <AssistantProvider>
-      <TaskBoardInner />
+      <TaskBoardInner withDock />
     </AssistantProvider>
   );
 }
