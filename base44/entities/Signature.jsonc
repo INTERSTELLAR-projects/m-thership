@@ -1,0 +1,62 @@
+{
+  "name": "Signature",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "default": "Untitled signature",
+      "description": "User-facing label for this signature"
+    },
+    "template_id": {
+      "type": "string",
+      "enum": [
+        "t1_classic",
+        "t2_minimal",
+        "t3_compact",
+        "t4_centered"
+      ],
+      "default": "t1_classic"
+    },
+    "fields": {
+      "type": "object",
+      "default": {},
+      "description": "Editable content fields (name, title, social links, etc.)"
+    },
+    "theme": {
+      "type": "object",
+      "default": {},
+      "description": "Visual theme (colors, font, border)"
+    },
+    "generated_html": {
+      "type": "string",
+      "default": "",
+      "description": "Last rendered HTML for this signature"
+    }
+  },
+  "required": [
+    "name",
+    "template_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
