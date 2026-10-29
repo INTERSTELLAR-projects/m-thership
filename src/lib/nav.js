@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, FileText, DollarSign, Scale, Users, Lightbulb, ListTodo,
-  MessageSquare, Globe, TrendingUp, ClipboardList, Crown, Activity, Settings, FolderKanban, Star, PenLine,
+  MessageSquare, Globe, TrendingUp, ClipboardList, Crown, Activity, Settings, FolderKanban, Star, PenLine, Presentation,
 } from "lucide-react";
 
 export const LOGO_URL =
@@ -25,6 +25,7 @@ export const NAV_GROUPS = [
   {
     label: "Studio",
     items: [
+      { label: "Presentations", icon: Presentation, path: "/presentations/projects" },
       { label: "Signatures", icon: PenLine, path: "/signatures" },
     ],
   },
