@@ -1,6 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 // TEMPORARY one-time migration: copies the last good review cache from the old Stärboard app.
-// Only fills clients whose cache is empty. Delete after use.
+// Only fills clients whose cache is empty. Delete after use (2026-10-29).
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
   const db = base44.asServiceRole.entities.ReviewClient;
