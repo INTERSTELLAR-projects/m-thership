@@ -10,8 +10,11 @@ import DailyBriefing from "../components/dashboard/DailyBriefing";
 import ProjectProgressDashboard from "../components/ProjectProgressDashboard";
 import MinusculeProjects from "../components/dashboard/MinusculeProjects";
 import ProjectionWidget from "../components/dashboard/ProjectionWidget";
+import LiveOps, { ClientHealthStrip } from "@/features/mission/LiveOps";
 
 const ALL_WIDGETS = [
+  { id: "live-ops", label: "Live Operations (feed, automations, requests)" },
+  { id: "client-health", label: "Client Health" },
   { id: "priority", label: "Priority Tasks" },
   { id: "content-schedule", label: "Client Content Schedule" },
   { id: "subscriptions", label: "Active Subscriptions" },
@@ -21,15 +24,21 @@ const ALL_WIDGETS = [
   { id: "minuscule-projects", label: "Minuscule Projects" },
 ];
 
-const DEFAULT_ACTIVE = ["priority", "content-schedule", "subscriptions", "financial"];
+const DEFAULT_ACTIVE = ["live-ops", "client-health", "priority", "content-schedule", "subscriptions", "financial"];
 
-const STORAGE_KEY = "dashboard_widget_order_v3";
+const STORAGE_KEY = "dashboard_widget_order_v4";
+const LEGACY_KEY = "dashboard_widget_order_v3";
 
 function loadOrder() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (Array.isArray(saved) && saved.every((id) => ALL_WIDGETS.some((w) => w.id === id))) return saved;
-  } catch {}
+    // Carry over the old layout, with the new Mission Control widgets on top.
+    const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY));
+    if (Array.isArray(legacy) && legacy.every((id) => ALL_WIDGETS.some((w) => w.id === id))) {
+      return ["live-ops", "client-health", ...legacy.filter((id) => id !== "live-ops" && id !== "client-health")];
+    }
+  } catch { /* ignore */ }
   return DEFAULT_ACTIVE;
 }
 
@@ -39,6 +48,8 @@ function saveOrder(order) {
 
 function WidgetRenderer({ id }) {
   switch (id) {
+    case "live-ops": return <LiveOps />;
+    case "client-health": return <ClientHealthStrip />;
     case "priority": return <PriorityTasks />;
     case "content-schedule": return <ClientContentSchedule />;
     case "subscriptions": return <div className="px-8 pt-6"><ActiveSubscriptions /></div>;
@@ -79,9 +90,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex items-center justify-between pr-8">
-        <PageHeader breadcrumb="Command / Mission Control" rightText="Everything, live" />
-        <div className="flex items-center gap-3">
+      <PageHeader breadcrumb="Command / Mission Control" rightText="Everything, live">
           <DailyBriefing />
           <button
           onClick={() => setEditing(!editing)}
@@ -93,8 +102,7 @@ export default function Dashboard() {
         >
           {editing ? <><X className="w-3.5 h-3.5" />Done</> : <><Settings className="w-3.5 h-3.5" />Customize</>}
         </button>
-        </div>
-      </div>
+      </PageHeader>
 
       {editing ? (
         <div className="px-8 py-3 space-y-6">
