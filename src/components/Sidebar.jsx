@@ -1,154 +1,90 @@
 import { Link, useLocation } from "react-router-dom";
-import { 
-  LayoutDashboard, KeyRound, FileText, DollarSign, 
-  Scale, Users, BarChart3, MessageSquare, Globe,
-  TrendingUp, Settings, LogOut, ClipboardList, Lightbulb, ListTodo, Crown, Search, Activity, X
-} from "lucide-react";
+import { LogOut, Search, X } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
+import { NAV_GROUPS, SETTINGS_ITEM, LOGO_URL } from "@/lib/nav";
 
-const mainNav = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/" },
-  { label: "Logins", icon: KeyRound, path: "/logins" },
-  { label: "Documents", icon: FileText, path: "/documents" },
-  { label: "Financial", icon: DollarSign, path: "/financial" },
-  { label: "Legal", icon: Scale, path: "/legal" },
-  { label: "CRM", icon: Users, path: "/crm" },
-  { label: "Idea Vault", icon: Lightbulb, path: "/idea-vault" },
-  { label: "To-Do", icon: ListTodo, path: "/todo" },
-  { label: "Comms", icon: MessageSquare, path: "/comms" },
-  { label: "Output Analytics", icon: Activity, path: "/output-analytics" },
-];
-
-const portalNav = [
-  { label: "Requests", icon: ClipboardList, path: "/requests" },
-  { label: "Ørbit SEO", icon: Globe, path: "/orbit-seo" },
-  { label: "Performance", icon: TrendingUp, path: "/performance" },
-  { label: "Prestige", icon: Crown, path: "/prestige" },
-];
+function NavItem({ item, onClose }) {
+  const location = useLocation();
+  const active = item.path === "/" ? location.pathname === "/" : location.pathname.startsWith(item.path);
+  return (
+    <Link
+      to={item.path}
+      onClick={onClose}
+      className={`group relative flex items-center gap-3 px-3 py-[9px] text-[13.5px] transition-colors duration-200 ${
+        active ? "bg-ink text-white" : "text-ink/70 hover:text-ink hover:bg-ink/[0.05]"
+      }`}
+    >
+      {active && <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#ff3c00]" />}
+      <item.icon className={`h-[16px] w-[16px] shrink-0 transition-colors ${active ? "text-[#ff3c00]" : "text-ink/45 group-hover:text-[#ff3c00]"}`} strokeWidth={1.75} />
+      <span className="truncate font-medium tracking-[-0.01em]">{item.label}</span>
+    </Link>
+  );
+}
 
 export default function Sidebar({ onOpenCommand, open, onClose }) {
-  const location = useLocation();
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
-
-  const handleLogout = () => {
-    base44.auth.logout();
-  };
-
-  const NavItem = ({ item }) => {
-    const isActive = location.pathname === item.path;
-    return (
-      <Link
-        to={item.path}
-        onClick={onClose}
-        className={`relative flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group overflow-hidden
-          ${
-            isActive
-              ? "text-ink bg-gradient-to-r from-orange-500/20 to-orange-500/[0.03] shadow-[0_0_18px_rgba(255,106,0,0.18)]"
-              : "text-ink/90 hover:text-ink hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-transparent hover:shadow-[0_0_14px_rgba(255,106,0,0.12)] hover:translate-x-0.5"
-          }`}
-      >
-        {isActive && (
-          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-gradient-to-b from-orange-300 to-orange-600 shadow-[0_0_8px_rgba(255,106,0,0.7)]" />
-        )}
-        <item.icon
-          className="w-[18px] h-[18px] shrink-0 transition-all duration-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_6px_rgba(255,106,0,0.7)]"
-          color="url(#navIconGrad)"
-        />
-        <span className="truncate transition-colors duration-200">{item.label}</span>
-        {isActive && <div className="ml-auto w-1 h-1 rounded-full bg-orange-400 shadow-[0_0_6px_rgba(255,106,0,0.9)]" />}
-      </Link>
-    );
-  };
+  const email = user?.email || "";
+  const initial = (user?.full_name || email || "?").trim().charAt(0).toUpperCase();
 
   return (
-    <aside className={`fixed inset-y-0 left-0 z-50 w-[240px] bg-sidebar flex flex-col border-r border-sidebar-border transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"} md:static md:translate-x-0 md:w-[220px] md:min-w-[220px]`}>
-      {/* Shared orange gradient for nav icons */}
-      <svg width="0" height="0" className="absolute" aria-hidden="true">
-        <defs>
-          <linearGradient id="navIconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#FFD08A" />
-            <stop offset="55%" stopColor="#FF9100" />
-            <stop offset="100%" stopColor="#ff3c00" />
-          </linearGradient>
-        </defs>
-      </svg>
-      {/* Logo */}
-      <div className="px-5 pt-6 pb-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="w-8 h-8 rounded-lg bg-ink flex items-center justify-center overflow-hidden border border-ink/[0.13]">
-            <img src="https://framerusercontent.com/images/lYN9zTgbln1GtT6KOSpG27mq3Q.png?scale-down-to=512&width=1563&height=1563" alt="Logo" className="w-full h-full object-contain" />
+    <aside
+      className={`fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-hair bg-canvas transition-transform duration-300 ${
+        open ? "translate-x-0" : "-translate-x-full"
+      } md:static md:w-[232px] md:min-w-[232px] md:translate-x-0`}
+    >
+      {/* Brand */}
+      <div className="flex h-[60px] items-center justify-between border-b border-hair px-4">
+        <Link to="/" onClick={onClose} className="flex items-center gap-2.5">
+          <img src={LOGO_URL} alt="" className="h-7 w-9 object-contain" />
+          <div className="leading-none">
+            <p className="text-[15px] font-semibold tracking-[-0.03em] text-ink">
+              MØTHERSHIP<span className="align-super text-[8px] text-[#ff3c00]">®</span>
+            </p>
+            <p className="mono-label mt-1 text-[9px] text-ink/45">Interstellar</p>
           </div>
-          <div>
-            <h1 className="font-orbitron text-ink font-bold text-sm tracking-wide leading-none">MØTHERSHIP</h1>
-            <p className="font-orbitron text-ink/[0.48] text-[10px] tracking-widest uppercase">Terminal</p>
-          </div>
-          <button onClick={onClose} className="md:hidden p-1.5 -mr-1 text-ink/[0.58] hover:text-ink/80 transition-colors" aria-label="Close menu">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+        </Link>
+        <button onClick={onClose} className="p-1.5 text-ink/50 hover:text-ink md:hidden" aria-label="Close menu">
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
-      {/* Main Nav */}
-      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
-        {/* Command palette trigger */}
+      {/* Quick navigate */}
+      <div className="border-b border-hair p-3">
         <button
           onClick={onOpenCommand}
-          className="w-full flex items-center gap-2.5 px-4 py-2 mb-2 rounded-lg border border-ink/[0.13] bg-ink/[0.02] text-ink/[0.43] hover:text-ink/50 hover:bg-ink/[0.04] hover:border-ink/[0.13] transition-all text-xs"
+          className="flex w-full items-center gap-2.5 border border-hair bg-paper px-3 py-2 text-xs text-ink/50 transition-colors hover:border-ink/40 hover:text-ink"
         >
-          <Search className="w-3.5 h-3.5" />
-          <span>Quick navigate...</span>
-          <kbd className="ml-auto font-mono text-[10px] bg-ink/[0.04] px-1.5 py-0.5 rounded border border-ink/[0.13]">⌘K</kbd>
+          <Search className="h-3.5 w-3.5" />
+          <span>Jump to…</span>
+          <kbd className="ml-auto font-mono text-[10px] text-ink/40">⌘K</kbd>
         </button>
+      </div>
 
-        {isAdmin && (
-          <>
-            <p className="font-orbitron px-4 pb-1 text-[10px] font-semibold tracking-[0.2em] text-ink/[0.43] uppercase">Command Center</p>
-            {mainNav.map((item) => (
-              <NavItem key={item.path} item={item} />
-            ))}
-          </>
-        )}
-
-        {/* Divider */}
-        <div className="py-3">
-          <div className="border-t border-ink/[0.13]" />
-        </div>
-
-        {/* Portal Label */}
-        <p className="font-orbitron px-4 pb-1 text-[10px] font-semibold tracking-[0.2em] text-ink/[0.43] uppercase">Portal</p>
-
-        {portalNav.map((item) => (
-          <NavItem key={item.path} item={item} />
+      <nav className="flex-1 overflow-y-auto py-3">
+        {NAV_GROUPS.map((g) => (
+          <div key={g.label} className="mb-4">
+            <p className="label-cross px-4 pb-2 text-[10.5px] text-ink/55">({g.label})</p>
+            <div className="space-y-px">
+              {g.items.map((item) => (
+                <NavItem key={item.path} item={item} onClose={onClose} />
+              ))}
+            </div>
+          </div>
         ))}
       </nav>
 
-      {/* Bottom */}
-      <div className="p-3 border-t border-ink/[0.13] space-y-1">
-        <Link
-          to="/settings"
-          onClick={onClose}
-          className="group flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-ink/[0.58] hover:text-ink/80 hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-transparent transition-all"
-        >
-          <Settings className="w-[18px] h-[18px] transition-all duration-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_6px_rgba(255,106,0,0.7)]" color="url(#navIconGrad)" />
-          <span>Settings</span>
-        </Link>
-        <button
-          onClick={handleLogout}
-          className="group flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-ink/[0.58] hover:text-red-600 hover:bg-red-500/5 transition-all w-full"
-        >
-          <LogOut className="w-[18px] h-[18px] transition-all duration-200 group-hover:scale-110" color="url(#navIconGrad)" />
-          <span>Log Out</span>
-        </button>
-        
-        {/* Profile */}
-        <div className="mt-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-orange-500/[0.06] to-transparent border border-orange-500/10 flex items-center gap-2.5">
-          <div className="w-6 h-6 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-[10px] font-bold text-orange-400 shrink-0">J</div>
-          <div className="min-w-0">
-            <p className="text-ink/70 text-xs font-medium truncate">justin@interstellar...</p>
-            <p className="text-orange-500/70 text-[10px] font-semibold tracking-wider uppercase">Admin</p>
+      <div className="border-t border-hair">
+        <NavItem item={SETTINGS_ITEM} onClose={onClose} />
+        <div className="flex items-center gap-3 border-t border-hair px-4 py-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#ff3c00] text-[12px] font-semibold text-white">{initial}</div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[12px] font-medium text-ink">{email}</p>
+            <p className="mono-label text-[9px] text-[#ff3c00]">{user?.role === "admin" ? "Admin" : "Client"}</p>
           </div>
+          <button onClick={() => base44.auth.logout()} className="p-1.5 text-ink/45 transition-colors hover:text-[#ff3c00]" aria-label="Log out" title="Log out">
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </aside>
