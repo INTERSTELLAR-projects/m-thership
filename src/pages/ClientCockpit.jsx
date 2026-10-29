@@ -7,10 +7,11 @@ import { useRecord, SERVICE_LABELS } from "@/lib/useData";
 import { FormDialog, Tag } from "@/features/clients/ui";
 import { OverviewTab, WorkTab, TasksTab, RequestsTab, AutomationsTab } from "@/features/clients/tabsWork";
 import { PerformanceTab, GoalsTab, FilesTab, AuditTab, MessagesTab } from "@/features/clients/tabsGrowth";
+import { ServicesTab, NotesTab, DocumentsTab } from "@/pages/CRM";
 
 const TABS = [
   ["overview", "Overview"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
-  ["performance", "Performance"], ["goals", "Goals & Gaps"], ["files", "Files & Brand"], ["audit", "Intake Audit"], ["messages", "Messages"],
+  ["performance", "Performance"], ["goals", "Goals & Gaps"], ["files", "Files & Brand"], ["audit", "Intake Audit"], ["messages", "Messages"], ["billing", "Billing & Notes"],
 ];
 
 const PROFILE_FIELDS = [
@@ -46,6 +47,11 @@ export default function ClientCockpit() {
   const save = async (v) => {
     await base44.entities.CRMClient.update(client.id, v);
     qc.invalidateQueries({ queryKey: ["CRMClient"] });
+  };
+  // The original CRM tabs pass the whole client object back.
+  const legacyUpdate = async (updated) => {
+    const { id: _id, created_date, updated_date, created_by, created_by_id, is_sample, ...fields } = updated; // eslint-disable-line no-unused-vars
+    await save(fields);
   };
   const words = client.business.split(" ");
   const last = words.length > 1 ? words.pop() : null;
@@ -91,6 +97,15 @@ export default function ClientCockpit() {
         {tab === "files" && <FilesTab client={client} />}
         {tab === "audit" && <AuditTab client={client} />}
         {tab === "messages" && <MessagesTab client={client} />}
+        {tab === "billing" && (
+          <div className="grid gap-6 xl:grid-cols-2">
+            <div><p className="label-cross mb-3">(Services & billing)</p><ServicesTab client={client} update={legacyUpdate} /></div>
+            <div className="space-y-6">
+              <div><p className="label-cross mb-3">(Notes)</p><NotesTab client={client} update={legacyUpdate} /></div>
+              <div><p className="label-cross mb-3">(Documents)</p><DocumentsTab client={client} update={legacyUpdate} /></div>
+            </div>
+          </div>
+        )}
       </div>
 
       <FormDialog open={editing} title="Edit client" fields={PROFILE_FIELDS} initial={client} onClose={() => setEditing(false)} onSubmit={save} />

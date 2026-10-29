@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Search, Plus, Phone, Mail, Globe, Building, ChevronRight, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { useRef } from "react";
 const statusFilters = ["All", "Active", "Inactive", "Lead"];
 
 export default function CRM() {
+  const navigate = useNavigate();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -120,7 +122,7 @@ export default function CRM() {
               const total = (client.services || []).reduce((s, sv) => s + (sv.price || 0), 0);
               return (
                 <div key={client.id} className="card-hover w-full bg-card rounded-md border border-ink/[0.13] p-4 flex items-center gap-5 group">
-                  <button onClick={() => setSelectedId(client.id)} className="flex items-center gap-5 flex-1 text-left min-w-0">
+                  <button onClick={() => navigate(`/clients/${client.id}`)} className="flex items-center gap-5 flex-1 text-left min-w-0">
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center shrink-0 overflow-hidden">
                       {client.logoUrl ? (
                         <img src={client.logoUrl} alt={client.business} className="w-full h-full object-cover" />
