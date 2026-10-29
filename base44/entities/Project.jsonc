@@ -1,5 +1,6 @@
 {
   "name": "Project",
+  "description": "Client delivery project. Services started from the catalog create one with its SOP tasks.",
   "type": "object",
   "properties": {
     "title": {
@@ -99,11 +100,11 @@
     },
     "service_key": {
       "type": "string",
-      "description": "Package started from the service catalog (mission_alpha, orbit_local…)"
+      "description": "Package started from the service catalog (mission_alpha, orbit_local\u2026)"
     },
     "order_ref": {
       "type": "string",
-      "description": "Purchase reference (manual-… or a Stripe payment id) so a purchase never creates two lists"
+      "description": "Purchase reference (manual-\u2026 or a Stripe payment id) so a purchase never creates two lists"
     }
   },
   "required": [
