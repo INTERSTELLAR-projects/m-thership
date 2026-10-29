@@ -11,10 +11,11 @@ async function listAll(entity: any, options: Record<string, unknown> = {}) {
   const rows: any[] = [];
   let cursor: string | null = null;
   for (let guard = 0; guard < 100; guard += 1) {
-    const page: any = await entity.list(cursor ? { ...options, cursor } : { ...options, limit: 500 });
+    // A cursor carries the walk's parameters; later pages take only cursor + limit.
+    const page: any = await entity.list(cursor ? { cursor, limit: 500 } : { ...options, limit: 500 });
     rows.push(...itemsOf(page));
-    cursor = page && page.next_cursor ? page.next_cursor : null;
-    if (!cursor || !(page && page.has_more !== false)) break;
+    cursor = page && page.has_more && page.next_cursor ? page.next_cursor : null;
+    if (!cursor) break;
   }
   return rows;
 }
