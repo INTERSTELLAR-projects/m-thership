@@ -6,7 +6,6 @@ import { useList, useInvalidate, timeAgo } from "@/lib/useData";
 import { Btn, SmallBtn, Panel, Empty, Tag, Stat, FormDialog } from "@/features/clients/ui";
 
 // Stärboard: Google reviews for every client site, served from one cached endpoint.
-const ENDPOINT = `${typeof window !== "undefined" ? window.location.origin : "https://m-thership.base44.app"}/functions/reviews?client=`;
 const PUBLIC_ENDPOINT = "https://m-thership.base44.app/functions/reviews?client=";
 
 const FIELDS = [
@@ -78,7 +77,7 @@ export default function Reviews() {
 
   return (
     <div className="pb-16">
-      <PageHeader breadcrumb="Command / Stärboard" rightText="Google reviews on every client site" title="Review /Stärboard">
+      <PageHeader breadcrumb="Command / Stärboard" rightText="Google reviews on every client site" title="Google Stärboard">
         <Btn icon={Plus} onClick={() => setEdit({ active: true })}>Add client</Btn>
       </PageHeader>
 
