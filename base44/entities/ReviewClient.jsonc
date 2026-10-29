@@ -1,0 +1,23 @@
+{
+  "name": "ReviewClient",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string", "description": "Business name, e.g. MowMasters of Ascension" },
+    "slug": { "type": "string", "description": "Short id the website asks for, e.g. mowmasters" },
+    "place_id": { "type": "string", "description": "Google Place ID (starts with ChIJ)" },
+    "website": { "type": "string", "description": "Client website (reference only)" },
+    "crm_client_id": { "type": "string", "description": "Linked CRMClient id (optional)" },
+    "active": { "type": "boolean", "default": true },
+    "cache": { "type": "object", "description": "Last good response from Google, served to every visitor" },
+    "cached_at": { "type": "string", "format": "date-time" },
+    "last_attempt_at": { "type": "string", "format": "date-time" },
+    "last_error": { "type": "string" }
+  },
+  "required": ["name", "slug", "place_id"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}
