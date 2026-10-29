@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Upload, Trash2, Edit2, Check, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Check } from "lucide-react";
 
 export default function BrandProfile({ clientId, initialData = {} }) {
   const [data, setData] = useState(initialData);

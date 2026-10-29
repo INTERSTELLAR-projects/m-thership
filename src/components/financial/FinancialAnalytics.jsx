@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { BarChart, Bar, Cell, XAxis, YAxis, ResponsiveContainer, CartesianGrid, AreaChart, Area, Tooltip } from "recharts";
-import { TrendingUp, DollarSign, Percent, Target, ArrowUpRight, Loader2 } from "lucide-react";
+import { TrendingUp, DollarSign, Percent, ArrowUpRight, Loader2 } from "lucide-react";
 import GameChartTooltip from "../charts/GameChartTooltip";
 
 const MRR_GOAL = 10000;

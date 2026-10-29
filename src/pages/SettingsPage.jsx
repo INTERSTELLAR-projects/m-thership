@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  Search, ChevronDown, ChevronUp, Plus, Edit2, Trash2,
+  Search, ChevronDown, ChevronUp, Plus, Edit2,
   ToggleLeft, ToggleRight, Save, X, Check, Loader2,
   Settings, Users, Globe, FileText, Zap, Puzzle, Palette, Lock, Code2, Bell,
-  CreditCard, RefreshCw, ExternalLink, AlertCircle, Database
+  CreditCard, RefreshCw, AlertCircle, Database
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";

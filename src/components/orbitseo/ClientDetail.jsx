@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Globe, MapPin, Plus, Check, X, Pencil, Trash2, ExternalLink, CheckSquare, Square, Save, Wand2, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Check, X, Trash2, ExternalLink, CheckSquare, Square, Save, Wand2, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const TABS = ["Overview", "Strategy", "Blog", "GBP", "Notes & Tasks"];

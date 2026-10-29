@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Loader2, Crown, Trophy, Award, Shield, Users, ChevronDown, ChevronRight, Star, Sparkles, Zap, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Crown, Trophy, Award, Shield, Users, ChevronDown, ChevronRight, Star, Sparkles } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";

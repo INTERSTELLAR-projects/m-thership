@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Send, Paperclip, Mic, Image, FileText, X, Loader2, ChevronDown } from "lucide-react";
+import { Search, Send, Paperclip, Mic, Image, FileText, Loader2, ChevronDown } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 import MicButton from "../components/MicButton";

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ArrowLeft, Globe, MapPin, RefreshCw, AlertCircle, TrendingUp, TrendingDown, Minus, CheckCircle2, XCircle, Clock, ExternalLink, ChevronRight, Zap, Target, Shield, FileText, Search, BarChart3, Users, Eye, MousePointer, Star, Phone, Navigation } from "lucide-react";
-import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from "recharts";
+import { ArrowLeft, Globe, MapPin, RefreshCw, AlertCircle, TrendingUp, TrendingDown, Minus, CheckCircle2, XCircle, ExternalLink, ChevronRight, Zap, Target, Shield, FileText, Search, BarChart3, Eye, MousePointer, Star, Phone, Navigation } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import GameChartTooltip from "../charts/GameChartTooltip";
 
 const TOOLTIP_STYLE = {

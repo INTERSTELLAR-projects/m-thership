@@ -1,11 +1,7 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Check, X, Loader2, CalendarDays, Clock, CheckCircle2, DollarSign } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Pencil, Trash2, Check, Loader2, CalendarDays, Clock, CheckCircle2, DollarSign } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { base44 } from "@/api/base44Client";
-import MicButton from "../components/MicButton";
 import PageHeader from "../components/PageHeader";
 import CompleteTaskModal from "../components/CompleteTaskModal";
 import TaskForm from "@/components/tasks/TaskForm";

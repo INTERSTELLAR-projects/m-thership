@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { Plus, Pencil, Trash2, Loader2, TrendingUp, DollarSign, Target, Rocket, CalendarClock, Check, X } from "lucide-react";
-import { BarChart, Bar, Cell, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip, LabelList } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip, LabelList } from "recharts";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import GameChartTooltip from "../charts/GameChartTooltip";
 
 const EMPTY = { clientName: "", serviceTitle: "", amount: "", expectedCloseDate: "", note: "", status: "Pending" };
 const STATUS_STYLES = {

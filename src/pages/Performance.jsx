@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 import ClientPerformanceDetail from "../components/performance/ClientPerformanceDetail";
-import { Search, Users, TrendingUp, AlertCircle, Globe, BarChart3, Loader2, FileText, Star, Filter } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { Search, Users, TrendingUp, AlertCircle, Globe, BarChart3, Loader2, FileText, Star } from "lucide-react";
+import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import GameChartTooltip from "../components/charts/GameChartTooltip";
 
 const TOOLTIP_STYLE = {
