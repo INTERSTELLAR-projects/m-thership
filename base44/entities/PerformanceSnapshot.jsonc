@@ -1,0 +1,61 @@
+{
+  "name": "PerformanceSnapshot",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "gbp",
+        "gsc",
+        "ga4",
+        "bing"
+      ]
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "client_id",
+    "source"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

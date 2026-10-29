@@ -1,0 +1,79 @@
+{
+  "name": "TaskTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "project_type": {
+      "type": "string",
+      "enum": [
+        "website",
+        "app",
+        "branding",
+        "marketing",
+        "seo",
+        "automation",
+        "consulting",
+        "internal",
+        "other"
+      ],
+      "default": "website"
+    },
+    "description": {
+      "type": "string"
+    },
+    "times_applied": {
+      "type": "number",
+      "default": 0
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "number"
+          },
+          "estimated_days": {
+            "type": "number"
+          },
+          "offset_days": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

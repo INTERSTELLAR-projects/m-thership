@@ -1,0 +1,121 @@
+{
+  "name": "Automation",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "blog",
+        "gbp_post",
+        "project_page",
+        "search_console",
+        "analytics",
+        "bing",
+        "schema_check",
+        "rich_results",
+        "citations",
+        "digest",
+        "email",
+        "other"
+      ],
+      "default": "other"
+    },
+    "runner": {
+      "type": "string",
+      "enum": [
+        "claude_scheduled",
+        "base44_workflow",
+        "base44_function",
+        "manual"
+      ],
+      "default": "claude_scheduled"
+    },
+    "schedule": {
+      "type": "string",
+      "description": "Human-readable, e.g. Tue + Thu 9am PT"
+    },
+    "target_app_id": {
+      "type": "string",
+      "description": "Base44 app id it writes to"
+    },
+    "target_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "setup",
+        "active",
+        "paused",
+        "error"
+      ],
+      "default": "setup"
+    },
+    "last_run_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_result": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failed",
+        "skipped"
+      ]
+    },
+    "last_message": {
+      "type": "string"
+    },
+    "next_run_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "runs_count": {
+      "type": "number",
+      "default": 0
+    },
+    "portal_visible": {
+      "type": "boolean",
+      "default": true
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

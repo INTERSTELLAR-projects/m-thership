@@ -30,6 +30,22 @@
     },
     "timestamp": {
       "type": "string"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "sender_role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "client"
+      ],
+      "default": "admin"
+    },
+    "read_at": {
+      "type": "string",
+      "format": "date-time"
     }
   },
   "required": [

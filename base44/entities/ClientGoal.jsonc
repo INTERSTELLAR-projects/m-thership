@@ -1,0 +1,92 @@
+{
+  "name": "ClientGoal",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "year": {
+      "type": "number",
+      "default": 2027
+    },
+    "title": {
+      "type": "string"
+    },
+    "metric": {
+      "type": "string"
+    },
+    "baseline_value": {
+      "type": "number"
+    },
+    "target_value": {
+      "type": "number"
+    },
+    "current_value": {
+      "type": "number"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "on_track",
+        "at_risk",
+        "achieved"
+      ],
+      "default": "not_started"
+    },
+    "plan_steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean"
+          },
+          "due": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "sort": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "client_id",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "name": "WorkLog",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "blog",
+        "gbp_post",
+        "site_edit",
+        "project_page",
+        "new_page",
+        "citation",
+        "press",
+        "mention",
+        "backlink",
+        "schema",
+        "search_console",
+        "bing",
+        "analytics",
+        "report",
+        "presentation",
+        "deliverable",
+        "design",
+        "automation_setup",
+        "other"
+      ],
+      "default": "other"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "generated",
+        "live",
+        "failed"
+      ],
+      "default": "live"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "automation",
+        "claude"
+      ],
+      "default": "manual"
+    },
+    "automation_id": {
+      "type": "string"
+    },
+    "verified_live": {
+      "type": "boolean",
+      "default": false
+    },
+    "portal_visible": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "client_id",
+    "kind",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "name": "InboxItem",
+  "type": "object",
+  "properties": {
+    "raw_text": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "voice",
+        "manual",
+        "ai"
+      ],
+      "default": "voice"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "needs_review",
+        "filed",
+        "discarded"
+      ],
+      "default": "needs_review"
+    },
+    "assistant_note": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "number",
+      "default": 0
+    },
+    "suggested_kind": {
+      "type": "string",
+      "enum": [
+        "task",
+        "project",
+        "client"
+      ],
+      "default": "task"
+    },
+    "suggested_title": {
+      "type": "string"
+    },
+    "suggested_category": {
+      "type": "string"
+    },
+    "suggested_priority": {
+      "type": "number"
+    },
+    "suggested_due_date": {
+      "type": "string"
+    },
+    "suggested_estimated_days": {
+      "type": "number"
+    },
+    "suggested_project_title": {
+      "type": "string"
+    },
+    "suggested_project_type": {
+      "type": "string"
+    },
+    "suggested_project_value": {
+      "type": "number"
+    },
+    "suggested_client_name": {
+      "type": "string"
+    },
+    "captured_on": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "raw_text"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

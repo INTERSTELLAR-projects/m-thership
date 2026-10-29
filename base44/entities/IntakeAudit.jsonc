@@ -1,0 +1,76 @@
+{
+  "name": "IntakeAudit",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "business_name": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "in_progress",
+        "submitted",
+        "reviewed"
+      ],
+      "default": "draft"
+    },
+    "answers": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "sections_complete": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "summary": {
+      "type": "string"
+    },
+    "opportunities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "business_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

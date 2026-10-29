@@ -1,0 +1,149 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "parent_task_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "design",
+        "development",
+        "strategy",
+        "content",
+        "marketing",
+        "sales",
+        "admin",
+        "finance",
+        "ops"
+      ],
+      "default": "ops"
+    },
+    "task_type": {
+      "type": "string",
+      "enum": [
+        "billable",
+        "internal",
+        "unpaid",
+        "personal"
+      ],
+      "default": "billable"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "inbox",
+        "next",
+        "doing",
+        "blocked",
+        "done"
+      ],
+      "default": "next"
+    },
+    "priority": {
+      "type": "number",
+      "default": 3
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "remind_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "estimated_days": {
+      "type": "number",
+      "default": 0
+    },
+    "estimated_hours": {
+      "type": "number",
+      "default": 0
+    },
+    "logged_hours": {
+      "type": "number",
+      "default": 0
+    },
+    "is_focus": {
+      "type": "boolean",
+      "default": false
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "voice",
+        "ai",
+        "sop",
+        "request",
+        "automation"
+      ],
+      "default": "manual"
+    },
+    "recurring_pattern_id": {
+      "type": "string"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "portal_visible": {
+      "type": "boolean",
+      "default": false
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

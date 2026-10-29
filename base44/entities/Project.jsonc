@@ -1,0 +1,126 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "website",
+        "app",
+        "branding",
+        "marketing",
+        "seo",
+        "automation",
+        "consulting",
+        "internal",
+        "other"
+      ],
+      "default": "website"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "proposed",
+        "backlog",
+        "planning",
+        "in_progress",
+        "review",
+        "launched",
+        "on_hold",
+        "done"
+      ],
+      "default": "planning"
+    },
+    "priority": {
+      "type": "number",
+      "default": 2
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "estimated_hours": {
+      "type": "number",
+      "default": 0
+    },
+    "logged_hours": {
+      "type": "number",
+      "default": 0
+    },
+    "contract_value": {
+      "type": "number",
+      "default": 0
+    },
+    "billing": {
+      "type": "string",
+      "enum": [
+        "one_time",
+        "retainer",
+        "hourly",
+        "unpaid"
+      ],
+      "default": "one_time"
+    },
+    "accent": {
+      "type": "string",
+      "default": "orange"
+    },
+    "description": {
+      "type": "string"
+    },
+    "sop_id": {
+      "type": "string"
+    },
+    "is_focus": {
+      "type": "boolean",
+      "default": false
+    },
+    "portal_visible": {
+      "type": "boolean",
+      "default": true
+    },
+    "progress": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

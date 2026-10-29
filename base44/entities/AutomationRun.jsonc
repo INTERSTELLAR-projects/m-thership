@@ -1,0 +1,71 @@
+{
+  "name": "AutomationRun",
+  "type": "object",
+  "properties": {
+    "automation_id": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finished_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "success",
+        "failed",
+        "skipped"
+      ],
+      "default": "success"
+    },
+    "message": {
+      "type": "string"
+    },
+    "output_url": {
+      "type": "string"
+    },
+    "work_log_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
