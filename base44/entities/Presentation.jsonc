@@ -1,0 +1,185 @@
+{
+  "name": "Presentation",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Deck title"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "DeckProject this presentation belongs to"
+    },
+    "prompt": {
+      "type": "string",
+      "description": "The original prompt the deck was generated from"
+    },
+    "summary": {
+      "type": "string",
+      "description": "One line describing the deck"
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Cover subtitle"
+    },
+    "theme": {
+      "type": "string",
+      "description": "Visual theme id, or 'custom' when brand colors are used"
+    },
+    "brand": {
+      "type": "object",
+      "description": "Custom brand settings used when theme is 'custom'",
+      "properties": {
+        "bg": {
+          "type": "string",
+          "description": "Background hex color"
+        },
+        "fg": {
+          "type": "string",
+          "description": "Text hex color"
+        },
+        "accent": {
+          "type": "string",
+          "description": "Primary accent hex color"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "light",
+            "dark"
+          ]
+        },
+        "headingFont": {
+          "type": "string",
+          "enum": [
+            "sans",
+            "serif"
+          ]
+        }
+      }
+    },
+    "tone": {
+      "type": "string",
+      "description": "Tone of voice used to write the deck"
+    },
+    "audience": {
+      "type": "string",
+      "description": "Audience the deck is written for"
+    },
+    "slides": {
+      "type": "array",
+      "description": "Ordered slides in the deck",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "layout": {
+            "type": "string"
+          },
+          "eyebrow": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "bullets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "stats": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "heading": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "attribution": {
+            "type": "string"
+          },
+          "image_prompt": {
+            "type": "string"
+          },
+          "image_url": {
+            "type": "string"
+          },
+          "needs_visual": {
+            "type": "boolean"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
