@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckCircle2, Circle, RefreshCw, FileText, MapPin, Users, Flame, CalendarDays } from "lucide-react";
+import { CheckCircle2, RefreshCw, FileText, MapPin, Users, Flame, CalendarDays } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const WEEKDAYS = [
@@ -206,7 +206,7 @@ export default function ClientContentSchedule() {
                   : "border-ink/[0.13] bg-card"
               }`}
             >
-              {isToday &&}
+              
               <div className="relative flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <CalendarDays className={`w-3.5 h-3.5 ${isToday ? "text-orange-600" : isPast ? "text-ink/[0.43]" : "text-ink/[0.63]"}`} />
