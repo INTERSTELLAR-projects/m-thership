@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Eye } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useRecord, SERVICE_LABELS } from "@/lib/useData";
@@ -39,6 +39,7 @@ export default function ClientCockpit() {
   const go = (t) => setParams(t === "overview" ? {} : { tab: t }, { replace: true });
   const { data: client, isLoading } = useRecord("CRMClient", id);
   const [editing, setEditing] = useState(false);
+  const [inviting, setInviting] = useState(false);
   const qc = useQueryClient();
 
   if (isLoading) return <div className="px-8 py-16 text-center text-ink/50">Loading…</div>;
@@ -47,6 +48,19 @@ export default function ClientCockpit() {
   const save = async (v) => {
     await base44.entities.CRMClient.update(client.id, v);
     qc.invalidateQueries({ queryKey: ["CRMClient"] });
+  };
+  const invite = async () => {
+    const emails = (client.portal_emails || []).length ? client.portal_emails : (client.emails || []).slice(0, 1);
+    if (!emails.length) { setEditing(true); return; }
+    if (!window.confirm(`Send a portal invite to ${emails.join(", ")}?`)) return;
+    setInviting(true);
+    try {
+      for (const e of emails) await base44.users.inviteUser(e, "user");
+      await save({ portal_enabled: true, portal_emails: emails });
+      window.alert("Invites sent. They'll only ever see their own portal.");
+    } catch (err) {
+      window.alert(`Invite failed: ${err?.message || err}`);
+    } finally { setInviting(false); }
   };
   // The original CRM tabs pass the whole client object back.
   const legacyUpdate = async (updated) => {
@@ -75,9 +89,15 @@ export default function ClientCockpit() {
               </a>
             )}
           </div>
-          <button onClick={() => setEditing(true)} className="btn-roll is-outline">
-            <span className="roll"><span>Edit client</span><span>Edit client</span></span>
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <Link to={`/portal/${client.id}`} className="btn-roll is-ink"><span className="roll"><span>View their portal</span><span>View their portal</span></span><span className="box"><Eye className="h-3.5 w-3.5" /></span></Link>
+            <button onClick={invite} disabled={inviting} className="btn-roll is-outline" title="Email each portal login an invite and turn the portal on">
+              <span className="roll"><span>{inviting ? "Inviting…" : "Invite to portal"}</span><span>{inviting ? "Inviting…" : "Invite to portal"}</span></span>
+            </button>
+            <button onClick={() => setEditing(true)} className="btn-roll is-outline">
+              <span className="roll"><span>Edit client</span><span>Edit client</span></span>
+            </button>
+          </div>
         </div>
         <nav className="no-scrollbar -mb-px mt-6 flex overflow-x-auto">
           {TABS.map(([k, l]) => (

@@ -26,6 +26,13 @@ import ClientComms from './pages/ClientComms';
 import Prestige from './pages/Prestige';
 import OutputAnalytics from './pages/OutputAnalytics';
 import ClientCockpit from './pages/ClientCockpit';
+import PortalApp from '@/features/portal/PortalApp';
+import { useParams } from 'react-router-dom';
+
+function PortalPreview() {
+  const { clientId } = useParams();
+  return <PortalApp previewId={clientId} />;
+}
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
@@ -50,23 +57,15 @@ const AuthenticatedApp = () => {
     }
   }
 
-  // Block all non-admin users from the entire app
+  // Clients (non-admins) only ever get their own portal
   if (user && user.role !== 'admin') {
-    return (
-      <div className="fixed inset-0 bg-ink flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 rounded-md bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-          <span className="text-red-600 text-xl">⛔</span>
-        </div>
-        <h1 className="font-orbitron text-ink font-bold text-lg tracking-widest">ACCESS DENIED</h1>
-        <p className="text-ink/[0.58] text-sm text-center max-w-xs">This terminal is restricted to authorized personnel only. You do not have permission to access this system.</p>
-        <button onClick={() => base44.auth.logout()} className="mt-2 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-600 text-sm rounded-lg hover:bg-red-500/20 transition-all">Log Out</button>
-      </div>
-    );
+    return <PortalApp />;
   }
 
   // Render the main app
   return (
     <Routes>
+      <Route path="/portal/:clientId" element={<PortalPreview />} />
       <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/logins" element={<ProtectedRoute><CredentialManager /></ProtectedRoute>} />
