@@ -38,7 +38,7 @@ export default function SignatureForm({ fields, theme, onFields, onTheme, onUplo
   const handleFile = async (e, type) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
     onUpload(type, file_url);
     if (type === "profile_photo") setF({ profile_photo_url: file_url });
     else setF({ logo_url: file_url });
