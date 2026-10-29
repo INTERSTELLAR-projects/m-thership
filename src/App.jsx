@@ -21,7 +21,6 @@ import Performance from './pages/Performance';
 import SettingsPage from './pages/SettingsPage';
 import IdeaVault from './pages/IdeaVault';
 import Requests from './pages/Requests';
-import ClientComms from './pages/ClientComms';
 import Prestige from './pages/Prestige';
 import OutputAnalytics from './pages/OutputAnalytics';
 import ClientCockpit from './pages/ClientCockpit';
@@ -95,7 +94,6 @@ const AuthenticatedApp = () => {
         <Route path="/tasks/sops" element={<ProtectedRoute><TaskSops /></ProtectedRoute>} />
         <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
         <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
-        <Route path="/client-comms" element={<ProtectedRoute><ClientComms /></ProtectedRoute>} />
         <Route path="/prestige" element={<ProtectedRoute><Prestige /></ProtectedRoute>} />
         <Route path="/output-analytics" element={<ProtectedRoute><OutputAnalytics /></ProtectedRoute>} />
         <Route path="*" element={<PageNotFound />} />
