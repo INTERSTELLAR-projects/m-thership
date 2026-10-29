@@ -48,8 +48,8 @@ function TaskBoardInner({ withDock = false }) {
       setLoading(true);
       try {
         const query = buildQuery();
-        const options = { sort: "priority", limit: PAGE };
-        if (nextCursor) options.cursor = nextCursor;
+        // A cursor carries the original sort/query; later pages send only cursor + limit.
+        const options = nextCursor ? { cursor: nextCursor, limit: PAGE } : { sort: "priority", limit: PAGE };
         const [page, count] = await Promise.all([base44.entities.Task.filter(query, options), base44.entities.Task.count(query)]);
         const items = itemsOf(page);
         setTasks((prev) => (nextCursor ? [...prev, ...items] : items));
