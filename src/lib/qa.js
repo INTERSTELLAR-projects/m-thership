@@ -81,6 +81,7 @@ function entityApi(name) {
   return {
     list: async (sort, limit) => sortBy(rows(name), sort).slice(0, limit || 500),
     filter: async (q, sort, limit) => sortBy(rows(name).filter((r) => matches(r, q)), typeof sort === "object" ? sort?.sort : sort).slice(0, (typeof sort === "object" ? sort?.limit : limit) || 500),
+    aggregate: async () => [],
     count: async (q) => rows(name).filter((r) => matches(r, q || {})).length,
     get: async (id) => rows(name).find((r) => r.id === id) || null,
     create: async (data) => { const r = { id: `qa_${Math.random().toString(36).slice(2, 9)}`, created_date: new Date().toISOString(), ...data }; rows(name).unshift(r); return r; },
