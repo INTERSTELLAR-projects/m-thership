@@ -25,6 +25,7 @@ import ToDo from './pages/ToDo';
 import ClientComms from './pages/ClientComms';
 import Prestige from './pages/Prestige';
 import OutputAnalytics from './pages/OutputAnalytics';
+import ClientCockpit from './pages/ClientCockpit';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
@@ -73,6 +74,7 @@ const AuthenticatedApp = () => {
         <Route path="/financial" element={<ProtectedRoute><Financial /></ProtectedRoute>} />
         <Route path="/legal" element={<ProtectedRoute><Legal /></ProtectedRoute>} />
         <Route path="/crm" element={<ProtectedRoute><CRM /></ProtectedRoute>} />
+        <Route path="/clients/:id" element={<ProtectedRoute><ClientCockpit /></ProtectedRoute>} />
         <Route path="/comms" element={<ProtectedRoute><Comms /></ProtectedRoute>} />
         <Route path="/orbit-seo" element={<ProtectedRoute><OrbitSEO /></ProtectedRoute>} />
 
