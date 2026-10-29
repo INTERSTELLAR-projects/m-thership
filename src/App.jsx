@@ -9,7 +9,6 @@ import { base44 } from '@/api/base44Client';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
-import CredentialManager from './pages/CredentialManager';
 import Documents from './pages/Documents';
 import Financial from './pages/Financial';
 import Legal from './pages/Legal';
@@ -74,7 +73,6 @@ const AuthenticatedApp = () => {
       <Route path="/portal/:clientId" element={<PortalPreview />} />
       <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/logins" element={<ProtectedRoute><CredentialManager /></ProtectedRoute>} />
         <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
         <Route path="/financial" element={<ProtectedRoute><Financial /></ProtectedRoute>} />
         <Route path="/legal" element={<ProtectedRoute><Legal /></ProtectedRoute>} />

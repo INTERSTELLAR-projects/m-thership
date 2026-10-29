@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, KeyRound, FileText, DollarSign, Scale, Users, Lightbulb, ListTodo,
+  LayoutDashboard, FileText, DollarSign, Scale, Users, Lightbulb, ListTodo,
   MessageSquare, Globe, TrendingUp, ClipboardList, Crown, Activity, Settings, FolderKanban,
 } from "lucide-react";
 
@@ -30,7 +30,6 @@ export const NAV_GROUPS = [
       { label: "Documents", icon: FileText, path: "/documents" },
       { label: "Idea Vault", icon: Lightbulb, path: "/idea-vault" },
       { label: "Legal", icon: Scale, path: "/legal" },
-      { label: "Logins", icon: KeyRound, path: "/logins" },
     ],
   },
 ];
