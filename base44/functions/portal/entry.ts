@@ -1,4 +1,4 @@
-import { createClientFromRequest } from "npm:@base44/sdk@0.8.25";
+import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 
 // Client portal API. Every table is admin-only, so portal users never touch entities directly:
 // this function finds the client their login belongs to and returns only that client's
