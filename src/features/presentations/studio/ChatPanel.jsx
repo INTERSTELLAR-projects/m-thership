@@ -33,8 +33,8 @@ export default function ChatPanel({ messages, onSend, busy, statusText, options,
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-2 border-b border-border/70 px-4 py-3">
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
-          SF
+        <span className="flex h-7 w-7 items-center justify-center rounded-none bg-primary text-[11px] font-semibold text-primary-foreground">
+          CØ
         </span>
         <div className="min-w-0">
           <p className="text-sm font-medium">Deck assistant</p>
