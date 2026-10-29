@@ -1,6 +1,6 @@
 import React from 'react';
-import SlideTitle from '@/components/slides/SlideTitle';
-import BulletList from '@/components/slides/BulletList';
+import SlideTitle from '@/features/presentations/slides/SlideTitle';
+import BulletList from '@/features/presentations/slides/BulletList';
 
 export default function BulletsSlide({ theme, slide }) {
   return (

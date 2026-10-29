@@ -1,13 +1,13 @@
 import React from 'react';
 import { Copy, ImagePlus, Loader2, Sparkles, Trash2 } from 'lucide-react';
-import RowListEditor from '@/components/studio/inspector/RowListEditor';
-import VisualBlock from '@/components/slides/VisualBlock';
+import RowListEditor from '@/features/presentations/studio/inspector/RowListEditor';
+import VisualBlock from '@/features/presentations/slides/VisualBlock';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SLIDE_LAYOUTS } from '@/lib/slideThemes';
+import { SLIDE_LAYOUTS } from '@/features/presentations/lib/slideThemes';
 
 const labelCls = 'text-[11px] uppercase tracking-wider text-muted-foreground';
 const VISUAL_LAYOUTS = ['cover', 'split', 'image'];

@@ -1,5 +1,5 @@
 import React from 'react';
-import VisualBlock from '@/components/slides/VisualBlock';
+import VisualBlock from '@/features/presentations/slides/VisualBlock';
 
 export default function CoverSlide({ theme, slide }) {
   return (

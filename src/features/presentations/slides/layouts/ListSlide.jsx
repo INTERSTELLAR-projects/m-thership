@@ -1,5 +1,5 @@
 import React from 'react';
-import SlideTitle from '@/components/slides/SlideTitle';
+import SlideTitle from '@/features/presentations/slides/SlideTitle';
 
 const pad2 = (n) => String(n).padStart(2, '0');
 

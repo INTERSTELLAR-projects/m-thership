@@ -1,6 +1,6 @@
 import React from 'react';
 import { FolderOpen, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
-import DeckRow from '@/components/projects/DeckRow';
+import DeckRow from '@/features/presentations/projects/DeckRow';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 

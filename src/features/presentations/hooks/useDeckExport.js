@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { exportDeckToPdf, exportDeckToPptx } from '@/lib/exportDeck';
-import { slugify, getTheme } from '@/lib/slideThemes';
+import { exportDeckToPdf, exportDeckToPptx } from '@/features/presentations/lib/exportDeck';
+import { slugify, getTheme } from '@/features/presentations/lib/slideThemes';
 
 export default function useDeckExport(containerRef, deck) {
   const [exporting, setExporting] = useState(null);

@@ -1,8 +1,8 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import SlideRenderer from '@/components/slides/SlideRenderer';
-import ScaledSlide from '@/components/slides/ScaledSlide';
-import StudioEmpty from '@/components/studio/StudioEmpty';
+import SlideRenderer from '@/features/presentations/slides/SlideRenderer';
+import ScaledSlide from '@/features/presentations/slides/ScaledSlide';
+import StudioEmpty from '@/features/presentations/studio/StudioEmpty';
 import { Button } from '@/components/ui/button';
 
 export default function DeckCanvas({ slides, theme, deckTitle, selectedId, onSelect, onStart }) {

@@ -1,9 +1,9 @@
 import React from 'react';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { Plus } from 'lucide-react';
-import SlideRenderer from '@/components/slides/SlideRenderer';
-import ScaledSlide from '@/components/slides/ScaledSlide';
-import { getTheme } from '@/lib/slideThemes';
+import SlideRenderer from '@/features/presentations/slides/SlideRenderer';
+import ScaledSlide from '@/features/presentations/slides/ScaledSlide';
+import { getTheme } from '@/features/presentations/lib/slideThemes';
 
 export default function SlideRail({ slides, themeId, brand, deckTitle, selectedId, onSelect, onReorder, onAdd }) {
   const theme = getTheme(themeId, brand);

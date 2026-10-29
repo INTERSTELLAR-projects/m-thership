@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowUp, Loader2, Sliders } from 'lucide-react';
-import MessageBubble from '@/components/studio/MessageBubble';
-import DeckOptions from '@/components/studio/DeckOptions';
+import MessageBubble from '@/features/presentations/studio/MessageBubble';
+import DeckOptions from '@/features/presentations/studio/DeckOptions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 

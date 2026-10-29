@@ -1,7 +1,7 @@
 import React from 'react';
-import SlideTitle from '@/components/slides/SlideTitle';
-import BulletList from '@/components/slides/BulletList';
-import VisualBlock from '@/components/slides/VisualBlock';
+import SlideTitle from '@/features/presentations/slides/SlideTitle';
+import BulletList from '@/features/presentations/slides/BulletList';
+import VisualBlock from '@/features/presentations/slides/VisualBlock';
 
 export default function SplitSlide({ theme, slide }) {
   return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import SlideTitle from '@/components/slides/SlideTitle';
+import SlideTitle from '@/features/presentations/slides/SlideTitle';
 
 export default function TimelineSlide({ theme, slide }) {
   const steps = (slide.steps || []).slice(0, 4);

@@ -4,7 +4,7 @@ import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { getTheme } from '@/lib/slideThemes';
+import { getTheme } from '@/features/presentations/lib/slideThemes';
 
 export default function DeckRow({ deck, projects, onOpen, onMove, onDelete, onEdit }) {
   const theme = getTheme(deck.theme, deck.brand);

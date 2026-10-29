@@ -1,5 +1,5 @@
 import React from 'react';
-import SlideTitle from '@/components/slides/SlideTitle';
+import SlideTitle from '@/features/presentations/slides/SlideTitle';
 
 export default function CompareSlide({ theme, slide }) {
   const columns = (slide.columns || []).slice(0, 2);

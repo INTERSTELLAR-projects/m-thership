@@ -1,6 +1,6 @@
 import React from 'react';
 import { Check, ChevronDown, Download, FileText, Loader2, Presentation } from 'lucide-react';
-import ThemePicker from '@/components/studio/ThemePicker';
+import ThemePicker from '@/features/presentations/studio/ThemePicker';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {

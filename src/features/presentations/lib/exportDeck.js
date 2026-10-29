@@ -1,7 +1,7 @@
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import PptxGenJS from 'pptxgenjs';
-import { SLIDE_W, SLIDE_H } from '@/lib/slideThemes';
+import { SLIDE_W, SLIDE_H } from '@/features/presentations/lib/slideThemes';
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 

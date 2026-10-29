@@ -1,5 +1,5 @@
 import React from 'react';
-import { SLIDE_W, SLIDE_H } from '@/lib/slideThemes';
+import { SLIDE_W, SLIDE_H } from '@/features/presentations/lib/slideThemes';
 
 const pad2 = (n) => String(n).padStart(2, '0');
 

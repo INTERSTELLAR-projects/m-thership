@@ -3,7 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DECK_TONES } from '@/lib/slideThemes';
+import { DECK_TONES } from '@/features/presentations/lib/slideThemes';
 
 const SLIDE_COUNTS = [6, 8, 10, 12, 16];
 

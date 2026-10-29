@@ -1,6 +1,6 @@
 import React from 'react';
-import SlideRenderer from '@/components/slides/SlideRenderer';
-import { getTheme, SLIDE_W } from '@/lib/slideThemes';
+import SlideRenderer from '@/features/presentations/slides/SlideRenderer';
+import { getTheme, SLIDE_W } from '@/features/presentations/lib/slideThemes';
 
 export default function ExportRenderer({ containerRef, slides, themeId, brand, deckTitle }) {
   const theme = getTheme(themeId, brand);

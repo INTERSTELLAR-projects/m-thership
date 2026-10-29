@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { SLIDE_W } from '@/lib/slideThemes';
+import { SLIDE_W } from '@/features/presentations/lib/slideThemes';
 
 export default function ScaledSlide({ children, className = '', style }) {
   const ref = useRef(null);

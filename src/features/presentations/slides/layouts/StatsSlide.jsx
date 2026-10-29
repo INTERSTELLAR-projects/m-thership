@@ -1,5 +1,5 @@
 import React from 'react';
-import SlideTitle from '@/components/slides/SlideTitle';
+import SlideTitle from '@/features/presentations/slides/SlideTitle';
 
 export default function StatsSlide({ theme, slide }) {
   const stats = (slide.stats || []).filter((s) => s && (s.value || s.label));

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Palette } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { SLIDE_THEMES, CUSTOM_THEME_ID, DEFAULT_CUSTOM_BRAND, normalizeBrand } from '@/lib/slideThemes';
+import { SLIDE_THEMES, CUSTOM_THEME_ID, DEFAULT_CUSTOM_BRAND, normalizeBrand } from '@/features/presentations/lib/slideThemes';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
