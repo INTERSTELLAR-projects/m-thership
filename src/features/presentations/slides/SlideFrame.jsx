@@ -1,5 +1,8 @@
 import React from 'react';
 import { SLIDE_W, SLIDE_H } from '@/features/presentations/lib/slideThemes';
+import loadSlideFonts from '@/features/presentations/lib/loadSlideFonts';
+
+loadSlideFonts();
 
 const pad2 = (n) => String(n).padStart(2, '0');
 
