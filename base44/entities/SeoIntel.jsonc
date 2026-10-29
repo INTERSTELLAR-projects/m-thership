@@ -1,0 +1,108 @@
+{
+  "name": "SeoIntel",
+  "type": "object",
+  "properties": {
+    "brief_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "update",
+        "action",
+        "horizon"
+      ],
+      "default": "update"
+    },
+    "action_id": {
+      "type": "string",
+      "description": "e.g. A-1029-1, for approving actions"
+    },
+    "area": {
+      "type": "string",
+      "enum": [
+        "seo",
+        "aio",
+        "geo",
+        "aeo",
+        "local",
+        "policy",
+        "tools"
+      ],
+      "default": "seo"
+    },
+    "impact": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "for_us": {
+      "type": "string"
+    },
+    "tiers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "effort": {
+      "type": "string"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "info",
+        "proposed",
+        "approved",
+        "implemented",
+        "dismissed"
+      ],
+      "default": "info"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
