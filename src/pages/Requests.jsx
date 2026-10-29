@@ -1,236 +1,81 @@
-import { useState, useEffect } from "react";
-import { Search, Clock, AlertCircle, CheckCircle, FileText, Loader2, ChevronDown, User } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { base44 } from "@/api/base44Client";
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { Search, Play, Check } from "lucide-react";
 import PageHeader from "../components/PageHeader";
+import { base44 } from "@/api/base44Client";
+import { useList, useInvalidate, fmtDate } from "@/lib/useData";
+import { Tag, SmallBtn } from "@/features/clients/ui";
 
+const COLUMNS = [
+  ["received", "Received"],
+  ["in_progress", "In progress"],
+  ["needs_info", "Needs info"],
+  ["complete", "Complete"],
+];
+
+// Every client's site edits and project submissions in one queue.
 export default function Requests() {
-  const [clients, setClients] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [selectedClientId, setSelectedClientId] = useState("all");
+  const reqs = useList("ClientRequest", { sort: "-created_date", limit: 500 });
+  const invalidate = useInvalidate();
+  const [q, setQ] = useState("");
+  const [kind, setKind] = useState("all");
 
-  useEffect(() => {
-    base44.entities.CRMClient.list("-created_date", 200).then((data) => {
-      setClients(data);
-      setLoading(false);
-    });
-  }, []);
+  const rows = useMemo(() => (reqs.data || []).filter((r) => {
+    const s = q.toLowerCase();
+    return (!s || r.title?.toLowerCase().includes(s) || r.client_name?.toLowerCase().includes(s)) && (kind === "all" || r.kind === kind);
+  }), [reqs.data, q, kind]);
 
-  // Flatten all requests from all clients, attaching client info
-  const allRequests = clients.flatMap((client) =>
-    (client.requests || []).map((req) => ({
-      ...req,
-      clientName: client.business,
-      clientId: client.id,
-      clientEmail: client.emails?.[0] || "",
-    }))
-  );
-
-  const filtered = allRequests.filter((req) => {
-    const matchSearch =
-      !search ||
-      req.title?.toLowerCase().includes(search.toLowerCase()) ||
-      req.clientName?.toLowerCase().includes(search.toLowerCase());
-    const matchClient = selectedClientId === "all" || req.clientId === selectedClientId;
-    return matchSearch && matchClient;
-  });
-
-  const pending = filtered.filter((r) => r.status === "Pending");
-  const inProgress = filtered.filter((r) => r.status === "In Progress");
-  const completed = filtered.filter((r) => r.status === "Completed");
-
-  const clientsWithRequests = clients.filter((c) => (c.requests || []).length > 0);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <PageHeader breadcrumb="Command / Requests" rightText="All Client Requests" />
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command / Requests" rightText="All Client Requests" />
-      <div className="px-8 py-6 space-y-6">
-        {/* Filters */}
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="relative max-w-sm flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/[0.38]" />
-            <Input
-              placeholder="Search requests..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-card border-ink/[0.13] text-ink placeholder:text-ink/[0.38] h-9"
-            />
-          </div>
-
-          {/* Client filter */}
-          <div className="relative">
-            <select
-              value={selectedClientId}
-              onChange={(e) => setSelectedClientId(e.target.value)}
-              className="appearance-none bg-card border border-ink/[0.13] rounded-lg px-3 pr-8 py-2 text-sm text-ink/70 outline-none h-9 cursor-pointer hover:border-ink/[0.12] transition-all"
-            >
-              <option value="all">All Clients</option>
-              {clientsWithRequests.map((c) => (
-                <option key={c.id} value={c.id}>{c.business}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/[0.48] pointer-events-none" />
-          </div>
-
-          {/* Summary counts */}
-          <div className="flex gap-3 ml-auto">
-            <StatBadge label="Pending" count={pending.length} color="orange" />
-            <StatBadge label="In Progress" count={inProgress.length} color="blue" />
-            <StatBadge label="Completed" count={completed.length} color="green" />
-          </div>
-        </div>
-
-        <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="bg-card border border-ink/[0.13] mb-6">
-            <TabsTrigger value="pending" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58]">
-              Pending ({pending.length})
-            </TabsTrigger>
-            <TabsTrigger value="inprogress" className="data-[state=active]:bg-blue-500/15 data-[state=active]:text-blue-600 text-ink/[0.58]">
-              In Progress ({inProgress.length})
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="data-[state=active]:bg-green-500/15 data-[state=active]:text-green-600 text-ink/[0.58]">
-              Completed ({completed.length})
-            </TabsTrigger>
-            <TabsTrigger value="byclient" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58]">
-              By Client
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="pending">
-            <RequestList requests={pending} icon={Clock} emptyText="No pending requests." />
-          </TabsContent>
-
-          <TabsContent value="inprogress">
-            <RequestList requests={inProgress} icon={AlertCircle} emptyText="No requests in progress." />
-          </TabsContent>
-
-          <TabsContent value="completed">
-            <RequestList requests={completed} icon={CheckCircle} emptyText="No completed requests yet." />
-          </TabsContent>
-
-          <TabsContent value="byclient">
-            <ByClientView clients={clients} search={search} />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  );
-}
-
-function RequestList({ requests, emptyText }) {
-  if (requests.length === 0) {
-    return (
-      <div className="game-panel p-10 text-center">
-        <FileText className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
-        <p className="text-ink/[0.48] text-sm">{emptyText}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-2">
-      {requests.map((req, i) => (
-        <RequestCard key={`${req.clientId}-${req.id ?? i}`} req={req} showClient />
-      ))}
-    </div>
-  );
-}
-
-function RequestCard({ req, showClient }) {
-  const statusColors = {
-    "Pending": "bg-orange-500/10 text-orange-600",
-    "In Progress": "bg-blue-500/10 text-blue-600",
-    "Completed": "bg-green-500/10 text-green-600",
+  const move = async (r, status) => {
+    await base44.entities.ClientRequest.update(r.id, { status, completed_at: status === "complete" ? new Date().toISOString() : null });
+    invalidate("ClientRequest");
   };
 
   return (
-    <div className="game-panel p-4 flex items-start gap-4">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-3 flex-wrap">
-          <p className="text-ink/85 text-sm font-medium">{req.title}</p>
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${statusColors[req.status] || "bg-ink/5 text-ink/[0.58]"}`}>
-            {req.status || "New"}
-          </span>
+    <div className="pb-16">
+      <PageHeader breadcrumb="Command / Requests" rightText="Site edits & project submissions" />
+      <div className="flex flex-wrap items-center gap-3 px-5 pt-6 md:px-8">
+        <div className="flex h-9 flex-1 items-center gap-2 border border-hair bg-paper px-3 md:max-w-sm">
+          <Search className="h-3.5 w-3.5 text-ink/40" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search requests or clients" className="flex-1 bg-transparent text-[13px] outline-none" />
         </div>
-        {req.formType && <p className="text-ink/[0.48] text-xs mt-1">{req.formType}</p>}
-        <div className="flex items-center gap-3 mt-2 flex-wrap">
-          {showClient && req.clientName && (
-            <span className="flex items-center gap-1 text-orange-500/60 text-[10px] font-medium">
-              <User className="w-3 h-3" />{req.clientName}
-            </span>
-          )}
-          {req.submittedDate && (
-            <span className="text-ink/[0.43] text-[10px]">Submitted {req.submittedDate}</span>
-          )}
-        </div>
+        {[["all", "All"], ["site_edit", "Site edits"], ["project_submission", "Projects"], ["new_page", "New pages"], ["question", "Questions"]].map(([k, l]) => (
+          <SmallBtn key={k} active={kind === k} onClick={() => setKind(k)}>{l}</SmallBtn>
+        ))}
       </div>
-    </div>
-  );
-}
 
-function ByClientView({ clients, search }) {
-  const clientsWithRequests = clients.filter((c) => (c.requests || []).length > 0);
-
-  const filtered = clientsWithRequests.filter(
-    (c) => !search || c.business?.toLowerCase().includes(search.toLowerCase())
-  );
-
-  if (filtered.length === 0) {
-    return (
-      <div className="game-panel p-10 text-center">
-        <User className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
-        <p className="text-ink/[0.48] text-sm">No clients have submitted requests yet.</p>
+      <div className="grid gap-4 px-5 pt-5 md:px-8 lg:grid-cols-4">
+        {COLUMNS.map(([status, label]) => {
+          const list = rows.filter((r) => r.status === status);
+          return (
+            <section key={status} className="flex min-h-[300px] flex-col rounded-md border border-hair bg-card">
+              <header className="flex items-center justify-between border-b border-hair px-4 py-3">
+                <p className="text-[14px] font-semibold">{label}</p>
+                <span className="font-mono text-[11px] tabular-nums text-ink/50">{list.length}</span>
+              </header>
+              <ul className="flex-1 space-y-2 p-2">
+                {list.map((r) => (
+                  <li key={r.id} className="card-hover border border-hair bg-paper p-3">
+                    <div className="flex items-center gap-1.5">
+                      <span className="mono-label text-[9px] text-ink/45">{r.kind?.replace("_", " ")}</span>
+                      {r.priority === "urgent" && <Tag tone="red">Urgent</Tag>}
+                      {r.page_status && r.page_status !== "none" && <Tag tone="ink">Page {r.page_status}</Tag>}
+                    </div>
+                    <Link to={`/clients/${r.client_id}?tab=requests`} className="mt-1 block text-[13.5px] font-medium hover:text-[#ff3c00]">{r.title}</Link>
+                    <p className="text-[11.5px] text-ink/55">{r.client_name} · {fmtDate(r.created_date)}</p>
+                    {r.attachments?.length > 0 && <p className="mt-1 text-[11px] text-ink/45">{r.attachments.length} attachment{r.attachments.length === 1 ? "" : "s"}</p>}
+                    <div className="mt-2 flex gap-1.5">
+                      {status === "received" && <SmallBtn onClick={() => move(r, "in_progress")}><Play className="h-3 w-3" /> Start</SmallBtn>}
+                      {(status === "in_progress" || status === "needs_info") && <SmallBtn onClick={() => move(r, "complete")}><Check className="h-3 w-3" /> Complete</SmallBtn>}
+                      {status === "in_progress" && <SmallBtn onClick={() => move(r, "needs_info")}>Needs info</SmallBtn>}
+                    </div>
+                  </li>
+                ))}
+                {list.length === 0 && <li className="px-2 py-6 text-center text-[12px] text-ink/40">Empty</li>}
+              </ul>
+            </section>
+          );
+        })}
       </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {filtered.map((client) => (
-        <div key={client.id} className="game-panel p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-600 text-xs font-display font-extrabold">
-              {client.business?.charAt(0)}
-            </div>
-            <div>
-              <h3 className="text-ink font-bold text-sm">{client.business}</h3>
-              <p className="text-ink/[0.48] text-xs">{(client.requests || []).length} request{(client.requests || []).length !== 1 ? "s" : ""}</p>
-            </div>
-          </div>
-          <div className="space-y-2">
-            {(client.requests || []).map((req, i) => (
-              <RequestCard key={`${client.id}-${req.id ?? i}`} req={{ ...req, clientName: client.business, clientId: client.id }} showClient={false} />
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function StatBadge({ label, count, color }) {
-  const colors = {
-    orange: "text-orange-600 bg-orange-500/10 border-orange-500/20",
-    blue: "text-blue-600 bg-blue-500/10 border-blue-500/20",
-    green: "text-green-600 bg-green-500/10 border-green-500/20",
-  };
-  return (
-    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold ${colors[color]}`}>
-      <span>{count}</span>
-      <span className="opacity-70">{label}</span>
     </div>
   );
 }
