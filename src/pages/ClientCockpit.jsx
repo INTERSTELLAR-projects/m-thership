@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, ExternalLink, Eye } from "lucide-react";
+import { ArrowLeft, ExternalLink, Eye, Rocket } from "lucide-react";
+import StartServiceDialog from "@/features/tasks/StartServiceDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useRecord, SERVICE_LABELS } from "@/lib/useData";
@@ -40,6 +41,7 @@ export default function ClientCockpit() {
   const { data: client, isLoading } = useRecord("CRMClient", id);
   const [editing, setEditing] = useState(false);
   const [inviting, setInviting] = useState(false);
+  const [starting, setStarting] = useState(false);
   const qc = useQueryClient();
 
   if (isLoading) return <div className="px-8 py-16 text-center text-ink/50">Loading…</div>;
@@ -90,6 +92,9 @@ export default function ClientCockpit() {
             )}
           </div>
           <div className="flex flex-wrap gap-2">
+            <button onClick={() => setStarting(true)} className="btn-roll is-flame" title="Client bought a service: create its project and SOP to-do list">
+              <span className="roll"><span>Start a service</span><span>Start a service</span></span><span className="box"><Rocket className="h-3.5 w-3.5" /></span>
+            </button>
             <Link to={`/portal/${client.id}`} className="btn-roll is-ink"><span className="roll"><span>View their portal</span><span>View their portal</span></span><span className="box"><Eye className="h-3.5 w-3.5" /></span></Link>
             <button onClick={invite} disabled={inviting} className="btn-roll is-outline" title="Email each portal login an invite and turn the portal on">
               <span className="roll"><span>{inviting ? "Inviting…" : "Invite to portal"}</span><span>{inviting ? "Inviting…" : "Invite to portal"}</span></span>
@@ -128,6 +133,7 @@ export default function ClientCockpit() {
         )}
       </div>
 
+      <StartServiceDialog open={starting} client={client} onClose={() => setStarting(false)} />
       <FormDialog open={editing} title="Edit client" fields={PROFILE_FIELDS} initial={client} onClose={() => setEditing(false)} onSubmit={save} />
     </div>
   );
