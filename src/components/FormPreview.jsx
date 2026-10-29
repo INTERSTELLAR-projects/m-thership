@@ -26,14 +26,14 @@ export default function FormPreview({ form, onClose, clientId }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-      <div className="bg-card border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-card border-b border-white/[0.08] px-6 py-4 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center p-4">
+      <div className="bg-card border border-ink/[0.13] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-card border-b border-ink/[0.13] px-6 py-4 flex items-center justify-between">
           <div>
-            <h3 className="text-white font-bold text-sm">{form.title}</h3>
-            {form.subtitle && <p className="text-white/40 text-xs mt-1">{form.subtitle}</p>}
+            <h3 className="text-ink font-bold text-sm">{form.title}</h3>
+            {form.subtitle && <p className="text-ink/[0.58] text-xs mt-1">{form.subtitle}</p>}
           </div>
-          <button onClick={onClose} className="text-white/30 hover:text-white/60">
+          <button onClick={onClose} className="text-ink/[0.48] hover:text-ink/60">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -42,9 +42,9 @@ export default function FormPreview({ form, onClose, clientId }) {
           {form.fields && form.fields.length > 0 ? (
             form.fields.map((field, idx) => (
               <div key={field.id} className="space-y-2">
-                <label className="text-white/80 text-sm font-medium">
+                <label className="text-ink/80 text-sm font-medium">
                   {field.label}
-                  {field.required && <span className="text-red-400 ml-1">*</span>}
+                  {field.required && <span className="text-red-600 ml-1">*</span>}
                 </label>
 
                 {field.type === "short_text" && (
@@ -52,7 +52,7 @@ export default function FormPreview({ form, onClose, clientId }) {
                     type="text"
                     placeholder={field.placeholder || "Enter text..."}
                     disabled
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/50 outline-none disabled:cursor-not-allowed"
+                    className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink/50 outline-none disabled:cursor-not-allowed"
                   />
                 )}
 
@@ -60,7 +60,7 @@ export default function FormPreview({ form, onClose, clientId }) {
                   <textarea
                     placeholder={field.placeholder || "Enter your response..."}
                     disabled
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/50 outline-none resize-none min-h-[100px] disabled:cursor-not-allowed"
+                    className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink/50 outline-none resize-none min-h-[100px] disabled:cursor-not-allowed"
                   />
                 )}
 
@@ -69,7 +69,7 @@ export default function FormPreview({ form, onClose, clientId }) {
                     type="email"
                     placeholder={field.placeholder || "your@email.com"}
                     disabled
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/50 outline-none disabled:cursor-not-allowed"
+                    className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink/50 outline-none disabled:cursor-not-allowed"
                   />
                 )}
 
@@ -78,7 +78,7 @@ export default function FormPreview({ form, onClose, clientId }) {
                     type="tel"
                     placeholder={field.placeholder || "(123) 456-7890"}
                     disabled
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/50 outline-none disabled:cursor-not-allowed"
+                    className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink/50 outline-none disabled:cursor-not-allowed"
                   />
                 )}
 
@@ -87,7 +87,7 @@ export default function FormPreview({ form, onClose, clientId }) {
                     type="number"
                     placeholder={field.placeholder || "0"}
                     disabled
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/50 outline-none disabled:cursor-not-allowed"
+                    className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink/50 outline-none disabled:cursor-not-allowed"
                   />
                 )}
 
@@ -95,7 +95,7 @@ export default function FormPreview({ form, onClose, clientId }) {
                   <input
                     type="date"
                     disabled
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/50 outline-none disabled:cursor-not-allowed"
+                    className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink/50 outline-none disabled:cursor-not-allowed"
                   />
                 )}
 
@@ -104,7 +104,7 @@ export default function FormPreview({ form, onClose, clientId }) {
                     type="text"
                     placeholder={field.placeholder || "123 Main St, City, State 12345"}
                     disabled
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/50 outline-none disabled:cursor-not-allowed"
+                    className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink/50 outline-none disabled:cursor-not-allowed"
                   />
                 )}
 
@@ -113,7 +113,7 @@ export default function FormPreview({ form, onClose, clientId }) {
                     type="url"
                     placeholder={field.placeholder || "https://example.com"}
                     disabled
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/50 outline-none disabled:cursor-not-allowed"
+                    className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink/50 outline-none disabled:cursor-not-allowed"
                   />
                 )}
 
@@ -122,14 +122,14 @@ export default function FormPreview({ form, onClose, clientId }) {
                     {(field.options || []).map((opt, i) => (
                       <label key={i} className="flex items-center gap-2 cursor-not-allowed">
                         <input type="radio" disabled className="w-4 h-4" />
-                        <span className="text-white/50 text-sm">{opt}</span>
+                        <span className="text-ink/50 text-sm">{opt}</span>
                       </label>
                     ))}
                   </div>
                 )}
 
                 {field.type === "dropdown" && (
-                  <select disabled className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/50 outline-none disabled:cursor-not-allowed">
+                  <select disabled className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink/50 outline-none disabled:cursor-not-allowed">
                     <option>Select an option...</option>
                     {(field.options || []).map((opt, i) => (
                       <option key={i}>{opt}</option>
@@ -141,11 +141,11 @@ export default function FormPreview({ form, onClose, clientId }) {
                   <div className="flex gap-2">
                     <label className="flex items-center gap-2 cursor-not-allowed">
                       <input type="radio" disabled className="w-4 h-4" />
-                      <span className="text-white/50 text-sm">Yes</span>
+                      <span className="text-ink/50 text-sm">Yes</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-not-allowed">
                       <input type="radio" disabled className="w-4 h-4" />
-                      <span className="text-white/50 text-sm">No</span>
+                      <span className="text-ink/50 text-sm">No</span>
                     </label>
                   </div>
                 )}
@@ -155,7 +155,7 @@ export default function FormPreview({ form, onClose, clientId }) {
                     {Array.from({ length: 3 }).map((_, i) => (
                       <div
                         key={i}
-                        className="w-full h-24 bg-white/[0.03] border border-white/[0.06] rounded-lg flex items-center justify-center text-white/20 text-xs cursor-not-allowed"
+                        className="w-full h-24 bg-ink/[0.03] border border-ink/[0.13] rounded-lg flex items-center justify-center text-ink/[0.38] text-xs cursor-not-allowed"
                       >
                         Image {i + 1}
                       </div>
@@ -166,7 +166,7 @@ export default function FormPreview({ form, onClose, clientId }) {
                 {field.type === "rating" && (
                   <div className="flex gap-2">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <button key={i} disabled className="text-white/20 cursor-not-allowed">
+                      <button key={i} disabled className="text-ink/[0.38] cursor-not-allowed">
                         ⭐
                       </button>
                     ))}
@@ -178,7 +178,7 @@ export default function FormPreview({ form, onClose, clientId }) {
                     {Array.from({ length: 5 }).map((_, i) => (
                       <label key={i} className="flex flex-col items-center gap-1 cursor-not-allowed">
                         <input type="radio" disabled className="w-4 h-4" />
-                        <span className="text-white/30 text-xs">{i + 1}</span>
+                        <span className="text-ink/[0.48] text-xs">{i + 1}</span>
                       </label>
                     ))}
                   </div>
@@ -187,12 +187,12 @@ export default function FormPreview({ form, onClose, clientId }) {
                 {field.type === "checkbox" && (
                   <label className="flex items-start gap-2 cursor-not-allowed">
                     <input type="checkbox" disabled className="w-4 h-4 mt-1" />
-                    <span className="text-white/50 text-sm">{field.placeholder || "I agree to the terms"}</span>
+                    <span className="text-ink/50 text-sm">{field.placeholder || "I agree to the terms"}</span>
                   </label>
                 )}
 
                 {field.type === "signature" && (
-                  <div className="w-full h-32 bg-white/[0.03] border border-white/[0.06] rounded-lg border-dashed flex items-center justify-center text-white/20 text-sm">
+                  <div className="w-full h-32 bg-ink/[0.03] border border-ink/[0.13] rounded-lg border-dashed flex items-center justify-center text-ink/[0.38] text-sm">
                     [Signature area]
                   </div>
                 )}
@@ -218,11 +218,11 @@ export default function FormPreview({ form, onClose, clientId }) {
                   </div>
                 )}
 
-                <p className="text-white/25 text-[10px]">{FIELD_TYPE_LABELS[field.type] || field.type}</p>
+                <p className="text-ink/[0.43] text-[10px]">{FIELD_TYPE_LABELS[field.type] || field.type}</p>
               </div>
             ))
           ) : (
-            <p className="text-white/25 text-sm text-center py-8">No fields in this form yet.</p>
+            <p className="text-ink/[0.43] text-sm text-center py-8">No fields in this form yet.</p>
           )}
 
           <button disabled className="w-full mt-8 px-4 py-2.5 bg-orange-500/20 text-orange-400 rounded-lg text-sm font-medium cursor-not-allowed">

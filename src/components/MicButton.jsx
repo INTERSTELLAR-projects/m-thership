@@ -45,8 +45,8 @@ export default function MicButton({ onResult, className = "" }) {
       title={listening ? "Stop recording" : "Speak to type"}
       className={`p-1.5 rounded-md transition-all ${
         listening
-          ? "text-red-400 bg-red-500/10 animate-pulse"
-          : "text-white/25 hover:text-orange-500/70 hover:bg-orange-500/10"
+          ? "text-red-600 bg-red-500/10 animate-pulse"
+          : "text-ink/[0.43] hover:text-orange-500/70 hover:bg-orange-500/10"
       } ${className}`}
     >
       {listening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}

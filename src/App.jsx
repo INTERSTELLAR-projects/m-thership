@@ -53,13 +53,13 @@ const AuthenticatedApp = () => {
   // Block all non-admin users from the entire app
   if (user && user.role !== 'admin') {
     return (
-      <div className="fixed inset-0 bg-black flex flex-col items-center justify-center gap-4">
+      <div className="fixed inset-0 bg-ink flex flex-col items-center justify-center gap-4">
         <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-          <span className="text-red-400 text-xl">⛔</span>
+          <span className="text-red-600 text-xl">⛔</span>
         </div>
-        <h1 className="font-orbitron text-white font-bold text-lg tracking-widest">ACCESS DENIED</h1>
-        <p className="text-white/40 text-sm text-center max-w-xs">This terminal is restricted to authorized personnel only. You do not have permission to access this system.</p>
-        <button onClick={() => base44.auth.logout()} className="mt-2 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg hover:bg-red-500/20 transition-all">Log Out</button>
+        <h1 className="font-orbitron text-ink font-bold text-lg tracking-widest">ACCESS DENIED</h1>
+        <p className="text-ink/[0.58] text-sm text-center max-w-xs">This terminal is restricted to authorized personnel only. You do not have permission to access this system.</p>
+        <button onClick={() => base44.auth.logout()} className="mt-2 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-600 text-sm rounded-lg hover:bg-red-500/20 transition-all">Log Out</button>
       </div>
     );
   }

@@ -43,7 +43,7 @@ export default function Analytics() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
                   <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: 'rgba(255,255,255,0.15)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <Bar dataKey="desktop" fill="#FF6A00" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="desktop" fill="#ff3c00" radius={[3, 3, 0, 0]} />
                   <Bar dataKey="mobile" fill="#3B82F6" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -51,11 +51,11 @@ export default function Analytics() {
             <div className="flex items-center gap-4 mt-3">
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-orange-500" />
-                <span className="text-white/25 text-xs">Desktop</span>
+                <span className="text-ink/[0.43] text-xs">Desktop</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-blue-500" />
-                <span className="text-white/25 text-xs">Mobile</span>
+                <span className="text-ink/[0.43] text-xs">Mobile</span>
               </div>
             </div>
           </div>
@@ -68,7 +68,7 @@ export default function Analytics() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
                   <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: 'rgba(255,255,255,0.15)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <Area type="monotone" dataKey="rate" stroke="#FF6A00" fill="#FF6A00" fillOpacity={0.1} strokeWidth={2} />
+                  <Area type="monotone" dataKey="rate" stroke="#ff3c00" fill="#ff3c00" fillOpacity={0.1} strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -83,9 +83,9 @@ function MetricCard({ label, value, change, positive }) {
   const isPositive = change.startsWith("+") || positive;
   return (
     <div className="game-panel p-5">
-      <p className="text-white/25 text-xs mb-2">{label}</p>
+      <p className="text-ink/[0.43] text-xs mb-2">{label}</p>
       <p className="text-xl font-display font-extrabold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{value}</p>
-      <p className={`text-xs mt-1 font-medium ${isPositive ? "text-green-400/60" : "text-red-400/60"}`}>{change} vs last month</p>
+      <p className={`text-xs mt-1 font-medium ${isPositive ? "text-green-600/60" : "text-red-600/60"}`}>{change} vs last month</p>
     </div>
   );
 }

@@ -13,9 +13,9 @@ import ServiceLineItems from "../components/prestige/ServiceLineItems";
 
 const TIER_STYLING = {
   "Prestige I": { icon: Shield, color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20", grad: "from-orange-500/20 to-transparent", glow: "shadow-[0_0_22px_rgba(255,106,0,0.18)]", badge: "bg-orange-500/15 text-orange-400 border-orange-500/25", ring: "ring-orange-500/30" },
-  "Prestige II": { icon: Award, color: "text-sky-400", bg: "bg-sky-500/10", border: "border-sky-500/20", grad: "from-sky-500/20 to-transparent", glow: "shadow-[0_0_22px_rgba(56,189,248,0.18)]", badge: "bg-sky-500/15 text-sky-400 border-sky-500/25", ring: "ring-sky-500/30" },
-  "Prestige III": { icon: Trophy, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20", grad: "from-purple-500/20 to-transparent", glow: "shadow-[0_0_22px_rgba(168,85,247,0.18)]", badge: "bg-purple-500/15 text-purple-400 border-purple-500/25", ring: "ring-purple-500/30" },
-  "Prestige Master": { icon: Crown, color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", grad: "from-yellow-500/25 to-transparent", glow: "shadow-[0_0_26px_rgba(250,204,21,0.25)]", badge: "bg-yellow-500/15 text-yellow-400 border-yellow-500/25", ring: "ring-yellow-500/30" },
+  "Prestige II": { icon: Award, color: "text-sky-600", bg: "bg-sky-500/10", border: "border-sky-500/20", grad: "from-sky-500/20 to-transparent", glow: "shadow-[0_0_22px_rgba(56,189,248,0.18)]", badge: "bg-sky-500/15 text-sky-600 border-sky-500/25", ring: "ring-sky-500/30" },
+  "Prestige III": { icon: Trophy, color: "text-purple-600", bg: "bg-purple-500/10", border: "border-purple-500/20", grad: "from-purple-500/20 to-transparent", glow: "shadow-[0_0_22px_rgba(168,85,247,0.18)]", badge: "bg-purple-500/15 text-purple-600 border-purple-500/25", ring: "ring-purple-500/30" },
+  "Prestige Master": { icon: Crown, color: "text-yellow-600", bg: "bg-yellow-500/10", border: "border-yellow-500/20", grad: "from-yellow-500/25 to-transparent", glow: "shadow-[0_0_26px_rgba(250,204,21,0.25)]", badge: "bg-yellow-500/15 text-yellow-600 border-yellow-500/25", ring: "ring-yellow-500/30" },
 };
 const PRESTIGE_TIERS = TIERS.reduce((acc, t) => { acc[t.tier] = { ...t, ...TIER_STYLING[t.tier] }; return acc; }, {});
 
@@ -191,7 +191,7 @@ export default function Prestige() {
           <div className="flex justify-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/30 shadow-[0_0_18px_rgba(255,106,0,0.25)]">
               <Sparkles className="w-4 h-4 text-orange-400" />
-              <span className="text-[11px] font-mono tracking-[0.12em] uppercase text-white/60">Available Credit:</span>
+              <span className="text-[11px] font-mono tracking-[0.12em] uppercase text-ink/60">Available Credit:</span>
               <span className="text-sm font-bold font-mono tabular-nums text-orange-400">${availableCredit.toLocaleString()}</span>
             </div>
           </div>
@@ -199,11 +199,11 @@ export default function Prestige() {
 
         {/* Full ladder strip */}
         <div className="flex justify-center">
-          <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl border border-white/[0.08] bg-white/[0.02]">
-            <span className="text-[12px] font-mono uppercase tracking-[0.1em] text-white/45">Full Ladder</span>
-            <span className="text-white/15">·</span>
-            <span className="text-[12px] font-mono uppercase tracking-[0.1em] text-white/45">{fullLadderReferrals} Referrals</span>
-            <span className="text-white/15">·</span>
+          <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl border border-ink/[0.13] bg-ink/[0.02]">
+            <span className="text-[12px] font-mono uppercase tracking-[0.1em] text-ink/[0.63]">Full Ladder</span>
+            <span className="text-ink/[0.33]">·</span>
+            <span className="text-[12px] font-mono uppercase tracking-[0.1em] text-ink/[0.63]">{fullLadderReferrals} Referrals</span>
+            <span className="text-ink/[0.33]">·</span>
             <span className="text-[13px] font-mono font-bold tracking-[0.08em] bg-gradient-to-r from-orange-500 to-amber-300 bg-clip-text text-transparent">${fullLadderCredit.toLocaleString()} in Total Credit</span>
           </div>
         </div>
@@ -223,16 +223,16 @@ export default function Prestige() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-white/[0.06] pb-0">
+        <div className="flex gap-1 border-b border-ink/[0.13] pb-0">
           {["members", "referrals"].map((t) => (
-            <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 text-sm font-medium capitalize transition-all border-b-2 -mb-[1px] ${tab === t ? "border-orange-500 text-orange-400" : "border-transparent text-white/40 hover:text-white/60"}`}>
+            <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 text-sm font-medium capitalize transition-all border-b-2 -mb-[1px] ${tab === t ? "border-orange-500 text-orange-400" : "border-transparent text-ink/[0.58] hover:text-ink/60"}`}>
               {t === "members" ? "Prestige Members" : "All Referrals"}
             </button>
           ))}
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 text-white/20 animate-spin" /></div>
+          <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" /></div>
         ) : tab === "members" ? (
           <MembersTab
             members={members}
@@ -255,7 +255,7 @@ export default function Prestige() {
 
         {/* Program terms */}
         <div className="flex justify-center pt-2">
-          <button onClick={() => setTermsOpen(true)} className="text-[11px] font-mono uppercase tracking-[0.12em] text-white/35 hover:text-orange-400 transition-colors">Program Terms</button>
+          <button onClick={() => setTermsOpen(true)} className="text-[11px] font-mono uppercase tracking-[0.12em] text-ink/[0.53] hover:text-orange-400 transition-colors">Program Terms</button>
         </div>
       </div>
 
@@ -264,67 +264,67 @@ export default function Prestige() {
 
       {/* Edit Member Modal */}
       <Dialog open={memberModal} onOpenChange={setMemberModal}>
-        <DialogContent className="bg-card border-white/[0.08] text-white max-w-md">
-          <DialogHeader><DialogTitle className="text-white">Edit Member</DialogTitle></DialogHeader>
+        <DialogContent className="bg-card border-ink/[0.13] text-ink max-w-md">
+          <DialogHeader><DialogTitle className="text-ink">Edit Member</DialogTitle></DialogHeader>
           <div className="space-y-3 pt-2">
-            <div><Label className="text-white/40 text-xs">Name *</Label><Input value={memberForm.name} onChange={(e) => setMemberForm({ ...memberForm, name: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white" /></div>
+            <div><Label className="text-ink/[0.58] text-xs">Name *</Label><Input value={memberForm.name} onChange={(e) => setMemberForm({ ...memberForm, name: e.target.value })} className="mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink" /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label className="text-white/40 text-xs">Email</Label><Input value={memberForm.email} onChange={(e) => setMemberForm({ ...memberForm, email: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white" /></div>
-              <div><Label className="text-white/40 text-xs">Phone</Label><Input value={memberForm.phone} onChange={(e) => setMemberForm({ ...memberForm, phone: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white" /></div>
+              <div><Label className="text-ink/[0.58] text-xs">Email</Label><Input value={memberForm.email} onChange={(e) => setMemberForm({ ...memberForm, email: e.target.value })} className="mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink" /></div>
+              <div><Label className="text-ink/[0.58] text-xs">Phone</Label><Input value={memberForm.phone} onChange={(e) => setMemberForm({ ...memberForm, phone: e.target.value })} className="mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink" /></div>
             </div>
             <div>
-              <Label className="text-white/40 text-xs">Prestige Tier</Label>
-              <select value={memberForm.prestige} onChange={(e) => setMemberForm({ ...memberForm, prestige: e.target.value })} className="mt-1 w-full bg-white/[0.03] border border-white/[0.06] rounded-md px-3 py-2 text-white text-sm outline-none">
+              <Label className="text-ink/[0.58] text-xs">Prestige Tier</Label>
+              <select value={memberForm.prestige} onChange={(e) => setMemberForm({ ...memberForm, prestige: e.target.value })} className="mt-1 w-full bg-ink/[0.03] border border-ink/[0.13] rounded-md px-3 py-2 text-ink text-sm outline-none">
                 {Object.keys(PRESTIGE_TIERS).map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label className="text-white/40 text-xs">Join Date</Label><Input type="date" value={memberForm.joinDate} onChange={(e) => setMemberForm({ ...memberForm, joinDate: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white" /></div>
+              <div><Label className="text-ink/[0.58] text-xs">Join Date</Label><Input type="date" value={memberForm.joinDate} onChange={(e) => setMemberForm({ ...memberForm, joinDate: e.target.value })} className="mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink" /></div>
               <div className="flex items-end pb-1">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={memberForm.active} onChange={(e) => setMemberForm({ ...memberForm, active: e.target.checked })} className="w-4 h-4 accent-orange-500" />
-                  <span className="text-white/60 text-sm">Active</span>
+                  <span className="text-ink/60 text-sm">Active</span>
                 </label>
               </div>
             </div>
-            <div><Label className="text-white/40 text-xs">Notes</Label><textarea value={memberForm.notes} onChange={(e) => setMemberForm({ ...memberForm, notes: e.target.value })} className="mt-1 w-full bg-white/[0.03] border border-white/[0.06] rounded-md px-3 py-2 text-white text-sm outline-none resize-none min-h-[60px]" /></div>
-            <Button onClick={saveMember} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">Save Changes</Button>
+            <div><Label className="text-ink/[0.58] text-xs">Notes</Label><textarea value={memberForm.notes} onChange={(e) => setMemberForm({ ...memberForm, notes: e.target.value })} className="mt-1 w-full bg-ink/[0.03] border border-ink/[0.13] rounded-md px-3 py-2 text-ink text-sm outline-none resize-none min-h-[60px]" /></div>
+            <Button onClick={saveMember} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">Save Changes</Button>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Referral Modal */}
       <Dialog open={referralModal} onOpenChange={setReferralModal}>
-        <DialogContent className="bg-card border-white/[0.08] text-white max-w-md">
-          <DialogHeader><DialogTitle className="text-white">{editingReferral ? "Edit Referral" : "Add Referral"}</DialogTitle></DialogHeader>
+        <DialogContent className="bg-card border-ink/[0.13] text-ink max-w-md">
+          <DialogHeader><DialogTitle className="text-ink">{editingReferral ? "Edit Referral" : "Add Referral"}</DialogTitle></DialogHeader>
           <div className="space-y-3 pt-2">
-            <div><Label className="text-white/40 text-xs">Referred Client Name *</Label><Input value={referralForm.referredClientName} onChange={(e) => setReferralForm({ ...referralForm, referredClientName: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white" /></div>
+            <div><Label className="text-ink/[0.58] text-xs">Referred Client Name *</Label><Input value={referralForm.referredClientName} onChange={(e) => setReferralForm({ ...referralForm, referredClientName: e.target.value })} className="mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink" /></div>
             <ServiceLineItems value={referralForm.lineItems} onChange={(lv) => setReferralForm({ ...referralForm, lineItems: lv })} />
             <div className="grid grid-cols-2 gap-3">
-              <div><Label className="text-white/40 text-xs">Date</Label><Input type="date" value={referralForm.date} onChange={(e) => setReferralForm({ ...referralForm, date: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white" /></div>
+              <div><Label className="text-ink/[0.58] text-xs">Date</Label><Input type="date" value={referralForm.date} onChange={(e) => setReferralForm({ ...referralForm, date: e.target.value })} className="mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink" /></div>
               <div>
-                <Label className="text-white/40 text-xs">Status</Label>
-                <select value={referralForm.status} onChange={(e) => setReferralForm({ ...referralForm, status: e.target.value })} className="mt-1 w-full bg-white/[0.03] border border-white/[0.06] rounded-md px-3 py-2 text-white text-sm outline-none">
+                <Label className="text-ink/[0.58] text-xs">Status</Label>
+                <select value={referralForm.status} onChange={(e) => setReferralForm({ ...referralForm, status: e.target.value })} className="mt-1 w-full bg-ink/[0.03] border border-ink/[0.13] rounded-md px-3 py-2 text-ink text-sm outline-none">
                   {["Pending", "Confirmed", "Paid Out"].map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
             </div>
-            <div><Label className="text-white/40 text-xs">Notes</Label><textarea value={referralForm.notes} onChange={(e) => setReferralForm({ ...referralForm, notes: e.target.value })} className="mt-1 w-full bg-white/[0.03] border border-white/[0.06] rounded-md px-3 py-2 text-white text-sm outline-none resize-none min-h-[60px]" /></div>
-            <Button onClick={saveReferral} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">{editingReferral ? "Save Changes" : "Add Referral"}</Button>
+            <div><Label className="text-ink/[0.58] text-xs">Notes</Label><textarea value={referralForm.notes} onChange={(e) => setReferralForm({ ...referralForm, notes: e.target.value })} className="mt-1 w-full bg-ink/[0.03] border border-ink/[0.13] rounded-md px-3 py-2 text-ink text-sm outline-none resize-none min-h-[60px]" /></div>
+            <Button onClick={saveReferral} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">{editingReferral ? "Save Changes" : "Add Referral"}</Button>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Program Terms Modal */}
       <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
-        <DialogContent className="bg-card border-white/[0.08] text-white max-w-md">
-          <DialogHeader><DialogTitle className="text-white">Program Terms</DialogTitle></DialogHeader>
-          <div className="space-y-3 pt-2 text-sm text-white/60 leading-relaxed">
+        <DialogContent className="bg-card border-ink/[0.13] text-ink max-w-md">
+          <DialogHeader><DialogTitle className="text-ink">Program Terms</DialogTitle></DialogHeader>
+          <div className="space-y-3 pt-2 text-sm text-ink/60 leading-relaxed">
             <p>Credit applies to any Interstellar build or service. Stackable across tiers. Valid 12 months from unlock.</p>
             <p>Credit is non-transferable, has no cash value, and applies to new work only.</p>
             <p>A referral counts as qualified once the referred client's first invoice is paid.</p>
           </div>
-          <Button onClick={() => setTermsOpen(false)} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold">Close</Button>
+          <Button onClick={() => setTermsOpen(false)} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold">Close</Button>
         </DialogContent>
       </Dialog>
     </div>
@@ -332,17 +332,17 @@ export default function Prestige() {
 }
 
 function MembersTab({ members, referrals, tiers, memberConfirmed, onAdd, onEdit, onDelete, onAddReferral, onEditReferral, onDeleteReferral, onUpdateReferralStatus, expandedMember, setExpandedMember }) {
-  const statusColors = { Pending: "text-yellow-400 bg-yellow-500/10", Confirmed: "text-blue-400 bg-blue-500/10", "Paid Out": "text-green-400 bg-green-500/10" };
+  const statusColors = { Pending: "text-yellow-600 bg-yellow-500/10", Confirmed: "text-blue-600 bg-blue-500/10", "Paid Out": "text-green-600 bg-green-500/10" };
 
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={onAdd} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] gap-2 h-9 shadow-[0_0_16px_rgba(255,106,0,0.3)]"><Plus className="w-4 h-4" />Add Member</Button>
+        <Button onClick={onAdd} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] gap-2 h-9 shadow-[0_0_16px_rgba(255,106,0,0.3)]"><Plus className="w-4 h-4" />Add Member</Button>
       </div>
       {members.length === 0 && (
         <div className="game-panel p-10 text-center">
-          <Star className="w-8 h-8 text-white/10 mx-auto mb-3" />
-          <p className="text-white/30 text-sm">No Prestige members yet. Add your first member!</p>
+          <Star className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
+          <p className="text-ink/[0.48] text-sm">No Prestige members yet. Add your first member!</p>
         </div>
       )}
       <div className="space-y-3">
@@ -358,24 +358,24 @@ function MembersTab({ members, referrals, tiers, memberConfirmed, onAdd, onEdit,
             <div key={m.id} className={`card-hover relative overflow-hidden bg-card rounded-xl border ${tier.border} ${isMaxed ? tier.glow : ""}`}>
               {/* Award ribbon when prestige master */}
               {isMaxed && (
-                <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-[10px] font-bold tracking-widest uppercase shadow-[0_0_12px_rgba(250,204,21,0.4)]">
+                <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-600 text-[10px] font-bold tracking-widest uppercase shadow-[0_0_12px_rgba(250,204,21,0.4)]">
                   <Crown className="w-3 h-3" /> Master
                 </div>
               )}
               <div className="p-4 flex items-center gap-4">
                 <div className={`relative w-12 h-12 rounded-xl ${tier.bg} flex items-center justify-center text-lg font-bold ${tier.color} shrink-0 border ${tier.border} ring-1 ${tier.ring}`}>
                   {m.name.charAt(0).toUpperCase()}
-                  <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full ${tier.bg} border border-white/10 flex items-center justify-center`}>
+                  <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full ${tier.bg} border border-ink/[0.13] flex items-center justify-center`}>
                     <TierIcon className={`w-3 h-3 ${tier.color}`} />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-white font-semibold text-sm">{m.name}</span>
+                    <span className="text-ink font-semibold text-sm">{m.name}</span>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${tier.badge}`}>{progress.tier}</span>
-                    {m.active === false && <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-white/5 text-white/30 border border-white/10">Inactive</span>}
+                    {m.active === false && <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-ink/5 text-ink/[0.48] border border-ink/[0.13]">Inactive</span>}
                   </div>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-white/40">
+                  <div className="flex items-center gap-3 mt-1 text-xs text-ink/[0.58]">
                     {m.email && <span className="truncate">{m.email}</span>}
                     {m.joinDate && <span>Joined {new Date(m.joinDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
                   </div>
@@ -383,48 +383,48 @@ function MembersTab({ members, referrals, tiers, memberConfirmed, onAdd, onEdit,
                   <div className="mt-2.5">
                     <div className="flex items-center justify-between text-[10px] mb-1">
                       <span className={`font-semibold ${tier.color}`}>{progress.maxed ? `${confirmed} lifetime` : `${progress.within} / ${progress.target} new`}</span>
-                      <span className="text-white/30">{progress.maxed ? "Peak rank reached" : `${progress.remaining} to ${progress.nextTier}`}</span>
+                      <span className="text-ink/[0.48]">{progress.maxed ? "Peak rank reached" : `${progress.remaining} to ${progress.nextTier}`}</span>
                     </div>
-                    <div className="h-1.5 w-full bg-white/[0.04] rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-ink/[0.04] rounded-full overflow-hidden">
                       <div className={`h-full rounded-full bg-gradient-to-r ${tier.grad.includes("orange") ? "from-orange-300 to-orange-600" : tier.grad.includes("sky") ? "from-sky-300 to-sky-600" : tier.grad.includes("purple") ? "from-purple-300 to-purple-600" : "from-yellow-200 to-yellow-500"} transition-all duration-500`} style={{ width: `${progress.pct}%` }} />
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <Button onClick={() => onAddReferral(m.id, m.name)} variant="ghost" className="h-8 text-xs text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/10 gap-1"><Plus className="w-3 h-3" />Referral</Button>
-                  <button onClick={() => onEdit(m)} className="p-1.5 text-white/20 hover:text-white/60 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => onDelete(m.id)} className="p-1.5 text-white/20 hover:text-red-400/60 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => setExpandedMember(isExpanded ? null : m.id)} className="p-1.5 text-white/20 hover:text-white/60 transition-colors">
+                  <button onClick={() => onEdit(m)} className="p-1.5 text-ink/[0.38] hover:text-ink/60 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => onDelete(m.id)} className="p-1.5 text-ink/[0.38] hover:text-red-600/60 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => setExpandedMember(isExpanded ? null : m.id)} className="p-1.5 text-ink/[0.38] hover:text-ink/60 transition-colors">
                     {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
               {isExpanded && (
-                <div className="border-t border-white/[0.06] px-4 py-3">
-                  {m.notes && <p className="text-white/40 text-xs mb-3 italic">{m.notes}</p>}
-                  <p className="text-white/30 text-[10px] font-semibold uppercase tracking-widest mb-2 flex items-center gap-1.5"><Sparkles className="w-3 h-3 text-orange-400/60" /> Referrals Log ({memberReferrals.length})</p>
+                <div className="border-t border-ink/[0.13] px-4 py-3">
+                  {m.notes && <p className="text-ink/[0.58] text-xs mb-3 italic">{m.notes}</p>}
+                  <p className="text-ink/[0.48] text-[10px] font-semibold uppercase tracking-widest mb-2 flex items-center gap-1.5"><Sparkles className="w-3 h-3 text-orange-400/60" /> Referrals Log ({memberReferrals.length})</p>
                   {memberReferrals.length === 0 ? (
-                    <p className="text-white/20 text-xs">No referrals recorded yet.</p>
+                    <p className="text-ink/[0.38] text-xs">No referrals recorded yet.</p>
                   ) : (
                     <div className="space-y-2">
                       {memberReferrals.map((r) => (
-                        <div key={r.id} className="flex items-center gap-3 bg-white/[0.02] rounded-lg px-3 py-2 group">
+                        <div key={r.id} className="flex items-center gap-3 bg-ink/[0.02] rounded-lg px-3 py-2 group">
                           <div className="flex-1 min-w-0">
-                            <span className="text-white/70 text-xs font-medium">{r.referredClientName}</span>
+                            <span className="text-ink/70 text-xs font-medium">{r.referredClientName}</span>
                             {(r.lineItems || []).map((li, idx) => (
-                              <span key={idx} className="ml-2 inline-flex items-center gap-1 text-white/30 text-[10px]">
+                              <span key={idx} className="ml-2 inline-flex items-center gap-1 text-ink/[0.48] text-[10px]">
                                 {li.service}{li.subscription && <span className="text-orange-400/70">· Sub</span>}{li.amount > 0 && <span className="text-orange-500/60 font-semibold">${li.amount.toLocaleString()}</span>}
                               </span>
                             ))}
                             {(!r.lineItems || r.lineItems.length === 0) && r.amount > 0 && <span className="ml-2 text-orange-500/60 text-[10px] font-semibold">${r.amount.toLocaleString()}</span>}
-                            {r.date && <span className="ml-2 text-white/20 text-[10px]">{new Date(r.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
+                            {r.date && <span className="ml-2 text-ink/[0.38] text-[10px]">{new Date(r.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
                           </div>
                           <select value={r.status} onChange={(e) => onUpdateReferralStatus(r, e.target.value)} className={`text-[10px] font-semibold px-2 py-0.5 rounded border-0 outline-none cursor-pointer ${statusColors[r.status]}`}>
                             {["Pending", "Confirmed", "Paid Out"].map((s) => <option key={s} value={s}>{s}</option>)}
                           </select>
-                          <button onClick={() => onEditReferral(r)} className="p-1 text-white/15 hover:text-white/50 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3 h-3" /></button>
-                          <button onClick={() => onDeleteReferral(r)} className="p-1 text-white/15 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
+                          <button onClick={() => onEditReferral(r)} className="p-1 text-ink/[0.33] hover:text-ink/50 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3 h-3" /></button>
+                          <button onClick={() => onDeleteReferral(r)} className="p-1 text-ink/[0.33] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
                         </div>
                       ))}
                     </div>
@@ -440,12 +440,12 @@ function MembersTab({ members, referrals, tiers, memberConfirmed, onAdd, onEdit,
 }
 
 function ReferralsTab({ referrals, members, tiers, memberConfirmed, onEdit, onDelete, onUpdateStatus }) {
-  const statusColors = { Pending: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20", Confirmed: "text-blue-400 bg-blue-500/10 border-blue-500/20", "Paid Out": "text-green-400 bg-green-500/10 border-green-500/20" };
+  const statusColors = { Pending: "text-yellow-600 bg-yellow-500/10 border-yellow-500/20", Confirmed: "text-blue-600 bg-blue-500/10 border-blue-500/20", "Paid Out": "text-green-600 bg-green-500/10 border-green-500/20" };
 
   if (referrals.length === 0) return (
     <div className="game-panel p-10 text-center">
-      <Users className="w-8 h-8 text-white/10 mx-auto mb-3" />
-      <p className="text-white/30 text-sm">No referrals recorded yet.</p>
+      <Users className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
+      <p className="text-ink/[0.48] text-sm">No referrals recorded yet.</p>
     </div>
   );
 
@@ -459,15 +459,15 @@ function ReferralsTab({ referrals, members, tiers, memberConfirmed, onEdit, onDe
           <div key={r.id} className="game-panel p-4 flex items-center gap-4 group">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-white/85 text-sm font-medium">{r.referredClientName}</span>
+                <span className="text-ink/85 text-sm font-medium">{r.referredClientName}</span>
                 {(r.lineItems || []).map((li, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 text-white/30 text-xs">
+                  <span key={idx} className="inline-flex items-center gap-1 text-ink/[0.48] text-xs">
                     {li.service}{li.subscription && <span className="text-orange-400/70">· Sub</span>}{li.amount > 0 && <span className="text-orange-500/70 font-semibold">${li.amount.toLocaleString()}</span>}
                   </span>
                 ))}
                 {(!r.lineItems || r.lineItems.length === 0) && r.amount > 0 && <span className="text-orange-500/70 text-xs font-semibold">${r.amount.toLocaleString()}</span>}
               </div>
-              <div className="flex items-center gap-3 mt-1 text-[10px] text-white/30">
+              <div className="flex items-center gap-3 mt-1 text-[10px] text-ink/[0.48]">
                 <span className={`font-semibold ${tier.color}`}>via {r.memberName}</span>
                 {member && <span className={`px-1.5 py-0.5 rounded border text-[9px] ${tier.badge}`}>{earnedT}</span>}
                 {r.date && <span>{new Date(r.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
@@ -476,8 +476,8 @@ function ReferralsTab({ referrals, members, tiers, memberConfirmed, onEdit, onDe
             <select value={r.status} onChange={(e) => onUpdateStatus(r, e.target.value)} className={`text-[10px] font-semibold px-2 py-1 rounded border outline-none cursor-pointer ${statusColors[r.status]}`}>
               {["Pending", "Confirmed", "Paid Out"].map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
-            <button onClick={() => onEdit(r)} className="p-1.5 text-white/15 hover:text-white/50 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
-            <button onClick={() => onDelete(r)} className="p-1.5 text-white/15 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+            <button onClick={() => onEdit(r)} className="p-1.5 text-ink/[0.33] hover:text-ink/50 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
+            <button onClick={() => onDelete(r)} className="p-1.5 text-ink/[0.33] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
           </div>
         );
       })}

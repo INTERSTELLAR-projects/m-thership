@@ -2,7 +2,7 @@ import { useState, useMemo, useRef } from "react";
 import { RefreshCw, ChevronDown, ChevronUp, AlertTriangle, Pencil, ArrowUp, ArrowDown, RotateCcw } from "lucide-react";
 import { computePlan, presetFor, round2 } from "../../../base44/shared/planEngine.js";
 
-const ROUTE_COLORS = ["#F47C20", "#FFC14D", "#FF9F1C"];
+const ROUTE_COLORS = ["#ff3c00", "#FFC14D", "#FF9F1C"];
 const BLENDED_COLOR = "#67B5FF";
 
 const stepRound = (n, step) => Math.round(n / step) * step;
@@ -21,7 +21,7 @@ function fmtMonth(n) {
 function FlagChip({ flag, label }) {
   if (!flag) return null;
   return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-red-500/10 text-red-400/80 border border-red-500/20">
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-red-500/10 text-red-600/80 border border-red-500/20">
       <AlertTriangle className="w-2.5 h-2.5" />{label}
     </span>
   );
@@ -40,13 +40,13 @@ function MiniSlider({ value, min, max, step, onDrag, onCommit, fmt }) {
         type="range" min={min} max={max} step={step} value={v}
         onChange={(e) => onDrag(Number(e.target.value))}
         onPointerUp={onCommit} onMouseUp={onCommit} onTouchEnd={onCommit} onKeyUp={onCommit}
-        className="w-full h-1 accent-orange-500 cursor-pointer bg-white/10 rounded-full"
+        className="w-full h-1 accent-orange-500 cursor-pointer bg-ink/10 rounded-full"
       />
       <div className="flex items-center justify-between gap-1">
-        <span className="text-white/80 text-[10px] font-mono leading-none truncate">{fmt ? fmt(v) : v}</span>
+        <span className="text-ink/80 text-[10px] font-mono leading-none truncate">{fmt ? fmt(v) : v}</span>
         <div className="flex items-center gap-0.5 shrink-0">
-          <button onClick={() => stepPlus(-1)} className="w-4 h-4 rounded bg-white/[0.06] hover:bg-orange-500/25 text-white/60 hover:text-white text-[11px] leading-none flex items-center justify-center">−</button>
-          <button onClick={() => stepPlus(1)} className="w-4 h-4 rounded bg-white/[0.06] hover:bg-orange-500/25 text-white/60 hover:text-white text-[11px] leading-none flex items-center justify-center">+</button>
+          <button onClick={() => stepPlus(-1)} className="w-4 h-4 rounded bg-ink/[0.06] hover:bg-orange-500/25 text-ink/60 hover:text-ink text-[11px] leading-none flex items-center justify-center">−</button>
+          <button onClick={() => stepPlus(1)} className="w-4 h-4 rounded bg-ink/[0.06] hover:bg-orange-500/25 text-ink/60 hover:text-ink text-[11px] leading-none flex items-center justify-center">+</button>
         </div>
       </div>
     </div>
@@ -56,13 +56,13 @@ function MiniSlider({ value, min, max, step, onDrag, onCommit, fmt }) {
 function Row({ label, children, bold }) {
   return (
     <div className="grid items-center py-1.5" style={{ gridTemplateColumns: "128px minmax(0,1fr)" }}>
-      <span className={`text-white/40 text-[10px] uppercase tracking-wider font-mono ${bold ? "text-orange-400/60" : ""}`}>{label}</span>
+      <span className={`text-ink/[0.58] text-[10px] uppercase tracking-wider font-mono ${bold ? "text-orange-400/60" : ""}`}>{label}</span>
       <div className="grid gap-2 min-w-0" style={{ gridTemplateColumns: `repeat(${children.length}, minmax(0,1fr))` }}>{children}</div>
     </div>
   );
 }
 function Cell2({ children, className = "" }) {
-  return <div className={`text-[11px] font-mono px-2 py-1 rounded text-white/55 ${className}`}>{children}</div>;
+  return <div className={`text-[11px] font-mono px-2 py-1 rounded text-ink/55 ${className}`}>{children}</div>;
 }
 
 function assumptionKey(routes, blendedVelocities) {
@@ -132,16 +132,16 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
       <div className="flex items-start gap-2">
         <div className="flex-1">
           {ai ? (
-            <p className="text-white text-[15px] font-medium leading-snug">{ai.verdict ? ai.verdict.replace(/\[winner\]/g, c.winner_name || "") : ""}</p>
+            <p className="text-ink text-[15px] font-medium leading-snug">{ai.verdict ? ai.verdict.replace(/\[winner\]/g, c.winner_name || "") : ""}</p>
           ) : (
-            <p className="text-white/40 text-sm italic flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" />Analysis unavailable — retry</p>
+            <p className="text-ink/[0.58] text-sm italic flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" />Analysis unavailable — retry</p>
           )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <button onClick={onEdit} title="Edit goal" className="p-1.5 rounded-md hover:bg-white/5 text-white/30 hover:text-orange-400 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
-          <button onClick={onRerun} disabled={running} title="Re-run analysis" className="p-1.5 rounded-md hover:bg-white/5 text-white/30 hover:text-orange-400 transition-all disabled:opacity-40">{running ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}</button>
-          <span className="text-white/25 text-[10px] font-mono">{relTime || ""}</span>
-          <button onClick={() => setOpen(!open)} className="p-1 rounded-md hover:bg-white/5 text-white/30 transition-all">{open ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}</button>
+          <button onClick={onEdit} title="Edit goal" className="p-1.5 rounded-md hover:bg-ink/5 text-ink/[0.48] hover:text-orange-400 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
+          <button onClick={onRerun} disabled={running} title="Re-run analysis" className="p-1.5 rounded-md hover:bg-ink/5 text-ink/[0.48] hover:text-orange-400 transition-all disabled:opacity-40">{running ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}</button>
+          <span className="text-ink/[0.43] text-[10px] font-mono">{relTime || ""}</span>
+          <button onClick={() => setOpen(!open)} className="p-1 rounded-md hover:bg-ink/5 text-ink/[0.48] transition-all">{open ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}</button>
         </div>
       </div>
 
@@ -155,10 +155,10 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
       {open && (
         <div className="space-y-3">
           {/* comparison table */}
-          <div className="rounded-lg border border-white/[0.06] bg-white/[0.015] p-3 overflow-x-auto">
+          <div className="rounded-lg border border-ink/[0.13] bg-ink/[0.01] p-3 overflow-x-auto">
             <div className="min-w-[480px]">
               {/* header */}
-              <div className="grid items-end pb-2 mb-1 border-b border-white/[0.05]" style={{ gridTemplateColumns: "128px minmax(0,1fr)" }}>
+              <div className="grid items-end pb-2 mb-1 border-b border-ink/[0.13]" style={{ gridTemplateColumns: "128px minmax(0,1fr)" }}>
                 <span />
                 <div className="grid gap-2 min-w-0" style={{ gridTemplateColumns: `repeat(${allRoutes.length}, minmax(0,1fr))` }}>
                   {allRoutes.map((r, i) => {
@@ -167,9 +167,9 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
                       <div key={i} className="text-center">
                         <span className="text-[11px] font-semibold block leading-tight" style={{ color: col }}>{r.name}</span>
                         {r.system_generated ? (
-                          <span className="text-[8px] text-white/30 uppercase tracking-wider">run both</span>
+                          <span className="text-[8px] text-ink/[0.48] uppercase tracking-wider">run both</span>
                         ) : (
-                          <button onClick={() => resetRoute(i)} className="text-[8px] text-white/25 hover:text-orange-400 uppercase tracking-wider inline-flex items-center gap-0.5"><RotateCcw className="w-2 h-2" />reset</button>
+                          <button onClick={() => resetRoute(i)} className="text-[8px] text-ink/[0.43] hover:text-orange-400 uppercase tracking-wider inline-flex items-center gap-0.5"><RotateCcw className="w-2 h-2" />reset</button>
                         )}
                       </div>
                     );
@@ -191,8 +191,8 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
                         return (
                           <div key={j}>
                             <div className="flex items-center justify-between mb-0.5">
-                              <span className="text-[9px] text-white/45 font-mono truncate">{shortLabel(rr.name)}</span>
-                              {blendedVelocities[j] == null && <span className="text-[7px] text-white/25 uppercase tracking-wider">auto</span>}
+                              <span className="text-[9px] text-ink/[0.63] font-mono truncate">{shortLabel(rr.name)}</span>
+                              {blendedVelocities[j] == null && <span className="text-[7px] text-ink/[0.43] uppercase tracking-wider">auto</span>}
                             </div>
                             <MiniSlider value={eff} min={0} max={8} step={1}
                               onDrag={(v) => setBv(j, v)}
@@ -219,7 +219,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
 
               <Row label="Time to goal" bold>
                 {allRoutes.map((r, i) => (
-                  <Cell2 key={i} className={r.reached ? "text-orange-400 text-[13px] font-bold" : "text-white/35"}>
+                  <Cell2 key={i} className={r.reached ? "text-orange-400 text-[13px] font-bold" : "text-ink/[0.53]"}>
                     {r.reached ? `${fmtMonth(r.months_to_goal)} · ${r.goal_date}` : "Not reachable"}
                   </Cell2>
                 ))}
@@ -227,13 +227,13 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
 
               {/* New MRR added — route-specific, tied to current MRR (auto-updates as MRR changes) */}
               <Row label="New MRR added">
-                {allRoutes.map((r, i) => <Cell2 key={i} className={r.reached ? "text-white/80" : "text-white/35"}>{r.reached ? fmtMoney(r.new_mrr_added) : "—"}</Cell2>)}
+                {allRoutes.map((r, i) => <Cell2 key={i} className={r.reached ? "text-ink/80" : "text-ink/[0.53]"}>{r.reached ? fmtMoney(r.new_mrr_added) : "—"}</Cell2>)}
               </Row>
 
               {/* MRR Total at Goal — the MRR you actually land at the crossing month (e.g. $10,202) */}
               <Row label="MRR Total at Goal" bold>
                 {allRoutes.map((r, i) => (
-                  <Cell2 key={i} className={r.reached ? "text-orange-400/90 text-[12px] font-semibold" : "text-white/35"}>{r.reached ? fmtMoney(r.mrr_total_at_goal) : "Not reachable"}</Cell2>
+                  <Cell2 key={i} className={r.reached ? "text-orange-400/90 text-[12px] font-semibold" : "text-ink/[0.53]"}>{r.reached ? fmtMoney(r.mrr_total_at_goal) : "Not reachable"}</Cell2>
                 ))}
               </Row>
 
@@ -242,7 +242,7 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
                   <Cell2 key={i}>
                     <div className="flex flex-wrap gap-1">
                       <FlagChip flag={r.flags?.never_reaches} label="Unreachable" />
-                      {!r.flags?.never_reaches && <span className="text-white/20 text-[9px]">—</span>}
+                      {!r.flags?.never_reaches && <span className="text-ink/[0.38] text-[9px]">—</span>}
                     </div>
                   </Cell2>
                 ))}
@@ -253,8 +253,8 @@ export default function PlanResults({ goal, analysis, mrr, running, onRerun, onE
           {/* delta strip */}
           {ai?.delta_since_last_run && (
             <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${deltaUp ? "border-green-500/20 bg-green-500/[0.05]" : "border-orange-500/20 bg-orange-500/[0.05]"}`}>
-              {deltaUp ? <ArrowUp className="w-3.5 h-3.5 text-green-400" /> : <ArrowDown className="w-3.5 h-3.5 text-orange-400" />}
-              <span className="text-white/70 text-xs">{ai.delta_since_last_run}</span>
+              {deltaUp ? <ArrowUp className="w-3.5 h-3.5 text-green-600" /> : <ArrowDown className="w-3.5 h-3.5 text-orange-400" />}
+              <span className="text-ink/70 text-xs">{ai.delta_since_last_run}</span>
             </div>
           )}
         </div>

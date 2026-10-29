@@ -88,7 +88,7 @@ export default function Dashboard() {
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
             editing
               ? "bg-orange-500/15 text-orange-500 border-orange-500/20"
-              : "text-white/30 hover:text-white/60 border-white/10 hover:border-white/20"
+              : "text-ink/[0.48] hover:text-ink/60 border-ink/[0.13] hover:border-ink/20"
           }`}
         >
           {editing ? <><X className="w-3.5 h-3.5" />Done</> : <><Settings className="w-3.5 h-3.5" />Customize</>}
@@ -99,7 +99,7 @@ export default function Dashboard() {
       {editing ? (
         <div className="px-8 py-3 space-y-6">
           <div>
-            <p className="text-white/30 text-xs mb-3">Drag widgets to reorder them, or remove ones you don't want.</p>
+            <p className="text-ink/[0.48] text-xs mb-3">Drag widgets to reorder them, or remove ones you don't want.</p>
             <DragDropContext onDragEnd={onDragEnd}>
               <Droppable droppableId="dashboard-widgets">
                 {(provided) => (
@@ -115,17 +115,17 @@ export default function Dashboard() {
                               className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
                                 snapshot.isDragging
                                   ? "bg-orange-500/10 border-orange-500/30 shadow-lg"
-                                  : "bg-card border-white/[0.06]"
+                                  : "bg-card border-ink/[0.13]"
                               }`}
                             >
-                              <span {...drag.dragHandleProps} className="text-white/20 hover:text-white/50 cursor-grab active:cursor-grabbing">
+                              <span {...drag.dragHandleProps} className="text-ink/[0.38] hover:text-ink/50 cursor-grab active:cursor-grabbing">
                                 <GripVertical className="w-4 h-4" />
                               </span>
-                              <span className="text-white/70 text-sm font-medium">{widget?.label}</span>
-                              <span className="ml-auto text-white/20 text-xs">#{index + 1}</span>
+                              <span className="text-ink/70 text-sm font-medium">{widget?.label}</span>
+                              <span className="ml-auto text-ink/[0.38] text-xs">#{index + 1}</span>
                               <button
                                 onClick={() => removeWidget(id)}
-                                className="p-1 text-white/20 hover:text-red-400/70 transition-colors"
+                                className="p-1 text-ink/[0.38] hover:text-red-600/70 transition-colors"
                               >
                                 <X className="w-3.5 h-3.5" />
                               </button>
@@ -136,7 +136,7 @@ export default function Dashboard() {
                     })}
                     {provided.placeholder}
                     {order.length === 0 && (
-                      <p className="text-white/20 text-xs py-4 text-center">No widgets on your dashboard. Add some below.</p>
+                      <p className="text-ink/[0.38] text-xs py-4 text-center">No widgets on your dashboard. Add some below.</p>
                     )}
                   </div>
                 )}
@@ -146,11 +146,11 @@ export default function Dashboard() {
 
           {availableToAdd.length > 0 && (
             <div>
-              <p className="text-white/30 text-xs mb-3">Add a widget to your dashboard.</p>
+              <p className="text-ink/[0.48] text-xs mb-3">Add a widget to your dashboard.</p>
               <div className="space-y-2">
                 {availableToAdd.map((widget) => (
-                  <div key={widget.id} className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-white/10 bg-white/[0.02]">
-                    <span className="text-white/50 text-sm font-medium">{widget.label}</span>
+                  <div key={widget.id} className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-ink/[0.13] bg-ink/[0.02]">
+                    <span className="text-ink/50 text-sm font-medium">{widget.label}</span>
                     <button
                       onClick={() => addWidget(widget.id)}
                       className="ml-auto flex items-center gap-1.5 px-3 py-1 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500/70 hover:text-orange-500 text-xs font-medium rounded-lg border border-orange-500/15 transition-all"

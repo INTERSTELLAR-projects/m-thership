@@ -88,7 +88,7 @@ const DEFAULT_SETTINGS = {
     autoGBPSync: true,
   },
   brandingSettings: {
-    accentColor: "#FF6A00",
+    accentColor: "#ff3c00",
     theme: "dark",
     density: "normal",
     showClientLogo: true,
@@ -112,12 +112,12 @@ const DEFAULT_SETTINGS = {
     { id: 1, label: "Submitted", color: "#ffffff40" },
     { id: 2, label: "Under Review", color: "#3b82f6" },
     { id: 3, label: "Approved", color: "#a855f7" },
-    { id: 4, label: "In Progress", color: "#ff6a00" },
+    { id: 4, label: "In Progress", color: "#ff3c00" },
     { id: 5, label: "Completed", color: "#22c55e" },
   ],
   projectStatuses: [
     { id: 1, label: "Planning", color: "#3b82f6" },
-    { id: 2, label: "Development", color: "#ff6a00" },
+    { id: 2, label: "Development", color: "#ff3c00" },
     { id: 3, label: "Testing", color: "#a855f7" },
     { id: 4, label: "Deployment", color: "#eab308" },
     { id: 5, label: "Completed", color: "#22c55e" },
@@ -152,24 +152,24 @@ const SECTIONS = [
 function SettingsCard({ title, description, children, defaultOpen = false }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] overflow-hidden">
-      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors">
+    <div className="bg-card rounded-xl border border-ink/[0.13] overflow-hidden">
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between p-5 hover:bg-ink/[0.02] transition-colors">
         <div className="text-left">
           <h3 className="font-display font-bold text-sm tracking-wide bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{title}</h3>
-          {description && <p className="text-white/40 text-xs mt-0.5">{description}</p>}
+          {description && <p className="text-ink/[0.58] text-xs mt-0.5">{description}</p>}
         </div>
-        {open ? <ChevronUp className="w-4 h-4 text-white/30 shrink-0" /> : <ChevronDown className="w-4 h-4 text-white/30 shrink-0" />}
+        {open ? <ChevronUp className="w-4 h-4 text-ink/[0.48] shrink-0" /> : <ChevronDown className="w-4 h-4 text-ink/[0.48] shrink-0" />}
       </button>
-      {open && <div className="border-t border-white/[0.06] p-5 space-y-4">{children}</div>}
+      {open && <div className="border-t border-ink/[0.13] p-5 space-y-4">{children}</div>}
     </div>
   );
 }
 
 function Toggle({ value, onChange }) {
   return (
-    <button onClick={() => onChange(!value)} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${value ? "bg-orange-500/15 border-orange-500/20" : "bg-white/[0.03] border-white/[0.06]"}`}>
-      {value ? <ToggleRight className="w-4 h-4 text-orange-500" /> : <ToggleLeft className="w-4 h-4 text-white/30" />}
-      <span className={`text-xs font-medium ${value ? "text-orange-500" : "text-white/40"}`}>{value ? "Enabled" : "Disabled"}</span>
+    <button onClick={() => onChange(!value)} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${value ? "bg-orange-500/15 border-orange-500/20" : "bg-ink/[0.03] border-ink/[0.13]"}`}>
+      {value ? <ToggleRight className="w-4 h-4 text-orange-500" /> : <ToggleLeft className="w-4 h-4 text-ink/[0.48]" />}
+      <span className={`text-xs font-medium ${value ? "text-orange-500" : "text-ink/[0.58]"}`}>{value ? "Enabled" : "Disabled"}</span>
     </button>
   );
 }
@@ -177,9 +177,9 @@ function Toggle({ value, onChange }) {
 function Field({ label, help, children }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-white/60 text-xs font-medium block">{label}</label>
+      <label className="text-ink/60 text-xs font-medium block">{label}</label>
       {children}
-      {help && <p className="text-white/25 text-[10px]">{help}</p>}
+      {help && <p className="text-ink/[0.43] text-[10px]">{help}</p>}
     </div>
   );
 }
@@ -187,14 +187,14 @@ function Field({ label, help, children }) {
 function TextInput({ value, onChange, placeholder }) {
   return (
     <input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-      className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none focus:border-orange-500/30" />
+      className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink placeholder:text-ink/[0.38] outline-none focus:border-orange-500/30" />
   );
 }
 
 function SelectInput({ value, onChange, options }) {
   return (
     <select value={value || ""} onChange={(e) => onChange(e.target.value)}
-      className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/30">
+      className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink outline-none focus:border-orange-500/30">
       {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
   );
@@ -202,7 +202,7 @@ function SelectInput({ value, onChange, options }) {
 
 function StatusPill({ label, color }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-1 rounded-lg border border-white/[0.08]" style={{ color, borderColor: `${color}30`, background: `${color}15` }}>
+    <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-1 rounded-lg border border-ink/[0.13]" style={{ color, borderColor: `${color}30`, background: `${color}15` }}>
       <span className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />{label}
     </span>
   );
@@ -220,7 +220,7 @@ export default function SettingsPage() {
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [newTag, setNewTag] = useState("");
-  const [newStatus, setNewStatus] = useState({ section: null, label: "", color: "#ff6a00" });
+  const [newStatus, setNewStatus] = useState({ section: null, label: "", color: "#ff3c00" });
   const [newCrmField, setNewCrmField] = useState("");
   const [editingStatus, setEditingStatus] = useState(null);
 
@@ -280,7 +280,7 @@ export default function SettingsPage() {
     const arr = [...(settings[section] || [])];
     arr.push({ id: Date.now(), label: newStatus.label, color: newStatus.color });
     update(section, arr);
-    setNewStatus({ section: null, label: "", color: "#ff6a00" });
+    setNewStatus({ section: null, label: "", color: "#ff3c00" });
   };
 
   const removeStatus = (section, id) => {
@@ -322,7 +322,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-6 h-6 text-white/20 animate-spin" />
+        <Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" />
       </div>
     );
   }
@@ -342,12 +342,12 @@ export default function SettingsPage() {
 
       <div className="flex h-[calc(100vh-57px)]">
         {/* SIDEBAR NAV */}
-        <aside className="w-52 shrink-0 border-r border-white/[0.05] overflow-y-auto p-3 space-y-0.5">
+        <aside className="w-52 shrink-0 border-r border-ink/[0.13] overflow-y-auto p-3 space-y-0.5">
           {SECTIONS.map((sec) => {
             const Icon = typeof sec.icon === "string" ? null : sec.icon;
             return (
               <button key={sec.id} onClick={() => setActiveSection(sec.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left ${activeSection === sec.id ? "bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"}`}>
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left ${activeSection === sec.id ? "bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.58] hover:text-ink/70 hover:bg-ink/[0.04]"}`}>
                 {Icon ? <Icon className="w-3.5 h-3.5 shrink-0" /> : <span className="text-sm shrink-0">{sec.icon}</span>}
                 {sec.label}
               </button>
@@ -362,12 +362,12 @@ export default function SettingsPage() {
             {/* TOP BAR */}
             <div className="flex items-center gap-3">
               <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/[0.38]" />
                 <input value={search} onChange={(e) => { setSearch(e.target.value); }} placeholder="Search sections..."
-                  className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none" />
+                  className="w-full pl-10 pr-4 py-2 bg-card border border-ink/[0.13] rounded-lg text-sm text-ink placeholder:text-ink/[0.38] outline-none" />
               </div>
               <button onClick={handleSave} disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 disabled:opacity-60 text-black font-semibold text-xs rounded-lg shadow-[0_0_14px_rgba(255,106,0,0.25)] transition-colors">
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 disabled:opacity-60 text-white font-semibold text-xs rounded-lg shadow-[0_0_14px_rgba(255,106,0,0.25)] transition-colors">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                 {saved ? "Saved!" : saving ? "Saving..." : "Save Settings"}
               </button>
@@ -426,9 +426,9 @@ export default function SettingsPage() {
                 <SettingsCard title="System Information">
                   <div className="grid grid-cols-2 gap-4 text-xs">
                     {[["Platform", "Interstellar Command"], ["Version", "1.0.0"], ["Build", "Production"], ["Last Updated", "April 12, 2026"]].map(([k, v]) => (
-                      <div key={k} className="bg-white/[0.02] rounded-lg p-3 border border-white/[0.04]">
-                        <p className="text-white/30 mb-1">{k}</p>
-                        <p className="text-white/80 font-semibold">{v}</p>
+                      <div key={k} className="bg-ink/[0.02] rounded-lg p-3 border border-ink/[0.13]">
+                        <p className="text-ink/[0.48] mb-1">{k}</p>
+                        <p className="text-ink/80 font-semibold">{v}</p>
                       </div>
                     ))}
                   </div>
@@ -441,21 +441,21 @@ export default function SettingsPage() {
               <>
                 <SettingsCard title="Team Members" description="All registered users in the system" defaultOpen>
                   {usersLoading ? (
-                    <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 text-white/20 animate-spin" /></div>
+                    <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 text-ink/[0.38] animate-spin" /></div>
                   ) : users.length === 0 ? (
-                    <p className="text-white/30 text-sm text-center py-4">No users found.</p>
+                    <p className="text-ink/[0.48] text-sm text-center py-4">No users found.</p>
                   ) : (
                     <div className="space-y-3">
                       {users.map((u) => (
-                        <div key={u.id} className="flex items-center gap-4 p-3 bg-white/[0.02] rounded-lg border border-white/[0.04]">
+                        <div key={u.id} className="flex items-center gap-4 p-3 bg-ink/[0.02] rounded-lg border border-ink/[0.13]">
                           <div className="w-8 h-8 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-[11px] font-bold text-orange-400 shrink-0">
                             {u.full_name?.charAt(0) || u.email?.charAt(0)}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-white/80 text-sm font-medium truncate">{u.full_name || "—"}</p>
-                            <p className="text-white/30 text-xs truncate">{u.email}</p>
+                            <p className="text-ink/80 text-sm font-medium truncate">{u.full_name || "—"}</p>
+                            <p className="text-ink/[0.48] text-xs truncate">{u.email}</p>
                           </div>
-                          <span className={`text-[10px] font-bold px-2 py-1 rounded border ${u.role === "admin" ? "bg-orange-500/15 text-orange-400 border-orange-500/20" : "bg-white/[0.05] text-white/30 border-white/[0.08]"}`}>
+                          <span className={`text-[10px] font-bold px-2 py-1 rounded border ${u.role === "admin" ? "bg-orange-500/15 text-orange-400 border-orange-500/20" : "bg-ink/5 text-ink/[0.48] border-ink/[0.13]"}`}>
                             {u.role === "admin" ? "Admin" : "User"}
                           </span>
                         </div>
@@ -465,10 +465,10 @@ export default function SettingsPage() {
                 </SettingsCard>
 
                 <SettingsCard title="Invite New User">
-                  <p className="text-white/40 text-xs mb-4">Use the platform's invite system to add new team members and assign roles.</p>
+                  <p className="text-ink/[0.58] text-xs mb-4">Use the platform's invite system to add new team members and assign roles.</p>
                   <div className="p-4 bg-orange-500/[0.06] rounded-lg border border-orange-500/15">
                     <p className="text-orange-400/80 text-xs font-medium">To invite users, go to the platform dashboard → Members → Invite.</p>
-                    <p className="text-white/30 text-xs mt-1">Invited users must be registered before they appear here.</p>
+                    <p className="text-ink/[0.48] text-xs mt-1">Invited users must be registered before they appear here.</p>
                   </div>
                 </SettingsCard>
 
@@ -478,9 +478,9 @@ export default function SettingsPage() {
                       { role: "Admin", desc: "Full access to all Command Center and Portal sections" },
                       { role: "User", desc: "Limited access based on page visibility settings" },
                     ].map(({ role, desc }) => (
-                      <div key={role} className="flex items-center gap-3 p-3 bg-white/[0.02] rounded-lg border border-white/[0.04]">
+                      <div key={role} className="flex items-center gap-3 p-3 bg-ink/[0.02] rounded-lg border border-ink/[0.13]">
                         <span className="text-orange-400 text-xs font-bold w-24 shrink-0">{role}</span>
-                        <span className="text-white/40 text-xs">{desc}</span>
+                        <span className="text-ink/[0.58] text-xs">{desc}</span>
                       </div>
                     ))}
                   </div>
@@ -501,8 +501,8 @@ export default function SettingsPage() {
                     ["showPerformance", "Performance"],
                     ["showPrestige", "Prestige"],
                   ].map(([key, label]) => (
-                    <div key={key} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                      <span className="text-white/70 text-sm">{label}</span>
+                    <div key={key} className="flex items-center justify-between py-2 border-b border-ink/[0.13] last:border-0">
+                      <span className="text-ink/70 text-sm">{label}</span>
                       <Toggle value={port[key]} onChange={(v) => update(`portalSettings.${key}`, v)} />
                     </div>
                   ))}
@@ -516,8 +516,8 @@ export default function SettingsPage() {
                     ["clientsCanMessage", "Can send messages"],
                     ["clientsCanViewPerformance", "Can view performance dashboards"],
                   ].map(([key, label]) => (
-                    <div key={key} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                      <span className="text-white/70 text-sm">{label}</span>
+                    <div key={key} className="flex items-center justify-between py-2 border-b border-ink/[0.13] last:border-0">
+                      <span className="text-ink/70 text-sm">{label}</span>
                       <Toggle value={port[key]} onChange={(v) => update(`portalSettings.${key}`, v)} />
                     </div>
                   ))}
@@ -542,10 +542,10 @@ export default function SettingsPage() {
                     {["dashboard","logins","documents","financial","legal","crm","idea-vault","todo","comms","output-analytics"].map((pageId) => {
                       const p = ps[pageId] || {};
                       return (
-                        <div key={pageId} className="flex items-center gap-4 p-3 bg-white/[0.02] rounded-lg border border-white/[0.04]">
+                        <div key={pageId} className="flex items-center gap-4 p-3 bg-ink/[0.02] rounded-lg border border-ink/[0.13]">
                           <div className="flex-1">
                             <input value={p.label || ""} onChange={(e) => update(`pageSettings.${pageId}.label`, e.target.value)}
-                              className="bg-transparent text-sm text-white/80 font-medium outline-none w-full" />
+                              className="bg-transparent text-sm text-ink/80 font-medium outline-none w-full" />
                           </div>
                           <Toggle value={p.visible !== false} onChange={(v) => update(`pageSettings.${pageId}.visible`, v)} />
                         </div>
@@ -559,10 +559,10 @@ export default function SettingsPage() {
                     {["client-projects","requests","orbit-seo","web-ops","forge","performance","prestige"].map((pageId) => {
                       const p = ps[pageId] || {};
                       return (
-                        <div key={pageId} className="flex items-center gap-4 p-3 bg-white/[0.02] rounded-lg border border-white/[0.04]">
+                        <div key={pageId} className="flex items-center gap-4 p-3 bg-ink/[0.02] rounded-lg border border-ink/[0.13]">
                           <div className="flex-1">
                             <input value={p.label || ""} onChange={(e) => update(`pageSettings.${pageId}.label`, e.target.value)}
-                              className="bg-transparent text-sm text-white/80 font-medium outline-none w-full" />
+                              className="bg-transparent text-sm text-ink/80 font-medium outline-none w-full" />
                           </div>
                           <Toggle value={p.visible !== false} onChange={(v) => update(`pageSettings.${pageId}.visible`, v)} />
                         </div>
@@ -572,15 +572,15 @@ export default function SettingsPage() {
                 </SettingsCard>
 
                 <SettingsCard title="Global Page Defaults">
-                  <p className="text-white/40 text-xs mb-3">Applied to all pages unless overridden individually.</p>
+                  <p className="text-ink/[0.58] text-xs mb-3">Applied to all pages unless overridden individually.</p>
                   {[
                     ["enableSearchGlobal", "Enable search globally"],
                     ["enableFiltersGlobal", "Enable filters globally"],
                     ["enableArchiveGlobal", "Enable archive section globally"],
                     ["enableMetricsGlobal", "Show metrics / summary cards globally"],
                   ].map(([key, label]) => (
-                    <div key={key} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                      <span className="text-white/70 text-sm">{label}</span>
+                    <div key={key} className="flex items-center justify-between py-2 border-b border-ink/[0.13] last:border-0">
+                      <span className="text-ink/70 text-sm">{label}</span>
                       <Toggle value={settings[key] !== false} onChange={(v) => update(key, v)} />
                     </div>
                   ))}
@@ -599,20 +599,20 @@ export default function SettingsPage() {
                     <Field label="Thank-you message">
                       <TextInput value={f.thankYou} onChange={(v) => update(`formSettings.forms.${fKey}.thankYou`, v)} />
                     </Field>
-                    <div className="flex items-center justify-between py-2 border-b border-white/[0.04]">
-                      <span className="text-white/70 text-sm">Form enabled</span>
+                    <div className="flex items-center justify-between py-2 border-b border-ink/[0.13]">
+                      <span className="text-ink/70 text-sm">Form enabled</span>
                       <Toggle value={f.enabled} onChange={(v) => update(`formSettings.forms.${fKey}.enabled`, v)} />
                     </div>
-                    <div className="flex items-center justify-between py-2 border-b border-white/[0.04]">
-                      <span className="text-white/70 text-sm">Visible in portal</span>
+                    <div className="flex items-center justify-between py-2 border-b border-ink/[0.13]">
+                      <span className="text-ink/70 text-sm">Visible in portal</span>
                       <Toggle value={f.visible} onChange={(v) => update(`formSettings.forms.${fKey}.visible`, v)} />
                     </div>
-                    <div className="flex items-center justify-between py-2 border-b border-white/[0.04]">
-                      <span className="text-white/70 text-sm">Urgency field</span>
+                    <div className="flex items-center justify-between py-2 border-b border-ink/[0.13]">
+                      <span className="text-ink/70 text-sm">Urgency field</span>
                       <Toggle value={f.urgencyField} onChange={(v) => update(`formSettings.forms.${fKey}.urgencyField`, v)} />
                     </div>
                     <div className="flex items-center justify-between py-2">
-                      <span className="text-white/70 text-sm">File upload</span>
+                      <span className="text-ink/70 text-sm">File upload</span>
                       <Toggle value={f.fileUpload} onChange={(v) => update(`formSettings.forms.${fKey}.fileUpload`, v)} />
                     </div>
                   </SettingsCard>
@@ -635,8 +635,8 @@ export default function SettingsPage() {
                     ["notifyAdminOnSubmit", "Notify admin on submission"],
                     ["notifyClientOnUpdate", "Notify client on update"],
                   ].map(([key, label]) => (
-                    <div key={key} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                      <span className="text-white/70 text-sm">{label}</span>
+                    <div key={key} className="flex items-center justify-between py-2 border-b border-ink/[0.13] last:border-0">
+                      <span className="text-ink/70 text-sm">{label}</span>
                       <Toggle value={forms[key]} onChange={(v) => update(`formSettings.${key}`, v)} />
                     </div>
                   ))}
@@ -649,9 +649,9 @@ export default function SettingsPage() {
               <>
                 <SettingsCard title="Built-In CRM Fields" description="Core fields — always visible" defaultOpen>
                   {["Business Name", "Contact Name", "Email", "Phone", "Website", "Status", "Services", "Notes", "Documents", "Blog Schedule"].map((f) => (
-                    <div key={f} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                      <span className="text-white/70 text-sm">{f}</span>
-                      <span className="text-[10px] text-green-400/70 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">Required</span>
+                    <div key={f} className="flex items-center justify-between py-2 border-b border-ink/[0.13] last:border-0">
+                      <span className="text-ink/70 text-sm">{f}</span>
+                      <span className="text-[10px] text-green-600/70 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">Required</span>
                     </div>
                   ))}
                 </SettingsCard>
@@ -659,21 +659,21 @@ export default function SettingsPage() {
                 <SettingsCard title="Custom CRM Fields">
                   <div className="space-y-2 mb-4">
                     {(settings.crmCustomFields || []).length === 0 && (
-                      <p className="text-white/25 text-xs">No custom fields yet.</p>
+                      <p className="text-ink/[0.43] text-xs">No custom fields yet.</p>
                     )}
                     {(settings.crmCustomFields || []).map((f) => (
-                      <div key={f.id} className="flex items-center gap-3 p-3 bg-white/[0.02] rounded-lg border border-white/[0.04]">
-                        <span className="flex-1 text-white/70 text-sm">{f.label}</span>
+                      <div key={f.id} className="flex items-center gap-3 p-3 bg-ink/[0.02] rounded-lg border border-ink/[0.13]">
+                        <span className="flex-1 text-ink/70 text-sm">{f.label}</span>
                         <Toggle value={f.visible} onChange={() => toggleCrmFieldVisible(f.id)} />
-                        <button onClick={() => removeCrmField(f.id)} className="p-1 text-white/20 hover:text-red-400/60 transition-colors"><X className="w-4 h-4" /></button>
+                        <button onClick={() => removeCrmField(f.id)} className="p-1 text-ink/[0.38] hover:text-red-600/60 transition-colors"><X className="w-4 h-4" /></button>
                       </div>
                     ))}
                   </div>
                   <div className="flex gap-2">
                     <input value={newCrmField} onChange={(e) => setNewCrmField(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && addCrmField()}
-                      placeholder="New field name..." className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none" />
-                    <button onClick={addCrmField} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg text-xs font-medium hover:bg-orange-500/20 transition-colors">
+                      placeholder="New field name..." className="flex-1 bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink placeholder:text-ink/[0.38] outline-none" />
+                    <button onClick={addCrmField} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg text-xs font-medium hover:bg-orange-500/20 transition-colors">
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
@@ -693,8 +693,8 @@ export default function SettingsPage() {
                     ["clientNotifications", "Client notifications"],
                     ["sendOverdueReminders", "Send overdue reminders"],
                   ].map(([key, label]) => (
-                    <div key={key} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                      <span className="text-white/70 text-sm">{label}</span>
+                    <div key={key} className="flex items-center justify-between py-2 border-b border-ink/[0.13] last:border-0">
+                      <span className="text-ink/70 text-sm">{label}</span>
                       <Toggle value={comm[key]} onChange={(v) => update(`commSettings.${key}`, v)} />
                     </div>
                   ))}
@@ -711,8 +711,8 @@ export default function SettingsPage() {
                     ["clientMessaging", "Enable client messaging"],
                     ["allowAttachments", "Allow file attachments in messages"],
                   ].map(([key, label]) => (
-                    <div key={key} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                      <span className="text-white/70 text-sm">{label}</span>
+                    <div key={key} className="flex items-center justify-between py-2 border-b border-ink/[0.13] last:border-0">
+                      <span className="text-ink/70 text-sm">{label}</span>
                       <Toggle value={comm[key]} onChange={(v) => update(`commSettings.${key}`, v)} />
                     </div>
                   ))}
@@ -729,8 +729,8 @@ export default function SettingsPage() {
                     ["autoCreateTasksOnRequest", "Auto-create tasks on new request"],
                     ["autoConvertToProject", "Auto-convert approved requests to project"],
                   ].map(([key, label]) => (
-                    <div key={key} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                      <span className="text-white/70 text-sm">{label}</span>
+                    <div key={key} className="flex items-center justify-between py-2 border-b border-ink/[0.13] last:border-0">
+                      <span className="text-ink/70 text-sm">{label}</span>
                       <Toggle value={auto[key]} onChange={(v) => update(`automationSettings.${key}`, v)} />
                     </div>
                   ))}
@@ -742,8 +742,8 @@ export default function SettingsPage() {
                     ["notifyOnStatusChange", "Notify on status change"],
                     ["autoCloseCompleted", "Auto-archive completed items"],
                   ].map(([key, label]) => (
-                    <div key={key} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                      <span className="text-white/70 text-sm">{label}</span>
+                    <div key={key} className="flex items-center justify-between py-2 border-b border-ink/[0.13] last:border-0">
+                      <span className="text-ink/70 text-sm">{label}</span>
                       <Toggle value={auto[key]} onChange={(v) => update(`automationSettings.${key}`, v)} />
                     </div>
                   ))}
@@ -755,8 +755,8 @@ export default function SettingsPage() {
                     ["autoBlogSync", "Auto-sync blog schedule"],
                     ["autoGBPSync", "Auto-sync GBP post schedule"],
                   ].map(([key, label]) => (
-                    <div key={key} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                      <span className="text-white/70 text-sm">{label}</span>
+                    <div key={key} className="flex items-center justify-between py-2 border-b border-ink/[0.13] last:border-0">
+                      <span className="text-ink/70 text-sm">{label}</span>
                       <Toggle value={auto[key]} onChange={(v) => update(`automationSettings.${key}`, v)} />
                     </div>
                   ))}
@@ -769,12 +769,12 @@ export default function SettingsPage() {
               <>
                 <SettingsCard title="Google Services" defaultOpen>
                   {["Google Analytics", "Google Search Console", "Google Business Profile", "Gmail / Google Workspace"].map((name) => (
-                    <div key={name} className="flex items-center justify-between p-3 bg-white/[0.02] rounded-lg border border-white/[0.06]">
+                    <div key={name} className="flex items-center justify-between p-3 bg-ink/[0.02] rounded-lg border border-ink/[0.13]">
                       <div>
-                        <p className="text-white/70 text-sm font-medium">{name}</p>
-                        <p className="text-white/25 text-xs mt-0.5">Not connected</p>
+                        <p className="text-ink/70 text-sm font-medium">{name}</p>
+                        <p className="text-ink/[0.43] text-xs mt-0.5">Not connected</p>
                       </div>
-                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors">
+                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors">
                         Connect
                       </button>
                     </div>
@@ -783,12 +783,12 @@ export default function SettingsPage() {
 
                 <SettingsCard title="Payments & Financial">
                   {["Stripe", "PayPal", "QuickBooks"].map((name) => (
-                    <div key={name} className="flex items-center justify-between p-3 bg-white/[0.02] rounded-lg border border-white/[0.06]">
+                    <div key={name} className="flex items-center justify-between p-3 bg-ink/[0.02] rounded-lg border border-ink/[0.13]">
                       <div>
-                        <p className="text-white/70 text-sm font-medium">{name}</p>
-                        <p className="text-white/25 text-xs mt-0.5">Not connected</p>
+                        <p className="text-ink/70 text-sm font-medium">{name}</p>
+                        <p className="text-ink/[0.43] text-xs mt-0.5">Not connected</p>
                       </div>
-                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors">
+                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors">
                         Connect
                       </button>
                     </div>
@@ -797,12 +797,12 @@ export default function SettingsPage() {
 
                 <SettingsCard title="Other Integrations">
                   {["Zapier", "Custom API Endpoint"].map((name) => (
-                    <div key={name} className="flex items-center justify-between p-3 bg-white/[0.02] rounded-lg border border-white/[0.06]">
+                    <div key={name} className="flex items-center justify-between p-3 bg-ink/[0.02] rounded-lg border border-ink/[0.13]">
                       <div>
-                        <p className="text-white/70 text-sm font-medium">{name}</p>
-                        <p className="text-white/25 text-xs mt-0.5">Not connected</p>
+                        <p className="text-ink/70 text-sm font-medium">{name}</p>
+                        <p className="text-ink/[0.43] text-xs mt-0.5">Not connected</p>
                       </div>
-                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors">
+                      <button className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors">
                         Connect
                       </button>
                     </div>
@@ -817,8 +817,8 @@ export default function SettingsPage() {
                 <SettingsCard title="Visual Brand" defaultOpen>
                   <Field label="Accent Color" help="Applied globally across buttons, highlights, and active states">
                     <div className="flex items-center gap-3">
-                      <input type="color" value={brand.accentColor || "#FF6A00"} onChange={(e) => update("brandingSettings.accentColor", e.target.value)}
-                        className="h-9 w-16 rounded-lg bg-white/[0.03] border border-white/[0.06] cursor-pointer p-1" />
+                      <input type="color" value={brand.accentColor || "#ff3c00"} onChange={(e) => update("brandingSettings.accentColor", e.target.value)}
+                        className="h-9 w-16 rounded-lg bg-ink/[0.03] border border-ink/[0.13] cursor-pointer p-1" />
                       <TextInput value={brand.accentColor} onChange={(v) => update("brandingSettings.accentColor", v)} />
                     </div>
                   </Field>
@@ -838,12 +838,12 @@ export default function SettingsPage() {
                 </SettingsCard>
 
                 <SettingsCard title="Portal Branding">
-                  <div className="flex items-center justify-between py-2 border-b border-white/[0.04]">
-                    <span className="text-white/70 text-sm">Show client logo in portal</span>
+                  <div className="flex items-center justify-between py-2 border-b border-ink/[0.13]">
+                    <span className="text-ink/70 text-sm">Show client logo in portal</span>
                     <Toggle value={brand.showClientLogo} onChange={(v) => update("brandingSettings.showClientLogo", v)} />
                   </div>
                   <div className="flex items-center justify-between py-2">
-                    <span className="text-white/70 text-sm">Custom portal colors</span>
+                    <span className="text-ink/70 text-sm">Custom portal colors</span>
                     <Toggle value={brand.customPortalColors} onChange={(v) => update("brandingSettings.customPortalColors", v)} />
                   </div>
                 </SettingsCard>
@@ -861,34 +861,34 @@ export default function SettingsPage() {
                   <SettingsCard key={key} title={title} defaultOpen={key === "requestStatuses"}>
                     <div className="space-y-2 mb-4">
                       {(settings[key] || []).map((s) => (
-                        <div key={s.id} className="flex items-center gap-3 p-3 bg-white/[0.02] rounded-lg border border-white/[0.04]">
+                        <div key={s.id} className="flex items-center gap-3 p-3 bg-ink/[0.02] rounded-lg border border-ink/[0.13]">
                           <input type="color" value={s.color} onChange={(e) => update(key, (settings[key] || []).map((x) => x.id === s.id ? { ...x, color: e.target.value } : x))}
                             className="h-6 w-8 rounded bg-transparent border-0 cursor-pointer p-0" />
                           {editingStatus === `${key}-${s.id}` ? (
                             <input autoFocus value={s.label} onChange={(e) => updateStatusLabel(key, s.id, e.target.value)}
                               onBlur={() => setEditingStatus(null)} onKeyDown={(e) => e.key === "Enter" && setEditingStatus(null)}
-                              className="flex-1 bg-white/[0.04] border border-orange-500/30 rounded px-2 py-1 text-sm text-white outline-none" />
+                              className="flex-1 bg-ink/[0.04] border border-orange-500/30 rounded px-2 py-1 text-sm text-ink outline-none" />
                           ) : (
-                            <span className="flex-1 text-white/70 text-sm font-medium">{s.label}</span>
+                            <span className="flex-1 text-ink/70 text-sm font-medium">{s.label}</span>
                           )}
                           <StatusPill label={s.label} color={s.color} />
-                          <button onClick={() => setEditingStatus(`${key}-${s.id}`)} className="p-1 text-white/20 hover:text-white/60 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => removeStatus(key, s.id)} className="p-1 text-white/20 hover:text-red-400/60 transition-colors"><X className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => setEditingStatus(`${key}-${s.id}`)} className="p-1 text-ink/[0.38] hover:text-ink/60 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => removeStatus(key, s.id)} className="p-1 text-ink/[0.38] hover:text-red-600/60 transition-colors"><X className="w-3.5 h-3.5" /></button>
                         </div>
                       ))}
                     </div>
                     {newStatus.section === key ? (
                       <div className="flex items-center gap-2">
                         <input type="color" value={newStatus.color} onChange={(e) => setNewStatus({ ...newStatus, color: e.target.value })}
-                          className="h-9 w-10 rounded-lg bg-transparent border border-white/[0.06] cursor-pointer p-1" />
+                          className="h-9 w-10 rounded-lg bg-transparent border border-ink/[0.13] cursor-pointer p-1" />
                         <input autoFocus value={newStatus.label} onChange={(e) => setNewStatus({ ...newStatus, label: e.target.value })}
-                          onKeyDown={(e) => { if (e.key === "Enter") addStatus(key); if (e.key === "Escape") setNewStatus({ section: null, label: "", color: "#ff6a00" }); }}
-                          placeholder="Status label..." className="flex-1 bg-white/[0.03] border border-orange-500/30 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none" />
-                        <button onClick={() => addStatus(key)} className="p-2 bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors"><Check className="w-4 h-4" /></button>
-                        <button onClick={() => setNewStatus({ section: null, label: "", color: "#ff6a00" })} className="p-2 text-white/30 hover:text-white/60 transition-colors"><X className="w-4 h-4" /></button>
+                          onKeyDown={(e) => { if (e.key === "Enter") addStatus(key); if (e.key === "Escape") setNewStatus({ section: null, label: "", color: "#ff3c00" }); }}
+                          placeholder="Status label..." className="flex-1 bg-ink/[0.03] border border-orange-500/30 rounded-lg px-3 py-2 text-sm text-ink placeholder:text-ink/[0.38] outline-none" />
+                        <button onClick={() => addStatus(key)} className="p-2 bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg hover:bg-orange-500/20 transition-colors"><Check className="w-4 h-4" /></button>
+                        <button onClick={() => setNewStatus({ section: null, label: "", color: "#ff3c00" })} className="p-2 text-ink/[0.48] hover:text-ink/60 transition-colors"><X className="w-4 h-4" /></button>
                       </div>
                     ) : (
-                      <button onClick={() => setNewStatus({ section: key, label: "", color: "#ff6a00" })} className="w-full flex items-center justify-center gap-2 py-2 bg-white/[0.02] hover:bg-white/[0.04] text-white/40 text-xs font-medium rounded-lg border border-white/[0.06] transition-colors">
+                      <button onClick={() => setNewStatus({ section: key, label: "", color: "#ff3c00" })} className="w-full flex items-center justify-center gap-2 py-2 bg-ink/[0.02] hover:bg-ink/[0.04] text-ink/[0.58] text-xs font-medium rounded-lg border border-ink/[0.13] transition-colors">
                         <Plus className="w-3.5 h-3.5" />Add Status
                       </button>
                     )}
@@ -900,15 +900,15 @@ export default function SettingsPage() {
                     {(settings.customTags || []).map((tag) => (
                       <span key={tag} className="flex items-center gap-1.5 px-2.5 py-1 bg-orange-500/10 border border-orange-500/20 text-orange-400/80 text-xs font-medium rounded-full">
                         {tag}
-                        <button onClick={() => removeTag(tag)} className="text-orange-400/40 hover:text-red-400/70 transition-colors"><X className="w-3 h-3" /></button>
+                        <button onClick={() => removeTag(tag)} className="text-orange-400/40 hover:text-red-600/70 transition-colors"><X className="w-3 h-3" /></button>
                       </span>
                     ))}
-                    {(settings.customTags || []).length === 0 && <p className="text-white/25 text-xs">No tags yet.</p>}
+                    {(settings.customTags || []).length === 0 && <p className="text-ink/[0.43] text-xs">No tags yet.</p>}
                   </div>
                   <div className="flex gap-2">
                     <input value={newTag} onChange={(e) => setNewTag(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addTag()}
-                      placeholder="New tag..." className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none" />
-                    <button onClick={addTag} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg text-xs font-medium hover:bg-orange-500/20 transition-colors">
+                      placeholder="New tag..." className="flex-1 bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink placeholder:text-ink/[0.38] outline-none" />
+                    <button onClick={addTag} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold border border-orange-500/40 shadow-[0_0_12px_rgba(255,106,0,0.25)] rounded-lg text-xs font-medium hover:bg-orange-500/20 transition-colors">
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
@@ -924,8 +924,8 @@ export default function SettingsPage() {
                     ["emailLogin", "Email login"],
                     ["googleLogin", "Google login"],
                   ].map(([key, label]) => (
-                    <div key={key} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                      <span className="text-white/70 text-sm">{label}</span>
+                    <div key={key} className="flex items-center justify-between py-2 border-b border-ink/[0.13] last:border-0">
+                      <span className="text-ink/70 text-sm">{label}</span>
                       <Toggle value={sec[key]} onChange={(v) => update(`securitySettings.${key}`, v)} />
                     </div>
                   ))}
@@ -945,8 +945,8 @@ export default function SettingsPage() {
                     ["adminDataVisible", "Admin-only data visible to admins only"],
                     ["clientDataIsolation", "Enforce client data isolation"],
                   ].map(([key, label]) => (
-                    <div key={key} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                      <span className="text-white/70 text-sm">{label}</span>
+                    <div key={key} className="flex items-center justify-between py-2 border-b border-ink/[0.13] last:border-0">
+                      <span className="text-ink/70 text-sm">{label}</span>
                       <Toggle value={sec[key]} onChange={(v) => update(`securitySettings.${key}`, v)} />
                     </div>
                   ))}
@@ -958,10 +958,10 @@ export default function SettingsPage() {
                       { action: "Settings saved", user: "justin@interstellar-strategies.com", time: "April 12, 2026 — 9:14 AM" },
                       { action: "User accessed CRM", user: "justin@interstellar-strategies.com", time: "April 12, 2026 — 8:50 AM" },
                     ].map((log, i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 bg-white/[0.02] rounded-lg border border-white/[0.04] text-xs">
-                        <AlertCircle className="w-3.5 h-3.5 text-white/25 shrink-0" />
-                        <span className="text-white/60">{log.action}</span>
-                        <span className="text-white/25 ml-auto">{log.time}</span>
+                      <div key={i} className="flex items-center gap-3 p-3 bg-ink/[0.02] rounded-lg border border-ink/[0.13] text-xs">
+                        <AlertCircle className="w-3.5 h-3.5 text-ink/[0.43] shrink-0" />
+                        <span className="text-ink/60">{log.action}</span>
+                        <span className="text-ink/[0.43] ml-auto">{log.time}</span>
                       </div>
                     ))}
                   </div>
@@ -978,8 +978,8 @@ export default function SettingsPage() {
                     ["enableWebhooks", "Enable webhooks"],
                     ["enableDebugMode", "Enable debug mode"],
                   ].map(([key, label]) => (
-                    <div key={key} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                      <span className="text-white/70 text-sm">{label}</span>
+                    <div key={key} className="flex items-center justify-between py-2 border-b border-ink/[0.13] last:border-0">
+                      <span className="text-ink/70 text-sm">{label}</span>
                       <Toggle value={adv[key]} onChange={(v) => update(`advancedSettings.${key}`, v)} />
                     </div>
                   ))}
@@ -987,17 +987,17 @@ export default function SettingsPage() {
 
                 <SettingsCard title="Beta Features">
                   <div className="flex items-center justify-between py-2">
-                    <span className="text-white/70 text-sm">Enable experimental features</span>
+                    <span className="text-ink/70 text-sm">Enable experimental features</span>
                     <Toggle value={adv.experimentalFeatures} onChange={(v) => update("advancedSettings.experimentalFeatures", v)} />
                   </div>
                 </SettingsCard>
 
                 <SettingsCard title="Data Management">
                   <div className="grid grid-cols-2 gap-3">
-                    <button className="flex items-center justify-center gap-2 p-3 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] rounded-lg text-white/40 text-xs font-medium transition-colors">
+                    <button className="flex items-center justify-center gap-2 p-3 bg-ink/[0.02] hover:bg-ink/[0.04] border border-ink/[0.13] rounded-lg text-ink/[0.58] text-xs font-medium transition-colors">
                       <FileText className="w-4 h-4" />Export All Data
                     </button>
-                    <button className="flex items-center justify-center gap-2 p-3 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] rounded-lg text-white/40 text-xs font-medium transition-colors">
+                    <button className="flex items-center justify-center gap-2 p-3 bg-ink/[0.02] hover:bg-ink/[0.04] border border-ink/[0.13] rounded-lg text-ink/[0.58] text-xs font-medium transition-colors">
                       <RefreshCw className="w-4 h-4" />System Reset (Placeholder)
                     </button>
                   </div>

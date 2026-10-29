@@ -45,8 +45,8 @@ export default function Sidebar({ onOpenCommand, open, onClose }) {
         className={`relative flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group overflow-hidden
           ${
             isActive
-              ? "text-white bg-gradient-to-r from-orange-500/20 to-orange-500/[0.03] shadow-[0_0_18px_rgba(255,106,0,0.18)]"
-              : "text-white/90 hover:text-white hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-transparent hover:shadow-[0_0_14px_rgba(255,106,0,0.12)] hover:translate-x-0.5"
+              ? "text-ink bg-gradient-to-r from-orange-500/20 to-orange-500/[0.03] shadow-[0_0_18px_rgba(255,106,0,0.18)]"
+              : "text-ink/90 hover:text-ink hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-transparent hover:shadow-[0_0_14px_rgba(255,106,0,0.12)] hover:translate-x-0.5"
           }`}
       >
         {isActive && (
@@ -70,21 +70,21 @@ export default function Sidebar({ onOpenCommand, open, onClose }) {
           <linearGradient id="navIconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#FFD08A" />
             <stop offset="55%" stopColor="#FF9100" />
-            <stop offset="100%" stopColor="#FF6A00" />
+            <stop offset="100%" stopColor="#ff3c00" />
           </linearGradient>
         </defs>
       </svg>
       {/* Logo */}
       <div className="px-5 pt-6 pb-4">
         <div className="flex items-center justify-between gap-2">
-          <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center overflow-hidden border border-white/10">
+          <div className="w-8 h-8 rounded-lg bg-ink flex items-center justify-center overflow-hidden border border-ink/[0.13]">
             <img src="https://framerusercontent.com/images/lYN9zTgbln1GtT6KOSpG27mq3Q.png?scale-down-to=512&width=1563&height=1563" alt="Logo" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="font-orbitron text-white font-bold text-sm tracking-wide leading-none">ZERØ GRAVITY</h1>
-            <p className="font-orbitron text-white/30 text-[10px] tracking-widest uppercase">Terminal</p>
+            <h1 className="font-orbitron text-ink font-bold text-sm tracking-wide leading-none">MØTHERSHIP</h1>
+            <p className="font-orbitron text-ink/[0.48] text-[10px] tracking-widest uppercase">Terminal</p>
           </div>
-          <button onClick={onClose} className="md:hidden p-1.5 -mr-1 text-white/40 hover:text-white/80 transition-colors" aria-label="Close menu">
+          <button onClick={onClose} className="md:hidden p-1.5 -mr-1 text-ink/[0.58] hover:text-ink/80 transition-colors" aria-label="Close menu">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -95,16 +95,16 @@ export default function Sidebar({ onOpenCommand, open, onClose }) {
         {/* Command palette trigger */}
         <button
           onClick={onOpenCommand}
-          className="w-full flex items-center gap-2.5 px-4 py-2 mb-2 rounded-lg border border-white/[0.06] bg-white/[0.02] text-white/25 hover:text-white/50 hover:bg-white/[0.04] hover:border-white/[0.10] transition-all text-xs"
+          className="w-full flex items-center gap-2.5 px-4 py-2 mb-2 rounded-lg border border-ink/[0.13] bg-ink/[0.02] text-ink/[0.43] hover:text-ink/50 hover:bg-ink/[0.04] hover:border-ink/[0.13] transition-all text-xs"
         >
           <Search className="w-3.5 h-3.5" />
           <span>Quick navigate...</span>
-          <kbd className="ml-auto font-mono text-[10px] bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.06]">⌘K</kbd>
+          <kbd className="ml-auto font-mono text-[10px] bg-ink/[0.04] px-1.5 py-0.5 rounded border border-ink/[0.13]">⌘K</kbd>
         </button>
 
         {isAdmin && (
           <>
-            <p className="font-orbitron px-4 pb-1 text-[10px] font-semibold tracking-[0.2em] text-white/25 uppercase">Command Center</p>
+            <p className="font-orbitron px-4 pb-1 text-[10px] font-semibold tracking-[0.2em] text-ink/[0.43] uppercase">Command Center</p>
             {mainNav.map((item) => (
               <NavItem key={item.path} item={item} />
             ))}
@@ -113,11 +113,11 @@ export default function Sidebar({ onOpenCommand, open, onClose }) {
 
         {/* Divider */}
         <div className="py-3">
-          <div className="border-t border-white/5" />
+          <div className="border-t border-ink/[0.13]" />
         </div>
 
         {/* Portal Label */}
-        <p className="font-orbitron px-4 pb-1 text-[10px] font-semibold tracking-[0.2em] text-white/25 uppercase">Portal</p>
+        <p className="font-orbitron px-4 pb-1 text-[10px] font-semibold tracking-[0.2em] text-ink/[0.43] uppercase">Portal</p>
 
         {portalNav.map((item) => (
           <NavItem key={item.path} item={item} />
@@ -125,18 +125,18 @@ export default function Sidebar({ onOpenCommand, open, onClose }) {
       </nav>
 
       {/* Bottom */}
-      <div className="p-3 border-t border-white/5 space-y-1">
+      <div className="p-3 border-t border-ink/[0.13] space-y-1">
         <Link
           to="/settings"
           onClick={onClose}
-          className="group flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-white/40 hover:text-white/80 hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-transparent transition-all"
+          className="group flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-ink/[0.58] hover:text-ink/80 hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-transparent transition-all"
         >
           <Settings className="w-[18px] h-[18px] transition-all duration-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_6px_rgba(255,106,0,0.7)]" color="url(#navIconGrad)" />
           <span>Settings</span>
         </Link>
         <button
           onClick={handleLogout}
-          className="group flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-white/40 hover:text-red-400 hover:bg-red-500/5 transition-all w-full"
+          className="group flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-ink/[0.58] hover:text-red-600 hover:bg-red-500/5 transition-all w-full"
         >
           <LogOut className="w-[18px] h-[18px] transition-all duration-200 group-hover:scale-110" color="url(#navIconGrad)" />
           <span>Log Out</span>
@@ -146,7 +146,7 @@ export default function Sidebar({ onOpenCommand, open, onClose }) {
         <div className="mt-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-orange-500/[0.06] to-transparent border border-orange-500/10 flex items-center gap-2.5">
           <div className="w-6 h-6 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-[10px] font-bold text-orange-400 shrink-0">J</div>
           <div className="min-w-0">
-            <p className="text-white/70 text-xs font-medium truncate">justin@interstellar...</p>
+            <p className="text-ink/70 text-xs font-medium truncate">justin@interstellar...</p>
             <p className="text-orange-500/70 text-[10px] font-semibold tracking-wider uppercase">Admin</p>
           </div>
         </div>

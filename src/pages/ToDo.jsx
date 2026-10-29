@@ -25,10 +25,10 @@ const SUMMARY_META = {
   NextUp: {
     solid: "bg-yellow-400",
     grad: "from-yellow-400 to-amber-300",
-    text: "text-yellow-300",
-    textSoft: "text-yellow-300/70",
-    border: "border-yellow-400/30",
-    chip: "bg-yellow-400/10 border-yellow-400/25",
+    text: "text-yellow-600",
+    textSoft: "text-yellow-600/70",
+    border: "border-yellow-500/30",
+    chip: "bg-yellow-400/10 border-yellow-500/25",
     glow: "shadow-[0_0_12px_rgba(250,204,21,0.30)]",
     dot: "bg-yellow-400",
   },
@@ -46,7 +46,7 @@ function TimeEstimateSummary({ items }) {
   const maxHours = Math.max(...catData.map((d) => d.totalHours), 1);
 
   return (
-    <div className="relative overflow-hidden bg-card rounded-2xl border border-white/[0.07] p-5">
+    <div className="relative overflow-hidden bg-card rounded-2xl border border-ink/[0.13] p-5">
       <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-orange-500/[0.06] blur-3xl pointer-events-none" />
       <div className="absolute -bottom-20 -left-10 w-40 h-40 rounded-full bg-yellow-400/[0.04] blur-3xl pointer-events-none" />
 
@@ -55,7 +55,7 @@ function TimeEstimateSummary({ items }) {
           <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(255,106,0,0.8)]" />
           <h2 className="font-display font-bold text-[11px] tracking-[0.25em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Time Estimate Overview</h2>
         </div>
-        <span className="text-white/25 text-[10px] tracking-widest uppercase font-medium">
+        <span className="text-ink/[0.43] text-[10px] tracking-widest uppercase font-medium">
           {totalAll > 0 ? formatTotal(totalAll) : "—"} total
         </span>
       </div>
@@ -69,11 +69,11 @@ function TimeEstimateSummary({ items }) {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2.5">
                   <span className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-md border ${c.chip} ${c.textSoft}`}>{cat}</span>
-                  <span className="text-white/30 text-xs">{count} task{count !== 1 ? "s" : ""} remaining</span>
+                  <span className="text-ink/[0.48] text-xs">{count} task{count !== 1 ? "s" : ""} remaining</span>
                 </div>
                 <span className={`text-sm font-bold ${c.text} drop-shadow`}>{totalHours > 0 ? formatTotal(totalHours) : "—"}</span>
               </div>
-              <div className="relative h-2.5 w-full bg-white/[0.04] rounded-full overflow-hidden border border-white/[0.04]">
+              <div className="relative h-2.5 w-full bg-ink/[0.04] rounded-full overflow-hidden border border-ink/[0.13]">
                 <div
                   className={`h-full rounded-full bg-gradient-to-r ${c.grad} ${c.glow} transition-all duration-700`}
                   style={{ width: `${pct}%` }}
@@ -85,7 +85,7 @@ function TimeEstimateSummary({ items }) {
         })}
       </div>
 
-      <p className="relative text-white/20 text-[10px] mt-4 tracking-wide">Based on estimated times for incomplete tasks only.</p>
+      <p className="relative text-ink/[0.38] text-[10px] mt-4 tracking-wide">Based on estimated times for incomplete tasks only.</p>
     </div>
   );
 }
@@ -178,16 +178,16 @@ export default function ToDo() {
 
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); localStorage.setItem("todo_tab", v); }} className="w-full">
           <div className="flex items-center justify-between mb-4">
-            <TabsList className="bg-card border border-white/[0.06]">
-              <TabsTrigger value="active" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40 gap-2">
+            <TabsList className="bg-card border border-ink/[0.13]">
+              <TabsTrigger value="active" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58] gap-2">
                 Active <span className="text-[10px] opacity-60">({activeItems.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="done" className="data-[state=active]:bg-green-500/15 data-[state=active]:text-green-400 text-white/40 gap-2">
+              <TabsTrigger value="done" className="data-[state=active]:bg-green-500/15 data-[state=active]:text-green-600 text-ink/[0.58] gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Done <span className="text-[10px] opacity-60">({doneItems.length})</span>
               </TabsTrigger>
             </TabsList>
             <TabsContent value="active" className="mt-0">
-              <button onClick={() => setAdding(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-xs font-semibold rounded-lg transition-colors">
+              <button onClick={() => setAdding(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-xs font-semibold rounded-lg transition-colors">
                 <Plus className="w-4 h-4" />Add Task
               </button>
             </TabsContent>
@@ -200,7 +200,7 @@ export default function ToDo() {
               </div>
             )}
             {loading ? (
-              <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 text-white/20 animate-spin" /></div>
+              <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" /></div>
             ) : (
               <div className="space-y-8">
                 {CATEGORIES.map((cat) => (
@@ -235,9 +235,9 @@ export default function ToDo() {
 function DoneTab({ items, onDelete }) {
   if (items.length === 0) {
     return (
-      <div className="bg-card rounded-xl border border-white/[0.06] p-12 text-center">
-        <CheckCircle2 className="w-8 h-8 text-white/10 mx-auto mb-3" />
-        <p className="text-white/25 text-sm">No completed tasks yet. Complete a task to see it here.</p>
+      <div className="bg-card rounded-xl border border-ink/[0.13] p-12 text-center">
+        <CheckCircle2 className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
+        <p className="text-ink/[0.43] text-sm">No completed tasks yet. Complete a task to see it here.</p>
       </div>
     );
   }
@@ -250,16 +250,16 @@ function DoneTab({ items, onDelete }) {
       {/* Summary row */}
       <div className="grid grid-cols-3 gap-4">
         <div className="game-panel p-4 text-center">
-          <p className="text-green-400 text-2xl font-bold">{items.length}</p>
-          <p className="text-white/30 text-xs mt-1 uppercase tracking-wider">Tasks Completed</p>
+          <p className="text-green-600 text-2xl font-bold">{items.length}</p>
+          <p className="text-ink/[0.48] text-xs mt-1 uppercase tracking-wider">Tasks Completed</p>
         </div>
         <div className="game-panel p-4 text-center">
           <p className="text-orange-400 text-2xl font-bold">{totalActualHours > 0 ? formatTotal(totalActualHours) : "—"}</p>
-          <p className="text-white/30 text-xs mt-1 uppercase tracking-wider">Actual Time Logged</p>
+          <p className="text-ink/[0.48] text-xs mt-1 uppercase tracking-wider">Actual Time Logged</p>
         </div>
         <div className="game-panel p-4 text-center">
-          <p className="text-blue-400 text-2xl font-bold">{totalEstHours > 0 ? formatTotal(totalEstHours) : "—"}</p>
-          <p className="text-white/30 text-xs mt-1 uppercase tracking-wider">Total Estimated Time</p>
+          <p className="text-blue-600 text-2xl font-bold">{totalEstHours > 0 ? formatTotal(totalEstHours) : "—"}</p>
+          <p className="text-ink/[0.48] text-xs mt-1 uppercase tracking-wider">Total Estimated Time</p>
         </div>
       </div>
 
@@ -268,13 +268,13 @@ function DoneTab({ items, onDelete }) {
         {items.map((item) => (
           <div key={item.id} className="bg-card rounded-xl border border-green-500/10 p-4 flex items-start gap-4 group">
             <div className="w-5 h-5 rounded border bg-green-500/20 border-green-500/40 flex items-center justify-center shrink-0 mt-0.5">
-              <Check className="w-3 h-3 text-green-400" />
+              <Check className="w-3 h-3 text-green-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white/60 line-through">{item.title}</p>
-              {item.description && <p className="text-white/25 text-xs mt-0.5">{item.description}</p>}
+              <p className="text-sm font-medium text-ink/60 line-through">{item.title}</p>
+              {item.description && <p className="text-ink/[0.43] text-xs mt-0.5">{item.description}</p>}
               <div className="flex items-center gap-3 mt-2 flex-wrap">
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${item.category === "Priority" ? "text-red-400/60 border-red-500/20" : "text-blue-400/60 border-blue-500/20"}`}>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${item.category === "Priority" ? "text-red-600/60 border-red-500/20" : "text-blue-600/60 border-blue-500/20"}`}>
                   {item.category}
                 </span>
                 {item.completedDate && (
@@ -289,13 +289,13 @@ function DoneTab({ items, onDelete }) {
                   </span>
                 )}
                 {item.estimatedAmount && item.estimatedUnit && (
-                  <span className="flex items-center gap-1 text-white/20 text-[10px]">
+                  <span className="flex items-center gap-1 text-ink/[0.38] text-[10px]">
                     <Clock className="w-3 h-3" />Est: {item.estimatedAmount} {item.estimatedUnit}
                   </span>
                 )}
               </div>
             </div>
-            <button onClick={() => onDelete(item.id)} className="p-1.5 text-white/15 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all shrink-0">
+            <button onClick={() => onDelete(item.id)} className="p-1.5 text-ink/[0.33] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all shrink-0">
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -306,7 +306,7 @@ function DoneTab({ items, onDelete }) {
 }
 
 function CategorySection({ category, items, editId, editForm, setEditForm, onEdit, onSaveEdit, onCancelEdit, onDelete, onSetStatus, clients }) {
-  const catColor = category === "Priority" ? "text-orange-400/80 bg-orange-500/10 border-orange-500/25" : "text-yellow-300/80 bg-yellow-400/10 border-yellow-400/25";
+  const catColor = category === "Priority" ? "text-orange-400/80 bg-orange-500/10 border-orange-500/25" : "text-yellow-600/80 bg-yellow-400/10 border-yellow-500/25";
 
   return (
     <div>
@@ -316,7 +316,7 @@ function CategorySection({ category, items, editId, editForm, setEditForm, onEdi
       </div>
       {items.length === 0 ? (
         <div className="game-panel p-6 text-center">
-          <p className="text-white/20 text-sm">No {category} tasks yet.</p>
+          <p className="text-ink/[0.38] text-sm">No {category} tasks yet.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -337,16 +337,16 @@ function TaskRow({ item, onEdit, onDelete, onSetStatus }) {
   return (
     <div className="card-hover game-panel p-4 flex items-start gap-4 group">
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-white/85">{item.title}</p>
-        {item.description && <p className="text-white/35 text-xs mt-1 leading-relaxed">{item.description}</p>}
+        <p className="text-sm font-medium text-ink/85">{item.title}</p>
+        {item.description && <p className="text-ink/[0.53] text-xs mt-1 leading-relaxed">{item.description}</p>}
         <div className="flex items-center gap-3 mt-2 flex-wrap">
           {Number(item.price) > 0 && (
-            <span className="flex items-center gap-1 text-green-400 text-[11px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.25)]">
+            <span className="flex items-center gap-1 text-green-600 text-[11px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.25)]">
               <DollarSign className="w-3 h-3" />{Number(item.price).toLocaleString()}
             </span>
           )}
           {item.taskType && (
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/15 text-white/55">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-ink/[0.06] border border-ink/15 text-ink/55">
               {item.taskType}
             </span>
           )}
@@ -361,20 +361,20 @@ function TaskRow({ item, onEdit, onDelete, onSetStatus }) {
             </span>
           )}
           {item.estimatedAmount && item.estimatedUnit && (
-            <span className="flex items-center gap-1 text-white/30 text-[10px]">
+            <span className="flex items-center gap-1 text-ink/[0.48] text-[10px]">
               <Clock className="w-3 h-3" />{item.estimatedAmount} {item.estimatedUnit}
             </span>
           )}
         </div>
         <div className="flex gap-1.5 mt-2.5">
           {TASK_STATUSES.map((s) => (
-            <button key={s} onClick={() => onSetStatus(s)} className={`px-2.5 py-0.5 rounded text-[10px] font-medium border transition-all ${currentStatus === s ? STATUS_STYLES[s] : "text-white/20 border-transparent hover:text-white/40"}`}>{s}</button>
+            <button key={s} onClick={() => onSetStatus(s)} className={`px-2.5 py-0.5 rounded text-[10px] font-medium border transition-all ${currentStatus === s ? STATUS_STYLES[s] : "text-ink/[0.38] border-transparent hover:text-ink/[0.58]"}`}>{s}</button>
           ))}
         </div>
       </div>
       <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-all">
-        <button onClick={onEdit} className="p-1.5 text-white/20 hover:text-white/60 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
-        <button onClick={onDelete} className="p-1.5 text-white/20 hover:text-red-400/60 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+        <button onClick={onEdit} className="p-1.5 text-ink/[0.38] hover:text-ink/60 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+        <button onClick={onDelete} className="p-1.5 text-ink/[0.38] hover:text-red-600/60 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
       </div>
     </div>
   );

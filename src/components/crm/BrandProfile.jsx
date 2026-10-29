@@ -25,7 +25,7 @@ export default function BrandProfile({ clientId, initialData = {} }) {
 
   return (
     <div className="space-y-3 mt-6">
-      <h2 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Brand Profile</h2>
+      <h2 className="text-ink font-bold text-xs tracking-[0.15em] uppercase">Brand Profile</h2>
 
       {/* 1. BRAND HEADER */}
       <Section title="Brand Header" collapsed={collapsed["header"]} toggle={() => toggleSection("header")}>
@@ -110,7 +110,7 @@ export default function BrandProfile({ clientId, initialData = {} }) {
 
       {/* 10. FILES / ASSETS */}
       <Section title="Files / Assets" collapsed={collapsed["files"]} toggle={() => toggleSection("files")}>
-        <div className="space-y-2 text-white/30 text-xs">
+        <div className="space-y-2 text-ink/[0.48] text-xs">
           <p>Logo uploads, brand guides, moodboards, and creative assets coming soon</p>
         </div>
       </Section>
@@ -120,12 +120,12 @@ export default function BrandProfile({ clientId, initialData = {} }) {
 
 function Section({ title, collapsed, toggle, children }) {
   return (
-    <div className="bg-card rounded-xl border border-white/[0.06] overflow-hidden">
-      <button onClick={toggle} className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/[0.02] transition-colors">
-        <h3 className="text-white/70 text-xs font-semibold tracking-wide uppercase">{title}</h3>
-        {collapsed ? <ChevronDown className="w-4 h-4 text-white/25" /> : <ChevronUp className="w-4 h-4 text-white/25" />}
+    <div className="bg-card rounded-xl border border-ink/[0.13] overflow-hidden">
+      <button onClick={toggle} className="w-full flex items-center justify-between px-4 py-3 hover:bg-ink/[0.02] transition-colors">
+        <h3 className="text-ink/70 text-xs font-semibold tracking-wide uppercase">{title}</h3>
+        {collapsed ? <ChevronDown className="w-4 h-4 text-ink/[0.43]" /> : <ChevronUp className="w-4 h-4 text-ink/[0.43]" />}
       </button>
-      {!collapsed && <div className="px-4 py-3 border-t border-white/[0.04]">{children}</div>}
+      {!collapsed && <div className="px-4 py-3 border-t border-ink/[0.13]">{children}</div>}
     </div>
   );
 }
@@ -133,10 +133,10 @@ function Section({ title, collapsed, toggle, children }) {
 function ViewBrandHeader({ data = {}, onEdit }) {
   return (
     <div className="space-y-3">
-      {data.logo && <div className="w-16 h-16 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-white/20 text-xs">Logo</div>}
-      {data.businessName && <p className="text-white/70 text-sm">{data.businessName}</p>}
-      {data.tagline && <p className="text-white/40 text-xs italic">{data.tagline}</p>}
-      {data.summary && <p className="text-white/45 text-xs leading-relaxed">{data.summary}</p>}
+      {data.logo && <div className="w-16 h-16 rounded-lg bg-ink/5 border border-ink/[0.13] flex items-center justify-center text-ink/[0.38] text-xs">Logo</div>}
+      {data.businessName && <p className="text-ink/70 text-sm">{data.businessName}</p>}
+      {data.tagline && <p className="text-ink/[0.58] text-xs italic">{data.tagline}</p>}
+      {data.summary && <p className="text-ink/[0.63] text-xs leading-relaxed">{data.summary}</p>}
       <button onClick={onEdit} className="text-orange-500/60 hover:text-orange-500 text-xs font-semibold">Edit</button>
     </div>
   );
@@ -145,11 +145,11 @@ function ViewBrandHeader({ data = {}, onEdit }) {
 function EditBrandHeader({ form, setForm, onSave, onCancel }) {
   return (
     <div className="space-y-2">
-      <input value={form.tagline || ""} onChange={e => setForm({ ...form, tagline: e.target.value })} placeholder="Tagline..." className="w-full bg-white/[0.03] border border-white/[0.06] rounded px-2 py-1.5 text-xs text-white placeholder:text-white/20 outline-none" />
-      <textarea value={form.summary || ""} onChange={e => setForm({ ...form, summary: e.target.value })} placeholder="Brand summary..." className="w-full bg-white/[0.03] border border-white/[0.06] rounded px-2 py-1.5 text-xs text-white placeholder:text-white/20 outline-none resize-none min-h-[60px]" />
+      <input value={form.tagline || ""} onChange={e => setForm({ ...form, tagline: e.target.value })} placeholder="Tagline..." className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded px-2 py-1.5 text-xs text-ink placeholder:text-ink/[0.38] outline-none" />
+      <textarea value={form.summary || ""} onChange={e => setForm({ ...form, summary: e.target.value })} placeholder="Brand summary..." className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded px-2 py-1.5 text-xs text-ink placeholder:text-ink/[0.38] outline-none resize-none min-h-[60px]" />
       <div className="flex gap-2">
-        <button onClick={onSave} className="flex items-center gap-1 px-3 py-1.5 bg-green-500/10 text-green-400/70 hover:bg-green-500/20 rounded text-xs font-semibold"><Check className="w-3 h-3" />Save</button>
-        <button onClick={onCancel} className="px-3 py-1.5 bg-white/[0.04] text-white/30 hover:bg-white/[0.08] rounded text-xs">Cancel</button>
+        <button onClick={onSave} className="flex items-center gap-1 px-3 py-1.5 bg-green-500/10 text-green-600/70 hover:bg-green-500/20 rounded text-xs font-semibold"><Check className="w-3 h-3" />Save</button>
+        <button onClick={onCancel} className="px-3 py-1.5 bg-ink/[0.04] text-ink/[0.48] hover:bg-ink/[0.08] rounded text-xs">Cancel</button>
       </div>
     </div>
   );
@@ -161,7 +161,7 @@ function ViewBrandColors({ data = {}, onEdit }) {
     <div className="space-y-3">
       {colorSections.map(section => data[section] && (
         <div key={section} className="space-y-1">
-          <p className="text-white/40 text-[10px] tracking-wider uppercase">{section}</p>
+          <p className="text-ink/[0.58] text-[10px] tracking-wider uppercase">{section}</p>
           {Array.isArray(data[section]) ? (
             data[section].map((color, i) => (
               <ColorBox key={i} color={color} />
@@ -180,8 +180,8 @@ function ColorBox({ color }) {
   if (!color) return null;
   return (
     <div className="flex items-center gap-2">
-      <div className="w-6 h-6 rounded border border-white/[0.08]" style={{ backgroundColor: color.hex || "#000" }} />
-      <span className="text-white/40 text-xs font-mono">{color.hex || "N/A"}</span>
+      <div className="w-6 h-6 rounded border border-ink/[0.13]" style={{ backgroundColor: color.hex || "#000" }} />
+      <span className="text-ink/[0.58] text-xs font-mono">{color.hex || "N/A"}</span>
     </div>
   );
 }
@@ -189,10 +189,10 @@ function ColorBox({ color }) {
 function EditBrandColors({ form, setForm, onSave, onCancel }) {
   return (
     <div className="space-y-2">
-      <p className="text-white/30 text-xs">Color editing interface coming soon</p>
+      <p className="text-ink/[0.48] text-xs">Color editing interface coming soon</p>
       <div className="flex gap-2">
-        <button onClick={onSave} className="flex items-center gap-1 px-3 py-1.5 bg-green-500/10 text-green-400/70 hover:bg-green-500/20 rounded text-xs font-semibold"><Check className="w-3 h-3" />Save</button>
-        <button onClick={onCancel} className="px-3 py-1.5 bg-white/[0.04] text-white/30 hover:bg-white/[0.08] rounded text-xs">Cancel</button>
+        <button onClick={onSave} className="flex items-center gap-1 px-3 py-1.5 bg-green-500/10 text-green-600/70 hover:bg-green-500/20 rounded text-xs font-semibold"><Check className="w-3 h-3" />Save</button>
+        <button onClick={onCancel} className="px-3 py-1.5 bg-ink/[0.04] text-ink/[0.48] hover:bg-ink/[0.08] rounded text-xs">Cancel</button>
       </div>
     </div>
   );
@@ -202,12 +202,12 @@ function ViewSection({ data = {}, onEdit }) {
   return (
     <div className="space-y-2">
       {Object.entries(data).length === 0 ? (
-        <p className="text-white/30 text-xs">No information added yet</p>
+        <p className="text-ink/[0.48] text-xs">No information added yet</p>
       ) : (
         Object.entries(data).map(([key, value]) => (
           <div key={key}>
-            <p className="text-white/40 text-[10px] tracking-wider uppercase">{key.replace(/([A-Z])/g, ' $1')}</p>
-            <p className="text-white/50 text-xs mt-0.5">{String(value).slice(0, 100)}...</p>
+            <p className="text-ink/[0.58] text-[10px] tracking-wider uppercase">{key.replace(/([A-Z])/g, ' $1')}</p>
+            <p className="text-ink/50 text-xs mt-0.5">{String(value).slice(0, 100)}...</p>
           </div>
         ))
       )}
@@ -221,17 +221,17 @@ function EditSection({ form, setForm, fields, onSave, onCancel }) {
     <div className="space-y-2">
       {fields.map(field => (
         <div key={field}>
-          <label className="text-white/40 text-[10px] tracking-wider uppercase block mb-1">{field.replace(/([A-Z])/g, ' $1')}</label>
+          <label className="text-ink/[0.58] text-[10px] tracking-wider uppercase block mb-1">{field.replace(/([A-Z])/g, ' $1')}</label>
           {["description", "notes", "rules", "doNotUse", "approvalNotes", "internalNotes", "wordsToUse", "wordsToAvoid"].includes(field) ? (
-            <textarea value={form[field] || ""} onChange={e => setForm({ ...form, [field]: e.target.value })} className="w-full bg-white/[0.03] border border-white/[0.06] rounded px-2 py-1.5 text-xs text-white placeholder:text-white/20 outline-none resize-none min-h-[50px]" />
+            <textarea value={form[field] || ""} onChange={e => setForm({ ...form, [field]: e.target.value })} className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded px-2 py-1.5 text-xs text-ink placeholder:text-ink/[0.38] outline-none resize-none min-h-[50px]" />
           ) : (
-            <input value={form[field] || ""} onChange={e => setForm({ ...form, [field]: e.target.value })} className="w-full bg-white/[0.03] border border-white/[0.06] rounded px-2 py-1.5 text-xs text-white placeholder:text-white/20 outline-none" />
+            <input value={form[field] || ""} onChange={e => setForm({ ...form, [field]: e.target.value })} className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded px-2 py-1.5 text-xs text-ink placeholder:text-ink/[0.38] outline-none" />
           )}
         </div>
       ))}
       <div className="flex gap-2 pt-2">
-        <button onClick={onSave} className="flex items-center gap-1 px-3 py-1.5 bg-green-500/10 text-green-400/70 hover:bg-green-500/20 rounded text-xs font-semibold"><Check className="w-3 h-3" />Save</button>
-        <button onClick={onCancel} className="px-3 py-1.5 bg-white/[0.04] text-white/30 hover:bg-white/[0.08] rounded text-xs">Cancel</button>
+        <button onClick={onSave} className="flex items-center gap-1 px-3 py-1.5 bg-green-500/10 text-green-600/70 hover:bg-green-500/20 rounded text-xs font-semibold"><Check className="w-3 h-3" />Save</button>
+        <button onClick={onCancel} className="px-3 py-1.5 bg-ink/[0.04] text-ink/[0.48] hover:bg-ink/[0.08] rounded text-xs">Cancel</button>
       </div>
     </div>
   );

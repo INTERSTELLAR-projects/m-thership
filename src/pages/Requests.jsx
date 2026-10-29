@@ -48,7 +48,7 @@ export default function Requests() {
       <div className="min-h-screen bg-background">
         <PageHeader breadcrumb="Command Center / Requests" rightText="All Client Requests" />
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-6 h-6 text-white/20 animate-spin" />
+          <Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" />
         </div>
       </div>
     );
@@ -61,12 +61,12 @@ export default function Requests() {
         {/* Filters */}
         <div className="flex items-center gap-4 flex-wrap">
           <div className="relative max-w-sm flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/[0.38]" />
             <Input
               placeholder="Search requests..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-card border-white/[0.06] text-white placeholder:text-white/20 h-9"
+              className="pl-10 bg-card border-ink/[0.13] text-ink placeholder:text-ink/[0.38] h-9"
             />
           </div>
 
@@ -75,14 +75,14 @@ export default function Requests() {
             <select
               value={selectedClientId}
               onChange={(e) => setSelectedClientId(e.target.value)}
-              className="appearance-none bg-card border border-white/[0.06] rounded-lg px-3 pr-8 py-2 text-sm text-white/70 outline-none h-9 cursor-pointer hover:border-white/[0.12] transition-all"
+              className="appearance-none bg-card border border-ink/[0.13] rounded-lg px-3 pr-8 py-2 text-sm text-ink/70 outline-none h-9 cursor-pointer hover:border-ink/[0.12] transition-all"
             >
               <option value="all">All Clients</option>
               {clientsWithRequests.map((c) => (
                 <option key={c.id} value={c.id}>{c.business}</option>
               ))}
             </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/[0.48] pointer-events-none" />
           </div>
 
           {/* Summary counts */}
@@ -94,17 +94,17 @@ export default function Requests() {
         </div>
 
         <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="bg-card border border-white/[0.06] mb-6">
-            <TabsTrigger value="pending" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40">
+          <TabsList className="bg-card border border-ink/[0.13] mb-6">
+            <TabsTrigger value="pending" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58]">
               Pending ({pending.length})
             </TabsTrigger>
-            <TabsTrigger value="inprogress" className="data-[state=active]:bg-blue-500/15 data-[state=active]:text-blue-400 text-white/40">
+            <TabsTrigger value="inprogress" className="data-[state=active]:bg-blue-500/15 data-[state=active]:text-blue-600 text-ink/[0.58]">
               In Progress ({inProgress.length})
             </TabsTrigger>
-            <TabsTrigger value="completed" className="data-[state=active]:bg-green-500/15 data-[state=active]:text-green-400 text-white/40">
+            <TabsTrigger value="completed" className="data-[state=active]:bg-green-500/15 data-[state=active]:text-green-600 text-ink/[0.58]">
               Completed ({completed.length})
             </TabsTrigger>
-            <TabsTrigger value="byclient" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40">
+            <TabsTrigger value="byclient" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58]">
               By Client
             </TabsTrigger>
           </TabsList>
@@ -134,8 +134,8 @@ function RequestList({ requests, emptyText }) {
   if (requests.length === 0) {
     return (
       <div className="game-panel p-10 text-center">
-        <FileText className="w-8 h-8 text-white/10 mx-auto mb-3" />
-        <p className="text-white/30 text-sm">{emptyText}</p>
+        <FileText className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
+        <p className="text-ink/[0.48] text-sm">{emptyText}</p>
       </div>
     );
   }
@@ -152,20 +152,20 @@ function RequestList({ requests, emptyText }) {
 function RequestCard({ req, showClient }) {
   const statusColors = {
     "Pending": "bg-orange-500/10 text-orange-400",
-    "In Progress": "bg-blue-500/10 text-blue-400",
-    "Completed": "bg-green-500/10 text-green-400",
+    "In Progress": "bg-blue-500/10 text-blue-600",
+    "Completed": "bg-green-500/10 text-green-600",
   };
 
   return (
     <div className="game-panel p-4 flex items-start gap-4">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-3 flex-wrap">
-          <p className="text-white/85 text-sm font-medium">{req.title}</p>
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${statusColors[req.status] || "bg-white/5 text-white/40"}`}>
+          <p className="text-ink/85 text-sm font-medium">{req.title}</p>
+          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${statusColors[req.status] || "bg-ink/5 text-ink/[0.58]"}`}>
             {req.status || "New"}
           </span>
         </div>
-        {req.formType && <p className="text-white/30 text-xs mt-1">{req.formType}</p>}
+        {req.formType && <p className="text-ink/[0.48] text-xs mt-1">{req.formType}</p>}
         <div className="flex items-center gap-3 mt-2 flex-wrap">
           {showClient && req.clientName && (
             <span className="flex items-center gap-1 text-orange-500/60 text-[10px] font-medium">
@@ -173,7 +173,7 @@ function RequestCard({ req, showClient }) {
             </span>
           )}
           {req.submittedDate && (
-            <span className="text-white/25 text-[10px]">Submitted {req.submittedDate}</span>
+            <span className="text-ink/[0.43] text-[10px]">Submitted {req.submittedDate}</span>
           )}
         </div>
       </div>
@@ -191,8 +191,8 @@ function ByClientView({ clients, search }) {
   if (filtered.length === 0) {
     return (
       <div className="game-panel p-10 text-center">
-        <User className="w-8 h-8 text-white/10 mx-auto mb-3" />
-        <p className="text-white/30 text-sm">No clients have submitted requests yet.</p>
+        <User className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
+        <p className="text-ink/[0.48] text-sm">No clients have submitted requests yet.</p>
       </div>
     );
   }
@@ -206,8 +206,8 @@ function ByClientView({ clients, search }) {
               {client.business?.charAt(0)}
             </div>
             <div>
-              <h3 className="text-white font-bold text-sm">{client.business}</h3>
-              <p className="text-white/30 text-xs">{(client.requests || []).length} request{(client.requests || []).length !== 1 ? "s" : ""}</p>
+              <h3 className="text-ink font-bold text-sm">{client.business}</h3>
+              <p className="text-ink/[0.48] text-xs">{(client.requests || []).length} request{(client.requests || []).length !== 1 ? "s" : ""}</p>
             </div>
           </div>
           <div className="space-y-2">
@@ -224,8 +224,8 @@ function ByClientView({ clients, search }) {
 function StatBadge({ label, count, color }) {
   const colors = {
     orange: "text-orange-400 bg-orange-500/10 border-orange-500/20",
-    blue: "text-blue-400 bg-blue-500/10 border-blue-500/20",
-    green: "text-green-400 bg-green-500/10 border-green-500/20",
+    blue: "text-blue-600 bg-blue-500/10 border-blue-500/20",
+    green: "text-green-600 bg-green-500/10 border-green-500/20",
   };
   return (
     <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold ${colors[color]}`}>

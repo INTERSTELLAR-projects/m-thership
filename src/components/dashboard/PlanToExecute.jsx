@@ -167,21 +167,21 @@ export default function PlanToExecute({ mrr }) {
     <div>
       {/* Header with animated goal bubble */}
       <div className="flex items-center gap-2 mb-2.5 flex-wrap">
-        <span className="text-white/40 text-[11px] uppercase tracking-[0.1em] font-mono flex items-center gap-1">
+        <span className="text-ink/[0.58] text-[11px] uppercase tracking-[0.1em] font-mono flex items-center gap-1">
           <Zap className="w-3 h-3 text-orange-400/70" />Plan to Execute
         </span>
-        <span className="text-white/20">·</span>
+        <span className="text-ink/[0.38]">·</span>
         <button
           onClick={() => (selected ? openBuilderEdit(selected) : openBuilderNew())}
           className={`goal-bubble ${achieved ? "achieved" : ""}`}
           title={selected ? "Edit goal" : "Create a goal"}
         >
-          <span className="goal-num text-white text-[15px] font-mono tracking-tight">
+          <span className="goal-num text-ink text-[15px] font-mono tracking-tight">
             ${selected ? Math.round(selected.target_mrr).toLocaleString() : "—"}
           </span>
         </button>
-        <span className="text-white/20">·</span>
-        <span className="text-white/40 text-[11px] uppercase tracking-[0.1em] font-mono">Syncs to Daily Briefing</span>
+        <span className="text-ink/[0.38]">·</span>
+        <span className="text-ink/[0.58] text-[11px] uppercase tracking-[0.1em] font-mono">Syncs to Daily Briefing</span>
       </div>
 
       {/* Goal switcher */}
@@ -212,16 +212,16 @@ export default function PlanToExecute({ mrr }) {
                             }}
                             className={`shrink-0 group relative px-2.5 py-1 rounded-full text-[10px] font-mono tracking-wide flex items-center gap-1.5 cursor-pointer transition-all select-none ${
                               active
-                                ? "px-3 bg-gradient-to-r from-orange-500 to-amber-400 text-black font-semibold shadow-[0_0_12px_rgba(255,106,0,0.35)]"
+                                ? "px-3 bg-gradient-to-r from-orange-500 to-amber-400 text-white font-semibold shadow-[0_0_12px_rgba(255,106,0,0.35)]"
                                 : gAchieved
-                                  ? "bg-green-500/10 border border-green-500/20 text-green-400/60"
-                                  : "bg-white/[0.03] border border-white/[0.08] text-white/55 hover:border-orange-500/30 hover:text-white/80"
+                                  ? "bg-green-500/10 border border-green-500/20 text-green-600/60"
+                                  : "bg-ink/[0.03] border border-ink/[0.13] text-ink/55 hover:border-orange-500/30 hover:text-ink/80"
                             }`}
                           >
                             {g.is_primary && !active && <Star className="w-2.5 h-2.5 text-orange-400/70" />}
                             {gAchieved && <Check className="w-2.5 h-2.5" />}
                             <span className="truncate max-w-[90px]">{g.title}</span>
-                            <span className={`text-[8px] ${active ? "text-black/60" : gAchieved ? "text-green-400/50" : "text-white/30"}`}>{pct}%</span>
+                            <span className={`text-[8px] ${active ? "text-white/60" : gAchieved ? "text-green-600/50" : "text-ink/[0.48]"}`}>{pct}%</span>
                           </div>
                         )}
                       </Draggable>
@@ -232,33 +232,33 @@ export default function PlanToExecute({ mrr }) {
               )}
             </Droppable>
           </DragDropContext>
-          <button onClick={openBuilderNew} className="shrink-0 w-6 h-6 rounded-full border border-dashed border-white/15 hover:border-orange-500/40 text-white/40 hover:text-orange-400 flex items-center justify-center transition-all"><Plus className="w-3.5 h-3.5" /></button>
+          <button onClick={openBuilderNew} className="shrink-0 w-6 h-6 rounded-full border border-dashed border-ink/15 hover:border-orange-500/40 text-ink/[0.58] hover:text-orange-400 flex items-center justify-center transition-all"><Plus className="w-3.5 h-3.5" /></button>
           {archived.length > 0 && (
-            <button onClick={() => setShowArchived(true)} className="shrink-0 text-[9px] uppercase tracking-wider text-white/30 hover:text-orange-400 ml-1">Archived</button>
+            <button onClick={() => setShowArchived(true)} className="shrink-0 text-[9px] uppercase tracking-wider text-ink/[0.48] hover:text-orange-400 ml-1">Archived</button>
           )}
         </div>
       )}
 
       {/* Body */}
       {loading ? (
-        <div className="flex items-center justify-center py-4"><Loader2 className="w-4 h-4 text-white/20 animate-spin" /></div>
+        <div className="flex items-center justify-center py-4"><Loader2 className="w-4 h-4 text-ink/[0.38] animate-spin" /></div>
       ) : !selected ? (
-        <button onClick={openBuilderNew} className="w-full rounded-xl border border-dashed border-orange-500/25 hover:border-orange-500/50 hover:bg-orange-500/[0.04] transition-all p-4 flex items-center justify-center gap-2 text-white/50 hover:text-orange-400 group">
+        <button onClick={openBuilderNew} className="w-full rounded-xl border border-dashed border-orange-500/25 hover:border-orange-500/50 hover:bg-orange-500/[0.04] transition-all p-4 flex items-center justify-center gap-2 text-ink/50 hover:text-orange-400 group">
           <Plus className="w-4 h-4 group-hover:scale-110 transition-transform" />
           <span className="text-xs font-semibold tracking-wider uppercase font-mono">Define your routes</span>
         </button>
       ) : achieved ? (
         <div key={selected.id} className="goal-crossfade rounded-xl border border-green-500/30 bg-green-500/[0.06] p-4 text-center">
-          <CheckCircle2 className="w-5 h-5 text-green-400 mx-auto mb-2" />
-          <p className="text-white/80 text-sm font-semibold mb-3">Goal achieved — MRR reached your ${Math.round(selected.target_mrr).toLocaleString()} target.</p>
-          <button onClick={openBuilderNew} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black text-xs font-semibold"><Sparkles className="w-3.5 h-3.5" />Set a new goal</button>
+          <CheckCircle2 className="w-5 h-5 text-green-600 mx-auto mb-2" />
+          <p className="text-ink/80 text-sm font-semibold mb-3">Goal achieved — MRR reached your ${Math.round(selected.target_mrr).toLocaleString()} target.</p>
+          <button onClick={openBuilderNew} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white text-xs font-semibold"><Sparkles className="w-3.5 h-3.5" />Set a new goal</button>
         </div>
       ) : (
-        <div key={selected.id} className={`goal-crossfade relative rounded-xl border transition-all ${pulseId === selected.id ? "border-orange-500/60 shadow-[0_0_18px_rgba(255,106,0,0.35)]" : "border-white/[0.06]"}`}>
-          {pulseId === selected.id && <span className="absolute -top-2 right-3 px-2 py-0.5 rounded-full bg-orange-500 text-black text-[9px] font-bold tracking-wider animate-pulse">UPDATED</span>}
+        <div key={selected.id} className={`goal-crossfade relative rounded-xl border transition-all ${pulseId === selected.id ? "border-orange-500/60 shadow-[0_0_18px_rgba(255,106,0,0.35)]" : "border-ink/[0.13]"}`}>
+          {pulseId === selected.id && <span className="absolute -top-2 right-3 px-2 py-0.5 rounded-full bg-orange-500 text-white text-[9px] font-bold tracking-wider animate-pulse">UPDATED</span>}
           {!analysis ? (
             <div className="p-4 flex flex-col items-center gap-2">
-              <Loader2 className="w-4 h-4 text-white/30 animate-spin" />
+              <Loader2 className="w-4 h-4 text-ink/[0.48] animate-spin" />
               <button onClick={() => runAnalysis(selected.id)} className="text-xs text-orange-400 underline">Run analysis</button>
             </div>
           ) : (
@@ -291,10 +291,10 @@ export default function PlanToExecute({ mrr }) {
       {menu && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setMenu(null)} />
-          <div className="fixed z-50 bg-card border border-white/10 rounded-lg shadow-xl py-1 w-40" style={{ left: Math.min(menu.x, window.innerWidth - 170), top: Math.min(menu.y, window.innerHeight - 130) }}>
-            <button onClick={() => { setPrimary(menu.id); }} className="w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs text-white/70 hover:bg-orange-500/10 hover:text-orange-400"><Star className="w-3 h-3" />Set as primary</button>
-            <button onClick={() => { const g = goals.find((x) => x.id === menu.id); setMenu(null); if (g) openBuilderEdit(g); }} className="w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs text-white/70 hover:bg-orange-500/10 hover:text-orange-400"><Pencil className="w-3 h-3" />Edit</button>
-            <button onClick={() => archiveGoal(menu.id)} className="w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs text-white/70 hover:bg-red-500/10 hover:text-red-400"><Archive className="w-3 h-3" />Archive</button>
+          <div className="fixed z-50 bg-card border border-ink/[0.13] rounded-lg shadow-xl py-1 w-40" style={{ left: Math.min(menu.x, window.innerWidth - 170), top: Math.min(menu.y, window.innerHeight - 130) }}>
+            <button onClick={() => { setPrimary(menu.id); }} className="w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs text-ink/70 hover:bg-orange-500/10 hover:text-orange-400"><Star className="w-3 h-3" />Set as primary</button>
+            <button onClick={() => { const g = goals.find((x) => x.id === menu.id); setMenu(null); if (g) openBuilderEdit(g); }} className="w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs text-ink/70 hover:bg-orange-500/10 hover:text-orange-400"><Pencil className="w-3 h-3" />Edit</button>
+            <button onClick={() => archiveGoal(menu.id)} className="w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs text-ink/70 hover:bg-red-500/10 hover:text-red-600"><Archive className="w-3 h-3" />Archive</button>
           </div>
         </>
       )}
@@ -303,15 +303,15 @@ export default function PlanToExecute({ mrr }) {
       {showArchived && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowArchived(false)} />
-          <div className="absolute z-50 mt-1 bg-card border border-white/10 rounded-lg shadow-xl py-1 w-56 right-0">
-            <p className="px-3 pt-1 pb-1.5 text-[9px] uppercase tracking-wider text-white/30 font-mono">Archived goals</p>
-            {archived.length === 0 && <p className="px-3 py-2 text-xs text-white/30">None</p>}
+          <div className="absolute z-50 mt-1 bg-card border border-ink/[0.13] rounded-lg shadow-xl py-1 w-56 right-0">
+            <p className="px-3 pt-1 pb-1.5 text-[9px] uppercase tracking-wider text-ink/[0.48] font-mono">Archived goals</p>
+            {archived.length === 0 && <p className="px-3 py-2 text-xs text-ink/[0.48]">None</p>}
             {archived.map((g) => (
-              <div key={g.id} className="flex items-center justify-between px-3 py-1.5 hover:bg-white/[0.03]">
-                <span className="text-xs text-white/60 truncate flex-1">{g.title}</span>
+              <div key={g.id} className="flex items-center justify-between px-3 py-1.5 hover:bg-ink/[0.03]">
+                <span className="text-xs text-ink/60 truncate flex-1">{g.title}</span>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => openBuilderEdit(g)} className="p-1 text-white/40 hover:text-orange-400"><Pencil className="w-3 h-3" /></button>
-                  <button onClick={() => restoreGoal(g.id)} className="p-1 text-white/40 hover:text-green-400" title="Restore"><RotateCcw className="w-3 h-3" /></button>
+                  <button onClick={() => openBuilderEdit(g)} className="p-1 text-ink/[0.58] hover:text-orange-400"><Pencil className="w-3 h-3" /></button>
+                  <button onClick={() => restoreGoal(g.id)} className="p-1 text-ink/[0.58] hover:text-green-600" title="Restore"><RotateCcw className="w-3 h-3" /></button>
                 </div>
               </div>
             ))}

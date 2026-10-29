@@ -4,9 +4,9 @@ export const INTERSTELLAR_OPTION = "Interstellar";
 export const EST_UNITS = ["Minutes", "Hours", "Days", "Weeks", "Months"];
 export const TASK_STATUSES = ["Pending", "In Progress", "Completed"];
 export const STATUS_STYLES = {
-  Pending: "bg-white/5 text-white/35 border-white/10",
+  Pending: "bg-ink/5 text-ink/[0.53] border-ink/[0.13]",
   "In Progress": "bg-orange-500/15 text-orange-400 border-orange-500/25",
-  Completed: "bg-green-500/15 text-green-400 border-green-500/25",
+  Completed: "bg-green-500/15 text-green-600 border-green-500/25",
 };
 export const EMPTY_FORM = { title: "", description: "", taskType: "", category: "Priority", dueDate: "", price: "", estimatedAmount: "", estimatedUnit: "Hours", assignedTo: "" };
 

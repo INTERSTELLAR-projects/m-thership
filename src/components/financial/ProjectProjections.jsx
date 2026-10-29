@@ -9,9 +9,9 @@ import { Label } from "@/components/ui/label";
 
 const EMPTY = { clientName: "", serviceTitle: "", amount: "", expectedCloseDate: "", note: "", status: "Pending" };
 const STATUS_STYLES = {
-  Pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-  Won: "bg-green-500/10 text-green-400 border-green-500/20",
-  Lost: "bg-red-500/10 text-red-400 border-red-500/20",
+  Pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+  Won: "bg-green-500/10 text-green-600 border-green-500/20",
+  Lost: "bg-red-500/10 text-red-600 border-red-500/20",
 };
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const BAR_COLORS = ["#A855F7", "#C084FC", "#D8B4FE", "#E9D5FF"];
@@ -25,8 +25,8 @@ function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-card border border-purple-500/30 rounded-lg px-2.5 py-1.5 shadow-[0_0_12px_rgba(168,85,247,0.25)]">
-      <p className="text-[9px] text-white/40 uppercase tracking-wider">{label}</p>
-      <p className="text-purple-300 text-xs font-bold">{fmtMoney(payload[0].value)}</p>
+      <p className="text-[9px] text-ink/[0.58] uppercase tracking-wider">{label}</p>
+      <p className="text-purple-600 text-xs font-bold">{fmtMoney(payload[0].value)}</p>
     </div>
   );
 }
@@ -130,14 +130,14 @@ export default function ProjectProjections() {
     setProjections((prev) => prev.map((x) => (x.id === p.id ? { ...x, status } : x)));
   };
 
-  if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-white/20 animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" /></div>;
 
   return (
-    <div className="space-y-6 pt-8 border-t border-white/[0.06]">
+    <div className="space-y-6 pt-8 border-t border-ink/[0.13]">
       <div className="flex items-center gap-2">
-        <Briefcase className="w-4 h-4 text-purple-400" />
+        <Briefcase className="w-4 h-4 text-purple-600" />
         <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-purple-400 to-fuchsia-300 bg-clip-text text-transparent">Project Projections</h2>
-        <span className="text-white/25 text-[10px] ml-1">(one-time payments)</span>
+        <span className="text-ink/[0.43] text-[10px] ml-1">(one-time payments)</span>
       </div>
 
       {/* Stat cards */}
@@ -166,19 +166,19 @@ export default function ProjectProjections() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <p className="text-white/30 text-[10px] mt-2">Sum of pending one-time project payments expected to close each month.</p>
+        <p className="text-ink/[0.48] text-[10px] mt-2">Sum of pending one-time project payments expected to close each month.</p>
       </div>
 
       {/* List */}
       <div className="flex items-center justify-between">
-        <h3 className="font-display font-bold text-[11px] tracking-[0.2em] uppercase text-white/60">Project Pipeline</h3>
-        <Button onClick={openAdd} className="bg-gradient-to-r from-purple-500 to-fuchsia-400 hover:from-purple-400 hover:to-fuchsia-300 text-white font-semibold shadow-[0_0_14px_rgba(168,85,247,0.25)] h-9 gap-2"><Plus className="w-4 h-4" />Add Project</Button>
+        <h3 className="font-display font-bold text-[11px] tracking-[0.2em] uppercase text-ink/60">Project Pipeline</h3>
+        <Button onClick={openAdd} className="bg-gradient-to-r from-purple-500 to-fuchsia-400 hover:from-purple-400 hover:to-fuchsia-300 text-ink font-semibold shadow-[0_0_14px_rgba(168,85,247,0.25)] h-9 gap-2"><Plus className="w-4 h-4" />Add Project</Button>
       </div>
 
       {projections.length === 0 ? (
         <div className="game-panel p-10 text-center">
-          <Target className="w-8 h-8 text-white/10 mx-auto mb-3" />
-          <p className="text-white/30 text-sm">No project projections yet. Add a one-time project deal to track its revenue.</p>
+          <Target className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
+          <p className="text-ink/[0.48] text-sm">No project projections yet. Add a one-time project deal to track its revenue.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -186,21 +186,21 @@ export default function ProjectProjections() {
             const d = daysUntil(p.expectedCloseDate);
             const overdue = d !== null && d < 0 && p.status === "Pending";
             return (
-              <div key={p.id} className={`card-hover bg-card rounded-xl border p-4 flex items-center gap-4 group ${p.status === "Lost" ? "border-white/[0.04] opacity-50" : p.status === "Won" ? "border-green-500/20" : overdue ? "border-red-500/20" : "border-white/[0.06]"}`}>
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/25 to-fuchsia-400/10 border border-purple-500/25 flex items-center justify-center text-purple-300 font-display font-extrabold text-xs shrink-0">{p.clientName?.charAt(0)}</div>
+              <div key={p.id} className={`card-hover bg-card rounded-xl border p-4 flex items-center gap-4 group ${p.status === "Lost" ? "border-ink/[0.13] opacity-50" : p.status === "Won" ? "border-green-500/20" : overdue ? "border-red-500/20" : "border-ink/[0.13]"}`}>
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/25 to-fuchsia-400/10 border border-purple-500/25 flex items-center justify-center text-purple-600 font-display font-extrabold text-xs shrink-0">{p.clientName?.charAt(0)}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-white/85 text-sm font-medium">{p.clientName}</span>
-                    {p.serviceTitle && <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/[0.04] text-white/40">{p.serviceTitle}</span>}
+                    <span className="text-ink/85 text-sm font-medium">{p.clientName}</span>
+                    {p.serviceTitle && <span className="text-[10px] px-1.5 py-0.5 rounded bg-ink/[0.04] text-ink/[0.58]">{p.serviceTitle}</span>}
                   </div>
-                  <div className="flex items-center gap-3 mt-0.5 text-[10px] text-white/30">
+                  <div className="flex items-center gap-3 mt-0.5 text-[10px] text-ink/[0.48]">
                     {p.expectedCloseDate && (
-                      <span className={overdue ? "text-red-400/70" : ""}>
+                      <span className={overdue ? "text-red-600/70" : ""}>
                         <CalendarClock className="w-3 h-3 inline mr-1" />{fmtDate(p.expectedCloseDate)}
                         {d !== null && p.status === "Pending" && <span className="ml-1">({d < 0 ? `${Math.abs(d)}d ago` : `in ${d}d`})</span>}
                       </span>
                     )}
-                    {p.note && <span className="truncate italic text-white/25 max-w-[280px]">{p.note}</span>}
+                    {p.note && <span className="truncate italic text-ink/[0.43] max-w-[280px]">{p.note}</span>}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
@@ -209,15 +209,15 @@ export default function ProjectProjections() {
                 <div className="flex items-center gap-1 shrink-0">
                   {p.status === "Pending" ? (
                     <>
-                      <button onClick={() => setStatus(p, "Won")} title="Mark Won" className="p-1.5 rounded-md hover:bg-green-500/10 text-white/15 hover:text-green-400/70 transition-all"><Check className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => setStatus(p, "Lost")} title="Mark Lost" className="p-1.5 rounded-md hover:bg-red-500/10 text-white/15 hover:text-red-400/60 transition-all"><X className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setStatus(p, "Won")} title="Mark Won" className="p-1.5 rounded-md hover:bg-green-500/10 text-ink/[0.33] hover:text-green-600/70 transition-all"><Check className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setStatus(p, "Lost")} title="Mark Lost" className="p-1.5 rounded-md hover:bg-red-500/10 text-ink/[0.33] hover:text-red-600/60 transition-all"><X className="w-3.5 h-3.5" /></button>
                     </>
                   ) : (
-                    <button onClick={() => setStatus(p, "Pending")} className="text-[10px] px-2 py-1 rounded border border-white/10 text-white/40 hover:text-white/70">Reopen</button>
+                    <button onClick={() => setStatus(p, "Pending")} className="text-[10px] px-2 py-1 rounded border border-ink/[0.13] text-ink/[0.58] hover:text-ink/70">Reopen</button>
                   )}
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${STATUS_STYLES[p.status]}`}>{p.status}</span>
-                  <button onClick={() => openEdit(p)} className="p-1.5 text-white/15 hover:text-white/50 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => remove(p)} className="p-1.5 text-white/15 hover:text-red-400/60 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => openEdit(p)} className="p-1.5 text-ink/[0.33] hover:text-ink/50 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => remove(p)} className="p-1.5 text-ink/[0.33] hover:text-red-600/60 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </div>
             );
@@ -227,31 +227,31 @@ export default function ProjectProjections() {
 
       {/* Add/Edit Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="bg-card border-white/[0.08] text-white max-w-md">
-          <DialogHeader><DialogTitle className="text-white">{editing ? "Edit Project" : "Add Project Projection"}</DialogTitle></DialogHeader>
+        <DialogContent className="bg-card border-ink/[0.13] text-ink max-w-md">
+          <DialogHeader><DialogTitle className="text-ink">{editing ? "Edit Project" : "Add Project Projection"}</DialogTitle></DialogHeader>
           <div className="space-y-3 pt-2">
             <div>
-              <Label className="text-white/40 text-xs">Client *</Label>
-              <Input list="proj-client-list" value={form.clientName} onChange={(e) => setForm({ ...form, clientName: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white" placeholder="Select or type a client" />
+              <Label className="text-ink/[0.58] text-xs">Client *</Label>
+              <Input list="proj-client-list" value={form.clientName} onChange={(e) => setForm({ ...form, clientName: e.target.value })} className="mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink" placeholder="Select or type a client" />
               <datalist id="proj-client-list">
                 {clients.map((c) => <option key={c.id} value={c.business} />)}
               </datalist>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label className="text-white/40 text-xs">Project Title</Label><Input value={form.serviceTitle} onChange={(e) => setForm({ ...form, serviceTitle: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white" placeholder="e.g. Website Build" /></div>
-              <div><Label className="text-white/40 text-xs">Amount ($ total) *</Label><Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white" placeholder="3500" /></div>
+              <div><Label className="text-ink/[0.58] text-xs">Project Title</Label><Input value={form.serviceTitle} onChange={(e) => setForm({ ...form, serviceTitle: e.target.value })} className="mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink" placeholder="e.g. Website Build" /></div>
+              <div><Label className="text-ink/[0.58] text-xs">Amount ($ total) *</Label><Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink" placeholder="3500" /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label className="text-white/40 text-xs">Expected Close Date</Label><Input type="date" value={form.expectedCloseDate} onChange={(e) => setForm({ ...form, expectedCloseDate: e.target.value })} className="mt-1 bg-white/[0.03] border-white/[0.06] text-white" /></div>
+              <div><Label className="text-ink/[0.58] text-xs">Expected Close Date</Label><Input type="date" value={form.expectedCloseDate} onChange={(e) => setForm({ ...form, expectedCloseDate: e.target.value })} className="mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink" /></div>
               <div>
-                <Label className="text-white/40 text-xs">Status</Label>
-                <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="mt-1 w-full bg-white/[0.03] border border-white/[0.06] rounded-md px-3 py-2 text-white text-sm outline-none">
+                <Label className="text-ink/[0.58] text-xs">Status</Label>
+                <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="mt-1 w-full bg-ink/[0.03] border border-ink/[0.13] rounded-md px-3 py-2 text-ink text-sm outline-none">
                   {["Pending", "Won", "Lost"].map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
             </div>
-            <div><Label className="text-white/40 text-xs">Note</Label><textarea value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} className="mt-1 w-full bg-white/[0.03] border-white/[0.06] rounded-md px-3 py-2 text-white text-sm outline-none resize-none min-h-[60px]" placeholder="Context on the project..." /></div>
-            <Button onClick={save} className="w-full bg-gradient-to-r from-purple-500 to-fuchsia-400 hover:from-purple-400 hover:to-fuchsia-300 text-white font-semibold shadow-[0_0_14px_rgba(168,85,247,0.25)]">{editing ? "Save Changes" : "Add Project"}</Button>
+            <div><Label className="text-ink/[0.58] text-xs">Note</Label><textarea value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} className="mt-1 w-full bg-ink/[0.03] border-ink/[0.13] rounded-md px-3 py-2 text-ink text-sm outline-none resize-none min-h-[60px]" placeholder="Context on the project..." /></div>
+            <Button onClick={save} className="w-full bg-gradient-to-r from-purple-500 to-fuchsia-400 hover:from-purple-400 hover:to-fuchsia-300 text-ink font-semibold shadow-[0_0_14px_rgba(168,85,247,0.25)]">{editing ? "Save Changes" : "Add Project"}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -263,11 +263,11 @@ function StatCard({ icon: Icon, label, value, sub, highlight, accent }) {
   return (
     <div className={`game-panel p-4 ${highlight ? "border-purple-500/30" : accent ? "border-green-500/25" : ""}`}>
       <div className="flex items-center gap-2 mb-2">
-        <Icon className={`w-3.5 h-3.5 ${highlight ? "text-purple-400" : accent ? "text-green-400/70" : "text-white/20"}`} />
-        <span className="text-white/30 text-[10px] tracking-wider uppercase">{label}</span>
+        <Icon className={`w-3.5 h-3.5 ${highlight ? "text-purple-600" : accent ? "text-green-600/70" : "text-ink/[0.38]"}`} />
+        <span className="text-ink/[0.48] text-[10px] tracking-wider uppercase">{label}</span>
       </div>
-      <p className={`text-xl font-display font-extrabold ${highlight ? "bg-gradient-to-r from-purple-400 to-fuchsia-300 bg-clip-text text-transparent" : accent ? "bg-gradient-to-r from-green-300 to-emerald-200 bg-clip-text text-transparent" : "text-white/80"}`}>{value}</p>
-      {sub && <p className="text-white/25 text-[10px] mt-1">{sub}</p>}
+      <p className={`text-xl font-display font-extrabold ${highlight ? "bg-gradient-to-r from-purple-400 to-fuchsia-300 bg-clip-text text-transparent" : accent ? "bg-gradient-to-r from-green-300 to-emerald-200 bg-clip-text text-transparent" : "text-ink/80"}`}>{value}</p>
+      {sub && <p className="text-ink/[0.43] text-[10px] mt-1">{sub}</p>}
     </div>
   );
 }

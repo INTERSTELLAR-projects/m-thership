@@ -10,7 +10,7 @@ export default function SectionTitle({ icon: Icon, title, count, className = "" 
       {count != null && (
         <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border border-orange-500/25 bg-orange-500/10 text-orange-300/80">{count} item{count !== 1 ? "s" : ""}</span>
       )}
-      <span className="h-px flex-1 ml-1 bg-gradient-to-r from-orange-500/25 via-white/[0.05] to-transparent" />
+      <span className="h-px flex-1 ml-1 bg-gradient-to-r from-orange-500/25 via-ink/5 to-transparent" />
     </div>
   );
 }

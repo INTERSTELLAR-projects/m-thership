@@ -65,26 +65,26 @@ function ArcReactor({ pulse, isSpeaking }) {
         transition: "filter 0.3s",
       }} />
       <svg width="220" height="220" className="absolute inset-0" style={{ overflow: "visible" }}>
-        <circle cx="110" cy="110" r="104" fill="none" stroke="#FACC15" strokeWidth="1" strokeOpacity="0.25" />
+        <circle cx="110" cy="110" r="104" fill="none" stroke="#ffaa00" strokeWidth="1" strokeOpacity="0.25" />
         <g style={{ transformOrigin: "110px 110px", animation: reduced ? "none" : "spin-cw 8s linear infinite" }}>
-          <circle cx="110" cy="110" r="88" fill="none" stroke="#FF8C00" strokeWidth="1.5" strokeOpacity="0.55" strokeDasharray="12 6" />
-          <circle cx="110" cy="22" r="3" fill="#FF8C00" opacity="0.85" />
-          <circle cx="198" cy="110" r="3" fill="#FF8C00" opacity="0.85" />
+          <circle cx="110" cy="110" r="88" fill="none" stroke="#ff3c00" strokeWidth="1.5" strokeOpacity="0.55" strokeDasharray="12 6" />
+          <circle cx="110" cy="22" r="3" fill="#ff3c00" opacity="0.85" />
+          <circle cx="198" cy="110" r="3" fill="#ff3c00" opacity="0.85" />
         </g>
         <g style={{ transformOrigin: "110px 110px", animation: reduced ? "none" : "spin-ccw 5s linear infinite" }}>
-          <circle cx="110" cy="110" r="72" fill="none" stroke="#FACC15" strokeWidth="1" strokeOpacity="0.6" strokeDasharray="4 20" />
-          <rect x="108" y="40" width="4" height="10" fill="#F47C20" opacity="0.9" rx="1" />
+          <circle cx="110" cy="110" r="72" fill="none" stroke="#ffaa00" strokeWidth="1" strokeOpacity="0.6" strokeDasharray="4 20" />
+          <rect x="108" y="40" width="4" height="10" fill="#ff3c00" opacity="0.9" rx="1" />
         </g>
-        <circle cx="110" cy="110" r="56" fill="none" stroke="#FF8C00" strokeWidth="1" strokeOpacity="0.3" />
-        <circle cx="110" cy="110" r="36" fill="rgba(20,12,2,0.9)" stroke="#FACC15" strokeWidth="1.5" strokeOpacity="0.7" />
+        <circle cx="110" cy="110" r="56" fill="none" stroke="#ff3c00" strokeWidth="1" strokeOpacity="0.3" />
+        <circle cx="110" cy="110" r="36" fill="rgba(20,12,2,0.9)" stroke="#ffaa00" strokeWidth="1.5" strokeOpacity="0.7" />
         <circle cx="110" cy="110" r="26"
-          fill="rgba(244,124,32,0.18)" stroke="#F47C20"
+          fill="rgba(244,124,32,0.18)" stroke="#ff3c00"
           strokeWidth={isSpeaking ? "2.5" : "1.5"} strokeOpacity="0.95"
           style={{ transition: "stroke-width 0.2s" }} />
       </svg>
       <div style={{
         width: 20, height: 20, borderRadius: "50%",
-        background: "radial-gradient(circle, #FFB300 0%, rgba(244,124,32,0.3) 100%)",
+        background: "radial-gradient(circle, #ffaa00 0%, rgba(244,124,32,0.3) 100%)",
         boxShadow: isSpeaking
           ? `0 0 ${12 + pulse * 26}px ${6 + pulse * 12}px rgba(255,170,0,0.65)`
           : "0 0 12px 4px rgba(255,170,0,0.4)",
@@ -115,14 +115,14 @@ function BootLog({ onDone }) {
       alignItems: "center", justifyContent: "center", gap: 10, zIndex: 10,
     }}>
       <div style={{ width: 2, height: "100%", position: "absolute", top: 0, left: "50%",
-        background: "linear-gradient(to bottom, transparent, #FF8C00, transparent)",
+        background: "linear-gradient(to bottom, transparent, #ff3c00, transparent)",
         animation: "scan-line 1.2s ease-out forwards", pointerEvents: "none" }} />
       {shown.map((l, i) => (
         <p key={i} style={{
-          fontFamily: "monospace", color: i === shown.length - 1 ? "#F47C20" : "#FACC15",
+          fontFamily: "monospace", color: i === shown.length - 1 ? "#ff3c00" : "#ffaa00",
           fontSize: i === shown.length - 1 ? 22 : 13,
           letterSpacing: "0.25em", textTransform: "uppercase",
-          textShadow: `0 0 12px ${i === shown.length - 1 ? "#F47C20" : "#FACC15"}`,
+          textShadow: `0 0 12px ${i === shown.length - 1 ? "#ff3c00" : "#ffaa00"}`,
           animation: "fade-in 0.25s ease-out",
         }}>{l}</p>
       ))}
@@ -362,7 +362,7 @@ export default function BriefingHUD({ data, onClose }) {
         ].map((p, i) => (
           <div key={i} style={{
             position: "absolute", top: p.top, left: p.left, width: p.size, height: p.size, borderRadius: "50%",
-            background: i % 2 ? "#FACC15" : "#FF8C00", opacity: 0.45,
+            background: i % 2 ? "#ffaa00" : "#ff3c00", opacity: 0.45,
             animation: `particle-float ${3 + i * 0.7}s ease-in-out infinite`, animationDelay: p.delay,
             boxShadow: "0 0 5px rgba(255,170,0,0.6)",
           }} />
@@ -373,15 +373,15 @@ export default function BriefingHUD({ data, onClose }) {
           position: "absolute", top: 0, left: 0, right: 0, borderBottom: "1px solid rgba(255,150,0,0.15)",
           padding: "10px 24px", display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
-          <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.2em", color: "#FF8C00", opacity: 0.85 }}>
+          <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.2em", color: "#ff3c00", opacity: 0.85 }}>
             INTERSTELLAR COMMAND OS // DAILY BRIEFING
           </span>
-          <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.15em", color: "#FACC15", opacity: 0.6 }}>
+          <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.15em", color: "#ffaa00", opacity: 0.6 }}>
             {dateStr} &nbsp;·&nbsp; {timeStr} &nbsp;·&nbsp; SYSTEM ONLINE
           </span>
           <button onClick={dismiss} style={{
             background: "rgba(244,124,32,0.12)", border: "1px solid rgba(244,124,32,0.35)",
-            borderRadius: 6, padding: "4px 12px", color: "#FF8C00",
+            borderRadius: 6, padding: "4px 12px", color: "#ff3c00",
             fontFamily: "monospace", fontSize: 10, letterSpacing: "0.15em", cursor: "pointer",
             display: "flex", alignItems: "center", gap: 6,
           }}>
@@ -396,8 +396,8 @@ export default function BriefingHUD({ data, onClose }) {
           {/* Timeline */}
           <div style={{ width: 230, flexShrink: 0, display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, paddingBottom: 14, borderBottom: "1px solid rgba(255,150,0,0.12)" }}>
-              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "radial-gradient(circle,#FFB300,rgba(244,124,32,0.3))", boxShadow: "0 0 10px rgba(255,170,0,0.7)" }} />
-              <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.22em", color: "#FACC15", opacity: 0.85 }}>BRIEFING SEQUENCE</span>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "radial-gradient(circle,#ffaa00,rgba(244,124,32,0.3))", boxShadow: "0 0 10px rgba(255,170,0,0.7)" }} />
+              <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.22em", color: "#ffaa00", opacity: 0.85 }}>BRIEFING SEQUENCE</span>
             </div>
             {STEPS.map((s, i) => {
               const active = section === i; const done = section > i;
@@ -413,13 +413,13 @@ export default function BriefingHUD({ data, onClose }) {
                 }}>
                   <div style={{
                     width: 26, height: 26, borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center",
-                    background: active ? "linear-gradient(135deg,#F47C20,#FACC15)" : "rgba(255,150,0,0.06)",
+                    background: active ? "linear-gradient(135deg,#ff3c00,#ffaa00)" : "rgba(255,150,0,0.06)",
                     boxShadow: active ? "0 0 10px rgba(255,170,0,0.5)" : "none",
                   }}>
-                    {done ? <CheckCircle2 size={14} color="#FACC15" /> : <Icon size={13} color={active ? "#1a0d00" : "#FF8C00"} />}
+                    {done ? <CheckCircle2 size={14} color="#ffaa00" /> : <Icon size={13} color={active ? "#1a1a1a" : "#ff3c00"} />}
                   </div>
                   <span style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase",
-                    color: active ? "#FFE7B3" : done ? "#FACC15" : "rgba(255,200,120,0.5)",
+                    color: active ? "#1a1a1a" : done ? "#ffaa00" : "rgba(255,200,120,0.5)",
                     textShadow: active ? "0 0 8px rgba(255,170,0,0.5)" : "none" }}>
                     {s.label}
                   </span>
@@ -439,13 +439,13 @@ export default function BriefingHUD({ data, onClose }) {
                 <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
                   <ArcReactor pulse={pulse} isSpeaking={isSpeaking} />
                   <div style={{ textAlign: "center" }}>
-                    <p style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: "0.3em", color: "#FACC15", opacity: 0.7, marginBottom: 10 }}>INTERSTELLAR COMMAND</p>
+                    <p style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: "0.3em", color: "#ffaa00", opacity: 0.7, marginBottom: 10 }}>INTERSTELLAR COMMAND</p>
                     <h1 style={{ fontSize: 42, fontWeight: 800, letterSpacing: "0.08em", margin: 0,
-                      background: "linear-gradient(90deg,#FF8C00,#FACC15)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
+                      background: "linear-gradient(90deg,#ff3c00,#ffaa00)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
                       textShadow: "0 0 30px rgba(255,170,0,0.4)" }}>
                       GOOD MORNING, SIR
                     </h1>
-                    <p style={{ fontFamily: "monospace", fontSize: 13, letterSpacing: "0.2em", color: "#FFE7B3", opacity: 0.7, marginTop: 10 }}>
+                    <p style={{ fontFamily: "monospace", fontSize: 13, letterSpacing: "0.2em", color: "#1a1a1a", opacity: 0.7, marginTop: 10 }}>
                       {weekday.toUpperCase()} · {month.toUpperCase()} {day}
                     </p>
                   </div>
@@ -463,7 +463,7 @@ export default function BriefingHUD({ data, onClose }) {
                             {t}
                           </SpotlightRow>
                         ))}
-                        {taskTitles.length > 7 && <div style={{ color: "#FACC15", opacity: 0.5, fontSize: 11, textAlign: "center", marginTop: 6 }}>+{taskTitles.length - 7} more on your dashboard</div>}
+                        {taskTitles.length > 7 && <div style={{ color: "#ffaa00", opacity: 0.5, fontSize: 11, textAlign: "center", marginTop: 6 }}>+{taskTitles.length - 7} more on your dashboard</div>}
                       </div>}
                 </StageCard>
               )}
@@ -479,7 +479,7 @@ export default function BriefingHUD({ data, onClose }) {
                             {c.businessName}
                           </SpotlightRow>
                         ))}
-                        {todayOrbit.length > 7 && <div style={{ color: "#FACC15", opacity: 0.5, fontSize: 11, textAlign: "center", marginTop: 6 }}>+{todayOrbit.length - 7} more</div>}
+                        {todayOrbit.length > 7 && <div style={{ color: "#ffaa00", opacity: 0.5, fontSize: 11, textAlign: "center", marginTop: 6 }}>+{todayOrbit.length - 7} more</div>}
                       </div>}
                 </StageCard>
               )}
@@ -488,8 +488,8 @@ export default function BriefingHUD({ data, onClose }) {
               {section === 3 && (
                 <StageCard title="30-DAY MOMENTUM" sub="revenue & client growth" icon={TrendingUp}>
                   <div className="slide-in" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 18 }}>
-                    <Metric label="30 DAYS AGO" num={pastSafe} color="#FACC15" />
-                    <Metric label="TODAY" num={mrr} color="#FF8C00" highlight />
+                    <Metric label="30 DAYS AGO" num={pastSafe} color="#ffaa00" />
+                    <Metric label="TODAY" num={mrr} color="#ff3c00" highlight />
                   </div>
                   <div className="slide-in" style={{
                     display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 12,
@@ -497,16 +497,16 @@ export default function BriefingHUD({ data, onClose }) {
                     background: gainedSafe >= 0 ? "rgba(74,222,128,0.06)" : "rgba(244,124,32,0.08)",
                     boxShadow: "0 0 16px rgba(255,170,0,0.15)",
                   }}>
-                    <ArrowUp size={20} color={gainedSafe >= 0 ? "#4ADE80" : "#F47C20"} style={{ transform: gainedSafe >= 0 ? "none" : "rotate(180deg)" }} />
+                    <ArrowUp size={20} color={gainedSafe >= 0 ? "#4ADE80" : "#ff3c00"} style={{ transform: gainedSafe >= 0 ? "none" : "rotate(180deg)" }} />
                     <div>
-                      <div style={{ fontSize: 10, letterSpacing: "0.2em", color: "#FACC15", opacity: 0.7 }}>MRR {gainedSafe >= 0 ? "GAINED" : "DROPPED"}</div>
-                      <div style={{ fontSize: 24, fontWeight: 800, color: gainedSafe >= 0 ? "#4ADE80" : "#F47C20" }}>
+                      <div style={{ fontSize: 10, letterSpacing: "0.2em", color: "#ffaa00", opacity: 0.7 }}>MRR {gainedSafe >= 0 ? "GAINED" : "DROPPED"}</div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: gainedSafe >= 0 ? "#4ADE80" : "#ff3c00" }}>
                         {gainedSafe >= 0 ? "+" : "−"}<CountUp target={Math.abs(gainedSafe)} prefix="$" />
                       </div>
                     </div>
                     <div style={{ marginLeft: "auto", textAlign: "right" }}>
-                      <div style={{ fontSize: 10, letterSpacing: "0.2em", color: "#FACC15", opacity: 0.7 }}>NEW CLIENTS</div>
-                      <div style={{ fontSize: 24, fontWeight: 800, color: "#FFE7B3" }}><CountUp target={addedSafe} prefix="" /></div>
+                      <div style={{ fontSize: 10, letterSpacing: "0.2em", color: "#ffaa00", opacity: 0.7 }}>NEW CLIENTS</div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: "#1a1a1a" }}><CountUp target={addedSafe} prefix="" /></div>
                     </div>
                   </div>
                 </StageCard>
@@ -516,20 +516,20 @@ export default function BriefingHUD({ data, onClose }) {
               {section === 4 && (
                 <StageCard title="FINANCIAL SNAPSHOT" sub="monthly recurring revenue" icon={DollarSign}>
                   <div className="slide-in" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 22 }}>
-                    <Metric label="MRR" num={mrr} color="#FF8C00" highlight />
-                    <Metric label="ARR" num={arr} color="#FACC15" />
-                    <Metric label="GOAL" num={MRR_GOAL} color="#FFE7B3" />
-                    <Metric label="GAP" num={gap > 0 ? gap : undefined} value={gap > 0 ? undefined : "✓"} color={gap > 0 ? "#F47C20" : "#4ADE80"} />
+                    <Metric label="MRR" num={mrr} color="#ff3c00" highlight />
+                    <Metric label="ARR" num={arr} color="#ffaa00" />
+                    <Metric label="GOAL" num={MRR_GOAL} color="#1a1a1a" />
+                    <Metric label="GAP" num={gap > 0 ? gap : undefined} value={gap > 0 ? undefined : "✓"} color={gap > 0 ? "#ff3c00" : "#4ADE80"} />
                   </div>
                   <div className="slide-in">
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
-                      <span style={{ fontSize: 10, letterSpacing: "0.15em", color: "#FACC15", opacity: 0.7 }}>PROGRESS TO GOAL</span>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#FF8C00" }}>{mrrProgress.toFixed(0)}%</span>
+                      <span style={{ fontSize: 10, letterSpacing: "0.15em", color: "#ffaa00", opacity: 0.7 }}>PROGRESS TO GOAL</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#ff3c00" }}>{mrrProgress.toFixed(0)}%</span>
                     </div>
                     <div style={{ height: 10, background: "rgba(255,150,0,0.08)", borderRadius: 6, overflow: "hidden", border: "1px solid rgba(255,150,0,0.1)" }}>
                       <div style={{
                         height: "100%", borderRadius: 6,
-                        background: "linear-gradient(90deg,#F47C20,#FF8C00,#FACC15)",
+                        background: "linear-gradient(90deg,#ff3c00,#ff3c00,#ffaa00)",
                         width: `${mrrProgress}%`, transition: "width 1.4s ease",
                         boxShadow: "0 0 12px rgba(255,170,0,0.6)",
                       }} />
@@ -548,22 +548,22 @@ export default function BriefingHUD({ data, onClose }) {
                     marginBottom: 16, animation: "goal-pulse 2.4s ease-in-out infinite",
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <Target size={14} color="#FF8C00" />
-                      <span style={{ fontSize: 10, letterSpacing: "0.2em", color: "#FACC15", opacity: 0.85 }}>PLAN TO EXECUTE</span>
+                      <Target size={14} color="#ff3c00" />
+                      <span style={{ fontSize: 10, letterSpacing: "0.2em", color: "#ffaa00", opacity: 0.85 }}>PLAN TO EXECUTE</span>
                     </div>
-                    <p style={{ fontSize: 17, fontWeight: 700, color: "#FFE7B3", lineHeight: 1.5, margin: 0 }}>{GOAL_PLAN}</p>
+                    <p style={{ fontSize: 17, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.5, margin: 0 }}>{GOAL_PLAN}</p>
                   </div>
                   <div className="slide-in" style={{
                     display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", borderRadius: 12,
                     border: "1px solid rgba(250,204,21,0.4)", background: "rgba(250,204,21,0.07)",
                   }}>
-                    <Flame size={22} color="#FF8C00" />
+                    <Flame size={22} color="#ff3c00" />
                     <div>
-                      <div style={{ fontSize: 11, letterSpacing: "0.18em", color: "#FACC15", opacity: 0.8 }}>THE PUSH</div>
-                      <div style={{ fontSize: 19, fontWeight: 800, color: "#FFE7B3" }}>
+                      <div style={{ fontSize: 11, letterSpacing: "0.18em", color: "#ffaa00", opacity: 0.8 }}>THE PUSH</div>
+                      <div style={{ fontSize: 19, fontWeight: 800, color: "#1a1a1a" }}>
                         {gap > 0 ? `Land ONE more site this month` : "Goal hit — aim higher"}
                       </div>
-                      {gap > 0 && <div style={{ fontSize: 12, color: "#FF8C00", marginTop: 2 }}>{fmt$(gap)} from your {fmt$(MRR_GOAL)} goal</div>}
+                      {gap > 0 && <div style={{ fontSize: 12, color: "#ff3c00", marginTop: 2 }}>{fmt$(gap)} from your {fmt$(MRR_GOAL)} goal</div>}
                     </div>
                   </div>
                 </StageCard>
@@ -572,12 +572,12 @@ export default function BriefingHUD({ data, onClose }) {
               {/* 6 Sign-off */}
               {section === 6 && (
                 <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14 }}>
-                  <CheckCircle2 size={48} color="#FACC15" style={{ filter: "drop-shadow(0 0 14px rgba(250,204,21,0.6))" }} />
+                  <CheckCircle2 size={48} color="#ffaa00" style={{ filter: "drop-shadow(0 0 14px rgba(250,204,21,0.6))" }} />
                   <h2 style={{ fontSize: 30, fontWeight: 800, margin: 0,
-                    background: "linear-gradient(90deg,#FF8C00,#FACC15)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
+                    background: "linear-gradient(90deg,#ff3c00,#ffaa00)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
                     BRIEFING COMPLETE
                   </h2>
-                  <p style={{ fontFamily: "monospace", fontSize: 13, letterSpacing: "0.2em", color: "#FFE7B3", opacity: 0.7 }}>
+                  <p style={{ fontFamily: "monospace", fontSize: 13, letterSpacing: "0.2em", color: "#1a1a1a", opacity: 0.7 }}>
                     HAVE A PRODUCTIVE DAY, SIR.
                   </p>
                 </div>
@@ -589,15 +589,15 @@ export default function BriefingHUD({ data, onClose }) {
         {/* Gamified session XP bar */}
         <div style={{ position: "absolute", left: 28, right: 28, bottom: 16, pointerEvents: "none" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
-            <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.22em", color: "#FACC15", opacity: 0.85 }}>SESSION XP</span>
-            <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.15em", color: section >= 6 ? "#4ADE80" : "#FF8C00" }}>
+            <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.22em", color: "#ffaa00", opacity: 0.85 }}>SESSION XP</span>
+            <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.15em", color: section >= 6 ? "#4ADE80" : "#ff3c00" }}>
               {section >= 0 ? `${String(section + 1).padStart(2, "0")} / 07` : "STANDBY"} · {section >= 0 ? STEPS[section].label.toUpperCase() : "READY"}
             </span>
           </div>
           <div style={{ height: 8, background: "rgba(255,150,0,0.08)", borderRadius: 4, overflow: "hidden", border: "1px solid rgba(255,150,0,0.12)" }}>
             <div style={{
               height: "100%", borderRadius: 4,
-              background: section >= 6 ? "linear-gradient(90deg,#4ADE80,#FACC15)" : "linear-gradient(90deg,#F47C20,#FF8C00,#FACC15)",
+              background: section >= 6 ? "linear-gradient(90deg,#4ADE80,#ffaa00)" : "linear-gradient(90deg,#ff3c00,#ff3c00,#ffaa00)",
               width: `${((Math.max(0, section) + 1) / STEPS.length) * 100}%`,
               transition: "width 0.7s ease",
               boxShadow: "0 0 12px rgba(255,170,0,0.6)",
@@ -615,14 +615,14 @@ export default function BriefingHUD({ data, onClose }) {
             boxShadow: "0 0 20px rgba(255,170,0,0.3)",
             animation: "badge-pop 1.7s ease-out forwards",
           }}>
-            <CheckCircle2 size={16} color="#FACC15" style={{ filter: "drop-shadow(0 0 6px rgba(250,204,21,0.7))" }} />
-            <span style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: "0.15em", color: "#FFE7B3", textTransform: "uppercase" }}>{badge}</span>
+            <CheckCircle2 size={16} color="#ffaa00" style={{ filter: "drop-shadow(0 0 6px rgba(250,204,21,0.7))" }} />
+            <span style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: "0.15em", color: "#1a1a1a", textTransform: "uppercase" }}>{badge}</span>
           </div>
         )}
 
         {booted && !started && (
           <div style={{ position: "absolute", inset: 0, top: 44, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(12,8,2,0.6)", opacity: greetLeaving ? 0 : 1, transform: greetLeaving ? "scale(1.05)" : "scale(1)", transition: "opacity 0.45s ease, transform 0.45s ease", pointerEvents: greetLeaving ? "none" : "auto" }} onClick={e => e.stopPropagation()}>
-            <button onClick={beginBriefing} style={{ display: "flex", alignItems: "center", gap: 8, padding: "13px 26px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#F47C20,#FACC15)", color: "#1a0d00", fontWeight: 800, fontSize: 14, letterSpacing: "0.12em", cursor: "pointer", boxShadow: "0 0 18px rgba(255,170,0,0.4)" }}>BEGIN BRIEFING →</button>
+            <button onClick={beginBriefing} style={{ display: "flex", alignItems: "center", gap: 8, padding: "13px 26px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#ff3c00,#ffaa00)", color: "#1a1a1a", fontWeight: 800, fontSize: 14, letterSpacing: "0.12em", cursor: "pointer", boxShadow: "0 0 18px rgba(255,170,0,0.4)" }}>BEGIN BRIEFING →</button>
           </div>
         )}
 
@@ -645,27 +645,27 @@ function VoicePicker({ voices, selURI, onSelect, onPreview, onBegin }) {
     <div style={{ position: "absolute", inset: 0, top: 44, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(12,8,2,0.6)", pointerEvents: "auto" }} onClick={(e) => e.stopPropagation()}>
       <div style={{ width: 540, maxHeight: "72vh", display: "flex", flexDirection: "column", borderRadius: 16, border: "1px solid rgba(244,124,32,0.4)", background: "linear-gradient(160deg, rgba(20,12,4,0.96), rgba(30,18,6,0.94))", boxShadow: "0 0 40px rgba(255,170,0,0.18)", overflow: "hidden" }}>
         <div style={{ padding: "18px 20px 12px", borderBottom: "1px solid rgba(255,150,0,0.12)" }}>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: "0.08em", background: "linear-gradient(90deg,#FF8C00,#FACC15)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>SELECT BRIEFING VOICE</h2>
-          <p style={{ margin: "4px 0 0", fontFamily: "monospace", fontSize: 10, letterSpacing: "0.15em", color: "#FACC15", opacity: 0.6 }}>TAP A VOICE · HIT PREVIEW TO HEAR IT</p>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: "0.08em", background: "linear-gradient(90deg,#ff3c00,#ffaa00)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>SELECT BRIEFING VOICE</h2>
+          <p style={{ margin: "4px 0 0", fontFamily: "monospace", fontSize: 10, letterSpacing: "0.15em", color: "#ffaa00", opacity: 0.6 }}>TAP A VOICE · HIT PREVIEW TO HEAR IT</p>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
-          {list.length === 0 && <div style={{ padding: 24, textAlign: "center", color: "#FACC15", opacity: 0.5, fontFamily: "monospace", fontSize: 11 }}>LOADING VOICES…</div>}
+          {list.length === 0 && <div style={{ padding: 24, textAlign: "center", color: "#ffaa00", opacity: 0.5, fontFamily: "monospace", fontSize: 11 }}>LOADING VOICES…</div>}
           {list.map((v) => {
             const active = selURI === v.voiceURI;
             return (
               <div key={v.voiceURI} onClick={() => onSelect(v)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 9, border: `1px solid ${active ? "rgba(244,124,32,0.55)" : "rgba(255,150,0,0.08)"}`, background: active ? "linear-gradient(90deg, rgba(244,124,32,0.16), transparent)" : "transparent", cursor: "pointer", transition: "all 0.2s" }}>
-                <div style={{ width: 10, height: 10, borderRadius: "50%", border: `2px solid ${active ? "#FF8C00" : "rgba(255,150,0,0.3)"}`, background: active ? "#FF8C00" : "transparent", boxShadow: active ? "0 0 8px rgba(255,170,0,0.6)" : "none" }} />
+                <div style={{ width: 10, height: 10, borderRadius: "50%", border: `2px solid ${active ? "#ff3c00" : "rgba(255,150,0,0.3)"}`, background: active ? "#ff3c00" : "transparent", boxShadow: active ? "0 0 8px rgba(255,170,0,0.6)" : "none" }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ color: active ? "#FFE7B3" : "rgba(255,220,180,0.85)", fontSize: 13, fontWeight: 600 }}>{v.name}</div>
-                  <div style={{ color: "#FACC15", fontSize: 10, fontFamily: "monospace", opacity: 0.55 }}>{v.lang}</div>
+                  <div style={{ color: active ? "#1a1a1a" : "rgba(255,220,180,0.85)", fontSize: 13, fontWeight: 600 }}>{v.name}</div>
+                  <div style={{ color: "#ffaa00", fontSize: 10, fontFamily: "monospace", opacity: 0.55 }}>{v.lang}</div>
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); onPreview(v); }} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid rgba(244,124,32,0.4)", background: "rgba(244,124,32,0.1)", color: "#FF8C00", fontSize: 10, letterSpacing: "0.1em", cursor: "pointer" }}>PREVIEW</button>
+                <button onClick={(e) => { e.stopPropagation(); onPreview(v); }} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid rgba(244,124,32,0.4)", background: "rgba(244,124,32,0.1)", color: "#ff3c00", fontSize: 10, letterSpacing: "0.1em", cursor: "pointer" }}>PREVIEW</button>
               </div>
             );
           })}
         </div>
         <div style={{ padding: 14, borderTop: "1px solid rgba(255,150,0,0.12)", display: "flex", justifyContent: "flex-end" }}>
-          <button onClick={onBegin} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#F47C20,#FACC15)", color: "#1a0d00", fontWeight: 800, fontSize: 13, letterSpacing: "0.1em", cursor: "pointer", boxShadow: "0 0 18px rgba(255,170,0,0.4)" }}>BEGIN BRIEFING →</button>
+          <button onClick={onBegin} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#ff3c00,#ffaa00)", color: "#1a1a1a", fontWeight: 800, fontSize: 13, letterSpacing: "0.1em", cursor: "pointer", boxShadow: "0 0 18px rgba(255,170,0,0.4)" }}>BEGIN BRIEFING →</button>
         </div>
       </div>
     </div>
@@ -678,15 +678,15 @@ function StageCard({ title, sub, icon: Icon, children }) {
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <div style={{ marginBottom: 18 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#F47C20,#FACC15)", boxShadow: "0 0 12px rgba(255,170,0,0.4)" }}>
-            <Icon size={16} color="#1a0d00" />
+          <div style={{ width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#ff3c00,#ffaa00)", boxShadow: "0 0 12px rgba(255,170,0,0.4)" }}>
+            <Icon size={16} color="#1a1a1a" />
           </div>
           <h2 style={{ fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: "0.06em",
-            background: "linear-gradient(90deg,#FF8C00,#FACC15)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
+            background: "linear-gradient(90deg,#ff3c00,#ffaa00)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
             {title}
           </h2>
         </div>
-        {sub && <p style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: "0.18em", color: "#FACC15", opacity: 0.6, margin: "0 0 0 40px" }}>{sub.toUpperCase()}</p>}
+        {sub && <p style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: "0.18em", color: "#ffaa00", opacity: 0.6, margin: "0 0 0 40px" }}>{sub.toUpperCase()}</p>}
       </div>
       <div style={{ flex: 1 }}>{children}</div>
     </div>
@@ -694,7 +694,7 @@ function StageCard({ title, sub, icon: Icon, children }) {
 }
 
 function SpotlightRow({ children, active, index, accent = "orange" }) {
-  const color = accent === "yellow" ? "#FACC15" : "#FF8C00";
+  const color = accent === "yellow" ? "#ffaa00" : "#ff3c00";
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 14, padding: "13px 16px", borderRadius: 10,
@@ -708,7 +708,7 @@ function SpotlightRow({ children, active, index, accent = "orange" }) {
       transition: "all 0.35s ease",
     }}>
       <span style={{ fontFamily: "monospace", fontSize: 11, color, opacity: 0.7, minWidth: 18 }}>{String(index).padStart(2, "0")}</span>
-      <span style={{ fontSize: 15, fontWeight: 600, color: active ? "#FFE7B3" : "rgba(255,220,180,0.8)" }}>{children}</span>
+      <span style={{ fontSize: 15, fontWeight: 600, color: active ? "#1a1a1a" : "rgba(255,220,180,0.8)" }}>{children}</span>
       <span style={{ marginLeft: "auto", width: 6, height: 6, borderRadius: "50%", background: active ? color : "transparent", boxShadow: active ? `0 0 8px ${color}` : "none" }} />
     </div>
   );
@@ -722,7 +722,7 @@ function Metric({ label, value, num, prefix = "$", color, highlight }) {
       background: highlight ? "linear-gradient(135deg, rgba(244,124,32,0.12), rgba(250,204,21,0.04))" : "rgba(255,150,0,0.03)",
       boxShadow: highlight ? "0 0 16px rgba(255,170,0,0.2)" : "none",
     }}>
-      <div style={{ fontSize: 9, letterSpacing: "0.2em", color: "#FACC15", opacity: 0.65, marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 9, letterSpacing: "0.2em", color: "#ffaa00", opacity: 0.65, marginBottom: 6 }}>{label}</div>
       <div style={{ fontSize: 22, fontWeight: 800, color, textShadow: highlight ? `0 0 12px ${color}` : "none" }}>
         {num !== undefined ? <CountUp target={num} prefix={prefix} /> : value}
       </div>
@@ -731,5 +731,5 @@ function Metric({ label, value, num, prefix = "$", color, highlight }) {
 }
 
 function Empty({ text }) {
-  return <div style={{ textAlign: "center", padding: 40, fontFamily: "monospace", letterSpacing: "0.25em", color: "#FACC15", opacity: 0.5, fontSize: 16 }}>{text}</div>;
+  return <div style={{ textAlign: "center", padding: 40, fontFamily: "monospace", letterSpacing: "0.25em", color: "#ffaa00", opacity: 0.5, fontSize: 16 }}>{text}</div>;
 }

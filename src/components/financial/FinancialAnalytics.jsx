@@ -32,7 +32,7 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
 
   if (loading) return (
     <div className="flex items-center justify-center py-20">
-      <Loader2 className="w-6 h-6 text-white/20 animate-spin" />
+      <Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" />
     </div>
   );
 
@@ -61,7 +61,7 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
 
   // Expense vs revenue for bar chart
   const expVsRev = [
-    { label: "Revenue", value: mrr, fill: "#FF6A00" },
+    { label: "Revenue", value: mrr, fill: "#ff3c00" },
     { label: "Expenses", value: monthlyExpenses, fill: "#3B82F6" },
     { label: "Profit", value: grossProfit, fill: "#22C55E" },
   ];
@@ -89,14 +89,14 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
         <div className="flex items-center justify-between mb-3">
           <div>
             <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">MRR Goal Progress</h3>
-            <p className="text-white/25 text-xs mt-0.5">Target: ${MRR_GOAL.toLocaleString()}/mo</p>
+            <p className="text-ink/[0.43] text-xs mt-0.5">Target: ${MRR_GOAL.toLocaleString()}/mo</p>
           </div>
           <div className="text-right">
             <p className="font-display font-bold text-lg bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{mrrProgress.toFixed(0)}%</p>
-            <p className="text-white/25 text-xs">${(MRR_GOAL - mrr).toLocaleString()} to go</p>
+            <p className="text-ink/[0.43] text-xs">${(MRR_GOAL - mrr).toLocaleString()} to go</p>
           </div>
         </div>
-        <div className="h-3 bg-white/[0.05] rounded-full overflow-hidden border border-white/[0.04]">
+        <div className="h-3 bg-ink/5 rounded-full overflow-hidden border border-ink/[0.13]">
           <div className="relative h-full rounded-full overflow-hidden bg-gradient-to-r from-orange-500 to-amber-300 shadow-[0_0_12px_rgba(255,106,0,0.5)] transition-all duration-700 shimmer" style={{ width: `${Math.min(mrrProgress, 100)}%` }} />
         </div>
       </div>
@@ -110,15 +110,15 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
               <AreaChart data={chartData} margin={{ top: 5, right: 4, left: 4, bottom: 0 }}>
                 <defs>
                   <linearGradient id="faRevGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#FF6A00" stopOpacity="0.65" />
-                    <stop offset="100%" stopColor="#FACC15" stopOpacity="0.05" />
+                    <stop offset="0%" stopColor="#ff3c00" stopOpacity="0.65" />
+                    <stop offset="100%" stopColor="#ffaa00" stopOpacity="0.05" />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                 <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis hide />
                 <Tooltip content={<GameChartTooltip prefix="$" />} cursor={{ stroke: 'rgba(255,170,0,0.25)', strokeWidth: 1 }} />
-                <Area type="monotone" dataKey="revenue" stroke="#FF8C00" strokeWidth={2} fill="url(#faRevGrad)" dot={false} activeDot={{ r: 4, fill: '#FF8C00', stroke: '#FACC15', strokeWidth: 1 }} style={{ filter: 'drop-shadow(0 0 5px rgba(255,170,0,0.4))' }} />
+                <Area type="monotone" dataKey="revenue" stroke="#ff3c00" strokeWidth={2} fill="url(#faRevGrad)" dot={false} activeDot={{ r: 4, fill: '#ff3c00', stroke: '#ffaa00', strokeWidth: 1 }} style={{ filter: 'drop-shadow(0 0 5px rgba(255,170,0,0.4))' }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -130,7 +130,7 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={expVsRev} barSize={36} margin={{ top: 5, right: 4, left: 4, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="faBarRev" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#FF8C00" /><stop offset="100%" stopColor="#FACC15" stopOpacity="0.85" /></linearGradient>
+                  <linearGradient id="faBarRev" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ff3c00" /><stop offset="100%" stopColor="#ffaa00" stopOpacity="0.85" /></linearGradient>
                   <linearGradient id="faBarExp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#60A5FA" /><stop offset="100%" stopColor="#2563EB" stopOpacity="0.85" /></linearGradient>
                   <linearGradient id="faBarProfit" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#4ADE80" /><stop offset="100%" stopColor="#16A34A" stopOpacity="0.85" /></linearGradient>
                 </defs>
@@ -155,20 +155,20 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
         <div className="space-y-2">
           {[
             { label: "Monthly Revenue (MRR)", value: `$${mrr.toLocaleString()}`, color: "font-display bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent" },
-            { label: "Monthly Expenses", value: `-$${monthlyExpenses.toFixed(2)}`, color: "text-red-400/70" },
-            { label: "Monthly Net Profit", value: `$${grossProfit.toFixed(2)}`, color: "text-green-400" },
+            { label: "Monthly Expenses", value: `-$${monthlyExpenses.toFixed(2)}`, color: "text-red-600/70" },
+            { label: "Monthly Net Profit", value: `$${grossProfit.toFixed(2)}`, color: "text-green-600" },
             { label: "", value: "" },
             { label: "Annual Revenue (ARR)", value: `$${arr.toLocaleString()}`, color: "font-display bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent" },
-            { label: "Annual Expenses", value: `-$${annualExpenses.toFixed(2)}`, color: "text-red-400/70" },
-            { label: "Annual Net Profit", value: `$${annualProfit.toFixed(2)}`, color: "text-green-400" },
+            { label: "Annual Expenses", value: `-$${annualExpenses.toFixed(2)}`, color: "text-red-600/70" },
+            { label: "Annual Net Profit", value: `$${annualProfit.toFixed(2)}`, color: "text-green-600" },
             { label: "", value: "" },
-            { label: "Gross Profit Margin", value: `${grossMargin.toFixed(2)}%`, color: "text-blue-400" },
-            { label: "Net Profit Margin", value: `${netMargin.toFixed(2)}%`, color: "text-blue-400" },
-            { label: "Expense Ratio", value: `${((monthlyExpenses / mrr) * 100).toFixed(2)}%`, color: "text-white/50" },
+            { label: "Gross Profit Margin", value: `${grossMargin.toFixed(2)}%`, color: "text-blue-600" },
+            { label: "Net Profit Margin", value: `${netMargin.toFixed(2)}%`, color: "text-blue-600" },
+            { label: "Expense Ratio", value: `${((monthlyExpenses / mrr) * 100).toFixed(2)}%`, color: "text-ink/50" },
           ].map((row, i) =>
             row.label ? (
-              <div key={i} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                <span className="text-white/45 text-sm">{row.label}</span>
+              <div key={i} className="flex items-center justify-between py-2 border-b border-ink/[0.13] last:border-0">
+                <span className="text-ink/[0.63] text-sm">{row.label}</span>
                 <span className={`text-sm font-semibold ${row.color}`}>{row.value}</span>
               </div>
             ) : <div key={i} className="py-1" />
@@ -183,11 +183,11 @@ function MetricCard({ label, value, sub, icon: Icon, highlight, good }) {
   return (
     <div className="game-panel p-4">
       <div className="flex items-center gap-2 mb-2">
-        {Icon && <Icon className={`w-3.5 h-3.5 ${highlight ? "text-orange-500" : good ? "text-green-400/60" : "text-white/20"}`} />}
-        <span className="text-white/30 text-[10px] tracking-wider uppercase">{label}</span>
+        {Icon && <Icon className={`w-3.5 h-3.5 ${highlight ? "text-orange-500" : good ? "text-green-600/60" : "text-ink/[0.38]"}`} />}
+        <span className="text-ink/[0.48] text-[10px] tracking-wider uppercase">{label}</span>
       </div>
-      <p className={`text-xl font-display font-extrabold ${highlight ? "bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent" : good ? "text-green-400" : "text-white/80"}`}>{value}</p>
-      {sub && <p className="text-white/25 text-[10px] mt-1">{sub}</p>}
+      <p className={`text-xl font-display font-extrabold ${highlight ? "bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent" : good ? "text-green-600" : "text-ink/80"}`}>{value}</p>
+      {sub && <p className="text-ink/[0.43] text-[10px] mt-1">{sub}</p>}
     </div>
   );
 }

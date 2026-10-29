@@ -63,25 +63,25 @@ export default function WorkloadSnapshot({ clients }) {
     <div className="game-panel">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-ink/[0.02] transition-colors"
       >
         <div className="flex items-center gap-3">
           <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-orange-500 to-yellow-400 shadow-[0_0_8px_rgba(255,106,0,0.7)]" />
           <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Workload Snapshot</h2>
-          <span className="text-white/25 text-[10px]">Active client content obligations</span>
+          <span className="text-ink/[0.43] text-[10px]">Active client content obligations</span>
         </div>
-        {expanded ? <ChevronUp className="w-4 h-4 text-white/25" /> : <ChevronDown className="w-4 h-4 text-white/25" />}
+        {expanded ? <ChevronUp className="w-4 h-4 text-ink/[0.43]" /> : <ChevronDown className="w-4 h-4 text-ink/[0.43]" />}
       </button>
 
       {expanded && (
-        <div className="px-5 pb-5 space-y-5 border-t border-white/[0.04]">
+        <div className="px-5 pb-5 space-y-5 border-t border-ink/[0.13]">
 
           {/* Top KPIs */}
           <div className="grid grid-cols-6 gap-3 pt-4">
-            <KPI label="Blogs / Week" value={totalBlogsPerWeek} color="text-blue-400" />
-            <KPI label="Blogs / Month" value={totalBlogsPerMonth} color="text-blue-400" />
-            <KPI label="GBP Posts / Week" value={totalGBPPerWeek} color="text-purple-400" />
-            <KPI label="GBP Posts / Month" value={totalGBPPerMonth} color="text-purple-400" />
+            <KPI label="Blogs / Week" value={totalBlogsPerWeek} color="text-blue-600" />
+            <KPI label="Blogs / Month" value={totalBlogsPerMonth} color="text-blue-600" />
+            <KPI label="GBP Posts / Week" value={totalGBPPerWeek} color="text-purple-600" />
+            <KPI label="GBP Posts / Month" value={totalGBPPerMonth} color="text-purple-600" />
             <KPI label="Total Content / Week" value={totalContentPerWeek} color="text-orange-400" />
             <KPI label="Total Content / Month" value={totalContentPerMonth} color="text-orange-400" />
           </div>
@@ -90,7 +90,7 @@ export default function WorkloadSnapshot({ clients }) {
           <div>
             <p className="font-display text-[10px] tracking-[0.2em] uppercase mb-3 bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Content Due by Day of Week</p>
             {dayBreakdown.length === 0 ? (
-              <p className="text-white/20 text-xs">No clients have blog days scheduled yet.</p>
+              <p className="text-ink/[0.38] text-xs">No clients have blog days scheduled yet.</p>
             ) : (
               <div className="grid grid-cols-7 gap-2">
                 {WEEKDAYS.map((wd) => {
@@ -99,20 +99,20 @@ export default function WorkloadSnapshot({ clients }) {
                   return (
                     <div
                       key={wd.num}
-                      className={`rounded-lg border p-3 text-center ${isEmpty ? "border-white/[0.03] bg-white/[0.01] opacity-40" : "border-orange-500/20 bg-orange-500/[0.04]"}`}
+                      className={`rounded-lg border p-3 text-center ${isEmpty ? "border-ink/[0.13] bg-ink/[0.01] opacity-40" : "border-orange-500/20 bg-orange-500/[0.04]"}`}
                     >
-                      <p className="text-white/40 text-[10px] font-semibold uppercase tracking-wider mb-2">{wd.label}</p>
+                      <p className="text-ink/[0.58] text-[10px] font-semibold uppercase tracking-wider mb-2">{wd.label}</p>
                       {isEmpty ? (
-                        <p className="text-white/15 text-xs">—</p>
+                        <p className="text-ink/[0.33] text-xs">—</p>
                       ) : (
                         <>
                           <div className="flex items-center justify-center gap-1.5 mb-1.5">
-                            <FileText className="w-3 h-3 text-blue-400/70" />
-                            <span className="text-blue-400 font-bold text-sm">{d.blogs}</span>
+                            <FileText className="w-3 h-3 text-blue-600/70" />
+                            <span className="text-blue-600 font-bold text-sm">{d.blogs}</span>
                           </div>
                           <div className="flex items-center justify-center gap-1.5 mb-2">
-                            <MapPin className="w-3 h-3 text-purple-400/70" />
-                            <span className="text-purple-400 font-bold text-sm">{d.gbp}</span>
+                            <MapPin className="w-3 h-3 text-purple-600/70" />
+                            <span className="text-purple-600 font-bold text-sm">{d.gbp}</span>
                           </div>
                           <div className="text-[10px] font-bold text-orange-300 bg-gradient-to-r from-orange-500/15 to-amber-400/10 border border-orange-500/25 rounded px-1.5 py-0.5">
                             {d.total} total
@@ -127,22 +127,22 @@ export default function WorkloadSnapshot({ clients }) {
           </div>
 
           {/* Bottom row: busiest day + unscheduled + legend */}
-          <div className="flex items-center gap-6 pt-1 border-t border-white/[0.04]">
+          <div className="flex items-center gap-6 pt-1 border-t border-ink/[0.13]">
             {busiestDay && (
               <div className="flex items-center gap-2">
-                <span className="text-white/30 text-xs">Busiest day:</span>
+                <span className="text-ink/[0.48] text-xs">Busiest day:</span>
                 <span className="text-orange-400 text-xs font-semibold">{busiestDay.label} ({busiestDay.total} pieces)</span>
               </div>
             )}
             {unscheduledCount > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-white/30 text-xs">No schedule set:</span>
+                <span className="text-ink/[0.48] text-xs">No schedule set:</span>
                 <span className="text-orange-400/70 text-xs font-semibold">{unscheduledCount} client{unscheduledCount > 1 ? "s" : ""}</span>
               </div>
             )}
             <div className="ml-auto flex items-center gap-4">
-              <div className="flex items-center gap-1.5"><FileText className="w-3 h-3 text-blue-400/70" /><span className="text-white/30 text-[10px]">Blog</span></div>
-              <div className="flex items-center gap-1.5"><MapPin className="w-3 h-3 text-purple-400/70" /><span className="text-white/30 text-[10px]">GBP Post</span></div>
+              <div className="flex items-center gap-1.5"><FileText className="w-3 h-3 text-blue-600/70" /><span className="text-ink/[0.48] text-[10px]">Blog</span></div>
+              <div className="flex items-center gap-1.5"><MapPin className="w-3 h-3 text-purple-600/70" /><span className="text-ink/[0.48] text-[10px]">GBP Post</span></div>
             </div>
           </div>
         </div>
@@ -153,10 +153,10 @@ export default function WorkloadSnapshot({ clients }) {
 
 function KPI({ label, value, color }) {
   return (
-    <div className="relative overflow-hidden bg-white/[0.02] rounded-lg border border-orange-500/10 p-3 text-center">
+    <div className="relative overflow-hidden bg-ink/[0.02] rounded-lg border border-orange-500/10 p-3 text-center">
       <div className="absolute -top-8 -right-8 w-12 h-12 rounded-full bg-orange-500/[0.05] blur-2xl pointer-events-none" />
       <p className={`relative text-xl font-display font-extrabold ${color}`}>{value}</p>
-      <p className="relative text-white/30 text-[10px] uppercase tracking-wider mt-1">{label}</p>
+      <p className="relative text-ink/[0.48] text-[10px] uppercase tracking-wider mt-1">{label}</p>
     </div>
   );
 }

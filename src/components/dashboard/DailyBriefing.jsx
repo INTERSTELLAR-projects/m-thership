@@ -95,7 +95,7 @@ export default function DailyBriefing() {
 
   if (!supported) {
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/25 text-xs">
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-ink/[0.03] border border-ink/[0.13] text-ink/[0.43] text-xs">
         <Volume2 className="w-3.5 h-3.5" />
         Voice not supported
       </div>
@@ -110,13 +110,13 @@ export default function DailyBriefing() {
         className={`relative flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold border transition-all ${
           isNew
             ? "bg-orange-500/15 border-orange-500/30 text-orange-400 animate-pulse"
-            : "bg-white/[0.05] border-white/[0.08] text-white/60 hover:text-white/80 hover:bg-white/[0.08]"
+            : "bg-ink/5 border-ink/[0.13] text-ink/60 hover:text-ink/80 hover:bg-ink/[0.08]"
         }`}
       >
         {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Volume2 className="w-3.5 h-3.5" />}
         Daily Briefing
         {isNew && !loading && (
-          <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-orange-500 border border-black flex items-center justify-center text-[8px] font-bold text-white">!</span>
+          <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-orange-500 border border-ink flex items-center justify-center text-[8px] font-bold text-white">!</span>
         )}
       </button>
 

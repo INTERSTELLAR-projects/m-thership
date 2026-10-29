@@ -88,17 +88,17 @@ export default function ClientCommsTab({ clientEmail }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-6 h-6 text-white/20 animate-spin" />
+        <Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="space-y-4 h-[600px] flex flex-col">
-      <div className="flex-1 overflow-y-auto space-y-3 border border-white/[0.06] rounded-lg p-4 bg-white/[0.02]">
+      <div className="flex-1 overflow-y-auto space-y-3 border border-ink/[0.13] rounded-lg p-4 bg-ink/[0.02]">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <p className="text-white/25 text-sm">No messages yet</p>
+            <p className="text-ink/[0.43] text-sm">No messages yet</p>
           </div>
         ) : (
           messages.map((msg) => (
@@ -106,8 +106,8 @@ export default function ClientCommsTab({ clientEmail }) {
               <div
                 className={`max-w-xs rounded-lg px-3 py-2 ${
                   msg.senderEmail === ADMIN_EMAIL
-                    ? "bg-orange-500/20 border border-orange-500/30 text-white"
-                    : "bg-white/[0.05] border border-white/[0.06] text-white/80"
+                    ? "bg-orange-500/20 border border-orange-500/30 text-ink"
+                    : "bg-ink/5 border border-ink/[0.13] text-ink/80"
                 }`}
               >
                 {msg.messageType === "text" && (
@@ -134,7 +134,7 @@ export default function ClientCommsTab({ clientEmail }) {
                 {msg.messageType === "audio" && msg.attachments?.[0] && (
                   <audio controls src={msg.attachments[0].url} className="max-w-xs h-8" />
                 )}
-                <p className="text-xs text-white/30 mt-1">
+                <p className="text-xs text-ink/[0.48] mt-1">
                   {new Date(msg.timestamp).toLocaleTimeString()}
                 </p>
               </div>
@@ -155,7 +155,7 @@ export default function ClientCommsTab({ clientEmail }) {
           />
           <button
             onClick={() => imageInputRef.current?.click()}
-            className="p-2 text-white/40 hover:text-white/60 hover:bg-white/[0.05] rounded-lg transition-colors"
+            className="p-2 text-ink/[0.58] hover:text-ink/60 hover:bg-ink/5 rounded-lg transition-colors"
             title="Send image"
           >
             <Image className="w-4 h-4" />
@@ -169,7 +169,7 @@ export default function ClientCommsTab({ clientEmail }) {
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="p-2 text-white/40 hover:text-white/60 hover:bg-white/[0.05] rounded-lg transition-colors"
+            className="p-2 text-ink/[0.58] hover:text-ink/60 hover:bg-ink/5 rounded-lg transition-colors"
             title="Send document"
           >
             <Paperclip className="w-4 h-4" />
@@ -184,7 +184,7 @@ export default function ClientCommsTab({ clientEmail }) {
           />
           <button
             onClick={() => audioInputRef.current?.click()}
-            className="p-2 text-white/40 hover:text-white/60 hover:bg-white/[0.05] rounded-lg transition-colors"
+            className="p-2 text-ink/[0.58] hover:text-ink/60 hover:bg-ink/5 rounded-lg transition-colors"
             title="Send audio"
           >
             <Mic className="w-4 h-4" />
@@ -194,7 +194,7 @@ export default function ClientCommsTab({ clientEmail }) {
 
           <MicButton
             onResult={(text) => setMessageText((p) => p + (p ? " " : "") + text)}
-            className="p-2 text-white/40 hover:text-white/60"
+            className="p-2 text-ink/[0.58] hover:text-ink/60"
           />
         </div>
 
@@ -209,7 +209,7 @@ export default function ClientCommsTab({ clientEmail }) {
               }
             }}
             placeholder="Type message... (Shift+Enter for new line)"
-            className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none focus:border-orange-500/30 resize-none max-h-20"
+            className="flex-1 bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink placeholder:text-ink/[0.38] outline-none focus:border-orange-500/30 resize-none max-h-20"
             rows="2"
           />
           <button

@@ -103,69 +103,69 @@ export default function Documents() {
       <PageHeader breadcrumb="Command Center / Documents" rightText="Document Management" />
       <div className="px-8 py-6 space-y-6">
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="bg-card border border-white/[0.06] mb-6">
-            <TabsTrigger value="documents" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40">Documents</TabsTrigger>
-            <TabsTrigger value="forms" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-white/40">Forms</TabsTrigger>
+          <TabsList className="bg-card border border-ink/[0.13] mb-6">
+            <TabsTrigger value="documents" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58]">Documents</TabsTrigger>
+            <TabsTrigger value="forms" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58]">Forms</TabsTrigger>
           </TabsList>
           <TabsContent value="documents" className="space-y-6">
         <div className="flex items-center gap-4">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-            <Input placeholder="Search documents..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 bg-card border-white/[0.06] text-white placeholder:text-white/20 h-9" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/[0.38]" />
+            <Input placeholder="Search documents..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 bg-card border-ink/[0.13] text-ink placeholder:text-ink/[0.38] h-9" />
           </div>
           <input ref={fileRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
-          <Button onClick={() => fileRef.current.click()} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Upload className="w-4 h-4" />Upload</Button>
+          <Button onClick={() => fileRef.current.click()} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Upload className="w-4 h-4" />Upload</Button>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
           {CATEGORIES.map((cat) => (
-            <button key={cat} onClick={() => setActiveFilter(activeFilter === cat ? "All" : cat)} className={`relative overflow-hidden bg-card rounded-xl border p-4 text-left transition-all card-hover ${activeFilter === cat ? "border-orange-500/40 bg-orange-500/[0.06] shadow-[0_0_16px_rgba(255,106,0,0.2)]" : "border-white/[0.07]"}`}>
+            <button key={cat} onClick={() => setActiveFilter(activeFilter === cat ? "All" : cat)} className={`relative overflow-hidden bg-card rounded-xl border p-4 text-left transition-all card-hover ${activeFilter === cat ? "border-orange-500/40 bg-orange-500/[0.06] shadow-[0_0_16px_rgba(255,106,0,0.2)]" : "border-ink/[0.13]"}`}>
               <div className="absolute -top-8 -right-8 w-16 h-16 rounded-full bg-orange-500/[0.06] blur-2xl pointer-events-none" />
               <div className="relative flex items-center justify-between mb-2"><Folder className="w-4 h-4 text-orange-400" /><span className="text-orange-300/70 text-sm font-display font-bold">{categoryCounts[cat] || 0}</span></div>
-              <p className="relative text-white/80 text-sm font-medium">{cat}</p>
+              <p className="relative text-ink/80 text-sm font-medium">{cat}</p>
             </button>
           ))}
         </div>
 
         <div className="flex gap-1.5 flex-wrap">
           {["All", "Pinned"].map((f) => (
-            <button key={f} onClick={() => setActiveFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeFilter === f ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{f}</button>
+            <button key={f} onClick={() => setActiveFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeFilter === f ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{f}</button>
           ))}
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 text-white/20 animate-spin" /></div>
+          <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" /></div>
         ) : filtered.length === 0 ? (
-          <div className="bg-card rounded-xl border border-white/[0.06] p-10 text-center">
-            <Folder className="w-8 h-8 text-white/10 mx-auto mb-3" />
-            <p className="text-white/30 text-sm">{activeFilter === "All" ? "No documents yet. Upload your first file." : `No documents in ${activeFilter}.`}</p>
+          <div className="bg-card rounded-xl border border-ink/[0.13] p-10 text-center">
+            <Folder className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
+            <p className="text-ink/[0.48] text-sm">{activeFilter === "All" ? "No documents yet. Upload your first file." : `No documents in ${activeFilter}.`}</p>
           </div>
         ) : (
           <div className="space-y-2">
             {filtered.map((doc) => (
-              <div key={doc.id} className="card-hover relative overflow-hidden bg-card rounded-xl border border-white/[0.07] p-4 flex items-center gap-4 group">
+              <div key={doc.id} className="card-hover relative overflow-hidden bg-card rounded-xl border border-ink/[0.13] p-4 flex items-center gap-4 group">
                 <div className="absolute -top-10 -left-8 w-20 h-20 rounded-full bg-orange-500/[0.05] blur-2xl pointer-events-none" />
                 <button onClick={() => window.open(doc.url, "_blank")} className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center shrink-0 hover:from-orange-500/30 hover:to-yellow-400/20 transition-all"><FileText className="w-4 h-4 text-orange-300" /></button>
                 <div className="flex-1 min-w-0">
                   {renamingId === doc.id ? (
                     <div className="flex items-center gap-2">
-                      <input autoFocus value={renameValue} onChange={(e) => setRenameValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") saveRename(doc.id); if (e.key === "Escape") setRenamingId(null); }} className="bg-white/[0.06] border border-orange-500/30 rounded-md px-2 py-0.5 text-sm text-white outline-none w-64" />
-                      <button onClick={() => saveRename(doc.id)} className="p-1 text-green-400/70 hover:text-green-400"><Check className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => setRenamingId(null)} className="p-1 text-white/30 hover:text-white/60"><X className="w-3.5 h-3.5" /></button>
+                      <input autoFocus value={renameValue} onChange={(e) => setRenameValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") saveRename(doc.id); if (e.key === "Escape") setRenamingId(null); }} className="bg-ink/[0.06] border border-orange-500/30 rounded-md px-2 py-0.5 text-sm text-ink outline-none w-64" />
+                      <button onClick={() => saveRename(doc.id)} className="p-1 text-green-600/70 hover:text-green-600"><Check className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setRenamingId(null)} className="p-1 text-ink/[0.48] hover:text-ink/60"><X className="w-3.5 h-3.5" /></button>
                     </div>
                   ) : (
                     <button onClick={() => window.open(doc.url, "_blank")} className="flex items-center gap-2 text-left hover:text-orange-400/80 transition-colors">
-                      <span className="text-white/85 text-sm font-medium truncate">{doc.name}</span>
-                      <ExternalLink className="w-3 h-3 text-white/20 shrink-0" />
+                      <span className="text-ink/85 text-sm font-medium truncate">{doc.name}</span>
+                      <ExternalLink className="w-3 h-3 text-ink/[0.38] shrink-0" />
                       {doc.pinned && <Pin className="w-3 h-3 text-orange-500/50 shrink-0" />}
                     </button>
                   )}
-                  <p className="text-white/25 text-xs mt-0.5">{doc.category} · {doc.date}</p>
+                  <p className="text-ink/[0.43] text-xs mt-0.5">{doc.category} · {doc.date}</p>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                  <button onClick={() => { setRenamingId(doc.id); setRenameValue(doc.name); }} className="p-1.5 rounded-md text-white/20 hover:text-white/50 hover:bg-white/5 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => togglePin(doc)} className={`p-1.5 rounded-md transition-all ${doc.pinned ? "text-orange-500/60 hover:text-orange-500" : "text-white/20 hover:text-white/50 hover:bg-white/5"}`}><Pin className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => deleteDoc(doc.id)} className="p-1.5 rounded-md text-white/20 hover:text-red-400/60 hover:bg-white/5 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => { setRenamingId(doc.id); setRenameValue(doc.name); }} className="p-1.5 rounded-md text-ink/[0.38] hover:text-ink/50 hover:bg-ink/5 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => togglePin(doc)} className={`p-1.5 rounded-md transition-all ${doc.pinned ? "text-orange-500/60 hover:text-orange-500" : "text-ink/[0.38] hover:text-ink/50 hover:bg-ink/5"}`}><Pin className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => deleteDoc(doc.id)} className="p-1.5 rounded-md text-ink/[0.38] hover:text-red-600/60 hover:bg-ink/5 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </div>
             ))}
@@ -179,22 +179,22 @@ export default function Documents() {
             </div>
 
       {showUploadModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
-          <div className="bg-card border border-white/[0.08] rounded-2xl p-6 w-full max-w-sm space-y-4">
+        <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center">
+          <div className="bg-card border border-ink/[0.13] rounded-2xl p-6 w-full max-w-sm space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-white font-bold text-sm">Upload Documents</h3>
-              <button onClick={() => { setShowUploadModal(false); setPendingFiles([]); }} className="text-white/30 hover:text-white/60"><X className="w-4 h-4" /></button>
+              <h3 className="text-ink font-bold text-sm">Upload Documents</h3>
+              <button onClick={() => { setShowUploadModal(false); setPendingFiles([]); }} className="text-ink/[0.48] hover:text-ink/60"><X className="w-4 h-4" /></button>
             </div>
-            <div className="space-y-1">{pendingFiles.map((f, i) => <p key={i} className="text-white/50 text-xs truncate">📄 {f.name}</p>)}</div>
+            <div className="space-y-1">{pendingFiles.map((f, i) => <p key={i} className="text-ink/50 text-xs truncate">📄 {f.name}</p>)}</div>
             <div>
-              <p className="text-white/40 text-xs mb-1.5">Category</p>
+              <p className="text-ink/[0.58] text-xs mb-1.5">Category</p>
               <div className="grid grid-cols-2 gap-1.5">
                 {CATEGORIES.map((cat) => (
-                  <button key={cat} onClick={() => setUploadCategory(cat)} className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-all text-left ${uploadCategory === cat ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/30 hover:text-white/50 border border-white/[0.06]"}`}>{cat}</button>
+                  <button key={cat} onClick={() => setUploadCategory(cat)} className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-all text-left ${uploadCategory === cat ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-ink/[0.48] hover:text-ink/50 border border-ink/[0.13]"}`}>{cat}</button>
                 ))}
               </div>
             </div>
-            <Button onClick={handleUpload} disabled={uploading} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">{uploading ? "Uploading..." : `Upload ${pendingFiles.length} file${pendingFiles.length > 1 ? "s" : ""}`}</Button>
+            <Button onClick={handleUpload} disabled={uploading} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">{uploading ? "Uploading..." : `Upload ${pendingFiles.length} file${pendingFiles.length > 1 ? "s" : ""}`}</Button>
           </div>
         </div>
       )}
@@ -222,36 +222,36 @@ export default function Documents() {
       return (
       <div className="space-y-6">
       <div className="flex gap-2 mb-6">
-        <button onClick={() => setSelectedType("intake")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedType === "intake" ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/40 hover:text-white/60 border border-transparent"}`}>Intake Forms</button>
-        <button onClick={() => setSelectedType("request")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedType === "request" ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-white/40 hover:text-white/60 border border-transparent"}`}>Request Forms</button>
+        <button onClick={() => setSelectedType("intake")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedType === "intake" ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-ink/[0.58] hover:text-ink/60 border border-transparent"}`}>Intake Forms</button>
+        <button onClick={() => setSelectedType("request")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedType === "request" ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-ink/[0.58] hover:text-ink/60 border border-transparent"}`}>Request Forms</button>
       </div>
 
       <div className="flex items-center justify-between">
-       <h3 className="text-white font-bold text-sm">{selectedType === "request" ? "Request" : "Intake"} Forms</h3>
-       <Button onClick={() => { setEditingForm(null); setShowFormBuilder(true); }} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Plus className="w-4 h-4" />New Form</Button>
+       <h3 className="text-ink font-bold text-sm">{selectedType === "request" ? "Request" : "Intake"} Forms</h3>
+       <Button onClick={() => { setEditingForm(null); setShowFormBuilder(true); }} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Plus className="w-4 h-4" />New Form</Button>
       </div>
 
       {forms.filter(f => (f.formType || "request") === selectedType).length === 0 ? (
-       <div className="bg-card rounded-xl border border-white/[0.06] p-10 text-center">
-         <FileText className="w-8 h-8 text-white/10 mx-auto mb-3" />
-         <p className="text-white/30 text-sm">No request forms yet. Create one to get started.</p>
+       <div className="bg-card rounded-xl border border-ink/[0.13] p-10 text-center">
+         <FileText className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
+         <p className="text-ink/[0.48] text-sm">No request forms yet. Create one to get started.</p>
        </div>
       ) : (
        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
          {forms.filter(f => (f.formType || "request") === selectedType).map((form) => (
-           <div key={form.id} className="card-hover relative overflow-hidden bg-card rounded-xl border border-white/[0.07] p-5 space-y-3">
+           <div key={form.id} className="card-hover relative overflow-hidden bg-card rounded-xl border border-ink/[0.13] p-5 space-y-3">
            <div>
-             <h4 className="text-white font-bold text-sm">{form.title}</h4>
-             <p className="text-white/40 text-xs mt-1">{form.subtitle}</p>
-             <span className={`inline-block mt-2 text-[10px] font-semibold px-2 py-1 rounded ${ form.published ? "bg-green-500/10 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
+             <h4 className="text-ink font-bold text-sm">{form.title}</h4>
+             <p className="text-ink/[0.58] text-xs mt-1">{form.subtitle}</p>
+             <span className={`inline-block mt-2 text-[10px] font-semibold px-2 py-1 rounded ${ form.published ? "bg-green-500/10 text-green-600" : "bg-yellow-500/10 text-yellow-600"}`}>
                {form.published ? "Published" : "Draft"}
              </span>
            </div>
            <div className="flex items-center gap-2">
-             <button onClick={() => { setEditingForm(form); setShowFormBuilder(true); }} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.04] text-white/60 hover:bg-white/[0.08] transition-all flex items-center justify-center gap-1.5"><Pencil className="w-3 h-3" />Edit</button>
-             {form.published && <button onClick={() => setPreviewForm(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all flex items-center justify-center gap-1.5"><Eye className="w-3 h-3" />Preview</button>}
+             <button onClick={() => { setEditingForm(form); setShowFormBuilder(true); }} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-ink/[0.04] text-ink/60 hover:bg-ink/[0.08] transition-all flex items-center justify-center gap-1.5"><Pencil className="w-3 h-3" />Edit</button>
+             {form.published && <button onClick={() => setPreviewForm(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 transition-all flex items-center justify-center gap-1.5"><Eye className="w-3 h-3" />Preview</button>}
              {!form.published && <button onClick={() => handlePublish(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 transition-all flex items-center justify-center gap-1.5"><Eye className="w-3 h-3" />Publish</button>}
-             <button onClick={() => handleDeleteForm(form.id)} className="px-3 py-1.5 text-xs font-medium rounded-lg text-white/20 hover:text-red-400 transition-all"><Trash2 className="w-3 h-3" /></button>
+             <button onClick={() => handleDeleteForm(form.id)} className="px-3 py-1.5 text-xs font-medium rounded-lg text-ink/[0.38] hover:text-red-600 transition-all"><Trash2 className="w-3 h-3" /></button>
            </div>
            </div>
          ))}
@@ -313,21 +313,21 @@ export default function Documents() {
 
       if (step === "builder") {
       return (
-      <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
-      <div className="bg-card border border-white/[0.08] rounded-2xl p-6 w-full max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center">
+      <div className="bg-card border border-ink/[0.13] rounded-2xl p-6 w-full max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
        <div className="flex items-center justify-between">
          <div className="flex items-center gap-2">
-           <button onClick={() => setStep("basic")} className="text-white/40 hover:text-white/70 transition-colors">
+           <button onClick={() => setStep("basic")} className="text-ink/[0.58] hover:text-ink/70 transition-colors">
              <ArrowLeft className="w-4 h-4" />
            </button>
-           <h3 className="text-white font-bold text-sm">Form Builder</h3>
+           <h3 className="text-ink font-bold text-sm">Form Builder</h3>
          </div>
-         <button onClick={onClose} className="text-white/30 hover:text-white/60"><X className="w-4 h-4" /></button>
+         <button onClick={onClose} className="text-ink/[0.48] hover:text-ink/60"><X className="w-4 h-4" /></button>
        </div>
        <FormEditor fields={fields} setFields={setFields} />
        <div className="flex gap-2 pt-2">
          <Button onClick={() => setStep("basic")} variant="outline" className="flex-1">Back</Button>
-         <Button onClick={handleSave} disabled={!title.trim() || fields.length === 0 || saving} className="flex-1 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">{saving ? "Saving..." : "Save Form"}</Button>
+         <Button onClick={handleSave} disabled={!title.trim() || fields.length === 0 || saving} className="flex-1 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">{saving ? "Saving..." : "Save Form"}</Button>
        </div>
       </div>
       </div>
@@ -335,31 +335,31 @@ export default function Documents() {
       }
 
       return (
-      <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
-      <div className="bg-card border border-white/[0.08] rounded-2xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center">
+      <div className="bg-card border border-ink/[0.13] rounded-2xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto">
        <div className="flex items-center justify-between">
-         <h3 className="text-white font-bold text-sm">{form ? "Edit Form" : "Create Form"}</h3>
-         <button onClick={onClose} className="text-white/30 hover:text-white/60"><X className="w-4 h-4" /></button>
+         <h3 className="text-ink font-bold text-sm">{form ? "Edit Form" : "Create Form"}</h3>
+         <button onClick={onClose} className="text-ink/[0.48] hover:text-ink/60"><X className="w-4 h-4" /></button>
        </div>
        <div className="space-y-3">
          <div>
-           <label className="text-white/40 text-xs font-medium block mb-1.5">Form Title *</label>
-           <Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-white/[0.03] border-white/[0.06] text-white" placeholder="e.g. Web Øps Website Update Request" />
+           <label className="text-ink/[0.58] text-xs font-medium block mb-1.5">Form Title *</label>
+           <Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-ink/[0.03] border-ink/[0.13] text-ink" placeholder="e.g. Web Øps Website Update Request" />
          </div>
          <div>
-           <label className="text-white/40 text-xs font-medium block mb-1.5">Subtitle (optional)</label>
-           <Input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="bg-white/[0.03] border-white/[0.06] text-white" placeholder="Brief description" />
+           <label className="text-ink/[0.58] text-xs font-medium block mb-1.5">Subtitle (optional)</label>
+           <Input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="bg-ink/[0.03] border-ink/[0.13] text-ink" placeholder="Brief description" />
          </div>
          <div>
-           <label className="text-white/40 text-xs font-medium block mb-1.5">Category *</label>
-           <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded px-3 py-2 text-white text-sm outline-none">
+           <label className="text-ink/[0.58] text-xs font-medium block mb-1.5">Category *</label>
+           <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded px-3 py-2 text-ink text-sm outline-none">
              {["Web Øps", "Førge", "Ørbit SEO", "Performance", "Other"].map((cat) => <option key={cat} value={cat}>{cat}</option>)}
            </select>
          </div>
        </div>
        <div className="flex gap-2 pt-2">
          <Button onClick={onClose} variant="outline" className="flex-1">Cancel</Button>
-         <Button onClick={() => setStep("builder")} disabled={!title.trim()} className="flex-1 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">Continue to Builder</Button>
+         <Button onClick={() => setStep("builder")} disabled={!title.trim()} className="flex-1 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">Continue to Builder</Button>
        </div>
       </div>
       </div>

@@ -135,16 +135,16 @@ export default function Financial() {
 
   if (loading) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <Loader2 className="w-6 h-6 text-white/20 animate-spin" />
+      <Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" />
     </div>
   );
 
   return (
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Command Center / Financial" rightText="Expense Management" />
-      <div className="px-8 pt-4 flex gap-1 border-b border-white/[0.05]">
+      <div className="px-8 pt-4 flex gap-1 border-b border-ink/[0.13]">
         {["overview", "categories", "analytics", "projections", "investments"].map((tab) => (
-          <button key={tab} onClick={() => setSubPage(tab)} className={`px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all rounded-t-lg ${subPage === tab ? "bg-orange-500/15 text-orange-500 border-b-2 border-orange-500" : "text-white/30 hover:text-white/60"}`}>{tab === "overview" ? "Overview" : tab === "categories" ? "Categories" : tab === "analytics" ? "Analytics" : tab === "projections" ? "Projections" : "Investments"}</button>
+          <button key={tab} onClick={() => setSubPage(tab)} className={`px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all rounded-t-lg ${subPage === tab ? "bg-orange-500/15 text-orange-500 border-b-2 border-orange-500" : "text-ink/[0.48] hover:text-ink/60"}`}>{tab === "overview" ? "Overview" : tab === "categories" ? "Categories" : tab === "analytics" ? "Analytics" : tab === "projections" ? "Projections" : "Investments"}</button>
         ))}
       </div>
       <div className="px-8 py-6 space-y-6">
@@ -160,9 +160,9 @@ export default function Financial() {
                 <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-3">Upcoming Expenses</h2>
                 <div className="grid grid-cols-2 gap-3">
                   {upcoming.map((e) => (
-                    <div key={e.id} className={`bg-card rounded-xl border p-4 flex items-center gap-4 ${e.status === "Overdue" ? "border-red-500/20" : "border-white/[0.06]"}`}>
+                    <div key={e.id} className={`bg-card rounded-xl border p-4 flex items-center gap-4 ${e.status === "Overdue" ? "border-red-500/20" : "border-ink/[0.13]"}`}>
                       <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 font-display font-extrabold text-xs shrink-0">{e.platform?.charAt(0)}</div>
-                      <div className="flex-1 min-w-0"><p className="text-white/85 text-sm font-medium truncate">{e.platform}</p><p className="text-white/25 text-xs">{formatDueDate(e.dueDate)}</p></div>
+                      <div className="flex-1 min-w-0"><p className="text-ink/85 text-sm font-medium truncate">{e.platform}</p><p className="text-ink/[0.43] text-xs">{formatDueDate(e.dueDate)}</p></div>
                       <div className="text-right shrink-0"><p className="text-sm font-display font-bold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">${e.amount.toFixed(2)}</p><StatusBadge status={e.status} /></div>
                     </div>
                   ))}
@@ -173,7 +173,7 @@ export default function Financial() {
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mr-2">All Expenses</h2>
                 {["All", "Monthly", "Quarterly", "Annually"].map((f) => <FilterPill key={f} label={f} active={freqFilter === f} onClick={() => setFreqFilter(f)} />)}
-                <span className="text-white/10 mx-1">|</span>
+                <span className="text-ink/[0.28] mx-1">|</span>
                 {["All", "Upcoming", "Paid", "Overdue"].map((f) => <FilterPill key={f} label={f} active={statusFilter === f} onClick={() => setStatusFilter(f)} danger={f === "Overdue"} />)}
               </div>
               <AddExpenseDialog categories={categories} onAdd={async (form) => {
@@ -199,14 +199,14 @@ export default function Financial() {
         ) : (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-white/25 text-xs">Group your expenses by category.</p>
-              <button onClick={() => setManagingCats(!managingCats)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${managingCats ? "bg-orange-500/15 text-orange-500 border-orange-500/20" : "text-white/30 hover:text-white/60 border-white/10"}`}>
+              <p className="text-ink/[0.43] text-xs">Group your expenses by category.</p>
+              <button onClick={() => setManagingCats(!managingCats)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${managingCats ? "bg-orange-500/15 text-orange-500 border-orange-500/20" : "text-ink/[0.48] hover:text-ink/60 border-ink/[0.13]"}`}>
                 <Settings className="w-3.5 h-3.5" />{managingCats ? "Done" : "Manage Categories"}
               </button>
             </div>
 
             {managingCats && (
-              <div className="bg-card rounded-xl border border-white/[0.08] p-5 space-y-3">
+              <div className="bg-card rounded-xl border border-ink/[0.13] p-5 space-y-3">
                 <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Manage Categories</h3>
                 <DragDropContext onDragEnd={(result) => {
                   if (!result.destination) return;
@@ -221,22 +221,22 @@ export default function Financial() {
                         {categories.map((cat, i) => (
                           <Draggable key={cat} draggableId={cat} index={i}>
                             {(drag) => (
-                              <div ref={drag.innerRef} {...drag.draggableProps} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                                <span {...drag.dragHandleProps} className="text-white/15 hover:text-white/40 cursor-grab active:cursor-grabbing"><GripVertical className="w-3.5 h-3.5" /></span>
+                              <div ref={drag.innerRef} {...drag.draggableProps} className="flex items-center gap-2 p-2 rounded-lg bg-ink/[0.02] border border-ink/[0.13]">
+                                <span {...drag.dragHandleProps} className="text-ink/[0.33] hover:text-ink/[0.58] cursor-grab active:cursor-grabbing"><GripVertical className="w-3.5 h-3.5" /></span>
                                 {editCat?.index === i ? (
                                   <>
                                     <input value={editCat.val} onChange={(e) => setEditCat({ ...editCat, val: e.target.value })} onKeyDown={(e) => {
                                       if (e.key === "Enter") { const t = editCat.val.trim(); if (t) { saveCats(categories.map((c, idx) => idx === i ? t : c)); setEditCat(null); } }
                                       if (e.key === "Escape") setEditCat(null);
-                                    }} className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded px-2 py-0.5 text-xs text-white outline-none" autoFocus />
+                                    }} className="flex-1 bg-ink/[0.04] border border-ink/[0.13] rounded px-2 py-0.5 text-xs text-ink outline-none" autoFocus />
                                     <button onClick={() => { const t = editCat.val.trim(); if (t) { saveCats(categories.map((c, idx) => idx === i ? t : c)); setEditCat(null); } }} className="text-orange-500 text-xs font-semibold hover:text-orange-400">Save</button>
-                                    <button onClick={() => setEditCat(null)} className="text-white/30 text-xs hover:text-white/60">Cancel</button>
+                                    <button onClick={() => setEditCat(null)} className="text-ink/[0.48] text-xs hover:text-ink/60">Cancel</button>
                                   </>
                                 ) : (
                                   <>
-                                    <span className="flex-1 text-white/70 text-sm">{cat}</span>
-                                    <button onClick={() => setEditCat({ index: i, val: cat })} className="p-1 text-white/25 hover:text-white/60 transition-colors"><Edit className="w-3.5 h-3.5" /></button>
-                                    <button onClick={() => saveCats(categories.filter((_, idx) => idx !== i))} className="p-1 text-white/25 hover:text-red-400/70 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                                    <span className="flex-1 text-ink/70 text-sm">{cat}</span>
+                                    <button onClick={() => setEditCat({ index: i, val: cat })} className="p-1 text-ink/[0.43] hover:text-ink/60 transition-colors"><Edit className="w-3.5 h-3.5" /></button>
+                                    <button onClick={() => saveCats(categories.filter((_, idx) => idx !== i))} className="p-1 text-ink/[0.43] hover:text-red-600/70 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                                   </>
                                 )}
                               </div>
@@ -249,8 +249,8 @@ export default function Financial() {
                   </Droppable>
                 </DragDropContext>
                 <div className="flex gap-2 pt-1">
-                  <input placeholder="New category..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } } }} className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none" />
-                  <button onClick={() => { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } }} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
+                  <input placeholder="New category..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } } }} className="flex-1 bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink placeholder:text-ink/[0.38] outline-none" />
+                  <button onClick={() => { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } }} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
                 </div>
               </div>
             )}
@@ -287,50 +287,50 @@ function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave,
   if (isEditing) {
     return (
       <div className="bg-card rounded-xl border border-orange-500/20 p-4 flex items-center gap-3 flex-wrap">
-        <Input value={editForm.platform} onChange={(e) => setEditForm({ ...editForm, platform: e.target.value })} className="bg-white/[0.04] border-white/[0.08] text-white h-8 w-40" placeholder="Platform" />
-        <Input value={editForm.amount} onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })} type="number" className="bg-white/[0.04] border-white/[0.08] text-white h-8 w-24" placeholder="Amount" />
+        <Input value={editForm.platform} onChange={(e) => setEditForm({ ...editForm, platform: e.target.value })} className="bg-ink/[0.04] border-ink/[0.13] text-ink h-8 w-40" placeholder="Platform" />
+        <Input value={editForm.amount} onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })} type="number" className="bg-ink/[0.04] border-ink/[0.13] text-ink h-8 w-24" placeholder="Amount" />
         <Select value={editForm.frequency} onValueChange={(v) => setEditForm({ ...editForm, frequency: v })}>
-          <SelectTrigger className="bg-white/[0.04] border-white/[0.08] text-white h-8 w-32"><SelectValue /></SelectTrigger>
-          <SelectContent className="bg-card border-white/[0.06]">{FREQUENCIES.map((f) => <SelectItem key={f} value={f} className="text-white/70">{f}</SelectItem>)}</SelectContent>
+          <SelectTrigger className="bg-ink/[0.04] border-ink/[0.13] text-ink h-8 w-32"><SelectValue /></SelectTrigger>
+          <SelectContent className="bg-card border-ink/[0.13]">{FREQUENCIES.map((f) => <SelectItem key={f} value={f} className="text-ink/70">{f}</SelectItem>)}</SelectContent>
         </Select>
         <Select value={editForm.category} onValueChange={(v) => setEditForm({ ...editForm, category: v })}>
-          <SelectTrigger className="bg-white/[0.04] border-white/[0.08] text-white h-8 w-36"><SelectValue /></SelectTrigger>
-          <SelectContent className="bg-card border-white/[0.06]">{categories.map((c) => <SelectItem key={c} value={c} className="text-white/70">{c}</SelectItem>)}</SelectContent>
+          <SelectTrigger className="bg-ink/[0.04] border-ink/[0.13] text-ink h-8 w-36"><SelectValue /></SelectTrigger>
+          <SelectContent className="bg-card border-ink/[0.13]">{categories.map((c) => <SelectItem key={c} value={c} className="text-ink/70">{c}</SelectItem>)}</SelectContent>
         </Select>
         <div className="flex items-center gap-1.5">
-          <Input value={editForm.dueDay} onChange={(e) => setEditForm({ ...editForm, dueDay: e.target.value })} type="number" min="1" max="31" className="bg-white/[0.04] border-white/[0.08] text-white h-8 w-16" placeholder="Day" />
-          {editForm.frequency === "Annually" && <Input value={editForm.dueMonth || ""} onChange={(e) => setEditForm({ ...editForm, dueMonth: e.target.value })} type="number" min="1" max="12" className="bg-white/[0.04] border-white/[0.08] text-white h-8 w-16" placeholder="Mo" />}
-          <span className="text-white/20 text-[10px]">due</span>
+          <Input value={editForm.dueDay} onChange={(e) => setEditForm({ ...editForm, dueDay: e.target.value })} type="number" min="1" max="31" className="bg-ink/[0.04] border-ink/[0.13] text-ink h-8 w-16" placeholder="Day" />
+          {editForm.frequency === "Annually" && <Input value={editForm.dueMonth || ""} onChange={(e) => setEditForm({ ...editForm, dueMonth: e.target.value })} type="number" min="1" max="12" className="bg-ink/[0.04] border-ink/[0.13] text-ink h-8 w-16" placeholder="Mo" />}
+          <span className="text-ink/[0.38] text-[10px]">due</span>
         </div>
         <div className="flex gap-2 ml-auto">
-          <button onClick={onSave} className="p-1.5 rounded-md bg-green-500/10 text-green-400/70 hover:bg-green-500/20 transition-all"><Check className="w-4 h-4" /></button>
-          <button onClick={onCancel} className="p-1.5 rounded-md bg-white/[0.04] text-white/30 hover:bg-white/[0.08] transition-all"><X className="w-4 h-4" /></button>
+          <button onClick={onSave} className="p-1.5 rounded-md bg-green-500/10 text-green-600/70 hover:bg-green-500/20 transition-all"><Check className="w-4 h-4" /></button>
+          <button onClick={onCancel} className="p-1.5 rounded-md bg-ink/[0.04] text-ink/[0.48] hover:bg-ink/[0.08] transition-all"><X className="w-4 h-4" /></button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`card-hover bg-card rounded-xl border p-4 flex items-center gap-5 group ${expense.status === "Overdue" ? "border-red-500/15" : expense.status === "Paid" ? "border-green-500/10 opacity-70" : "border-white/[0.06]"}`}>
+    <div className={`card-hover bg-card rounded-xl border p-4 flex items-center gap-5 group ${expense.status === "Overdue" ? "border-red-500/15" : expense.status === "Paid" ? "border-green-500/10 opacity-70" : "border-ink/[0.13]"}`}>
       <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-300 font-display font-extrabold text-xs shrink-0">{expense.platform?.charAt(0)}</div>
       <div className="flex-1 min-w-0">
-        <span className="text-white/85 text-sm font-medium">{expense.platform}</span>
+        <span className="text-ink/85 text-sm font-medium">{expense.platform}</span>
         <div className="flex items-center gap-2 mt-0.5">
-          <span className={`text-[10px] font-semibold tracking-wider px-1.5 py-0.5 rounded ${expense.frequency === "Monthly" ? "bg-blue-500/10 text-blue-400/60" : expense.frequency === "Quarterly" ? "bg-yellow-500/10 text-yellow-400/60" : "bg-purple-500/10 text-purple-400/60"}`}>{expense.frequency}</span>
-          <span className="text-white/15 text-[10px] px-1.5 py-0.5 rounded bg-white/[0.03]">{expense.category}</span>
-          <span className="text-white/20 text-xs">Due {formatDueDate(expense.dueDate)}</span>
+          <span className={`text-[10px] font-semibold tracking-wider px-1.5 py-0.5 rounded ${expense.frequency === "Monthly" ? "bg-blue-500/10 text-blue-600/60" : expense.frequency === "Quarterly" ? "bg-yellow-500/10 text-yellow-600/60" : "bg-purple-500/10 text-purple-600/60"}`}>{expense.frequency}</span>
+          <span className="text-ink/[0.33] text-[10px] px-1.5 py-0.5 rounded bg-ink/[0.03]">{expense.category}</span>
+          <span className="text-ink/[0.38] text-xs">Due {formatDueDate(expense.dueDate)}</span>
         </div>
       </div>
       <p className="text-sm font-display font-bold w-16 text-right shrink-0 bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">${expense.amount.toFixed(2)}</p>
-      <button onClick={onEdit} className="p-1.5 rounded-md hover:bg-white/5 text-white/15 hover:text-white/50 transition-all shrink-0"><Edit className="w-3.5 h-3.5" /></button>
-      <button onClick={onDelete} className="p-1.5 rounded-md hover:bg-white/5 text-white/15 hover:text-red-400/50 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
+      <button onClick={onEdit} className="p-1.5 rounded-md hover:bg-ink/5 text-ink/[0.33] hover:text-ink/50 transition-all shrink-0"><Edit className="w-3.5 h-3.5" /></button>
+      <button onClick={onDelete} className="p-1.5 rounded-md hover:bg-ink/5 text-ink/[0.33] hover:text-red-600/50 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
       <div className="shrink-0">
         {expense.status === "Paid" ? (
-          <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-500/10 text-green-400/70 border border-green-500/15">✓ Paid</span>
+          <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-500/10 text-green-600/70 border border-green-500/15">✓ Paid</span>
         ) : expense.status === "Overdue" ? (
-          <button onClick={onMarkPaid} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400/80 border border-red-500/20 hover:bg-green-500/10 hover:text-green-400/80 hover:border-green-500/20 transition-all">Not Paid</button>
+          <button onClick={onMarkPaid} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-600/80 border border-red-500/20 hover:bg-green-500/10 hover:text-green-600/80 hover:border-green-500/20 transition-all">Not Paid</button>
         ) : (
-          <button onClick={onMarkPaid} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.04] text-white/30 border border-white/[0.06] hover:bg-green-500/10 hover:text-green-400/80 hover:border-green-500/20 transition-all">Mark Paid</button>
+          <button onClick={onMarkPaid} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-ink/[0.04] text-ink/[0.48] border border-ink/[0.13] hover:bg-green-500/10 hover:text-green-600/80 hover:border-green-500/20 transition-all">Mark Paid</button>
         )}
       </div>
     </div>
@@ -349,31 +349,31 @@ function AddExpenseDialog({ onAdd, categories }) {
   };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Plus className="w-4 h-4" />Add Expense</Button></DialogTrigger>
-      <DialogContent className="bg-card border-white/[0.06] text-white">
-        <DialogHeader><DialogTitle className="text-white">Add New Expense</DialogTitle></DialogHeader>
+      <DialogTrigger asChild><Button className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] h-9 gap-2"><Plus className="w-4 h-4" />Add Expense</Button></DialogTrigger>
+      <DialogContent className="bg-card border-ink/[0.13] text-ink">
+        <DialogHeader><DialogTitle className="text-ink">Add New Expense</DialogTitle></DialogHeader>
         <div className="space-y-4 pt-2">
-          <div><Label className="text-white/50 text-xs">Platform</Label><Input value={form.platform} onChange={(e) => setForm({ ...form, platform: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>
+          <div><Label className="text-ink/50 text-xs">Platform</Label><Input value={form.platform} onChange={(e) => setForm({ ...form, platform: e.target.value })} className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1" /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><Label className="text-white/50 text-xs">Amount ($)</Label><Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>
-            <div><Label className="text-white/50 text-xs">Frequency</Label>
+            <div><Label className="text-ink/50 text-xs">Amount ($)</Label><Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1" /></div>
+            <div><Label className="text-ink/50 text-xs">Frequency</Label>
               <Select value={form.frequency} onValueChange={(v) => setForm({ ...form, frequency: v })}>
-                <SelectTrigger className="bg-white/[0.03] border-white/[0.06] text-white mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-card border-white/[0.06]">{FREQUENCIES.map((f) => <SelectItem key={f} value={f} className="text-white/70">{f}</SelectItem>)}</SelectContent>
+                <SelectTrigger className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-card border-ink/[0.13]">{FREQUENCIES.map((f) => <SelectItem key={f} value={f} className="text-ink/70">{f}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div><Label className="text-white/50 text-xs">Due Day (1-31)</Label><Input type="number" value={form.dueDay} onChange={(e) => setForm({ ...form, dueDay: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>
-            {form.frequency === "Annually" && <div><Label className="text-white/50 text-xs">Due Month (1-12)</Label><Input type="number" value={form.dueMonth} onChange={(e) => setForm({ ...form, dueMonth: e.target.value })} className="bg-white/[0.03] border-white/[0.06] text-white mt-1" /></div>}
+            <div><Label className="text-ink/50 text-xs">Due Day (1-31)</Label><Input type="number" value={form.dueDay} onChange={(e) => setForm({ ...form, dueDay: e.target.value })} className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1" /></div>
+            {form.frequency === "Annually" && <div><Label className="text-ink/50 text-xs">Due Month (1-12)</Label><Input type="number" value={form.dueMonth} onChange={(e) => setForm({ ...form, dueMonth: e.target.value })} className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1" /></div>}
           </div>
-          <div><Label className="text-white/50 text-xs">Category</Label>
+          <div><Label className="text-ink/50 text-xs">Category</Label>
             <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
-              <SelectTrigger className="bg-white/[0.03] border-white/[0.06] text-white mt-1"><SelectValue /></SelectTrigger>
-              <SelectContent className="bg-card border-white/[0.06]">{categories.map((c) => <SelectItem key={c} value={c} className="text-white/70">{c}</SelectItem>)}</SelectContent>
+              <SelectTrigger className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-card border-ink/[0.13]">{categories.map((c) => <SelectItem key={c} value={c} className="text-ink/70">{c}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <Button onClick={handleAdd} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">Add Expense</Button>
+          <Button onClick={handleAdd} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)]">Add Expense</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -381,20 +381,20 @@ function AddExpenseDialog({ onAdd, categories }) {
 }
 
 function StatusBadge({ status }) {
-  if (status === "Paid") return <span className="text-[10px] font-semibold text-green-400/60">Paid</span>;
-  if (status === "Overdue") return <span className="text-[10px] font-semibold text-red-400/70">Overdue</span>;
+  if (status === "Paid") return <span className="text-[10px] font-semibold text-green-600/60">Paid</span>;
+  if (status === "Overdue") return <span className="text-[10px] font-semibold text-red-600/70">Overdue</span>;
   return <span className="text-[10px] font-semibold text-orange-400/60">Upcoming</span>;
 }
 
 function FilterPill({ label, active, onClick, danger }) {
-  return <button onClick={onClick} className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${active ? danger ? "bg-red-500/15 text-red-400 border border-red-500/20" : "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{label}</button>;
+  return <button onClick={onClick} className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${active ? danger ? "bg-red-500/15 text-red-600 border border-red-500/20" : "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{label}</button>;
 }
 
 function SummaryCard({ icon: Icon, label, value, danger }) {
   return (
     <div className="game-panel p-5">
-      <div className="flex items-center gap-2 mb-3"><Icon className={`w-4 h-4 ${danger ? "text-red-400/60" : "text-white/25"}`} /><span className="text-white/30 text-xs">{label}</span></div>
-      <p className={`text-xl font-bold ${danger ? "text-red-400/80" : "text-white/80"}`}>{value}</p>
+      <div className="flex items-center gap-2 mb-3"><Icon className={`w-4 h-4 ${danger ? "text-red-600/60" : "text-ink/[0.43]"}`} /><span className="text-ink/[0.48] text-xs">{label}</span></div>
+      <p className={`text-xl font-bold ${danger ? "text-red-600/80" : "text-ink/80"}`}>{value}</p>
     </div>
   );
 }

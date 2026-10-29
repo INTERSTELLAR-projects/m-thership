@@ -7,9 +7,9 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import GameChartTooltip from "../components/charts/GameChartTooltip";
 
 const TOOLTIP_STYLE = {
-  contentStyle: { background: "#0d1117", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 11 },
+  contentStyle: { background: "#f5f3f0", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 11 },
   labelStyle: { color: "rgba(255,255,255,0.4)" },
-  itemStyle: { color: "#ff6a00" },
+  itemStyle: { color: "#ff3c00" },
 };
 
 function getClientScore(client) {
@@ -23,11 +23,11 @@ function getClientScore(client) {
 }
 
 function getPerformanceStatus(score) {
-  if (score >= 80) return { label: "Strong", color: "text-green-400", bg: "bg-green-500/10 border-green-500/20" };
-  if (score >= 65) return { label: "Growing", color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" };
-  if (score >= 50) return { label: "Flat", color: "text-white/50", bg: "bg-white/[0.05] border-white/[0.10]" };
+  if (score >= 80) return { label: "Strong", color: "text-green-600", bg: "bg-green-500/10 border-green-500/20" };
+  if (score >= 65) return { label: "Growing", color: "text-blue-600", bg: "bg-blue-500/10 border-blue-500/20" };
+  if (score >= 50) return { label: "Flat", color: "text-ink/50", bg: "bg-ink/5 border-ink/[0.13]" };
   if (score >= 35) return { label: "Needs Attention", color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20" };
-  return { label: "Critical", color: "text-red-400", bg: "bg-red-500/10 border-red-500/20" };
+  return { label: "Critical", color: "text-red-600", bg: "bg-red-500/10 border-red-500/20" };
 }
 
 function StatCard({ label, value, icon: Icon, color = "text-orange-500", sub }) {
@@ -37,8 +37,8 @@ function StatCard({ label, value, icon: Icon, color = "text-orange-500", sub }) 
         <Icon className={`w-4 h-4 ${color}`} />
       </div>
       <p className={`text-3xl font-bold font-display ${color}`}>{value}</p>
-      <p className="text-white/50 text-xs font-medium mt-1">{label}</p>
-      {sub && <p className="text-white/25 text-[10px] mt-0.5">{sub}</p>}
+      <p className="text-ink/50 text-xs font-medium mt-1">{label}</p>
+      {sub && <p className="text-ink/[0.43] text-[10px] mt-0.5">{sub}</p>}
     </div>
   );
 }
@@ -117,24 +117,24 @@ export default function Performance() {
         {/* TOP OVERVIEW */}
         <div className="grid grid-cols-8 gap-3">
           <StatCard label="SEO Clients Tracked" value={clients.length} icon={Users} color="text-orange-500" />
-          <StatCard label="Avg SEO Score" value={avgScore || "—"} icon={Star} color="text-yellow-400" sub="across all clients" />
-          <StatCard label="Clients Improving" value={improving} icon={TrendingUp} color="text-green-400" />
-          <StatCard label="Needs Attention" value={needsAttention} icon={AlertCircle} color={needsAttention > 0 ? "text-orange-400" : "text-white/30"} />
-          <StatCard label="Blogs This Month" value={publishedThisMonth} icon={FileText} color="text-purple-400" />
-          <StatCard label="GBP Posts This Month" value={gbpThisMonth} icon={Globe} color="text-cyan-400" />
+          <StatCard label="Avg SEO Score" value={avgScore || "—"} icon={Star} color="text-yellow-600" sub="across all clients" />
+          <StatCard label="Clients Improving" value={improving} icon={TrendingUp} color="text-green-600" />
+          <StatCard label="Needs Attention" value={needsAttention} icon={AlertCircle} color={needsAttention > 0 ? "text-orange-400" : "text-ink/[0.48]"} />
+          <StatCard label="Blogs This Month" value={publishedThisMonth} icon={FileText} color="text-purple-600" />
+          <StatCard label="GBP Posts This Month" value={gbpThisMonth} icon={Globe} color="text-cyan-600" />
           <div className="col-span-2 game-panel p-4">
-            <p className="text-white/30 text-[10px] uppercase tracking-wider mb-2">Avg Score Trend</p>
+            <p className="text-ink/[0.48] text-[10px] uppercase tracking-wider mb-2">Avg Score Trend</p>
             <ResponsiveContainer width="100%" height={70}>
               <AreaChart data={trendData}>
                 <defs>
                   <linearGradient id="ovGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#FF6A00" stopOpacity={0.6} />
-                      <stop offset="100%" stopColor="#FACC15" stopOpacity={0.04} />
+                      <stop offset="0%" stopColor="#ff3c00" stopOpacity={0.6} />
+                      <stop offset="100%" stopColor="#ffaa00" stopOpacity={0.04} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 9 }} tickLine={false} />
                 <Tooltip content={<GameChartTooltip />} cursor={{ stroke: 'rgba(255,170,0,0.25)', strokeWidth: 1 }} />
-                <Area type="monotone" dataKey="avgScore" stroke="#FF8C00" fill="url(#ovGrad)" strokeWidth={2} dot={false} activeDot={{ r: 3, fill: '#FF8C00', stroke: '#FACC15', strokeWidth: 1 }} style={{ filter: 'drop-shadow(0 0 5px rgba(255,170,0,0.4))' }} />
+                <Area type="monotone" dataKey="avgScore" stroke="#ff3c00" fill="url(#ovGrad)" strokeWidth={2} dot={false} activeDot={{ r: 3, fill: '#ff3c00', stroke: '#ffaa00', strokeWidth: 1 }} style={{ filter: 'drop-shadow(0 0 5px rgba(255,170,0,0.4))' }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -143,49 +143,49 @@ export default function Performance() {
         {/* FILTERS */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search clients..." className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/[0.38]" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search clients..." className="w-full pl-10 pr-4 py-2 bg-card border border-ink/[0.13] rounded-lg text-sm text-ink placeholder:text-ink/[0.38] outline-none" />
           </div>
           <div className="flex gap-1.5">
             {["All", "Local", "National", "International"].map((t) => (
-              <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterType === t ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{t}</button>
+              <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterType === t ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{t}</button>
             ))}
           </div>
           <div className="flex gap-1.5">
             {["All", "Strong", "Growing", "Flat", "Needs Attention"].map((s) => (
-              <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterStatus === s ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{s}</button>
+              <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterStatus === s ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{s}</button>
             ))}
           </div>
-          <span className="ml-auto text-white/25 text-xs">{filtered.length} clients</span>
+          <span className="ml-auto text-ink/[0.43] text-xs">{filtered.length} clients</span>
         </div>
 
         {/* CLIENT LIST */}
         {loading ? (
-          <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 text-white/20 animate-spin" /></div>
+          <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" /></div>
         ) : filtered.length === 0 ? (
           <div className="game-panel p-12 text-center">
-            <BarChart3 className="w-8 h-8 text-white/10 mx-auto mb-3" />
-            <p className="text-white/30 text-sm">{clients.length === 0 ? "No Ørbit SEO clients yet. Add clients in the Ørbit SEO section." : "No clients match your filters."}</p>
+            <BarChart3 className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
+            <p className="text-ink/[0.48] text-sm">{clients.length === 0 ? "No Ørbit SEO clients yet. Add clients in the Ørbit SEO section." : "No clients match your filters."}</p>
           </div>
         ) : (
           <div className="space-y-2">
             {/* Header row */}
             <div className="grid grid-cols-12 gap-4 px-4 pb-2">
-              <span className="col-span-3 text-white/25 text-[10px] uppercase tracking-wider">Client</span>
-              <span className="col-span-1 text-white/25 text-[10px] uppercase tracking-wider text-center">SEO Score</span>
-              <span className="col-span-1 text-white/25 text-[10px] uppercase tracking-wider text-center">Authority</span>
-              <span className="col-span-2 text-white/25 text-[10px] uppercase tracking-wider">Type</span>
-              <span className="col-span-2 text-white/25 text-[10px] uppercase tracking-wider">GBP Status</span>
-              <span className="col-span-1 text-white/25 text-[10px] uppercase tracking-wider text-center">Blogs</span>
-              <span className="col-span-2 text-white/25 text-[10px] uppercase tracking-wider text-right">Status</span>
+              <span className="col-span-3 text-ink/[0.43] text-[10px] uppercase tracking-wider">Client</span>
+              <span className="col-span-1 text-ink/[0.43] text-[10px] uppercase tracking-wider text-center">SEO Score</span>
+              <span className="col-span-1 text-ink/[0.43] text-[10px] uppercase tracking-wider text-center">Authority</span>
+              <span className="col-span-2 text-ink/[0.43] text-[10px] uppercase tracking-wider">Type</span>
+              <span className="col-span-2 text-ink/[0.43] text-[10px] uppercase tracking-wider">GBP Status</span>
+              <span className="col-span-1 text-ink/[0.43] text-[10px] uppercase tracking-wider text-center">Blogs</span>
+              <span className="col-span-2 text-ink/[0.43] text-[10px] uppercase tracking-wider text-right">Status</span>
             </div>
             {filtered.map((client) => {
               const score = getClientScore(client);
               const authority = Math.max(18, score - 12 - ((client.businessName?.charCodeAt(1) || 66) % 15));
               const perf = getPerformanceStatus(score);
               const publishedBlogs = (client.blogs || []).filter(b => b.status === "Published").length;
-              const scoreColor = score >= 75 ? "text-[#34D399]" : score >= 55 ? "text-[#FF6A00]" : "text-red-400";
-              const authorityColor = authority >= 60 ? "text-[#34D399]" : authority >= 40 ? "text-[#FF6A00]" : "text-red-400";
+              const scoreColor = score >= 75 ? "text-[#34D399]" : score >= 55 ? "text-[#ff3c00]" : "text-red-600";
+              const authorityColor = authority >= 60 ? "text-[#34D399]" : authority >= 40 ? "text-[#ff3c00]" : "text-red-600";
 
               return (
                 <button key={client.id} onClick={() => setSelectedClient(client)} className="card-hover w-full game-panel p-4 grid grid-cols-12 gap-4 items-center text-left group">
@@ -194,33 +194,33 @@ export default function Performance() {
                       {client.businessName?.charAt(0)}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-white/85 text-sm font-medium truncate">{client.businessName}</p>
-                      <p className="text-white/30 text-xs truncate">{client.primaryLocation || "—"}</p>
+                      <p className="text-ink/85 text-sm font-medium truncate">{client.businessName}</p>
+                      <p className="text-ink/[0.48] text-xs truncate">{client.primaryLocation || "—"}</p>
                     </div>
                   </div>
                   <div className="col-span-1 text-center">
                     <span className={`text-lg font-bold font-display ${scoreColor}`}>{score}</span>
-                    <p className="text-white/20 text-[10px] font-display">/100</p>
+                    <p className="text-ink/[0.38] text-[10px] font-display">/100</p>
                   </div>
                   <div className="col-span-1 text-center">
                     <span className={`text-lg font-bold font-display ${authorityColor}`}>{authority}</span>
-                    <p className="text-white/20 text-[10px] font-display">/100</p>
+                    <p className="text-ink/[0.38] text-[10px] font-display">/100</p>
                   </div>
                   <div className="col-span-2">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
-                      client.serviceType === "Local" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
-                      client.serviceType === "National" ? "bg-purple-500/10 text-purple-400 border-purple-500/20" :
+                      client.serviceType === "Local" ? "bg-blue-500/10 text-blue-600 border-blue-500/20" :
+                      client.serviceType === "National" ? "bg-purple-500/10 text-purple-600 border-purple-500/20" :
                       "bg-orange-500/10 text-orange-400 border-orange-500/20"
                     }`}>{client.serviceType}</span>
                   </div>
                   <div className="col-span-2">
-                    <span className={`text-xs font-medium ${client.gbpStatus === "Active" ? "text-green-400/70" : client.gbpStatus === "Needs Attention" ? "text-orange-400/70" : "text-white/30"}`}>
+                    <span className={`text-xs font-medium ${client.gbpStatus === "Active" ? "text-green-600/70" : client.gbpStatus === "Needs Attention" ? "text-orange-400/70" : "text-ink/[0.48]"}`}>
                       {client.gbpStatus || "—"}
                     </span>
                   </div>
                   <div className="col-span-1 text-center">
-                    <span className="text-white/70 text-sm font-semibold font-display">{publishedBlogs}</span>
-                    <p className="text-white/20 text-[10px]">published</p>
+                    <span className="text-ink/70 text-sm font-semibold font-display">{publishedBlogs}</span>
+                    <p className="text-ink/[0.38] text-[10px]">published</p>
                   </div>
                   <div className="col-span-2 flex justify-end">
                     <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg border ${perf.bg} ${perf.color}`}>{perf.label}</span>

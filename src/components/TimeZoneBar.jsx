@@ -29,14 +29,14 @@ export default function TimeZoneBar() {
   }, []);
 
   return (
-    <div className="relative z-20 flex items-center gap-0 border-b border-white/[0.05] bg-black/40 backdrop-blur-sm px-3 py-1.5 overflow-x-auto no-scrollbar md:px-6">
+    <div className="relative z-20 flex items-center gap-0 border-b border-ink/[0.13] bg-white/70 backdrop-blur-sm px-3 py-1.5 overflow-x-auto no-scrollbar md:px-6">
       {ZONES.map((z, i) => (
         <div key={z.label} className="flex items-center">
           <div className="flex items-center gap-1.5 px-3">
-            <span className="font-orbitron text-white/25 text-[9px] tracking-[0.18em] uppercase">{z.label}</span>
+            <span className="font-orbitron text-ink/[0.43] text-[9px] tracking-[0.18em] uppercase">{z.label}</span>
             <span className="font-orbitron text-orange-500/80 text-[11px] font-semibold tracking-wide">{times[i]}</span>
           </div>
-          {i < ZONES.length - 1 && <div className="w-px h-3 bg-white/10" />}
+          {i < ZONES.length - 1 && <div className="w-px h-3 bg-ink/10" />}
         </div>
       ))}
     </div>

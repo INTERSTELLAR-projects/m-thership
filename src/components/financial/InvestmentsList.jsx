@@ -6,9 +6,9 @@ import { base44 } from "@/api/base44Client";
 const DEFAULT_CATEGORIES = ["Software", "Hardware", "Marketing", "Education", "Team", "Other"];
 const INV_CATS_KEY = "investment_categories";
 const PRIORITY_COLORS = {
-  High: "bg-red-500/10 text-red-400/80",
-  Medium: "bg-yellow-500/10 text-yellow-400/70",
-  Low: "bg-white/[0.04] text-white/30",
+  High: "bg-red-500/10 text-red-600/80",
+  Medium: "bg-yellow-500/10 text-yellow-600/70",
+  Low: "bg-ink/[0.04] text-ink/[0.48]",
 };
 
 function loadCats() {
@@ -99,26 +99,26 @@ export default function InvestmentsList() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-4">
           <div className="text-center">
-            <p className="text-white/25 text-[10px] tracking-wider uppercase">Total Pending</p>
+            <p className="text-ink/[0.43] text-[10px] tracking-wider uppercase">Total Pending</p>
             <p className="text-orange-500 font-bold text-lg">${totalPending.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
           </div>
           <div className="text-center">
-            <p className="text-white/25 text-[10px] tracking-wider uppercase">Acquired</p>
-            <p className="text-green-400/70 font-bold text-lg">{acquiredCount}</p>
+            <p className="text-ink/[0.43] text-[10px] tracking-wider uppercase">Acquired</p>
+            <p className="text-green-600/70 font-bold text-lg">{acquiredCount}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {["All", ...categories].map((c) => (
-            <button key={c} onClick={() => setCatFilter(c)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${catFilter === c ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{c}</button>
+            <button key={c} onClick={() => setCatFilter(c)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${catFilter === c ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{c}</button>
           ))}
-          <button onClick={() => setManagingCats(!managingCats)} className={`p-1.5 rounded-lg border transition-all ${managingCats ? "bg-orange-500/15 text-orange-500 border-orange-500/20" : "text-white/20 hover:text-white/50 border-dashed border-white/10 hover:border-white/20"}`}><Settings className="w-3.5 h-3.5" /></button>
+          <button onClick={() => setManagingCats(!managingCats)} className={`p-1.5 rounded-lg border transition-all ${managingCats ? "bg-orange-500/15 text-orange-500 border-orange-500/20" : "text-ink/[0.38] hover:text-ink/50 border-dashed border-ink/[0.13] hover:border-ink/20"}`}><Settings className="w-3.5 h-3.5" /></button>
         </div>
       </div>
 
       {/* Manage categories */}
       {managingCats && (
         <div className="relative overflow-hidden bg-card rounded-xl border border-orange-500/25 p-5 space-y-3 shadow-[0_0_16px_rgba(255,106,0,0.12)]">
-          <h3 className="text-white font-bold text-xs tracking-[0.15em] uppercase">Manage Categories</h3>
+          <h3 className="text-ink font-bold text-xs tracking-[0.15em] uppercase">Manage Categories</h3>
           <DragDropContext onDragEnd={onDragEndCats}>
             <Droppable droppableId="inv-cats">
               {(provided) => (
@@ -126,19 +126,19 @@ export default function InvestmentsList() {
                   {categories.map((cat, i) => (
                     <Draggable key={cat} draggableId={cat} index={i}>
                       {(drag) => (
-                        <div ref={drag.innerRef} {...drag.draggableProps} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                          <span {...drag.dragHandleProps} className="text-white/15 hover:text-white/40 cursor-grab active:cursor-grabbing"><GripVertical className="w-3.5 h-3.5" /></span>
+                        <div ref={drag.innerRef} {...drag.draggableProps} className="flex items-center gap-2 p-2 rounded-lg bg-ink/[0.02] border border-ink/[0.13]">
+                          <span {...drag.dragHandleProps} className="text-ink/[0.33] hover:text-ink/[0.58] cursor-grab active:cursor-grabbing"><GripVertical className="w-3.5 h-3.5" /></span>
                           {editCat?.index === i ? (
                             <>
-                              <input value={editCat.val} onChange={(e) => setEditCat({ ...editCat, val: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") { const t = editCat.val.trim(); if (t) { saveCats(categories.map((c, idx) => idx === i ? t : c)); setEditCat(null); } } if (e.key === "Escape") setEditCat(null); }} className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded px-2 py-0.5 text-xs text-white outline-none" autoFocus />
+                              <input value={editCat.val} onChange={(e) => setEditCat({ ...editCat, val: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") { const t = editCat.val.trim(); if (t) { saveCats(categories.map((c, idx) => idx === i ? t : c)); setEditCat(null); } } if (e.key === "Escape") setEditCat(null); }} className="flex-1 bg-ink/[0.04] border border-ink/[0.13] rounded px-2 py-0.5 text-xs text-ink outline-none" autoFocus />
                               <button onClick={() => { const t = editCat.val.trim(); if (t) { saveCats(categories.map((c, idx) => idx === i ? t : c)); setEditCat(null); } }} className="text-orange-500 text-xs font-semibold">Save</button>
-                              <button onClick={() => setEditCat(null)} className="text-white/30 text-xs">Cancel</button>
+                              <button onClick={() => setEditCat(null)} className="text-ink/[0.48] text-xs">Cancel</button>
                             </>
                           ) : (
                             <>
-                              <span className="flex-1 text-white/70 text-sm">{cat}</span>
-                              <button onClick={() => setEditCat({ index: i, val: cat })} className="p-1 text-white/25 hover:text-white/60"><Edit className="w-3.5 h-3.5" /></button>
-                              <button onClick={() => saveCats(categories.filter((_, idx) => idx !== i))} className="p-1 text-white/25 hover:text-red-400/70"><Trash2 className="w-3.5 h-3.5" /></button>
+                              <span className="flex-1 text-ink/70 text-sm">{cat}</span>
+                              <button onClick={() => setEditCat({ index: i, val: cat })} className="p-1 text-ink/[0.43] hover:text-ink/60"><Edit className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => saveCats(categories.filter((_, idx) => idx !== i))} className="p-1 text-ink/[0.43] hover:text-red-600/70"><Trash2 className="w-3.5 h-3.5" /></button>
                             </>
                           )}
                         </div>
@@ -151,8 +151,8 @@ export default function InvestmentsList() {
             </Droppable>
           </DragDropContext>
           <div className="flex gap-2 pt-1">
-            <input placeholder="New category..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } } }} className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none" />
-            <button onClick={() => { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } }} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
+            <input placeholder="New category..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } } }} className="flex-1 bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink placeholder:text-ink/[0.38] outline-none" />
+            <button onClick={() => { const t = newCatName.trim(); if (t && !categories.includes(t)) { saveCats([...categories, t]); setNewCatName(""); } }} className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
           </div>
         </div>
       )}
@@ -167,61 +167,61 @@ export default function InvestmentsList() {
             <div key={cat}>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{cat}</h2>
-                <button onClick={() => setAddingCat(isAdding ? null : cat)} className="flex items-center gap-1 text-[10px] font-semibold text-white/25 hover:text-orange-500/70 transition-colors">
+                <button onClick={() => setAddingCat(isAdding ? null : cat)} className="flex items-center gap-1 text-[10px] font-semibold text-ink/[0.43] hover:text-orange-500/70 transition-colors">
                   <Plus className="w-3 h-3" />Add
                 </button>
               </div>
 
               {isAdding && (
                 <div className="relative overflow-hidden bg-card rounded-xl border border-orange-500/35 p-4 mb-2 flex items-center gap-3 flex-wrap shadow-[0_0_16px_rgba(255,106,0,0.16)]">
-                  <input value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} placeholder="Item name..." className="flex-1 min-w-[160px] bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-white/25 outline-none" autoFocus />
-                  <input value={newItem.estimatedCost} onChange={(e) => setNewItem({ ...newItem, estimatedCost: e.target.value })} type="number" placeholder="Est. cost $" className="w-28 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-white/25 outline-none" />
-                  <select value={newItem.priority} onChange={(e) => setNewItem({ ...newItem, priority: e.target.value })} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1.5 text-xs text-white outline-none">
+                  <input value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} placeholder="Item name..." className="flex-1 min-w-[160px] bg-ink/[0.04] border border-ink/[0.13] rounded-lg px-3 py-1.5 text-sm text-ink placeholder:text-ink/[0.43] outline-none" autoFocus />
+                  <input value={newItem.estimatedCost} onChange={(e) => setNewItem({ ...newItem, estimatedCost: e.target.value })} type="number" placeholder="Est. cost $" className="w-28 bg-ink/[0.04] border border-ink/[0.13] rounded-lg px-3 py-1.5 text-sm text-ink placeholder:text-ink/[0.43] outline-none" />
+                  <select value={newItem.priority} onChange={(e) => setNewItem({ ...newItem, priority: e.target.value })} className="bg-ink/[0.04] border border-ink/[0.13] rounded-lg px-2 py-1.5 text-xs text-ink outline-none">
                     <option value="High">High</option>
                     <option value="Medium">Medium</option>
                     <option value="Low">Low</option>
                   </select>
-                  <input value={newItem.notes} onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })} placeholder="Notes..." className="flex-1 min-w-[120px] bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-white/25 outline-none" />
+                  <input value={newItem.notes} onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })} placeholder="Notes..." className="flex-1 min-w-[120px] bg-ink/[0.04] border border-ink/[0.13] rounded-lg px-3 py-1.5 text-sm text-ink placeholder:text-ink/[0.43] outline-none" />
                   <div className="flex gap-2">
-                    <button onClick={() => addItem(cat)} className="p-1.5 rounded-md bg-green-500/10 text-green-400/70 hover:bg-green-500/20"><Check className="w-4 h-4" /></button>
-                    <button onClick={() => setAddingCat(null)} className="p-1.5 rounded-md bg-white/[0.04] text-white/30 hover:bg-white/[0.08]"><X className="w-4 h-4" /></button>
+                    <button onClick={() => addItem(cat)} className="p-1.5 rounded-md bg-green-500/10 text-green-600/70 hover:bg-green-500/20"><Check className="w-4 h-4" /></button>
+                    <button onClick={() => setAddingCat(null)} className="p-1.5 rounded-md bg-ink/[0.04] text-ink/[0.48] hover:bg-ink/[0.08]"><X className="w-4 h-4" /></button>
                   </div>
                 </div>
               )}
 
               {catItems.length === 0 && !isAdding ? (
-                <p className="text-white/15 text-xs px-1">No items yet — click Add to get started.</p>
+                <p className="text-ink/[0.33] text-xs px-1">No items yet — click Add to get started.</p>
               ) : (
                 <div className="space-y-2">
                   {catItems.map((item) => (
-                    <div key={item.id} className={`card-hover relative overflow-hidden game-panel p-4 flex items-center gap-4 group ${item.acquired ? "border-green-500/10 opacity-60" : "border-white/[0.06]"}`}>
+                    <div key={item.id} className={`card-hover relative overflow-hidden game-panel p-4 flex items-center gap-4 group ${item.acquired ? "border-green-500/10 opacity-60" : "border-ink/[0.13]"}`}>
                       {editId === item.id ? (
                         <div className="flex-1 flex items-center gap-3 flex-wrap">
-                          <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="flex-1 min-w-[140px] bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-white outline-none" />
-                          <input value={editForm.estimatedCost} onChange={(e) => setEditForm({ ...editForm, estimatedCost: e.target.value })} type="number" className="w-24 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-white outline-none" />
-                          <select value={editForm.priority} onChange={(e) => setEditForm({ ...editForm, priority: e.target.value })} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1.5 text-xs text-white outline-none">
+                          <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="flex-1 min-w-[140px] bg-ink/[0.04] border border-ink/[0.13] rounded-lg px-3 py-1.5 text-sm text-ink outline-none" />
+                          <input value={editForm.estimatedCost} onChange={(e) => setEditForm({ ...editForm, estimatedCost: e.target.value })} type="number" className="w-24 bg-ink/[0.04] border border-ink/[0.13] rounded-lg px-3 py-1.5 text-sm text-ink outline-none" />
+                          <select value={editForm.priority} onChange={(e) => setEditForm({ ...editForm, priority: e.target.value })} className="bg-ink/[0.04] border border-ink/[0.13] rounded-lg px-2 py-1.5 text-xs text-ink outline-none">
                             <option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option>
                           </select>
-                          <input value={editForm.notes || ""} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} placeholder="Notes..." className="flex-1 min-w-[100px] bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-white/25 outline-none" />
+                          <input value={editForm.notes || ""} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} placeholder="Notes..." className="flex-1 min-w-[100px] bg-ink/[0.04] border border-ink/[0.13] rounded-lg px-3 py-1.5 text-sm text-ink placeholder:text-ink/[0.43] outline-none" />
                           <div className="flex gap-2">
-                            <button onClick={saveEdit} className="p-1.5 rounded-md bg-green-500/10 text-green-400/70 hover:bg-green-500/20"><Check className="w-4 h-4" /></button>
-                            <button onClick={() => setEditId(null)} className="p-1.5 rounded-md bg-white/[0.04] text-white/30"><X className="w-4 h-4" /></button>
+                            <button onClick={saveEdit} className="p-1.5 rounded-md bg-green-500/10 text-green-600/70 hover:bg-green-500/20"><Check className="w-4 h-4" /></button>
+                            <button onClick={() => setEditId(null)} className="p-1.5 rounded-md bg-ink/[0.04] text-ink/[0.48]"><X className="w-4 h-4" /></button>
                           </div>
                         </div>
                       ) : (
                         <>
-                          <button onClick={() => toggleAcquired(item)} className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 transition-all ${item.acquired ? "bg-green-500/20 border-green-500/40 text-green-400" : "border-white/20 hover:border-orange-500/40"}`}>
+                          <button onClick={() => toggleAcquired(item)} className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 transition-all ${item.acquired ? "bg-green-500/20 border-green-500/40 text-green-600" : "border-ink/20 hover:border-orange-500/40"}`}>
                             {item.acquired && <Check className="w-3 h-3" />}
                           </button>
                           <div className="flex-1 min-w-0">
-                            <p className={`text-sm font-medium ${item.acquired ? "line-through text-white/30" : "text-white/85"}`}>{item.name}</p>
-                            {item.notes && <p className="text-white/30 text-xs mt-0.5 truncate">{item.notes}</p>}
+                            <p className={`text-sm font-medium ${item.acquired ? "line-through text-ink/[0.48]" : "text-ink/85"}`}>{item.name}</p>
+                            {item.notes && <p className="text-ink/[0.48] text-xs mt-0.5 truncate">{item.notes}</p>}
                           </div>
                           <span className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded ${PRIORITY_COLORS[item.priority] || PRIORITY_COLORS.Medium}`}>{item.priority}</span>
                           {item.estimatedCost > 0 && <span className="text-orange-500/80 text-sm font-bold w-20 text-right shrink-0">${item.estimatedCost.toLocaleString()}</span>}
                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                            <button onClick={() => startEdit(item)} className="p-1.5 rounded-md hover:bg-white/5 text-white/20 hover:text-white/60"><Edit className="w-3.5 h-3.5" /></button>
-                            <button onClick={() => deleteItem(item.id)} className="p-1.5 rounded-md hover:bg-white/5 text-white/20 hover:text-red-400/60"><Trash2 className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => startEdit(item)} className="p-1.5 rounded-md hover:bg-ink/5 text-ink/[0.38] hover:text-ink/60"><Edit className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => deleteItem(item.id)} className="p-1.5 rounded-md hover:bg-ink/5 text-ink/[0.38] hover:text-red-600/60"><Trash2 className="w-3.5 h-3.5" /></button>
                           </div>
                         </>
                       )}
@@ -236,36 +236,36 @@ export default function InvestmentsList() {
 
       {items.length === 0 && (
         <div className="game-panel p-12 text-center">
-          <ShoppingBag className="w-8 h-8 text-white/10 mx-auto mb-3" />
-          <p className="text-white/25 text-sm">No investments yet. Click "Add" next to a category to get started.</p>
+          <ShoppingBag className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
+          <p className="text-ink/[0.43] text-sm">No investments yet. Click "Add" next to a category to get started.</p>
         </div>
       )}
 
       {/* Acquired Section */}
       {acquiredItems.length > 0 && (
-        <div className="border-t border-white/[0.06] pt-5">
+        <div className="border-t border-ink/[0.13] pt-5">
           <button
             onClick={() => setAcquiredOpen(!acquiredOpen)}
             className="flex items-center gap-3 mb-3 w-full text-left group"
           >
-            <h2 className="text-green-400/60 font-bold text-xs tracking-[0.2em] uppercase">Acquired</h2>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-green-500/10 text-green-400/70 border border-green-500/15">{acquiredItems.length}</span>
-            <span className="text-white/20 text-[10px] ml-auto group-hover:text-white/40 transition-colors">{acquiredOpen ? "▲ hide" : "▼ show"}</span>
+            <h2 className="text-green-600/60 font-bold text-xs tracking-[0.2em] uppercase">Acquired</h2>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-green-500/10 text-green-600/70 border border-green-500/15">{acquiredItems.length}</span>
+            <span className="text-ink/[0.38] text-[10px] ml-auto group-hover:text-ink/[0.58] transition-colors">{acquiredOpen ? "▲ hide" : "▼ show"}</span>
           </button>
           {acquiredOpen && (
             <div className="space-y-2">
               {acquiredItems.map((item) => (
                 <div key={item.id} className="bg-card rounded-xl border border-green-500/10 p-4 flex items-center gap-4 group opacity-60 hover:opacity-80 transition-opacity">
-                  <button onClick={() => toggleAcquired(item)} className="w-5 h-5 rounded border flex items-center justify-center shrink-0 bg-green-500/20 border-green-500/40 text-green-400">
+                  <button onClick={() => toggleAcquired(item)} className="w-5 h-5 rounded border flex items-center justify-center shrink-0 bg-green-500/20 border-green-500/40 text-green-600">
                     <Check className="w-3 h-3" />
                   </button>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium line-through text-white/30">{item.name}</p>
-                    {item.notes && <p className="text-white/20 text-xs mt-0.5 truncate">{item.notes}</p>}
+                    <p className="text-sm font-medium line-through text-ink/[0.48]">{item.name}</p>
+                    {item.notes && <p className="text-ink/[0.38] text-xs mt-0.5 truncate">{item.notes}</p>}
                   </div>
-                  <span className="text-white/20 text-[10px] uppercase tracking-wider">{item.category}</span>
-                  {item.estimatedCost > 0 && <span className="text-white/25 text-sm font-bold w-20 text-right shrink-0">${item.estimatedCost.toLocaleString()}</span>}
-                  <button onClick={() => deleteItem(item.id)} className="p-1.5 rounded-md hover:bg-white/5 text-white/15 hover:text-red-400/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <span className="text-ink/[0.38] text-[10px] uppercase tracking-wider">{item.category}</span>
+                  {item.estimatedCost > 0 && <span className="text-ink/[0.43] text-sm font-bold w-20 text-right shrink-0">${item.estimatedCost.toLocaleString()}</span>}
+                  <button onClick={() => deleteItem(item.id)} className="p-1.5 rounded-md hover:bg-ink/5 text-ink/[0.33] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               ))}
             </div>

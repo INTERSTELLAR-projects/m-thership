@@ -68,7 +68,7 @@ export default function FormEditor({ fields, setFields, onClose }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white font-bold text-sm">Form Fields</h3>
+        <h3 className="text-ink font-bold text-sm">Form Fields</h3>
         <button
           onClick={() => setShowFieldMenu(!showFieldMenu)}
           className="flex items-center gap-1.5 text-orange-500/60 hover:text-orange-500 text-xs transition-colors"
@@ -78,12 +78,12 @@ export default function FormEditor({ fields, setFields, onClose }) {
       </div>
 
       {showFieldMenu && (
-        <div className="grid grid-cols-3 gap-1.5 bg-white/[0.02] rounded-lg p-3 border border-white/[0.06]">
+        <div className="grid grid-cols-3 gap-1.5 bg-ink/[0.02] rounded-lg p-3 border border-ink/[0.13]">
           {FIELD_TYPES.map((type) => (
             <button
               key={type.id}
               onClick={() => addField(type.id)}
-              className="px-2 py-1.5 rounded-lg text-xs text-white/60 hover:bg-white/[0.08] hover:text-white transition-all border border-white/[0.06]"
+              className="px-2 py-1.5 rounded-lg text-xs text-ink/60 hover:bg-ink/[0.08] hover:text-ink transition-all border border-ink/[0.13]"
             >
               <div className="text-lg mb-0.5">{type.icon}</div>
               <div className="text-[10px]">{type.label}</div>
@@ -98,10 +98,10 @@ export default function FormEditor({ fields, setFields, onClose }) {
             <div
               {...provided.droppableProps}
               ref={provided.innerRef}
-              className={`space-y-2 ${snapshot.isDraggingOver ? "bg-white/[0.02] rounded-lg p-3" : ""}`}
+              className={`space-y-2 ${snapshot.isDraggingOver ? "bg-ink/[0.02] rounded-lg p-3" : ""}`}
             >
               {fields.length === 0 ? (
-                <p className="text-white/25 text-xs py-4 text-center">No fields yet. Add one to get started.</p>
+                <p className="text-ink/[0.43] text-xs py-4 text-center">No fields yet. Add one to get started.</p>
               ) : (
                 fields.map((field, idx) => (
                   <Draggable key={field.id} draggableId={field.id} index={idx}>
@@ -109,30 +109,30 @@ export default function FormEditor({ fields, setFields, onClose }) {
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        className={`bg-white/[0.02] rounded-lg border border-white/[0.06] p-3 transition-all ${
-                          snapshot.isDragging ? "bg-white/[0.08] border-orange-500/30" : ""
+                        className={`bg-ink/[0.02] rounded-lg border border-ink/[0.13] p-3 transition-all ${
+                          snapshot.isDragging ? "bg-ink/[0.08] border-orange-500/30" : ""
                         }`}
                       >
                         {editingId === field.id ? (
                           <FieldEditor field={editForm} setField={setEditForm} onSave={saveEdit} onCancel={() => setEditingId(null)} />
                         ) : (
                           <div className="flex items-center gap-2">
-                            <div {...provided.dragHandleProps} className="text-white/20 cursor-grab active:cursor-grabbing">
+                            <div {...provided.dragHandleProps} className="text-ink/[0.38] cursor-grab active:cursor-grabbing">
                               <GripVertical className="w-4 h-4" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-white/70 text-xs font-medium">{field.label}</p>
-                              <p className="text-white/30 text-[10px]">{FIELD_TYPES.find((t) => t.id === field.type)?.label}</p>
+                              <p className="text-ink/70 text-xs font-medium">{field.label}</p>
+                              <p className="text-ink/[0.48] text-[10px]">{FIELD_TYPES.find((t) => t.id === field.type)?.label}</p>
                             </div>
                             <button
                               onClick={() => startEdit(field)}
-                              className="p-1.5 text-white/20 hover:text-white/50 transition-colors"
+                              className="p-1.5 text-ink/[0.38] hover:text-ink/50 transition-colors"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => deleteField(field.id)}
-                              className="p-1.5 text-white/20 hover:text-red-400/60 transition-colors"
+                              className="p-1.5 text-ink/[0.38] hover:text-red-600/60 transition-colors"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -159,14 +159,14 @@ function FieldEditor({ field, setField, onSave, onCancel }) {
         autoFocus
         value={field.label}
         onChange={(e) => setField({ ...field, label: e.target.value })}
-        className="w-full bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1.5 text-xs text-white outline-none"
+        className="w-full bg-ink/[0.04] border border-ink/[0.13] rounded px-2 py-1.5 text-xs text-ink outline-none"
         placeholder="Field label"
       />
       {["multiple_choice", "dropdown"].includes(field.type) && (
         <textarea
           value={field.options?.join("\n") || ""}
           onChange={(e) => setField({ ...field, options: e.target.value.split("\n").filter(Boolean) })}
-          className="w-full bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1.5 text-xs text-white outline-none resize-none"
+          className="w-full bg-ink/[0.04] border border-ink/[0.13] rounded px-2 py-1.5 text-xs text-ink outline-none resize-none"
           placeholder="One option per line"
           rows="3"
         />
@@ -174,7 +174,7 @@ function FieldEditor({ field, setField, onSave, onCancel }) {
       <input
         value={field.placeholder || ""}
         onChange={(e) => setField({ ...field, placeholder: e.target.value })}
-        className="w-full bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1.5 text-xs text-white outline-none"
+        className="w-full bg-ink/[0.04] border border-ink/[0.13] rounded px-2 py-1.5 text-xs text-ink outline-none"
         placeholder="Placeholder text (optional)"
       />
       <label className="flex items-center gap-2 cursor-pointer">
@@ -184,13 +184,13 @@ function FieldEditor({ field, setField, onSave, onCancel }) {
           onChange={(e) => setField({ ...field, required: e.target.checked })}
           className="w-3 h-3"
         />
-        <span className="text-white/50 text-xs">Required</span>
+        <span className="text-ink/50 text-xs">Required</span>
       </label>
       <div className="flex gap-2 pt-1">
-        <button onClick={onSave} className="flex-1 px-2 py-1.5 bg-green-500/10 text-green-400/70 hover:bg-green-500/20 rounded text-xs font-semibold flex items-center justify-center gap-1">
+        <button onClick={onSave} className="flex-1 px-2 py-1.5 bg-green-500/10 text-green-600/70 hover:bg-green-500/20 rounded text-xs font-semibold flex items-center justify-center gap-1">
           <Check className="w-3 h-3" /> Save
         </button>
-        <button onClick={onCancel} className="flex-1 px-2 py-1.5 bg-white/[0.04] text-white/30 hover:bg-white/[0.08] rounded text-xs flex items-center justify-center gap-1">
+        <button onClick={onCancel} className="flex-1 px-2 py-1.5 bg-ink/[0.04] text-ink/[0.48] hover:bg-ink/[0.08] rounded text-xs flex items-center justify-center gap-1">
           <X className="w-3 h-3" /> Cancel
         </button>
       </div>

@@ -6,16 +6,16 @@ import ClientDetail from "../components/orbitseo/ClientDetail";
 import WorkloadSnapshot from "../components/orbitseo/WorkloadSnapshot";
 
 const SERVICE_TYPE_COLORS = {
-  Local: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  National: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+  Local: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  National: "bg-purple-500/10 text-purple-600 border-purple-500/20",
   International: "bg-orange-500/10 text-orange-400 border-orange-500/20",
 };
 
 const GBP_COLORS = {
-  Active: "text-green-400",
+  Active: "text-green-600",
   "Needs Attention": "text-orange-400",
-  "Not Applicable": "text-white/25",
-  Paused: "text-white/25",
+  "Not Applicable": "text-ink/[0.43]",
+  Paused: "text-ink/[0.43]",
 };
 
 function isOverdue(dateStr) {
@@ -150,17 +150,17 @@ export default function OrbitSEO() {
         {/* OVERVIEW STATS */}
         <div className="grid grid-cols-6 gap-3">
           <StatCard label="SEO Clients" value={totalClients} icon={Users} color="text-orange-500" />
-          <StatCard label="Published This Month" value={publishedThisMonth} icon={BarChart3} color="text-green-400" />
-          <StatCard label="Blogs Due This Week" value={upcomingBlogs} icon={Calendar} color="text-blue-400" />
-          <StatCard label="GBP Due This Week" value={gbpDueThisWeek} icon={Globe} color="text-purple-400" />
-          <StatCard label="Needs Attention" value={needsAttention} icon={AlertCircle} color={needsAttention > 0 ? "text-orange-400" : "text-white/25"} />
+          <StatCard label="Published This Month" value={publishedThisMonth} icon={BarChart3} color="text-green-600" />
+          <StatCard label="Blogs Due This Week" value={upcomingBlogs} icon={Calendar} color="text-blue-600" />
+          <StatCard label="GBP Due This Week" value={gbpDueThisWeek} icon={Globe} color="text-purple-600" />
+          <StatCard label="Needs Attention" value={needsAttention} icon={AlertCircle} color={needsAttention > 0 ? "text-orange-400" : "text-ink/[0.43]"} />
           <div className="game-panel p-4">
-            <p className="text-white/30 text-[10px] uppercase tracking-wider mb-2">Client Breakdown</p>
+            <p className="text-ink/[0.48] text-[10px] uppercase tracking-wider mb-2">Client Breakdown</p>
             <div className="space-y-1">
               {Object.entries(byType).map(([type, count]) => (
                 <div key={type} className="flex items-center justify-between">
-                  <span className="text-white/40 text-xs">{type}</span>
-                  <span className="text-white/70 text-xs font-bold">{count}</span>
+                  <span className="text-ink/[0.58] text-xs">{type}</span>
+                  <span className="text-ink/70 text-xs font-bold">{count}</span>
                 </div>
               ))}
             </div>
@@ -173,40 +173,40 @@ export default function OrbitSEO() {
         {/* FILTERS + ADD */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/[0.38]" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search clients..."
-              className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-sm text-white placeholder:text-white/20 outline-none"
+              className="w-full pl-10 pr-4 py-2 bg-card border border-ink/[0.13] rounded-lg text-sm text-ink placeholder:text-ink/[0.38] outline-none"
             />
           </div>
           <div className="flex gap-1.5">
             {["All", "Local", "National", "International"].map((t) => (
-              <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterType === t ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{t}</button>
+              <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterType === t ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{t}</button>
             ))}
           </div>
           <div className="flex gap-1.5">
             {["All", "Active", "Needs Attention", "Paused"].map((s) => (
-              <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterStatus === s ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-white/30 hover:text-white/50 border border-transparent"}`}>{s}</button>
+              <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterStatus === s ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(255,106,0,0.25)]" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{s}</button>
             ))}
           </div>
           <button
             onClick={() => setAddOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-xs font-semibold rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-xs font-semibold rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />Add Client
           </button>
           <button
             onClick={syncFromCRM}
             disabled={syncing}
-            className="ml-auto flex items-center gap-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/60 hover:text-white/80 text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+            className="ml-auto flex items-center gap-2 px-4 py-2 bg-ink/5 hover:bg-ink/[0.08] border border-ink/[0.13] text-ink/60 hover:text-ink/80 text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />{syncing ? "Syncing..." : "Sync from CRM"}
           </button>
         </div>
         {syncResult && (
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-xs">
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-green-500/10 border border-green-500/20 rounded-lg text-green-600 text-xs">
             <Check className="w-3.5 h-3.5 shrink-0" />{syncResult}
           </div>
         )}
@@ -214,12 +214,12 @@ export default function OrbitSEO() {
         {/* CLIENT GRID */}
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-6 h-6 text-white/20 animate-spin" />
+            <Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="game-panel p-12 text-center">
-            <Globe className="w-8 h-8 text-white/10 mx-auto mb-3" />
-            <p className="text-white/30 text-sm">{clients.length === 0 ? "No SEO clients yet. Add your first one." : "No clients match your filters."}</p>
+            <Globe className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
+            <p className="text-ink/[0.48] text-sm">{clients.length === 0 ? "No SEO clients yet. Add your first one." : "No clients match your filters."}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
@@ -232,31 +232,31 @@ export default function OrbitSEO() {
 
       {/* ADD MODAL */}
       {addOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
-          <div className="bg-card border border-white/[0.08] rounded-2xl p-6 w-full max-w-sm space-y-4">
+        <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center">
+          <div className="bg-card border border-ink/[0.13] rounded-2xl p-6 w-full max-w-sm space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-display font-bold text-sm tracking-wide bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Add Ørbit SEO Client</h3>
-              <button onClick={() => setAddOpen(false)} className="text-white/30 hover:text-white/60"><X className="w-4 h-4" /></button>
+              <button onClick={() => setAddOpen(false)} className="text-ink/[0.48] hover:text-ink/60"><X className="w-4 h-4" /></button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="text-white/40 text-xs block mb-1">Business Name</label>
+                <label className="text-ink/[0.58] text-xs block mb-1">Business Name</label>
                 <input
                   autoFocus
                   value={newClient.businessName}
                   onChange={(e) => setNewClient({ ...newClient, businessName: e.target.value })}
                   onKeyDown={(e) => e.key === "Enter" && addClient()}
-                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none"
+                  className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink outline-none"
                 />
               </div>
               <div>
-                <label className="text-white/40 text-xs block mb-1">Service Type</label>
-                <select value={newClient.serviceType} onChange={(e) => setNewClient({ ...newClient, serviceType: e.target.value })} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none">
+                <label className="text-ink/[0.58] text-xs block mb-1">Service Type</label>
+                <select value={newClient.serviceType} onChange={(e) => setNewClient({ ...newClient, serviceType: e.target.value })} className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded-lg px-3 py-2 text-sm text-ink outline-none">
                   {["Local", "National", "International"].map((t) => <option key={t}>{t}</option>)}
                 </select>
               </div>
             </div>
-            <button onClick={addClient} className="w-full py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-sm font-semibold rounded-lg transition-colors">Add Client</button>
+            <button onClick={addClient} className="w-full py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold shadow-[0_0_14px_rgba(255,106,0,0.25)] text-sm font-semibold rounded-lg transition-colors">Add Client</button>
           </div>
         </div>
       )}
@@ -271,7 +271,7 @@ function StatCard({ label, value, icon: Icon, color }) {
         <Icon className={`w-4 h-4 ${color}`} />
       </div>
       <p className={`text-2xl font-bold font-display ${color}`}>{value}</p>
-      <p className="text-white/30 text-[10px] uppercase tracking-wider mt-1">{label}</p>
+      <p className="text-ink/[0.48] text-[10px] uppercase tracking-wider mt-1">{label}</p>
     </div>
   );
 }
@@ -291,24 +291,24 @@ function ClientCard({ client, onClick, onDelete }) {
             {client.businessName?.charAt(0)}
           </div>
           <div>
-            <p className="text-white/90 font-semibold text-sm">{client.businessName}</p>
+            <p className="text-ink/90 font-semibold text-sm">{client.businessName}</p>
             {client.primaryLocation && (
-              <p className="text-white/30 text-xs flex items-center gap-1 mt-0.5"><MapPin className="w-3 h-3" />{client.primaryLocation}</p>
+              <p className="text-ink/[0.48] text-xs flex items-center gap-1 mt-0.5"><MapPin className="w-3 h-3" />{client.primaryLocation}</p>
             )}
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${SERVICE_TYPE_COLORS[client.serviceType] || "bg-white/5 text-white/30 border-white/10"}`}>
+          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${SERVICE_TYPE_COLORS[client.serviceType] || "bg-ink/5 text-ink/[0.48] border-ink/[0.13]"}`}>
             {client.serviceType}
           </span>
           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
-            client.status === "Active" ? "bg-green-500/10 text-green-400" :
-            client.status === "Paused" ? "bg-white/5 text-white/30" :
+            client.status === "Active" ? "bg-green-500/10 text-green-600" :
+            client.status === "Paused" ? "bg-ink/5 text-ink/[0.48]" :
             "bg-orange-500/10 text-orange-400"
           }`}>{client.status}</span>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-1 text-white/15 hover:text-red-400/70 transition-colors"
+            className="p-1 text-ink/[0.33] hover:text-red-600/70 transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -318,15 +318,15 @@ function ClientCard({ client, onClick, onDelete }) {
       <div className="grid grid-cols-2 gap-3">
         {/* Blog frequency + posting days */}
         <div>
-          <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Blog Frequency</p>
-          <p className="text-xs font-semibold text-white/70">{client.blogFrequency || "—"}</p>
+          <p className="text-ink/[0.43] text-[10px] uppercase tracking-wider mb-1">Blog Frequency</p>
+          <p className="text-xs font-semibold text-ink/70">{client.blogFrequency || "—"}</p>
           {(client.blogDays || []).length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1.5">
               {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
                 .map((lbl, idx) => ({ lbl, num: idx }))
                 .filter(({ num }) => (client.blogDays || []).includes(num))
                 .map(({ lbl, num }) => (
-                  <span key={num} className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/15">{lbl}</span>
+                  <span key={num} className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 border border-blue-500/15">{lbl}</span>
                 ))}
             </div>
           )}
@@ -335,18 +335,18 @@ function ClientCard({ client, onClick, onDelete }) {
         {/* GBP status + Google Shop */}
         <div className="space-y-2">
           <div>
-            <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">GBP</p>
-            <p className={`text-xs font-semibold ${GBP_COLORS[client.gbpStatus] || "text-white/30"}`}>{client.gbpStatus || "—"}</p>
+            <p className="text-ink/[0.43] text-[10px] uppercase tracking-wider mb-1">GBP</p>
+            <p className={`text-xs font-semibold ${GBP_COLORS[client.gbpStatus] || "text-ink/[0.48]"}`}>{client.gbpStatus || "—"}</p>
           </div>
           <div>
-            <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Google Shop</p>
-            <p className={`text-xs font-semibold ${GBP_COLORS[client.googleShopStatus] || "text-white/30"}`}>{client.googleShopStatus || "—"}</p>
+            <p className="text-ink/[0.43] text-[10px] uppercase tracking-wider mb-1">Google Shop</p>
+            <p className={`text-xs font-semibold ${GBP_COLORS[client.googleShopStatus] || "text-ink/[0.48]"}`}>{client.googleShopStatus || "—"}</p>
           </div>
         </div>
       </div>
 
       {(overdueBlogs > 0 || gbpOverdue) && (
-        <div className="flex items-center gap-2 pt-1 border-t border-white/[0.04]">
+        <div className="flex items-center gap-2 pt-1 border-t border-ink/[0.13]">
           <AlertCircle className="w-3.5 h-3.5 text-orange-400" />
           <p className="text-orange-400 text-xs">
             {overdueBlogs > 0 && `${overdueBlogs} overdue blog${overdueBlogs > 1 ? "s" : ""}`}
@@ -357,9 +357,9 @@ function ClientCard({ client, onClick, onDelete }) {
       )}
 
       {client.nextBlogDue && (
-        <div className="flex items-center justify-between pt-1 border-t border-white/[0.04]">
-          <span className="text-white/25 text-[10px]">Next blog due</span>
-          <span className={`text-xs font-medium ${isOverdue(client.nextBlogDue) ? "text-orange-400" : "text-white/50"}`}>
+        <div className="flex items-center justify-between pt-1 border-t border-ink/[0.13]">
+          <span className="text-ink/[0.43] text-[10px]">Next blog due</span>
+          <span className={`text-xs font-medium ${isOverdue(client.nextBlogDue) ? "text-orange-400" : "text-ink/50"}`}>
             {new Date(client.nextBlogDue + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
           </span>
         </div>
@@ -371,8 +371,8 @@ function ClientCard({ client, onClick, onDelete }) {
 function MiniStat({ label, value, small }) {
   return (
     <div>
-      <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">{label}</p>
-      <p className={`font-semibold text-white/70 ${small ? "text-xs" : "text-sm"}`}>{value}</p>
+      <p className="text-ink/[0.43] text-[10px] uppercase tracking-wider mb-1">{label}</p>
+      <p className={`font-semibold text-ink/70 ${small ? "text-xs" : "text-sm"}`}>{value}</p>
     </div>
   );
 }

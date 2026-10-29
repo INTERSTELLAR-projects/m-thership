@@ -9,8 +9,8 @@ export default function PlaceholderPage({ title, subtitle }) {
           <div className="w-16 h-16 rounded-2xl bg-orange-500/[0.06] border border-orange-500/10 flex items-center justify-center mx-auto mb-4">
             <span className="text-orange-500/40 text-2xl font-bold">IC</span>
           </div>
-          <h2 className="text-white/40 text-lg font-semibold mb-1">{title}</h2>
-          <p className="text-white/15 text-sm">This module is under development</p>
+          <h2 className="text-ink/[0.58] text-lg font-semibold mb-1">{title}</h2>
+          <p className="text-ink/[0.33] text-sm">This module is under development</p>
         </div>
       </div>
     </div>

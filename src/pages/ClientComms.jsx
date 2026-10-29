@@ -134,7 +134,7 @@ export default function ClientComms() {
       <div className="min-h-screen bg-background">
         <PageHeader breadcrumb="Portal / Comms" rightText="Message with Admin" />
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-6 h-6 text-white/20 animate-spin" />
+          <Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" />
         </div>
       </div>
     );
@@ -145,19 +145,19 @@ export default function ClientComms() {
       <PageHeader breadcrumb="Portal / Comms" rightText="Message with Admin" />
       <div className="flex-1 flex flex-col">
         {/* Search Bar */}
-        <div className="px-6 py-4 border-b border-white/5">
+        <div className="px-6 py-4 border-b border-ink/[0.13]">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/[0.38]" />
             <input
               type="text"
               placeholder="Search conversation..."
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-card border border-white/[0.06] rounded-lg text-white placeholder:text-white/20 outline-none focus:border-orange-500/30 max-w-sm"
+              className="w-full pl-10 pr-4 py-2 bg-card border border-ink/[0.13] rounded-lg text-ink placeholder:text-ink/[0.38] outline-none focus:border-orange-500/30 max-w-sm"
             />
           </div>
           {searchResults.length > 0 && (
-            <p className="text-xs text-white/40 mt-2">
+            <p className="text-xs text-ink/[0.58] mt-2">
               Found {searchResults.length} result{searchResults.length !== 1 ? "s" : ""}
             </p>
           )}
@@ -167,7 +167,7 @@ export default function ClientComms() {
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
-              <p className="text-white/25 text-sm">No messages yet. Start the conversation!</p>
+              <p className="text-ink/[0.43] text-sm">No messages yet. Start the conversation!</p>
             </div>
           ) : (
             messages.map((msg) => (
@@ -184,8 +184,8 @@ export default function ClientComms() {
                   <div
                     className={`max-w-md rounded-lg px-4 py-2 ${
                       msg.senderEmail === user.email
-                        ? "bg-gradient-to-br from-orange-500/25 to-amber-400/10 border border-orange-500/40 text-white"
-                        : "bg-white/[0.05] border border-white/[0.06] text-white/80"
+                        ? "bg-gradient-to-br from-orange-500/25 to-amber-400/10 border border-orange-500/40 text-ink"
+                        : "bg-ink/5 border border-ink/[0.13] text-ink/80"
                     }`}
                   >
                     {msg.messageType === "text" && (
@@ -216,7 +216,7 @@ export default function ClientComms() {
                         className="max-w-xs"
                       />
                     )}
-                    <p className="text-xs text-white/30 mt-1">
+                    <p className="text-xs text-ink/[0.48] mt-1">
                       {new Date(msg.timestamp).toLocaleTimeString()}
                     </p>
                   </div>
@@ -228,7 +228,7 @@ export default function ClientComms() {
         </div>
 
         {/* Input Area */}
-        <div className="px-6 py-4 border-t border-white/5 space-y-3">
+        <div className="px-6 py-4 border-t border-ink/[0.13] space-y-3">
           <div className="flex gap-2">
             <input
               ref={imageInputRef}
@@ -239,7 +239,7 @@ export default function ClientComms() {
             />
             <button
               onClick={() => imageInputRef.current?.click()}
-              className="p-2 text-white/40 hover:text-white/60 hover:bg-white/[0.05] rounded-lg transition-colors"
+              className="p-2 text-ink/[0.58] hover:text-ink/60 hover:bg-ink/5 rounded-lg transition-colors"
               title="Send image or GIF"
             >
               <Image className="w-5 h-5" />
@@ -253,7 +253,7 @@ export default function ClientComms() {
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="p-2 text-white/40 hover:text-white/60 hover:bg-white/[0.05] rounded-lg transition-colors"
+              className="p-2 text-ink/[0.58] hover:text-ink/60 hover:bg-ink/5 rounded-lg transition-colors"
               title="Send document"
             >
               <Paperclip className="w-5 h-5" />
@@ -268,7 +268,7 @@ export default function ClientComms() {
             />
             <button
               onClick={() => audioInputRef.current?.click()}
-              className="p-2 text-white/40 hover:text-white/60 hover:bg-white/[0.05] rounded-lg transition-colors"
+              className="p-2 text-ink/[0.58] hover:text-ink/60 hover:bg-ink/5 rounded-lg transition-colors"
               title="Send audio file"
             >
               <Mic className="w-5 h-5" />
@@ -278,7 +278,7 @@ export default function ClientComms() {
 
             <MicButton
               onResult={(text) => setMessageText((p) => p + (p ? " " : "") + text)}
-              className="p-2 text-white/40 hover:text-white/60"
+              className="p-2 text-ink/[0.58] hover:text-ink/60"
             />
           </div>
 
@@ -293,13 +293,13 @@ export default function ClientComms() {
                 }
               }}
               placeholder="Type a message... (Shift+Enter for new line)"
-              className="flex-1 bg-card border border-white/[0.06] rounded-lg px-4 py-2 text-sm text-white placeholder:text-white/20 outline-none focus:border-orange-500/30 resize-none max-h-24"
+              className="flex-1 bg-card border border-ink/[0.13] rounded-lg px-4 py-2 text-sm text-ink placeholder:text-ink/[0.38] outline-none focus:border-orange-500/30 resize-none max-h-24"
               rows="2"
             />
             <button
               onClick={() => sendMessage(messageText)}
               disabled={!messageText.trim() || sending}
-              className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-[0_0_14px_rgba(255,106,0,0.25)] flex items-center gap-2"
+              className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-[0_0_14px_rgba(255,106,0,0.25)] flex items-center gap-2"
             >
               {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </button>

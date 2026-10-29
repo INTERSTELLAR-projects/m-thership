@@ -68,36 +68,36 @@ export default function CommandPalette({ open, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] bg-ink/60 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg mx-4 bg-[#0f1117] border border-white/[0.10] rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full max-w-lg mx-4 bg-[#0f1117] border border-ink/[0.13] rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.07]">
-          <Search className="w-4 h-4 text-white/30 shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-ink/[0.13]">
+          <Search className="w-4 h-4 text-ink/[0.48] shrink-0" />
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKey}
             placeholder="Go to..."
-            className="flex-1 bg-transparent text-white placeholder:text-white/25 text-sm outline-none"
+            className="flex-1 bg-transparent text-ink placeholder:text-ink/[0.43] text-sm outline-none"
           />
           {query && (
-            <button onClick={() => setQuery("")} className="text-white/20 hover:text-white/50">
+            <button onClick={() => setQuery("")} className="text-ink/[0.38] hover:text-ink/50">
               <X className="w-3.5 h-3.5" />
             </button>
           )}
-          <kbd className="text-white/20 text-[10px] font-mono bg-white/[0.05] px-1.5 py-0.5 rounded border border-white/[0.08]">ESC</kbd>
+          <kbd className="text-ink/[0.38] text-[10px] font-mono bg-ink/5 px-1.5 py-0.5 rounded border border-ink/[0.13]">ESC</kbd>
         </div>
 
         {/* Results */}
         <div className="max-h-80 overflow-y-auto py-1.5">
           {filtered.length === 0 ? (
-            <p className="text-white/25 text-sm text-center py-6">No pages found</p>
+            <p className="text-ink/[0.43] text-sm text-center py-6">No pages found</p>
           ) : (
             filtered.map((cmd, i) => (
               <button
@@ -105,13 +105,13 @@ export default function CommandPalette({ open, onClose }) {
                 onClick={() => go(cmd.path)}
                 onMouseEnter={() => setSelected(i)}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
-                  selected === i ? "bg-orange-500/10 text-white" : "text-white/50 hover:text-white/80"
+                  selected === i ? "bg-orange-500/10 text-ink" : "text-ink/50 hover:text-ink/80"
                 }`}
               >
-                <cmd.icon className={`w-4 h-4 shrink-0 ${selected === i ? "text-orange-500" : "text-white/25"}`} />
+                <cmd.icon className={`w-4 h-4 shrink-0 ${selected === i ? "text-orange-500" : "text-ink/[0.43]"}`} />
                 <span>{cmd.label}</span>
                 {selected === i && (
-                  <span className="ml-auto text-[10px] text-white/20 font-mono bg-white/[0.05] px-1.5 py-0.5 rounded border border-white/[0.06]">↵</span>
+                  <span className="ml-auto text-[10px] text-ink/[0.38] font-mono bg-ink/5 px-1.5 py-0.5 rounded border border-ink/[0.13]">↵</span>
                 )}
               </button>
             ))
@@ -119,10 +119,10 @@ export default function CommandPalette({ open, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-4 px-4 py-2.5 border-t border-white/[0.07]">
-          <span className="text-white/20 text-[10px]">↑↓ navigate</span>
-          <span className="text-white/20 text-[10px]">↵ select</span>
-          <span className="ml-auto text-white/20 text-[10px] font-mono">⌘K</span>
+        <div className="flex items-center gap-4 px-4 py-2.5 border-t border-ink/[0.13]">
+          <span className="text-ink/[0.38] text-[10px]">↑↓ navigate</span>
+          <span className="text-ink/[0.38] text-[10px]">↵ select</span>
+          <span className="ml-auto text-ink/[0.38] text-[10px] font-mono">⌘K</span>
         </div>
       </div>
     </div>
