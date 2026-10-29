@@ -96,6 +96,14 @@
     "progress": {
       "type": "number",
       "default": 0
+    },
+    "service_key": {
+      "type": "string",
+      "description": "Package started from the service catalog (mission_alpha, orbit_local…)"
+    },
+    "order_ref": {
+      "type": "string",
+      "description": "Purchase reference (manual-… or a Stripe payment id) so a purchase never creates two lists"
     }
   },
   "required": [
