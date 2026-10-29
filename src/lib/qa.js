@@ -92,6 +92,23 @@ export function installQa(base44) {
   base44.auth.isAuthenticated = async () => true;
   base44.auth.logout = () => { sessionStorage.removeItem("ms_qa"); window.location.href = "/"; };
   base44.integrations = { Core: { InvokeLLM: async () => ({}), UploadFile: async () => ({ file_url: "" }) } };
-  base44.functions = { invoke: async () => ({ data: {} }) };
+  base44.functions = {
+    invoke: async (name, args = {}) => {
+      if (name !== "portal") return { data: {} };
+      const cid = args.client_id || "c1";
+      const of = (e) => rows(e).filter((r) => r.client_id === cid);
+      if (args.action === "messages") return { data: { messages: of("ConversationMessage") } };
+      if (args.action === "intake") return { data: { intake: of("IntakeAudit")[0] || null } };
+      if (args.action === "home") {
+        return { data: {
+          client: rows("CRMClient").find((c) => c.id === cid), user: { email: QA_USER.email, is_admin_preview: true },
+          work: of("WorkLog"), automations: of("Automation").filter((a) => a.status === "active"), requests: of("ClientRequest"),
+          goals: of("ClientGoal"), gaps: of("ClientGap"), snapshots: of("PerformanceSnapshot"), upcoming: of("Task").filter((t) => t.portal_visible),
+          files: of("ClientFile"), future: of("Project"), unread: 1,
+        } };
+      }
+      return { data: {} };
+    },
+  };
   return base44;
 }
