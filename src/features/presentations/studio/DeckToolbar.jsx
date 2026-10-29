@@ -46,7 +46,7 @@ export default function DeckToolbar({
         value={title}
         onChange={(event) => onTitleChange(event.target.value)}
         placeholder="Untitled deck"
-        className="h-9 max-w-[320px] flex-1 border-transparent bg-transparent px-1 font-heading text-[15px] font-semibold shadow-none focus-visible:border-border"
+        className="h-9 max-w-[320px] flex-1 border-transparent bg-transparent px-1 font-sans text-[15px] font-semibold shadow-none focus-visible:border-border"
       />
 
       <span className="flex items-center gap-1.5 rounded-full bg-secondary/80 px-2.5 py-1 text-[11px] text-muted-foreground">

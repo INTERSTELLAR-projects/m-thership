@@ -25,7 +25,7 @@ export default function StudioEmpty({ onStart }) {
       <span className="relative mx-auto flex h-12 w-12 items-center justify-center rounded-none border border-border bg-card/80 backdrop-blur-md">
         <Wand2 className="h-5 w-5" />
       </span>
-      <h2 className="relative mt-6 font-heading text-3xl font-medium tracking-tight sm:text-[38px]">
+      <h2 className="relative mt-6 font-sans text-3xl font-medium tracking-tight sm:text-[38px]">
         What are we presenting?
       </h2>
       <p className="relative mx-auto mt-3 max-w-[46ch] text-sm leading-relaxed text-muted-foreground sm:text-base">
@@ -38,7 +38,7 @@ export default function StudioEmpty({ onStart }) {
             key={starter}
             type="button"
             onClick={() => onStart(starter)}
-            className="group flex items-center gap-3 rounded-none border border-border bg-card/70 px-4 py-3 text-left text-sm backdrop-blur-md transition-all hover:-translate-y-px hover:border-highlight hover:bg-card"
+            className="group flex items-center gap-3 rounded-none border border-border bg-card/70 px-4 py-3 text-left text-sm backdrop-blur-md transition-all hover:-translate-y-px hover:border-flame hover:bg-card"
           >
             <span className="flex-1 text-muted-foreground transition-colors group-hover:text-foreground">{starter}</span>
             <ArrowUpRight className="h-4 w-4 flex-none text-muted-foreground transition-transform group-hover:-translate-y-0.5" />

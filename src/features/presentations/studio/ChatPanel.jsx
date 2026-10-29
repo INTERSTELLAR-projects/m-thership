@@ -64,7 +64,7 @@ export default function ChatPanel({ messages, onSend, busy, statusText, options,
                   key={example}
                   type="button"
                   onClick={() => setValue(example)}
-                  className="w-full rounded-none border border-border bg-card/70 px-3 py-2.5 text-left text-[13px] leading-snug text-muted-foreground backdrop-blur-md transition-colors hover:border-highlight hover:bg-card hover:text-foreground"
+                  className="w-full rounded-none border border-border bg-card/70 px-3 py-2.5 text-left text-[13px] leading-snug text-muted-foreground backdrop-blur-md transition-colors hover:border-flame hover:bg-card hover:text-foreground"
                 >
                   {example}
                 </button>

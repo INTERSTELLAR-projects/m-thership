@@ -12,7 +12,7 @@ export default function ProjectCard({ project, decks, projects, onOpenDeck, onMo
           <FolderOpen className="h-4 w-4 text-muted-foreground" />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-heading text-[15px] font-medium">{project.name}</h3>
+          <h3 className="truncate font-sans text-[15px] font-medium">{project.name}</h3>
           <p className="text-[11px] text-muted-foreground">
             {project.client ? `${project.client} · ` : ''}
             {decks.length} {decks.length === 1 ? 'presentation' : 'presentations'}

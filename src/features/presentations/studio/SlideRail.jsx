@@ -41,8 +41,8 @@ export default function SlideRail({ slides, themeId, brand, deckTitle, selectedI
                       onClick={() => onSelect(slide.id)}
                       className={`w-full overflow-hidden rounded-none border bg-card text-left transition-all ${
                         slide.id === selectedId
-                          ? 'border-highlight ring-2 ring-highlight/25'
-                          : 'border-border hover:border-highlight'
+                          ? 'border-flame ring-2 ring-flame/25'
+                          : 'border-border hover:border-flame'
                       }`}
                     >
                       <ScaledSlide>

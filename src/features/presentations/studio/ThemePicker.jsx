@@ -44,7 +44,7 @@ export default function ThemePicker({ value, brand, onChange, onBrandChange }) {
             title={theme.name}
             onClick={() => onChange(theme.id)}
             className={`relative h-7 w-7 overflow-hidden rounded-full border transition-all ${
-              active ? 'scale-105 border-transparent ring-2 ring-highlight' : 'border-border hover:scale-105'
+              active ? 'scale-105 border-transparent ring-2 ring-flame' : 'border-border hover:scale-105'
             }`}
           >
             <span className="absolute inset-0" style={{ background: theme.swatch[0] }} />
@@ -63,7 +63,7 @@ export default function ThemePicker({ value, brand, onChange, onBrandChange }) {
             title="Custom brand colors"
             onClick={() => onChange(CUSTOM_THEME_ID)}
             className={`relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border transition-all ${
-              isCustom ? 'scale-105 border-transparent ring-2 ring-highlight' : 'border-border hover:scale-105'
+              isCustom ? 'scale-105 border-transparent ring-2 ring-flame' : 'border-border hover:scale-105'
             }`}
             style={{
               background: `conic-gradient(from 140deg, ${customBrand.bg}, ${customBrand.accent}, ${customBrand.fg}, ${customBrand.bg})`
