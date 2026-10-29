@@ -53,6 +53,16 @@ const FIX = {
     { id: "r2", client_id: "c1", client_name: "Summit Roofing Co", kind: "project_submission", title: "New project: Cedar shake re-roof in Lake Oswego", status: "in_progress", page_status: "generating", created_date: new Date().toISOString() },
   ],
   Expense: [{ id: "e1", name: "Base44", amount: 100, category: "Software", frequency: "Monthly" }],
+  ClientGoal: [{ id: "g1", client_id: "c1", year: 2027, title: "Double booked roofing jobs from Google", metric: "Calls from Google per month", baseline_value: 40, current_value: 58, target_value: 80, unit: "calls / mo", status: "on_track", plan_steps: [{ title: "Launch service-area pages", done: true }, { title: "2 blogs a week", done: true }, { title: "Review request automation", done: false }] }],
+  ClientGap: [{ id: "gp1", client_id: "c1", title: "No review request after jobs", area: "reviews", severity: "high", status: "planned", recommendation: "Text a review link when a job closes" }],
+  PerformanceSnapshot: [
+    { id: "p1", client_id: "c1", source: "gbp", period_start: daysAgo(60), period_end: daysAgo(31), metrics: { views: 2100, searches: 1400, calls: 44, directions: 31, website_clicks: 120 } },
+    { id: "p2", client_id: "c1", source: "gbp", period_start: daysAgo(30), period_end: daysAgo(1), metrics: { views: 2650, searches: 1710, calls: 58, directions: 37, website_clicks: 151 } },
+    { id: "p3", client_id: "c1", source: "gsc", period_start: daysAgo(30), period_end: daysAgo(1), metrics: { clicks: 812, impressions: 24100, ctr: 3.4, avg_position: 11.2 } },
+  ],
+  ClientFile: [{ id: "f1", client_id: "c1", title: "Summit brand kit", category: "brand_kit", file_url: "https://example.com/kit.pdf", delivered_on: daysAgo(20) }, { id: "f2", client_id: "c1", title: "Onboarding SOP", category: "sop", link_url: "https://docs.example.com", delivered_on: daysAgo(10) }],
+  ConversationMessage: [{ id: "m1", client_id: "c1", content: "Your new service-area pages are live!", sender_role: "admin", created_date: new Date().toISOString() }],
+  Project: [{ id: "pj1", client_id: "c1", title: "Customer rewards program", type: "app", status: "proposed", description: "Points for referrals and repeat jobs", portal_visible: true }],
   Goal: [],
 };
 
