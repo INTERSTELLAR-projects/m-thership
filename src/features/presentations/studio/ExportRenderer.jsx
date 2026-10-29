@@ -1,11 +1,15 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import SlideRenderer from '@/features/presentations/slides/SlideRenderer';
 import { getTheme, SLIDE_W } from '@/features/presentations/lib/slideThemes';
 
 export default function ExportRenderer({ containerRef, slides, themeId, brand, deckTitle }) {
   const theme = getTheme(themeId, brand);
 
-  return (
+  // Portalled to <body> so the off-screen render surface is never clipped or
+  // re-anchored by the host layout's transformed / scrolling containers.
+  if (typeof document === 'undefined') return null;
+  return createPortal(
     <div
       ref={containerRef}
       aria-hidden="true"
@@ -30,6 +34,7 @@ export default function ExportRenderer({ containerRef, slides, themeId, brand, d
           />
         </div>
       ))}
-    </div>
+    </div>,
+    document.body
   );
 }
