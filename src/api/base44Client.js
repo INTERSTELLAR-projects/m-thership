@@ -1,5 +1,6 @@
 import { createClient } from '@base44/sdk';
 import { appParams } from '@/lib/app-params';
+import { installQa } from '@/lib/qa';
 
 const { appId, token, functionsVersion, appBaseUrl } = appParams;
 
@@ -12,3 +13,4 @@ export const base44 = createClient({
   requiresAuth: false,
   appBaseUrl
 });
+installQa(base44);
