@@ -1,4 +1,7 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import { CheckCircle2, XCircle, Loader2, MinusCircle, ArrowUpRight, Radio, Inbox, Cpu } from "lucide-react";
 import { useList, timeAgo, fmtDate, WORK_KINDS, SERVICE_LABELS } from "@/lib/useData";
 
@@ -32,6 +35,20 @@ function Empty({ children }) {
 }
 
 export default function LiveOps() {
+  const qc = useQueryClient();
+  // Turn any newly reported runs into work + automation health, then refresh. Repeats every minute while open.
+  useEffect(() => {
+    let alive = true;
+    const tick = async () => {
+      try {
+        const r = await base44.functions.invoke("process-runs", {});
+        if (alive && r?.data?.processed) ["AutomationRun", "WorkLog", "Automation"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      } catch { /* offline or not deployed yet */ }
+    };
+    tick();
+    const id = setInterval(tick, 60000);
+    return () => { alive = false; clearInterval(id); };
+  }, [qc]);
   const runs = useList("AutomationRun", { sort: "-started_at", limit: 40 });
   const work = useList("WorkLog", { sort: "-date", limit: 40 });
   const autos = useList("Automation", { sort: "-last_run_at", limit: 200 });
@@ -40,8 +57,8 @@ export default function LiveOps() {
   const feed = [
     ...(runs.data || []).map((r) => ({
       id: `r${r.id}`, at: r.started_at || r.created_date, kind: "run", status: r.status,
-      title: `${r.kind ? WORK_KINDS[r.kind] || r.kind : "Automation"} ${r.status === "success" ? "ran" : r.status}`,
-      sub: r.message, client: r.client_name, url: r.output_url,
+      title: r.title ? `${WORK_KINDS[r.kind] || "Automation"}: ${r.title}` : `${r.kind ? WORK_KINDS[r.kind] || r.kind : "Automation"} ${r.status === "success" ? "ran" : r.status}`,
+      sub: [r.verified_live ? "verified live" : r.status === "success" && r.output_url ? "not verified live yet" : "", r.message].filter(Boolean).join(" · "), client: r.client_name, url: r.output_url,
     })),
     ...(work.data || []).filter((w) => w.source !== "automation").map((w) => ({
       id: `w${w.id}`, at: w.date || w.created_date, kind: "work", status: w.status === "failed" ? "failed" : "success",
