@@ -14,7 +14,6 @@ Comprehensive security hardening implemented. All identified vulnerabilities add
 
 ### ✅ 2. Hardcoded Secrets Scan
 **Status**: COMPLETED - NO PRODUCTION SECRETS FOUND
-- **Credentials in CredentialManager**: Intentional test/demo data only (not real passwords)
 - **API Keys**: None found in frontend or versioned code
 - **Tokens**: Base44 SDK handles auth tokens server-side (not exposed)
 - **Recommendation**: Keep demo data in separate seed file if deploying to production
@@ -68,7 +67,6 @@ All major attack vectors are mitigated.
    ```
 
 2. **Update Demo Data Before Production**:
-   - Remove SEED_DATA from CredentialManager or move to secure admin setup
    - Use real credential management service (1Password, Vault, etc.)
 
 3. **Monitor Rate Limiting**:
