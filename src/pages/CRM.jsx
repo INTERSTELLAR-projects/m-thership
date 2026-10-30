@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { ArrowUpRight, Search, Plus, Phone, Mail, Globe, Building, ChevronRight, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowUpRight, Search, Plus, Phone, Mail, Globe, Building, ChevronRight, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2, CheckCircle2, Link2, Unlink2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,10 @@ export default function CRM() {
   const [selectedId, setSelectedId] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
   const [newClient, setNewClient] = useState({ business: "", contact: "", phone: "", email: "", website: "", status: "Active" });
+  const [bundleFor, setBundleFor] = useState(null); // client being grouped into a package
+  const [bundleWith, setBundleWith] = useState("");
+  const [bundleName, setBundleName] = useState("");
+  const [bundleSaving, setBundleSaving] = useState(false);
 
   useEffect(() => {
     loadClients();
@@ -84,6 +88,31 @@ export default function CRM() {
     setClients(clients.filter((c) => c.id !== id));
   };
 
+  const saveBundle = async () => {
+    if (!bundleFor || !bundleWith) return;
+    const other = clients.find((c) => c.id === bundleWith);
+    if (!other) return;
+    const name = (bundleName || other.bundle || bundleFor.bundle || `${bundleFor.business} package`).trim();
+    setBundleSaving(true);
+    try {
+      // join whichever existing package the partner is already in, otherwise start a new one
+      const ids = [bundleFor.id, other.id, ...clients.filter((c) => other.bundle && c.bundle === other.bundle).map((c) => c.id)];
+      const unique = [...new Set(ids)];
+      await Promise.all(unique.map((id) => base44.entities.CRMClient.update(id, { bundle: name })));
+      setClients(clients.map((c) => (unique.includes(c.id) ? { ...c, bundle: name } : c)));
+      setBundleFor(null);
+      setBundleWith("");
+      setBundleName("");
+    } finally {
+      setBundleSaving(false);
+    }
+  };
+
+  const unbundle = async (client) => {
+    await base44.entities.CRMClient.update(client.id, { bundle: "" });
+    setClients(clients.map((c) => (c.id === client.id ? { ...c, bundle: "" } : c)));
+  };
+
   const filtered = clients.filter((c) => {
     const matchSearch = c.business?.toLowerCase().includes(search.toLowerCase()) ||
       c.contact?.toLowerCase().includes(search.toLowerCase());
@@ -92,6 +121,46 @@ export default function CRM() {
   }).sort((a, b) => (a.business || "").localeCompare(b.business || "", undefined, { sensitivity: "base" }));
 
   const selectedClient = clients.find((c) => c.id === selectedId);
+
+  // Package deals: clients sharing a bundle name collapse into one card with a combined total.
+  const rows = [];
+  const seenBundle = new Set();
+  filtered.forEach((c) => {
+    const key = (c.bundle || "").trim();
+    if (!key) {
+      rows.push({ kind: "single", client: c });
+      return;
+    }
+    if (seenBundle.has(key)) return;
+    seenBundle.add(key);
+    const members = clients.filter((m) => (m.bundle || "").trim() === key);
+    if (members.length < 2) rows.push({ kind: "single", client: c });
+    else rows.push({ kind: "bundle", name: key, members: members.sort((a, b) => (a.business || "").localeCompare(b.business || "")) });
+  });
+
+  const priceOf = (client) => (client.services || []).reduce((s, sv) => s + (Number(sv.price) || 0), 0);
+  const Logo = ({ client, size = "w-11 h-11" }) => (
+    <div className={`${size} bg-white border border-ink/[0.1] flex items-center justify-center shrink-0 overflow-hidden`}>
+      {client.logoUrl || client.logo_url ? (
+        <img src={client.logoUrl || client.logo_url} alt={client.business} className="w-full h-full object-contain p-1.5" />
+      ) : (
+        <span className="text-[#ff3c00] font-semibold text-[15px]">{client.business?.charAt(0)}</span>
+      )}
+    </div>
+  );
+  const Money = ({ total, sub }) => (
+    <div className="text-right shrink-0 border-l border-ink/[0.08] pl-5 min-w-[118px]">
+      <p className="text-[20px] font-semibold leading-none tracking-[-0.04em] tabular-nums text-ink">
+        ${total.toLocaleString("en-US")}<span className="ml-0.5 text-[12px] font-normal tracking-normal text-ink/45">/mo</span>
+      </p>
+      <p className="mono-label mt-1.5 text-[9.5px] text-ink/45">{sub}</p>
+    </div>
+  );
+  const Arrow = () => (
+    <span className="ml-1 flex h-9 w-9 shrink-0 items-center justify-center border border-ink/[0.12] text-ink/50 transition-all duration-300 group-hover:border-[#ff3c00] group-hover:bg-[#ff3c00] group-hover:text-white">
+      <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+    </span>
+  );
 
   if (selectedClient) {
     return <ClientDetail client={selectedClient} onBack={() => setSelectedId(null)} onUpdate={updateClient} />;
@@ -118,18 +187,51 @@ export default function CRM() {
           <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" /></div>
         ) : (
           <div className="space-y-2">
-            {filtered.map((client) => {
-              const total = (client.services || []).reduce((s, sv) => s + (sv.price || 0), 0);
+            {rows.map((row) => {
+              if (row.kind === "bundle") {
+                const total = row.members.reduce((s, m) => s + priceOf(m), 0);
+                const serviceCount = row.members.reduce((s, m) => s + (m.services || []).length, 0);
+                return (
+                  <div key={"bundle:" + row.name} className="w-full bg-card rounded-md border border-[#ff3c00]/40 overflow-hidden">
+                    <div className="flex items-center justify-between gap-4 px-4 py-2 border-b border-ink/[0.08] bg-[#ff3c00]/[0.04]">
+                      <p className="label-cross text-[10.5px] text-ink/70">(Package · {row.name} · {row.members.length} businesses · one deal)</p>
+                      <Money total={total} sub={`${serviceCount} ${serviceCount === 1 ? "service" : "services"} · billed together`} />
+                    </div>
+                    <div className="divide-y divide-ink/[0.08]">
+                      {row.members.map((client) => {
+                        const own = priceOf(client);
+                        return (
+                          <div key={client.id} className="card-hover flex items-center gap-5 p-4 group">
+                            <button onClick={() => navigate(`/clients/${client.id}`)} className="flex items-center gap-5 flex-1 text-left min-w-0">
+                              <Logo client={client} />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-3 mb-1">
+                                  <span className="text-ink/90 text-sm font-medium">{client.business}</span>
+                                  <span className="text-green-600/60 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-green-400/10 border border-green-500/20 rounded">{client.status}</span>
+                                  <span className="text-[#ff3c00] text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-[#ff3c00]/10 border border-[#ff3c00]/25 rounded">Package</span>
+                                </div>
+                                <p className="text-ink/[0.48] text-xs">{client.contact} · {(client.emails || [])[0]}</p>
+                              </div>
+                              <div className="text-right shrink-0 pl-5 min-w-[118px]">
+                                <p className="mono-label text-[9.5px] text-ink/45">{own ? `carries $${own.toLocaleString("en-US")}/mo` : "included in package"}</p>
+                              </div>
+                              <Arrow />
+                            </button>
+                            <button onClick={() => unbundle(client)} title="Remove from package" className="p-1.5 text-ink/[0.28] hover:text-[#ff3c00] opacity-0 group-hover:opacity-100 transition-all shrink-0"><Unlink2 className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => deleteClient(client.id)} className="p-1.5 text-ink/[0.28] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              }
+              const client = row.client;
+              const total = priceOf(client);
               return (
                 <div key={client.id} className="card-hover w-full bg-card rounded-md border border-ink/[0.13] p-4 flex items-center gap-5 group">
                   <button onClick={() => navigate(`/clients/${client.id}`)} className="flex items-center gap-5 flex-1 text-left min-w-0">
-                    <div className="w-11 h-11 bg-white border border-ink/[0.1] flex items-center justify-center shrink-0 overflow-hidden">
-                      {client.logoUrl || client.logo_url ? (
-                        <img src={client.logoUrl || client.logo_url} alt={client.business} className="w-full h-full object-contain p-1.5" />
-                      ) : (
-                        <span className="text-[#ff3c00] font-semibold text-[15px]">{client.business?.charAt(0)}</span>
-                      )}
-                    </div>
+                    <Logo client={client} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1">
                         <span className="text-ink/90 text-sm font-medium">{client.business}</span>
@@ -137,16 +239,10 @@ export default function CRM() {
                       </div>
                       <p className="text-ink/[0.48] text-xs">{client.contact} · {(client.emails || [])[0]}</p>
                     </div>
-                    <div className="text-right shrink-0 border-l border-ink/[0.08] pl-5 min-w-[118px]">
-                      <p className="text-[20px] font-semibold leading-none tracking-[-0.04em] tabular-nums text-ink">
-                        ${total.toLocaleString("en-US")}<span className="ml-0.5 text-[12px] font-normal tracking-normal text-ink/45">/mo</span>
-                      </p>
-                      <p className="mono-label mt-1.5 text-[9.5px] text-ink/45">{(client.services || []).length} {(client.services || []).length === 1 ? "service" : "services"}</p>
-                    </div>
-                    <span className="ml-1 flex h-9 w-9 shrink-0 items-center justify-center border border-ink/[0.12] text-ink/50 transition-all duration-300 group-hover:border-[#ff3c00] group-hover:bg-[#ff3c00] group-hover:text-white">
-                      <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    </span>
+                    <Money total={total} sub={`${(client.services || []).length} ${(client.services || []).length === 1 ? "service" : "services"}`} />
+                    <Arrow />
                   </button>
+                  <button onClick={() => { setBundleFor(client); setBundleWith(""); setBundleName(""); }} title="Group into a package deal" className="p-1.5 text-ink/[0.28] hover:text-[#ff3c00] opacity-0 group-hover:opacity-100 transition-all shrink-0"><Link2 className="w-3.5 h-3.5" /></button>
                   <button onClick={() => deleteClient(client.id)} className="p-1.5 text-ink/[0.28] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               );
@@ -154,6 +250,27 @@ export default function CRM() {
           </div>
         )}
       </div>
+
+      <Dialog open={Boolean(bundleFor)} onOpenChange={(o) => { if (!o) setBundleFor(null); }}>
+        <DialogContent className="bg-card border-ink/[0.13] text-ink">
+          <DialogHeader><DialogTitle className="text-ink">Group as a package deal</DialogTitle></DialogHeader>
+          <div className="space-y-3 pt-2">
+            <p className="text-ink/55 text-xs">Businesses in a package show as one card with one combined monthly total, so nobody reads as $0.</p>
+            <div><Label className="text-ink/50 text-xs">Group <span className="text-ink font-medium">{bundleFor?.business}</span> with</Label>
+              <Select value={bundleWith} onValueChange={setBundleWith}>
+                <SelectTrigger className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1"><SelectValue placeholder="Choose a client" /></SelectTrigger>
+                <SelectContent className="bg-card border-ink/[0.13]">
+                  {clients.filter((c) => c.id !== bundleFor?.id).sort((a, b) => (a.business || "").localeCompare(b.business || "")).map((c) => (
+                    <SelectItem key={c.id} value={c.id} className="text-ink/70">{c.business}{c.bundle ? ` · in “${c.bundle}”` : ""}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div><Label className="text-ink/50 text-xs">Package name</Label><Input value={bundleName} onChange={(e) => setBundleName(e.target.value)} placeholder={bundleFor ? `${bundleFor.contact || bundleFor.business} package` : ""} className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1" /></div>
+            <Button onClick={saveBundle} disabled={!bundleWith || bundleSaving} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold">{bundleSaving ? "Saving..." : "Group them"}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="bg-card border-ink/[0.13] text-ink">
