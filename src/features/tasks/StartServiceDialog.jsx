@@ -23,7 +23,7 @@ export const SERVICE_GROUPS = [
     { key: "transmission", label: "Transmission Video", price: "", onboarding: false, streams: ["transmission"] },
   ] },
   { label: "Monthly", items: [
-    { key: "orbit_local", label: "HyperCare+ Local", price: "$750/mo", onboarding: false, streams: ["orbit_setup", "orbit_local", "starship"] },
+    { key: "orbit_local", label: "HyperCare+ Local", price: "$500–$750/mo", onboarding: false, streams: ["orbit_setup", "orbit_local", "starship"] },
     { key: "orbit_multi", label: "HyperCare+ Multi-Location", price: "+$350/mo", onboarding: false, streams: ["orbit_multi"] },
     { key: "orbit_national", label: "HyperCare+ National", price: "$1,750/mo", onboarding: false, streams: ["orbit_setup", "orbit_national", "starship"] },
     { key: "orbit_global", label: "HyperCare+ Global", price: "$3,000/mo", onboarding: false, streams: ["orbit_setup", "orbit_national", "orbit_global", "starship"] },
@@ -37,6 +37,7 @@ export default function StartServiceDialog({ open, client, onClose }) {
   const [pkg, setPkg] = useState("mission_alpha");
   const [start, setStart] = useState(today());
   const [onb, setOnb] = useState(true);
+  const [monthly, setMonthly] = useState(750);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const nav = useNavigate();
@@ -59,7 +60,7 @@ export default function StartServiceDialog({ open, client, onClose }) {
   const go = async () => {
     setBusy(true); setErr("");
     try {
-      const res = await base44.functions.invoke("start-service", { client_id: client.id, package: pkg, start_date: start, include_onboarding: onb });
+      const res = await base44.functions.invoke("start-service", { client_id: client.id, package: pkg, start_date: start, include_onboarding: onb, ...(pkg === "orbit_local" ? { value: monthly } : {}) });
       const d = res?.data || res;
       if (d?.error) throw new Error(d.error);
       ["Project", "Task", "CRMClient", "TaskTemplate"].forEach((e) => qc.invalidateQueries({ queryKey: [e] }));
@@ -104,6 +105,17 @@ export default function StartServiceDialog({ open, client, onClose }) {
               <label className="mono-label mb-1.5 block text-[9.5px] text-ink/55">Start date</label>
               <input type="date" value={start} onChange={(e) => setStart(e.target.value)} className="w-full border border-hair bg-paper px-3 py-2 text-[13.5px] outline-none focus:border-[#ff3c00]" />
             </div>
+            {pkg === "orbit_local" ? (
+              <div>
+                <label className="mono-label mb-1.5 block text-[9.5px] text-ink/55">HyperCare+ monthly price (what Stripe will charge)</label>
+                <div className="grid grid-cols-6 gap-1">
+                  {[750, 700, 650, 600, 550, 500].map((v) => (
+                    <button key={v} type="button" onClick={() => setMonthly(v)} className={`border px-1 py-1.5 font-mono text-[11.5px] ${monthly === v ? "border-ink bg-ink text-white" : "border-hair bg-paper hover:border-ink/40"}`}>${v}</button>
+                  ))}
+                </div>
+                <p className="mt-1 text-[10.5px] text-ink/45">$500 is the floor. The Stripe subscription is the source of truth once it starts.</p>
+              </div>
+            ) : null}
             <label className="flex cursor-pointer items-center gap-2 text-[13px]">
               <input type="checkbox" checked={onb} onChange={(e) => setOnb(e.target.checked)} className="h-4 w-4 accent-[#ff3c00]" />
               Include client onboarding (new client)
