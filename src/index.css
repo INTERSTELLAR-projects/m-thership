@@ -175,3 +175,9 @@
 @media (prefers-reduced-motion: reduce) {
   .rise-in { animation: none !important; }
 }
+
+/* Package orbs */
+@keyframes orb-breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+@keyframes orb-ring { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(1.9); opacity: 0; } }
+.orb-breathe { animation: orb-breathe 2.2s ease-in-out infinite; }
+.orb-ring { animation: orb-ring 1.8s ease-out infinite; }
