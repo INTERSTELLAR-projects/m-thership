@@ -1,14 +1,17 @@
 import React from "react";
 import { CornerDownRight, Pencil, Search, Trash2, Zap } from "lucide-react";
 import PriorityBadge from "@/features/tasks/ui-kit/PriorityBadge";
+import CategoryChip from "@/features/tasks/ui-kit/CategoryChip";
+import TimerButton from "@/features/tasks/components/TimerButton";
 import EmptyState from "@/features/tasks/ui-kit/EmptyState";
 import { TASK_STATUSES, categoryMeta } from "@/features/tasks/lib/constants";
-import { dueLabel, dueTone, days } from "@/features/tasks/lib/format";
+import { dueLabel, dueTone } from "@/features/tasks/lib/format";
+import { fmtMinutes, itemMinutes } from "@/features/tasks/lib/estimate";
 import { cn } from "@/lib/utils";
 
-const COLS = "lg:grid-cols-[28px_minmax(0,1fr)_160px_112px_80px_124px_96px_64px]";
+const COLS = "lg:grid-cols-[28px_minmax(0,1fr)_150px_104px_64px_118px_92px_150px_64px]";
 
-export default function TaskTable({ tasks = [], onEdit, onStatus, onFocus, onDelete, emptyHint }) {
+export default function TaskTable({ tasks = [], onEdit, onStatus, onFocus, onDelete, onPatch, emptyHint }) {
   if (!tasks.length) {
     return <EmptyState icon={Search} title="Nothing in this slice" hint={emptyHint || "Adjust the filters or speak a new task into the core."} />;
   }
@@ -16,7 +19,7 @@ export default function TaskTable({ tasks = [], onEdit, onStatus, onFocus, onDel
   return (
     <div className="overflow-hidden rounded-md border border-hair bg-card">
       <div className={cn("hidden items-center gap-3 border-b border-hair px-4 py-2.5 lg:grid", COLS)}>
-        {["", "Task", "Project", "Category", "Priority", "Status", "Due", ""].map((head, i) => (
+        {["", "Task", "Project", "Category", "Priority", "Status", "Due", "Clock", ""].map((head, i) => (
           <p key={head + i} className="mono-label text-[9px] text-ink/40">
             {head}
           </p>
@@ -49,12 +52,10 @@ export default function TaskTable({ tasks = [], onEdit, onStatus, onFocus, onDel
                   <p className={cn("truncate text-[13px]", task.status === "done" ? "text-ink/40 line-through" : "text-ink")}>{task.title}</p>
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5 lg:hidden">
-                  <span className="flex items-center gap-1 text-[10px] text-ink/60">
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: category.color }} />
-                    {category.label}
-                  </span>
+                  <CategoryChip value={task.category} />
                   <PriorityBadge value={task.priority} compact />
                   <span className={cn("text-[10px]", dueTone(task.due_date, task.status))}>{dueLabel(task.due_date, task.status)}</span>
+                  <TimerButton task={task} compact onChange={(patch) => onPatch && onPatch(task, patch)} />
                 </div>
                 {Array.isArray(task.labels) && task.labels.length ? (
                   <div className="mt-1 hidden flex-wrap gap-1.5 lg:flex">
@@ -72,9 +73,8 @@ export default function TaskTable({ tasks = [], onEdit, onStatus, onFocus, onDel
                 <p className="truncate text-[10.5px] text-ink/40">{task.client_name || "No client"}</p>
               </div>
 
-              <span className="hidden items-center gap-1.5 text-[11px] text-ink/70 lg:flex">
-                <span className="h-1.5 w-1.5 rounded-full" style={{ background: category.color }} />
-                {category.label}
+              <span className="hidden lg:flex">
+                <CategoryChip value={task.category} />
               </span>
 
               <div className="hidden lg:block">
@@ -97,7 +97,11 @@ export default function TaskTable({ tasks = [], onEdit, onStatus, onFocus, onDel
 
               <div className="hidden flex-col lg:flex">
                 <span className={cn("text-[11px]", dueTone(task.due_date, task.status))}>{dueLabel(task.due_date, task.status)}</span>
-                {task.estimated_days ? <span className="text-[10px] text-ink/40">est {days(task.estimated_days)}</span> : null}
+                {itemMinutes(task) ? <span className="text-[10px] text-ink/40">est {fmtMinutes(itemMinutes(task))}</span> : null}
+              </div>
+
+              <div className="hidden lg:block">
+                <TimerButton task={task} onChange={(patch) => onPatch && onPatch(task, patch)} />
               </div>
 
               <div className="col-start-2 flex items-center gap-1 lg:col-start-auto lg:justify-end lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100">
