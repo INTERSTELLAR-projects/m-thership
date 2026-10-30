@@ -1,14 +1,15 @@
 import React from "react";
 import { Check, CornerDownRight, Pencil, Plus } from "lucide-react";
 import PriorityBadge from "@/features/tasks/ui-kit/PriorityBadge";
+import CategoryChip from "@/features/tasks/ui-kit/CategoryChip";
+import TimerButton from "@/features/tasks/components/TimerButton";
 import EmptyState from "@/features/tasks/ui-kit/EmptyState";
-import { categoryMeta } from "@/features/tasks/lib/constants";
-import { dueLabel, dueTone, days } from "@/features/tasks/lib/format";
+import { dueLabel, dueTone } from "@/features/tasks/lib/format";
+import { fmtMinutes, itemMinutes } from "@/features/tasks/lib/estimate";
 import { btnSmallFlame } from "@/features/tasks/lib/ui";
 import { cn } from "@/lib/utils";
 
-function Row({ task, onToggle, onEdit, onAddSubtask, child = false }) {
-  const category = categoryMeta(task.category);
+function Row({ task, onToggle, onEdit, onAddSubtask, onPatch, child = false }) {
   return (
     <div className={cn("group flex items-start gap-3 px-4 py-2.5 transition-colors hover:bg-[#ff3c00]/[0.035]", child && "pl-10")}>
       <button
@@ -30,17 +31,15 @@ function Row({ task, onToggle, onEdit, onAddSubtask, child = false }) {
           <p className={cn("truncate text-[13px]", task.status === "done" ? "text-ink/40 line-through" : "text-ink")}>{task.title}</p>
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-[10.5px] text-ink/45">
-          <span className="flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: category.color }} />
-            {category.label}
-          </span>
-          {task.estimated_days ? <span>est {days(task.estimated_days)}</span> : null}
+          <CategoryChip value={task.category} />
+          {itemMinutes(task) ? <span>est {fmtMinutes(itemMinutes(task))}</span> : null}
           <span className={dueTone(task.due_date, task.status)}>{dueLabel(task.due_date, task.status)}</span>
           {task.source === "sop" && task.notes ? <span className="mono-label text-[8.5px] text-ink/45">{task.notes}</span> : null}
           {task.source && task.source !== "manual" && !(task.source === "sop" && task.notes) ? <span className="mono-label text-[8.5px] text-[#ff3c00]">{task.source}</span> : null}
         </div>
       </div>
 
+      <TimerButton task={task} onChange={(patch) => onPatch && onPatch(task, patch)} />
       <PriorityBadge value={task.priority} compact />
 
       <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
@@ -55,7 +54,7 @@ function Row({ task, onToggle, onEdit, onAddSubtask, child = false }) {
   );
 }
 
-export default function ProjectTaskList({ tasks = [], onToggle, onEdit, onAddSubtask, onAdd }) {
+export default function ProjectTaskList({ tasks = [], onToggle, onEdit, onAddSubtask, onAdd, onPatch }) {
   const ids = new Set(tasks.map((task) => task.id));
   const roots = tasks.filter((task) => !task.parent_task_id || !ids.has(task.parent_task_id));
   const childrenOf = (id) => tasks.filter((task) => task.parent_task_id === id);
@@ -104,9 +103,9 @@ export default function ProjectTaskList({ tasks = [], onToggle, onEdit, onAddSub
               <div className="divide-y divide-hair">
                 {list.map((task) => (
                   <div key={task.id}>
-                    <Row task={task} onToggle={onToggle} onEdit={onEdit} onAddSubtask={onAddSubtask} />
+                    <Row task={task} onToggle={onToggle} onEdit={onEdit} onAddSubtask={onAddSubtask} onPatch={onPatch} />
                     {childrenOf(task.id).map((child) => (
-                      <Row key={child.id} task={child} onToggle={onToggle} onEdit={onEdit} onAddSubtask={onAddSubtask} child />
+                      <Row key={child.id} task={child} onToggle={onToggle} onEdit={onEdit} onAddSubtask={onAddSubtask} onPatch={onPatch} child />
                     ))}
                   </div>
                 ))}
@@ -122,9 +121,9 @@ export default function ProjectTaskList({ tasks = [], onToggle, onEdit, onAddSub
     <div className="divide-y divide-hair">
       {roots.map((task) => (
         <div key={task.id}>
-          <Row task={task} onToggle={onToggle} onEdit={onEdit} onAddSubtask={onAddSubtask} />
+          <Row task={task} onToggle={onToggle} onEdit={onEdit} onAddSubtask={onAddSubtask} onPatch={onPatch} />
           {childrenOf(task.id).map((child) => (
-            <Row key={child.id} task={child} onToggle={onToggle} onEdit={onEdit} onAddSubtask={onAddSubtask} child />
+            <Row key={child.id} task={child} onToggle={onToggle} onEdit={onEdit} onAddSubtask={onAddSubtask} onPatch={onPatch} child />
           ))}
         </div>
       ))}
