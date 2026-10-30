@@ -132,12 +132,13 @@ export const packageByKey = (key) => PACKAGES.find((p) => p.key === key) || null
 export const packagePath = (key) => "/packages/" + key;
 
 // Orb states, shared by every package page.
+// Ink + flame only, like the rest of the system. State is carried by fill and mark, not by hue.
 export const ORB_STATES = {
-  done: { label: "Done", color: "#15803d" },
+  done: { label: "Done", color: "#1a1a1a" },
   working: { label: "In flight", color: "#ff3c00" },
-  attention: { label: "Needs you", color: "#b91c1c" },
+  attention: { label: "Needs you", color: "#ff3c00" },
   pending: { label: "Queued", color: "#8a8580" },
-  off: { label: "Not set up", color: "#c9c4bd" }
+  off: { label: "Not set up", color: "#b9b4ad" }
 };
 
 // The HyperCare+ pipeline — what the system does for a client, in order, every cycle.
