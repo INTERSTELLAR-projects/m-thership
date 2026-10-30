@@ -21,6 +21,7 @@ import SettingsPage from './pages/SettingsPage';
 import IdeaVault from './pages/IdeaVault';
 import Requests from './pages/Requests';
 import Reviews from './pages/Reviews';
+import PublicRequest from './pages/PublicRequest';
 import SignaturesPage from '@/features/signatures/SignaturesPage';
 import SignatureEditor from '@/features/signatures/EditorPage';
 import PresentationStudio from '@/features/presentations/StudioPage';
@@ -76,6 +77,7 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route path="/portal/:clientId" element={<PortalPreview />} />
+      <Route path="/r/:id" element={<PublicRequest />} />
       <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
