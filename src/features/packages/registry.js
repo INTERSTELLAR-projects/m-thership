@@ -1,4 +1,4 @@
-import { Globe, Radar, Layout, Cpu, Workflow, Palette, Grid3x3, Clapperboard } from "lucide-react";
+import { Globe, Radar, Layout, Cpu, Workflow, Palette, Grid3x3, Clapperboard, LifeBuoy } from "lucide-react";
 
 // The eight packages (pillars). Each one is a page: all clients on it, one orb rail per client.
 // service_keys  → TaskTemplate.service_key / Project.service_key that belong to this package
@@ -108,6 +108,19 @@ export const PACKAGES = [
     service_keys: ["transmission"],
     crm_services: [],
     price_match: /transmission|video/i
+  },
+  {
+    key: "gravitycare",
+    label: "GravïtyCare",
+    arch: null,
+    version: null,
+    tagline: "Keeps you afloat. Hosting, uptime, fixes and small edits — the site stays live.",
+    icon: LifeBuoy,
+    color: "#0f766e",
+    kind: "recurring",
+    service_keys: ["starship"],
+    crm_services: ["starship_care"],
+    price_match: /starsh|gravity|maintenance/i
   }
 ];
 
