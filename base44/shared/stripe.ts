@@ -22,6 +22,18 @@ export const PLAN_OF = (name: string) => {
   return "other";
 };
 
+// Payers whose Stripe customer name is a person, not the business. Confirmed by Justin 2026-10-30.
+// After the first sync the customer id is saved on the client, so this is only the first-time hint.
+const PAYER_TO_CLIENT: [string, string][] = [
+  ["Nancy Cowell", "North Woods Tree Service"],
+  ["Ivan Gongora", "Bobablastic (Molalla)"],
+  ["Tyler Spinas", "Powerlift Doors"],
+  ["Tyler Spinus", "Powerlift Doors"],
+  ["Jeremy Holst", "SMPL Social"],
+  ["Ray", "SMPL Social"],
+  ["Jamal Mentor", "Muscle Mentor Coaching"]
+];
+
 async function stripe(path: string, key: string, params: Record<string, string> = {}) {
   const out: any[] = [];
   let startingAfter: string | null = null;
@@ -61,7 +73,11 @@ export async function loadPicture(base44: any, key: string) {
   const byEmail = new Map<string, any>();
   clients.forEach((c: any) => (c.emails || []).forEach((e: string) => byEmail.set(String(e).toLowerCase(), c)));
   const byStripe = new Map<string, any>();
-  clients.forEach((c: any) => c.stripe_customer_id && byStripe.set(c.stripe_customer_id, c));
+  clients.forEach((c: any) => {
+    if (c.stripe_customer_id) byStripe.set(c.stripe_customer_id, c);
+    (c.stripe_customer_ids || []).forEach((id: string) => byStripe.set(id, c));
+  });
+  const byBusiness = (b: string) => clients.find((c: any) => norm(c.business) === norm(b)) || null;
   const match = (cust: any) => {
     if (!cust) return null;
     if (byStripe.has(cust.id)) return byStripe.get(cust.id);
@@ -69,6 +85,8 @@ export async function loadPicture(base44: any, key: string) {
     if (email && byEmail.has(email)) return byEmail.get(email);
     const n = norm(cust.name || cust.description || "");
     if (!n) return null;
+    const pinned = PAYER_TO_CLIENT.find(([payer]) => n === norm(payer) || n.includes(norm(payer)));
+    if (pinned) { const c = byBusiness(pinned[1]); if (c) return c; }
     return clients.find((c: any) => { const b = norm(c.business); return b && (n.includes(b) || b.includes(n)); }) || null;
   };
 

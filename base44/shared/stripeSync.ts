@@ -16,13 +16,14 @@ export async function syncFromStripe(base44: any, key: string) {
   const db = base44.asServiceRole.entities;
   const clients = await db.CRMClient.list("business", 300);
   const byId = new Map<string, any>(clients.map((c: any) => [c.id, c]));
-  const touched = new Map<string, { client: any; lines: any[]; plans: Set<string>; customer: string }>();
+  const touched = new Map<string, { client: any; lines: any[]; plans: Set<string>; customer: string; customers: Set<string> }>();
 
   for (const s of picture.subscriptions) {
     if (!s.client) continue;
     const client = byId.get(s.client.id);
     if (!client) continue;
-    const t = touched.get(client.id) || { client, lines: [] as any[], plans: new Set<string>(), customer: s.customer.id };
+    const t = touched.get(client.id) || { client, lines: [] as any[], plans: new Set<string>(), customer: s.customer.id, customers: new Set<string>() };
+    t.customers.add(s.customer.id);
     s.lines.forEach((l: any) => {
       t.lines.push({ id: l.id, name: LABEL(l.plan, l.name), price: l.monthly, stripe: true, stripe_price_id: l.price_id, subscription_id: s.id, interval: l.interval, discontinued: DISCONTINUED.test(l.name), status: s.status });
       t.plans.add(s.plan);
@@ -40,7 +41,8 @@ export async function syncFromStripe(base44: any, key: string) {
     if (t.plans.has("hypercare")) managed.add("orbit_seo");
     if (t.plans.has("gravitycare")) managed.add("starship_care");
     if (t.plans.has("appcare") || t.plans.has("manage")) managed.add("system");
-    const patch: any = { services, services_managed: [...managed], stripe_customer_id: t.customer, stripe_synced_at: new Date().toISOString() };
+    const ids = new Set<string>([...(t.client.stripe_customer_ids || []), ...t.customers]);
+    const patch: any = { services, services_managed: [...managed], stripe_customer_id: t.customer, stripe_customer_ids: [...ids], stripe_synced_at: new Date().toISOString() };
     if (t.client.status !== "Active") patch.status = "Active";
     await db.CRMClient.update(id, patch);
     report.push({ client: t.client.business, lines: t.lines.map((l) => `${l.name} $${l.price}/mo`), kept_off_stripe: kept.map((x) => x.name) });
