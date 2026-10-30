@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { base44 } from "@/api/base44Client";
 import { Plus, ArrowUpRight, CheckCircle2, XCircle, Pencil, ExternalLink, Play } from "lucide-react";
 import { useClientRecords } from "./hooks";
 import { Panel, Empty, Btn, SmallBtn, Tag, Stat, FormDialog } from "./ui";
@@ -11,9 +12,11 @@ const kindOptions = Object.entries(WORK_KINDS).map(([value, label]) => ({ value,
 function usePackage(client) {
   const [siblings, setSiblings] = useState(null);
   const key = (client.bundle || "").trim();
-  useMemo(() => {
+  useEffect(() => {
     if (!key) { setSiblings(null); return; }
-    import("@/api/base44Client").then(({ base44 }) => base44.entities.CRMClient.filter({ bundle: key })).then((rows) => setSiblings(Array.isArray(rows) ? rows : [])).catch(() => setSiblings([]));
+    let alive = true;
+    base44.entities.CRMClient.filter({ bundle: key }).then((rows) => { if (alive) setSiblings(Array.isArray(rows) ? rows : []); }).catch(() => { if (alive) setSiblings([]); });
+    return () => { alive = false; };
   }, [key]);
   if (!key || !siblings || siblings.length < 2) return null;
   const total = siblings.reduce((s, c) => s + (c.services || []).reduce((a, x) => a + (Number(x.price) || 0), 0), 0);
