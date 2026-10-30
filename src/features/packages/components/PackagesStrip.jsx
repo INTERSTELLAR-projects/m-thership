@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import usePackageData from "@/features/packages/usePackageData";
 import { allSummaries } from "@/features/packages/engine";
-import { ORB_STATES, SUBSCRIPTIONS, packagePath } from "@/features/packages/registry";
+import { ORB_STATES, packagePath } from "@/features/packages/registry";
 import OrbRail from "@/features/packages/components/OrbRail";
 
 // Mission Control: the eight pillars at a glance — fulfilled / in flight / needs you per package.
