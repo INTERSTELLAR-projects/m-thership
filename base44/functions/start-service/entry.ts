@@ -91,6 +91,15 @@ Deno.serve(async (req) => {
 
     const services = Array.from(new Set([...(client.services_managed || []), ...pkg.services]));
     const patch: Record<string, unknown> = { services_managed: services };
+    // Recurring packages become a billing line on the client straight away (Stripe sync overwrites it with the real charge).
+    if (pkg.billing === "retainer") {
+      const lineName = /hypercare/i.test(pkg.label) ? "HyperCare+" : /grav/i.test(pkg.label) ? "GravïtyCare" : pkg.label;
+      const lines: any[] = Array.isArray(client.services) ? client.services : [];
+      const monthly = Number(body?.value ?? pkg.value) || 0;
+      patch.services = lines.some((l: any) => String(l.name || "").toLowerCase() === lineName.toLowerCase())
+        ? lines.map((l: any) => (String(l.name || "").toLowerCase() === lineName.toLowerCase() ? { ...l, price: monthly } : l))
+        : [...lines, { id: Date.now(), name: lineName, price: monthly }];
+    }
     if (client.status !== "Active") patch.status = "Active";
     if (!client.plan) patch.plan = pkg.label;
     else if (!String(client.plan).includes(pkg.label)) patch.plan = `${client.plan} + ${pkg.label}`;
