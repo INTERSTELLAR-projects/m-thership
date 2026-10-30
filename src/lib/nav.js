@@ -1,7 +1,8 @@
 import {
   LayoutDashboard, FileText, DollarSign, Scale, Users, Lightbulb, ListTodo,
-  MessageSquare, Globe, TrendingUp, ClipboardList, Crown, Activity, Settings, FolderKanban, Star, PenLine, Presentation,
+  MessageSquare, TrendingUp, ClipboardList, Crown, Activity, Settings, FolderKanban, Star, PenLine, Presentation,
 } from "lucide-react";
+import { PACKAGES, packagePath } from "@/features/packages/registry";
 
 export const LOGO_URL =
   "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/536102fbf_interstellar-mark-v2.webp";
@@ -16,7 +17,16 @@ export const NAV_GROUPS = [
       { label: "Tasks", icon: ListTodo, path: "/tasks" },
       { label: "Projects", icon: FolderKanban, path: "/projects" },
       { label: "Requests", icon: ClipboardList, path: "/requests" },
-      { label: "Ørbit SEO", icon: Globe, path: "/orbit-seo" },
+    ],
+  },
+  {
+    // The eight pillars. Every client, every stage, one page each.
+    label: "Packages",
+    items: PACKAGES.map((p) => ({ label: p.label, icon: p.icon, path: packagePath(p.key), accent: p.color, arch: p.arch + " " + p.version })),
+  },
+  {
+    label: "Signals",
+    items: [
       { label: "Stärboard", icon: Star, path: "/reviews" },
       { label: "Performance", icon: TrendingUp, path: "/performance" },
       { label: "Comms", icon: MessageSquare, path: "/comms" },
