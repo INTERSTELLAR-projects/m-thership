@@ -18,6 +18,7 @@ export const PLAN_OF = (name: string) => {
   if (/appcare|app care|software maintenance|app management/.test(n)) return "appcare";
   if (/manage\+|manage plus|ops management/.test(n)) return "manage";
   if (/mission (alpha|bravo)/.test(n)) return "mission";
+  if (/command system upgrade|upgrade/.test(n)) return "upgrade";
   if (/next-gen|website/.test(n)) return "website";
   return "other";
 };
@@ -116,11 +117,11 @@ export async function loadPicture(base44: any, key: string) {
       client: client ? { id: client.id, business: client.business } : null,
       lines,
       mrr,
-      plan: ["hypercare", "gravitycare", "appcare", "manage", "mission", "website"].find((k) => lines.some((l: any) => l.plan === k)) || "other"
+      plan: ["hypercare", "gravitycare", "appcare", "manage", "mission", "upgrade", "website"].find((k) => lines.some((l: any) => l.plan === k)) || "other"
     };
   });
 
-  const plans: Record<string, { count: number; mrr: number }> = { hypercare: { count: 0, mrr: 0 }, gravitycare: { count: 0, mrr: 0 }, appcare: { count: 0, mrr: 0 }, manage: { count: 0, mrr: 0 }, mission: { count: 0, mrr: 0 }, website: { count: 0, mrr: 0 }, other: { count: 0, mrr: 0 } };
+  const plans: Record<string, { count: number; mrr: number }> = { hypercare: { count: 0, mrr: 0 }, gravitycare: { count: 0, mrr: 0 }, appcare: { count: 0, mrr: 0 }, manage: { count: 0, mrr: 0 }, mission: { count: 0, mrr: 0 }, upgrade: { count: 0, mrr: 0 }, website: { count: 0, mrr: 0 }, other: { count: 0, mrr: 0 } };
   subscriptions.forEach((s: any) => {
     plans[s.plan].count += 1;
     s.lines.forEach((l: any) => { const k = plans[l.plan] ? l.plan : "other"; plans[k].mrr = round(plans[k].mrr + l.monthly); });

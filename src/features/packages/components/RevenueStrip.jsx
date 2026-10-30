@@ -115,7 +115,7 @@ export default function RevenueStrip() {
               {[
                 ["HyperCare+", plans.hypercare, packagePath("orbit-seo"), "#ff3c00"],
                 ["GravïtyCare", plans.gravitycare, packagePath("gravitycare"), "#1a1a1a"],
-                ["Special arrangements", { count: ["appcare", "manage", "mission", "website", "other"].reduce((n, k) => n + ((plans[k] && plans[k].count) || 0), 0), mrr: ["appcare", "manage", "mission", "website", "other"].reduce((n, k) => n + ((plans[k] && plans[k].mrr) || 0), 0) }, null, "#8a8580"]
+                ["Special arrangements", { count: ["appcare", "manage", "mission", "upgrade", "website", "other"].reduce((n, k) => n + ((plans[k] && plans[k].count) || 0), 0), mrr: ["appcare", "manage", "mission", "upgrade", "website", "other"].reduce((n, k) => n + ((plans[k] && plans[k].mrr) || 0), 0) }, null, "#8a8580"]
               ].map(([k, p, to, c]) => {
                 const inner = (
                   <>
