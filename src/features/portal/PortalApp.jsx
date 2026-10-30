@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, LogOut, Plus, Upload, X, ChevronDown, Check, Eye } from "lucide-react";
+import { ArrowUpRight, LogOut, Plus, X, ChevronDown, Check, Eye } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { LOGO_URL } from "@/lib/nav";
 import { WORK_KINDS, SERVICE_LABELS, fmtDate, timeAgo } from "@/lib/useData";
-import { Panel, Empty, Tag, Btn, SmallBtn, Field } from "@/features/clients/ui";
+import { Panel, Empty, Tag, Btn, Field } from "@/features/clients/ui";
 import { PerformanceView, FileGrid, MessageThread } from "@/features/clients/tabsGrowth";
 import { INTAKE_SECTIONS, intakeProgress } from "@/features/clients/intakeQuestions";
 import GridTrail from "@/components/GridTrail";
+import RequestFormRenderer, { isComplete } from "@/features/requests/RequestFormRenderer";
+import { KIND_LABELS, KIND_ORDER, toAnswers, titleFor, detailsFor, attachmentsFor } from "@/features/requests/formSchema";
 
 const TABS = [["home", "Home"], ["results", "Results"], ["goals", "Goals"], ["files", "Files"], ["requests", "Requests"], ["messages", "Messages"]];
 
@@ -50,7 +52,7 @@ export default function PortalApp({ previewId }) {
           {tab === "results" && <ResultsView d={d} />}
           {tab === "goals" && <GoalsView d={d} />}
           {tab === "files" && (d.files.length ? <FileGrid files={d.files} /> : <Panel><Empty>Your brand kit, SOPs, presentations and other deliverables will appear here.</Empty></Panel>)}
-          {tab === "requests" && <RequestsView d={d} call={call} refresh={refresh} />}
+          {tab === "requests" && <RequestsView d={d} call={call} refresh={refresh} previewId={previewId} />}
           {tab === "messages" && <MessagesView call={call} previewId={previewId} />}
         </div>
       )}
@@ -267,101 +269,75 @@ function GoalsView({ d }) {
   );
 }
 
-const PROJECT_FIELDS = [
-  { name: "project_title", label: "Job / project name", type: "text", placeholder: "Paver patio in Oregon City" },
-  { name: "location", label: "City / neighborhood", type: "text" },
-  { name: "completed_on", label: "Date completed", type: "date" },
-  { name: "services", label: "Services performed", type: "text" },
-  { name: "story", label: "Tell us about it (problem, what you did, result)", type: "textarea", rows: 5 },
-  { name: "customer_quote", label: "Customer quote (optional)", type: "textarea", rows: 2 },
-];
-
-function RequestsView({ d, call, refresh }) {
-  const [kind, setKind] = useState(null);
+function RequestsView({ d, call, refresh, previewId }) {
+  const forms = useQuery({ queryKey: ["portal", previewId, "forms"], queryFn: () => call("forms"), retry: false });
+  const list = useMemo(() => {
+    const fs = forms.data?.forms || [];
+    return KIND_ORDER.flatMap((k) => fs.filter((f) => f.kind === k));
+  }, [forms.data]);
+  const [form, setForm] = useState(null);
   const [vals, setVals] = useState({});
-  const [files, setFiles] = useState([]);
   const [busy, setBusy] = useState(false);
-  const [up, setUp] = useState(false);
-  const inp = useRef(null);
   const change = (k, v) => setVals((s) => ({ ...s, [k]: v }));
-  const upload = async (e) => {
-    const list = Array.from(e.target.files || []);
-    setUp(true);
-    try {
-      for (const file of list) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        setFiles((f) => [...f, file_url]);
-      }
-    } finally { setUp(false); e.target.value = ""; }
-  };
   const submit = async (e) => {
     e.preventDefault();
+    if (!form || !isComplete(form, vals)) return;
     setBusy(true);
     try {
-      const isProject = kind === "project_submission";
       await call("create_request", {
-        kind,
-        title: isProject ? `New project: ${vals.project_title || "Untitled"}` : vals.title,
-        details: isProject ? vals.story : vals.details,
-        fields: isProject ? vals : {},
-        attachments: files,
+        kind: form.kind,
+        title: titleFor({ ...form, client_name: d.client.business }, vals),
+        details: detailsFor(form, vals),
+        fields: vals,
+        answers: toAnswers(form.fields, vals),
+        attachments: attachmentsFor(form, vals),
+        form_id: form.id, form_title: form.title,
         priority: vals.urgent ? "urgent" : "normal",
       });
-      setKind(null); setVals({}); setFiles([]); refresh();
+      setForm(null); setVals({}); refresh();
     } finally { setBusy(false); }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="label-cross">(Requests)</p>
-          <h2 className="mt-2 text-[32px] font-semibold tracking-[-0.04em]">Tell us what you need</h2>
-        </div>
-        {!kind && (
-          <div className="flex flex-wrap gap-2">
-            <Btn icon={Plus} onClick={() => setKind("project_submission")}>Submit a new job</Btn>
-            <Btn icon={Plus} variant="outline" onClick={() => setKind("site_edit")}>Website edit</Btn>
-          </div>
-        )}
+      <div>
+        <p className="label-cross">(Requests)</p>
+        <h2 className="mt-2 text-[32px] font-semibold tracking-[-0.04em]">Tell us what you need</h2>
       </div>
 
-      {kind && (
+      {!form && (
+        forms.isLoading ? <p className="text-[13px] text-ink/50">Loading…</p> : list.length === 0 ? (
+          <Panel><Empty>Your request forms are being set up. Message us in the meantime.</Empty></Panel>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {list.map((f) => (
+              <button key={f.id} type="button" onClick={() => { setForm(f); setVals({}); }} className="card-hover flex flex-col items-start border border-hair bg-card p-5 text-left">
+                <span className="mono-label text-[9.5px] text-[#ff3c00]">{KIND_LABELS[f.kind] || f.kind}</span>
+                <span className="mt-2 text-[18px] font-semibold tracking-[-0.03em]">{f.title}</span>
+                {f.intro && <span className="mt-1.5 text-[12.5px] leading-relaxed text-ink/55">{f.intro}</span>}
+                <span className="mt-4 inline-flex items-center gap-1 text-[12.5px] font-medium text-[#ff3c00]">Start <ArrowUpRight className="h-3.5 w-3.5" /></span>
+              </button>
+            ))}
+          </div>
+        )
+      )}
+
+      {form && (
         <form onSubmit={submit} className="rounded-md border border-hair bg-card">
           <div className="flex items-center justify-between border-b border-hair px-5 py-4">
             <div>
-              <p className="mono-label text-[9.5px] text-ink/50">{kind === "project_submission" ? "New job for your website" : "Website edit"}</p>
-              <h3 className="text-[18px] font-semibold tracking-[-0.03em]">{kind === "project_submission" ? "We'll turn this into a project page" : "What should we change?"}</h3>
+              <p className="mono-label text-[9.5px] text-ink/50">{KIND_LABELS[form.kind] || form.kind}</p>
+              <h3 className="text-[18px] font-semibold tracking-[-0.03em]">{form.title}</h3>
+              {form.intro && <p className="mt-1 text-[12.5px] text-ink/55">{form.intro}</p>}
             </div>
-            <button type="button" onClick={() => setKind(null)} className="text-ink/50 hover:text-ink"><X className="h-4 w-4" /></button>
+            <button type="button" onClick={() => setForm(null)} className="text-ink/50 hover:text-ink"><X className="h-4 w-4" /></button>
           </div>
-          <div className="grid gap-4 px-5 py-5 md:grid-cols-2">
-            {(kind === "project_submission" ? PROJECT_FIELDS : [
-              { name: "title", label: "Short summary", type: "text", placeholder: "Update our hours on the contact page" },
-              { name: "details", label: "Details (page, what to change, new text)", type: "textarea", rows: 5 },
-            ]).map((f) => (
-              <div key={f.name} className={f.type === "textarea" ? "md:col-span-2" : ""}>
-                <label className="mono-label mb-1.5 block text-[9.5px] text-ink/55">{f.label}</label>
-                <Field f={f} value={vals[f.name]} onChange={change} />
-              </div>
-            ))}
-            <div className="md:col-span-2">
-              <label className="mono-label mb-1.5 block text-[9.5px] text-ink/55">{kind === "project_submission" ? "Photos of the job" : "Screenshots or files (optional)"}</label>
-              <input ref={inp} type="file" multiple accept={kind === "project_submission" ? "image/*" : undefined} className="hidden" onChange={upload} />
-              <div className="flex flex-wrap items-center gap-2">
-                {files.map((u) => (
-                  <span key={u} className="relative h-16 w-16 overflow-hidden border border-hair bg-paper">
-                    {/\.(png|jpe?g|webp|gif)$/i.test(u.split("?")[0]) ? <img src={u} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-[10px]">file</span>}
-                    <button type="button" onClick={() => setFiles((f) => f.filter((x) => x !== u))} className="absolute right-0 top-0 bg-ink p-0.5 text-white"><X className="h-3 w-3" /></button>
-                  </span>
-                ))}
-                <SmallBtn onClick={() => inp.current?.click()}><Upload className="h-3 w-3" /> {up ? "Uploading…" : "Add files"}</SmallBtn>
-              </div>
-            </div>
-            <label className="flex items-center gap-2 text-[13px] md:col-span-2"><input type="checkbox" checked={!!vals.urgent} onChange={(e) => change("urgent", e.target.checked)} className="h-4 w-4 accent-[#ff3c00]" /> This is urgent</label>
+          <div className="px-5 py-5">
+            <RequestFormRenderer form={form} vals={vals} onChange={change} />
           </div>
-          <div className="flex justify-end border-t border-hair px-5 py-4">
-            <button type="submit" disabled={busy || up || (kind === "site_edit" ? !vals.title : !vals.project_title)} className="h-10 bg-[#ff3c00] px-6 text-[13px] font-medium text-white hover:bg-ink disabled:opacity-40">{busy ? "Sending…" : "Send to Interstellar"}</button>
+          <div className="flex items-center justify-between border-t border-hair px-5 py-4">
+            <p className="text-[11.5px] text-ink/45">We reply within 1 business day.</p>
+            <button type="submit" disabled={busy || !isComplete(form, vals)} className="h-10 bg-[#ff3c00] px-6 text-[13px] font-medium text-white hover:bg-ink disabled:opacity-40">{busy ? "Sending…" : "Send to Interstellar"}</button>
           </div>
         </form>
       )}
@@ -373,7 +349,7 @@ function RequestsView({ d, call, refresh }) {
               <li key={r.id} className="px-4 py-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <Tag tone={r.status === "complete" ? "green" : r.status === "in_progress" ? "flame" : r.status === "needs_info" ? "amber" : "muted"}>{r.status === "received" ? "Received" : r.status.replace("_", " ")}</Tag>
-                  <span className="mono-label text-[9px] text-ink/45">{r.kind.replace("_", " ")}</span>
+                  <span className="mono-label text-[9px] text-ink/45">{KIND_LABELS[r.kind] || r.kind.replace("_", " ")}</span>
                   <span className="ml-auto font-mono text-[10.5px] text-ink/45">{fmtDate(r.created_date)}</span>
                 </div>
                 <p className="mt-1 text-[13.5px] font-medium">{r.title}</p>
@@ -410,7 +386,7 @@ function IntakeView({ call, onClose }) {
   const [open, setOpen] = useState(INTAKE_SECTIONS[0].id);
   const [saving, setSaving] = useState(false);
   const timer = useRef(null);
-  useEffect(() => { call("intake").then((r) => { setAnswers(r?.intake?.answers || {}); setStatus(r?.intake?.status || "in_progress"); }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { call("intake").then((r) => { setAnswers(r?.intake?.answers || {}); setStatus(r?.intake?.status || "in_progress"); }); }, []);  
   const prog = useMemo(() => intakeProgress(answers || {}), [answers]);
   if (!answers) return <p className="py-20 text-center text-ink/50">Loading…</p>;
   const locked = status === "reviewed";
