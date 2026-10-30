@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowUpRight, ChevronRight, ExternalLink, RefreshCw, Satellite } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import Panel from "@/features/tasks/ui-kit/Panel";
-import StatCard from "@/features/tasks/ui-kit/StatCard";
 import CategoryChip from "@/features/tasks/ui-kit/CategoryChip";
 import TimerButton from "@/features/tasks/components/TimerButton";
 import OrbRail from "@/features/packages/components/OrbRail";
