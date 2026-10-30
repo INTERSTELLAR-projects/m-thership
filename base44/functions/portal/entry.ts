@@ -7,7 +7,7 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 const SAFE_CLIENT = ["id", "business", "contact", "domain", "websites", "plan", "services_managed", "industry", "location", "logoUrl", "logo_url", "started_on"];
 const pick = (o: Record<string, unknown>, keys: string[]) => Object.fromEntries(keys.filter((k) => o?.[k] !== undefined).map((k) => [k, o[k]]));
 const visible = (r: Record<string, unknown>) => r.portal_visible !== false;
-const REQ_KINDS = ["site_edit", "project_submission", "new_page", "question", "other"];
+const REQ_KINDS = ["site_edit", "project_submission", "job", "new_page", "question", "app_edit", "other"];
 
 Deno.serve(async (req) => {
   try {
@@ -68,6 +68,11 @@ Deno.serve(async (req) => {
       return Response.json({ message: pick(m, ["id", "content", "sender_role", "timestamp", "created_date"]) });
     }
 
+    if (action === "forms") {
+      const forms = await db.RequestForm.filter({ client_id: cid, active: true });
+      return Response.json({ forms: forms.map((f: Record<string, unknown>) => pick(f, ["id", "kind", "title", "intro", "fields"])) });
+    }
+
     if (action === "create_request") {
       const kind = REQ_KINDS.includes(String(args.kind)) ? String(args.kind) : "other";
       const title = String(args.title || "").trim().slice(0, 200);
@@ -77,8 +82,11 @@ Deno.serve(async (req) => {
         details: String(args.details || "").slice(0, 8000),
         attachments: Array.isArray(args.attachments) ? args.attachments.slice(0, 20).map(String) : [],
         fields: typeof args.fields === "object" && args.fields ? args.fields : {},
+        answers: Array.isArray(args.answers) ? args.answers.slice(0, 60) : [],
+        form_id: args.form_id ? String(args.form_id) : null, form_title: args.form_title ? String(args.form_title).slice(0, 120) : null,
+        source: "portal", contact_email: user.email,
         status: "received", priority: args.priority === "urgent" ? "urgent" : "normal",
-        submitted_by: user.email, page_status: kind === "project_submission" ? "queued" : "none",
+        submitted_by: user.email, page_status: ["project_submission", "job"].includes(kind) ? "queued" : "none",
       });
       return Response.json({ request: pick(r, ["id", "kind", "title", "status", "created_date"]) });
     }
