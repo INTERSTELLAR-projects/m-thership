@@ -50,7 +50,7 @@ export const BASE_FORMS = [
       f("why", "What problem does this solve?", "long_text"),
       f("screens", "Screenshots", "files"),
     ],
-    claude_instructions: "Scope the change against the client's Ørigin 1.0 system (ops_app_id on the CRMClient). Small changes under Starshïp Care hours: implement, checkpoint, log Work. Larger: reply with a scoped quote via client_note and set needs_info.",
+    claude_instructions: "Scope the change against the client's Ørigin 1.0 system (ops_app_id on the CRMClient). Small changes under GravïtyCare hours: implement, checkpoint, log Work. Larger: reply with a scoped quote via client_note and set needs_info.",
   },
   {
     kind: "question", title: "Question", intro: "Anything at all. We reply within 1 business day.",

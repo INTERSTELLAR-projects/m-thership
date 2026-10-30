@@ -28,7 +28,7 @@ export const ROUTE_PRESETS = [
   },
   {
     key: "starship_maintenance",
-    name: "Starshïp App Maintenance",
+    name: "GravïtyCare App Maintenance",
     monthly_price: 150,
     has_addons: true,
     addon_low: 250,

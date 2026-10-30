@@ -26,7 +26,7 @@ export const PACKAGES: Record<string, Pkg> = {
                     streams: ["orbit_setup", "orbit_national", "starship"], services: ["orbit_seo", "starship_care"] },
   orbit_global:   { label: "HyperCare+ Global", type: "seo", value: 3000, billing: "retainer", onboarding: false,
                     streams: ["orbit_setup", "orbit_national", "orbit_global", "starship"], services: ["orbit_seo", "starship_care"] },
-  starship_care:  { label: "Starshïp Care", type: "other", value: 197, billing: "retainer", onboarding: false, streams: ["starship"], services: ["starship_care"] },
+  starship_care:  { label: "GravïtyCare", type: "other", value: 197, billing: "retainer", onboarding: false, streams: ["starship"], services: ["starship_care"] },
 };
 
 const addDays = (iso: string, n: number) => {

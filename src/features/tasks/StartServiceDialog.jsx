@@ -27,7 +27,7 @@ export const SERVICE_GROUPS = [
     { key: "orbit_multi", label: "HyperCare+ Multi-Location", price: "+$350/mo", onboarding: false, streams: ["orbit_multi"] },
     { key: "orbit_national", label: "HyperCare+ National", price: "$1,750/mo", onboarding: false, streams: ["orbit_setup", "orbit_national", "starship"] },
     { key: "orbit_global", label: "HyperCare+ Global", price: "$3,000/mo", onboarding: false, streams: ["orbit_setup", "orbit_national", "orbit_global", "starship"] },
-    { key: "starship_care", label: "Starshïp Care", price: "$197/mo", onboarding: false, streams: ["starship"] },
+    { key: "starship_care", label: "GravïtyCare", price: "$197/mo", onboarding: false, streams: ["starship"] },
   ] },
 ];
 const ALL = SERVICE_GROUPS.flatMap((g) => g.items);
