@@ -6,6 +6,7 @@ import { CheckCircle2, Clock, Zap, TrendingUp, Target, BarChart3, Loader2, Activ
 // Clock is used in TasksAnalytics KPI row
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import GameChartTooltip from "../components/charts/GameChartTooltip";
+import TimeIntelligence from "@/features/tasks/components/TimeIntelligence";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 function dayKey(dateStr) {
@@ -441,8 +442,11 @@ export default function OutputAnalytics() {
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Agency / Output" rightText="Real-Time Performance" />
       <div className="px-8 py-6">
-        <Tabs defaultValue="tasks" className="w-full">
+        <Tabs defaultValue="time" className="w-full">
           <TabsList className="bg-card border border-ink/[0.13] mb-6">
+            <TabsTrigger value="time" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58] gap-2">
+              <Clock className="w-3.5 h-3.5" /> Time Intelligence
+            </TabsTrigger>
             <TabsTrigger value="tasks" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58] gap-2">
               <BarChart3 className="w-3.5 h-3.5" /> Task Output
             </TabsTrigger>
@@ -450,6 +454,7 @@ export default function OutputAnalytics() {
               <TrendingUp className="w-3.5 h-3.5" /> Project Output
             </TabsTrigger>
           </TabsList>
+          <TabsContent value="time"><TimeIntelligence /></TabsContent>
           <TabsContent value="tasks"><TasksAnalytics /></TabsContent>
           <TabsContent value="projects"><ProjectsAnalytics /></TabsContent>
         </Tabs>
