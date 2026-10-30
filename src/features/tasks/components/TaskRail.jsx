@@ -1,11 +1,12 @@
 import React from "react";
 import { Check, Zap } from "lucide-react";
 import PriorityBadge from "@/features/tasks/ui-kit/PriorityBadge";
+import TimerButton from "@/features/tasks/components/TimerButton";
 import { dueLabel, dueTone } from "@/features/tasks/lib/format";
 import { cn } from "@/lib/utils";
 
 // Compact rail (Focus now / Next up) from the old Command Deck.
-export default function TaskRail({ kicker, title, tasks = [], emptyHint, onComplete, onOpen }) {
+export default function TaskRail({ kicker, title, tasks = [], emptyHint, onComplete, onOpen, onPatch }) {
   return (
     <section className="overflow-hidden rounded-md border border-hair bg-card">
       <header className="flex items-center justify-between border-b border-hair px-4 py-3">
@@ -42,6 +43,7 @@ export default function TaskRail({ kicker, title, tasks = [], emptyHint, onCompl
                   </div>
                 </button>
                 <span className={cn("hidden shrink-0 text-[10.5px] sm:inline", dueTone(task.due_date, task.status))}>{dueLabel(task.due_date, task.status)}</span>
+                <TimerButton task={task} compact onChange={(patch) => onPatch && onPatch(task, patch)} />
                 <PriorityBadge value={task.priority} compact />
               </li>
             ))}
