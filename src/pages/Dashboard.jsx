@@ -13,9 +13,11 @@ import ProjectionWidget from "../components/dashboard/ProjectionWidget";
 import LiveOps, { ClientHealthStrip } from "@/features/mission/LiveOps";
 import FocusWidget from "@/features/mission/FocusWidget";
 import PackagesStrip from "@/features/packages/components/PackagesStrip";
+import RevenueStrip from "@/features/packages/components/RevenueStrip";
 
 const ALL_WIDGETS = [
-  { id: "packages", label: "Packages (the eight pillars, per client)" },
+  { id: "revenue", label: "Revenue + subscriptions (live from Stripe)" },
+  { id: "packages", label: "Subscriptions + packages board (per client orbs)" },
   { id: "live-ops", label: "Live Operations (feed, automations, requests)" },
   { id: "client-health", label: "Client Health" },
   { id: "focus", label: "Focus now + Next up (task engine)" },
@@ -28,10 +30,10 @@ const ALL_WIDGETS = [
   { id: "minuscule-projects", label: "Minuscule Projects" },
 ];
 
-const DEFAULT_ACTIVE = ["packages", "live-ops", "focus", "client-health", "content-schedule", "subscriptions", "financial"];
+const DEFAULT_ACTIVE = ["revenue", "live-ops", "focus", "client-health", "content-schedule", "subscriptions", "financial"];
 
-const STORAGE_KEY = "dashboard_widget_order_v5";
-const LEGACY_KEY = "dashboard_widget_order_v4";
+const STORAGE_KEY = "dashboard_widget_order_v6";
+const LEGACY_KEY = "dashboard_widget_order_v5";
 
 function loadOrder() {
   try {
@@ -40,7 +42,7 @@ function loadOrder() {
     // Carry over the old layout, with the new Mission Control widgets on top.
     const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY));
     if (Array.isArray(legacy) && legacy.every((id) => ALL_WIDGETS.some((w) => w.id === id))) {
-      return ["packages", ...legacy.filter((id) => id !== "packages")];
+      return ["revenue", ...legacy.filter((id) => id !== "packages" && id !== "revenue")];
     }
   } catch { /* ignore */ }
   return DEFAULT_ACTIVE;
@@ -52,6 +54,7 @@ function saveOrder(order) {
 
 function WidgetRenderer({ id }) {
   switch (id) {
+    case "revenue": return <RevenueStrip />;
     case "packages": return <PackagesStrip />;
     case "live-ops": return <LiveOps />;
     case "client-health": return <ClientHealthStrip />;
