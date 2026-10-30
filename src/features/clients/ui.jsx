@@ -64,11 +64,12 @@ export function Tag({ children, tone = "muted", className = "" }) {
   return <span className={`mono-label inline-flex items-center px-1.5 py-0.5 text-[9px] ${TONE[tone] || TONE.muted} ${className}`}>{children}</span>;
 }
 
-export function Stat({ value, label, accent }) {
+export function Stat({ value, label, accent, hint }) {
   return (
     <div className="border-r border-hair px-4 py-4 last:border-r-0">
       <p className={`text-[30px] font-semibold leading-none tracking-[-0.04em] tabular-nums ${accent ? "text-[#ff3c00]" : ""}`}>{value}</p>
       <p className="mono-label mt-2 text-[9.5px] text-ink/50">{label}</p>
+      {hint ? <p className="mt-1 truncate text-[10.5px] text-ink/45">{hint}</p> : null}
     </div>
   );
 }
