@@ -1,44 +1,34 @@
 import React from "react";
-import { Check, AlertTriangle } from "lucide-react";
+import { Check } from "lucide-react";
 import { ORB_STATES } from "@/features/packages/registry";
 import { cn } from "@/lib/utils";
 
 /*
- * A horizontal line of orbs. One orb per stage.
- *   done      solid green core, soft glow
- *   working   flame core with a breathing ring
- *   attention red core with a warning mark
- *   pending   ink outline, hollow
- *   off       dashed grey outline
+ * A horizontal line of orbs, one per stage. Ink + flame only.
+ *   done      solid ink, white check
+ *   working   solid flame, breathing ring
+ *   attention flame ring, flame "!" — the system stopped and needs you
+ *   pending   hairline ink ring, hollow
+ *   off       dashed ring
  * size: "sm" (rows in the all-in-one grid) · "lg" (client view)
  */
 export function Orb({ orb, size = "sm", onClick, active = false }) {
   const s = ORB_STATES[orb.state] || ORB_STATES.pending;
-  const d = size === "lg" ? 54 : 26;
+  const d = size === "lg" ? 52 : 24;
+  const styles = {
+    done: { background: "#1a1a1a", border: "1.5px solid #1a1a1a" },
+    working: { background: "#ff3c00", border: "1.5px solid #ff3c00", boxShadow: `0 0 0 ${size === "lg" ? 6 : 3}px rgba(255,60,0,.14)` },
+    attention: { background: "#fff", border: "2px solid #ff3c00" },
+    pending: { background: "transparent", border: "1.5px solid rgba(26,26,26,.4)" },
+    off: { background: "transparent", border: "1.5px dashed rgba(26,26,26,.22)" }
+  }[orb.state] || {};
   const core = (
-    <span
-      className={cn("relative grid shrink-0 place-items-center rounded-full transition-all duration-500", orb.state === "working" && "orb-breathe")}
-      style={{
-        width: d,
-        height: d,
-        background:
-          orb.state === "done" ? "radial-gradient(circle at 35% 30%, #4ade80, #15803d 70%)"
-          : orb.state === "working" ? "radial-gradient(circle at 35% 30%, #ffaa00, #ff3c00 65%)"
-          : orb.state === "attention" ? "radial-gradient(circle at 35% 30%, #f87171, #b91c1c 70%)"
-          : "transparent",
-        border: orb.state === "pending" ? "1.5px solid rgba(26,26,26,.45)" : orb.state === "off" ? "1.5px dashed rgba(26,26,26,.25)" : "none",
-        boxShadow:
-          orb.state === "done" ? `0 0 ${size === "lg" ? 26 : 12}px rgba(21,128,61,.45)`
-          : orb.state === "working" ? `0 0 ${size === "lg" ? 34 : 16}px rgba(255,60,0,.55)`
-          : orb.state === "attention" ? `0 0 ${size === "lg" ? 26 : 12}px rgba(185,28,28,.45)`
-          : "none"
-      }}
-    >
-      {orb.state === "done" ? <Check className="text-white" style={{ width: d * 0.46, height: d * 0.46 }} strokeWidth={3} /> : null}
-      {orb.state === "attention" ? <AlertTriangle className="text-white" style={{ width: d * 0.42, height: d * 0.42 }} strokeWidth={2.5} /> : null}
-      {orb.state === "working" ? <span className="rounded-full bg-white/90" style={{ width: d * 0.22, height: d * 0.22 }} /> : null}
+    <span className={cn("relative grid shrink-0 place-items-center rounded-full transition-all duration-500", orb.state === "working" && "orb-breathe")} style={{ width: d, height: d, ...styles }}>
+      {orb.state === "done" ? <Check className="text-white" style={{ width: d * 0.5, height: d * 0.5 }} strokeWidth={3} /> : null}
+      {orb.state === "attention" ? <span className="font-mono font-bold leading-none text-[#ff3c00]" style={{ fontSize: d * 0.5 }}>!</span> : null}
+      {orb.state === "working" ? <span className="rounded-full bg-white" style={{ width: d * 0.22, height: d * 0.22 }} /> : null}
       {orb.state === "working" ? <span className="orb-ring absolute inset-0 rounded-full border-2 border-[#ff3c00]" /> : null}
-      {active ? <span className="absolute -inset-1.5 rounded-full border-2 border-ink/70" /> : null}
+      {active ? <span className="absolute -inset-[5px] rounded-full border border-ink" /> : null}
     </span>
   );
 
@@ -47,7 +37,10 @@ export function Orb({ orb, size = "sm", onClick, active = false }) {
       <button type="button" onClick={onClick} className={cn("group flex min-w-0 flex-1 flex-col items-center gap-2.5 text-center", onClick && "cursor-pointer")}>
         {core}
         <span className="text-[12px] font-semibold tracking-[-0.01em] text-ink">{orb.full || orb.label}</span>
-        <span className="mono-label text-[8.5px]" style={{ color: s.color }}>{s.label}{orb.total ? ` · ${orb.done}/${orb.total}` : ""}</span>
+        <span className="mono-label text-[8.5px]" style={{ color: s.color }}>
+          {s.label}
+          {orb.total ? ` · ${orb.done}/${orb.total}` : ""}
+        </span>
         {orb.detail ? <span className="line-clamp-2 max-w-[150px] text-[10.5px] leading-snug text-ink/55">{orb.detail}</span> : null}
       </button>
     );
@@ -62,9 +55,8 @@ export function Orb({ orb, size = "sm", onClick, active = false }) {
 
 export default function OrbRail({ orbs = [], size = "sm", activeKey = null, onSelect }) {
   if (!orbs.length) return <span className="text-[11px] text-ink/40">No stages defined</span>;
-  const gap = size === "lg" ? "gap-0" : "gap-0";
   return (
-    <div className={cn("flex w-full items-start", gap)}>
+    <div className="flex w-full items-start">
       {orbs.map((orb, i) => (
         <React.Fragment key={orb.key}>
           <div className={cn("flex items-start", size === "lg" ? "min-w-0 flex-1 justify-center" : "")}>
@@ -72,13 +64,8 @@ export default function OrbRail({ orbs = [], size = "sm", activeKey = null, onSe
           </div>
           {i < orbs.length - 1 ? (
             <span
-              className={cn("shrink-0 self-start", size === "lg" ? "mt-[26px] h-[2px] w-6 md:w-10" : "mt-[12px] h-[2px] w-3 md:w-4")}
-              style={{
-                background:
-                  orb.state === "done" ? "linear-gradient(90deg,#15803d,rgba(21,128,61,.25))"
-                  : orb.state === "working" ? "linear-gradient(90deg,#ff3c00,rgba(255,60,0,.2))"
-                  : "rgba(26,26,26,.12)"
-              }}
+              className={cn("shrink-0 self-start", size === "lg" ? "mt-[25px] h-px w-6 md:w-10" : "mt-[11px] h-px w-3 md:w-4")}
+              style={{ background: orb.state === "done" ? "#1a1a1a" : orb.state === "working" ? "#ff3c00" : "rgba(26,26,26,.18)" }}
             />
           ) : null}
         </React.Fragment>
