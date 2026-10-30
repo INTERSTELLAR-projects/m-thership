@@ -143,7 +143,7 @@ export default function OrbitSEO() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command / HyperCare+" rightText="SEO Command Center" />
+      <PageHeader breadcrumb="Command / HyperCare+" rightText="HyperCare+ strategy editor" />
 
       <div className="px-8 py-6 space-y-6">
 

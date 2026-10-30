@@ -110,7 +110,7 @@ export default function Performance() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command / Performance" rightText="HyperCare+ Intelligence Center" />
+      <PageHeader breadcrumb="Command / Performance" rightText="HyperCare+ Intelligence" />
 
       <div className="px-8 py-6 space-y-6">
 
