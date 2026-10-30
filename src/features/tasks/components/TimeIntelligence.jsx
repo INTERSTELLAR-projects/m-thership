@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import Panel from "@/features/tasks/ui-kit/Panel";
 import StatCard from "@/features/tasks/ui-kit/StatCard";
 import CategoryChip from "@/features/tasks/ui-kit/CategoryChip";
-import { CATEGORIES, PROJECT_TYPES, categoryMeta, projectTypeMeta } from "@/features/tasks/lib/constants";
+import { CATEGORIES, PROJECT_TYPES } from "@/features/tasks/lib/constants";
 import { itemsOf } from "@/features/tasks/lib/clients";
 import { fmtMinutes, itemMinutes, splitMinutes, withEstimate } from "@/features/tasks/lib/estimate";
 import { TIMER_CHANGED } from "@/features/tasks/lib/timer";
