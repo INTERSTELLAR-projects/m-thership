@@ -12,6 +12,7 @@ import ProjectFormDialog from "@/features/tasks/components/ProjectFormDialog";
 import ApplyTemplateDialog from "@/features/tasks/components/ApplyTemplateDialog";
 import { projectStatusMeta, projectTypeMeta, statusPatch } from "@/features/tasks/lib/constants";
 import { moneyFull, percent, hours as hoursLabel, longDate } from "@/features/tasks/lib/format";
+import { fmtMinutes, itemMinutes } from "@/features/tasks/lib/estimate";
 import { applySop } from "@/features/tasks/lib/applySop";
 import { fetchClients, itemsOf } from "@/features/tasks/lib/clients";
 import { btnGhost } from "@/features/tasks/lib/ui";
@@ -116,6 +117,8 @@ export default function ProjectDetail() {
           category: item.category || "ops",
           priority: Number(item.priority) || 3,
           estimated_days: Number(item.estimated_days) || 0,
+          estimated_minutes: (Number(item.estimated_days) || 0) * 480,
+          project_type: project.type || null,
           status: "next",
           source: "ai",
           project_id: project.id,
@@ -151,7 +154,8 @@ export default function ProjectDetail() {
   const type = projectTypeMeta(project.type);
   const status = projectStatusMeta(project.status);
   const done = tasks.filter((task) => task.status === "done").length;
-  const projected = tasks.reduce((sum, task) => sum + (Number(task.estimated_days) || 0), 0);
+  const projectedMin = tasks.reduce((sum, task) => sum + itemMinutes(task), 0);
+  const loggedSec = tasks.reduce((sum, task) => sum + (Number(task.logged_seconds) || 0), 0);
 
   return (
     <div className="min-h-screen pb-24">
@@ -194,8 +198,8 @@ export default function ProjectDetail() {
 
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatCard label="Contract value" value={moneyFull(project.contract_value)} hint={project.billing} />
-          <StatCard label="Projected hours" value={hoursLabel(project.estimated_hours)} hint={projected ? projected.toFixed(1) + "d across steps" : "no estimates yet"} accent="#1a1a1a" />
-          <StatCard label="Logged hours" value={hoursLabel(project.logged_hours)} hint="time burned so far" accent="#b45309" />
+          <StatCard label="Projected work" value={projectedMin ? fmtMinutes(projectedMin) : hoursLabel(project.estimated_hours)} hint={projectedMin ? Math.round(projectedMin / 60) + "h across " + tasks.length + " steps" : "no estimates yet"} accent="#1a1a1a" />
+          <StatCard label="Clocked so far" value={loggedSec ? fmtMinutes(loggedSec / 60) : hoursLabel(project.logged_hours)} hint={projectedMin && loggedSec ? Math.round((loggedSec / 60 / projectedMin) * 100) + "% of estimate" : "start a task clock to track it"} accent={projectedMin && loggedSec / 60 > projectedMin ? "#ff3c00" : "#b45309"} />
           <StatCard label="Completion" value={percent(done, tasks.length) + "%"} hint={done + " of " + tasks.length + " steps"} accent="#15803d" />
         </div>
 
@@ -250,6 +254,7 @@ export default function ProjectDetail() {
             onEdit={(task) => setTaskDialog({ open: true, initial: task, parent: null })}
             onAddSubtask={(task) => setTaskDialog({ open: true, initial: null, parent: task.id })}
             onAdd={() => setTaskDialog({ open: true, initial: null, parent: null })}
+            onPatch={(task, patch) => setTasks((prev) => prev.map((row) => (row.id === task.id ? { ...row, ...patch } : row)))}
           />
         </Panel>
       </div>
