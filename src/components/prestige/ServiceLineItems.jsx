@@ -2,7 +2,7 @@ import { Plus, Trash2, Repeat } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export const SERVICES = ["Next-Gen Websites", "Ørbit SEO", "Web Øps", "Førge"];
+export const SERVICES = ["Next-Gen Websites", "HyperCare+", "Web Øps", "Førge"];
 
 const EMPTY = { service: "", subscription: false, amount: "" };
 

@@ -33,7 +33,7 @@ export const TIERS = [
       "Multi-page website build",
       "Automation suite — multiple workflows, connected end to end",
       "Custom internal dashboard or admin tool",
-      "Ørbit SEO onboarding + technical SEO foundation",
+      "HyperCare+ onboarding + technical SEO foundation",
     ],
   },
   {

@@ -110,7 +110,7 @@ export default function Performance() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command / Performance" rightText="Ørbit SEO Intelligence Center" />
+      <PageHeader breadcrumb="Command / Performance" rightText="HyperCare+ Intelligence Center" />
 
       <div className="px-8 py-6 space-y-6">
 
@@ -165,7 +165,7 @@ export default function Performance() {
         ) : filtered.length === 0 ? (
           <div className="game-panel p-12 text-center">
             <BarChart3 className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
-            <p className="text-ink/[0.48] text-sm">{clients.length === 0 ? "No Ørbit SEO clients yet. Add clients in the Ørbit SEO section." : "No clients match your filters."}</p>
+            <p className="text-ink/[0.48] text-sm">{clients.length === 0 ? "No HyperCare+ clients yet. Add clients in the HyperCare+ section." : "No clients match your filters."}</p>
           </div>
         ) : (
           <div className="space-y-2">

@@ -4,14 +4,14 @@ import { X, Sparkles, ListChecks, Globe, TrendingUp, DollarSign, Rocket, CheckCi
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const MRR_GOAL = 10000;
-const FALLBACK_PLAN = "14 more Ørbit SEO base-level subscriptions, supported by the Prestige referral programme";
+const FALLBACK_PLAN = "14 more HyperCare+ base-level subscriptions, supported by the Prestige referral programme";
 const WEEKDAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 const STEPS = [
   { label: "Greeting", icon: Sparkles },
   { label: "Priority Tasks", icon: ListChecks },
-  { label: "Orbit SEO", icon: Globe },
+  { label: "HyperCare+", icon: Globe },
   { label: "30-Day Momentum", icon: TrendingUp },
   { label: "Financials", icon: DollarSign },
   { label: "Mission", icon: Rocket },

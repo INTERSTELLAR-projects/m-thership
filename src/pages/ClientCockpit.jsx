@@ -24,7 +24,7 @@ const PROFILE_FIELDS = [
   { name: "domain", label: "Primary domain", type: "text", placeholder: "example.com" },
   { name: "industry", label: "Industry", type: "text" },
   { name: "location", label: "Location", type: "text" },
-  { name: "plan", label: "Plan", type: "text", placeholder: "ALPHA + Ørbit Local" },
+  { name: "plan", label: "Plan", type: "text", placeholder: "ALPHA + HyperCare+ Local" },
   { name: "services_managed", label: "What we manage", type: "multi", options: Object.entries(SERVICE_LABELS).map(([value, label]) => ({ value, label })) },
   { name: "site_app_id", label: "Website — Base44 app id", type: "text" },
   { name: "ops_app_id", label: "System — Base44 app id", type: "text" },

@@ -23,10 +23,10 @@ export const SERVICE_GROUPS = [
     { key: "transmission", label: "Transmission Video", price: "", onboarding: false, streams: ["transmission"] },
   ] },
   { label: "Monthly", items: [
-    { key: "orbit_local", label: "Ørbit Local", price: "$750/mo", onboarding: false, streams: ["orbit_setup", "orbit_local", "starship"] },
-    { key: "orbit_multi", label: "Ørbit Multi-Location", price: "+$350/mo", onboarding: false, streams: ["orbit_multi"] },
-    { key: "orbit_national", label: "Ørbit National", price: "$1,750/mo", onboarding: false, streams: ["orbit_setup", "orbit_national", "starship"] },
-    { key: "orbit_global", label: "Ørbit Global", price: "$3,000/mo", onboarding: false, streams: ["orbit_setup", "orbit_national", "orbit_global", "starship"] },
+    { key: "orbit_local", label: "HyperCare+ Local", price: "$750/mo", onboarding: false, streams: ["orbit_setup", "orbit_local", "starship"] },
+    { key: "orbit_multi", label: "HyperCare+ Multi-Location", price: "+$350/mo", onboarding: false, streams: ["orbit_multi"] },
+    { key: "orbit_national", label: "HyperCare+ National", price: "$1,750/mo", onboarding: false, streams: ["orbit_setup", "orbit_national", "starship"] },
+    { key: "orbit_global", label: "HyperCare+ Global", price: "$3,000/mo", onboarding: false, streams: ["orbit_setup", "orbit_national", "orbit_global", "starship"] },
     { key: "starship_care", label: "Starshïp Care", price: "$197/mo", onboarding: false, streams: ["starship"] },
   ] },
 ];

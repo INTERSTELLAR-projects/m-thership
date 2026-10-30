@@ -58,7 +58,7 @@ export default function OrbitSEO() {
     const orbitClients = await base44.entities.OrbitSEOClient.list("businessName", 200);
     const existingNames = new Set(orbitClients.map((c) => c.businessName?.toLowerCase()));
 
-    // Filter CRM clients that have an Orbit SEO related service OR import all active ones
+    // Filter CRM clients that have an HyperCare+ related service OR import all active ones
     const toImport = crmClients.filter((c) => {
       const hasOrbitService = (c.services || []).some((s) =>
         s.name?.toLowerCase().includes("orbit") ||
@@ -143,7 +143,7 @@ export default function OrbitSEO() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command / Ørbit SEO" rightText="SEO Command Center" />
+      <PageHeader breadcrumb="Command / HyperCare+" rightText="SEO Command Center" />
 
       <div className="px-8 py-6 space-y-6">
 
@@ -235,7 +235,7 @@ export default function OrbitSEO() {
         <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center">
           <div className="bg-card border border-ink/[0.13] rounded-md p-6 w-full max-w-sm space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-display font-bold text-sm tracking-wide bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Add Ørbit SEO Client</h3>
+              <h3 className="font-display font-bold text-sm tracking-wide bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Add HyperCare+ Client</h3>
               <button onClick={() => setAddOpen(false)} className="text-ink/[0.48] hover:text-ink/60"><X className="w-4 h-4" /></button>
             </div>
             <div className="space-y-3">

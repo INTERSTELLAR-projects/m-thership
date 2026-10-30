@@ -32,7 +32,7 @@ const DEFAULT_SETTINGS = {
     "output-analytics": { visible: true, label: "Output Analytics", access: "admin" },
     "client-projects": { visible: true, label: "Client Projects", access: "all" },
     requests: { visible: true, label: "Requests", access: "all" },
-    "orbit-seo": { visible: true, label: "Ørbit SEO", access: "admin" },
+    "orbit-seo": { visible: true, label: "HyperCare+", access: "admin" },
     "web-ops": { visible: true, label: "Web Øps", access: "admin" },
     forge: { visible: true, label: "Førge", access: "admin" },
     performance: { visible: true, label: "Performance", access: "admin" },
@@ -495,7 +495,7 @@ export default function SettingsPage() {
                   {[
                     ["showClientProjects", "Client Projects"],
                     ["showRequests", "Requests"],
-                    ["showOrbitSeo", "Ørbit SEO"],
+                    ["showOrbitSeo", "HyperCare+"],
                     ["showWebOps", "Web Øps"],
                     ["showForge", "Førge"],
                     ["showPerformance", "Performance"],

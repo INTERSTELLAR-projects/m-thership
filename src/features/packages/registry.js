@@ -7,7 +7,7 @@ import { Globe, Radar, Layout, Cpu, Workflow, Palette, Grid3x3, Clapperboard } f
 export const PACKAGES = [
   {
     key: "orbit-seo",
-    label: "Ørbit SEO",
+    label: "HyperCare+",
     arch: "Neptune",
     version: "5.5",
     tagline: "Your entire online presence. Managed. Every month.",
@@ -16,7 +16,7 @@ export const PACKAGES = [
     kind: "recurring",
     service_keys: ["orbit_setup", "orbit_local", "orbit_multi", "orbit_national", "orbit_global"],
     crm_services: ["orbit_seo"],
-    price_match: /ørbit|orbit/i
+    price_match: /ørbit|orbit|hypercare/i
   },
   {
     key: "intel-briefing",
@@ -123,7 +123,7 @@ export const ORB_STATES = {
   off: { label: "Not set up", color: "#c9c4bd" }
 };
 
-// The Ørbit pipeline — what the system does for a client, in order, every cycle.
+// The HyperCare+ pipeline — what the system does for a client, in order, every cycle.
 export const ORBIT_STAGES = [
   { key: "criteria", label: "Criteria", short: "Profile", hint: "Footprint, locations, goals and strategy from the client profile" },
   { key: "blog_draft", label: "Blog drafted", short: "Draft", hint: "This cycle's blog written against the criteria" },

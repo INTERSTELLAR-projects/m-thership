@@ -124,7 +124,7 @@ export function orbitRail(client, data) {
   const intelState = openActions.length ? "attention" : freshIntel.length ? "done" : intel.length ? "pending" : "off";
 
   const orbs = [
-    { key: "criteria", state: criteriaState, detail: !profile ? "No Ørbit profile yet" : [profile.serviceType, profile.primaryLocation, strategy ? "strategy set" : "strategy missing"].filter(Boolean).join(" · ") },
+    { key: "criteria", state: criteriaState, detail: !profile ? "No HyperCare+ profile yet" : [profile.serviceType, profile.primaryLocation, strategy ? "strategy set" : "strategy missing"].filter(Boolean).join(" · ") },
     { key: "blog_draft", state: stateFor(blogAuto, Boolean(blogDraft)), detail: blogDraft ? blogDraft.title + " · " + blogDraft.date : blogAuto ? "Runs " + (blogAuto.schedule || "on schedule") : "No blog automation registered" },
     { key: "blog_live", state: blogLive ? (blogLive.verified_live ? "done" : "working") : blogDraft ? "pending" : stateFor(blogAuto, false), detail: blogLive ? (blogLive.verified_live ? "Verified live" : "Published, not yet verified") + " · " + blogLive.date : "Nothing published this cycle" },
     { key: "gbp", state: stateFor(gbpAuto, Boolean(gbp)), detail: gbp ? gbp.title + " · " + gbp.date : gbpAuto ? "Runs " + (gbpAuto.schedule || "on schedule") : "No GBP automation registered" },
@@ -143,7 +143,7 @@ export function orbitRail(client, data) {
     profile,
     automations: autos,
     worklog: wl,
-    openTasks: tasks.filter((t) => t.client_id === client.id && t.status !== "done" && /ørbit|orbit/i.test(t.sop_name || (t.labels || []).join(" "))),
+    openTasks: tasks.filter((t) => t.client_id === client.id && t.status !== "done" && /ørbit|orbit|hypercare/i.test(t.sop_name || (t.labels || []).join(" "))),
     counts: { blogs: thisMonth.filter((w) => w.kind === "blog").length, gbp: thisMonth.filter((w) => w.kind === "gbp_post").length, fixes: thisMonth.filter((w) => ["search_console", "schema", "site_edit", "citation"].includes(w.kind)).length }
   };
 }

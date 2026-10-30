@@ -158,7 +158,7 @@ function OrbitClientView({ client, rail, data, onPatch }) {
             </div>
           </Panel>
 
-          <Panel kicker="Steps" title={rail.openTasks.length + " Ørbit steps open"} bodyClassName="p-0">
+          <Panel kicker="Steps" title={rail.openTasks.length + " HyperCare+ steps open"} bodyClassName="p-0">
             {rail.openTasks.length ? (
               <ul className="max-h-[260px] divide-y divide-hair overflow-y-auto">
                 {rail.openTasks.slice(0, 30).map((t) => (
@@ -171,7 +171,7 @@ function OrbitClientView({ client, rail, data, onPatch }) {
                 ))}
               </ul>
             ) : (
-              <p className="px-5 py-5 text-[12px] text-ink/50">No open Ørbit SOP steps.</p>
+              <p className="px-5 py-5 text-[12px] text-ink/50">No open HyperCare+ SOP steps.</p>
             )}
           </Panel>
         </div>

@@ -19,7 +19,7 @@ export const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 export const ROUTE_PRESETS = [
   {
     key: "orbit_seo_base",
-    name: "Ørbit SEO Base",
+    name: "HyperCare+ Base",
     monthly_price: 500,
     has_addons: false,
     clients_per_month: 1,

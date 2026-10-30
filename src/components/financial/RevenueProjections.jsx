@@ -313,7 +313,7 @@ export default function RevenueProjections() {
               </datalist>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label className="text-ink/[0.58] text-xs">Service Title</Label><Input value={form.serviceTitle} onChange={(e) => setForm({ ...form, serviceTitle: e.target.value })} className="mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink" placeholder="e.g. Orbit SEO Base" /></div>
+              <div><Label className="text-ink/[0.58] text-xs">Service Title</Label><Input value={form.serviceTitle} onChange={(e) => setForm({ ...form, serviceTitle: e.target.value })} className="mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink" placeholder="e.g. HyperCare+ Base" /></div>
               <div><Label className="text-ink/[0.58] text-xs">Amount ($/mo) *</Label><Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink" placeholder="500" /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">

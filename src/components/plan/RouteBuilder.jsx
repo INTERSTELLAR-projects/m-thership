@@ -43,7 +43,7 @@ function RouteCard({ route, setRoute, idx, onRemove, canRemove }) {
       monthly_churn_rate: p.monthly_churn_rate,
     });
   };
-  const currentPreset = route.preset || (route.name === "Ørbit SEO Base" ? "orbit_seo_base" : route.name === "Starshïp App Maintenance" ? "starship_maintenance" : "custom");
+  const currentPreset = route.preset || ((route.name === "HyperCare+ Base" || route.name === "Ørbit SEO Base") ? "orbit_seo_base" : route.name === "Starshïp App Maintenance" ? "starship_maintenance" : "custom");
   return (
     <div className="rounded-md border border-ink/[0.13] bg-ink/[0.01] p-3.5 space-y-3 relative">
       <div className="flex items-center justify-between gap-2">
@@ -62,7 +62,7 @@ function RouteCard({ route, setRoute, idx, onRemove, canRemove }) {
         {ROUTE_PRESETS.map((p) => (
           <button key={p.key} onClick={() => applyPreset(p.key)}
             className={`flex-1 px-2 py-1 rounded-md text-[10px] font-semibold tracking-wide transition-all ${currentPreset === p.key ? "bg-gradient-to-r from-orange-500/25 to-amber-400/15 text-orange-600 border border-orange-500/30" : "bg-ink/[0.03] text-ink/[0.58] border border-ink/[0.13] hover:border-orange-500/20"}`}>
-            {p.key === "orbit_seo_base" ? "Ørbit SEO" : p.key === "starship_maintenance" ? "Starshïp" : "Custom"}
+            {p.key === "orbit_seo_base" ? "HyperCare+" : p.key === "starship_maintenance" ? "Starshïp" : "Custom"}
           </button>
         ))}
       </div>
@@ -96,7 +96,7 @@ export default function RouteBuilder({ open, initialGoal, currentMrr, onClose, o
     initialGoal?.routes?.length
       ? JSON.parse(JSON.stringify(initialGoal.routes))
       : [
-          { id: "r1", preset: "orbit_seo_base", name: "Ørbit SEO Base", monthly_price: 500, has_addons: false, clients_per_month: 1, monthly_churn_rate: 0.03 },
+          { id: "r1", preset: "orbit_seo_base", name: "HyperCare+ Base", monthly_price: 500, has_addons: false, clients_per_month: 1, monthly_churn_rate: 0.03 },
           { id: "r2", preset: "starship_maintenance", name: "Starshïp App Maintenance", monthly_price: 150, has_addons: true, addon_low: 250, addon_high: 5000, addon_avg: 1200, addon_attach_rate: 0.5, clients_per_month: 2, monthly_churn_rate: 0.02 },
         ]
   );

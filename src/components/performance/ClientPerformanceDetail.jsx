@@ -107,7 +107,7 @@ function generateClientData(client) {
   if (publishedBlogs < 2) alerts.push({ type: "warning", msg: "Content velocity low — fewer than 2 blogs published" });
   if (technicalScore < 60) alerts.push({ type: "critical", msg: "Technical score below threshold — review site health" });
   if (authorityScore < 35) alerts.push({ type: "info", msg: "Authority score needs improvement — build backlinks and citations" });
-  if (client.status === "Needs Attention") alerts.push({ type: "critical", msg: "Client flagged as Needs Attention in Ørbit SEO" });
+  if (client.status === "Needs Attention") alerts.push({ type: "critical", msg: "Client flagged as Needs Attention in HyperCare+" });
 
   // Opportunities
   const opportunities = [
@@ -198,7 +198,7 @@ export default function ClientPerformanceDetail({ client, onBack }) {
           <ConnectionPill label="Search Console" connected={false} />
           <ConnectionPill label="GBP" connected={client.gbpStatus === "Active"} />
           <ConnectionPill label="Site Audit" connected={false} />
-          <ConnectionPill label="Ørbit Data" connected={true} />
+          <ConnectionPill label="HyperCare+ Data" connected={true} />
           {client.website && (
             <a href={client.website} target="_blank" rel="noreferrer" className="ml-auto flex items-center gap-1.5 text-orange-500/50 hover:text-orange-500 text-xs transition-colors">
               <Globe className="w-3.5 h-3.5" />{client.website}<ExternalLink className="w-3 h-3" />

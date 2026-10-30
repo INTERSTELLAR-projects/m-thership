@@ -351,7 +351,7 @@ export default function Documents() {
          <div>
            <label className="text-ink/[0.58] text-xs font-medium block mb-1.5">Category *</label>
            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded px-3 py-2 text-ink text-sm outline-none">
-             {["Web Øps", "Førge", "Ørbit SEO", "Performance", "Other"].map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+             {["Web Øps", "Førge", "HyperCare+", "Performance", "Other"].map((cat) => <option key={cat} value={cat}>{cat}</option>)}
            </select>
          </div>
        </div>

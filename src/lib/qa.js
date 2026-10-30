@@ -20,8 +20,8 @@ const daysAhead = (n) => iso(new Date(today.getTime() + n * 864e5));
 
 const FIX = {
   CRMClient: [
-    { id: "c1", business: "Summit Roofing Co", contact: "Dana Reyes", emails: ["dana@summit.test"], phones: ["(503) 555-0101"], websites: ["summitroofing.test"], status: "Active", services: [{ id: 1, name: "Ørbit SEO", price: 750 }, { id: 2, name: "Starshïp", price: 197 }], services_managed: ["website", "system", "orbit_seo"], plan: "ALPHA + Ørbit Local", domain: "summitroofing.test", notes: [], documents: [], completedTasks: [] },
-    { id: "c2", business: "Harbor Coffee", contact: "Lee Park", emails: ["lee@harbor.test"], phones: [], websites: ["harborcoffee.test"], status: "Active", services: [{ id: 1, name: "Ørbit SEO", price: 500 }], services_managed: ["website", "orbit_seo"], plan: "BRAVO + Ørbit Local", domain: "harborcoffee.test", notes: [], documents: [], completedTasks: [] },
+    { id: "c1", business: "Summit Roofing Co", contact: "Dana Reyes", emails: ["dana@summit.test"], phones: ["(503) 555-0101"], websites: ["summitroofing.test"], status: "Active", services: [{ id: 1, name: "HyperCare+", price: 750 }, { id: 2, name: "Starshïp", price: 197 }], services_managed: ["website", "system", "orbit_seo"], plan: "ALPHA + HyperCare+ Local", domain: "summitroofing.test", notes: [], documents: [], completedTasks: [] },
+    { id: "c2", business: "Harbor Coffee", contact: "Lee Park", emails: ["lee@harbor.test"], phones: [], websites: ["harborcoffee.test"], status: "Active", services: [{ id: 1, name: "HyperCare+", price: 500 }], services_managed: ["website", "orbit_seo"], plan: "BRAVO + HyperCare+ Local", domain: "harborcoffee.test", notes: [], documents: [], completedTasks: [] },
     { id: "c3", business: "Peak Fitness Lab", contact: "Sam Ortiz", emails: ["sam@peak.test"], phones: [], websites: ["peakfit.test"], status: "Lead", services: [], services_managed: [], domain: "peakfit.test", notes: [], documents: [], completedTasks: [] },
   ],
   OrbitSEOClient: [

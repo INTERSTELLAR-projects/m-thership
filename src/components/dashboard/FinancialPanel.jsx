@@ -66,7 +66,7 @@ export default function FinancialPanel() {
   const [mrr, setMrr] = useState(0);
   const [clients, setClients] = useState([]);
   const [settingsId, setSettingsId] = useState(null);
-  const [planToExecute, setPlanToExecute] = useState("14 more Ørbit SEO base level subs");
+  const [planToExecute, setPlanToExecute] = useState("14 more HyperCare+ base level subs");
   const [marketingItems, setMarketingItems] = useState(["Referral Program"]);
   const [goalTarget, setGoalTarget] = useState(10000);
   const mrrGoal = goalTarget;

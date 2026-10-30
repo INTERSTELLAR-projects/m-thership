@@ -95,7 +95,7 @@ export default function ClientContentSchedule() {
   if (scheduledClients.length === 0) return (
     <section className="px-8 pt-6">
       <h2 className="text-ink font-bold text-xs tracking-[0.2em] uppercase mb-2">Client Content Schedule</h2>
-      <p className="text-ink/[0.43] text-xs">No clients have a content schedule set. Choose a blog frequency and weekly days in Orbit SEO → client → Blog tab.</p>
+      <p className="text-ink/[0.43] text-xs">No clients have a content schedule set. Choose a blog frequency and weekly days in HyperCare+ → client → Blog tab.</p>
     </section>
   );
 
@@ -104,7 +104,7 @@ export default function ClientContentSchedule() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-ink font-bold text-xs tracking-[0.25em] uppercase">Ørbit SEO Schedule</h2>
+          <h2 className="text-ink font-bold text-xs tracking-[0.25em] uppercase">HyperCare+ Schedule</h2>
           <p className="text-ink/[0.48] text-[10px] mt-0.5 flex items-center gap-1.5">
             <RefreshCw className="w-2.5 h-2.5" />
             Week of {weekRangeLabel()} · Resets weekly · {completedItems}/{totalItems} done
