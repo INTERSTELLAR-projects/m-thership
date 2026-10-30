@@ -1,0 +1,79 @@
+{
+  "description": "One timer run on a task. Feeds Time Intelligence (actual vs estimate by category, package and SOP step).",
+  "name": "TimeEntry",
+  "properties": {
+    "category": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "ended_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "estimated_minutes": {
+      "description": "The task's estimate at the time, for accuracy stats",
+      "type": "number"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "project_type": {
+      "type": "string"
+    },
+    "seconds": {
+      "default": 0,
+      "type": "number"
+    },
+    "sop_name": {
+      "type": "string"
+    },
+    "sop_step": {
+      "type": "string"
+    },
+    "started_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "task_title": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "task_id",
+    "seconds"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}
