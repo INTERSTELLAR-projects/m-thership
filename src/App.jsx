@@ -37,6 +37,7 @@ import TaskSops from './pages/TaskSops';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import LegacyImportBanner from '@/features/tasks/LegacyImportBanner';
+import PackagePage from '@/features/packages/PackagePage';
 import { Navigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 
@@ -91,7 +92,11 @@ const AuthenticatedApp = () => {
         <Route path="/crm" element={<ProtectedRoute><CRM /></ProtectedRoute>} />
         <Route path="/clients/:id" element={<ProtectedRoute><ClientCockpit /></ProtectedRoute>} />
         <Route path="/comms" element={<ProtectedRoute><Comms /></ProtectedRoute>} />
-        <Route path="/orbit-seo" element={<ProtectedRoute><OrbitSEO /></ProtectedRoute>} />
+        <Route path="/orbit-seo" element={<Navigate to="/packages/orbit-seo" replace />} />
+        <Route path="/orbit-seo/manage" element={<ProtectedRoute><OrbitSEO /></ProtectedRoute>} />
+        <Route path="/packages" element={<Navigate to="/packages/orbit-seo" replace />} />
+        <Route path="/packages/:key" element={<ProtectedRoute><PackagePage /></ProtectedRoute>} />
+        <Route path="/packages/:key/:clientId" element={<ProtectedRoute><PackagePage /></ProtectedRoute>} />
 
         <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
