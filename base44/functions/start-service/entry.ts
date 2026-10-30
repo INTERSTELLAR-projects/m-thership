@@ -76,9 +76,12 @@ Deno.serve(async (req) => {
       service_key: body.package, order_ref: orderRef, sop_id: used[0]?.id || null, portal_visible: true, progress: 0,
     });
 
+    const minutesOf = (i: any) => Number(i.estimated_minutes) > 0 ? Number(i.estimated_minutes) : (Number(i.estimated_days) || 0) * 480;
     const docs = used.flatMap((t) => (t.items || []).map((i: any) => ({
       title: i.title, category: i.category || "ops", priority: Number(i.priority) || 3,
-      estimated_days: Number(i.estimated_days) || 0, status: "next", source: "sop",
+      estimated_minutes: minutesOf(i), estimated_hours: Math.round((minutesOf(i) / 60) * 100) / 100,
+      estimated_days: Math.round((minutesOf(i) / 480) * 100) / 100, status: "next", source: "sop",
+      sop_name: t.name, sop_step: i.title, project_type: pkg.type,
       project_id: project.id, project_name: title, client_id: client.id, client_name: client.business,
       due_date: addDays(start, Number(i.offset_days) || 0),
       labels: [t.name], notes: [i.phase, t.sop_code].filter(Boolean).join(" · "), task_type: "billable",
