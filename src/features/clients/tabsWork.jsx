@@ -7,6 +7,20 @@ import { WORK_KINDS, SERVICE_LABELS, fmtDate, timeAgo } from "@/lib/useData";
 const today = () => new Date().toISOString().slice(0, 10);
 const kindOptions = Object.entries(WORK_KINDS).map(([value, label]) => ({ value, label }));
 
+/* Clients sharing a `bundle` name are one deal; returns null when the client is not in a package. */
+function usePackage(client) {
+  const [siblings, setSiblings] = useState(null);
+  const key = (client.bundle || "").trim();
+  useMemo(() => {
+    if (!key) { setSiblings(null); return; }
+    import("@/api/base44Client").then(({ base44 }) => base44.entities.CRMClient.filter({ bundle: key })).then((rows) => setSiblings(Array.isArray(rows) ? rows : [])).catch(() => setSiblings([]));
+  }, [key]);
+  if (!key || !siblings || siblings.length < 2) return null;
+  const total = siblings.reduce((s, c) => s + (c.services || []).reduce((a, x) => a + (Number(x.price) || 0), 0), 0);
+  const others = siblings.filter((c) => c.id !== client.id).map((c) => c.business);
+  return { name: key, total, others };
+}
+
 /* ---------------- Overview ---------------- */
 export function OverviewTab({ client, onEdit, go }) {
   const work = useClientRecords("WorkLog", client.id, { sort: "-date" });
@@ -25,6 +39,8 @@ export function OverviewTab({ client, onEdit, go }) {
   const bad = autos.rows.filter((a) => a.status === "error" || a.last_result === "failed");
   const openGaps = gaps.rows.filter((g) => g.status !== "fixed");
   const mrr = (client.services || []).reduce((s, x) => s + (Number(x.price) || 0), 0);
+  // Package deals: pull the siblings so a $0 member shows the deal it belongs to.
+  const pack = usePackage(client);
 
   return (
     <div className="space-y-5">
@@ -34,8 +50,15 @@ export function OverviewTab({ client, onEdit, go }) {
         <Stat value={count("site_edit") + count("new_page") + count("project_page")} label="Site updates" />
         <Stat value={count("citation") + count("press") + count("mention") + count("backlink")} label="Citations & press" />
         <Stat value={openReq.length} label="Open requests" accent={openReq.length > 0} />
-        <Stat value={`$${mrr.toLocaleString()}`} label="Monthly value" />
+        {pack ? (
+          <Stat value={`$${pack.total.toLocaleString()}`} label={`Package · ${pack.name}`} hint={`with ${pack.others.join(" + ")}`} />
+        ) : (
+          <Stat value={`$${mrr.toLocaleString()}`} label="Monthly value" />
+        )}
       </div>
+      {pack ? (
+        <p className="label-cross text-[10.5px] text-ink/60">(Package deal · {pack.name} · billed together with {pack.others.join(" + ")} · ${pack.total.toLocaleString()}/mo combined)</p>
+      ) : null}
 
       <div className="grid gap-5 lg:grid-cols-3">
         <Panel label="Profile" title="Account" action={<SmallBtn onClick={onEdit}><Pencil className="h-3 w-3" /> Edit</SmallBtn>} className="lg:col-span-1" bodyClass="divide-y divide-hair text-[13px]">
