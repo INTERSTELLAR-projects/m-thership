@@ -14,7 +14,7 @@ export async function syncFromStripe(base44: any, key: string) {
   const picture = await loadPicture(base44, key);
   const db = base44.asServiceRole.entities;
   const clients = await db.CRMClient.list("business", 300);
-  const byId = new Map(clients.map((c: any) => [c.id, c]));
+  const byId = new Map<string, any>(clients.map((c: any) => [c.id, c]));
   const touched = new Map<string, { client: any; lines: any[]; plans: Set<string>; customer: string }>();
 
   for (const s of picture.subscriptions) {
