@@ -13,7 +13,7 @@ import MicButton from "../components/MicButton";
 import BrandProfile from "../components/crm/BrandProfile";
 import { useRef } from "react";
 
-const statusFilters = ["All", "Active", "Inactive", "Lead"];
+const statusFilters = ["Active", "Lead", "Inactive", "All"];
 
 export default function CRM() {
   const navigate = useNavigate();
