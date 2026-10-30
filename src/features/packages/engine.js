@@ -26,18 +26,18 @@ export function projectsOf(pkg, { projects, templates, tasks }) {
   });
 }
 
+// Subscriptions: membership comes from the client profile — the services they are subscribed to
+// (billing line items + services_managed). Packages: from the projects running that SOP as well.
 export function clientsOf(pkg, data) {
-  const { clients, orbit } = data;
-  const projs = projectsOf(pkg, data);
+  const { clients } = data;
+  const projs = pkg.kind === "recurring" ? [] : projectsOf(pkg, data);
   const projClientIds = new Set(projs.map((p) => p.client_id).filter(Boolean));
-  const orbitIds = new Set((orbit || []).map((o) => o.clientId).filter(Boolean));
   return clients
     .filter((c) => c.status !== "Inactive")
     .filter((c) => {
       if (projClientIds.has(c.id)) return true;
       if ((c.services_managed || []).some((s) => pkg.crm_services.includes(s))) return true;
       if ((c.services || []).some((s) => pkg.price_match.test(String(s.name || "")))) return true;
-      if (pkg.key === "orbit-seo" && orbitIds.has(c.id)) return true;
       return false;
     })
     .sort((a, b) => (a.business || "").localeCompare(b.business || ""));
@@ -133,6 +133,7 @@ export function orbitRail(client, data) {
     { key: "analytics", state: stateFor(gaAuto, gaAuto && gaAuto.status === "active"), detail: gaAuto ? "GA4 connected" : "Google Analytics not connected" }
   ].map((o) => ({ ...o, ...ORBIT_STAGES.find((s) => s.key === o.key), label: ORBIT_STAGES.find((s) => s.key === o.key).short, full: ORBIT_STAGES.find((s) => s.key === o.key).label }));
 
+  const line = (client.services || []).find((s) => /ørbit|orbit|hypercare/i.test(String(s.name || "")));
   const month = new Date(); month.setDate(1);
   const monthStart = month.toISOString().slice(0, 10);
   const thisMonth = wl.filter((w) => (w.date || "") >= monthStart);
@@ -141,6 +142,7 @@ export function orbitRail(client, data) {
     orbs,
     overall,
     profile,
+    subscription: { price: line ? Number(line.price) || 0 : 0, plan: client.plan || null, footprint: profile ? profile.serviceType : null, primaryLocation: profile ? profile.primaryLocation : client.location || null, serviceLocations: profile ? profile.serviceLocations : null, domain: client.domain || (client.websites || [])[0] || null, industry: client.industry || null },
     automations: autos,
     worklog: wl,
     openTasks: tasks.filter((t) => t.client_id === client.id && t.status !== "done" && /ørbit|orbit|hypercare/i.test(t.sop_name || (t.labels || []).join(" "))),
