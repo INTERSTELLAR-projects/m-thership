@@ -21,7 +21,7 @@ export async function syncFromStripe(base44: any, key: string) {
     if (!s.client) continue;
     const client = byId.get(s.client.id);
     if (!client) continue;
-    const t = touched.get(client.id) || { client, lines: [], plans: new Set<string>(), customer: s.customer.id };
+    const t = touched.get(client.id) || { client, lines: [] as any[], plans: new Set<string>(), customer: s.customer.id };
     s.lines.forEach((l: any) => {
       t.lines.push({ id: l.id, name: LABEL(l.plan, l.name), price: l.monthly, stripe: true, stripe_price_id: l.price_id, subscription_id: s.id, interval: l.interval, discontinued: DISCONTINUED.test(l.name), status: s.status });
       t.plans.add(s.plan);

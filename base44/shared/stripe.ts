@@ -77,7 +77,7 @@ export async function loadPicture(base44: any, key: string) {
     const cust = typeof s.customer === "object" ? s.customer : { id: s.customer };
     const client = match(cust);
     const lines = (s.items?.data || []).map((it: any) => {
-      const product = products.get(String(it.price?.product)) || {};
+      const product: any = products.get(String(it.price?.product)) || {};
       const name = product.name || it.price?.nickname || "Subscription";
       return { id: it.id, product_id: product.id || null, name, plan: PLAN_OF(name), monthly: monthly(it.price, it.quantity), amount: (it.price?.unit_amount || 0) / 100, interval: it.price?.recurring?.interval || "month", quantity: it.quantity || 1, price_id: it.price?.id };
     });
