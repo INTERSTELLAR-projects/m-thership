@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowUpRight, ChevronRight, ExternalLink, RefreshCw, Satellite } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, ExternalLink, RefreshCw, Satellite } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import Panel from "@/features/tasks/ui-kit/Panel";
 import CategoryChip from "@/features/tasks/ui-kit/CategoryChip";
 import TimerButton from "@/features/tasks/components/TimerButton";
-import OrbRail from "@/features/packages/components/OrbRail";
+import OrbRail, { Orb } from "@/features/packages/components/OrbRail";
 import usePackageData from "@/features/packages/usePackageData";
 import { PACKAGES, SUBSCRIPTIONS, DELIVERY_PACKAGES, ORB_STATES, packageByKey, packagePath } from "@/features/packages/registry";
 import { clientsOf, railFor } from "@/features/packages/engine";
@@ -26,8 +26,8 @@ function Logo({ client, size = 36 }) {
 function StatePill({ state }) {
   const s = ORB_STATES[state] || ORB_STATES.pending;
   return (
-    <span className="mono-label inline-flex items-center gap-1.5 rounded-sm border px-1.5 py-[2px] text-[8.5px]" style={{ color: s.color, borderColor: s.color + "55", background: s.color + "12" }}>
-      <span className="h-1.5 w-1.5 rounded-full" style={{ background: s.color }} />
+    <span className={cn("mono-label inline-flex items-center gap-1.5 rounded-sm border px-1.5 py-[2px] text-[8.5px]", state === "done" ? "border-ink bg-ink text-white" : state === "working" || state === "attention" ? "border-[#ff3c00]/50 text-[#ff3c00]" : "border-hair text-ink/50")}>
+      <span className={cn("h-1.5 w-1.5 rounded-full", state === "done" ? "bg-white" : state === "working" || state === "attention" ? "bg-[#ff3c00]" : "bg-ink/30")} />
       {s.label}
     </span>
   );
@@ -270,6 +270,7 @@ export default function PackagePage() {
 
   const rows = useMemo(() => clientsOf(pkg, liveData).map((c) => ({ client: c, rail: railFor(pkg, c, liveData) })), [pkg, liveData]);
   const selected = rows.find((r) => r.client.id === clientId) || null;
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [clientId]);
   const counts = { done: rows.filter((r) => r.rail.overall === "done").length, working: rows.filter((r) => r.rail.overall === "working").length, attention: rows.filter((r) => r.rail.overall === "attention").length, off: rows.filter((r) => r.rail.overall === "off").length };
 
   return (
@@ -293,84 +294,14 @@ export default function PackagePage() {
       <PackageTabs current={pkg.key} />
 
       <div className="space-y-6 px-5 py-6 md:px-8">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <p className="max-w-2xl text-[13px] leading-relaxed text-ink/60">{pkg.tagline} {pkg.kind === "recurring" ? "Every client on the package, every stage of this cycle, updating as the system works." : "Every client on the package and how far through the SOP they are. Fulfilled means every pillar step is done."}</p>
-          <div className="grid grid-cols-4 gap-2">
-            {[["Fulfilled", counts.done, ORB_STATES.done.color], ["In flight", counts.working, ORB_STATES.working.color], ["Needs you", counts.attention, ORB_STATES.attention.color], ["Not started", counts.off, ORB_STATES.off.color]].map(([k, v, c]) => (
-              <div key={k} className="min-w-[88px] rounded-md border border-hair bg-card px-3 py-2">
-                <p className="text-[20px] font-semibold leading-none tracking-[-0.04em]" style={{ color: v ? c : undefined }}>{v}</p>
-                <p className="mono-label mt-1 text-[8.5px] text-ink/45">{k}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* All-in-one */}
-        <div className="overflow-hidden rounded-md border border-hair bg-card">
-          <div className="flex items-center justify-between border-b border-hair px-4 py-2.5">
-            <p className="label-cross text-[10.5px] text-ink/60">(All clients · {rows.length})</p>
-            <div className="hidden items-center gap-3 md:flex">
-              {Object.entries(ORB_STATES).map(([k, s]) => (
-                <span key={k} className="flex items-center gap-1 text-[9.5px] text-ink/50">
-                  <span className="h-2 w-2 rounded-full" style={{ background: k === "pending" || k === "off" ? "transparent" : s.color, border: k === "pending" ? "1.5px solid rgba(26,26,26,.45)" : k === "off" ? "1.5px dashed rgba(26,26,26,.3)" : "none" }} />
-                  {s.label}
-                </span>
-              ))}
-            </div>
-          </div>
-          {loading && !rows.length ? (
-            <p className="px-5 py-10 text-center text-[12.5px] text-ink/45">Reading the field...</p>
-          ) : rows.length ? (
-            <div className="divide-y divide-hair">
-              {rows.map(({ client, rail }) => {
-                const active = selected && selected.client.id === client.id;
-                return (
-                  <button
-                    key={client.id}
-                    type="button"
-                    onClick={() => navigate(packagePath(pkg.key) + "/" + client.id)}
-                    className={cn("grid w-full grid-cols-[minmax(0,220px)_minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-[#ff3c00]/[0.035]", active && "bg-[#ff3c00]/[0.05]")}
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <Logo client={client} />
-                      <div className="min-w-0">
-                        <p className="truncate text-[13px] font-medium text-ink">{client.business}</p>
-                        <div className="mt-0.5 flex items-center gap-2">
-                          <StatePill state={rail.overall} />
-                          {pkg.kind === "delivery" && rail.total ? <span className="font-mono text-[10px] text-ink/45">{rail.done}/{rail.total}</span> : null}
-                          {pkg.kind === "recurring" ? (
-                            <span className="font-mono text-[10px] text-ink/45">
-                              {(() => { const l = (client.services || []).find((s) => pkg.price_match.test(String(s.name || ""))); return l && Number(l.price) ? "$" + Number(l.price).toLocaleString("en-US") + "/mo" : "included"; })()}
-                              {rail.subscription && rail.subscription.footprint ? " · " + rail.subscription.footprint : ""}
-                            </span>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="min-w-0 overflow-x-auto">
-                      <OrbRail orbs={rail.orbs} size="sm" />
-                    </div>
-                    <ChevronRight className={cn("h-4 w-4 text-ink/30", active && "text-[#ff3c00]")} />
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="px-5 py-10 text-center text-[12.5px] text-ink/45">No clients on {pkg.label} yet.</p>
-          )}
-        </div>
-
-        {/* Client view */}
         {selected ? (
-          <div className="space-y-4">
+          /* ---------- client view takes the page; switcher keeps the others one click away ---------- */
+          <div className="space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <Logo client={selected.client} size={44} />
-                <div>
-                  <p className="label-cross text-[10.5px] text-ink/60">(Client view)</p>
-                  <h2 className="text-[20px] font-semibold tracking-[-0.03em]">{selected.client.business}</h2>
-                </div>
-              </div>
+              <button type="button" onClick={() => navigate(packagePath(pkg.key))} className="mono-label inline-flex items-center gap-2 text-[10px] text-ink/50 transition-colors hover:text-ink">
+                <ArrowLeft className="h-3.5 w-3.5" />
+                All {pkg.label} clients · {rows.length}
+              </button>
               <div className="flex items-center gap-2">
                 <Link to={"/clients/" + selected.client.id} className={btnGhost}>
                   Cockpit <ArrowUpRight className="h-3.5 w-3.5" />
@@ -380,18 +311,112 @@ export default function PackagePage() {
                     Strategy editor <ArrowUpRight className="h-3.5 w-3.5" />
                   </Link>
                 ) : null}
-                <button type="button" onClick={() => navigate(packagePath(pkg.key))} className={btnGhost}>
-                  Close
-                </button>
               </div>
             </div>
+
+            <div className="flex gap-1.5 overflow-x-auto pb-1">
+              {rows.map(({ client, rail }) => {
+                const active = client.id === selected.client.id;
+                return (
+                  <button
+                    key={client.id}
+                    type="button"
+                    onClick={() => navigate(packagePath(pkg.key) + "/" + client.id)}
+                    className={cn("flex shrink-0 items-center gap-2 rounded-sm border px-2 py-1.5 text-[11.5px] transition-colors", active ? "border-ink bg-ink text-white" : "border-hair bg-card text-ink/70 hover:border-ink/40 hover:text-ink")}
+                    title={client.business}
+                  >
+                    <span className={cn("h-1.5 w-1.5 rounded-full", rail.overall === "attention" || rail.overall === "working" ? "bg-[#ff3c00]" : rail.overall === "done" ? (active ? "bg-white" : "bg-ink") : "bg-ink/25")} />
+                    <span className="max-w-[140px] truncate">{client.business}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Logo client={selected.client} size={44} />
+              <div>
+                <p className="label-cross text-[10.5px] text-ink/60">({pkg.label} · client view)</p>
+                <div className="mt-0.5 flex items-center gap-3">
+                  <h2 className="text-[22px] font-semibold tracking-[-0.03em]">{selected.client.business}</h2>
+                  <StatePill state={selected.rail.overall} />
+                </div>
+              </div>
+            </div>
+
             {pkg.key === "orbit-seo" ? (
               <OrbitClientView client={selected.client} rail={selected.rail} data={liveData} onPatch={onPatch} />
             ) : (
               <DeliveryClientView client={selected.client} rail={selected.rail} pkg={pkg} onPatch={onPatch} />
             )}
           </div>
-        ) : null}
+        ) : (
+          /* ---------- all-in-one ---------- */
+          <>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <p className="max-w-2xl text-[13px] leading-relaxed text-ink/60">{pkg.tagline} {pkg.kind === "recurring" ? "Every subscriber, every stage of this cycle, updating as the system works. Click a client to open them." : "Every client on the package and how far through the SOP they are. Fulfilled means every step is done. Click a client to open them."}</p>
+              <div className="grid grid-cols-4 gap-2">
+                {[["Fulfilled", counts.done, "#1a1a1a"], ["In flight", counts.working, "#ff3c00"], ["Needs you", counts.attention, "#ff3c00"], ["Not started", counts.off, "#8a8580"]].map(([k, v, c]) => (
+                  <div key={k} className="min-w-[88px] rounded-md border border-hair bg-card px-3 py-2">
+                    <p className="text-[20px] font-semibold leading-none tracking-[-0.04em]" style={{ color: v ? c : "rgba(26,26,26,.3)" }}>{v}</p>
+                    <p className="mono-label mt-1 text-[8.5px] text-ink/45">{k}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-md border border-hair bg-card">
+              <div className="flex items-center justify-between border-b border-hair px-4 py-2.5">
+                <p className="label-cross text-[10.5px] text-ink/60">(All clients · {rows.length})</p>
+                <div className="hidden items-center gap-3 md:flex">
+                  {[["done", "Done"], ["working", "In flight"], ["attention", "Needs you"], ["pending", "Queued"], ["off", "Not set up"]].map(([k, label]) => (
+                    <span key={k} className="flex items-center gap-1.5 text-[9.5px] text-ink/50">
+                      <Orb orb={{ key: k, state: k, label: "" }} size="sm" />
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              {loading && !rows.length ? (
+                <p className="px-5 py-10 text-center text-[12.5px] text-ink/45">Reading the field...</p>
+              ) : rows.length ? (
+                <div className="divide-y divide-hair">
+                  {rows.map(({ client, rail }) => (
+                    <Link
+                      key={client.id}
+                      to={packagePath(pkg.key) + "/" + client.id}
+                      className="group grid w-full grid-cols-[minmax(0,230px)_minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-ink/[0.03]"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Logo client={client} />
+                        <div className="min-w-0">
+                          <p className="truncate text-[13px] font-medium text-ink">{client.business}</p>
+                          <div className="mt-0.5 flex items-center gap-2">
+                            <StatePill state={rail.overall} />
+                            {pkg.kind === "delivery" && rail.total ? <span className="font-mono text-[10px] text-ink/45">{rail.done}/{rail.total}</span> : null}
+                            {pkg.kind === "recurring" ? (
+                              <span className="font-mono text-[10px] text-ink/45">
+                                {(() => { const l = (client.services || []).find((s) => pkg.price_match.test(String(s.name || ""))); return l && Number(l.price) ? "$" + Number(l.price).toLocaleString("en-US") + "/mo" : "included"; })()}
+                                {rail.subscription && rail.subscription.footprint ? " · " + rail.subscription.footprint : ""}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="min-w-0 overflow-x-auto">
+                        <OrbRail orbs={rail.orbs} size="sm" />
+                      </div>
+                      <span className="flex h-8 w-8 items-center justify-center border border-hair text-ink/40 transition-all group-hover:border-[#ff3c00] group-hover:bg-[#ff3c00] group-hover:text-white">
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="px-5 py-10 text-center text-[12.5px] text-ink/45">No clients on {pkg.label} yet.</p>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
