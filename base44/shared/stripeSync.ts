@@ -34,9 +34,10 @@ export async function syncFromStripe(base44: any, key: string) {
   const report: any[] = [];
   for (const [id, t] of touched) {
     const existing: any[] = Array.isArray(t.client.services) ? t.client.services : [];
-    // keep non-Stripe lines (e.g. Dad's ops management paid outside Stripe), drop stale Stripe lines
-    const kept = existing.filter((x) => !x.stripe && !t.lines.some((l) => String(l.name).toLowerCase() === String(x.name || "").toLowerCase()));
-    const services = [...t.lines, ...kept.map((x) => ({ ...x, off_stripe: true }))];
+    // Keep lines that aren't in Stripe only when they are still meant to be billed (e.g. a plan that starts next week).
+    // Discontinued add-ons that Stripe no longer bills are dropped — their value now lives inside the merged plan price.
+    const kept = existing.filter((x) => !x.stripe && !x.discontinued && !DISCONTINUED.test(String(x.name || "")) && !t.lines.some((l) => String(l.name).toLowerCase() === String(x.name || "").toLowerCase()));
+    const services = [...t.lines, ...kept.map((x) => ({ ...x, off_stripe: true, note: x.note || "not in Stripe yet" }))];
     const managed = new Set<string>(t.client.services_managed || []);
     if (t.plans.has("hypercare")) managed.add("orbit_seo");
     if (t.plans.has("gravitycare")) managed.add("starship_care");
