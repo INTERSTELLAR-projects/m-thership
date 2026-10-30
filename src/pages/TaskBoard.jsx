@@ -154,6 +154,7 @@ function TaskBoardInner({ withDock = false }) {
               emptyHint="Flag a task with the bolt and it rides here above everything else."
               onComplete={complete}
               onOpen={openEditor}
+              onPatch={(task, patch) => patchLocal(task.id, patch)}
             />
             <TaskRail
               kicker="Queued"
@@ -162,6 +163,7 @@ function TaskBoardInner({ withDock = false }) {
               emptyHint="Nothing queued. Speak a command and the core will fill this rail."
               onComplete={complete}
               onOpen={openEditor}
+              onPatch={(task, patch) => patchLocal(task.id, patch)}
             />
           </div>
         </div>
@@ -187,6 +189,7 @@ function TaskBoardInner({ withDock = false }) {
               onStatus={(task, status) => updateTask(task, statusPatch(status))}
               onFocus={(task) => updateTask(task, { is_focus: !task.is_focus })}
               onDelete={removeTask}
+              onPatch={(task, patch) => patchLocal(task.id, patch)}
             />
           )}
 
