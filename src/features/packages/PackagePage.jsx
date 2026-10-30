@@ -7,7 +7,7 @@ import CategoryChip from "@/features/tasks/ui-kit/CategoryChip";
 import TimerButton from "@/features/tasks/components/TimerButton";
 import OrbRail from "@/features/packages/components/OrbRail";
 import usePackageData from "@/features/packages/usePackageData";
-import { PACKAGES, ORB_STATES, packageByKey, packagePath } from "@/features/packages/registry";
+import { PACKAGES, SUBSCRIPTIONS, DELIVERY_PACKAGES, ORB_STATES, packageByKey, packagePath } from "@/features/packages/registry";
 import { clientsOf, railFor } from "@/features/packages/engine";
 import { dueLabel, dueTone, shortDate } from "@/features/tasks/lib/format";
 import { btnGhost } from "@/features/tasks/lib/ui";
@@ -35,9 +35,11 @@ function StatePill({ state }) {
 
 /* ---------- package switcher (the eight pillars) ---------- */
 function PackageTabs({ current }) {
+  const group = SUBSCRIPTIONS.some((p) => p.key === current) ? SUBSCRIPTIONS : DELIVERY_PACKAGES;
   return (
     <div className="flex gap-1 overflow-x-auto border-b border-hair px-5 md:px-8">
-      {PACKAGES.map((p) => {
+      <span className="mono-label mr-2 self-center text-[8.5px] text-ink/40">{group === SUBSCRIPTIONS ? "Subscriptions" : "Packages"}</span>
+      {group.map((p) => {
         const active = p.key === current;
         return (
           <Link key={p.key} to={packagePath(p.key)} className={cn("relative flex shrink-0 items-center gap-2 px-3 py-2.5 text-[12px] transition-colors", active ? "text-ink" : "text-ink/50 hover:text-ink")}>
@@ -257,7 +259,7 @@ export default function PackagePage() {
   return (
     <div className="min-h-screen pb-24">
       <PageHeader
-        breadcrumb={"Packages / " + pkg.label}
+        breadcrumb={(pkg.kind === "recurring" ? "Subscriptions / " : "Packages / ") + pkg.label}
         title={pkg.label}
         rightText={updatedAt ? "live · updated " + updatedAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "loading"}
       >

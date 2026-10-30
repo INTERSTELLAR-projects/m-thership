@@ -2,7 +2,7 @@ import {
   LayoutDashboard, FileText, DollarSign, Scale, Users, Lightbulb, ListTodo,
   MessageSquare, TrendingUp, ClipboardList, Crown, Activity, Settings, FolderKanban, Star, PenLine, Presentation,
 } from "lucide-react";
-import { PACKAGES, packagePath } from "@/features/packages/registry";
+import { SUBSCRIPTIONS, DELIVERY_PACKAGES, packagePath } from "@/features/packages/registry";
 
 export const LOGO_URL =
   "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/536102fbf_interstellar-mark-v2.webp";
@@ -20,9 +20,14 @@ export const NAV_GROUPS = [
     ],
   },
   {
-    // The eight pillars. Every client, every stage, one page each.
+    // Recurring: who is subscribed, and what the system is doing for them this cycle.
+    label: "Subscriptions",
+    items: SUBSCRIPTIONS.map((p) => ({ label: p.label, icon: p.icon, path: packagePath(p.key), accent: p.color, arch: p.arch ? p.arch + " " + p.version : "" })),
+  },
+  {
+    // Paid up front, delivered once: every client, every SOP phase, until fulfilled.
     label: "Packages",
-    items: PACKAGES.map((p) => ({ label: p.label, icon: p.icon, path: packagePath(p.key), accent: p.color, arch: p.arch ? p.arch + " " + p.version : "" })),
+    items: DELIVERY_PACKAGES.map((p) => ({ label: p.label, icon: p.icon, path: packagePath(p.key), accent: p.color, arch: p.arch ? p.arch + " " + p.version : "" })),
   },
   {
     label: "Signals",

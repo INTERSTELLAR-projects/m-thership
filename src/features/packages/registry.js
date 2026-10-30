@@ -112,8 +112,8 @@ export const PACKAGES = [
   {
     key: "gravitycare",
     label: "GravïtyCare",
-    arch: null,
-    version: null,
+    arch: "Neptune",
+    version: "5.5",
     tagline: "Keeps you afloat. Hosting, uptime, fixes and small edits — the site stays live.",
     icon: LifeBuoy,
     color: "#0f766e",
@@ -123,6 +123,10 @@ export const PACKAGES = [
     price_match: /starsh|gravity|maintenance/i
   }
 ];
+
+// Subscriptions (recurring, billed monthly) vs packages (paid up front, delivered once).
+export const SUBSCRIPTIONS = PACKAGES.filter((p) => p.kind === "recurring");
+export const DELIVERY_PACKAGES = PACKAGES.filter((p) => p.kind === "delivery");
 
 export const packageByKey = (key) => PACKAGES.find((p) => p.key === key) || null;
 export const packagePath = (key) => "/packages/" + key;

@@ -3,19 +3,23 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import usePackageData from "@/features/packages/usePackageData";
 import { allSummaries } from "@/features/packages/engine";
-import { ORB_STATES, packagePath } from "@/features/packages/registry";
+import { ORB_STATES, SUBSCRIPTIONS, packagePath } from "@/features/packages/registry";
 import OrbRail from "@/features/packages/components/OrbRail";
 
 // Mission Control: the eight pillars at a glance — fulfilled / in flight / needs you per package.
 export default function PackagesStrip() {
   const { data, loading } = usePackageData();
-  const sums = useMemo(() => allSummaries(data), [data]);
+  const sums = useMemo(() => {
+    const all = allSummaries(data);
+    const subs = all.filter((s) => s.pkg.kind === "recurring"), pk = all.filter((s) => s.pkg.kind !== "recurring");
+    return [...subs, ...pk];
+  }, [data]);
   const needs = sums.flatMap((s) => s.rails.filter((r) => r.rail.overall === "attention").map((r) => ({ pkg: s.pkg, ...r })));
 
   return (
     <div className="px-5 pt-6 md:px-8">
       <div className="mb-3 flex items-center justify-between">
-        <p className="label-cross text-[10.5px] text-ink/60">(Packages · {sums.reduce((n, s) => n + s.clients, 0)} client seats)</p>
+        <p className="label-cross text-[10.5px] text-ink/60">(Subscriptions + packages · {sums.reduce((n, s) => n + s.clients, 0)} client seats)</p>
         <span className="mono-label text-[9px] text-ink/40">{loading ? "reading" : "live"}</span>
       </div>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -31,7 +35,7 @@ export default function PackagesStrip() {
                 </div>
                 <ArrowUpRight className="h-3.5 w-3.5 text-ink/30 transition-colors group-hover:text-[#ff3c00]" />
               </div>
-              <p className="mono-label mt-0.5 text-[8px] text-ink/40">{s.pkg.arch ? s.pkg.arch + " " + s.pkg.version : "recurring care"}</p>
+              <p className="mono-label mt-0.5 text-[8px] text-ink/40">{s.pkg.kind === "recurring" ? "Subscription · " : ""}{s.pkg.arch} {s.pkg.version}</p>
               <div className="mt-2.5 flex items-end justify-between">
                 <p className="text-[24px] font-semibold leading-none tracking-[-0.04em]" style={{ color: s.clients ? tone : undefined }}>
                   {s.clients}
