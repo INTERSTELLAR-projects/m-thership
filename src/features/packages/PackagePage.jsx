@@ -58,9 +58,25 @@ function OrbitClientView({ client, rail, data, onPatch }) {
   const [sel, setSel] = useState(null);
   const latestIntel = data.intel.slice(0, 5);
   const sched = rail.automations.filter((a) => ["blog", "gbp_post"].includes(a.kind));
+  const sub = rail.subscription || {};
   return (
     <div className="space-y-5">
-      <Panel kicker="Pipeline" title="What the system is doing for " bodyClassName="p-5">
+      <div className="grid overflow-hidden rounded-md border border-hair bg-card sm:grid-cols-3 lg:grid-cols-6">
+        {[
+          ["Subscription", sub.price ? "$" + sub.price.toLocaleString("en-US") + "/mo" : "—"],
+          ["Plan", sub.plan || "—"],
+          ["Footprint", sub.footprint || "not set"],
+          ["Primary location", sub.primaryLocation || "not set"],
+          ["Service area", sub.serviceLocations || "not set"],
+          ["Domain", sub.domain || "—"]
+        ].map(([k, v]) => (
+          <div key={k} className="border-r border-hair px-4 py-3 last:border-r-0">
+            <p className="mono-label text-[8.5px] text-ink/45">{k}</p>
+            <p className={cn("mt-1 truncate text-[13px] font-medium", /not set/.test(String(v)) ? "text-[#b91c1c]" : "text-ink")} title={String(v)}>{v}</p>
+          </div>
+        ))}
+      </div>
+      <Panel kicker="Pipeline" title={"What the system is doing for " + client.business} bodyClassName="p-5">
         <OrbRail orbs={rail.orbs} size="lg" activeKey={sel && sel.key} onSelect={setSel} />
         {sel ? (
           <div className="mt-5 rounded-md border border-hair bg-canvas/60 px-4 py-3">
@@ -322,6 +338,12 @@ export default function PackagePage() {
                         <div className="mt-0.5 flex items-center gap-2">
                           <StatePill state={rail.overall} />
                           {pkg.kind === "delivery" && rail.total ? <span className="font-mono text-[10px] text-ink/45">{rail.done}/{rail.total}</span> : null}
+                          {pkg.kind === "recurring" ? (
+                            <span className="font-mono text-[10px] text-ink/45">
+                              {(() => { const l = (client.services || []).find((s) => pkg.price_match.test(String(s.name || ""))); return l && Number(l.price) ? "$" + Number(l.price).toLocaleString("en-US") + "/mo" : "included"; })()}
+                              {rail.subscription && rail.subscription.footprint ? " · " + rail.subscription.footprint : ""}
+                            </span>
+                          ) : null}
                         </div>
                       </div>
                     </div>
