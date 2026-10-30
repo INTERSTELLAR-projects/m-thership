@@ -31,7 +31,7 @@ export default function PackagesStrip() {
                 </div>
                 <ArrowUpRight className="h-3.5 w-3.5 text-ink/30 transition-colors group-hover:text-[#ff3c00]" />
               </div>
-              <p className="mono-label mt-0.5 text-[8px] text-ink/40">{s.pkg.arch} {s.pkg.version}</p>
+              <p className="mono-label mt-0.5 text-[8px] text-ink/40">{s.pkg.arch ? s.pkg.arch + " " + s.pkg.version : "recurring care"}</p>
               <div className="mt-2.5 flex items-end justify-between">
                 <p className="text-[24px] font-semibold leading-none tracking-[-0.04em]" style={{ color: s.clients ? tone : undefined }}>
                   {s.clients}

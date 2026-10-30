@@ -22,7 +22,7 @@ export const NAV_GROUPS = [
   {
     // The eight pillars. Every client, every stage, one page each.
     label: "Packages",
-    items: PACKAGES.map((p) => ({ label: p.label, icon: p.icon, path: packagePath(p.key), accent: p.color, arch: p.arch + " " + p.version })),
+    items: PACKAGES.map((p) => ({ label: p.label, icon: p.icon, path: packagePath(p.key), accent: p.color, arch: p.arch ? p.arch + " " + p.version : "" })),
   },
   {
     label: "Signals",

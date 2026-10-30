@@ -261,10 +261,12 @@ export default function PackagePage() {
         title={pkg.label}
         rightText={updatedAt ? "live · updated " + updatedAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "loading"}
       >
-        <span className="mono-label hidden items-center gap-2 rounded-sm border border-hair bg-card px-2.5 py-1.5 text-[9.5px] text-ink/70 md:inline-flex">
-          <Satellite className="h-3 w-3" style={{ color: pkg.color }} />
-          Built on {pkg.arch} <span className="text-[#ff3c00]">{pkg.version}</span>
-        </span>
+        {pkg.arch ? (
+          <span className="mono-label hidden items-center gap-2 rounded-sm border border-hair bg-card px-2.5 py-1.5 text-[9.5px] text-ink/70 md:inline-flex">
+            <Satellite className="h-3 w-3" style={{ color: pkg.color }} />
+            Built on {pkg.arch} <span className="text-[#ff3c00]">{pkg.version}</span>
+          </span>
+        ) : null}
         <button type="button" onClick={reload} className={btnGhost}>
           <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
           Refresh

@@ -1,6 +1,6 @@
 import { Globe, Radar, Layout, Cpu, Workflow, Palette, Grid3x3, Clapperboard, LifeBuoy } from "lucide-react";
 
-// The eight packages (pillars). Each one is a page: all clients on it, one orb rail per client.
+// The nine packages (eight pillars + GravïtyCare). Each one is a page: all clients on it, one orb rail per client.
 // service_keys  → TaskTemplate.service_key / Project.service_key that belong to this package
 // crm_services  → CRMClient.services_managed values that mean "this client is on the package"
 // price_match   → CRMClient.services[].name regex (the billing line items)
