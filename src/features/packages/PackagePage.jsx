@@ -72,7 +72,7 @@ function OrbitClientView({ client, rail, data, onPatch }) {
         ].map(([k, v]) => (
           <div key={k} className="border-r border-hair px-4 py-3 last:border-r-0">
             <p className="mono-label text-[8.5px] text-ink/45">{k}</p>
-            <p className={cn("mt-1 truncate text-[13px] font-medium", /not set/.test(String(v)) ? "text-[#b91c1c]" : "text-ink")} title={String(v)}>{v}</p>
+            <p className={cn("mt-1 truncate text-[13px] font-medium", /not set/.test(String(v)) ? "text-[#ff3c00]" : "text-ink")} title={String(v)}>{v}</p>
           </div>
         ))}
       </div>
@@ -126,7 +126,7 @@ function OrbitClientView({ client, rail, data, onPatch }) {
             <ul className="space-y-1.5">
               {latestIntel.map((i) => (
                 <li key={i.id} className="flex items-start gap-2 text-[11.5px]">
-                  <span className={cn("mt-1 h-1.5 w-1.5 shrink-0 rounded-full", i.impact === "high" ? "bg-[#ff3c00]" : i.impact === "medium" ? "bg-amber-600" : "bg-ink/30")} />
+                  <span className={cn("mt-1 h-1.5 w-1.5 shrink-0 rounded-full", i.impact === "high" ? "bg-[#ff3c00]" : i.impact === "medium" ? "bg-ink" : "bg-ink/30")} />
                   <span className="min-w-0 flex-1">
                     <span className="text-ink">{i.title}</span>
                     <span className="ml-1.5 mono-label text-[8.5px] text-ink/40">{i.brief_date} · {i.status}</span>
@@ -148,7 +148,7 @@ function OrbitClientView({ client, rail, data, onPatch }) {
                 <li key={w.id} className="flex items-center gap-3 px-4 py-2.5">
                   <span className="mono-label w-[88px] shrink-0 text-[8.5px] text-ink/45">{KIND_LABEL[w.kind] || w.kind}</span>
                   <span className="min-w-0 flex-1 truncate text-[12.5px] text-ink">{w.title}</span>
-                  <span className={cn("mono-label text-[8.5px]", w.status === "live" ? "text-green-700" : w.status === "failed" ? "text-red-700" : "text-ink/45")}>{w.status}{w.verified_live ? " ✓" : ""}</span>
+                  <span className={cn("mono-label text-[8.5px]", w.status === "live" ? "text-ink" : w.status === "failed" ? "text-[#ff3c00]" : "text-ink/45")}>{w.status}{w.verified_live ? " ✓" : ""}</span>
                   <span className="font-mono text-[10px] text-ink/45">{shortDate(w.date)}</span>
                   {w.url ? (
                     <a href={w.url} target="_blank" rel="noreferrer" className="text-ink/40 hover:text-[#ff3c00]">
@@ -235,7 +235,7 @@ function DeliveryClientView({ client, rail, pkg, onPatch }) {
               <ul className="max-h-[360px] divide-y divide-hair overflow-y-auto">
                 {list.map((t) => (
                   <li key={t.id} className="flex items-center gap-3 px-4 py-2">
-                    <span className={cn("h-2 w-2 shrink-0 rounded-full", t.status === "done" ? "bg-green-700" : t.status === "blocked" ? "bg-red-700" : t.status === "doing" ? "bg-[#ff3c00]" : "bg-ink/25")} />
+                    <span className={cn("h-2 w-2 shrink-0 rounded-full", t.status === "done" ? "bg-ink" : t.status === "blocked" || t.status === "doing" ? "bg-[#ff3c00]" : "bg-ink/25")} />
                     <span className={cn("min-w-0 flex-1 truncate text-[12.5px]", t.status === "done" && "text-ink/45 line-through")}>{t.title}</span>
                     <CategoryChip value={t.category} />
                     <span className={cn("text-[10.5px]", dueTone(t.due_date, t.status))}>{dueLabel(t.due_date, t.status)}</span>

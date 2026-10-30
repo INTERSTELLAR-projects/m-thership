@@ -62,8 +62,8 @@ export default function PackagesStrip() {
       </div>
 
       {needs.length ? (
-        <div className="mt-3 overflow-hidden rounded-md border border-[#b91c1c]/30 bg-card">
-          <p className="border-b border-hair px-4 py-2 text-[11px] font-medium text-[#b91c1c]">Needs you · {needs.length}</p>
+        <div className="mt-3 overflow-hidden rounded-md border border-[#ff3c00]/40 bg-card">
+          <p className="border-b border-hair px-4 py-2 text-[11px] font-medium text-[#ff3c00]">Needs you · {needs.length}</p>
           <div className="divide-y divide-hair">
             {needs.slice(0, 6).map((n) => (
               <Link key={n.pkg.key + n.client.id} to={packagePath(n.pkg.key) + "/" + n.client.id} className="grid grid-cols-[minmax(0,200px)_minmax(0,1fr)] items-center gap-4 px-4 py-2 hover:bg-[#ff3c00]/[0.035]">
