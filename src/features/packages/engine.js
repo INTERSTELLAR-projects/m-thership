@@ -72,8 +72,10 @@ export function deliveryRail(pkg, client, data) {
   const mine = tasks.filter((t) => t.client_id === client.id && (projIds.has(t.project_id) || tplNames.has(t.sop_name) || (t.labels || []).some((l) => tplNames.has(l))));
   const phaseOf = (t) => titleToPhase.get(t.sop_step || t.title) || (t.notes ? String(t.notes).split("·")[0].trim() : null);
   const launched = projs.length && projs.every((p) => ["launched", "done"].includes(p.status));
+  const byPhase = {};
+  phases.forEach((ph) => { byPhase[ph] = mine.filter((t) => phaseOf(t) === ph); });
   const orbs = phases.map((ph) => {
-    const rows = mine.filter((t) => phaseOf(t) === ph);
+    const rows = byPhase[ph];
     const done = rows.filter((t) => t.status === "done");
     let state = "off";
     if (launched) state = "done";
@@ -87,7 +89,7 @@ export function deliveryRail(pkg, client, data) {
   });
   const total = mine.length, done = mine.filter((t) => t.status === "done").length;
   const overall = launched || (total && done === total) ? "done" : orbs.some((o) => o.state === "attention") ? "attention" : total ? "working" : "off";
-  return { orbs, total, done, progress: total ? Math.round((done / total) * 100) : 0, overall, projects: projs, tasks: mine };
+  return { orbs, total, done, progress: total ? Math.round((done / total) * 100) : 0, overall, projects: projs, tasks: mine, byPhase };
 }
 
 /* ---------- Ørbit: orbs are the autonomous pipeline ---------- */
