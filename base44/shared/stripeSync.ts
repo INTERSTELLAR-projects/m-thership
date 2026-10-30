@@ -7,8 +7,9 @@ import { loadPicture } from "./stripe.ts";
  * Lines that are not on any Stripe subscription (legacy / off-Stripe arrangements) are kept and marked.
  * Returns a report; never deletes a client.
  */
-const LABEL = (plan: string, name: string) => (plan === "hypercare" ? "HyperCare+" : plan === "gravitycare" ? "GravïtyCare" : name);
-const DISCONTINUED = /badge|app management|app maintenance|software maintenance|ops management/i;
+const LABEL = (plan: string, name: string) =>
+  plan === "hypercare" ? "HyperCare+" : plan === "gravitycare" ? "GravïtyCare" : plan === "appcare" ? "AppCare" : plan === "manage" ? "Manage+" : plan === "mission" ? name.replace(/^Interstellar®?\s*/i, "") + " (financed)" : name.replace(/^Interstellar®?\s*/i, "");
+const DISCONTINUED = /badge|reviews|app management/i;
 
 export async function syncFromStripe(base44: any, key: string) {
   const picture = await loadPicture(base44, key);
@@ -38,6 +39,7 @@ export async function syncFromStripe(base44: any, key: string) {
     const managed = new Set<string>(t.client.services_managed || []);
     if (t.plans.has("hypercare")) managed.add("orbit_seo");
     if (t.plans.has("gravitycare")) managed.add("starship_care");
+    if (t.plans.has("appcare") || t.plans.has("manage")) managed.add("system");
     const patch: any = { services, services_managed: [...managed], stripe_customer_id: t.customer, stripe_synced_at: new Date().toISOString() };
     if (t.client.status !== "Active") patch.status = "Active";
     await db.CRMClient.update(id, patch);

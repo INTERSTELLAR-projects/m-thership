@@ -115,7 +115,7 @@ export default function RevenueStrip() {
               {[
                 ["HyperCare+", plans.hypercare, packagePath("orbit-seo"), "#ff3c00"],
                 ["GravïtyCare", plans.gravitycare, packagePath("gravitycare"), "#1a1a1a"],
-                ["Other recurring", plans.other, null, "#8a8580"]
+                ["Special arrangements", { count: ["appcare", "manage", "mission", "website", "other"].reduce((n, k) => n + ((plans[k] && plans[k].count) || 0), 0), mrr: ["appcare", "manage", "mission", "website", "other"].reduce((n, k) => n + ((plans[k] && plans[k].mrr) || 0), 0) }, null, "#8a8580"]
               ].map(([k, p, to, c]) => {
                 const inner = (
                   <>
@@ -125,7 +125,7 @@ export default function RevenueStrip() {
                     </div>
                     <div className="mt-2 flex items-baseline gap-2">
                       <p className="text-[26px] font-semibold leading-none tracking-[-0.04em]" style={{ color: c }}>{p ? p.count : 0}</p>
-                      <p className="text-[10.5px] text-ink/45">subscribers</p>
+                      <p className="text-[10.5px] text-ink/45">{k === "Special arrangements" ? "AppCare · Manage+ · financed missions" : "subscribers"}</p>
                     </div>
                     <p className="mt-1 font-mono text-[11.5px] tabular-nums text-ink/70">{money(p ? p.mrr : 0)}<span className="text-ink/40">/mo</span></p>
                   </>

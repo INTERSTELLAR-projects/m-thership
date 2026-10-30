@@ -9,10 +9,16 @@ const STRIPE_API = "https://api.stripe.com/v1";
 const round = (n: number) => Math.round(n * 100) / 100;
 const norm = (s: string) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
-const PLAN_OF = (name: string) => {
+// Stripe product → bucket. Only HyperCare+ and GravïtyCare are offered subscriptions; the rest are
+// special arrangements (AppCare = subcontracted dev, Manage+ = hands-on management, Mission = financed build).
+export const PLAN_OF = (name: string) => {
   const n = String(name || "").toLowerCase();
   if (/hypercare|ørbit|orbit/.test(n)) return "hypercare";
   if (/gravity|gravïty|starsh/.test(n)) return "gravitycare";
+  if (/appcare|app care|software maintenance|app management/.test(n)) return "appcare";
+  if (/manage\+|manage plus|ops management/.test(n)) return "manage";
+  if (/mission (alpha|bravo)/.test(n)) return "mission";
+  if (/next-gen|website/.test(n)) return "website";
   return "other";
 };
 
@@ -92,14 +98,14 @@ export async function loadPicture(base44: any, key: string) {
       client: client ? { id: client.id, business: client.business } : null,
       lines,
       mrr,
-      plan: lines.some((l: any) => l.plan === "hypercare") ? "hypercare" : lines.some((l: any) => l.plan === "gravitycare") ? "gravitycare" : "other"
+      plan: ["hypercare", "gravitycare", "appcare", "manage", "mission", "website"].find((k) => lines.some((l: any) => l.plan === k)) || "other"
     };
   });
 
-  const plans: Record<string, { count: number; mrr: number }> = { hypercare: { count: 0, mrr: 0 }, gravitycare: { count: 0, mrr: 0 }, other: { count: 0, mrr: 0 } };
+  const plans: Record<string, { count: number; mrr: number }> = { hypercare: { count: 0, mrr: 0 }, gravitycare: { count: 0, mrr: 0 }, appcare: { count: 0, mrr: 0 }, manage: { count: 0, mrr: 0 }, mission: { count: 0, mrr: 0 }, website: { count: 0, mrr: 0 }, other: { count: 0, mrr: 0 } };
   subscriptions.forEach((s: any) => {
     plans[s.plan].count += 1;
-    s.lines.forEach((l: any) => { plans[l.plan === "other" && s.plan !== "other" ? s.plan : l.plan].mrr = round(plans[l.plan === "other" && s.plan !== "other" ? s.plan : l.plan].mrr + l.monthly); });
+    s.lines.forEach((l: any) => { const k = plans[l.plan] ? l.plan : "other"; plans[k].mrr = round(plans[k].mrr + l.monthly); });
   });
   const mrr = round(subscriptions.reduce((a: number, s: any) => a + s.mrr, 0));
 
