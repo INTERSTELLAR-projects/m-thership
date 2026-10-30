@@ -241,7 +241,7 @@ export function RequestsTab({ client }) {
   const [filter, setFilter] = useState("open");
   const rows = reqs.rows.filter((r) => (filter === "open" ? !["complete", "declined"].includes(r.status) : ["complete", "declined"].includes(r.status)));
   const FIELDS = [
-    { name: "kind", label: "Type", type: "select", options: ["site_edit", "project_submission", "new_page", "question", "other"], required: true },
+    { name: "kind", label: "Type", type: "select", options: [{ value: "site_edit", label: "Website edit" }, { value: "project_submission", label: "New project" }, { value: "job", label: "Job completed" }, { value: "new_page", label: "New page" }, { value: "app_edit", label: "Ørigin 1.0 edit" }, { value: "question", label: "Question" }, { value: "other", label: "Other" }], required: true },
     { name: "title", label: "Title", type: "text", required: true },
     { name: "details", label: "Details", type: "textarea" },
     { name: "status", label: "Status", type: "select", options: ["received", "in_progress", "needs_info", "complete", "declined"], required: true },
