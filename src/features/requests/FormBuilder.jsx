@@ -54,7 +54,7 @@ export function FormEditor({ form, onSaved, onClose }) {
     setBusy(true);
     try {
       const clean = { ...v, form_key: v.form_key || randKey(), fields: fields.map((f) => ({ ...f, id: f.id || slug(f.label) })) };
-      const { id, created_date, updated_date, created_by, created_by_id, is_sample, ...data } = clean; // eslint-disable-line no-unused-vars
+      const { id, created_date, updated_date, created_by, created_by_id, is_sample, ...data } = clean;  
       const saved = id ? await base44.entities.RequestForm.update(id, data) : await base44.entities.RequestForm.create(data);
       invalidate("RequestForm");
       onSaved?.(saved);
@@ -128,7 +128,7 @@ export default function ClientFormsPanel({ client, forms, onChange }) {
     } finally { setBusy(false); }
   };
   const remove = async (f) => { if (!window.confirm(`Delete "${f.title}"?`)) return; await base44.entities.RequestForm.delete(f.id); invalidate("RequestForm"); onChange?.(); };
-  const duplicate = async (f) => { const { id, created_date, updated_date, created_by, created_by_id, is_sample, ...d } = f; await base44.entities.RequestForm.create({ ...d, title: d.title + " (copy)", form_key: randKey(), submissions: 0 }); invalidate("RequestForm"); onChange?.(); }; // eslint-disable-line no-unused-vars
+  const duplicate = async (f) => { const { id, created_date, updated_date, created_by, created_by_id, is_sample, ...d } = f; await base44.entities.RequestForm.create({ ...d, title: d.title + " (copy)", form_key: randKey(), submissions: 0 }); invalidate("RequestForm"); onChange?.(); };  
 
   return (
     <div className="space-y-3">

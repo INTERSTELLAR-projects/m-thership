@@ -19,7 +19,7 @@ export default function PublicRequest() {
 
   useEffect(() => {
     fetch(`${base}?form=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}`).then((r) => r.json()).then((d) => (d.form ? setForm(d.form) : setErr(d.error || "Form not found"))).catch(() => setErr("Could not load the form"));
-  }, [id, key]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id, key]);  
 
   const submit = async (e) => {
     e.preventDefault();
