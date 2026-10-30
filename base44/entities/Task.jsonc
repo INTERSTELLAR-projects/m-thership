@@ -1,28 +1,8 @@
 {
   "name": "Task",
-  "type": "object",
   "properties": {
-    "title": {
-      "type": "string"
-    },
-    "parent_task_id": {
-      "type": "string"
-    },
-    "project_id": {
-      "type": "string"
-    },
-    "client_id": {
-      "type": "string",
-      "description": "CRMClient id"
-    },
-    "project_name": {
-      "type": "string"
-    },
-    "client_name": {
-      "type": "string"
-    },
     "category": {
-      "type": "string",
+      "default": "ops",
       "enum": [
         "design",
         "development",
@@ -34,68 +14,99 @@
         "finance",
         "ops"
       ],
-      "default": "ops"
+      "type": "string"
     },
-    "task_type": {
-      "type": "string",
-      "enum": [
-        "billable",
-        "internal",
-        "unpaid",
-        "personal"
-      ],
-      "default": "billable"
+    "client_id": {
+      "description": "CRMClient id",
+      "type": "string"
     },
-    "status": {
-      "type": "string",
-      "enum": [
-        "inbox",
-        "next",
-        "doing",
-        "blocked",
-        "done"
-      ],
-      "default": "next"
+    "client_name": {
+      "type": "string"
     },
-    "priority": {
-      "type": "number",
-      "default": 3
+    "completed_at": {
+      "format": "date-time",
+      "type": "string"
     },
     "due_date": {
-      "type": "string",
-      "format": "date"
-    },
-    "remind_at": {
-      "type": "string",
-      "format": "date-time"
+      "format": "date",
+      "type": "string"
     },
     "estimated_days": {
-      "type": "number",
-      "default": 0
+      "default": 0,
+      "type": "number"
     },
     "estimated_hours": {
-      "type": "number",
-      "default": 0
+      "default": 0,
+      "type": "number"
     },
-    "logged_hours": {
-      "type": "number",
-      "default": 0
+    "estimated_minutes": {
+      "default": 0,
+      "description": "Canonical effort estimate",
+      "type": "number"
     },
     "is_focus": {
-      "type": "boolean",
-      "default": false
+      "default": false,
+      "type": "boolean"
     },
     "labels": {
-      "type": "array",
       "items": {
         "type": "string"
-      }
+      },
+      "type": "array"
+    },
+    "logged_hours": {
+      "default": 0,
+      "type": "number"
+    },
+    "logged_seconds": {
+      "default": 0,
+      "description": "Total timed seconds across every timer run",
+      "type": "number"
     },
     "notes": {
       "type": "string"
     },
+    "parent_task_id": {
+      "type": "string"
+    },
+    "portal_visible": {
+      "default": false,
+      "type": "boolean"
+    },
+    "priority": {
+      "default": 3,
+      "type": "number"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "project_type": {
+      "description": "Copied from the project so time can be grouped by package",
+      "type": "string"
+    },
+    "recurring_pattern_id": {
+      "type": "string"
+    },
+    "remind_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "sop_name": {
+      "description": "SOP this step came from",
+      "type": "string"
+    },
+    "sop_step": {
+      "description": "Step title inside that SOP, for averaging actuals",
+      "type": "string"
+    },
     "source": {
-      "type": "string",
+      "default": "manual",
       "enum": [
         "manual",
         "voice",
@@ -104,26 +115,42 @@
         "request",
         "automation"
       ],
-      "default": "manual"
-    },
-    "recurring_pattern_id": {
       "type": "string"
     },
-    "request_id": {
+    "status": {
+      "default": "next",
+      "enum": [
+        "inbox",
+        "next",
+        "doing",
+        "blocked",
+        "done"
+      ],
       "type": "string"
     },
-    "portal_visible": {
-      "type": "boolean",
-      "default": false
+    "task_type": {
+      "default": "billable",
+      "enum": [
+        "billable",
+        "internal",
+        "unpaid",
+        "personal"
+      ],
+      "type": "string"
     },
-    "completed_at": {
-      "type": "string",
-      "format": "date-time"
+    "timer_started_at": {
+      "description": "Set while a timer is running on this task",
+      "format": "date-time",
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
     }
   },
   "required": [
     "title"
   ],
+  "type": "object",
   "rls": {
     "create": {
       "user_condition": {
