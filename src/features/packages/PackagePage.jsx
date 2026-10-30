@@ -184,18 +184,7 @@ function OrbitClientView({ client, rail, data, onPatch }) {
 /* ---------- client view: delivery packages ---------- */
 function DeliveryClientView({ client, rail, pkg, onPatch }) {
   const [sel, setSel] = useState(null);
-  const phaseTasks = sel ? rail.tasks.filter((t) => (rail.orbs.find((o) => o.key === sel.key) ? true : false)).filter((t) => {
-    const o = sel;
-    const ph = (t.sop_step && rail.tasks.length && o) ? null : null; // placeholder, filtered below
-    return ph === null;
-  }) : [];
-  // phase matching mirrors engine.deliveryRail
-  const tasksIn = (orb) => rail.tasks.filter((t) => {
-    const notesPhase = t.notes ? String(t.notes).split("·")[0].trim() : null;
-    return (t.__phase || notesPhase) === orb.full || (orb.full && t.notes && String(t.notes).startsWith(orb.full));
-  });
-  void phaseTasks;
-  const list = sel ? (tasksIn(sel).length ? tasksIn(sel) : rail.tasks.filter((t) => t.sop_step && sel.full && rail.titleToPhase && rail.titleToPhase.get(t.sop_step) === sel.full)) : [];
+  const list = sel ? [...(rail.byPhase[sel.full] || [])].sort((a, b) => (a.due_date || "9999").localeCompare(b.due_date || "9999")) : [];
   return (
     <div className="space-y-5">
       <Panel kicker="Delivery" title={pkg.label + " · " + rail.progress + "% fulfilled"} bodyClassName="p-5">
