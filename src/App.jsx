@@ -48,6 +48,11 @@ function PortalPreview() {
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
 
+  // Public request forms (/r/<id>?k=...) need no login: client sites link straight to them.
+  if (window.location.pathname.startsWith('/r/')) {
+    return <Routes><Route path="/r/:id" element={<PublicRequest />} /></Routes>;
+  }
+
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
