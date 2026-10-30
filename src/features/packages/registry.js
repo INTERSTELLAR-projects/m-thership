@@ -120,7 +120,7 @@ export const PACKAGES = [
     kind: "recurring",
     service_keys: ["starship"],
     crm_services: ["starship_care"],
-    price_match: /starsh|gravity|maintenance/i
+    price_match: /gravity|gravïty|starsh/i
   }
 ];
 
