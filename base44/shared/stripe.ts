@@ -133,7 +133,10 @@ export async function loadPicture(base44: any, key: string) {
     stripe("invoices", key, { status: "paid", "created[gte]": String(monthStart) }),
     stripe("balance_transactions", key, { "created[gte]": String(monthStart) })
   ]);
-  const subscriptionRevenue = round(invoices.filter((i: any) => i.subscription).reduce((a: number, i: any) => a + (i.amount_paid || 0) / 100, 0));
+  // Old API: invoice.subscription. 2025+ API: invoice.parent.subscription_details.subscription (or per line).
+  const isSubInvoice = (i: any) =>
+    Boolean(i.subscription || i.parent?.subscription_details?.subscription || (i.lines?.data || []).some((l: any) => l.subscription || l.parent?.subscription_item_details || l.type === "subscription"));
+  const subscriptionRevenue = round(invoices.filter(isSubInvoice).reduce((a: number, i: any) => a + (i.amount_paid || 0) / 100, 0));
   const collected = round(txns.filter((t: any) => t.type === "charge" || t.type === "payment").reduce((a: number, t: any) => a + (t.amount || 0) / 100, 0));
   const fees = round(txns.filter((t: any) => !String(t.type).startsWith("payout") && !String(t.type).startsWith("transfer")).reduce((a: number, t: any) => a + (t.fee || 0) / 100, 0));
   const refunds = round(txns.filter((t: any) => /refund/.test(String(t.type))).reduce((a: number, t: any) => a - (t.amount || 0) / 100, 0));
@@ -146,7 +149,7 @@ export async function loadPicture(base44: any, key: string) {
     subscriptions: subscriptions.sort((a: any, b: any) => b.mrr - a.mrr),
     plans,
     mrr,
-    month: { key: new Date().toISOString().slice(0, 7), subscriptions: subscriptionRevenue, other: round(Math.max(0, collected - subscriptionRevenue)), collected, fees, refunds, capital, net, invoices: invoices.length },
+    month: { key: new Date().toISOString().slice(0, 7), subscriptions: subscriptionRevenue, other: round(Math.max(0, collected - subscriptionRevenue)), collected, fees, refunds, capital, net, invoices: invoices.filter(isSubInvoice).length, invoices_total: invoices.length },
     unmatched: subscriptions.filter((s: any) => !s.client).length
   };
 }
