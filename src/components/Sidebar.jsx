@@ -18,6 +18,7 @@ function NavItem({ item, onClose }) {
       {active && <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#ff3c00]" />}
       <item.icon className={`h-[16px] w-[16px] shrink-0 transition-colors ${active ? "text-[#ff3c00]" : "text-ink/45 group-hover:text-[#ff3c00]"}`} strokeWidth={1.75} />
       <span className="truncate font-medium tracking-[-0.01em]">{item.label}</span>
+      {item.arch ? <span className={`ml-auto shrink-0 font-mono text-[8.5px] tracking-[0.08em] ${active ? "text-white/50" : "text-ink/30 group-hover:text-ink/50"}`}>{item.arch}</span> : null}
     </Link>
   );
 }
