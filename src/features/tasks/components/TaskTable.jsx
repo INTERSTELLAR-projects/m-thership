@@ -4,7 +4,7 @@ import PriorityBadge from "@/features/tasks/ui-kit/PriorityBadge";
 import CategoryChip from "@/features/tasks/ui-kit/CategoryChip";
 import TimerButton from "@/features/tasks/components/TimerButton";
 import EmptyState from "@/features/tasks/ui-kit/EmptyState";
-import { TASK_STATUSES, categoryMeta } from "@/features/tasks/lib/constants";
+import { TASK_STATUSES } from "@/features/tasks/lib/constants";
 import { dueLabel, dueTone } from "@/features/tasks/lib/format";
 import { fmtMinutes, itemMinutes } from "@/features/tasks/lib/estimate";
 import { cn } from "@/lib/utils";
@@ -28,7 +28,6 @@ export default function TaskTable({ tasks = [], onEdit, onStatus, onFocus, onDel
 
       <div className="divide-y divide-hair">
         {tasks.map((task) => {
-          const category = categoryMeta(task.category);
           return (
             <div
               key={task.id}
