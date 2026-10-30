@@ -27,8 +27,8 @@ const EMPTY = {
   status: "next",
   priority: 3,
   due_date: "",
-  estimated_days: "",
-  estimated_hours: "",
+  estimate_amount: "",
+  estimate_unit: "h",
   labels: "",
   notes: "",
   is_focus: false,
@@ -51,8 +51,7 @@ export default function TaskFormDialog({ open, onOpenChange, projects = [], clie
         project_id: initial.project_id || "",
         client_id: initial.client_id || "",
         due_date: initial.due_date || "",
-        estimated_days: initial.estimated_days ?? "",
-        estimated_hours: initial.estimated_hours ?? "",
+        ...splitMinutes(itemMinutes(initial)),
         labels: Array.isArray(initial.labels) ? initial.labels.join(", ") : "",
         notes: initial.notes || "",
         parent_task_id: initial.parent_task_id || ""
@@ -88,8 +87,8 @@ export default function TaskFormDialog({ open, onOpenChange, projects = [], clie
       status: form.status,
       priority: Number(form.priority) || 3,
       due_date: form.due_date || null,
-      estimated_days: Number(form.estimated_days) || 0,
-      estimated_hours: Number(form.estimated_hours) || 0,
+      ...withEstimate({}, form.estimate_amount, form.estimate_unit),
+      project_type: (project && project.type) || (initial && initial.project_type) || null,
       labels: form.labels ? form.labels.split(",").map((l) => l.trim()).filter(Boolean) : [],
       notes: form.notes || null,
       is_focus: !!form.is_focus,
@@ -244,11 +243,28 @@ export default function TaskFormDialog({ open, onOpenChange, projects = [], clie
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Estimated days">
-              <input type="number" step="0.5" min="0" value={form.estimated_days} onChange={(e) => set("estimated_days", e.target.value)} className={inputClass} />
+            <Field label="How long it takes you">
+              <div className="flex items-center gap-1.5">
+                <input type="number" step="0.5" min="0" value={form.estimate_amount} onChange={(e) => set("estimate_amount", e.target.value)} placeholder="0" className={inputClass + " w-24 text-right font-mono"} />
+                <Select value={form.estimate_unit || "h"} onValueChange={(v) => set("estimate_unit", v)}>
+                  <SelectTrigger className={selectTriggerClass}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className={selectContentClass}>
+                    {UNITS.map((u) => (
+                      <SelectItem key={u.value} className={selectItemClass} value={u.value}>
+                        {u.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </Field>
-            <Field label="Estimated hours">
-              <input type="number" step="0.5" min="0" value={form.estimated_hours} onChange={(e) => set("estimated_hours", e.target.value)} className={inputClass} />
+            <Field label="Clocked so far">
+              <p className="flex h-9 items-center font-mono text-[12.5px] tabular-nums text-ink/70">
+                {initial && Number(initial.logged_seconds) > 0 ? fmtClock(initial.logged_seconds) : "0:00:00"}
+                {initial && initial.timer_started_at ? <span className="ml-2 text-[10px] text-[#ff3c00]">clock running</span> : null}
+              </p>
             </Field>
           </div>
 
