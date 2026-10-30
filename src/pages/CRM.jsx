@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Search, Plus, Phone, Mail, Globe, Building, ChevronRight, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowUpRight, Search, Plus, Phone, Mail, Globe, Building, ChevronRight, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +20,7 @@ export default function CRM() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("Active");
   const [selectedId, setSelectedId] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
   const [newClient, setNewClient] = useState({ business: "", contact: "", phone: "", email: "", website: "", status: "Active" });
@@ -89,7 +89,7 @@ export default function CRM() {
       c.contact?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "All" || c.status === statusFilter;
     return matchSearch && matchStatus;
-  });
+  }).sort((a, b) => (a.business || "").localeCompare(b.business || "", undefined, { sensitivity: "base" }));
 
   const selectedClient = clients.find((c) => c.id === selectedId);
 
@@ -123,11 +123,11 @@ export default function CRM() {
               return (
                 <div key={client.id} className="card-hover w-full bg-card rounded-md border border-ink/[0.13] p-4 flex items-center gap-5 group">
                   <button onClick={() => navigate(`/clients/${client.id}`)} className="flex items-center gap-5 flex-1 text-left min-w-0">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center shrink-0 overflow-hidden">
-                      {client.logoUrl ? (
-                        <img src={client.logoUrl} alt={client.business} className="w-full h-full object-cover" />
+                    <div className="w-11 h-11 bg-white border border-ink/[0.1] flex items-center justify-center shrink-0 overflow-hidden">
+                      {client.logoUrl || client.logo_url ? (
+                        <img src={client.logoUrl || client.logo_url} alt={client.business} className="w-full h-full object-contain p-1.5" />
                       ) : (
-                        <span className="text-orange-600 font-display font-extrabold text-sm">{client.business?.charAt(0)}</span>
+                        <span className="text-[#ff3c00] font-semibold text-[15px]">{client.business?.charAt(0)}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -137,11 +137,15 @@ export default function CRM() {
                       </div>
                       <p className="text-ink/[0.48] text-xs">{client.contact} · {(client.emails || [])[0]}</p>
                     </div>
-                    <div className="text-right mr-2 shrink-0">
-                      <p className="text-orange-600 text-sm font-display font-bold">${total}/mo</p>
-                      <p className="text-orange-600/80 text-xs">{(client.services || []).length} services</p>
+                    <div className="text-right shrink-0 border-l border-ink/[0.08] pl-5 min-w-[118px]">
+                      <p className="text-[20px] font-semibold leading-none tracking-[-0.04em] tabular-nums text-ink">
+                        ${total.toLocaleString("en-US")}<span className="ml-0.5 text-[12px] font-normal tracking-normal text-ink/45">/mo</span>
+                      </p>
+                      <p className="mono-label mt-1.5 text-[9.5px] text-ink/45">{(client.services || []).length} {(client.services || []).length === 1 ? "service" : "services"}</p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-ink/[0.33] group-hover:text-orange-600/80 transition-colors shrink-0" />
+                    <span className="ml-1 flex h-9 w-9 shrink-0 items-center justify-center border border-ink/[0.12] text-ink/50 transition-all duration-300 group-hover:border-[#ff3c00] group-hover:bg-[#ff3c00] group-hover:text-white">
+                      <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </span>
                   </button>
                   <button onClick={() => deleteClient(client.id)} className="p-1.5 text-ink/[0.28] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
