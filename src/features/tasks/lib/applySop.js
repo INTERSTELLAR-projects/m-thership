@@ -1,4 +1,5 @@
 import { base44 } from "@/api/base44Client";
+import { itemMinutes, minutesToDays } from "@/features/tasks/lib/estimate";
 
 export async function applySop({ template, project }) {
   const items = Array.isArray(template && template.items) ? template.items : [];
@@ -7,11 +8,17 @@ export async function applySop({ template, project }) {
   const docs = items.map((item) => {
     const offset = Number(item.offset_days) || 0;
     const due = new Date(base.getTime() + offset * 86400000);
+    const minutes = itemMinutes(item);
     return {
       title: item.title,
       category: item.category || "ops",
       priority: Number(item.priority) || 3,
-      estimated_days: Number(item.estimated_days) || 0,
+      estimated_minutes: minutes,
+      estimated_hours: Math.round((minutes / 60) * 100) / 100,
+      estimated_days: Math.round(minutesToDays(minutes) * 100) / 100,
+      sop_name: template.name,
+      sop_step: item.title,
+      project_type: project.type || null,
       status: "next",
       source: "sop",
       project_id: project.id,
