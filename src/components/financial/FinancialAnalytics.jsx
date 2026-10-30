@@ -6,26 +6,33 @@ import GameChartTooltip from "../charts/GameChartTooltip";
 
 const MRR_GOAL = 10000;
 
-// Static historical trend (last 6 months leading to current)
-const HISTORY = [
-  { month: "Oct", revenue: 2100 },
-  { month: "Nov", revenue: 2400 },
-  { month: "Dec", revenue: 2800 },
-  { month: "Jan", revenue: 3100 },
-  { month: "Feb", revenue: 3200 },
-  { month: "Mar", revenue: 3471 },
-];
+const monthShort = (key) => {
+  const [y, m] = String(key).split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
+};
+
+const dollars = (n) => `$${Math.round(n || 0).toLocaleString("en-US")}`;
+
+const pctChange = (from, to) => (from > 0 ? ((to - from) / from) * 100 : 0);
 
 export default function FinancialAnalytics({ totalMonthlyExpenses }) {
   const [mrr, setMrr] = useState(null);
+  const [stripe, setStripe] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    base44.entities.CRMClient.list("-created_date", 200).then((clients) => {
+    Promise.all([
+      base44.entities.CRMClient.list("-created_date", 200),
+      base44.functions
+        .invoke("stripeRevenue", {})
+        .then((res) => res?.data || null)
+        .catch(() => null),
+    ]).then(([clients, stripeData]) => {
       const revenue = clients
         .filter((c) => c.status === "Active")
         .reduce((sum, c) => sum + (c.services || []).reduce((s, sv) => s + (sv.price || 0), 0), 0);
       setMrr(revenue || 3471);
+      setStripe(stripeData?.configured && !stripeData?.error ? stripeData : null);
       setLoading(false);
     });
   }, []);
@@ -46,18 +53,16 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
   const annualProfit = arr - annualExpenses;
   const mrrProgress = (mrr / MRR_GOAL) * 100;
 
-  // Month-over-month from history
-  const lastTwo = HISTORY.slice(-2);
-  const mom = lastTwo.length === 2 ? ((lastTwo[1].revenue - lastTwo[0].revenue) / lastTwo[0].revenue) * 100 : 0;
-
-  // Year-over-year (compare current month vs same month last year — estimate from history start)
-  const yoy = ((HISTORY[HISTORY.length - 1].revenue - HISTORY[0].revenue) / HISTORY[0].revenue) * 100;
-
-  // Chart data with current live MRR replacing last entry
-  const chartData = [
-    ...HISTORY.slice(0, -1),
-    { month: "Now", revenue: mrr },
-  ];
+  // Live Stripe collections, newest month last
+  const series = (stripe?.months || []).map((m) => ({
+    key: m.key,
+    month: monthShort(m.key),
+    revenue: m.collected,
+  }));
+  const chartData = series.slice(-6);
+  const lastTwo = chartData.slice(-2);
+  const mom = lastTwo.length === 2 ? pctChange(lastTwo[0].revenue, lastTwo[1].revenue) : 0;
+  const currentCollected = stripe?.current?.collected || 0;
 
   // Expense vs revenue for bar chart
   const expVsRev = [
@@ -78,8 +83,20 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
 
       {/* Growth Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <MetricCard label="MoM Growth" value={`+${mom.toFixed(1)}%`} sub="vs last month" icon={ArrowUpRight} good />
-        <MetricCard label="YoY Growth" value={`+${yoy.toFixed(1)}%`} sub="vs 6 months ago" icon={ArrowUpRight} good />
+        <MetricCard
+          label="MoM Growth"
+          value={`${mom >= 0 ? "+" : ""}${mom.toFixed(1)}%`}
+          sub="Stripe collections vs last month"
+          icon={ArrowUpRight}
+          good={mom >= 0}
+        />
+        <MetricCard
+          label="Collected"
+          value={dollars(currentCollected)}
+          sub={stripe ? `${monthShort(stripe.current.key)} · live from Stripe` : "Add a Stripe key to go live"}
+          icon={DollarSign}
+          highlight
+        />
         <MetricCard label="Annual Profit" value={`$${annualProfit.toLocaleString("en-US", { maximumFractionDigits: 0 })}`} sub="Revenue - Expenses" icon={DollarSign} good />
         <MetricCard label="Annual Expenses" value={`$${annualExpenses.toLocaleString("en-US", { maximumFractionDigits: 0 })}`} sub="Total yearly spend" icon={DollarSign} />
       </div>
@@ -104,7 +121,10 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
       {/* Charts */}
       <div className="grid grid-cols-2 gap-4">
         <div className="game-panel p-5">
-          <p className="font-display text-[10px] tracking-[0.2em] uppercase mb-3 bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Revenue Trend</p>
+          <p className="font-display text-[10px] tracking-[0.2em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Revenue Trend</p>
+          <p className="text-ink/[0.43] text-[10px] mt-0.5 mb-3">
+            {stripe ? "Actual Stripe collections · last 6 months" : "No Stripe data yet"}
+          </p>
           <div className="h-[160px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 5, right: 4, left: 4, bottom: 0 }}>
@@ -114,8 +134,8 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
                     <stop offset="100%" stopColor="#ffaa00" stopOpacity="0.05" />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,26,26,0.08)" />
+                <XAxis dataKey="month" tick={{ fill: "rgba(26,26,26,0.35)", fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis hide />
                 <Tooltip content={<GameChartTooltip prefix="$" />} cursor={{ stroke: 'rgba(255,170,0,0.25)', strokeWidth: 1 }} />
                 <Area type="monotone" dataKey="revenue" stroke="#ff3c00" strokeWidth={2} fill="url(#faRevGrad)" dot={false} activeDot={{ r: 4, fill: '#ff3c00', stroke: '#ffaa00', strokeWidth: 1 }} style={{ filter: 'drop-shadow(0 0 5px rgba(255,170,0,0.4))' }} />
@@ -134,8 +154,8 @@ export default function FinancialAnalytics({ totalMonthlyExpenses }) {
                   <linearGradient id="faBarExp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#60A5FA" /><stop offset="100%" stopColor="#2563EB" stopOpacity="0.85" /></linearGradient>
                   <linearGradient id="faBarProfit" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#4ADE80" /><stop offset="100%" stopColor="#16A34A" stopOpacity="0.85" /></linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="label" tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,26,26,0.08)" />
+                <XAxis dataKey="label" tick={{ fill: "rgba(26,26,26,0.35)", fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis hide />
                 <Tooltip content={<GameChartTooltip prefix="$" />} cursor={{ fill: 'rgba(255,170,0,0.06)' }} />
                 <Bar dataKey="value" radius={[6, 6, 0, 0]} style={{ filter: 'drop-shadow(0 0 6px rgba(255,170,0,0.2))' }}>
