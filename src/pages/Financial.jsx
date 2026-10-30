@@ -3,6 +3,7 @@ import { Plus, DollarSign, TrendingUp, AlertCircle, Edit, Check, X, Trash2, Load
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import FinancialAnalytics from "../components/financial/FinancialAnalytics";
 import InvestmentsList from "../components/financial/InvestmentsList";
+import StripeRevenue from "../components/financial/StripeRevenue";
 import RevenueProjections from "../components/financial/RevenueProjections";
 import ProjectProjections from "../components/financial/ProjectProjections";
 import { Button } from "@/components/ui/button";
@@ -143,8 +144,8 @@ export default function Financial() {
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Agency / Financial" rightText="Expense Management" />
       <div className="px-8 pt-4 flex gap-1 border-b border-ink/[0.13]">
-        {["overview", "categories", "analytics", "projections", "investments"].map((tab) => (
-          <button key={tab} onClick={() => setSubPage(tab)} className={`px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all rounded-t-lg ${subPage === tab ? "bg-orange-500/15 text-orange-500 border-b-2 border-orange-500" : "text-ink/[0.48] hover:text-ink/60"}`}>{tab === "overview" ? "Overview" : tab === "categories" ? "Categories" : tab === "analytics" ? "Analytics" : tab === "projections" ? "Projections" : "Investments"}</button>
+        {["overview", "categories", "analytics", "stripe", "projections", "investments"].map((tab) => (
+          <button key={tab} onClick={() => setSubPage(tab)} className={`px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all rounded-t-lg ${subPage === tab ? "bg-orange-500/15 text-orange-500 border-b-2 border-orange-500" : "text-ink/[0.48] hover:text-ink/60"}`}>{tab === "overview" ? "Overview" : tab === "categories" ? "Categories" : tab === "analytics" ? "Analytics" : tab === "stripe" ? "Stripe" : tab === "projections" ? "Projections" : "Investments"}</button>
         ))}
       </div>
       <div className="px-8 py-6 space-y-6">
@@ -194,6 +195,8 @@ export default function Financial() {
             <RevenueProjections />
             <ProjectProjections />
           </>
+        ) : subPage === "stripe" ? (
+          <StripeRevenue />
         ) : subPage === "investments" ? (
           <InvestmentsList />
         ) : (
