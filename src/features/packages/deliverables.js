@@ -2,7 +2,7 @@
 // so what you sell and what you see here never drift. Edit here when an offer changes.
 export const DELIVERABLES = {
   "orbit-seo": {
-    price: "From $750/mo · Local $750 · +$350 per extra location · National $1,750 · Global $3,000",
+    price: "From $750/mo · Local $750 · +$350 per extra location · National $1,750 · Global $3,000 (referral pricing down to $500 is internal only)",
     cadence: "Monthly subscription",
     includes: [
       "Weekly Google Business Profile posts",
@@ -36,8 +36,8 @@ export const DELIVERABLES = {
     excludes: ["No search management, posting, reviews or reporting — that is HyperCare+"],
   },
   "intel-briefing": {
-    price: "$1,500 · included in Mission ALPHA",
-    cadence: "One-time · first week of the build",
+    price: "$1,500 · included in Mission ALPHA and Mission BRAVO",
+    cadence: "One-time · audit in week one, final sweep before launch",
     includes: [
       "Full technical, search and content audit",
       "Competitor and market read for their service area",
@@ -48,7 +48,7 @@ export const DELIVERABLES = {
     ],
   },
   "custom-website": {
-    price: "Included in Mission ALPHA ($8,997) and BRAVO ($6,497)",
+    price: "$4,997 on its own (proposed) · included in Mission ALPHA ($8,997) and BRAVO ($6,497) · always + a care plan",
     cadence: "One-time build",
     includes: [
       "Messaging and structure written answer-first, one clear action per page",
@@ -61,7 +61,7 @@ export const DELIVERABLES = {
     ],
   },
   "command-system": {
-    price: "Included in Mission ALPHA ($8,997) and BRAVO ($6,497)",
+    price: "$5,997 on its own (proposed) · included in Mission ALPHA ($8,997) and BRAVO ($6,497) · always + a care plan",
     cadence: "One-time build",
     includes: [
       "Custom CRM: every lead, customer and conversation in one record",
@@ -112,7 +112,7 @@ export const DELIVERABLES = {
     ],
   },
   transmission: {
-    price: "Included in Mission ALPHA",
+    price: "$1,500 · included in Mission ALPHA",
     cadence: "One-time · final week",
     includes: [
       "Script and shot plan from their real workflow",
@@ -128,5 +128,5 @@ export const DELIVERABLES = {
 // The two mission bundles, for reference next to the packages.
 export const MISSIONS = [
   { name: "Mission ALPHA", price: "$8,997", note: "All seven packages in one 45-day build: Intel Briefing, Custom Website, Command System, Ops Command, Brand Arsenal, Launch Grid, Transmission. Live in 45 days or the first 3 months of HyperCare+ are free." },
-  { name: "Mission BRAVO", price: "$6,497", note: "Custom Website + Command System." },
+  { name: "Mission BRAVO", price: "$6,497", note: "Intel Briefing (audit + final sweep) + Custom Website + Command System." },
 ];

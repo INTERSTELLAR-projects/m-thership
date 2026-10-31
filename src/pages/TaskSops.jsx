@@ -24,10 +24,10 @@ const pkgOf = (t) => PACKAGES.find((p) => p.service_keys.includes(t.service_key)
 const groupOf = (t) => {
   const p = pkgOf(t);
   if (p) return p.kind === "recurring" ? "Subscriptions" : "Packages";
-  if (t.service_key === "onboarding") return "Onboarding";
+  if (t.service_key === "onboarding" || t.service_key === "closing") return "Sales & onboarding";
   return "Other";
 };
-const GROUP_ORDER = ["Onboarding", "Packages", "Subscriptions", "Other"];
+const GROUP_ORDER = ["Sales & onboarding", "Packages", "Subscriptions", "Other"];
 
 const toRow = (item) => {
   const { amount, unit } = item.estimate_amount != null && item.estimate_unit ? { amount: item.estimate_amount, unit: item.estimate_unit } : splitMinutes(itemMinutes(item));
