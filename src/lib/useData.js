@@ -48,6 +48,7 @@ export const timeAgo = (d) => {
 };
 
 export const WORK_KINDS = {
+  claude_job: "Claude",
   blog: "Blog post",
   gbp_post: "GBP post",
   site_edit: "Site edit",
