@@ -19,21 +19,21 @@ const ALL_WIDGETS = [
   { id: "revenue", label: "Revenue + subscriptions (live from Stripe)" },
   { id: "packages", label: "Subscriptions + packages board (per client orbs)" },
   { id: "live-ops", label: "Live Operations (feed, automations, requests)" },
-  { id: "client-health", label: "Client Health" },
+  { id: "client-health", label: "Client Health (optional)" },
   { id: "focus", label: "Focus now + Next up (task engine)" },
   { id: "priority", label: "Priority Tasks (old To-Do list)" },
-  { id: "content-schedule", label: "Client Content Schedule" },
-  { id: "subscriptions", label: "Active Subscriptions" },
-  { id: "financial", label: "Financial Panel" },
+  { id: "content-schedule", label: "HyperCare+ posting schedule (optional — cadence lives on each client)" },
+  { id: "subscriptions", label: "Active Subscriptions (optional — Stripe strip covers this)" },
+  { id: "financial", label: "Financial Panel + Plan to Execute (optional)" },
   { id: "projections", label: "Revenue Projections" },
   { id: "project-progress", label: "Project Progress" },
   { id: "minuscule-projects", label: "Minuscule Projects" },
 ];
 
-const DEFAULT_ACTIVE = ["revenue", "live-ops", "focus", "client-health", "content-schedule", "subscriptions", "financial"];
+const DEFAULT_ACTIVE = ["revenue", "live-ops", "focus"];
 
-const STORAGE_KEY = "dashboard_widget_order_v6";
-const LEGACY_KEY = "dashboard_widget_order_v5";
+const STORAGE_KEY = "dashboard_widget_order_v7";
+const LEGACY_KEY = "dashboard_widget_order_v6";
 
 function loadOrder() {
   try {
@@ -42,7 +42,7 @@ function loadOrder() {
     // Carry over the old layout, with the new Mission Control widgets on top.
     const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY));
     if (Array.isArray(legacy) && legacy.every((id) => ALL_WIDGETS.some((w) => w.id === id))) {
-      return ["revenue", ...legacy.filter((id) => id !== "packages" && id !== "revenue")];
+      return DEFAULT_ACTIVE;
     }
   } catch { /* ignore */ }
   return DEFAULT_ACTIVE;
