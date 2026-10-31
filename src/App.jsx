@@ -34,6 +34,7 @@ import TaskBoard from './pages/TaskBoard';
 import TaskInbox from './pages/TaskInbox';
 import TaskPatterns from './pages/TaskPatterns';
 import TaskSops from './pages/TaskSops';
+import FlightPlan from './pages/FlightPlan';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import LegacyImportBanner from '@/features/tasks/LegacyImportBanner';
@@ -114,6 +115,7 @@ const AuthenticatedApp = () => {
         <Route path="/tasks/inbox" element={<ProtectedRoute><TaskInbox /></ProtectedRoute>} />
         <Route path="/tasks/patterns" element={<ProtectedRoute><TaskPatterns /></ProtectedRoute>} />
         <Route path="/tasks/sops" element={<ProtectedRoute><TaskSops /></ProtectedRoute>} />
+        <Route path="/flight-plan" element={<ProtectedRoute><FlightPlan /></ProtectedRoute>} />
         <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
         <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
         <Route path="/prestige" element={<ProtectedRoute><Prestige /></ProtectedRoute>} />
