@@ -2,12 +2,14 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Check } from "lucide-react";
+import { Check, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import Field from "@/features/tasks/ui-kit/Field";
 import RollButton from "@/features/tasks/ui-kit/RollButton";
 import { BILLING, PRIORITIES, PROJECT_STATUSES, PROJECT_TYPES } from "@/features/tasks/lib/constants";
 import {
+  btnDanger,
   btnGhost,
   dialogClass,
   inputClass,
@@ -36,6 +38,30 @@ const EMPTY = {
 const NONE = "__none__";
 
 export default function ProjectFormDialog({ open, onOpenChange, clients = [], onSaved, initial = null }) {
+  const navigate = useNavigate();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // Removes the project with every task and time entry under it. Two clicks, no undo.
+  const destroy = async () => {
+    if (!initial || !initial.id) return;
+    setDeleting(true);
+    try {
+      const tasks = await base44.entities.Task.filter({ project_id: initial.id }, { limit: 500 }).then((p) => (Array.isArray(p) ? p : (p && p.items) || []));
+      for (const t of tasks) {
+        const entries = await base44.entities.TimeEntry.filter({ task_id: t.id }, { limit: 200 }).then((p) => (Array.isArray(p) ? p : (p && p.items) || [])).catch(() => []);
+        for (const e of entries) await base44.entities.TimeEntry.delete(e.id).catch(() => {});
+        await base44.entities.Task.delete(t.id).catch(() => {});
+      }
+      await base44.entities.Project.delete(initial.id);
+      onOpenChange(false);
+      if (onSaved) onSaved();
+      navigate("/projects");
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
+  };
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -250,6 +276,19 @@ export default function ProjectFormDialog({ open, onOpenChange, clients = [], on
           {error ? <p className="text-[12px] text-amber-700">{error}</p> : null}
 
           <div className="flex items-center justify-end gap-2 pt-1">
+            {initial && initial.id ? (
+              confirmDelete ? (
+                <button type="button" onClick={destroy} disabled={deleting} className={btnDanger + " mr-auto"}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {deleting ? "Deleting..." : "Yes, delete project + its tasks"}
+                </button>
+              ) : (
+                <button type="button" onClick={() => setConfirmDelete(true)} className={btnGhost + " mr-auto text-red-700"}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete project
+                </button>
+              )
+            ) : null}
             <button type="button" onClick={() => onOpenChange(false)} className={btnGhost}>
               Cancel
             </button>
