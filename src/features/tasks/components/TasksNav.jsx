@@ -7,6 +7,7 @@ const TABS = [
   { to: "/tasks/inbox", label: "Inbox" },
   { to: "/tasks/patterns", label: "Patterns" },
   { to: "/tasks/sops", label: "SOPs" },
+  { to: "/flight-plan", label: "Flight Plan" },
   { to: "/projects", label: "Projects" }
 ];
 
