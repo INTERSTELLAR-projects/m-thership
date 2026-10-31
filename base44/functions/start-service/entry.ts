@@ -114,6 +114,9 @@ Deno.serve(async (req) => {
     const key = String(body?.package || "");
     const pkg = PACKAGES[key];
     if (!pkg) return Response.json({ error: "Unknown package" }, { status: 400 });
+    if (key === "intel_briefing") {
+      return Response.json({ error: "The Intel Briefing is not sold on its own. It comes free with every build (ALPHA, BRAVO, Website, Command System).", code: "intel_included" }, { status: 400 });
+    }
     const clientId = String(body?.client_id || "");
     if (!clientId) return Response.json({ error: "Missing client_id" }, { status: 400 });
     const start = /^\d{4}-\d{2}-\d{2}$/.test(body?.start_date || "") ? body.start_date : new Date().toISOString().slice(0, 10);
