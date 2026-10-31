@@ -1,0 +1,132 @@
+// What the client actually gets, per package and subscription. Same wording as the website (Systems page),
+// so what you sell and what you see here never drift. Edit here when an offer changes.
+export const DELIVERABLES = {
+  "orbit-seo": {
+    price: "From $750/mo · Local $750 · +$350 per extra location · National $1,750 · Global $3,000",
+    cadence: "Monthly subscription",
+    includes: [
+      "Weekly Google Business Profile posts",
+      "Weekly 3,000-word blogs that answer real questions, down to their city",
+      "Every review replied to within 48 hours, good or bad",
+      "Citations kept identical everywhere (name, address, phone, website)",
+      "Unlimited site edits and updates; new projects published as work gets done",
+      "Search Console errors fixed as they appear; indexing on Google, Bing and Apple",
+      "Schema, speed and rich results maintained",
+      "Daily search intelligence applied to their business the same day",
+      "Map pack and AI-answer tracking (ChatGPT, Gemini, Perplexity)",
+      "Monthly plain-language report: enquiries, calls, bookings, map pack position",
+      "GravïtyCare included: hosting, uptime, backups, security updates and fixes",
+    ],
+    excludes: ["Paid ads", "New website or app builds (those are packages)"],
+  },
+  gravitycare: {
+    price: "$197/mo",
+    cadence: "Monthly subscription",
+    includes: [
+      "Hosting for the site and/or system",
+      "Uptime monitoring",
+      "Security patches and platform updates",
+      "Backups, with a checkpoint saved as the care baseline",
+      "Bug fixes",
+      "Up to 3 hours of small edits a month",
+      "Domain and SSL renewals tracked",
+      "Requests board in their portal",
+      "Monthly care checklist: forms, links, 404s, speed, logins, automations",
+    ],
+    excludes: ["No search management, posting, reviews or reporting — that is HyperCare+"],
+  },
+  "intel-briefing": {
+    price: "$1,500 · included in Mission ALPHA",
+    cadence: "One-time · first week of the build",
+    includes: [
+      "Full technical, search and content audit",
+      "Competitor and market read for their service area",
+      "Software cost-savings analysis with a cancellation list",
+      "Conversion and follow-up gap map",
+      "Prioritised build plan with owners and sequence",
+      "Final audit and straggler sweep at the end of the build",
+    ],
+  },
+  "custom-website": {
+    price: "Included in Mission ALPHA ($8,997) and BRAVO ($6,497)",
+    cadence: "One-time build",
+    includes: [
+      "Messaging and structure written answer-first, one clear action per page",
+      "Custom design system — their brand, not a theme",
+      "Sub-two-second target load, mobile-first throughout",
+      "Service, location and industry pages built for search and AI answers",
+      "Forms, booking and lead routing wired to their Command System",
+      "Analytics, conversion tracking and accessibility pass",
+      "SEO + schema page by page, 301 redirects from the old site",
+    ],
+  },
+  "command-system": {
+    price: "Included in Mission ALPHA ($8,997) and BRAVO ($6,497)",
+    cadence: "One-time build",
+    includes: [
+      "Custom CRM: every lead, customer and conversation in one record",
+      "ERP layer: jobs, work orders, inventory, scheduling, invoicing",
+      "Client portal: their customers see progress, documents and history",
+      "Rewards and repeat-business engine",
+      "Roles and permissions, so staff see only what they need",
+      "Reporting on pipeline, revenue and job profitability",
+      "Integrations: payments, calendar, SMS/email, accounting",
+      "Training session recorded + quick-start SOP per role",
+    ],
+  },
+  "ops-command": {
+    price: "$3,000 · included in Mission ALPHA",
+    cadence: "One-time build",
+    includes: [
+      "SOP folder: every recurring process documented and owned",
+      "Automation stack across quoting, scheduling, invoicing and review requests",
+      "Notification stack: SMS, email and in-app alerts routed by rule",
+      "Email agent and workflows that follow up until a lead answers",
+      "Reactivation campaigns for old customers and lost quotes",
+      "Handover training so the team actually uses it",
+    ],
+  },
+  "brand-arsenal": {
+    price: "$2,500 · included in Mission ALPHA",
+    cadence: "One-time build",
+    includes: [
+      "15+ page brand kit: logo suite, type system and colour rules",
+      "Voice and messaging guide with approved language and claims",
+      "Animated email signatures for the whole team",
+      "Social rebrand plus 10 launch posts",
+      "Print and vehicle collateral templates",
+      "Asset library organised and handed over in their portal",
+    ],
+  },
+  "launch-grid": {
+    price: "$1,400 · included in Mission ALPHA",
+    cadence: "One-time build",
+    includes: [
+      "Google Business Profile claimed, categorised and optimised (25+ photos, Q&A)",
+      "Bing, Apple Maps and Yelp completed",
+      "Nextdoor, Angi, Glassdoor and industry-specific directories",
+      "Identical name, address, phone and hours across every listing",
+      "Photos, services, service areas and booking links attached",
+      "Duplicates merged or removed; review link + QR code",
+      "Access handed over — the client owns every account",
+    ],
+  },
+  transmission: {
+    price: "Included in Mission ALPHA",
+    cadence: "One-time · final week",
+    includes: [
+      "Script and shot plan from their real workflow",
+      "Screen capture and motion design of the system",
+      "Voiceover or captioned version for silent viewing",
+      "Vertical cutdowns for social",
+      "Thumbnail pack and hosting-ready exports",
+      "Placed on their site; a reusable asset they own outright",
+    ],
+  },
+};
+
+// The two mission bundles, for reference next to the packages.
+export const MISSIONS = [
+  { name: "Mission ALPHA", price: "$8,997", note: "All seven packages in one 45-day build: Intel Briefing, Custom Website, Command System, Ops Command, Brand Arsenal, Launch Grid, Transmission. Live in 45 days or the first 3 months of HyperCare+ are free." },
+  { name: "Mission BRAVO", price: "$6,497", note: "Custom Website + Command System." },
+];
