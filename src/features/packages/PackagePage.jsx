@@ -6,6 +6,7 @@ import Panel from "@/features/tasks/ui-kit/Panel";
 import CategoryChip from "@/features/tasks/ui-kit/CategoryChip";
 import TimerButton from "@/features/tasks/components/TimerButton";
 import OrbRail, { Orb } from "@/features/packages/components/OrbRail";
+import DeliverablesGlance from "@/features/packages/components/DeliverablesGlance";
 import usePackageData from "@/features/packages/usePackageData";
 import { PACKAGES, SUBSCRIPTIONS, DELIVERY_PACKAGES, ORB_STATES, packageByKey, packagePath } from "@/features/packages/registry";
 import { clientsOf, railFor } from "@/features/packages/engine";
@@ -307,6 +308,7 @@ export default function PackagePage() {
       <PackageTabs current={pkg.key} />
 
       <div className="space-y-6 px-5 py-6 md:px-8">
+        <DeliverablesGlance current={pkg.key} />
         {selected ? (
           /* ---------- client view takes the page; switcher keeps the others one click away ---------- */
           <div className="space-y-5">
