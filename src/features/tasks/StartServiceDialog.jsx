@@ -13,13 +13,12 @@ export const SERVICE_GROUPS = [
     { key: "mission_bravo", label: "Mission BRAVO", price: "$6,497", onboarding: true, needsCare: true, careDelay: 30, streams: ["intel_briefing", "website", "system"] },
   ] },
   { label: "Builds", items: [
-    { key: "custom_website", label: "Custom Website", price: "$4,997", onboarding: true, needsCare: true, careDelay: 21, streams: ["website"] },
-    { key: "command_system", label: "Command System", price: "$5,997", onboarding: true, needsCare: true, careDelay: 30, streams: ["system"] },
+    { key: "custom_website", label: "Custom Website", price: "$4,997", onboarding: true, needsCare: true, careDelay: 21, streams: ["intel_briefing", "website"] },
+    { key: "command_system", label: "Command System", price: "$5,997", onboarding: true, needsCare: true, careDelay: 30, streams: ["intel_briefing", "system"] },
   ] },
   { label: "Add-ons", items: [
     { key: "ops_command", label: "Ops Command", price: "$3,000", onboarding: false, streams: ["ops_command"] },
     { key: "brand_arsenal", label: "Brand Arsenal", price: "$2,500", onboarding: false, streams: ["brand_arsenal"] },
-    { key: "intel_briefing", label: "Intel Briefing", price: "$1,500", onboarding: false, streams: ["intel_briefing"] },
     { key: "launch_grid", label: "Launch Grid", price: "$1,400", onboarding: false, streams: ["launch_grid"] },
     { key: "transmission", label: "Transmission Video", price: "$1,500", onboarding: false, streams: ["transmission"] },
   ] },
