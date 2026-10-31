@@ -1,5 +1,7 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 
+// HyperCare+ includes the GravïtyCare work (its care tasks still come along), but only a standalone GravïtyCare
+// purchase puts a client on the GravïtyCare page — so starship_care is never added by a bundle.
 // Start a purchased service for a client: one Project + every task from the matching SOP playbooks
 // (TaskTemplate.service_key), dated from the start date. Safe to call twice: the same order_ref
 // never creates a second list. Called from the client page today; a Stripe purchase can call the
@@ -9,7 +11,7 @@ type Pkg = { label: string; type: string; value: number; billing: string; stream
 export const PACKAGES: Record<string, Pkg> = {
   mission_alpha:  { label: "Mission ALPHA", type: "website", value: 8997, billing: "one_time", onboarding: true,
                     streams: ["intel_briefing", "website", "system", "ops_command", "brand_arsenal", "launch_grid", "transmission", "starship"],
-                    services: ["website", "system", "brand", "starship_care"] },
+                    services: ["website", "system", "brand"] },
   mission_bravo:  { label: "Mission BRAVO", type: "website", value: 6497, billing: "one_time", onboarding: true,
                     streams: ["website", "system"], services: ["website", "system"] },
   custom_website: { label: "Custom Website", type: "website", value: 0, billing: "one_time", onboarding: true, streams: ["website"], services: ["website"] },
@@ -20,12 +22,12 @@ export const PACKAGES: Record<string, Pkg> = {
   intel_briefing: { label: "Intel Briefing", type: "consulting", value: 1500, billing: "one_time", onboarding: false, streams: ["intel_briefing"], services: [] },
   transmission:   { label: "Transmission Video", type: "marketing", value: 0, billing: "one_time", onboarding: false, streams: ["transmission"], services: [] },
   orbit_local:    { label: "HyperCare+ Local", type: "seo", value: 750, billing: "retainer", onboarding: false,
-                    streams: ["orbit_setup", "orbit_local", "starship"], services: ["orbit_seo", "starship_care"] },
+                    streams: ["orbit_setup", "orbit_local", "starship"], services: ["orbit_seo"] },
   orbit_multi:    { label: "HyperCare+ Multi-Location", type: "seo", value: 350, billing: "retainer", onboarding: false, streams: ["orbit_multi"], services: ["orbit_seo"] },
   orbit_national: { label: "HyperCare+ National", type: "seo", value: 1750, billing: "retainer", onboarding: false,
-                    streams: ["orbit_setup", "orbit_national", "starship"], services: ["orbit_seo", "starship_care"] },
+                    streams: ["orbit_setup", "orbit_national", "starship"], services: ["orbit_seo"] },
   orbit_global:   { label: "HyperCare+ Global", type: "seo", value: 3000, billing: "retainer", onboarding: false,
-                    streams: ["orbit_setup", "orbit_national", "orbit_global", "starship"], services: ["orbit_seo", "starship_care"] },
+                    streams: ["orbit_setup", "orbit_national", "orbit_global", "starship"], services: ["orbit_seo"] },
   starship_care:  { label: "GravïtyCare", type: "other", value: 197, billing: "retainer", onboarding: false, streams: ["starship"], services: ["starship_care"] },
 };
 
