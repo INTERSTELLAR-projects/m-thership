@@ -48,7 +48,7 @@ export const DELIVERABLES = {
     ],
   },
   "custom-website": {
-    price: "$4,997 on its own (offered on the call, not listed publicly) · included in Mission ALPHA ($8,997) and BRAVO ($6,497) · always + a care plan",
+    price: "$4,997 on its own (offered on the call, not listed publicly) · Intel Briefing audit + final sweep included · included in Mission ALPHA ($8,997) and BRAVO ($6,497) · always + a care plan",
     cadence: "One-time build",
     includes: [
       "Messaging and structure written answer-first, one clear action per page",
@@ -61,7 +61,7 @@ export const DELIVERABLES = {
     ],
   },
   "command-system": {
-    price: "$5,997 on its own (offered on the call, not listed publicly) · included in Mission ALPHA ($8,997) and BRAVO ($6,497) · always + a care plan",
+    price: "$5,997 on its own (offered on the call, not listed publicly) · Intel Briefing audit + final sweep included · included in Mission ALPHA ($8,997) and BRAVO ($6,497) · always + a care plan",
     cadence: "One-time build",
     includes: [
       "Custom CRM: every lead, customer and conversation in one record",
