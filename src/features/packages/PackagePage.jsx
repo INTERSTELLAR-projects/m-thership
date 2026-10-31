@@ -116,8 +116,21 @@ function OrbitClientView({ client, rail, data, onPatch }) {
                 </li>
               ))}
             </ul>
+          ) : rail.profile && (rail.profile.blogFrequency || rail.profile.gbpFrequency) ? (
+            <ul className="space-y-2">
+              {[["Blogs", rail.profile.blogFrequency, rail.profile.blogDays], ["GBP posts", rail.profile.gbpFrequency, rail.profile.gbpDays]].filter(([, f]) => f).map(([k, f, d]) => (
+                <li key={k} className="rounded-md border border-hair bg-canvas/60 px-3 py-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[12.5px] font-medium">{k}</p>
+                    <span className="font-mono text-[11px] text-ink">{f}</span>
+                  </div>
+                  {Array.isArray(d) && d.length ? <p className="mt-0.5 font-mono text-[10.5px] text-ink/60">{d.map((x) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][x] || x).join(" · ")}</p> : null}
+                </li>
+              ))}
+              <li className="text-[10.5px] text-ink/45">Set on the client's HyperCare+ profile (Strategy editor). The automations run on this cadence once they go live.</li>
+            </ul>
           ) : (
-            <p className="text-[12px] text-ink/50">No blog or GBP automation registered for this client yet. The cadence shows here, with the reason it was set, once the automations go live.</p>
+            <p className="text-[12px] text-ink/50">No cadence set yet. Set blog and GBP frequency on the client's HyperCare+ profile (Strategy editor) — that is what the automations will run on.</p>
           )}
         </Panel>
 
