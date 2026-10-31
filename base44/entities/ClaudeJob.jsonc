@@ -1,0 +1,153 @@
+{
+  "description": "Send to Claude queue: a step Justin authorized Claude to do. A Claude scheduled task picks up queued jobs, does the work and returns it for approval.",
+  "name": "ClaudeJob",
+  "properties": {
+    "approved_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "attempts": {
+      "default": 0,
+      "type": "number"
+    },
+    "client_id": {
+      "description": "CRMClient id",
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "complete_task_on_approve": {
+      "default": true,
+      "type": "boolean"
+    },
+    "context": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "extra": {
+      "description": "Anything Justin added when he sent it",
+      "type": "string"
+    },
+    "finished_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "instructions": {
+      "description": "The full brief Claude works from",
+      "type": "string"
+    },
+    "kind": {
+      "default": "task",
+      "enum": [
+        "task",
+        "audit",
+        "build_website",
+        "build_app",
+        "blog",
+        "gbp_post",
+        "report",
+        "brand",
+        "email",
+        "research",
+        "other"
+      ],
+      "type": "string"
+    },
+    "needs_from_justin": {
+      "description": "Anything Claude could not do without him (logins, a decision, a send)",
+      "type": "string"
+    },
+    "priority": {
+      "default": 3,
+      "type": "number"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "requested_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "result_body": {
+      "description": "Markdown: what Claude did or drafted",
+      "type": "string"
+    },
+    "result_links": {
+      "items": {
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "result_summary": {
+      "type": "string"
+    },
+    "review_notes": {
+      "type": "string"
+    },
+    "runner_log": {
+      "type": "string"
+    },
+    "started_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "status": {
+      "default": "queued",
+      "enum": [
+        "queued",
+        "running",
+        "needs_approval",
+        "changes_requested",
+        "approved",
+        "failed",
+        "cancelled"
+      ],
+      "type": "string"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "instructions"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}
