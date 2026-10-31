@@ -6,7 +6,7 @@ import { Panel, Empty, Btn, SmallBtn, Tag, Stat, FormDialog } from "./ui";
 import { WORK_KINDS, SERVICE_LABELS, fmtDate, timeAgo } from "@/lib/useData";
 
 const today = () => new Date().toISOString().slice(0, 10);
-const kindOptions = Object.entries(WORK_KINDS).map(([value, label]) => ({ value, label }));
+const kindOptions = Object.entries(WORK_KINDS).filter(([value]) => value !== "claude_job").map(([value, label]) => ({ value, label }));
 
 /* Clients sharing a `bundle` name are one deal; returns null when the client is not in a package. */
 function usePackage(client) {
