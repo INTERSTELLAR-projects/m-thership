@@ -37,6 +37,7 @@ import TaskSops from './pages/TaskSops';
 import FlightPlan from './pages/FlightPlan';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
+import ClaudeQueue from './pages/ClaudeQueue';
 import LegacyImportBanner from '@/features/tasks/LegacyImportBanner';
 import PackagePage from '@/features/packages/PackagePage';
 import { Navigate } from 'react-router-dom';
@@ -117,6 +118,7 @@ const AuthenticatedApp = () => {
         <Route path="/tasks/sops" element={<ProtectedRoute><TaskSops /></ProtectedRoute>} />
         <Route path="/flight-plan" element={<ProtectedRoute><FlightPlan /></ProtectedRoute>} />
         <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+        <Route path="/claude" element={<ProtectedRoute><ClaudeQueue /></ProtectedRoute>} />
         <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
         <Route path="/prestige" element={<ProtectedRoute><Prestige /></ProtectedRoute>} />
         <Route path="/output-analytics" element={<ProtectedRoute><OutputAnalytics /></ProtectedRoute>} />
