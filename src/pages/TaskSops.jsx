@@ -338,7 +338,8 @@ export default function TaskSops() {
       const page = await base44.entities.TaskTemplate.list({ sort: "sort_order", limit: 100 });
       const rows = itemsOf(page).sort((a, b) => (a.sort_order || 100) - (b.sort_order || 100));
       setTemplates(rows);
-      setSelectedId((cur) => focusId || cur || (rows[0] && rows[0].id) || null);
+      const linked = new URLSearchParams(window.location.search).get("sop");
+      setSelectedId((cur) => focusId || cur || (linked && rows.some((r) => r.id === linked) ? linked : null) || (rows[0] && rows[0].id) || null);
     } finally {
       setLoading(false);
     }
