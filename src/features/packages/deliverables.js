@@ -36,8 +36,8 @@ export const DELIVERABLES = {
     excludes: ["No search management, posting, reviews or reporting — that is HyperCare+"],
   },
   "intel-briefing": {
-    price: "$1,500 · included in Mission ALPHA and Mission BRAVO",
-    cadence: "One-time · audit in week one, final sweep before launch",
+    price: "Free with every build (ALPHA, BRAVO, Website only, Command System only) · never sold on its own · $1,500 value",
+    cadence: "Audit before the build starts · final sweep at the end of the build",
     includes: [
       "Full technical, search and content audit",
       "Competitor and market read for their service area",
