@@ -3,6 +3,7 @@ import { Check, CornerDownRight, Pencil, Plus } from "lucide-react";
 import PriorityBadge from "@/features/tasks/ui-kit/PriorityBadge";
 import CategoryChip from "@/features/tasks/ui-kit/CategoryChip";
 import TimerButton from "@/features/tasks/components/TimerButton";
+import SendToClaudeButton from "@/features/claude/SendToClaudeButton";
 import EmptyState from "@/features/tasks/ui-kit/EmptyState";
 import { dueLabel, dueTone } from "@/features/tasks/lib/format";
 import { fmtMinutes, itemMinutes } from "@/features/tasks/lib/estimate";
@@ -39,6 +40,7 @@ function Row({ task, onToggle, onEdit, onAddSubtask, onPatch, child = false }) {
         </div>
       </div>
 
+      <SendToClaudeButton task={task} />
       <TimerButton task={task} onChange={(patch) => onPatch && onPatch(task, patch)} />
       <PriorityBadge value={task.priority} compact />
 
