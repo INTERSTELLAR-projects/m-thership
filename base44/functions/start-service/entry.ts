@@ -17,8 +17,9 @@ export const PACKAGES: Record<string, Pkg> = {
                     services: ["website", "system", "brand"] },
   mission_bravo:  { label: "Mission BRAVO", type: "website", value: 6497, billing: "one_time", onboarding: true, needsCare: true,
                     streams: ["intel_briefing", "website", "system"], services: ["website", "system"] },
-  custom_website: { label: "Custom Website", type: "website", value: 4997, billing: "one_time", onboarding: true, needsCare: true, streams: ["website"], services: ["website"] },
-  command_system: { label: "Command System", type: "app", value: 5997, billing: "one_time", onboarding: true, needsCare: true, streams: ["system"], services: ["system"] },
+  // Every build includes the Intel Briefing: the audit first, the final sweep at the end. It is never sold as an add-on.
+  custom_website: { label: "Custom Website", type: "website", value: 4997, billing: "one_time", onboarding: true, needsCare: true, streams: ["intel_briefing", "website"], services: ["website"] },
+  command_system: { label: "Command System", type: "app", value: 5997, billing: "one_time", onboarding: true, needsCare: true, streams: ["intel_briefing", "system"], services: ["system"] },
   ops_command:    { label: "Ops Command", type: "automation", value: 3000, billing: "one_time", onboarding: false, streams: ["ops_command"], services: ["system"] },
   brand_arsenal:  { label: "Brand Arsenal", type: "branding", value: 2500, billing: "one_time", onboarding: false, streams: ["brand_arsenal"], services: ["brand"] },
   launch_grid:    { label: "Launch Grid", type: "seo", value: 1400, billing: "one_time", onboarding: false, streams: ["launch_grid"], services: [] },
@@ -49,7 +50,17 @@ async function startOne(db: any, client: any, key: string, opts: { start: string
   for (const t of templates) if (t.service_key && !byKey.has(t.service_key)) byKey.set(t.service_key, t);
   const missing = streams.filter((s) => !byKey.has(s));
   const used = streams.filter((s) => byKey.has(s)).map((s) => byKey.get(s));
-  const lastOffset = Math.max(0, ...used.flatMap((t) => (t.items || []).map((i: any) => (Number(i.offset_days) || 0) + (Number(i.estimated_days) || 0))));
+  // The Intel final sweep always lands at the end of THIS build, not at a fixed day 40.
+  const isSweep = (t: any, i: any) => t.service_key === "intel_briefing" && /sweep/i.test(String(i.phase || ""));
+  const buildEnd = Math.max(0, ...used.filter((t) => t.service_key !== "intel_briefing").flatMap((t) => (t.items || []).map((i: any) => Number(i.offset_days) || 0)));
+  const intel = used.find((t) => t.service_key === "intel_briefing");
+  const sweepMax = Math.max(0, ...((intel?.items || []).filter((i: any) => isSweep(intel, i)).map((i: any) => Number(i.offset_days) || 0)));
+  const offsetOf = (t: any, i: any) => {
+    const o = Number(i.offset_days) || 0;
+    if (!isSweep(t, i) || buildEnd >= sweepMax) return o;
+    return Math.max(0, buildEnd - (sweepMax - o));
+  };
+  const lastOffset = Math.max(0, ...used.flatMap((t) => (t.items || []).map((i: any) => offsetOf(t, i) + (Number(i.estimated_days) || 0))));
   const title = `${client.business} · ${pkg.label}`;
   const monthly = Number(opts.value ?? pkg.value) || 0;
 
@@ -67,7 +78,7 @@ async function startOne(db: any, client: any, key: string, opts: { start: string
     estimated_days: Math.round((minutesOf(i) / 480) * 100) / 100, status: "next", source: "sop",
     sop_name: t.name, sop_step: i.title, project_type: pkg.type,
     project_id: project.id, project_name: title, client_id: client.id, client_name: client.business,
-    due_date: addDays(opts.start, Number(i.offset_days) || 0),
+    due_date: addDays(opts.start, offsetOf(t, i)),
     labels: [t.name], notes: [i.phase, t.sop_code, i.notes].filter(Boolean).join(" · "), task_type: "billable",
   })));
   for (let k = 0; k < docs.length; k += 100) await db.Task.bulkCreate(docs.slice(k, k + 100));
