@@ -3,13 +3,14 @@ import { CornerDownRight, Pencil, Search, Trash2, Zap } from "lucide-react";
 import PriorityBadge from "@/features/tasks/ui-kit/PriorityBadge";
 import CategoryChip from "@/features/tasks/ui-kit/CategoryChip";
 import TimerButton from "@/features/tasks/components/TimerButton";
+import SendToClaudeButton from "@/features/claude/SendToClaudeButton";
 import EmptyState from "@/features/tasks/ui-kit/EmptyState";
 import { TASK_STATUSES } from "@/features/tasks/lib/constants";
 import { dueLabel, dueTone } from "@/features/tasks/lib/format";
 import { fmtMinutes, itemMinutes } from "@/features/tasks/lib/estimate";
 import { cn } from "@/lib/utils";
 
-const COLS = "lg:grid-cols-[28px_minmax(0,1fr)_150px_104px_64px_118px_92px_150px_64px]";
+const COLS = "lg:grid-cols-[28px_minmax(0,1fr)_150px_104px_64px_118px_92px_150px_120px]";
 
 export default function TaskTable({ tasks = [], onEdit, onStatus, onFocus, onDelete, onPatch, emptyHint }) {
   if (!tasks.length) {
@@ -103,13 +104,16 @@ export default function TaskTable({ tasks = [], onEdit, onStatus, onFocus, onDel
                 <TimerButton task={task} onChange={(patch) => onPatch && onPatch(task, patch)} />
               </div>
 
-              <div className="col-start-2 flex items-center gap-1 lg:col-start-auto lg:justify-end lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100">
+              <div className="col-start-2 flex items-center gap-1 lg:col-start-auto lg:justify-end">
+                <SendToClaudeButton task={task} compact />
+                <span className="flex items-center gap-1 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100">
                 <button type="button" onClick={() => onEdit && onEdit(task)} className="rounded-sm p-1.5 text-ink/45 transition-colors hover:text-ink" aria-label="Edit task">
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
                 <button type="button" onClick={() => onDelete && onDelete(task)} className="rounded-sm p-1.5 text-ink/45 transition-colors hover:text-red-600" aria-label="Delete task">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
+                </span>
               </div>
             </div>
           );
