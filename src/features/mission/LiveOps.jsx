@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { CheckCircle2, XCircle, Loader2, MinusCircle, ArrowUpRight, Radio, Inbox, Cpu } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, MinusCircle, ArrowUpRight, Radio, Inbox, Cpu, Sparkles, Clock } from "lucide-react";
 import { useList, timeAgo, fmtDate, WORK_KINDS, SERVICE_LABELS } from "@/lib/useData";
 
 const RUN_ICON = {
@@ -10,6 +10,16 @@ const RUN_ICON = {
   failed: <XCircle className="h-4 w-4 text-red-600" />,
   running: <Loader2 className="h-4 w-4 animate-spin text-[#ff3c00]" />,
   skipped: <MinusCircle className="h-4 w-4 text-ink/40" />,
+  needs_approval: <Sparkles className="h-4 w-4 text-[#ff3c00]" />,
+  queued: <Clock className="h-4 w-4 text-ink/40" />,
+};
+
+const JOB_FEED = {
+  queued: ["queued", "Queued for Claude"],
+  changes_requested: ["queued", "Redo queued for Claude"],
+  running: ["running", "Claude working"],
+  needs_approval: ["needs_approval", "Needs your OK"],
+  failed: ["failed", "Claude job failed"],
 };
 
 function Panel({ label, title, icon: Icon, action, children, className = "" }) {
@@ -53,8 +63,14 @@ export default function LiveOps() {
   const work = useList("WorkLog", { sort: "-date", limit: 40 });
   const autos = useList("Automation", { sort: "-last_run_at", limit: 200 });
   const reqs = useList("ClientRequest", { sort: "-created_date", limit: 100 });
+  const jobs = useList("ClaudeJob", { sort: "-created_date", limit: 60 });
+  const waiting = (jobs.data || []).filter((j) => j.status === "needs_approval").length;
 
   const feed = [
+    ...(jobs.data || []).filter((j) => JOB_FEED[j.status]).map((j) => ({
+      id: `j${j.id}`, at: j.finished_at || j.started_at || j.requested_at || j.created_date, kind: "job", status: JOB_FEED[j.status][0],
+      title: `${JOB_FEED[j.status][1]}: ${j.title}`, sub: j.result_summary || "", client: j.client_name || "Interstellar", link: `/claude?job=${j.id}`,
+    })),
     ...(runs.data || []).map((r) => ({
       id: `r${r.id}`, at: r.started_at || r.created_date, kind: "run", status: r.status,
       title: r.title ? `${WORK_KINDS[r.kind] || "Automation"}: ${r.title}` : `${r.kind ? WORK_KINDS[r.kind] || r.kind : "Automation"} ${r.status === "success" ? "ran" : r.status}`,
@@ -75,7 +91,14 @@ export default function LiveOps() {
     <div className="px-5 pt-6 md:px-8">
       <div className="mb-4 flex items-end justify-between">
         <p className="label-cross">(Live operations)</p>
-        <p className="mono-label text-[10px] text-ink/45">Automations · work · requests across every client</p>
+        <div className="flex items-center gap-3">
+          {waiting > 0 && (
+            <Link to="/claude" className="mono-label inline-flex items-center gap-1 rounded-sm bg-[#ff3c00] px-2 py-1 text-[9.5px] text-white">
+              <Sparkles className="h-3 w-3" /> {waiting} waiting on your OK
+            </Link>
+          )}
+          <p className="mono-label text-[10px] text-ink/45">Claude · automations · work · requests across every client</p>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr]">
@@ -88,7 +111,11 @@ export default function LiveOps() {
                 <li key={e.id} className="flex items-start gap-3 px-4 py-3">
                   <span className="mt-0.5">{RUN_ICON[e.status] || RUN_ICON.success}</span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13.5px] font-medium">{e.title}</p>
+                    {e.link ? (
+                      <Link to={e.link} className="block truncate text-[13.5px] font-medium hover:text-[#ff3c00]">{e.title}</Link>
+                    ) : (
+                      <p className="truncate text-[13.5px] font-medium">{e.title}</p>
+                    )}
                     <p className="truncate text-[12px] text-ink/55">
                       {e.client}{e.sub ? ` · ${e.sub}` : ""}
                     </p>
