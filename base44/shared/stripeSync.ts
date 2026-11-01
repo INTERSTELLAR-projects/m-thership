@@ -1,4 +1,4 @@
-import { loadPicture } from "./stripe.ts";
+import { loadPicture, PLAN_OF } from "./stripe.ts";
 
 /*
  * Stripe → CRM. For every subscription matched to a client, the client's billing line items are
@@ -25,7 +25,8 @@ export async function syncFromStripe(base44: any, key: string) {
     const t = touched.get(client.id) || { client, lines: [] as any[], plans: new Set<string>(), customer: s.customer.id, customers: new Set<string>() };
     t.customers.add(s.customer.id);
     s.lines.forEach((l: any) => {
-      t.lines.push({ id: l.id, name: LABEL(l.plan, l.name), price: l.monthly, stripe: true, stripe_price_id: l.price_id, subscription_id: s.id, interval: l.interval, discontinued: DISCONTINUED.test(l.name), status: s.status });
+      // Named exactly as the product is in Stripe (LABEL kept only as a short display alias).
+      t.lines.push({ id: l.id, name: l.name, short: LABEL(l.plan, l.name), price: l.monthly, stripe: true, stripe_price_id: l.price_id, stripe_product_id: l.product_id, subscription_id: s.id, interval: l.interval, discontinued: DISCONTINUED.test(l.name), status: s.status });
       t.plans.add(s.plan);
     });
     touched.set(client.id, t);
@@ -36,7 +37,15 @@ export async function syncFromStripe(base44: any, key: string) {
     const existing: any[] = Array.isArray(t.client.services) ? t.client.services : [];
     // Keep lines that aren't in Stripe only when they are still meant to be billed (e.g. a plan that starts next week).
     // Discontinued add-ons that Stripe no longer bills are dropped — their value now lives inside the merged plan price.
-    const kept = existing.filter((x) => !x.stripe && !x.discontinued && !DISCONTINUED.test(String(x.name || "")) && !t.lines.some((l) => String(l.name).toLowerCase() === String(x.name || "").toLowerCase()));
+    // A line added by hand from the Stripe dropdown is replaced by the real subscription line once Stripe bills it
+    // (same price, same product, same name, or the same care plan).
+    const careOf = (n: string) => { const p = PLAN_OF(n); return p === "hypercare" || p === "gravitycare" ? p : ""; };
+    const covered = (x: any) => t.lines.some((l) =>
+      (x.stripe_price_id && x.stripe_price_id === l.stripe_price_id) ||
+      (x.stripe_product_id && x.stripe_product_id === l.stripe_product_id) ||
+      [l.name, l.short].some((n) => String(n).toLowerCase() === String(x.name || "").toLowerCase()) ||
+      (careOf(String(x.name || "")) && careOf(String(x.name || "")) === careOf(l.name)));
+    const kept = existing.filter((x) => !x.stripe && !x.discontinued && !DISCONTINUED.test(String(x.name || "")) && !covered(x));
     const services = [...t.lines, ...kept.map((x) => ({ ...x, off_stripe: true, note: x.note || "not in Stripe yet" }))];
     const managed = new Set<string>(t.client.services_managed || []);
     if (t.plans.has("hypercare")) managed.add("orbit_seo");
