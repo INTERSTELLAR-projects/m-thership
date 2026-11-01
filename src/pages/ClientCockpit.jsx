@@ -9,9 +9,10 @@ import { FormDialog, Tag } from "@/features/clients/ui";
 import { OverviewTab, WorkTab, TasksTab, RequestsTab, AutomationsTab } from "@/features/clients/tabsWork";
 import { PerformanceTab, GoalsTab, FilesTab, AuditTab, MessagesTab } from "@/features/clients/tabsGrowth";
 import { ServicesTab, NotesTab, DocumentsTab } from "@/pages/CRM";
+import ClientClaudeTab from "@/features/claude/ClientClaudeTab";
 
 const TABS = [
-  ["overview", "Overview"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
+  ["overview", "Overview"], ["claude", "✦ Claude"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
   ["performance", "Performance"], ["goals", "Goals & Gaps"], ["files", "Files & Brand"], ["audit", "Intake Audit"], ["messages", "Messages"], ["billing", "Billing & Notes"],
 ];
 
@@ -113,6 +114,7 @@ export default function ClientCockpit() {
 
       <div key={tab} className="page-enter px-5 pt-6 md:px-8">
         {tab === "overview" && <OverviewTab client={client} onEdit={() => setEditing(true)} go={go} />}
+        {tab === "claude" && <ClientClaudeTab client={client} />}
         {tab === "work" && <WorkTab client={client} />}
         {tab === "tasks" && <TasksTab client={client} />}
         {tab === "requests" && <RequestsTab client={client} />}
