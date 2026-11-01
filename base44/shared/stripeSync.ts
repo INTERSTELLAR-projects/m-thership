@@ -44,7 +44,8 @@ export async function syncFromStripe(base44: any, key: string) {
       (x.stripe_price_id && x.stripe_price_id === l.stripe_price_id) ||
       (x.stripe_product_id && x.stripe_product_id === l.stripe_product_id) ||
       [l.name, l.short].some((n) => String(n).toLowerCase() === String(x.name || "").toLowerCase()) ||
-      (careOf(String(x.name || "")) && careOf(String(x.name || "")) === careOf(l.name)));
+      // Generic care-plan lines written by start-service ("HyperCare+", no Stripe ids) give way to the billed plan.
+      (!x.stripe_product_id && /^(hypercare\+|gravïtycare|gravitycare)$/i.test(String(x.name || "").trim()) && careOf(String(x.name)) === careOf(l.name)));
     const kept = existing.filter((x) => !x.stripe && !x.discontinued && !DISCONTINUED.test(String(x.name || "")) && !covered(x));
     const services = [...t.lines, ...kept.map((x) => ({ ...x, off_stripe: true, note: x.note || "not in Stripe yet" }))];
     const managed = new Set<string>(t.client.services_managed || []);
