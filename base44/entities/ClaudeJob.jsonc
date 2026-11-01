@@ -58,6 +58,14 @@
       "description": "Anything Claude could not do without him (logins, a decision, a send)",
       "type": "string"
     },
+    "next_stage": {
+      "description": "Set by Claude when more stages remain; approving queues the next stage automatically",
+      "type": "string"
+    },
+    "parent_job_id": {
+      "description": "Previous stage of the same build",
+      "type": "string"
+    },
     "priority": {
       "default": 3,
       "type": "number"
@@ -99,6 +107,11 @@
     "runner_log": {
       "type": "string"
     },
+    "stage": {
+      "default": 1,
+      "description": "Multi-stage builds: which stage this job is",
+      "type": "number"
+    },
     "started_at": {
       "format": "date-time",
       "type": "string"
@@ -127,6 +140,7 @@
     "title",
     "instructions"
   ],
+  "type": "object",
   "rls": {
     "create": {
       "user_condition": {
@@ -148,6 +162,5 @@
         "role": "admin"
       }
     }
-  },
-  "type": "object"
+  }
 }

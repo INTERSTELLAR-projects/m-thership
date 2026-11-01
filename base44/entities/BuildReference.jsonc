@@ -1,0 +1,71 @@
+{
+  "description": "Per-client inputs for Build with Claude: reference-site screen recordings, screenshots, reference URLs and specific meeting notes.",
+  "name": "BuildReference",
+  "properties": {
+    "build_type": {
+      "default": "website",
+      "enum": [
+        "website",
+        "app",
+        "both"
+      ],
+      "type": "string"
+    },
+    "client_id": {
+      "description": "CRMClient id",
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "kind": {
+      "default": "screen_recording",
+      "enum": [
+        "screen_recording",
+        "screenshot",
+        "reference_site",
+        "meeting_notes",
+        "file",
+        "other"
+      ],
+      "type": "string"
+    },
+    "link_url": {
+      "type": "string"
+    },
+    "note": {
+      "description": "What to take from it (layout, feel, a feature)",
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}
