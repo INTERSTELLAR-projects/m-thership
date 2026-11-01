@@ -1,0 +1,403 @@
+{
+  "description": "Constellations: everything we know about one client's business (identity, audience, offer, brand voice, service area, keywords) plus the pillar checklist that drives the business health score. One per client.",
+  "name": "ClientDossier",
+  "properties": {
+    "audience": {
+      "additionalProperties": true,
+      "properties": {
+        "demographics": {
+          "type": "string"
+        },
+        "desires": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ideal_customer": {
+          "type": "string"
+        },
+        "objections": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "pains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "where_they_hang_out": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "brand_identity": {
+      "additionalProperties": true,
+      "properties": {
+        "colors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "fonts": {
+          "type": "string"
+        },
+        "logo_url": {
+          "type": "string"
+        },
+        "photo_style": {
+          "type": "string"
+        },
+        "style": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "brand_voice": {
+      "additionalProperties": true,
+      "properties": {
+        "never_say": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "personality": {
+          "type": "string"
+        },
+        "sample": {
+          "type": "string"
+        },
+        "say": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "tone": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "client_id": {
+      "description": "CRMClient id",
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "competitors": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "strength": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "weakness": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "differentiators": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "dream_outcome": {
+      "description": "Hormozi value equation: the result the customer actually wants",
+      "type": "string"
+    },
+    "elevator_pitch": {
+      "description": "One or two sentences: who they help, with what, and the result",
+      "type": "string"
+    },
+    "founded": {
+      "type": "string"
+    },
+    "health_score": {
+      "type": "number"
+    },
+    "keyword_log": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "change": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "keywords": {
+      "description": "Managed by Claude: refreshed on a schedule, Justin never has to touch these",
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "added_at": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "intent": {
+            "description": "service | emergency | cost | comparison | informational | brand",
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "page_url": {
+            "type": "string"
+          },
+          "priority": {
+            "description": "primary | secondary | long_tail",
+            "type": "string"
+          },
+          "rank": {
+            "description": "Only when measured (GSC or a real check) \u2014 never guessed",
+            "type": "number"
+          },
+          "rank_source": {
+            "type": "string"
+          },
+          "status": {
+            "description": "target | in_progress | ranking | won | retired",
+            "type": "string"
+          },
+          "term": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "keywords_updated_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "kpis": {
+      "additionalProperties": true,
+      "description": "Real numbers only, with source",
+      "type": "object"
+    },
+    "last_enriched_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "lead_sources": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "offers": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "bonuses": {
+            "type": "string"
+          },
+          "guarantee": {
+            "type": "string"
+          },
+          "kind": {
+            "description": "attraction | core | upsell | downsell | continuity",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "string"
+          },
+          "promise": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "pillar_scores": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "pillars": {
+      "additionalProperties": true,
+      "description": "{ pillarId: { items: { itemId: {status: done|partial|missing|na, note, evidence, updated_at, by} }, notes } }",
+      "type": "object"
+    },
+    "scored_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "service_area": {
+      "additionalProperties": true,
+      "properties": {
+        "cities": {
+          "items": {
+            "additionalProperties": true,
+            "properties": {
+              "city": {
+                "type": "string"
+              },
+              "notes": {
+                "type": "string"
+              },
+              "page_url": {
+                "type": "string"
+              },
+              "priority": {
+                "description": "core | growth | later",
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "status": {
+                "description": "targeting | page_live | ranking | not_started",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "model": {
+          "description": "storefront | service_area | hybrid | national | online",
+          "type": "string"
+        },
+        "primary_city": {
+          "type": "string"
+        },
+        "radius": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "services": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "page_url": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "sources": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "story": {
+      "description": "Founder / origin story",
+      "type": "string"
+    },
+    "tagline": {
+      "type": "string"
+    },
+    "team_size": {
+      "type": "string"
+    },
+    "tools": {
+      "description": "Software they use today",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "usp": {
+      "description": "Why choose them over anyone else",
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}
