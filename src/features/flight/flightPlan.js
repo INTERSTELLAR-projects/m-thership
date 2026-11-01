@@ -4,17 +4,17 @@
 
 export const LANES = [
   { key: "alpha", label: "Mission ALPHA", price: "$8,997", sub: "All seven packages · 45-day build", service: "mission_alpha", color: "#ff3c00" },
-  { key: "bravo", label: "Mission BRAVO", price: "$6,497", sub: "Custom Website + Command System", service: "mission_bravo", color: "#8a2e00" },
-  { key: "website", label: "Website only", price: "Quoted", sub: "Custom Website build", service: "custom_website", color: "#1a1a1a" },
-  { key: "app", label: "App only", price: "Quoted", sub: "Command System build", service: "command_system", color: "#57534e" },
+  { key: "bravo", label: "Mission BRAVO", price: "$6,497", sub: "Intel Briefing + Website + Command System", service: "mission_bravo", color: "#8a2e00" },
+  { key: "website", label: "Website only", price: "$4,997", sub: "Intel Briefing + Custom Website · offered on the call", service: "custom_website", color: "#1a1a1a" },
+  { key: "app", label: "App only", price: "$5,997", sub: "Intel Briefing + Command System · offered on the call", service: "command_system", color: "#57534e" },
   { key: "addon", label: "Add-on only", price: "$1,400–$3,000", sub: "One package for an existing client", service: null, color: "#b45309" },
 ];
 
 // Packages an existing client can buy on their own (the "Add-on only" lane).
+// The Intel Briefing is never sold alone: it comes free with every build.
 export const ADDONS = [
   { key: "ops_command", label: "Ops Command", price: "$3,000" },
   { key: "brand_arsenal", label: "Brand Arsenal", price: "$2,500" },
-  { key: "intel_briefing", label: "Intel Briefing", price: "$1,500" },
   { key: "launch_grid", label: "Launch Grid", price: "$1,400" },
   { key: "transmission", label: "Transmission Video", price: "Quoted" },
 ];
@@ -35,18 +35,9 @@ export const STAGES = [
     num: "01", title: "Close the sale", hint: "Quote accepted, care plan chosen, money in, service started in Møthership.",
     rows: [
       {
-        key: "sale", title: "Close + start the service", manual: true,
-        doing: "Agree the package and the care plan, take payment, then Client → Start a service.",
+        key: "sale", sop: "closing", label: "Closing the Sale",
+        doing: "Agree the package and the care plan, sign, take payment, then Client → Start a service.",
         lanes: { ...ALL4, addon: "on" },
-        steps: [
-          { phase: "Before they sign", title: "Quote or proposal accepted (mission, build or add-on)" },
-          { phase: "Before they sign", title: "Missions, websites and apps: choose HyperCare+ (tier) or GravïtyCare now — it is required" },
-          { phase: "Payment", title: "Stripe: one-time payment or deposit taken; care subscription created to start at launch" },
-          { phase: "Payment", title: "Prestige referral logged if someone sent them" },
-          { phase: "Møthership", title: "Client record created or updated (status Active, plan, bundle)" },
-          { phase: "Møthership", title: "Client → Start a service: pick the package + start date (creates the project and every SOP task)" },
-          { phase: "Møthership", title: "Add-on for an existing client: untick onboarding" },
-        ],
       },
     ],
   },
@@ -57,9 +48,9 @@ export const STAGES = [
     ],
   },
   {
-    num: "03", title: "Discover", hint: "ALPHA opens with the audit. It sets the build plan for everything below.",
+    num: "03", title: "Discover", hint: "Every build opens with the Intel audit — free with ALPHA, BRAVO, Website and App. It sets the build plan for everything below.",
     rows: [
-      { key: "intel", sop: "intel_briefing", filter: (i) => !isSweep(i), label: "Intel Briefing · audit", doing: "Audit site, search, listings, software spend and follow-up; build the scorecard and plan.", lanes: { alpha: "on", addon: "if" }, addon: "intel_briefing" },
+      { key: "intel", sop: "intel_briefing", filter: (i) => !isSweep(i), label: "Intel Briefing · audit", doing: "Audit site, search, listings, software spend and follow-up; build the scorecard and plan. ✦ Claude tab → Audit the business.", lanes: { ...ALL4 } },
     ],
   },
   {
@@ -74,10 +65,10 @@ export const STAGES = [
     ],
   },
   {
-    num: "05", title: "Finish", hint: "ALPHA's last week: the video and the before/after sweep.",
+    num: "05", title: "Finish", hint: "Every build ends with the Intel final sweep. ALPHA also gets the video.",
     rows: [
       { key: "transmission", sop: "transmission", doing: "Brief, script, produce, one revision, deliver cutdowns and place it on the site.", lanes: { alpha: "on", addon: "if" }, addon: "transmission" },
-      { key: "sweep", sop: "intel_briefing", filter: isSweep, label: "Intel Briefing · final sweep", doing: "Before/after scorecard, close old accounts, clean listings, cancel subscriptions.", lanes: { alpha: "on" } },
+      { key: "sweep", sop: "intel_briefing", filter: isSweep, label: "Intel Briefing · final sweep", doing: "Before/after scorecard, close old accounts, clean listings, cancel subscriptions. ✦ Claude tab → Run the final sweep.", lanes: { ...ALL4 } },
     ],
   },
   {
@@ -151,11 +142,8 @@ export function scenarioPieces({ lane, care, tier, addon }) {
 
 // Loose ends found when the chart was built (Oct 31, 2026): where Møthership's "Start a service"
 // does not yet match this flow. Kept here so they stay visible until fixed.
+// All six loose ends found on Oct 31 were fixed on Oct 31 – Nov 1 (care plan required at start,
+// no double GravïtyCare, system care hand-off step, build prices, $750 public / $500 referral, Closing SOP).
 export const LOOSE_ENDS = [
-  { title: "BRAVO, Website-only and App-only create no care-plan tasks", detail: "Start a service for these packages has no HyperCare+ or GravïtyCare stream, so the required care plan has to be started as a second service." },
-  { title: "ALPHA always adds GravïtyCare", detail: "Mission ALPHA includes the GravïtyCare SOP automatically. If the client picks HyperCare+ (which already includes GravïtyCare), starting HyperCare+ adds the GravïtyCare steps a second time." },
-  { title: "Command System SOP has no care-plan hand-off step", detail: "The website SOP ends with \"GravïtyCare or HyperCare+ tier active\". The system SOP ends at the 30-day support window." },
-  { title: "No price on Website-only, App-only or Transmission", detail: "These start with a $0 contract value, so projects and revenue show nothing until the price is typed in." },
-  { title: "HyperCare+ Local price differs", detail: "Start a service offers $500–$750/mo; the deliverables and website say $750/mo." },
-  { title: "Closing the sale has no SOP", detail: "Stage 01 is shown from the order the system expects. Turning it into an SOP would put it in the task list too." },
+  { title: "Transmission has no fixed price", detail: "Transmission still starts with a $1,500 placeholder value when sold alone; set its real price when you decide it." },
 ];
