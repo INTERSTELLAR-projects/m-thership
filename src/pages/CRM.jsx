@@ -191,7 +191,8 @@ export default function CRM() {
             {rows.map((row) => {
               if (row.kind === "bundle") {
                 const total = row.members.reduce((s, m) => s + priceOf(m), 0);
-                const serviceCount = row.members.reduce((s, m) => s + (m.services || []).length, 0);
+                // Only billable lines count — included/redundant $0 lines in the package aren't billed
+                const serviceCount = row.members.reduce((s, m) => s + (m.services || []).filter((sv) => (Number(sv.price) || 0) > 0).length, 0);
                 return (
                   <div key={"bundle:" + row.name} className="w-full bg-card rounded-md border border-[#ff3c00]/40 overflow-hidden">
                     <div className="flex items-center justify-between gap-4 px-4 py-2 border-b border-ink/[0.08] bg-[#ff3c00]/[0.04]">
