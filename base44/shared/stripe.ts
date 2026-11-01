@@ -35,6 +35,27 @@ const PAYER_TO_CLIENT: [string, string][] = [
   ["Jamal Mentor", "Muscle Mentor Coaching"]
 ];
 
+// Every active Stripe product with its active prices, named exactly as in Stripe.
+export async function listCatalog(key: string) {
+  const [products, prices] = await Promise.all([
+    stripe("products", key, { active: "true" }),
+    stripe("prices", key, { active: "true" }),
+  ]);
+  const byProduct = new Map<string, any[]>();
+  for (const p of prices) {
+    const id = String(p.product || "");
+    const amt = (p.unit_amount || 0) / 100;
+    const rec = p.recurring || null;
+    const per = !rec ? null : rec.interval === "year" ? amt / (12 * (rec.interval_count || 1)) : rec.interval === "week" ? (amt * 52) / 12 / (rec.interval_count || 1) : amt / (rec.interval_count || 1);
+    const list = byProduct.get(id) || [];
+    list.push({ price_id: p.id, nickname: p.nickname || "", amount: round(amt), currency: p.currency, interval: rec ? rec.interval : "one_time", interval_count: rec?.interval_count || 1, monthly: per == null ? null : round(per) });
+    byProduct.set(id, list);
+  }
+  return products
+    .map((p: any) => ({ product_id: p.id, name: p.name, description: p.description || "", plan: PLAN_OF(p.name), created: p.created, prices: (byProduct.get(p.id) || []).sort((a, b) => a.amount - b.amount) }))
+    .sort((a: any, b: any) => a.name.localeCompare(b.name));
+}
+
 async function stripe(path: string, key: string, params: Record<string, string> = {}) {
   const out: any[] = [];
   let startingAfter: string | null = null;
