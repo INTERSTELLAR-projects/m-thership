@@ -12,6 +12,7 @@ import PageHeader from "../components/PageHeader";
 import MicButton from "../components/MicButton";
 import BrandProfile from "../components/crm/BrandProfile";
 import { useRef } from "react";
+import StripeServicePicker from "@/features/clients/StripeServicePicker";
 
 const statusFilters = ["Active", "Lead", "Inactive", "All"];
 
@@ -446,16 +447,14 @@ export function ServicesTab({ client, update }) {
   const [editId, setEditId] = useState(null);
   const [editVal, setEditVal] = useState({});
   const [adding, setAdding] = useState(false);
-  const [newSvc, setNewSvc] = useState({ name: "", price: "" });
 
   const save = (services) => update({ services });
   const del = (id) => save((client.services || []).filter((s) => s.id !== id));
   const startEdit = (s) => { setEditId(s.id); setEditVal({ ...s }); };
   const saveEdit = () => { save((client.services || []).map((s) => s.id === editId ? { ...editVal, price: parseFloat(editVal.price) || 0 } : s)); setEditId(null); };
-  const add = () => {
-    if (!newSvc.name) return;
-    save([...(client.services || []), { id: Date.now(), name: newSvc.name, price: parseFloat(newSvc.price) || 0 }]);
-    setAdding(false); setNewSvc({ name: "", price: "" });
+  const add = (line) => {
+    save([...(client.services || []), line]);
+    setAdding(false);
   };
 
   const total = (client.services || []).reduce((s, sv) => s + (sv.price || 0), 0);
@@ -479,20 +478,16 @@ export function ServicesTab({ client, update }) {
             <div key={s.id} className="flex items-center justify-between py-3 border-b border-ink/[0.13] last:border-0 group">
               <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-orange-500/50" /><span className="text-ink/70 text-sm">{s.name}</span></div>
               <div className="flex items-center gap-3">
-                <span className="text-orange-500/70 text-sm font-medium">${s.price}/mo</span>
+                {s.stripe ? <span className="text-[10px] uppercase tracking-wider text-green-700/70" title="Billed in Stripe">Stripe</span>
+                  : s.stripe_product_id ? <span className="text-[10px] uppercase tracking-wider text-ink/40" title="Picked from Stripe products; not on a Stripe subscription yet">Stripe product</span>
+                  : s.off_stripe ? <span className="text-[10px] uppercase tracking-wider text-amber-700/70">Not in Stripe</span> : null}
+                <span className="text-orange-500/70 text-sm font-medium">{s.interval === "one_time" ? `$${s.one_time_amount ?? 0} one-time` : `$${s.price}/mo`}</span>
                 <button onClick={() => startEdit(s)} className="p-1 text-ink/[0.33] hover:text-ink/50 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
                 <button onClick={() => del(s.id)} className="p-1 text-ink/[0.33] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
               </div>
             </div>
           ))}
-          {adding && (
-            <div className="flex items-center gap-2 py-2 border-t border-ink/[0.13] mt-2">
-              <Input value={newSvc.name} onChange={(e) => setNewSvc({ ...newSvc, name: e.target.value })} className="flex-1 h-8 bg-ink/[0.04] border-ink/[0.13] text-ink text-xs" placeholder="Service name" autoFocus />
-              <Input value={newSvc.price} onChange={(e) => setNewSvc({ ...newSvc, price: e.target.value })} type="number" className="w-24 h-8 bg-ink/[0.04] border-ink/[0.13] text-ink text-xs" placeholder="$/mo" />
-              <button onClick={add} className="p-1 text-green-600/70 hover:text-green-600"><Check className="w-3.5 h-3.5" /></button>
-              <button onClick={() => setAdding(false)} className="p-1 text-ink/[0.48] hover:text-ink/60"><X className="w-3.5 h-3.5" /></button>
-            </div>
-          )}
+          {adding && <StripeServicePicker onAdd={add} onCancel={() => setAdding(false)} />}
         </div>
         <div className="mt-4 pt-4 border-t border-ink/[0.13] flex justify-between items-center">
           <span className="text-ink/[0.58] text-xs uppercase tracking-wider">Total Monthly</span>
