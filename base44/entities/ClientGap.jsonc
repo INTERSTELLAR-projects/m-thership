@@ -1,16 +1,8 @@
 {
   "name": "ClientGap",
-  "type": "object",
   "properties": {
-    "client_id": {
-      "type": "string",
-      "description": "CRMClient id"
-    },
-    "title": {
-      "type": "string"
-    },
     "area": {
-      "type": "string",
+      "default": "other",
       "enum": [
         "website",
         "seo",
@@ -23,42 +15,67 @@
         "ads",
         "other"
       ],
-      "default": "other"
+      "type": "string"
     },
-    "severity": {
-      "type": "string",
+    "audit_kind": {
+      "default": "manual",
       "enum": [
-        "high",
-        "medium",
-        "low"
+        "initial",
+        "final",
+        "manual"
       ],
-      "default": "medium"
+      "type": "string"
     },
-    "status": {
-      "type": "string",
-      "enum": [
-        "open",
-        "planned",
-        "in_progress",
-        "fixed"
-      ],
-      "default": "open"
+    "client_id": {
+      "description": "CRMClient id",
+      "type": "string"
     },
-    "recommendation": {
+    "evidence": {
+      "description": "What was checked and where (URL, tool, number)",
       "type": "string"
     },
     "impact": {
       "type": "string"
     },
     "portal_visible": {
-      "type": "boolean",
-      "default": true
+      "default": true,
+      "type": "boolean"
+    },
+    "recommendation": {
+      "type": "string"
+    },
+    "severity": {
+      "default": "medium",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "type": "string"
+    },
+    "source_job_id": {
+      "description": "ClaudeJob that found it (Intel audit); shown in the portal once Justin approves",
+      "type": "string"
+    },
+    "status": {
+      "default": "open",
+      "enum": [
+        "open",
+        "planned",
+        "in_progress",
+        "fixed"
+      ],
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
     }
   },
   "required": [
     "client_id",
     "title"
   ],
+  "type": "object",
   "rls": {
     "create": {
       "user_condition": {
