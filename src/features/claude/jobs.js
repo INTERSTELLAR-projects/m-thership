@@ -2,6 +2,7 @@
 // and nothing is final until he approves the result here.
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { auditInstructions, buildInstructions as buildBrief } from "./briefs";
 
 export const JOB_STATUS = {
   queued: { label: "Queued", tone: "bg-ink/[0.07] text-ink/70" },
@@ -99,6 +100,11 @@ export async function queueTask(task, extra = "") {
     task.client_id ? base44.entities.CRMClient.get(task.client_id).catch(() => null) : null,
     task.project_id ? base44.entities.Project.get(task.project_id).catch(() => null) : null,
   ]);
+  // Intel Briefing SOP steps get the full audit brief.
+  if (client && /intel/i.test(task.sop_name || "")) {
+    const mode = /final|sweep|straggler/i.test(`${task.title} ${task.notes || ""}`) ? "final" : "initial";
+    return queueAudit(client, mode, { task, extra });
+  }
   const instructions = buildInstructions({ task, client, project, extra });
   return base44.entities.ClaudeJob.create({
     title: task.title,
@@ -125,10 +131,63 @@ export async function queueCustom({ title, kind = "other", instructions, client 
   });
 }
 
+async function latestIntake(clientId) {
+  const rows = await base44.entities.IntakeAudit.filter({ client_id: clientId }, "-created_date", 1).catch(() => []);
+  return rows?.[0] || null;
+}
+
+export async function queueAudit(client, mode = "initial", { task, extra = "" } = {}) {
+  const intake = await latestIntake(client.id);
+  const label = mode === "final" ? "Intel final sweep" : "Intel audit";
+  return base44.entities.ClaudeJob.create({
+    title: `${label} — ${client.business}`,
+    kind: "audit",
+    instructions: auditInstructions(client, mode, { intake }) + (extra ? `\n\n## Justin added\n${extra}` : ""),
+    extra, task_id: task?.id || "", project_id: task?.project_id || "", project_name: task?.project_name || "",
+    client_id: client.id, client_name: client.business, status: "queued", priority: 2,
+    complete_task_on_approve: !!task, requested_at: new Date().toISOString(), context: { audit_mode: mode },
+  });
+}
+
+const stageBrief = (base, stage, name) => `${base}\n\n## Current stage\nStage ${stage}${name ? `: ${name}` : " (the first one listed)"}`;
+
+export async function queueBuild(client, type, { refs = [], extra = "" } = {}) {
+  const intake = await latestIntake(client.id);
+  const base = buildBrief(client, type, { refs, intake, extra });
+  return base44.entities.ClaudeJob.create({
+    title: `Build ${type === "website" ? "website" : "Command System"} — ${client.business} · stage 1`,
+    kind: type === "website" ? "build_website" : "build_app",
+    instructions: stageBrief(base, 1, ""), extra, stage: 1,
+    client_id: client.id, client_name: client.business, status: "queued", priority: 2,
+    complete_task_on_approve: false, requested_at: new Date().toISOString(), context: { base, build_type: type },
+  });
+}
+
 // Approve: the job is final, its task is done, and it lands in Live Ops + the client's page.
 export async function approveJob(job) {
   const now = new Date().toISOString();
   await base44.entities.ClaudeJob.update(job.id, { status: "approved", approved_at: now });
+  // Intel audit: findings become visible in the client portal, and the briefing is logged as work.
+  if (job.kind === "audit" && job.client_id) {
+    await base44.entities.ClientGap.filter({ source_job_id: job.id }, "-created_date", 200)
+      .then((gaps) => Promise.all((gaps || []).map((g) => base44.entities.ClientGap.update(g.id, { portal_visible: true }))))
+      .catch(() => null);
+    await base44.entities.WorkLog.create({
+      client_id: job.client_id, client_name: job.client_name, kind: "report",
+      title: job.context?.audit_mode === "final" ? "Intel Briefing — final sweep" : "Intel Briefing — business audit",
+      description: job.result_summary || "", date: now.slice(0, 10), status: "live", source: "claude", portal_visible: true,
+    }).catch(() => null);
+  }
+  // Multi-stage builds: approving a stage queues the next one.
+  if (job.next_stage && job.context?.base) {
+    const stage = (Number(job.stage) || 1) + 1;
+    await base44.entities.ClaudeJob.create({
+      title: job.title.replace(/stage \d+$/, `stage ${stage}`),
+      kind: job.kind, instructions: stageBrief(job.context.base, stage, job.next_stage) + (job.result_summary ? `\n\nPrevious stage result: ${job.result_summary}` : ""),
+      stage, parent_job_id: job.id, client_id: job.client_id, client_name: job.client_name,
+      status: "queued", priority: 2, complete_task_on_approve: false, requested_at: now, context: job.context,
+    });
+  }
   if (job.task_id && job.complete_task_on_approve !== false) {
     await base44.entities.Task.update(job.task_id, { status: "done", completed_at: now }).catch(() => null);
   }
