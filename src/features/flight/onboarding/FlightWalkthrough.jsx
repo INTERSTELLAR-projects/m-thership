@@ -5,7 +5,7 @@ import Panel from "@/features/tasks/ui-kit/Panel";
 import { inputClass } from "@/features/tasks/lib/ui";
 import { cn } from "@/lib/utils";
 import FieldControl from "./FieldControl";
-import { CARE_PLANS, SALES, SALES_FOR_PACKAGE, STEPS, defaultPrice, evaluate, missingAsText, needsCare, nextAction, saleByKey, stepById } from "./catalog";
+import { CARE_PLANS, SALES, SALES_FOR_PACKAGE, STEPS, defaultPrice, evaluate, missingAsText, needsCare, nextAction, saleByKey } from "./catalog";
 import { applyIntake, createFlight, kickoff, loadContext, patchFlight, saveAnswers, sendIntake } from "./store";
 
 const plusDays = (iso, n) => {
@@ -387,7 +387,6 @@ export default function FlightWalkthrough({ pkg, client: baseClient, startedProj
           </div>
 
           <p className="text-[10.5px] leading-snug text-ink/45">Everything saved here also fills the CRM and the client's intake audit, so Claude jobs, briefs and later forms never ask again. Access is recorded as who granted what — never passwords.</p>
-          {stepById(step) ? null : null}
         </aside>
       </div>
     </Panel>
