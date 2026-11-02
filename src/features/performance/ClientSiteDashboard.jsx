@@ -3,7 +3,7 @@ import { ArrowLeft, ExternalLink, Loader2, Play, Smartphone, Monitor, Sparkles, 
 import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartTooltip, FlameDefs, axisProps, gridProps, cursorProps } from "@/components/charts/ChartKit";
 import { fmtDate, timeAgo } from "@/lib/useData";
-import { band, CATEGORY_LABELS, CATEGORY_ORDER, SEVERITY, VITALS, isAutoAuditBlocked, siteUrl, clientHealthSummary } from "./policy";
+import { CLIENT_SCORE_FLOOR, CATEGORY_LABELS, CATEGORY_ORDER, SEVERITY, VITALS, isAutoAuditBlocked, siteUrl, clientHealthSummary } from "./policy";
 import { guideFor } from "./issueGuide";
 import { runAudit, latestPair } from "./useSiteData";
 import { DarkPanel, DarkEmpty, ScoreRing, VitalTile, SeverityChip, DarkButton } from "./ui";
@@ -314,7 +314,7 @@ export default function ClientSiteDashboard({ client, audits = [], fixes = [], g
           )}
         </DarkPanel>
         <div>
-          <p className="mono-label mb-2 flex items-center gap-1.5 text-[9.5px] text-white/45"><Eye className="h-3.5 w-3.5" /> What the client sees{health.score == null && cur?.health_score != null ? ` (score hidden below ${band(70).label.toLowerCase()} floor)` : ""}</p>
+          <p className="mono-label mb-2 flex items-center gap-1.5 text-[9.5px] text-white/45"><Eye className="h-3.5 w-3.5" /> What the client sees{health.score == null && cur?.health_score != null ? ` (score hidden while under ${CLIENT_SCORE_FLOOR})` : ""}</p>
           <ClientHealthSummary health={health} businessName={client.business} />
           {blocked && <p className="mt-2 flex items-center gap-1.5 text-[11px] text-white/40"><ShieldAlert className="h-3.5 w-3.5" /> PowerLift is excluded from automatic audits until the site moves to Base44.</p>}
         </div>
@@ -325,7 +325,7 @@ export default function ClientSiteDashboard({ client, audits = [], fixes = [], g
         onOpenChange={(o) => !o && setFixing(null)}
         client={client}
         audit={(fixing?.fix?.audit_id && audits.find((a) => a.id === fixing.fix.audit_id)) || cur}
-        issue={fixing?.issue ? { ...issues.find((i) => i.key === fixing.issue.key), ...(issues.find((i) => i.key === fixing.issue.key) ? {} : fixing.issue) } : null}
+        issue={fixing ? issues.find((i) => i.key === fixing.issue.key) || fixing.issue : null}
         existing={fixing?.fix || null}
         onChanged={onChanged}
       />
