@@ -37,8 +37,7 @@ export default function PublicRequest() {
     <div className="min-h-screen bg-canvas px-4 py-10">
       <div className="mx-auto max-w-2xl">
         <div className="mb-6 flex items-center gap-3">
-          <img src={LOGO_URL} alt="" className="h-8 w-11 object-contain" />
-          <span className="text-[15px] font-semibold tracking-tight">Interstellar</span>
+          <BrandLockup word="INTERSTELLAR" size={19} />
           {form && <span className="mono-label ml-auto text-[10px] text-ink/50">{form.client_name}</span>}
         </div>
         {err && !form && <p className="border border-hair bg-card p-5 text-[13px] text-red-700">{err}</p>}
