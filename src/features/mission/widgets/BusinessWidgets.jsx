@@ -29,14 +29,17 @@ export function GoalWidget() {
   const months = asArray(rev?.months);
   const ytd = months.filter((m) => m.key.startsWith(String(GOAL_YEAR))).reduce((n, m) => n + (m.collected || 0) - (m.refunds || 0), 0);
   const trailing = months.reduce((n, m) => n + (m.collected || 0) - (m.refunds || 0), 0);
-  const mrr = Number(q.data?.subs?.mrr) || 0;
+  const subs = q.data?.subs;
+  const mrrKnown = !!subs && !subs.error && subs.mrr != null;
+  const mrr = mrrKnown ? Number(subs.mrr) || 0 : 0;
   const runRate = mrr * 12;
   const now = new Date();
   const started = now.getFullYear() >= GOAL_YEAR;
   const daysToStart = Math.max(0, Math.ceil((new Date(GOAL_YEAR, 0, 1) - now) / DAY));
   const monthsLeft = started ? Math.max(1, 12 - now.getMonth()) : 12;
   const needPerMonth = Math.max(0, GOAL - (started ? ytd : 0)) / monthsLeft;
-  const headline = started ? ytd : runRate;
+  const headline = started ? ytd : mrrKnown ? runRate : trailing;
+  const headlineLabel = started ? "Collected so far" : mrrKnown ? "Run rate going in (MRR × 12)" : "Collected, last 12 months";
 
   return (
     <Tile kicker={started ? `${GOAL_YEAR} collected · live from Stripe` : `${GOAL_YEAR} starts in ${daysToStart} days`} title="$1M in 2027" icon={Target} to="/financial" linkLabel="Financial">
@@ -47,7 +50,7 @@ export function GoalWidget() {
       ) : error ? <TileError>{error}</TileError> : (
         <div className="flex h-full flex-col gap-4 px-4 py-4">
           <div>
-            <p className="mono-label text-[9px] text-ink/45">{started ? "Collected so far" : "Run rate going in (MRR × 12)"}</p>
+            <p className="mono-label text-[9px] text-ink/45">{headlineLabel}</p>
             <p className="mt-1 text-[34px] font-semibold leading-none tracking-[-0.04em] tabular-nums">
               {money(headline)}<span className="text-[15px] text-ink/35"> / $1M</span>
             </p>
@@ -60,7 +63,7 @@ export function GoalWidget() {
             </div>
           </div>
           <div className="mt-auto grid grid-cols-3 divide-x divide-hair border-t border-hair pt-3 text-center">
-            <div><p className="font-mono text-[13px] tabular-nums">{money(mrr)}</p><p className="mono-label text-[8px] text-ink/45">MRR now</p></div>
+            <div><p className="font-mono text-[13px] tabular-nums">{mrrKnown ? money(mrr) : "—"}</p><p className="mono-label text-[8px] text-ink/45">MRR now</p></div>
             <div><p className="font-mono text-[13px] tabular-nums text-[#ff3c00]">{money(needPerMonth)}</p><p className="mono-label text-[8px] text-ink/45">Needed / mo</p></div>
             <div><p className="font-mono text-[13px] tabular-nums">{money(trailing)}</p><p className="mono-label text-[8px] text-ink/45">Last 12 mo</p></div>
           </div>
