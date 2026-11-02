@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ImagePlus, Trash2, X, Sparkles, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import QrCanvas from "./QrCanvas";
@@ -29,14 +29,14 @@ export function Toggle({ checked, onChange, label }) {
 
 export function ColorField({ label, value, onChange }) {
   const [text, setText] = useState(value || "");
-  const shown = text.toLowerCase() === String(value || "").toLowerCase() ? text : value || "";
+  useEffect(() => setText(value || ""), [value]);
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="text-[13px] text-ink/75">{label}</span>
       <div className="flex items-center gap-2">
         <input
           className="w-[86px] border border-hair bg-paper px-2 py-1 font-mono text-[12px] uppercase outline-none focus:border-[#ff3c00]"
-          value={shown}
+          value={text}
           maxLength={7}
           onChange={(e) => {
             const v = e.target.value.startsWith("#") ? e.target.value : "#" + e.target.value;
