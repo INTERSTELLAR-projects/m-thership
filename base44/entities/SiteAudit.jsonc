@@ -1,0 +1,109 @@
+{
+  "name": "SiteAudit",
+  "description": "One audit run of a client website: Lighthouse/PageSpeed category scores, Core Web Vitals, on-page facts and the issues found. Written by the site-audit backend function. Nothing here is invented: a missing number stays empty.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "strategy": {
+      "type": "string",
+      "enum": [
+        "mobile",
+        "desktop"
+      ],
+      "default": "mobile"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "pagespeed",
+        "manual",
+        "claude"
+      ],
+      "default": "pagespeed"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "auto"
+      ],
+      "default": "manual"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "complete",
+        "partial",
+        "failed"
+      ],
+      "default": "complete"
+    },
+    "run_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "health_score": {
+      "type": "number",
+      "description": "Weighted composite of the Lighthouse category scores (SEO 40, Performance 30, Accessibility 15, Best practices 15)"
+    },
+    "scores": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "performance, seo, accessibility, best_practices (0-100)"
+    },
+    "vitals": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Lab: lcp_ms, cls, tbt_ms, fcp_ms, si_ms, ttfb_ms. Field (CrUX): field_lcp_ms, field_inp_ms, field_cls, field_category"
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "On-page facts from fetching the HTML: title, meta_description, h1s, canonical, robots_meta, jsonld_types, images_missing_alt, og, http_status, robots_txt, sitemap"
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "error": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
