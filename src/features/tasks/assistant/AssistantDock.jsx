@@ -46,6 +46,7 @@ function DockPanel() {
     setOpen,
     mode,
     interim,
+    capturing,
     turns,
     notice,
     alwaysOn,
@@ -56,6 +57,7 @@ function DockPanel() {
     toggleWebcam,
     startListening,
     stopListening,
+    sendNow,
     toggleAlwaysOn,
     runCommand,
     clear
@@ -122,7 +124,13 @@ function DockPanel() {
           <div className="min-w-0 flex-1">
             <WaveBars active={mode === "listening" || mode === "speaking"} />
             <p className="mono-label mt-3 text-[8.5px] text-[#f5f3f0]/40">
-              {alwaysOn ? "hands free · wake word: interstellar" : supported ? "press the mic to talk" : "chrome only"}
+              {alwaysOn
+                ? "hands free · wake word: interstellar"
+                : mode === "listening"
+                  ? "keep talking · sends when you pause"
+                  : supported
+                    ? "press the mic to talk"
+                    : "chrome only"}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {mode === "listening" ? (
