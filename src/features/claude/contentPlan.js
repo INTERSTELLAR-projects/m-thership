@@ -198,7 +198,7 @@ export function normalizeContentPlan(raw) {
 
 /* ---------------- schedule ---------------- */
 
-// Next `count` dates (from tomorrow if today has passed noon? no: from today) that fall on `days`.
+// Next `count` dates, starting today, that fall on `days`.
 export function upcomingDates(days, count, from = new Date()) {
   const idx = (days || []).map((d) => WEEKDAYS.indexOf(normalizeDay(d))).filter((i) => i >= 0);
   if (!idx.length) return [];
