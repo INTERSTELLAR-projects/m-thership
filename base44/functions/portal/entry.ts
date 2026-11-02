@@ -190,6 +190,68 @@ Deno.serve(async (req) => {
       return Response.json({ intake: pick(upd, ["id", "status", "answers", "submitted_at"]) });
     }
 
+    // ---- Prestige referral program: the client's own referrer record, read-only (plus join + "seen") ----
+    if (action === "prestige" || action === "prestige_seen" || action === "prestige_join") {
+      const DEF = {
+        referral_base_url: "https://interstellar-strategies.com/contact",
+        share_message: "I've been working with Interstellar Strategies on my website and marketing. If you want the same for your business, book a free call here: {link}",
+        booked: { title: "Bonus Google post pack", detail: "4 extra Google Business Profile posts written and published for your business.", value: 200 },
+        signed: { title: "$500 account credit", detail: "Applied to your next invoice, or swapped for a free month of care. Your pick.", value: 500 },
+        tiers: [
+          { name: "Prestige I", threshold: 1, unlock: "Custom landing page", detail: "A conversion-built landing page for an offer, a service or a campaign.", value: 1500 },
+          { name: "Prestige II", threshold: 3, unlock: "Automation build", detail: "An automation that takes a recurring task off your plate: lead capture, follow-up, review requests or intake.", value: 3000 },
+          { name: "Prestige III", threshold: 5, unlock: "Mini app", detail: "A focused custom app: a calculator, booking tool, internal dashboard or client tool.", value: 5000 },
+          { name: "Prestige IV", threshold: 10, unlock: "Full custom app", detail: "A full custom application with backend, database and integrations, built around how you run.", value: 10000 },
+          { name: "Prestige Master", threshold: 25, unlock: "VIP partner status", detail: "Partner status: priority build queue, first access to every new system, and your name on the Prestige wall.", value: 0 },
+        ],
+        terms: "Rewards are earned per referral: one when they book a call, one when they sign. Tier unlocks are counted on signed referrals and stack. A referral counts as signed once their first invoice is paid. Credits apply to Interstellar work, have no cash value and are non-transferable.",
+      };
+      const setRows = await db.AppSettings.filter({ key: "prestige_offer" }, "-created_date", 1).catch(() => []);
+      const saved = ((setRows || [])[0]?.prestigeOffer || {}) as Record<string, any>;
+      const offer = { ...DEF, ...saved, booked: { ...DEF.booked, ...(saved.booked || {}) }, signed: { ...DEF.signed, ...(saved.signed || {}) }, tiers: (Array.isArray(saved.tiers) && saved.tiers.length ? saved.tiers : DEF.tiers).slice().sort((a: any, b: any) => (a.threshold || 0) - (b.threshold || 0)) };
+      const email = String(user.email || "").toLowerCase();
+      const emails = ((client.portal_emails as string[]) || []).map((e) => String(e).toLowerCase());
+      const allMembers = await db.PrestigeMember.list("-created_date", 500).catch(() => []);
+      let member = (allMembers || []).find((m: Record<string, unknown>) => m.client_id === cid)
+        || (allMembers || []).find((m: Record<string, unknown>) => m.email && (emails.includes(String(m.email).toLowerCase()) || String(m.email).toLowerCase() === email))
+        || null;
+      const slug = (s: unknown) => String(s || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 32) || "friend";
+
+      if (action === "prestige_join") {
+        if (!member) {
+          member = await db.PrestigeMember.create({ name: client.business, email: user.role === "admin" ? (emails[0] || "") : user.email, client_id: cid, prestige: "Recruit", totalReferrals: 0, joinDate: new Date().toISOString().slice(0, 10), active: true, referral_code: slug(client.business), last_celebrated_tier: 0, client_celebrated_tier: 0, notes: "Joined from the client portal." });
+        } else if (!member.client_id) {
+          member = await db.PrestigeMember.update(member.id, { client_id: cid });
+        }
+      }
+      if (!member) return Response.json({ member: null, offer });
+
+      const refs = await db.PrestigeReferral.filter({ memberId: member.id }, "-date", 500).catch(() => []);
+      const signed = (refs || []).filter((r: Record<string, unknown>) => r.status === "Confirmed" || r.status === "Paid Out").length;
+      const booked = (refs || []).filter((r: Record<string, unknown>) => ["Booked", "Confirmed", "Paid Out"].includes(String(r.status))).length;
+      let tier = 0;
+      offer.tiers.forEach((t: any, i: number) => { if (signed >= Number(t.threshold || 0)) tier = i + 1; });
+
+      if (action === "prestige_seen") {
+        const seen = Math.min(tier, Math.max(0, Math.round(Number(args.tier) || 0)));
+        if (user.role !== "admin" && seen > Number(member.client_celebrated_tier || 0)) await db.PrestigeMember.update(member.id, { client_celebrated_tier: seen });
+        return Response.json({ ok: true });
+      }
+
+      const rewards = await db.PrestigeReward.filter({ memberId: member.id }, "-created_date", 500).catch(() => []);
+      const code = (member.referral_code as string) || slug(member.name);
+      const base = String(offer.referral_base_url || DEF.referral_base_url);
+      const link = `${base}${base.includes("?") ? "&" : "?"}ref=${encodeURIComponent(code)}`;
+      return Response.json({
+        offer,
+        link,
+        share_text: String(offer.share_message || "").replace(/\{link\}/g, link).replace(/\{name\}/g, String(member.name || "")),
+        member: { id: member.id, name: member.name, signed, booked, sent: (refs || []).length, tier, celebrated: Number(member.client_celebrated_tier || 0) },
+        referrals: (refs || []).map((r: Record<string, unknown>) => pick(r, ["id", "referredClientName", "status", "date"])),
+        rewards: (rewards || []).filter((r: Record<string, unknown>) => r.status !== "void").map((r: Record<string, unknown>) => pick(r, ["id", "kind", "title", "value", "status", "earned_at", "delivered_at", "referredClientName", "tier_index"])),
+      });
+    }
+
     // ---- Email signatures: the client's own signatures + templates, plus Interstellar's global templates ----
     const SIG_KEYS = ["id", "name", "template_id", "fields", "theme", "generated_html", "folder", "client_id", "source_template_id", "updated_date", "created_by"];
     const TPL_KEYS = ["id", "name", "description", "folder", "scope", "client_id", "is_default", "template_id", "fields", "theme", "preview_html", "updated_date"];
