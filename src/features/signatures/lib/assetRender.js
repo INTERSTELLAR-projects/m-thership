@@ -26,11 +26,11 @@ const rgba = (hex, a) => {
 const clamp01 = (t) => Math.max(0, Math.min(1, t));
 const prog = (f, start, len) => clamp01((f - start) / len);
 const easeOut = (t) => 1 - Math.pow(1 - t, 3);
-const easeBack = (t) => {
-  const c1 = 1.9;
-  const c3 = c1 + 1;
-  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-};
+const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+// 0 → 1 → 0 with eased in/out, so every effect leaves and returns to the resting design.
+const bump = (t) => Math.sin(Math.PI * easeInOut(clamp01(t)));
+// Every looping GIF starts and ends on the finished design (Outlook also only shows frame 1).
+const STEP = 40; // ms per frame ≈ 25fps, the smoothest rate every mail client honours
 
 function makeCanvas(w, h) {
   const c = document.createElement("canvas");
@@ -69,11 +69,13 @@ function shapePath(ctx, shape, x, y, w, h) {
 
 function shine(ctx, x, y, w, h, t, alpha = 0.6) {
   if (t <= 0 || t >= 1) return;
-  const band = Math.max(w, h) * 0.42;
-  const cx = x - band + (w + band * 2) * t;
+  const band = Math.max(w, h) * 0.6;
+  const cx = x - band + (w + band * 2) * easeInOut(t);
   const g = ctx.createLinearGradient(cx - band / 2, 0, cx + band / 2, 0);
   g.addColorStop(0, "rgba(255,255,255,0)");
+  g.addColorStop(0.35, `rgba(255,255,255,${alpha * 0.35})`);
   g.addColorStop(0.5, `rgba(255,255,255,${alpha})`);
+  g.addColorStop(0.65, `rgba(255,255,255,${alpha * 0.35})`);
   g.addColorStop(1, "rgba(255,255,255,0)");
   ctx.save();
   ctx.translate(cx, y + h / 2);
@@ -185,19 +187,19 @@ async function renderBadge(spec) {
   if (spec.anim === "none") {
     return { blob: await still(px, px, (ctx) => drawBadge(ctx, spec, px, {})), width: size, height: size };
   }
-  const count = 30;
+  const pulse = spec.anim === "pulse";
   const blob = film(
     px,
     px,
-    count,
+    40,
     (ctx, f) =>
       drawBadge(ctx, spec, px, {
-        pop: 0.72 + 0.28 * easeBack(prog(f, 0, 8)),
-        check: easeOut(prog(f, 5, 7)),
-        gleam: spec.anim === "pulse" ? 0 : prog(f, 15, 11),
-        ring: spec.anim === "pulse" ? prog(f, 13, 15) : 0,
+        pop: 1 + 0.1 * bump(prog(f, 1, 14)),
+        check: 1,
+        gleam: pulse ? 0 : prog(f, 7, 24),
+        ring: pulse ? prog(f, 3, 30) : 0,
       }),
-    holdLast(spec.anim === "pulse" ? 1400 : 2200, 40)
+    holdLast(2600, STEP)
   );
   return { blob, width: size, height: size };
 }
@@ -294,31 +296,34 @@ async function renderPhoto(spec) {
       ctx.lineTo(a - skew + gap / 2, x0 + w);
       ctx.closePath();
     };
+    // Strips glide apart in alternating directions, then lock back together.
     return out(
       film(
         px,
         px,
-        22,
+        46,
         (ctx, f) => {
           fill(ctx);
           for (let i = 0; i < N; i++) {
-            const t = easeOut(prog(f, i * 2, 11));
-            if (t <= 0) continue;
+            const d = bump(prog(f, 2 + i * 2.5, 30));
             const dir = i % 2 ? 1 : -1;
             ctx.save();
             shapePath(ctx, shape, x0, x0, w, w);
             ctx.clip();
-            ctx.globalAlpha = Math.min(1, t * 1.6);
-            ctx.translate(0, dir * w * (1 - t));
+            ctx.translate(0, dir * w * 0.075 * d);
             stripPath(ctx, i);
             ctx.clip();
-            cover(ctx, img, x0, x0, w, w);
+            cover(ctx, img, x0, x0, w, w, 1 + 0.03 * d);
             ctx.restore();
           }
-          ctx.globalAlpha = 1;
+          ctx.save();
+          shapePath(ctx, shape, x0, x0, w, w);
+          ctx.clip();
+          shine(ctx, x0, x0, w, w, prog(f, 10, 30), 0.32);
+          ctx.restore();
           plainRing(ctx);
         },
-        holdLast(3000, 42)
+        holdLast(3200, STEP)
       )
     );
   }
@@ -328,24 +333,24 @@ async function renderPhoto(spec) {
       film(
         px,
         px,
-        18,
+        34,
         (ctx, f) => {
           fill(ctx);
           base(ctx);
           ctx.save();
           shapePath(ctx, shape, x0, x0, w, w);
           ctx.clip();
-          shine(ctx, x0, x0, w, w, prog(f, 1, 15), 0.5);
+          shine(ctx, x0, x0, w, w, prog(f, 1, 31), 0.45);
           ctx.restore();
           plainRing(ctx);
         },
-        holdLast(2600, 45)
+        holdLast(3000, STEP)
       )
     );
   }
 
   if (spec.anim === "orbit") {
-    const n = 24;
+    const n = 45;
     return out(
       film(
         px,
@@ -361,13 +366,13 @@ async function renderPhoto(spec) {
           g.addColorStop(1, accent);
           ringStroke(ctx, g, pad * 0.62);
         },
-        () => 60
+        () => STEP
       )
     );
   }
 
   if (spec.anim === "glow") {
-    const n = 20;
+    const n = 40;
     return out(
       film(
         px,
@@ -386,13 +391,13 @@ async function renderPhoto(spec) {
           base(ctx);
           ringStroke(ctx, accent, Math.max(2, pad * 0.3));
         },
-        () => 70
+        () => 50
       )
     );
   }
 
   // zoom (slow push-in and back)
-  const n = 24;
+  const n = 44;
   return out(
     film(
       px,
@@ -400,10 +405,10 @@ async function renderPhoto(spec) {
       n,
       (ctx, f) => {
         fill(ctx);
-        base(ctx, 1 + 0.07 * (0.5 - 0.5 * Math.cos((f / n) * Math.PI * 2)));
+        base(ctx, 1 + 0.06 * (0.5 - 0.5 * Math.cos((f / n) * Math.PI * 2)));
         plainRing(ctx);
       },
-      () => 100
+      () => 70
     )
   );
 }
@@ -468,21 +473,15 @@ async function renderIcon(spec) {
   const px = size * 2;
   const out = (blob) => ({ blob, width: size, height: size });
   if (!spec.anim || spec.anim === "none") return out(await still(px, px, (ctx) => drawIcon(ctx, spec, px)));
-  const start = (spec.index || 0) * 2;
+  // Every icon GIF has the same length; only the start offset differs, so the wave stays in sync.
+  const start = 1 + Math.min(spec.index || 0, 6) * 4;
+  const total = 44;
   if (spec.anim === "pop") {
     return out(
-      film(
-        px,
-        px,
-        26,
-        (ctx, f) => drawIcon(ctx, spec, px, { squash: 1 - 0.17 * Math.sin(Math.PI * prog(f, start, 7)) }),
-        holdLast(2400, 40)
-      )
+      film(px, px, total, (ctx, f) => drawIcon(ctx, spec, px, { squash: 1 - 0.13 * bump(prog(f, start, 14)) }), holdLast(2800, STEP))
     );
   }
-  return out(
-    film(px, px, 26, (ctx, f) => drawIcon(ctx, spec, px, { gleam: prog(f, start, 11) }), holdLast(2600, 42))
-  );
+  return out(film(px, px, total, (ctx, f) => drawIcon(ctx, spec, px, { gleam: prog(f, start, 18) }), holdLast(2800, STEP)));
 }
 
 // ---- CTA button --------------------------------------------------------------------
@@ -615,14 +614,16 @@ async function renderCta(spec) {
   const out = (blob) => ({ blob, width: Math.round(cw / L.k), height: Math.round(ch / L.k) });
   if (!spec.anim || spec.anim === "none") return out(await still(cw, ch, (ctx) => drawCta(ctx, spec, L)));
   if (spec.anim === "pulse") {
-    const n = 20;
-    return out(film(cw, ch, n, (ctx, f) => drawCta(ctx, spec, L, { glow: 0.5 - 0.5 * Math.cos((f / n) * Math.PI * 2) }), () => 70));
+    const n = 40;
+    return out(film(cw, ch, n, (ctx, f) => drawCta(ctx, spec, L, { glow: 0.5 - 0.5 * Math.cos((f / n) * Math.PI * 2) }), () => 50));
   }
   if (spec.anim === "arrow") {
-    const n = 14;
-    return out(film(cw, ch, n, (ctx, f) => drawCta(ctx, spec, L, { nudge: 3.5 * (0.5 - 0.5 * Math.cos((f / n) * Math.PI * 2)) }), () => 60));
+    // Two quick nudges, then rest.
+    return out(
+      film(cw, ch, 34, (ctx, f) => drawCta(ctx, spec, L, { nudge: 4 * (bump(prog(f, 1, 14)) + bump(prog(f, 16, 14))) }), holdLast(1800, STEP))
+    );
   }
-  return out(film(cw, ch, 20, (ctx, f) => drawCta(ctx, spec, L, { gleam: prog(f, 1, 16) }), holdLast(1900, 45)));
+  return out(film(cw, ch, 36, (ctx, f) => drawCta(ctx, spec, L, { gleam: prog(f, 1, 32) }), holdLast(2400, STEP)));
 }
 
 // Display size estimate before rendering (so the preview layout doesn't jump).
