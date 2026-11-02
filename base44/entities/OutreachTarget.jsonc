@@ -1,0 +1,191 @@
+{
+  "name": "OutreachTarget",
+  "type": "object",
+  "description": "Backlinks & Citations: one place a client could get listed, linked or featured (directory, news outlet, podcast, chamber, resource page...). Found by Claude's research task or added by Justin. Only real, public, verified info: never invented contacts or metrics.",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "citation_directory",
+        "data_aggregator",
+        "industry_directory",
+        "local_news",
+        "national_news",
+        "trade_publication",
+        "blog_guest_post",
+        "podcast",
+        "association_chamber",
+        "awards_lists",
+        "journalist_request",
+        "resource_page",
+        "review_site",
+        "community_calendar",
+        "other"
+      ],
+      "default": "citation_directory"
+    },
+    "name": {
+      "type": "string",
+      "description": "Outlet / directory name"
+    },
+    "url": {
+      "type": "string",
+      "description": "Home page of the outlet"
+    },
+    "domain": {
+      "type": "string",
+      "description": "Bare domain (no www) for de-duplication and the 14-day same-domain rule"
+    },
+    "submission_url": {
+      "type": "string",
+      "description": "Direct link to the add-listing / submit / pitch page (verified to load)"
+    },
+    "submission_method": {
+      "type": "string",
+      "enum": [
+        "email",
+        "web_form",
+        "account_signup",
+        "phone",
+        "mail",
+        "unknown"
+      ],
+      "default": "unknown",
+      "description": "email = Claude can pitch it after approval. web_form/account_signup/phone/mail = needs a human or a browser (queued for Justin)."
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string",
+      "description": "Only a public business contact address found on the outlet's own site"
+    },
+    "contact_form_url": {
+      "type": "string"
+    },
+    "domain_authority_note": {
+      "type": "string",
+      "description": "Free text, e.g. 'regional daily, cited by Google News'. Never an invented DA/DR number."
+    },
+    "relevance": {
+      "type": "string",
+      "description": "Why this fits this client"
+    },
+    "cost": {
+      "type": "string",
+      "enum": [
+        "free",
+        "paid",
+        "freemium",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "cost_amount": {
+      "type": "string",
+      "description": "Only if stated on the site, e.g. '$99/yr'"
+    },
+    "requirements": {
+      "type": "string",
+      "description": "What they need: account, verification postcard, photo, membership, etc."
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "discovered",
+        "qualified",
+        "drafted",
+        "approved",
+        "sent",
+        "replied",
+        "won",
+        "lost",
+        "declined",
+        "skip"
+      ],
+      "default": "discovered"
+    },
+    "live_url": {
+      "type": "string",
+      "description": "The live listing / article / link once won"
+    },
+    "live_checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "live_ok": {
+      "type": "boolean",
+      "description": "Last verify run found the link / NAP on live_url"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Where this target was found (search result / list page)"
+    },
+    "found_by": {
+      "type": "string",
+      "enum": [
+        "claude",
+        "justin"
+      ],
+      "default": "justin"
+    },
+    "found_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the url/submission_url was last confirmed to load"
+    },
+    "last_action_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "name",
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
