@@ -36,9 +36,9 @@ export default function SlideFrame({
           position: 'absolute',
           top: 0,
           left: 0,
-          width: 236,
+          width: theme.accentGradient ? '100%' : 236,
           height: 5,
-          background: theme.accent,
+          background: theme.accentGradient || theme.accent,
           opacity: 0.95
         }}
       />
