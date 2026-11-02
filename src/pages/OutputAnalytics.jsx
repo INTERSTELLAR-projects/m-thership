@@ -4,8 +4,8 @@ import { base44 } from "@/api/base44Client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PageHeader from "../components/PageHeader";
 import { CheckCircle2, Clock, TrendingUp, Target, BarChart3, Loader2, Activity, AlertTriangle, FolderKanban, Timer } from "lucide-react";
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import GameChartTooltip from "../components/charts/GameChartTooltip";
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
+import { ChartTooltip, FlameDefs, KpiTile, axisProps, gridProps, cursorProps, barCursor } from "@/components/charts/ChartKit";
 import TimeIntelligence from "@/features/tasks/components/TimeIntelligence";
 import { TASK_STATUSES, OPEN_STATUSES, TASK_TYPES, PROJECT_TYPES, PROJECT_STATUSES } from "@/features/tasks/lib/constants";
 import { TIMER_CHANGED, totalSeconds } from "@/features/tasks/lib/timer";
@@ -74,42 +74,32 @@ function useOutputData() {
   return state;
 }
 
-function StatCard({ label, value, sub, icon: Icon, color = "text-orange-500" }) {
-  return (
-    <div className="game-panel p-5">
-      <div className="flex items-center justify-between mb-3">
-        <Icon className={`w-4 h-4 ${color}`} />
-      </div>
-      <p className={`text-3xl font-bold ${color}`}>{value}</p>
-      <p className="text-ink/50 text-xs font-medium mt-1">{label}</p>
-      {sub && <p className="text-ink/[0.43] text-[10px] mt-0.5">{sub}</p>}
-    </div>
-  );
-}
-
-const H3 = ({ children }) => (
-  <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">{children}</h3>
+const H3 = ({ children, right }) => (
+  <div className="mb-4 flex items-center justify-between gap-2">
+    <h3 className="mono-label flex items-center gap-2 text-[10px] text-ink/60"><span className="h-3 w-[3px] rounded-full flame-bg" />{children}</h3>
+    {right}
+  </div>
 );
 
+const ChartPanel = ({ children, className = "" }) => (
+  <div className={`card-hover relative overflow-hidden rounded-md border border-hair bg-card p-5 ${className}`}>{children}</div>
+);
+
+// Horizontal bar breakdown (count + share). Each row keeps its own semantic colour.
 function Bars({ rows, total }) {
+  const data = rows.map((s) => ({ ...s, pct: total ? Math.round((s.count / total) * 100) : 0 }));
   return (
-    <div className="space-y-3">
-      {rows.map((s) => {
-        const pct = total ? Math.round((s.count / total) * 100) : 0;
-        return (
-          <div key={s.label}>
-            <div className="flex justify-between items-center mb-1.5">
-              <span className="text-ink/60 text-xs">{s.label}</span>
-              <span className="text-ink/70 text-xs font-bold">
-                {s.count} <span className="text-ink/[0.48] font-normal">({pct}%)</span>
-              </span>
-            </div>
-            <div className="h-2 bg-ink/[0.06] rounded-full overflow-hidden">
-              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: s.color }} />
-            </div>
-          </div>
-        );
-      })}
+    <div style={{ height: Math.max(80, data.length * 34) }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }} barCategoryGap={8}>
+          <XAxis type="number" hide domain={[0, Math.max(1, ...data.map((d) => d.count))]} />
+          <YAxis type="category" dataKey="label" width={96} {...axisProps()} tick={{ ...axisProps().tick, fontFamily: "inherit", fontSize: 11.5 }} />
+          <Tooltip content={<ChartTooltip format={(v, n, p) => `${v} (${p.payload.pct}%)`} />} cursor={barCursor()} />
+          <Bar dataKey="count" name="Count" radius={[0, 4, 4, 0]} background={{ fill: "rgba(26,26,26,0.04)", radius: 4 }} label={{ position: "right", fill: "rgba(26,26,26,0.6)", fontSize: 11, formatter: (v) => v }}>
+            {data.map((d) => <Cell key={d.label} fill={d.color} />)}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }
