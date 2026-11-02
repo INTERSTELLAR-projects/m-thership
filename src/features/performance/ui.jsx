@@ -30,7 +30,7 @@ export function DarkEmpty({ children, icon: Icon }) {
 }
 
 // Animated ring with the brand gradient. score = null shows an empty dashed ring.
-export function ScoreRing({ score, size = 120, stroke = 10, label, sub, animate = true }) {
+export function ScoreRing({ score, size = 120, stroke = 10, label, sub, animate = true, hideBand = false }) {
   const gid = useId().replace(/:/g, "");
   const r = (size - stroke) / 2;
   const circ = 2 * Math.PI * r;
@@ -65,7 +65,7 @@ export function ScoreRing({ score, size = 120, stroke = 10, label, sub, animate 
           <span className="font-semibold leading-none tracking-[-0.05em] text-white tabular-nums" style={{ fontSize: Math.round(size * 0.3) }}>
             {score == null ? "—" : <CountUp value={score} duration={1000} />}
           </span>
-          {size >= 100 && <span className="mono-label mt-1 text-[8.5px]" style={{ color: b.color }}>{b.label}</span>}
+          {size >= 100 && !hideBand && <span className="mono-label mt-1 text-[8.5px]" style={{ color: b.color }}>{b.label}</span>}
         </div>
       </div>
       {label && <p className="mt-2 text-[12px] font-medium text-white/80">{label}</p>}
