@@ -5,6 +5,7 @@ import { useClientRecords } from "./hooks";
 import { Panel, Empty, Btn, SmallBtn, Tag, Stat, FormDialog } from "./ui";
 import { WORK_KINDS, SERVICE_LABELS, fmtDate, timeAgo } from "@/lib/useData";
 import { settleTimer } from "@/features/tasks/lib/timer";
+import { KIND_ORDER, kindLabel } from "@/features/requests/formSchema";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const kindOptions = Object.entries(WORK_KINDS).filter(([value]) => value !== "claude_job").map(([value, label]) => ({ value, label }));
@@ -272,11 +273,12 @@ export function RequestsTab({ client }) {
   const [filter, setFilter] = useState("open");
   const rows = reqs.rows.filter((r) => (filter === "open" ? !["complete", "declined"].includes(r.status) : ["complete", "declined"].includes(r.status)));
   const FIELDS = [
-    { name: "kind", label: "Type", type: "select", options: [{ value: "site_edit", label: "Website edit" }, { value: "project_submission", label: "New project" }, { value: "job", label: "Job completed" }, { value: "new_page", label: "New page" }, { value: "app_edit", label: "Ørigin 1.0 edit" }, { value: "question", label: "Question" }, { value: "other", label: "Other" }], required: true },
+    { name: "kind", label: "Type", type: "select", options: KIND_ORDER.map((k) => ({ value: k, label: kindLabel(k) })), required: true },
     { name: "title", label: "Title", type: "text", required: true },
     { name: "details", label: "Details", type: "textarea" },
     { name: "status", label: "Status", type: "select", options: ["received", "in_progress", "needs_info", "complete", "declined"], required: true },
-    { name: "priority", label: "Priority", type: "select", options: ["normal", "urgent"] },
+    { name: "priority", label: "Priority", type: "select", options: ["low", "normal", "high", "urgent"] },
+    { name: "due_date", label: "Needed by", type: "date" },
     { name: "client_note", label: "Note to client", type: "textarea", rows: 2, help: "Shown in their portal" },
     { name: "admin_notes", label: "Internal notes", type: "textarea", rows: 2 },
   ];
