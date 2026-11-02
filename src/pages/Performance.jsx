@@ -1,236 +1,212 @@
-import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
-import PageHeader from "../components/PageHeader";
-import ClientPerformanceDetail from "../components/performance/ClientPerformanceDetail";
-import { Search, Users, TrendingUp, AlertCircle, Globe, BarChart3, Loader2, FileText, Star } from "lucide-react";
-import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from "recharts";
-import GameChartTooltip from "../components/charts/GameChartTooltip";
+import { useMemo, useState } from "react";
+import { Search, Loader2, Gauge, PlayCircle, CircleSlash, ArrowUpRight, AlertTriangle } from "lucide-react";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ChartTooltip, FlameDefs, KpiTile, axisProps, gridProps, cursorProps } from "@/components/charts/ChartKit";
+import { timeAgo } from "@/lib/useData";
+import { useSiteData, runDueAudits, latestPair } from "@/features/performance/useSiteData";
+import { band, CATEGORY_LABELS, CATEGORY_ORDER, isAutoAuditBlocked } from "@/features/performance/policy";
+import { DarkPanel, DarkEmpty, ScoreRing, MiniBar, DarkButton } from "@/features/performance/ui";
+import ClientSiteDashboard from "@/features/performance/ClientSiteDashboard";
 
-const TOOLTIP_STYLE = {
-  contentStyle: { background: "#f5f3f0", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 11 },
-  labelStyle: { color: "rgba(255,255,255,0.4)" },
-  itemStyle: { color: "#ff3c00" },
-};
+const WEEK = 7 * 864e5;
+const weekStart = (d) => { const t = new Date(d); t.setHours(0, 0, 0, 0); t.setDate(t.getDate() - t.getDay()); return t; };
 
-function getClientScore(client) {
-  const blogs = (client.blogs || []).filter(b => b.status === "Published").length;
-  const gbpActive = client.gbpStatus === "Active" ? 1 : 0;
-  const hasWebsite = client.website ? 1 : 0;
-  const hasLocation = client.primaryLocation ? 1 : 0;
-  const seed = (client.businessName?.charCodeAt(0) || 65);
-  const base = 38 + (seed % 30) + blogs * 3 + gbpActive * 8 + hasWebsite * 5 + hasLocation * 3;
-  return Math.min(94, base);
-}
-
-function getPerformanceStatus(score) {
-  if (score >= 80) return { label: "Strong", color: "text-green-600", bg: "bg-green-500/10 border-green-500/20" };
-  if (score >= 65) return { label: "Growing", color: "text-blue-600", bg: "bg-blue-500/10 border-blue-500/20" };
-  if (score >= 50) return { label: "Flat", color: "text-ink/50", bg: "bg-ink/5 border-ink/[0.13]" };
-  if (score >= 35) return { label: "Needs Attention", color: "text-orange-600", bg: "bg-orange-500/10 border-orange-500/20" };
-  return { label: "Critical", color: "text-red-600", bg: "bg-red-500/10 border-red-500/20" };
-}
-
-function StatCard({ label, value, icon: Icon, color = "text-orange-500", sub }) {
+function SiteCard({ client, audits, fixes, onOpen }) {
+  const [cur, prev] = latestPair(audits, "mobile");
+  const blocked = isAutoAuditBlocked(client);
+  const issues = cur?.issues || [];
+  const crit = issues.filter((i) => i.severity === "critical" || i.severity === "high").length;
+  const d = cur && prev && cur.health_score != null && prev.health_score != null ? cur.health_score - prev.health_score : null;
+  const pending = fixes.filter((f) => f.status === "proposed" || f.status === "queued").length;
   return (
-    <div className="game-panel p-5">
-      <div className="flex items-center justify-between mb-3">
-        <Icon className={`w-4 h-4 ${color}`} />
+    <button type="button" onClick={onOpen} className="group relative flex flex-col overflow-hidden rounded-lg border border-white/10 bg-[#161514] p-4 text-left transition hover:-translate-y-0.5 hover:border-[#ff6a00]/50 hover:shadow-[0_18px_40px_-24px_rgba(255,60,0,0.6)]">
+      <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100" style={{ background: "radial-gradient(120% 90% at 0% 0%, rgba(255,60,0,.12), transparent 55%)" }} />
+      <div className="relative flex items-start gap-4">
+        <ScoreRing score={cur?.health_score ?? null} size={78} stroke={7} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[15px] font-semibold tracking-[-0.02em] text-white">{client.business}</p>
+          <p className="truncate text-[11.5px] text-white/45">{client.domain || (client.websites || [])[0]}</p>
+          <p className="mt-1.5 text-[11px] text-white/45">
+            {cur ? <>Audited {timeAgo(cur.run_at)}{d != null && <span className={d > 0 ? "text-emerald-300" : d < 0 ? "text-[#ff8a5c]" : ""}> · {d > 0 ? "+" : ""}{d}</span>}</> : "Not audited yet"}
+          </p>
+        </div>
+        <ArrowUpRight className="h-4 w-4 text-white/25 transition group-hover:text-[#ff8a5c]" />
       </div>
-      <p className={`text-3xl font-bold font-display ${color}`}>{value}</p>
-      <p className="text-ink/50 text-xs font-medium mt-1">{label}</p>
-      {sub && <p className="text-ink/[0.43] text-[10px] mt-0.5">{sub}</p>}
-    </div>
+      <div className="relative mt-4 space-y-1.5">
+        {CATEGORY_ORDER.map((k) => (
+          <div key={k} className="flex items-center gap-2">
+            <span className="w-[86px] shrink-0 text-[10.5px] text-white/45">{CATEGORY_LABELS[k]}</span>
+            <MiniBar value={cur?.scores?.[k] ?? null} />
+            <span className="w-7 text-right text-[11px] tabular-nums text-white/70">{cur?.scores?.[k] ?? "—"}</span>
+          </div>
+        ))}
+      </div>
+      <div className="relative mt-4 flex flex-wrap items-center gap-1.5">
+        {cur && <span className={`rounded-sm border px-1.5 py-0.5 text-[10px] font-semibold ${crit ? "border-[#ff3c00]/40 text-[#ff8a5c]" : "border-emerald-400/30 text-emerald-300"}`}>{crit ? `${crit} high-priority` : "No high-priority issues"}</span>}
+        {pending > 0 && <span className="rounded-sm border border-[#ffaa00]/30 px-1.5 py-0.5 text-[10px] font-semibold text-[#ffc566]">{pending} fix{pending === 1 ? "" : "es"} in progress</span>}
+        {blocked && <span className="inline-flex items-center gap-1 rounded-sm border border-white/15 px-1.5 py-0.5 text-[10px] text-white/50"><CircleSlash className="h-3 w-3" /> No auto-audit (Framer)</span>}
+      </div>
+    </button>
   );
 }
 
 export default function Performance() {
-  const [clients, setClients] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedClient, setSelectedClient] = useState(null);
+  const data = useSiteData();
+  const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState("");
-  const [filterType, setFilterType] = useState("All");
-  const [filterStatus, setFilterStatus] = useState("All");
+  const [filter, setFilter] = useState("all");
+  const [running, setRunning] = useState(false);
+  const [note, setNote] = useState("");
 
-  useEffect(() => {
-    base44.entities.OrbitSEOClient.list("-created_date", 200).then((data) => {
-      setClients(data);
-      setLoading(false);
+  const rows = useMemo(() => data.sites.map((c) => {
+    const audits = data.byClient.audits.get(c.id) || [];
+    const [cur, prev] = latestPair(audits, "mobile");
+    return { client: c, audits, cur, prev, fixes: data.byClient.fixes.get(c.id) || [] };
+  }), [data.sites, data.byClient]);
+
+  const audited = rows.filter((r) => r.cur?.health_score != null);
+  const avg = audited.length ? Math.round(audited.reduce((s, r) => s + r.cur.health_score, 0) / audited.length) : null;
+  const withPrev = audited.filter((r) => r.prev?.health_score != null);
+  const prevAvg = withPrev.length ? withPrev.reduce((s, r) => s + r.prev.health_score, 0) / withPrev.length : null;
+  const nowAvgSame = withPrev.length ? withPrev.reduce((s, r) => s + r.cur.health_score, 0) / withPrev.length : null;
+  const openHigh = rows.reduce((s, r) => s + (r.cur?.issues || []).filter((i) => i.severity === "critical" || i.severity === "high").length, 0);
+  const since30 = Date.now() - 30 * 864e5;
+  const applied30 = data.allFixes.filter((f) => f.status === "applied" && new Date(f.applied_at || 0).getTime() >= since30).length;
+  const applied60 = data.allFixes.filter((f) => f.status === "applied" && new Date(f.applied_at || 0).getTime() >= since30 - 30 * 864e5 && new Date(f.applied_at || 0).getTime() < since30).length;
+  const inFlight = data.allFixes.filter((f) => f.status === "proposed" || f.status === "queued").length;
+
+  // Portfolio trend: weekly average of each site's latest mobile health score that week (real audits only).
+  const trend = useMemo(() => {
+    const buckets = new Map();
+    data.allAudits.filter((a) => (a.strategy || "mobile") === "mobile" && typeof a.health_score === "number" && a.run_at).forEach((a) => {
+      const wk = weekStart(a.run_at).getTime();
+      if (Date.now() - wk > 16 * WEEK) return;
+      if (!buckets.has(wk)) buckets.set(wk, new Map());
+      const m = buckets.get(wk);
+      const prevA = m.get(a.client_id);
+      if (!prevA || String(a.run_at) > String(prevA.run_at)) m.set(a.client_id, a);
     });
-
-    const unsub = base44.entities.OrbitSEOClient.subscribe((e) => {
-      setClients((prev) => {
-        if (e.type === "create") return [...prev, e.data];
-        if (e.type === "update") return prev.map((c) => c.id === e.id ? e.data : c);
-        if (e.type === "delete") return prev.filter((c) => c.id !== e.id);
-        return prev;
-      });
+    return [...buckets.entries()].sort((a, b) => a[0] - b[0]).map(([wk, m]) => {
+      const vals = [...m.values()].map((a) => a.health_score);
+      return { label: new Date(wk).toLocaleDateString("en-US", { month: "short", day: "numeric" }), "Avg health": Math.round(vals.reduce((s, v) => s + v, 0) / vals.length), Sites: vals.length };
     });
-    return unsub;
-  }, []);
+  }, [data.allAudits]);
 
-  if (selectedClient) {
-    return <ClientPerformanceDetail client={selectedClient} onBack={() => setSelectedClient(null)} />;
-  }
+  const selected = rows.find((r) => r.client.id === selectedId);
 
-  // Aggregate stats
-  const allBlogs = clients.flatMap(c => c.blogs || []);
-  const allGbpPosts = clients.flatMap(c => c.gbpPosts || []);
-  const now = new Date();
-  const publishedThisMonth = allBlogs.filter(b => {
-    if (b.status !== "Published" || !b.publishDate) return false;
-    const d = new Date(b.publishDate + "T00:00:00");
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  }).length;
-  const gbpThisMonth = allGbpPosts.filter(p => {
-    if (!p.date) return false;
-    const d = new Date(p.date + "T00:00:00");
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  }).length;
+  const runDue = async () => {
+    setRunning(true); setNote("");
+    try {
+      const r = await runDueAudits();
+      const ok = (r.ran || []).filter((x) => !x.error).length;
+      const bad = (r.ran || []).filter((x) => x.error);
+      setNote([
+        ok ? `Audited ${ok} site${ok === 1 ? "" : "s"}.` : (r.ran || []).length ? "" : "Every site has a recent audit.",
+        bad.length ? `${bad.map((b) => `${b.client}: ${b.error}`).join("; ")}.` : "",
+        r.remaining ? `${r.remaining} more due — run again.` : "",
+        (r.skipped_blocked || []).length ? `Skipped ${r.skipped_blocked.join(", ")} (auto-audit off).` : "",
+      ].filter(Boolean).join(" "));
+      data.refresh();
+    } catch (e) {
+      setNote(e?.response?.data?.error || e?.message || "Could not run audits");
+    } finally { setRunning(false); }
+  };
 
-  const scores = clients.map(c => getClientScore(c));
-  const avgScore = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
-  const improving = clients.filter(c => getClientScore(c) >= 65).length;
-  const needsAttention = clients.filter(c => c.status === "Needs Attention" || getClientScore(c) < 50).length;
-
-  // Trend chart mock data
-  const trendData = Array.from({ length: 6 }, (_, i) => ({
-    month: ["Nov", "Dec", "Jan", "Feb", "Mar", "Apr"][i],
-    avgScore: Math.round(avgScore - (5 - i) * (Math.random() * 2 + 1)),
-    blogs: Math.round(publishedThisMonth * (0.5 + i * 0.1)),
-  }));
-
-  const filtered = clients.filter(c => {
-    const matchSearch = !search || c.businessName?.toLowerCase().includes(search.toLowerCase());
-    const matchType = filterType === "All" || c.serviceType === filterType;
-    const score = getClientScore(c);
-    const status = getPerformanceStatus(score).label;
-    const matchStatus = filterStatus === "All" || status === filterStatus || (filterStatus === "Needs Attention" && (status === "Needs Attention" || status === "Critical"));
-    return matchSearch && matchType && matchStatus;
-  });
+  const filtered = rows.filter((r) => {
+    if (search && !String(r.client.business).toLowerCase().includes(search.toLowerCase())) return false;
+    if (filter === "attention") return r.cur && ((r.cur.health_score ?? 100) < 75 || (r.cur.issues || []).some((i) => i.severity === "critical"));
+    if (filter === "unaudited") return !r.cur;
+    return true;
+  }).sort((a, b) => (a.cur?.health_score ?? 999) - (b.cur?.health_score ?? 999));
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command / Performance" rightText="HyperCare+ Intelligence" />
-
-      <div className="px-8 py-6 space-y-6">
-
-        {/* TOP OVERVIEW */}
-        <div className="grid grid-cols-8 gap-3">
-          <StatCard label="SEO Clients Tracked" value={clients.length} icon={Users} color="text-orange-500" />
-          <StatCard label="Avg SEO Score" value={avgScore || "—"} icon={Star} color="text-yellow-600" sub="across all clients" />
-          <StatCard label="Clients Improving" value={improving} icon={TrendingUp} color="text-green-600" />
-          <StatCard label="Needs Attention" value={needsAttention} icon={AlertCircle} color={needsAttention > 0 ? "text-orange-600" : "text-ink/[0.48]"} />
-          <StatCard label="Blogs This Month" value={publishedThisMonth} icon={FileText} color="text-purple-600" />
-          <StatCard label="GBP Posts This Month" value={gbpThisMonth} icon={Globe} color="text-cyan-600" />
-          <div className="col-span-2 game-panel p-4">
-            <p className="text-ink/[0.48] text-[10px] uppercase tracking-wider mb-2">Avg Score Trend</p>
-            <ResponsiveContainer width="100%" height={70}>
-              <AreaChart data={trendData}>
-                <defs>
-                  <linearGradient id="ovGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#ff3c00" stopOpacity={0.6} />
-                      <stop offset="100%" stopColor="#ffaa00" stopOpacity={0.04} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 9 }} tickLine={false} />
-                <Tooltip content={<GameChartTooltip />} cursor={{ stroke: 'rgba(255,170,0,0.25)', strokeWidth: 1 }} />
-                <Area type="monotone" dataKey="avgScore" stroke="#ff3c00" fill="url(#ovGrad)" strokeWidth={2} dot={false} activeDot={{ r: 3, fill: '#ff3c00', stroke: '#ffaa00', strokeWidth: 1 }} style={{ filter: 'drop-shadow(0 0 5px rgba(255,170,0,0.4))' }} />
-              </AreaChart>
-            </ResponsiveContainer>
+    <div className="min-h-screen bg-[#0e0d0c] text-white">
+      <div className="relative overflow-hidden border-b border-white/[0.07] px-4 pb-6 pt-7 md:px-8">
+        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-30 blur-3xl" style={{ background: "radial-gradient(circle, #ff3c00, #ff6a00 40%, transparent 70%)" }} />
+        <div className="relative flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="mono-label text-[10.5px] text-white/45">(Command) · HyperCare+ Intelligence</p>
+            <h1 className="mt-3 text-[34px] font-semibold leading-[0.95] tracking-[-0.045em] md:text-[46px]">Site <span className="flame-text">/Performance</span></h1>
+            <p className="mt-2 max-w-xl text-[13px] text-white/50">Real Lighthouse audits, Core Web Vitals and indexing checks for every client site — with a fix for every issue.</p>
           </div>
+          {!selected && (
+            <DarkButton variant="flame" onClick={runDue} disabled={running}>
+              {running ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PlayCircle className="h-3.5 w-3.5" />}
+              {running ? "Auditing due sites…" : "Audit sites due (7+ days)"}
+            </DarkButton>
+          )}
         </div>
+        <span className="pointer-events-none absolute bottom-[-1px] left-0 h-[2px] w-40 flame-bg" />
+      </div>
 
-        {/* FILTERS */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/[0.38]" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search clients..." className="w-full pl-10 pr-4 py-2 bg-card border border-ink/[0.13] rounded-lg text-sm text-ink placeholder:text-ink/[0.38] outline-none" />
-          </div>
-          <div className="flex gap-1.5">
-            {["All", "Local", "National", "International"].map((t) => (
-              <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterType === t ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-600 border border-orange-500/30" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{t}</button>
-            ))}
-          </div>
-          <div className="flex gap-1.5">
-            {["All", "Strong", "Growing", "Flat", "Needs Attention"].map((s) => (
-              <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filterStatus === s ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-600 border border-orange-500/30" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{s}</button>
-            ))}
-          </div>
-          <span className="ml-auto text-ink/[0.43] text-xs">{filtered.length} clients</span>
-        </div>
+      <div className="page-enter space-y-5 px-4 py-6 md:px-8">
+        {note && <p className="rounded-md border border-white/10 bg-white/[0.03] px-3 py-2 text-[12.5px] text-white/70">{note}</p>}
 
-        {/* CLIENT LIST */}
-        {loading ? (
-          <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" /></div>
-        ) : filtered.length === 0 ? (
-          <div className="game-panel p-12 text-center">
-            <BarChart3 className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
-            <p className="text-ink/[0.48] text-sm">{clients.length === 0 ? "No HyperCare+ clients yet. Add clients in the HyperCare+ section." : "No clients match your filters."}</p>
-          </div>
+        {data.loading ? (
+          <div className="flex justify-center py-24"><Loader2 className="h-6 w-6 animate-spin text-white/40" /></div>
+        ) : selected ? (
+          <ClientSiteDashboard
+            client={selected.client}
+            audits={selected.audits}
+            fixes={selected.fixes}
+            gaps={data.byClient.gaps.get(selected.client.id) || []}
+            snaps={data.byClient.snaps.get(selected.client.id) || []}
+            work={data.byClient.work.get(selected.client.id) || []}
+            onBack={() => setSelectedId(null)}
+            onChanged={data.refresh}
+          />
         ) : (
-          <div className="space-y-2">
-            {/* Header row */}
-            <div className="grid grid-cols-12 gap-4 px-4 pb-2">
-              <span className="col-span-3 text-ink/[0.43] text-[10px] uppercase tracking-wider">Client</span>
-              <span className="col-span-1 text-ink/[0.43] text-[10px] uppercase tracking-wider text-center">SEO Score</span>
-              <span className="col-span-1 text-ink/[0.43] text-[10px] uppercase tracking-wider text-center">Authority</span>
-              <span className="col-span-2 text-ink/[0.43] text-[10px] uppercase tracking-wider">Type</span>
-              <span className="col-span-2 text-ink/[0.43] text-[10px] uppercase tracking-wider">GBP Status</span>
-              <span className="col-span-1 text-ink/[0.43] text-[10px] uppercase tracking-wider text-center">Blogs</span>
-              <span className="col-span-2 text-ink/[0.43] text-[10px] uppercase tracking-wider text-right">Status</span>
+          <>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+              <KpiTile dark accent label="Avg site health" value={avg} display={avg == null ? "—" : undefined} prev={prevAvg != null && nowAvgSame != null ? prevAvg : undefined} sub={audited.length ? `${audited.length} audited site${audited.length === 1 ? "" : "s"}` : "No audits yet"} />
+              <KpiTile dark label="Sites tracked" value={rows.length} sub={`${rows.length - audited.length} not audited`} />
+              <KpiTile dark label="High-priority issues" value={openHigh} goodWhen="down" sub="critical + high, latest audits" />
+              <KpiTile dark label="Fixes applied · 30d" value={applied30} prev={applied60 || undefined} sub="vs previous 30 days" />
+              <KpiTile dark label="Fixes in progress" value={inFlight} sub="drafts + with Claude" />
             </div>
-            {filtered.map((client) => {
-              const score = getClientScore(client);
-              const authority = Math.max(18, score - 12 - ((client.businessName?.charCodeAt(1) || 66) % 15));
-              const perf = getPerformanceStatus(score);
-              const publishedBlogs = (client.blogs || []).filter(b => b.status === "Published").length;
-              const scoreColor = score >= 75 ? "text-[#34D399]" : score >= 55 ? "text-[#ff3c00]" : "text-red-600";
-              const authorityColor = authority >= 60 ? "text-[#34D399]" : authority >= 40 ? "text-[#ff3c00]" : "text-red-600";
 
-              return (
-                <button key={client.id} onClick={() => setSelectedClient(client)} className="card-hover w-full game-panel p-4 grid grid-cols-12 gap-4 items-center text-left group">
-                  <div className="col-span-3 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-600 font-display font-extrabold text-sm shrink-0">
-                      {client.businessName?.charAt(0)}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-ink/85 text-sm font-medium truncate">{client.businessName}</p>
-                      <p className="text-ink/[0.48] text-xs truncate">{client.primaryLocation || "—"}</p>
-                    </div>
-                  </div>
-                  <div className="col-span-1 text-center">
-                    <span className={`text-lg font-bold font-display ${scoreColor}`}>{score}</span>
-                    <p className="text-ink/[0.38] text-[10px] font-display">/100</p>
-                  </div>
-                  <div className="col-span-1 text-center">
-                    <span className={`text-lg font-bold font-display ${authorityColor}`}>{authority}</span>
-                    <p className="text-ink/[0.38] text-[10px] font-display">/100</p>
-                  </div>
-                  <div className="col-span-2">
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
-                      client.serviceType === "Local" ? "bg-blue-500/10 text-blue-600 border-blue-500/20" :
-                      client.serviceType === "National" ? "bg-purple-500/10 text-purple-600 border-purple-500/20" :
-                      "bg-orange-500/10 text-orange-600 border-orange-500/20"
-                    }`}>{client.serviceType}</span>
-                  </div>
-                  <div className="col-span-2">
-                    <span className={`text-xs font-medium ${client.gbpStatus === "Active" ? "text-green-600/70" : client.gbpStatus === "Needs Attention" ? "text-orange-600" : "text-ink/[0.48]"}`}>
-                      {client.gbpStatus || "—"}
-                    </span>
-                  </div>
-                  <div className="col-span-1 text-center">
-                    <span className="text-ink/70 text-sm font-semibold font-display">{publishedBlogs}</span>
-                    <p className="text-ink/[0.38] text-[10px]">published</p>
-                  </div>
-                  <div className="col-span-2 flex justify-end">
-                    <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg border ${perf.bg} ${perf.color}`}>{perf.label}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+            <DarkPanel label="Portfolio" title="Average site health by week">
+              {trend.length < 2 ? (
+                <DarkEmpty icon={Gauge}>{audited.length ? "The trend line starts once audits span two different weeks." : "Run the first audits to see scores here. Nothing is estimated — every number comes from a real audit."}</DarkEmpty>
+              ) : (
+                <div className="h-[230px] px-2 pb-3 pt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={trend} margin={{ top: 4, right: 12, left: -18, bottom: 0 }}>
+                      <FlameDefs id="portfolio" />
+                      <CartesianGrid {...gridProps(true)} />
+                      <XAxis dataKey="label" {...axisProps(true)} minTickGap={20} />
+                      <YAxis domain={[0, 100]} {...axisProps(true)} width={40} />
+                      <Tooltip content={<ChartTooltip dark />} cursor={cursorProps(true)} />
+                      <Area type="monotone" dataKey="Avg health" stroke="url(#portfolio-stroke)" strokeWidth={2.5} fill="url(#portfolio-area)" dot={false} activeDot={{ r: 4, fill: "#ff6a00", stroke: "#fff", strokeWidth: 1.5 }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </DarkPanel>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative w-full max-w-xs">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
+                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search sites…" className="w-full rounded-md border border-white/10 bg-white/[0.03] py-2 pl-9 pr-3 text-[13px] text-white outline-none placeholder:text-white/35 focus:border-[#ff6a00]/60" />
+              </div>
+              <div className="flex rounded-md border border-white/10 p-0.5">
+                {[["all", "All"], ["attention", "Needs attention"], ["unaudited", "Not audited"]].map(([k, l]) => (
+                  <button key={k} type="button" onClick={() => setFilter(k)} className={`rounded px-2.5 py-1 text-[12px] transition ${filter === k ? "bg-white/10 text-white" : "text-white/45 hover:text-white"}`}>{l}</button>
+                ))}
+              </div>
+              <span className="ml-auto text-[11.5px] text-white/40">{filtered.length} site{filtered.length === 1 ? "" : "s"} · lowest first</span>
+            </div>
+
+            {filtered.length === 0 ? (
+              <DarkPanel><DarkEmpty icon={AlertTriangle}>{rows.length === 0 ? "No active clients with a website and a Website or HyperCare+ service yet." : "No sites match."}</DarkEmpty></DarkPanel>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                {filtered.map((r) => <SiteCard key={r.client.id} client={r.client} audits={r.audits} fixes={r.fixes} onOpen={() => setSelectedId(r.client.id)} />)}
+              </div>
+            )}
+            <p className="text-[11px] text-white/35">Health bands: {[95, 80, 60, 30].map((s) => band(s).label).join(" · ")}. Client portals never show a score under 70.</p>
+          </>
         )}
-
       </div>
     </div>
   );
