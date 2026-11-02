@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
       };
       let card = { headline: `Here's your month with Interstellar, ${ctx.client.business}.`, summary: "", highlights: [] as string[], next_up: [] as string[] };
       try {
-        const out = await base44.asServiceRole.integrations.Core.InvokeLLM({
+        const out: any = await base44.asServiceRole.integrations.Core.InvokeLLM({
           prompt: [
             "You are the Interstellar Assistant for Interstellar Strategies (tagline: The Future of Business), writing a short daily briefing card for a client in their portal.",
             "Voice: friendly, confident, concise, upbeat, plain English. No emoji, no hype words, no exclamation marks.",

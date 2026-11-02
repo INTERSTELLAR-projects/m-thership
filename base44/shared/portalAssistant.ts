@@ -27,9 +27,14 @@ export const daysAgo = (n: number) => new Date(Date.now() - n * 86400000).toISOS
 const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 
 // ---- Client resolution (mirrors base44/functions/portal/entry.ts) ----
-export async function resolvePortalClient(base44: any, body: Row = {}) {
+export type Ctx = {
+  user: Row; client: Row; cid: string; db: any; preview: boolean;
+  by: (entity: string, sort?: string, limit?: number) => Promise<Row[]>;
+};
+
+export async function resolvePortalClient(base44: any, body: Row = {}): Promise<{ error: Response } | Ctx> {
   const user = await base44.auth.me().catch(() => null);
-  if (!user) return { error: json({ error: "Not signed in" }, 401) } as const;
+  if (!user) return { error: json({ error: "Not signed in" }, 401) };
   const db = base44.asServiceRole.entities;
   let client: Row | null = null;
   let preview = false;
@@ -48,20 +53,18 @@ export async function resolvePortalClient(base44: any, body: Row = {}) {
       client = await db.CRMClient.get(String(asClient)).catch(() => null);
       preview = !!client;
     }
-    if (!client) return { error: json({ error: "Admin: open the assistant from a client's portal preview so it knows which client to act as.", code: "no_client" }, 403) } as const;
+    if (!client) return { error: json({ error: "Admin: open the assistant from a client's portal preview so it knows which client to act as.", code: "no_client" }, 403) };
   } else {
     const email = String(user.email || "").toLowerCase();
     const all = await db.CRMClient.filter({ portal_enabled: true }, "business", 500);
     client = (all || []).find((c: Row) => ((c.portal_emails as string[]) || []).some((e) => String(e).toLowerCase() === email)) || null;
-    if (!client) return { error: json({ error: "No portal is set up for this login yet.", code: "no_client" }, 403) } as const;
+    if (!client) return { error: json({ error: "No portal is set up for this login yet.", code: "no_client" }, 403) };
   }
   const cid = client.id as string;
-  const by = (entity: string, sort = "-created_date", limit = 500) =>
+  const by = (entity: string, sort = "-created_date", limit = 500): Promise<Row[]> =>
     db[entity].filter({ client_id: cid }, sort, limit).then((r: Row[]) => r || []).catch(() => [] as Row[]);
-  return { user, client, cid, db, by, preview } as const;
+  return { user, client: client as Row, cid, db, by, preview };
 }
-
-export type Ctx = Exclude<Awaited<ReturnType<typeof resolvePortalClient>>, { error: Response }>;
 
 // ---- Site health: mirrors clientHealthSummary() in src/features/performance/policy.js ----
 const CLIENT_SCORE_FLOOR = 70;
