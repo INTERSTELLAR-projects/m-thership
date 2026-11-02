@@ -1,18 +1,38 @@
 {
   "name": "Idea",
-  "type": "object",
   "properties": {
-    "title": {
-      "type": "string"
-    },
-    "description": {
+    "aiAnalysis": {
       "type": "string"
     },
     "category": {
       "type": "string"
     },
+    "date": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "plan": {
+      "additionalProperties": true,
+      "description": "AI Action Plan: verdict, do_first, pareto, phases, ignore, risks, kill_criteria, first_metric, hormozi_angle, resources",
+      "type": "object"
+    },
+    "plan_generated_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "plan_progress": {
+      "additionalProperties": true,
+      "description": "Map of plan step key (p{phase}-{step}) to true when checked off",
+      "type": "object"
+    },
+    "project_id": {
+      "description": "Project created from this idea's plan",
+      "type": "string"
+    },
     "status": {
-      "type": "string",
+      "default": "New",
       "enum": [
         "New",
         "In Review",
@@ -20,18 +40,16 @@
         "Implemented",
         "Shelved"
       ],
-      "default": "New"
-    },
-    "date": {
       "type": "string"
     },
-    "aiAnalysis": {
+    "title": {
       "type": "string"
     }
   },
   "required": [
     "title"
   ],
+  "type": "object",
   "rls": {
     "create": {
       "user_condition": {
