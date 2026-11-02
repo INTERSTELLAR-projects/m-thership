@@ -1,23 +1,36 @@
-import { getIconSpec, DEFAULT_CTA } from "./iconLibrary";
+// Email-signature HTML engine. Table-based, inline styles only (Gmail/Outlook/Apple Mail safe).
+// Anything that moves (check, photo, icons, CTA) is a hosted GIF rendered by assetRender.js.
+import { assetKey } from "./assetStore";
+import { mix } from "./assetRender";
+import { PLATFORMS, PLATFORM_BY_ID } from "./brandIcons";
 
-// ---- Defaults ---------------------------------------------------------------
+// ---- Defaults -------------------------------------------------------------------
+
+export const DEFAULT_CTA = { label: "Book a Call", url: "", style: "gradient", anim: "shine", icon: "arrow", radius: 8 };
 
 export const DEFAULT_THEME = {
   accent_color: "#ff6a00",
-  text_color: "#1a1a1a",
-  border_color: "#e5e2de",
+  accent_color_2: "#ffaa00",
+  text_color: "#141414",
+  border_color: "#e7e3de",
   surface_color: "#ffffff",
   font: "Inter",
-  border_style: "box", // "box" | "none"
-  border_radius: "12px",
+  border_style: "box", // box | none
+  border_radius: "14px",
   accent_bar: true,
-  badge_animated: true,
-  icon_style: "badge",
-  icon_shape: "circle",
-  icon_size: 26,
+  badge_style: "shine", // shine | pulse | none
+  badge_color: "#0a95ff",
+  badge_size: 18,
+  icon_style: "brand", // brand | logo | accent | ink | soft | outline | white
+  icon_shape: "circle", // circle | rounded | square
+  icon_size: 30,
   icon_gap: 8,
-  icon_layout: "row",
+  icon_layout: "row", // row | column | grid
+  icon_anim: "shine", // none | shine | pop
+  contact_style: "caps", // caps | bold
 };
+
+const SOCIAL_DEFAULTS = Object.fromEntries(PLATFORMS.map((p) => [p.id, { show: false, url: "" }]));
 
 export const DEFAULT_FIELDS = {
   full_name: "Alex Morgan",
@@ -30,24 +43,26 @@ export const DEFAULT_FIELDS = {
   website: "nebulalabs.com",
   website_show: true,
   profile_photo_url: "",
-  photo_rounded: true,
-  photo_side: "right", // "right" | "left"
-  photo_size: "md", // "sm" | "md" | "lg"
+  photo_side: "right", // left | right | top
+  photo_px: 124,
+  photo_shape: "rounded", // circle | rounded | square | slant
+  photo_anim: "slice", // none | slice | shine | orbit | glow | zoom
+  photo_ring: false,
   logo_url: "",
+  logo_height: 34,
   verified_badge: true,
   social: {
-    website: { show: false, url: "" },
+    ...SOCIAL_DEFAULTS,
     instagram: { show: true, url: "https://instagram.com/" },
     linkedin: { show: true, url: "https://linkedin.com/" },
-    facebook: { show: false, url: "" },
     x: { show: true, url: "https://x.com/" },
-    tiktok: { show: false, url: "" },
-    youtube: { show: false, url: "" },
   },
   cta: { ...DEFAULT_CTA },
+  assets: {},
 };
 
 export const TEMPLATES = [
+  { id: "t5_rail", name: "Signature", description: "Icon rail, big animated photo" },
   { id: "t1_classic", name: "Executive", description: "Framed panel with portrait" },
   { id: "t2_minimal", name: "Editorial", description: "Borderless, type-first" },
   { id: "t3_compact", name: "Inline", description: "Tight single block" },
@@ -61,412 +76,416 @@ const FONT_STACK = {
   Georgia: "Georgia, 'Times New Roman', serif",
 };
 
-// ---- Helpers ----------------------------------------------------------------
+// Older saved signatures used different keys; map them onto the current engine.
+const LEGACY_ICON_STYLE = { badge: "brand", tint: "accent", dark: "ink", color: "logo", mono: "outline" };
 
-function esc(str) {
-  if (str == null) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function hex2rgb(hex) {
-  const raw = String(hex || "").replace("#", "");
-  const full = raw.length === 3 ? raw.split("").map((c) => c + c).join("") : raw;
-  const n = parseInt(full, 16);
-  if (isNaN(n) || full.length !== 6) return { r: 26, g: 26, b: 26 };
-  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
-}
-
-function toHex({ r, g, b }) {
-  const part = (v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0");
-  return `#${part(r)}${part(g)}${part(b)}`;
-}
-
-// amount = how much of `to` is blended in (0 → from, 1 → to)
-function mix(from, to, amount) {
-  const a = hex2rgb(from);
-  const b = hex2rgb(to);
-  return toHex({ r: a.r + (b.r - a.r) * amount, g: a.g + (b.g - a.g) * amount, b: a.b + (b.b - a.b) * amount });
-}
-
-const fontOf = (theme) => FONT_STACK[theme.font] || FONT_STACK.Inter;
-const mutedOf = (theme) => mix(theme.text_color, "#ffffff", 0.45);
-const softAccentOf = (theme) => mix(theme.accent_color, "#ffffff", 0.86);
-
-function visibleSocial(fields) {
-  const social = fields.social || {};
-  return ["website", "instagram", "linkedin", "facebook", "x", "tiktok", "youtube"]
-    .map((id) => ({ id, ...social[id] }))
-    .filter((s) => s.show && s.url);
-}
-
-// Animated verified badge: brighter blue, live shine + pulse ring.
-// Email clients that strip <style> simply show the static gradient badge.
-const BADGE_STYLE = `<style type="text/css">
-@keyframes sigVShine{0%{transform:translateX(-150%) rotate(18deg)}55%,100%{transform:translateX(260%) rotate(18deg)}}
-@keyframes sigVPulse{0%{box-shadow:0 0 0 0 rgba(0,145,255,.55)}70%{box-shadow:0 0 0 6px rgba(0,145,255,0)}100%{box-shadow:0 0 0 0 rgba(0,145,255,0)}}
-</style>`;
-
-function verifiedBadge(animated = true) {
-  const base = `display:inline-block;position:relative;overflow:hidden;vertical-align:middle;width:17px;height:17px;margin-left:5px;border-radius:50%;background-color:#0091ff;background-image:linear-gradient(150deg,#63c9ff 0%,#0091ff 52%,#0064f0 100%);color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:700;line-height:17px;text-align:center;`;
-  if (!animated) return `<span class="sig-v" style="${base}">&#10003;</span>`;
-  const shine = `<span style="position:absolute;top:-40%;left:0;width:55%;height:180%;background-image:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.85),rgba(255,255,255,0));animation:sigVShine 3.4s ease-in-out infinite;">&#8203;</span>`;
-  return `<span class="sig-v" style="${base}animation:sigVPulse 2.8s ease-out infinite;box-shadow:0 0 0 0 rgba(0,145,255,.55);">&#10003;${shine}</span>`;
-}
-
-function iconCell(platformId, theme) {
-  const spec = getIconSpec(platformId, theme);
-  if (!spec.url) return "";
-  if (!spec.bubble) {
-    return `<img src="${esc(spec.url)}" width="${spec.img}" height="${spec.img}" alt="${esc(
-      platformId
-    )}" style="display:block;width:${spec.img}px;height:${spec.img}px;border:0;" />`;
-  }
-  return `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;"><tr><td width="${
-    spec.box
-  }" align="center" bgcolor="${esc(spec.bg)}" style="width:${spec.box}px;border-radius:${
-    spec.radius
-  };border:${spec.border};padding:${spec.pad}px;text-align:center;vertical-align:middle;"><img src="${esc(
-    spec.url
-  )}" width="${spec.img}" height="${spec.img}" alt="${esc(
-    platformId
-  )}" style="display:block;margin:0 auto;width:${spec.img}px;height:${spec.img}px;border:0;" /></td></tr></table>`;
-}
-
-function socialBlock(fields, theme, align) {
-  const items = visibleSocial(fields);
-  if (!items.length) return "";
-  const layout = theme.icon_layout || "row";
-  const gap = Number(theme.icon_gap) || 0;
-  const link = (s) => `<a href="${esc(s.url)}" style="text-decoration:none;" target="_blank">${iconCell(s.id, theme)}</a>`;
-  const alignAttr = align === "center" ? ` align="center"` : "";
-
-  if (layout === "column") {
-    const rows = items
-      .map((s, i) => `<tr><td style="padding:0 0 ${i === items.length - 1 ? 0 : gap}px 0;">${link(s)}</td></tr>`)
-      .join("");
-    return `<table cellpadding="0" cellspacing="0" border="0"${alignAttr}>${rows}</table>`;
-  }
-
-  if (layout === "grid") {
-    const rows = [];
-    for (let i = 0; i < items.length; i += 2) {
-      const second = items[i + 1];
-      rows.push(
-        `<tr><td style="padding:0 ${gap}px ${Math.max(2, Math.round(gap * 0.8))}px 0;">${link(items[i])}</td><td style="padding:0 0 ${Math.max(
-          2,
-          Math.round(gap * 0.8)
-        )}px 0;">${second ? link(second) : ""}</td></tr>`
-      );
-    }
-    return `<table cellpadding="0" cellspacing="0" border="0"${alignAttr}>${rows.join("")}</table>`;
-  }
-
-  const cells = items
-    .map((s, i) => `<td style="padding:0 ${i === items.length - 1 ? 0 : gap}px 0 0;">${link(s)}</td>`)
-    .join("");
-  return `<table cellpadding="0" cellspacing="0" border="0"${alignAttr}><tr>${cells}</tr></table>`;
-}
-
-function photoSize(fields) {
-  if (fields.photo_size === "sm") return 72;
-  if (fields.photo_size === "lg") return 116;
-  return 92;
-}
-
-function photoHtml(fields, theme, size) {
-  if (!fields.profile_photo_url) return "";
-  const px = size || photoSize(fields);
-  const radius = fields.photo_rounded ? "50%" : "10px";
-  return `<img src="${esc(fields.profile_photo_url)}" width="${px}" height="${px}" alt="${esc(
-    fields.full_name
-  )}" style="display:block;width:${px}px;height:${px}px;object-fit:cover;border-radius:${radius};border:2px solid ${esc(
-    mix(theme.accent_color, "#ffffff", 0.6)
-  )};" />`;
-}
-
-function logoHtml(fields, theme, height = 34) {
-  if (!fields.logo_url) return "";
-  return `<img src="${esc(fields.logo_url)}" height="${height}" alt="${esc(
-    fields.company_name
-  )}" style="display:block;height:${height}px;width:auto;max-width:160px;border:0;margin:0 0 12px 0;" />`;
-}
-
-function nameBlock(fields, theme, size = 17) {
-  const font = fontOf(theme);
-  return `<div style="font-family:${font};font-size:${size}px;line-height:${size + 5}px;font-weight:700;letter-spacing:-0.3px;color:${esc(
-    theme.text_color
-  )};">${esc(fields.full_name)}${fields.verified_badge ? verifiedBadge(theme.badge_animated !== false) : ""}</div>`;
-}
-
-function titleLine(fields, theme, size = 12.5) {
-  if (!fields.job_title) return "";
-  return `<div style="font-family:${fontOf(theme)};font-size:${size}px;line-height:${size + 5}px;font-weight:600;color:${esc(
-    theme.accent_color
-  )};margin-top:4px;">${esc(fields.job_title)}</div>`;
-}
-
-function companyLine(fields, theme, marginTop = 7) {
-  if (!fields.company_name) return "";
-  return `<div style="font-family:${fontOf(theme)};font-size:9.5px;line-height:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.16em;color:${esc(
-    mutedOf(theme)
-  )};margin-top:${marginTop}px;">${esc(fields.company_name)}</div>`;
-}
-
-function divider(theme, margin = "12px 0") {
-  return `<div style="border-top:1px solid ${esc(
-    theme.border_color
-  )};font-size:0;line-height:0;margin:${margin};">&nbsp;</div>`;
-}
-
-function contactRows(fields, theme) {
-  const font = fontOf(theme);
-  const labelColor = mutedOf(theme);
-  const rows = [];
-  const row = (label, value, href) =>
-    rows.push(
-      `<tr><td style="padding:2px 12px 2px 0;font-family:${font};font-size:8.5px;line-height:16px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:${esc(
-        labelColor
-      )};white-space:nowrap;vertical-align:top;">${esc(label)}</td><td style="padding:2px 0;font-family:${font};font-size:11.5px;line-height:16px;color:${esc(
-        theme.text_color
-      )};"><a href="${esc(href)}" style="color:${esc(theme.text_color)};text-decoration:none;">${esc(value)}</a></td></tr>`
-    );
-  if (fields.phone_show && fields.phone) row("Call", fields.phone, `tel:${fields.phone.replace(/[^\d+]/g, "")}`);
-  if (fields.email_show && fields.email) row("Mail", fields.email, `mailto:${fields.email}`);
-  if (fields.website_show && fields.website)
-    row("Web", fields.website, fields.website.startsWith("http") ? fields.website : `https://${fields.website}`);
-  return rows.length ? `<table cellpadding="0" cellspacing="0" border="0">${rows.join("")}</table>` : "";
-}
-
-function contactInline(fields, theme) {
-  const font = fontOf(theme);
-  const parts = [];
-  if (fields.phone_show && fields.phone)
-    parts.push(
-      `<a href="tel:${esc(fields.phone.replace(/[^\d+]/g, ""))}" style="color:${esc(
-        theme.text_color
-      )};text-decoration:none;">${esc(fields.phone)}</a>`
-    );
-  if (fields.email_show && fields.email)
-    parts.push(`<a href="mailto:${esc(fields.email)}" style="color:${esc(theme.text_color)};text-decoration:none;">${esc(fields.email)}</a>`);
-  if (fields.website_show && fields.website) {
-    const href = fields.website.startsWith("http") ? fields.website : `https://${fields.website}`;
-    parts.push(`<a href="${esc(href)}" style="color:${esc(theme.text_color)};text-decoration:none;">${esc(fields.website)}</a>`);
-  }
-  if (!parts.length) return "";
-  return `<div style="font-family:${font};font-size:11px;line-height:16px;color:${esc(
-    theme.text_color
-  )};margin-top:6px;">${parts.join(`<span style="color:${esc(mutedOf(theme))};"> &nbsp;·&nbsp; </span>`)}</div>`;
-}
-
-function ctaButtonHtml(fields, theme) {
-  const cta = { ...DEFAULT_CTA, ...(fields.cta || {}) };
-  if (!cta.label) return "";
-  const font = fontOf(theme);
-  const accent = theme.accent_color;
-  const href = esc(cta.url || "#");
-  const label = esc(cta.label);
-  const base = `display:inline-block;text-decoration:none;font-family:${font};font-size:10.5px;line-height:14px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;`;
-
-  if (cta.style === "link") {
-    return `<a href="${href}" style="${base}color:${esc(
-      accent
-    )};padding:2px 0;border-bottom:1.5px solid ${esc(accent)};">${label} &nbsp;&#8594;</a>`;
-  }
-
-  const conf =
-    {
-      solid: { bg: accent, fg: "#ffffff", border: accent, radius: "7px", pad: "11px 20px" },
-      gradient: {
-        bg: accent,
-        fg: "#ffffff",
-        border: mix(accent, "#ffffff", 0.2),
-        radius: "7px",
-        pad: "11px 20px",
-        extra: `background-image:linear-gradient(100deg,${esc(accent)},${esc(mix(accent, "#ffffff", 0.38))});`,
-      },
-      outline: { bg: theme.surface_color, fg: accent, border: accent, radius: "7px", pad: "10px 19px" },
-      tint: { bg: softAccentOf(theme), fg: accent, border: softAccentOf(theme), radius: "7px", pad: "11px 20px" },
-      pill: { bg: accent, fg: "#ffffff", border: accent, radius: "999px", pad: "11px 22px" },
-      dark: { bg: "#1a1a1a", fg: "#ffffff", border: "#1a1a1a", radius: "7px", pad: "11px 20px" },
-    }[cta.style] || null;
-
-  const style = conf || { bg: accent, fg: "#ffffff", border: accent, radius: "7px", pad: "11px 20px" };
-  return `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;"><tr><td align="center" bgcolor="${esc(
-    style.bg
-  )}" style="border-radius:${style.radius};border:1px solid ${esc(style.border)};${style.extra || ""}"><a href="${href}" style="${base}color:${esc(
-    style.fg
-  )};padding:${style.pad};display:inline-block;">${label}</a></td></tr></table>`;
-}
-
-function framedStyle(theme) {
-  if (theme.border_style !== "box") return "";
-  return `border:1px solid ${esc(theme.border_color)};border-radius:${esc(theme.border_radius)};background:${esc(
-    theme.surface_color
-  )};`;
-}
-
-function accentBar(theme) {
-  if (theme.border_style !== "box" || !theme.accent_bar) return "";
-  const radius = esc(theme.border_radius);
-  return `<tr><td style="height:3px;line-height:3px;font-size:0;background-color:${esc(
-    theme.accent_color
-  )};background-image:linear-gradient(90deg,${esc(theme.accent_color)},${esc(
-    mix(theme.accent_color, "#ffffff", 0.45)
-  )});border-radius:${radius} ${radius} 0 0;">&nbsp;</td></tr>`;
-}
-
-// ---- Template 1: Executive (framed panel) -----------------------------------
-
-function template1(fields, theme) {
-  const font = fontOf(theme);
-  const social = socialBlock(fields, theme);
-  const cta = ctaButtonHtml(fields, theme);
-  const contacts = contactRows(fields, theme);
-  const photo = fields.profile_photo_url
-    ? `<td width="${photoSize(fields) + 16}" style="vertical-align:top;${
-        fields.photo_side === "left" ? "padding-right:16px;" : "padding-left:16px;"
-      }">${photoHtml(fields, theme)}</td>`
-    : "";
-  const left = fields.photo_side === "left" ? photo : "";
-  const right = fields.photo_side === "left" ? "" : photo;
-
-  return `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;${framedStyle(theme)}">${accentBar(
-    theme
-  )}<tr><td style="padding:16px 18px;"><table cellpadding="0" cellspacing="0" border="0"><tr>${left}<td style="vertical-align:top;font-family:${font};">${logoHtml(
-    fields,
-    theme
-  )}${nameBlock(fields, theme)}${titleLine(fields, theme)}${companyLine(fields, theme)}${
-    contacts ? `${divider(theme)}${contacts}` : ""
-  }${social ? `<div style="margin-top:13px;">${social}</div>` : ""}${
-    cta ? `<div style="margin-top:15px;">${cta}</div>` : ""
-  }</td>${right}</tr></table></td></tr></table>`;
-}
-
-// ---- Template 2: Editorial (borderless, type-first) -------------------------
-
-function template2(fields, theme) {
-  const font = fontOf(theme);
-  const social = socialBlock(fields, theme);
-  const cta = ctaButtonHtml(fields, theme);
-  const contacts = contactRows(fields, theme);
-  const photo = fields.profile_photo_url
-    ? `<td width="${photoSize(fields) + 18}" style="vertical-align:top;${
-        fields.photo_side === "left" ? "padding-right:18px;" : "padding-left:18px;"
-      }">${photoHtml(fields, theme)}</td>`
-    : "";
-  const left = fields.photo_side === "left" ? photo : "";
-  const right = fields.photo_side === "left" ? "" : photo;
-
-  return `<table cellpadding="0" cellspacing="0" border="0"><tr>${left}<td style="vertical-align:top;font-family:${font};">${logoHtml(
-    fields,
-    theme
-  )}${nameBlock(fields, theme, 20)}${titleLine(fields, theme, 13)}${
-    fields.company_name
-      ? `<div style="font-family:${font};font-size:10px;line-height:15px;letter-spacing:0.16em;text-transform:uppercase;color:${esc(
-          mutedOf(theme)
-        )};margin-top:8px;">${esc(fields.company_name)}</div>`
-      : ""
-  }${contacts ? `${divider(theme, "14px 0")}${contacts}` : ""}${
-    social ? `<div style="margin-top:14px;">${social}</div>` : ""
-  }${cta ? `<div style="margin-top:16px;">${cta}</div>` : ""}</td>${right}</tr></table>`;
-}
-
-// ---- Template 3: Inline (compact) -------------------------------------------
-
-function template3(fields, theme) {
-  const font = fontOf(theme);
-  const social = socialBlock(fields, theme);
-  const cta = ctaButtonHtml(fields, theme);
-  const photo = fields.profile_photo_url
-    ? `<td width="${photoSize(fields) + 14}" style="vertical-align:middle;${
-        fields.photo_side === "left" ? "padding-right:14px;" : "padding-left:14px;"
-      }">${photoHtml(fields, theme, fields.photo_size === "lg" ? 88 : 64)}</td>`
-    : "";
-  const left = fields.photo_side === "left" ? photo : "";
-  const right = fields.photo_side === "left" ? "" : photo;
-  const role = [fields.job_title, fields.company_name].filter(Boolean).map(esc).join(" · ");
-
-  return `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;${framedStyle(
-    theme
-  )}">${accentBar(theme)}<tr><td style="padding:12px 15px;"><table cellpadding="0" cellspacing="0" border="0"><tr>${left}<td style="vertical-align:middle;font-family:${font};">${nameBlock(
-    fields,
-    theme,
-    14
-  )}${
-    role
-      ? `<div style="font-family:${font};font-size:11px;line-height:16px;color:${esc(mutedOf(theme))};margin-top:2px;">${role}</div>`
-      : ""
-  }${contactInline(fields, theme)}${social ? `<div style="margin-top:9px;">${social}</div>` : ""}${
-    cta ? `<div style="margin-top:10px;">${cta}</div>` : ""
-  }</td>${right}</tr></table></td></tr></table>`;
-}
-
-// ---- Template 4: Card (centered portrait) -----------------------------------
-
-function template4(fields, theme) {
-  const font = fontOf(theme);
-  const social = socialBlock(fields, theme, "center");
-  const cta = ctaButtonHtml(fields, theme);
-  const contacts = contactRows(fields, theme);
-  const photo = fields.profile_photo_url
-    ? `<div style="margin:0 0 12px 0;">${photoHtml(fields, theme)}</div>`
-    : "";
-
-  return `<table cellpadding="0" cellspacing="0" border="0" align="center" style="border-collapse:separate;${framedStyle(
-    theme
-  )}">${accentBar(theme)}<tr><td style="padding:20px 22px;text-align:center;font-family:${font};">${
-    fields.logo_url ? `<div style="text-align:center;"><img src="${esc(fields.logo_url)}" height="30" alt="${esc(
-      fields.company_name
-    )}" style="display:inline-block;height:30px;width:auto;max-width:150px;border:0;margin:0 0 12px 0;" /></div>` : ""
-  }${photo}${nameBlock(fields, theme, 18)}${
-    fields.job_title
-      ? `<div style="font-family:${font};font-size:12px;line-height:17px;color:${esc(theme.accent_color)};margin-top:4px;">${esc(
-          fields.job_title
-        )}</div>`
-      : ""
-  }${
-    fields.company_name
-      ? `<div style="font-family:${font};font-size:9.5px;line-height:14px;letter-spacing:0.16em;text-transform:uppercase;color:${esc(
-          mutedOf(theme)
-        )};margin-top:6px;">${esc(fields.company_name)}</div>`
-      : ""
-  }<div style="height:1px;width:38px;line-height:1px;font-size:0;background:${esc(
-    theme.accent_color
-  )};margin:12px auto 0 auto;">&nbsp;</div>${contacts ? `<div style="margin-top:12px;">${contacts}</div>` : ""}${
-    social ? `<div style="margin-top:14px;">${social}</div>` : ""
-  }${cta ? `<div style="margin-top:16px;">${cta}</div>` : ""}</td></tr></table>`;
-}
-
-// ---- Public API -------------------------------------------------------------
-
-export function generateSignatureHTML({ fields, theme, template_id }) {
+export function normalize(fields = {}, theme = {}) {
   const f = {
     ...DEFAULT_FIELDS,
     ...fields,
     social: { ...DEFAULT_FIELDS.social, ...(fields.social || {}) },
     cta: { ...DEFAULT_CTA, ...(fields.cta || {}) },
+    assets: fields.assets || {},
   };
+  if (fields.photo_px == null && fields.photo_size) f.photo_px = { sm: 88, md: 112, lg: 140 }[fields.photo_size] || 124;
+  if (fields.photo_shape == null && fields.photo_rounded != null) f.photo_shape = fields.photo_rounded ? "circle" : "rounded";
   const t = { ...DEFAULT_THEME, ...theme };
-  let body;
-  switch (template_id) {
-    case "t2_minimal":
-      body = template2(f, t);
-      break;
-    case "t3_compact":
-      body = template3(f, t);
-      break;
-    case "t4_centered":
-      body = template4(f, t);
-      break;
-    case "t1_classic":
-    default:
-      body = template1(f, t);
+  if (LEGACY_ICON_STYLE[t.icon_style]) t.icon_style = LEGACY_ICON_STYLE[t.icon_style];
+  if (theme.badge_style == null && theme.badge_animated === false) t.badge_style = "none";
+  return { f, t };
+}
+
+// ---- Helpers --------------------------------------------------------------------
+
+function esc(str) {
+  if (str == null) return "";
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+const href = (u) => {
+  const s = String(u || "").trim();
+  if (!s) return "#";
+  return /^(https?:|mailto:|tel:)/i.test(s) ? s : `https://${s}`;
+};
+const fontOf = (t) => FONT_STACK[t.font] || FONT_STACK.Inter;
+const mutedOf = (t) => mix(t.text_color, "#ffffff", 0.45);
+const matteOf = (t) => (t.border_style === "box" ? t.surface_color : "#ffffff");
+const TBL = `cellpadding="0" cellspacing="0" border="0"`;
+
+function img(a, alt, extra = "") {
+  return `<img src="${esc(a.url)}" width="${a.width}" height="${a.height}" alt="${esc(alt)}" style="display:block;width:${a.width}px;height:${a.height}px;border:0;outline:none;${extra}" />`;
+}
+
+// Context passed through the templates: f (fields), t (theme), A(spec) -> asset | null.
+function makeCtx(fields, theme, assets, final, collected) {
+  const { f, t } = normalize(fields, theme);
+  const A = (spec) => {
+    const key = assetKey(spec);
+    collected[key] = spec;
+    return assets ? assets.get(key, final) : null;
+  };
+  return { f, t, A, final };
+}
+
+// ---- Building blocks ------------------------------------------------------------
+
+function badgeHtml(c) {
+  const { f, t, A } = c;
+  if (!f.verified_badge) return "";
+  const size = Number(t.badge_size) || 18;
+  const a = A({ kind: "badge", color: t.badge_color, anim: t.badge_style, size, bg: matteOf(t) });
+  if (!a || a.failed) return "";
+  return `<td style="padding-left:6px;vertical-align:middle;">${img(a, "Verified")}</td>`;
+}
+
+function nameRow(c, size = 17) {
+  const { f, t } = c;
+  return `<table ${TBL}><tr><td style="font-family:${fontOf(t)};font-size:${size}px;line-height:${size + 5}px;font-weight:800;letter-spacing:-0.3px;color:${esc(
+    t.text_color
+  )};vertical-align:middle;">${esc(f.full_name)}</td>${badgeHtml(c)}</tr></table>`;
+}
+
+function titleLine(c, size = 12.5, color) {
+  const { f, t } = c;
+  if (!f.job_title) return "";
+  return `<div style="font-family:${fontOf(t)};font-size:${size}px;line-height:${size + 5}px;font-weight:600;color:${esc(
+    color || t.accent_color
+  )};margin-top:3px;">${esc(f.job_title)}</div>`;
+}
+
+function companyLine(c, mt = 6) {
+  const { f, t } = c;
+  if (!f.company_name) return "";
+  return `<div style="font-family:${fontOf(t)};font-size:9.5px;line-height:14px;font-weight:800;text-transform:uppercase;letter-spacing:0.16em;color:${esc(
+    mutedOf(t)
+  )};margin-top:${mt}px;">${esc(f.company_name)}</div>`;
+}
+
+function logoHtml(c, center = false) {
+  const { f } = c;
+  if (!f.logo_url) return "";
+  const h = Number(f.logo_height) || 34;
+  return `<img src="${esc(f.logo_url)}" height="${h}" alt="${esc(f.company_name)}" style="display:${
+    center ? "inline-block" : "block"
+  };height:${h}px;width:auto;max-width:180px;border:0;margin:0 0 12px 0;" />`;
+}
+
+function divider(t, margin = "12px 0") {
+  return `<div style="border-top:1px solid ${esc(t.border_color)};font-size:0;line-height:0;margin:${margin};">&nbsp;</div>`;
+}
+
+function contactList(f) {
+  const out = [];
+  if (f.phone_show && f.phone) out.push({ cap: "Call", bold: "Phone", v: f.phone, h: `tel:${f.phone.replace(/[^\d+]/g, "")}` });
+  if (f.email_show && f.email) out.push({ cap: "Mail", bold: "Email", v: f.email, h: `mailto:${f.email}` });
+  if (f.website_show && f.website) out.push({ cap: "Web", bold: "Website", v: f.website, h: href(f.website) });
+  return out;
+}
+
+function contactRows(c) {
+  const { f, t } = c;
+  const font = fontOf(t);
+  const items = contactList(f);
+  if (!items.length) return "";
+  if (t.contact_style === "bold") {
+    const rows = items
+      .map(
+        (i) =>
+          `<tr><td style="padding:1.5px 0;font-family:${font};font-size:12px;line-height:17px;color:${esc(
+            t.text_color
+          )};"><a href="${esc(i.h)}" style="color:${esc(t.text_color)};text-decoration:none;font-weight:700;">${esc(
+            i.bold
+          )}:&nbsp; <span style="font-weight:500;color:${esc(t.accent_color)};">${esc(i.v)}</span></a></td></tr>`
+      )
+      .join("");
+    return `<table ${TBL}>${rows}</table>`;
   }
-  return BADGE_STYLE + body;
+  const rows = items
+    .map(
+      (i) =>
+        `<tr><td style="padding:2px 12px 2px 0;font-family:${font};font-size:8.5px;line-height:16px;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;color:${esc(
+          t.accent_color
+        )};white-space:nowrap;vertical-align:top;">${esc(i.cap)}</td><td style="padding:2px 0;font-family:${font};font-size:12px;line-height:16px;color:${esc(
+          t.text_color
+        )};"><a href="${esc(i.h)}" style="color:${esc(t.text_color)};text-decoration:none;">${esc(i.v)}</a></td></tr>`
+    )
+    .join("");
+  return `<table ${TBL}>${rows}</table>`;
+}
+
+function contactInline(c) {
+  const { f, t } = c;
+  const items = contactList(f);
+  if (!items.length) return "";
+  return `<div style="font-family:${fontOf(t)};font-size:11.5px;line-height:17px;color:${esc(t.text_color)};margin-top:6px;">${items
+    .map((i) => `<a href="${esc(i.h)}" style="color:${esc(t.text_color)};text-decoration:none;">${esc(i.v)}</a>`)
+    .join(`<span style="color:${esc(t.accent_color)};"> &nbsp;&bull;&nbsp; </span>`)}</div>`;
+}
+
+function visibleSocial(f) {
+  return PLATFORMS.map((p) => ({ ...p, ...(f.social[p.id] || {}) })).filter((s) => s.show && s.url);
+}
+
+function socialBlock(c, { layout, center = false } = {}) {
+  const { f, t, A } = c;
+  const items = visibleSocial(f);
+  if (!items.length) return "";
+  const size = Number(t.icon_size) || 30;
+  const gap = Number(t.icon_gap) || 0;
+  const mode = layout || t.icon_layout || "row";
+  const link = (s, i) => {
+    const a = A({
+      kind: "icon",
+      platform: s.id,
+      style: t.icon_style,
+      shape: t.icon_shape,
+      size,
+      accent: t.accent_color,
+      bg: matteOf(t),
+      anim: t.icon_anim,
+      index: t.icon_anim === "none" ? 0 : i,
+    });
+    if (a?.failed) return "";
+    const inner = a ? img(a, PLATFORM_BY_ID[s.id].label) : `<div style="width:${size}px;height:${size}px;"></div>`;
+    return `<a href="${esc(href(s.url))}" target="_blank" style="text-decoration:none;display:block;">${inner}</a>`;
+  };
+  const align = center ? ` align="center"` : "";
+  if (mode === "column") {
+    return `<table ${TBL}${align}>${items
+      .map((s, i) => `<tr><td style="padding:0 0 ${i === items.length - 1 ? 0 : gap}px 0;">${link(s, i)}</td></tr>`)
+      .join("")}</table>`;
+  }
+  if (mode === "grid") {
+    const rows = [];
+    for (let i = 0; i < items.length; i += 2) {
+      const b = items[i + 1];
+      rows.push(
+        `<tr><td style="padding:0 ${gap}px ${gap}px 0;">${link(items[i], i)}</td><td style="padding:0 0 ${gap}px 0;">${
+          b ? link(b, i + 1) : ""
+        }</td></tr>`
+      );
+    }
+    return `<table ${TBL}${align}>${rows.join("")}</table>`;
+  }
+  return `<table ${TBL}${align}><tr>${items
+    .map((s, i) => `<td style="padding:0 ${i === items.length - 1 ? 0 : gap}px 0 0;">${link(s, i)}</td>`)
+    .join("")}</tr></table>`;
+}
+
+function ctaHtmlButton(c, cta) {
+  const { t } = c;
+  const font = fontOf(t);
+  const accent = t.accent_color;
+  const accent2 = t.accent_color_2 || mix(accent, "#ffffff", 0.35);
+  const label = esc(cta.label);
+  const link = esc(href(cta.url));
+  const base = `display:inline-block;text-decoration:none;font-family:${font};font-size:11px;line-height:14px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;`;
+  if (cta.style === "link") {
+    return `<a href="${link}" style="${base}color:${esc(accent)};padding:2px 0;border-bottom:2px solid ${esc(accent)};">${label} &nbsp;&#8594;</a>`;
+  }
+  const r = cta.style === "pill" ? "999px" : `${Number(cta.radius ?? 8)}px`;
+  const conf =
+    {
+      solid: { bg: accent, fg: "#ffffff", bd: accent },
+      gradient: { bg: accent, fg: "#ffffff", bd: accent, extra: `background-image:linear-gradient(100deg,${esc(accent)},${esc(accent2)});` },
+      pill: { bg: accent, fg: "#ffffff", bd: accent, extra: `background-image:linear-gradient(100deg,${esc(accent)},${esc(accent2)});` },
+      outline: { bg: matteOf(t), fg: accent, bd: accent },
+      glass: { bg: mix(accent, "#ffffff", 0.88), fg: mix(accent, "#000000", 0.2), bd: mix(accent, "#ffffff", 0.5) },
+      neon: { bg: "#0c0c0e", fg: "#ffffff", bd: accent },
+      ink: { bg: "#111111", fg: "#ffffff", bd: "#111111" },
+    }[cta.style] || { bg: accent, fg: "#ffffff", bd: accent };
+  return `<table ${TBL} style="border-collapse:separate;"><tr><td align="center" bgcolor="${esc(conf.bg)}" style="border-radius:${r};border:1.5px solid ${esc(
+    conf.bd
+  )};${conf.extra || ""}"><a href="${link}" style="${base}color:${esc(conf.fg)};padding:11px 20px;">${label}${
+    cta.icon && cta.icon !== "none" ? " &nbsp;&#8594;" : ""
+  }</a></td></tr></table>`;
+}
+
+function ctaBlock(c, center = false) {
+  const { f, t, A } = c;
+  const cta = f.cta;
+  if (!cta || !cta.label) return "";
+  const asImage = cta.style !== "link" && (cta.anim !== "none" || cta.style === "glass" || cta.style === "neon");
+  if (asImage) {
+    const a = A({
+      kind: "cta",
+      label: cta.label,
+      style: cta.style,
+      anim: cta.anim,
+      icon: cta.icon,
+      radius: Number(cta.radius ?? 8),
+      accent: t.accent_color,
+      accent2: t.accent_color_2,
+      bg: matteOf(t),
+      font: t.font,
+    });
+    if (a && !a.failed) {
+      return `<a href="${esc(href(cta.url))}" target="_blank" style="text-decoration:none;display:${center ? "inline-block" : "block"};">${img(
+        a,
+        cta.label
+      )}</a>`;
+    }
+  }
+  return ctaHtmlButton(c, cta);
+}
+
+function photoBlock(c, sizeOverride) {
+  const { f, t, A } = c;
+  if (!f.profile_photo_url) return "";
+  const size = sizeOverride || Number(f.photo_px) || 124;
+  const a = A({
+    kind: "photo",
+    src: f.profile_photo_url,
+    size,
+    shape: f.photo_shape,
+    anim: f.photo_anim,
+    ring: !!f.photo_ring,
+    accent: t.accent_color,
+    accent2: t.accent_color_2,
+    bg: matteOf(t),
+  });
+  if (a && !a.failed) return img(a, f.full_name);
+  const radius = f.photo_shape === "circle" ? "50%" : f.photo_shape === "square" ? "4px" : "18%";
+  return `<img src="${esc(f.profile_photo_url)}" width="${size}" height="${size}" alt="${esc(
+    f.full_name
+  )}" style="display:block;width:${size}px;height:${size}px;object-fit:cover;border-radius:${radius};border:0;" />`;
+}
+
+function withPhoto(c, inner, { gap = 18, valign = "middle", center = false, size } = {}) {
+  const photo = photoBlock(c, size);
+  if (!photo) return inner;
+  const side = c.f.photo_side || "right";
+  if (side === "top") {
+    const al = center ? ` align="center"` : "";
+    return `<table ${TBL}${al}><tr><td${al} style="padding:0 0 ${gap - 4}px 0;">${photo}</td></tr><tr><td${al}>${inner}</td></tr></table>`;
+  }
+  const ph = `<td style="vertical-align:${valign};padding:${side === "left" ? `0 ${gap}px 0 0` : `0 0 0 ${gap}px`};">${photo}</td>`;
+  const body = `<td style="vertical-align:${valign};">${inner}</td>`;
+  return `<table ${TBL}><tr>${side === "left" ? ph + body : body + ph}</tr></table>`;
+}
+
+function accentBar(t) {
+  if (!t.accent_bar) return "";
+  const r = esc(t.border_radius);
+  return `<tr><td bgcolor="${esc(t.accent_color)}" style="height:4px;line-height:4px;font-size:0;background-color:${esc(
+    t.accent_color
+  )};background-image:linear-gradient(90deg,${esc(t.accent_color)},${esc(t.accent_color_2 || t.accent_color)});border-radius:${r} ${r} 0 0;">&nbsp;</td></tr>`;
+}
+
+function frame(c, inner, pad = "18px 20px", center = false) {
+  const { t } = c;
+  if (t.border_style !== "box") return inner;
+  return `<table ${TBL}${center ? ` align="center"` : ""} bgcolor="${esc(t.surface_color)}" style="border-collapse:separate;border:1px solid ${esc(
+    t.border_color
+  )};border-radius:${esc(t.border_radius)};background-color:${esc(t.surface_color)};">${accentBar(t)}<tr><td style="padding:${pad};">${inner}</td></tr></table>`;
+}
+
+// ---- Templates ------------------------------------------------------------------
+
+// Signature: vertical icon rail, logo, name + check, contacts, CTA, big animated photo.
+function tRail(c) {
+  const { t } = c;
+  const font = fontOf(t);
+  const social = socialBlock(c, { layout: "column" });
+  const cta = ctaBlock(c);
+  const contacts = contactRows(c);
+  const content = `<td style="vertical-align:middle;font-family:${font};">${logoHtml(c)}${nameRow(c, 18)}${titleLine(c, 12.5)}${companyLine(
+    c,
+    7
+  )}${contacts ? `<div style="margin-top:10px;">${contacts}</div>` : ""}${cta ? `<div style="margin-top:13px;">${cta}</div>` : ""}</td>`;
+  const rail = social
+    ? `<td style="vertical-align:middle;padding:0 18px 0 0;"><table ${TBL} style="border-collapse:separate;border:1px solid ${esc(
+        t.border_color
+      )};border-radius:12px;"><tr><td style="padding:9px 8px;">${social}</td></tr></table></td>`
+    : "";
+  const inner = `<table ${TBL}><tr>${rail}${content}</tr></table>`;
+  return frame(c, withPhoto(c, inner, { gap: 22, valign: "middle" }), "16px 18px");
+}
+
+// Executive: framed panel, details stack, social row, CTA.
+function tExecutive(c) {
+  const { t } = c;
+  const font = fontOf(t);
+  const social = socialBlock(c);
+  const cta = ctaBlock(c);
+  const contacts = contactRows(c);
+  const inner = `<div style="font-family:${font};">${logoHtml(c)}${nameRow(c)}${titleLine(c)}${companyLine(c)}${
+    contacts ? `${divider(t)}${contacts}` : ""
+  }${social ? `<div style="margin-top:13px;">${social}</div>` : ""}${cta ? `<div style="margin-top:15px;">${cta}</div>` : ""}</div>`;
+  return frame(c, withPhoto(c, inner, { gap: 18, valign: "top" }));
+}
+
+// Editorial: borderless, type-first, accent rule.
+function tEditorial(c) {
+  const { t } = c;
+  const font = fontOf(t);
+  const social = socialBlock(c);
+  const cta = ctaBlock(c);
+  const contacts = contactRows(c);
+  const inner = `<table ${TBL}><tr><td style="border-left:3px solid ${esc(t.accent_color)};padding:2px 0 2px 16px;font-family:${font};">${logoHtml(
+    c
+  )}${nameRow(c, 21)}${titleLine(c, 13)}${companyLine(c, 8)}${contacts ? `<div style="margin-top:12px;">${contacts}</div>` : ""}${
+    social ? `<div style="margin-top:13px;">${social}</div>` : ""
+  }${cta ? `<div style="margin-top:15px;">${cta}</div>` : ""}</td></tr></table>`;
+  return withPhoto(c, inner, { gap: 20, valign: "middle" });
+}
+
+// Inline: compact one-block signature.
+function tInline(c) {
+  const { f, t } = c;
+  const font = fontOf(t);
+  const social = socialBlock(c, { layout: "row" });
+  const cta = ctaBlock(c);
+  const role = [f.job_title, f.company_name].filter(Boolean).map(esc).join(" &middot; ");
+  const inner = `<div style="font-family:${font};">${nameRow(c, 15)}${
+    role ? `<div style="font-family:${font};font-size:11.5px;line-height:16px;color:${esc(mutedOf(t))};margin-top:2px;">${role}</div>` : ""
+  }${contactInline(c)}${
+    social || cta
+      ? `<table ${TBL} style="margin-top:9px;"><tr>${social ? `<td style="vertical-align:middle;padding-right:12px;">${social}</td>` : ""}${
+          cta ? `<td style="vertical-align:middle;">${cta}</td>` : ""
+        }</tr></table>`
+      : ""
+  }</div>`;
+  return frame(c, withPhoto(c, inner, { gap: 14, valign: "middle", size: Math.min(Number(f.photo_px) || 124, 84) }), "13px 16px");
+}
+
+// Card: centered portrait card.
+function tCard(c) {
+  const { f, t } = c;
+  const font = fontOf(t);
+  const social = socialBlock(c, { layout: "row", center: true });
+  const cta = ctaBlock(c, true);
+  const contacts = contactRows(c);
+  const photo = photoBlock(c);
+  const inner = `<div style="text-align:center;font-family:${font};">${f.logo_url ? `<div>${logoHtml(c, true)}</div>` : ""}${
+    photo ? `<table ${TBL} align="center"><tr><td style="padding:0 0 12px 0;">${photo}</td></tr></table>` : ""
+  }<table ${TBL} align="center"><tr><td>${nameRow(c, 19)}</td></tr></table>${titleLine(c, 12.5)}${companyLine(
+    c,
+    6
+  )}<div style="height:2px;width:40px;line-height:2px;font-size:0;background:${esc(t.accent_color)};margin:12px auto 0 auto;">&nbsp;</div>${
+    contacts ? `<table ${TBL} align="center" style="margin-top:12px;"><tr><td style="text-align:left;">${contacts}</td></tr></table>` : ""
+  }${social ? `<div style="margin-top:14px;">${social}</div>` : ""}${cta ? `<div style="margin-top:16px;">${cta}</div>` : ""}</div>`;
+  return frame(c, inner, "22px 26px", true);
+}
+
+const RENDER = { t5_rail: tRail, t1_classic: tExecutive, t2_minimal: tEditorial, t3_compact: tInline, t4_centered: tCard };
+
+// ---- Public API -----------------------------------------------------------------
+
+/**
+ * assets: { get(key, final) } from useSignatureAssets. final=true only returns hosted URLs.
+ */
+export function generateSignatureHTML({ fields = {}, theme = {}, template_id, assets = null, final = false }) {
+  const c = makeCtx(fields, theme, assets, final, {});
+  const body = (RENDER[template_id] || tRail)(c);
+  return `<table ${TBL} style="font-family:${fontOf(c.t)};"><tr><td>${body}</td></tr></table>`;
+}
+
+// Every asset spec the current design needs: { key: spec }.
+export function collectAssetSpecs({ fields = {}, theme = {}, template_id }) {
+  const collected = {};
+  const c = makeCtx(fields, theme, null, false, collected);
+  (RENDER[template_id] || tRail)(c);
+  return collected;
 }
 
 export function plainTextSignature(fields) {
