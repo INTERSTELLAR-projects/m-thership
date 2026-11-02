@@ -522,27 +522,148 @@ const ICON_PATHS = {
   pin: ["M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z", "M12 7a3 3 0 1 0 0 6 3 3 0 1 0 0-6"],
 };
 
-// Small contact glyph (phone / mail / globe / pin) in a soft accent disc.
+// Solid (filled) versions of the contact glyphs, cut out with destination-out for crisp detail.
+function drawSolidIcon(ctx, name, x, y, size, color) {
+  const { c, ctx: t } = makeCanvas(Math.ceil(size), Math.ceil(size));
+  t.scale(size / 24, size / 24);
+  t.fillStyle = color;
+  t.lineCap = "round";
+  t.lineJoin = "round";
+  const cut = (fn) => {
+    t.globalCompositeOperation = "destination-out";
+    fn();
+    t.globalCompositeOperation = "source-over";
+  };
+  if (name === "phone") {
+    t.fill(new Path2D(ICON_PATHS.phone[0]));
+  } else if (name === "mail") {
+    rr(t, 2, 4.5, 20, 15, 3.2);
+    t.fill();
+    cut(() => {
+      t.lineWidth = 2.2;
+      t.beginPath();
+      t.moveTo(5.5, 8.5);
+      t.lineTo(12, 13);
+      t.lineTo(18.5, 8.5);
+      t.stroke();
+    });
+  } else if (name === "globe") {
+    t.beginPath();
+    t.arc(12, 12, 10.5, 0, Math.PI * 2);
+    t.fill();
+    cut(() => {
+      t.lineWidth = 1.7;
+      t.beginPath();
+      t.ellipse(12, 12, 4.3, 10.5, 0, 0, Math.PI * 2);
+      t.moveTo(1.5, 12);
+      t.lineTo(22.5, 12);
+      t.stroke();
+    });
+  } else if (name === "pin") {
+    t.fill(new Path2D("M12 1.5a8.5 8.5 0 0 0-8.5 8.5c0 6.4 8.5 12.5 8.5 12.5s8.5-6.1 8.5-12.5A8.5 8.5 0 0 0 12 1.5z"));
+    cut(() => {
+      t.beginPath();
+      t.arc(12, 10, 3.2, 0, Math.PI * 2);
+      t.fill();
+    });
+  }
+  ctx.drawImage(c, x, y, size, size);
+}
+
+// Contact glyph: icon set (line | solid) inside a container style
+// (soft | solid | gradient | ring | bare = icon only, no background).
 async function renderGlyph(spec) {
   const size = spec.size || 20;
   const k = 3;
   const px = size * k;
+  const color = spec.color || "#ff6a00";
+  const color2 = spec.color2 || color;
+  const bg = spec.bg || "#ffffff";
+  const style = spec.style || "soft";
   return {
     blob: await still(px, px, (ctx) => {
-      ctx.fillStyle = spec.bg || "#ffffff";
+      ctx.fillStyle = bg;
       ctx.fillRect(0, 0, px, px);
-      if (spec.style !== "bare") {
+      let glyphColor = color;
+      const disc = () => {
         ctx.beginPath();
-        ctx.arc(px / 2, px / 2, px / 2, 0, Math.PI * 2);
-        ctx.fillStyle = mix(spec.color || "#ff6a00", spec.bg || "#ffffff", 0.88);
+        ctx.arc(px / 2, px / 2, px / 2 - (style === "ring" ? px * 0.04 : 0), 0, Math.PI * 2);
+      };
+      if (style === "soft") {
+        disc();
+        ctx.fillStyle = mix(color, bg, 0.87);
         ctx.fill();
+      } else if (style === "solid" || style === "gradient") {
+        disc();
+        if (style === "gradient") {
+          const g = ctx.createLinearGradient(0, 0, px, px);
+          g.addColorStop(0, color);
+          g.addColorStop(1, color2);
+          ctx.fillStyle = g;
+        } else ctx.fillStyle = color;
+        ctx.fill();
+        glyphColor = "#ffffff";
+      } else if (style === "ring") {
+        disc();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = px * 0.07;
+        ctx.stroke();
       }
-      const g = spec.style === "bare" ? px * 0.86 : px * 0.5;
-      drawLineIcon(ctx, spec.name, (px - g) / 2, (px - g) / 2, g, spec.color || "#ff6a00");
+      const g = style === "bare" ? px * 0.9 : px * 0.52;
+      const o = (px - g) / 2;
+      if (spec.set === "solid") drawSolidIcon(ctx, spec.name, o, o, g, glyphColor);
+      else drawLineIcon(ctx, spec.name, o, o, g, glyphColor);
     }),
     width: size,
     height: size,
   };
+}
+
+// Animated divider: accent gradient hairline with a soft light that glides along it.
+async function renderDivider(spec) {
+  const W = 960;
+  const H = 6;
+  const accent = spec.accent || "#ff6a00";
+  const accent2 = spec.accent2 || accent;
+  const tail = spec.tail || "#e7e3de";
+  const bg = spec.bg || "#ffffff";
+  const base = (ctx) => {
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+    const g = ctx.createLinearGradient(0, 0, W, 0);
+    g.addColorStop(0, accent);
+    g.addColorStop(0.3, accent2);
+    g.addColorStop(0.68, tail);
+    g.addColorStop(1, tail);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, H / 2 - 1.5, W, 3);
+  };
+  const blob = film(
+    W,
+    H,
+    46,
+    (ctx, f) => {
+      base(ctx);
+      const t = prog(f, 1, 40);
+      if (t > 0 && t < 1) {
+        const x = W * ((1 - Math.cos(Math.PI * t)) / 2);
+        const r = W * 0.09;
+        const glow = ctx.createRadialGradient(x, H / 2, 0, x, H / 2, r);
+        glow.addColorStop(0, "rgba(255,255,255,0.95)");
+        glow.addColorStop(0.25, `rgba(${hex2rgb(accent2).r},${hex2rgb(accent2).g},${hex2rgb(accent2).b},0.9)`);
+        glow.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, H / 2 - 1.5, W, 3);
+        ctx.clip();
+        ctx.fillStyle = glow;
+        ctx.fillRect(x - r, 0, r * 2, H);
+        ctx.restore();
+      }
+    },
+    holdLast(2600, STEP)
+  );
+  return { blob, width: 480, height: 3 };
 }
 
 function drawLineIcon(ctx, name, x, y, size, color) {
@@ -682,6 +803,7 @@ export function estimateSize(spec) {
     const L = ctaLayout(spec, makeCanvas(4, 4).ctx);
     return { width: Math.round((L.W + L.m * 2) / L.k), height: Math.round((L.H + L.m * 2) / L.k) };
   }
+  if (spec.kind === "divider") return { width: 480, height: 3 };
   const s = spec.size || 24;
   return { width: s, height: s };
 }
@@ -692,6 +814,7 @@ export async function renderAsset(spec) {
   if (spec.kind === "icon") return renderIcon(spec);
   if (spec.kind === "cta") return renderCta(spec);
   if (spec.kind === "glyph") return renderGlyph(spec);
+  if (spec.kind === "divider") return renderDivider(spec);
   throw new Error("Unknown asset " + spec.kind);
 }
 
