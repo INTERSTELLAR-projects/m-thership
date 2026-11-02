@@ -158,7 +158,7 @@ export default function Performance() {
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-              <KpiTile dark accent label="Avg site health" value={avg} display={avg == null ? "—" : undefined} prev={prevAvg != null && nowAvgSame != null ? prevAvg : undefined} sub={audited.length ? `${audited.length} audited site${audited.length === 1 ? "" : "s"}` : "No audits yet"} />
+              <KpiTile dark accent label="Avg site health" value={avg} display={avg == null ? "—" : undefined} prev={prevAvg != null && nowAvgSame != null && avg != null ? avg - (nowAvgSame - prevAvg) : undefined} sub={audited.length ? `${audited.length} audited site${audited.length === 1 ? "" : "s"}` : "No audits yet"} />
               <KpiTile dark label="Sites tracked" value={rows.length} sub={`${rows.length - audited.length} not audited`} />
               <KpiTile dark label="High-priority issues" value={openHigh} goodWhen="down" sub="critical + high, latest audits" />
               <KpiTile dark label="Fixes applied · 30d" value={applied30} prev={applied60 || undefined} sub="vs previous 30 days" />
