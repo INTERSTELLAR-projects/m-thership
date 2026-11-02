@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, FileText, DollarSign, Scale, Users, Lightbulb, ListTodo,
-  MessageSquare, TrendingUp, ClipboardList, Crown, Activity, Settings, FolderKanban, Star, PenLine, Presentation, Route, Sparkles, Target,
+  MessageSquare, TrendingUp, ClipboardList, Crown, Activity, Settings, FolderKanban, Star, PenLine, Presentation, Route, Sparkles, Target, QrCode,
 } from "lucide-react";
 import { SUBSCRIPTIONS, DELIVERY_PACKAGES, packagePath } from "@/features/packages/registry";
 
@@ -45,6 +45,7 @@ export const NAV_GROUPS = [
     items: [
       { label: "Presentations", icon: Presentation, path: "/presentations/projects" },
       { label: "Signatures", icon: PenLine, path: "/signatures" },
+      { label: "QR Codes", icon: QrCode, path: "/qr" },
     ],
   },
   {
