@@ -88,11 +88,13 @@ export function tierIndex(signed, offer) {
 }
 export const tierAt = (idx, offer) => (idx > 0 ? offer.tiers[idx - 1] : null);
 export const tierLabel = (idx, offer) => tierAt(idx, offer)?.name || "Recruit";
-export const numeralFor = (idx, offer) => {
+export const numeralFor = (idx) => ROMAN[idx] || String(idx);
+// Headline for the unlock screen: "PRESTIGE III" (custom names like "Prestige Master" become the subtitle).
+export const unlockHeadline = (idx, offer) => {
   const name = tierAt(idx, offer)?.name || "";
-  const m = name.match(/\b([IVX]+)\s*$/);
-  if (m) return m[1];
-  return idx >= offer.tiers.length && idx > 0 ? ROMAN[idx] || String(idx) : ROMAN[idx] || String(idx);
+  const numeral = numeralFor(idx);
+  const plain = `Prestige ${numeral}`;
+  return { title: plain.toUpperCase(), subtitle: name && name.toLowerCase() !== plain.toLowerCase() ? name : "" };
 };
 
 // Value stored on PrestigeMember.prestige (enum-safe, regardless of custom tier names).
