@@ -1,15 +1,8 @@
-// Request kinds + per-industry starter forms. The RequestForm entity holds the live, editable copy per client.
-
-export const KIND_LABELS = {
-  site_edit: "Website edit",
-  project_submission: "New project",
-  job: "Job completed",
-  new_page: "New page",
-  question: "Question",
-  app_edit: "Ørigin 1.0 edit",
-  other: "Other",
-};
-export const KIND_ORDER = ["project_submission", "job", "site_edit", "new_page", "app_edit", "question", "other"];
+// Request types: ONE config (REQUEST_TYPES) drives the portal request picker, the admin queue filters,
+// labels everywhere and the default per-client forms. To add a request type, add an entry here — the
+// backend accepts any slug kind, so nothing else needs to change.
+// The RequestForm entity holds optional per-client custom copies; a custom form replaces the standard
+// one of the same kind in that client's portal.
 
 export const FIELD_TYPES = [
   ["short_text", "Short text"], ["long_text", "Long text"], ["select", "Dropdown"], ["multi_select", "Multi-select"],
@@ -19,45 +12,204 @@ export const FIELD_TYPES = [
 
 const f = (id, label, type = "short_text", extra = {}) => ({ id, label, type, ...extra });
 
-// Shared forms every client gets
-export const BASE_FORMS = [
+// Fields every portal request gets (unless the form already has an equivalent).
+export const PRIORITY_OPTIONS = ["Normal", "High", "Urgent"];
+export const COMMON_FIELDS = {
+  priority: f("priority", "Priority", "select", { options: PRIORITY_OPTIONS, placeholder: "Normal", help: "Urgent = something is broken or time-sensitive." }),
+  due_date: f("due_date", "Needed by (optional)", "date"),
+  attachments: f("attachments", "Attachments (optional)", "files", { help: "Screenshots, photos, PDFs, logos — anything that helps." }),
+};
+
+/*
+ * kind        stored on ClientRequest.kind / RequestForm.kind (slug)
+ * label       short label (chips, admin queue)
+ * title/intro shown on the portal card and form
+ * fields      type-specific questions (common fields are appended automatically)
+ * portal      false = not offered as a standard portal form (only via a client's custom RequestForm)
+ * base        true  = included in "Set up default forms" copies for a client (public form links)
+ * noDue       true  = no "needed by" date
+ */
+export const REQUEST_TYPES = [
   {
-    kind: "site_edit", title: "Website edit", intro: "Tell us what to change and where. Small edits are usually live within 3 business days.",
+    kind: "site_edit", label: "Website edit", title: "Website edit", base: true,
+    intro: "Tell us what to change and where. Small edits are usually live within 3 business days.",
     fields: [
-      f("page", "Which page?", "short_text", { required: true, placeholder: "Contact page" }),
+      f("page", "Which page? (name or URL)", "short_text", { required: true, placeholder: "Contact page or https://…/contact" }),
       f("change", "What should change?", "long_text", { required: true, placeholder: "New text, new hours, swap a photo…" }),
-      f("screens", "Screenshots or files", "files"),
-      f("urgent", "This is urgent", "checkbox"),
+      f("current", "What it says now (if replacing text)", "long_text"),
     ],
     claude_instructions: "Apply the change on the client's Base44 website. Keep brand voice and existing layout. Log the edit as WorkLog kind site_edit and mark the request complete with the page URL.",
   },
   {
-    kind: "new_page", title: "New page", intro: "A new service, location or landing page.",
+    kind: "new_page", label: "New page", title: "New page", base: true,
+    intro: "A new service, location or landing page.",
     fields: [
       f("page_name", "Page name", "short_text", { required: true }),
       f("purpose", "What is it for?", "select", { required: true, options: ["New service", "New location / area", "Landing page for ads", "Other"] }),
       f("content", "Everything the page should say", "long_text", { required: true }),
-      f("photos", "Photos for the page", "photos"),
       f("cta", "What should visitors do?", "select", { options: ["Call", "Book online", "Request a quote", "Buy"] }),
+      f("example", "A page you like the look of (optional)", "url"),
+      f("photos", "Photos for the page", "photos"),
     ],
     claude_instructions: "Build the page on the client's site with answer-first copy, matching the site's design, SEO title/meta, schema and internal links from related pages. Request indexing after publish.",
   },
   {
-    kind: "app_edit", title: "Ørigin 1.0 edit", intro: "Changes to your Command System: a field, a screen, an automation, a report.",
+    kind: "blog_post", label: "Blog / content", title: "Blog or content",
+    intro: "A blog post, article, FAQ or page copy you want written.",
     fields: [
-      f("area", "Which part of the system?", "select", { required: true, options: ["Leads / CRM", "Quotes", "Jobs / scheduling", "Invoices / payments", "Customer portal", "Rewards", "Automations / notifications", "Reports", "Users / permissions", "Other"] }),
+      f("topic", "Topic or title idea", "short_text", { required: true, placeholder: "Best time of year to install a paver patio" }),
+      f("content_type", "Type", "select", { required: true, options: ["Blog post", "Service page copy", "Case study", "FAQ", "Newsletter", "Other"] }),
+      f("points", "Key points, offers or facts to include", "long_text"),
+      f("keywords", "Words people search for (if you know)", "short_text"),
+      f("audience", "Who is it for?", "short_text"),
+      f("photos", "Photos to use", "photos"),
+    ],
+  },
+  {
+    kind: "gbp_post", label: "Google post", title: "Google Business post",
+    intro: "An update, offer or event for your Google Business Profile.",
+    fields: [
+      f("topic", "What's the post about?", "short_text", { required: true, placeholder: "Fall cleanup special" }),
+      f("post_type", "Post type", "select", { required: true, options: ["Update", "Offer", "Event", "New product / service"] }),
+      f("details", "Details", "long_text", { required: true, help: "No need for your phone, address or links — Google rejects those in posts, and your profile already shows them." }),
+      f("offer_dates", "Offer or event dates", "short_text"),
+      f("button", "Button", "select", { options: ["Learn more", "Book", "Order online", "Call", "Sign up"] }),
+      f("photos", "Photo for the post", "photos"),
+    ],
+  },
+  {
+    kind: "social_post", label: "Social post", title: "Social post",
+    intro: "A post for Facebook, Instagram or your other channels.",
+    fields: [
+      f("platforms", "Where?", "multi_select", { required: true, options: ["Facebook", "Instagram", "TikTok", "LinkedIn", "X", "YouTube", "Nextdoor"] }),
+      f("topic", "What's it about?", "short_text", { required: true }),
+      f("caption", "Caption ideas or must-say details", "long_text"),
+      f("photos", "Photos or video", "files"),
+    ],
+  },
+  {
+    kind: "design_asset", label: "Design asset", title: "Design asset",
+    intro: "Logos, graphics, flyers, cards, signs and menus.",
+    fields: [
+      f("asset_type", "What do you need?", "select", { required: true, options: ["Logo", "Graphic", "Flyer", "Social graphic", "Business card", "Banner / sign", "Menu", "Other"] }),
+      f("purpose", "What's it for and what should it say?", "long_text", { required: true }),
+      f("size", "Size or format", "short_text", { placeholder: "8.5×11 print, 1080×1080, 3×6 ft banner" }),
+      f("style", "Style notes or examples you like", "long_text"),
+      f("references", "Reference images or files", "files"),
+    ],
+  },
+  {
+    kind: "email_signature", label: "Email signature", title: "Email signature",
+    intro: "New or updated email signatures. You can also build your own under Signatures.",
+    fields: [
+      f("people", "Who needs one? Name, title, phone and email for each", "long_text", { required: true }),
+      f("changes", "Anything to add or change (banner, social links, promo)", "long_text"),
+      f("headshots", "Headshots (optional)", "photos"),
+    ],
+  },
+  {
+    kind: "seo_question", label: "SEO question", title: "SEO question", noDue: true,
+    intro: "Rankings, Google, reviews, AI search — ask anything.",
+    fields: [
+      f("topic", "About", "select", { required: true, options: ["Rankings", "Google Business Profile", "Reviews", "Traffic / analytics", "AI search (ChatGPT, Google AI)", "Competitors", "Other"] }),
+      f("question", "Your question", "long_text", { required: true }),
+      f("keyword_or_url", "Keyword or page it's about (optional)", "short_text"),
+    ],
+  },
+  {
+    kind: "bug", label: "Something's broken", title: "Something's broken",
+    intro: "A broken page, form, link or app screen. Mark it Urgent if customers can't reach you.",
+    fields: [
+      f("where", "Where is it? (page, URL or app screen)", "short_text", { required: true }),
+      f("what", "What happened?", "long_text", { required: true }),
+      f("expected", "What should happen instead?", "long_text"),
+      f("device", "Device", "select", { options: ["Phone", "Tablet", "Computer", "All of them", "Not sure"] }),
+      f("browser", "Browser", "select", { options: ["Chrome", "Safari", "Edge", "Firefox", "Other / not sure"] }),
+      f("since", "When did it start?", "short_text"),
+    ],
+  },
+  {
+    kind: "app_edit", label: "App / automation", title: "App or automation change", base: true,
+    intro: "Changes to your app, system or automations: a field, a screen, a workflow, a report.",
+    fields: [
+      f("area", "Which part?", "select", { required: true, options: ["Leads / CRM", "Quotes", "Jobs / scheduling", "Invoices / payments", "Customer portal", "Rewards", "Automations / notifications", "Website forms", "Integrations", "Reports", "Users / permissions", "Other"] }),
       f("change", "What should it do differently?", "long_text", { required: true }),
       f("why", "What problem does this solve?", "long_text"),
-      f("screens", "Screenshots", "files"),
     ],
     claude_instructions: "Scope the change against the client's Ørigin 1.0 system (ops_app_id on the CRMClient). Small changes under GravïtyCare hours: implement, checkpoint, log Work. Larger: reply with a scoped quote via client_note and set needs_info.",
   },
   {
-    kind: "question", title: "Question", intro: "Anything at all. We reply within 1 business day.",
+    kind: "billing", label: "Billing", title: "Billing question", noDue: true,
+    intro: "Invoices, payments, plan changes and receipts.",
+    fields: [
+      f("topic", "About", "select", { required: true, options: ["An invoice", "Payment method", "Plan / services change", "Refund or credit", "Receipt", "Other"] }),
+      f("invoice", "Invoice number (if any)", "short_text"),
+      f("question", "Your question", "long_text", { required: true }),
+    ],
+  },
+  {
+    kind: "question", label: "Question", title: "General question", base: true, noDue: true,
+    intro: "Anything at all. We reply within 1 business day.",
     fields: [f("question", "Your question", "long_text", { required: true })],
     claude_instructions: "Do not act. Leave for Justin to answer via client_note.",
   },
+  {
+    kind: "other", label: "Other", title: "Something else",
+    intro: "Doesn't fit the others? Tell us here.",
+    fields: [
+      f("summary", "What do you need?", "short_text", { required: true }),
+      f("details", "Details", "long_text", { required: true }),
+    ],
+  },
+  // Not offered as standard portal forms; they come from a client's custom (industry) RequestForm.
+  { kind: "project_submission", label: "New project", title: "New project", portal: false, fields: [] },
+  { kind: "job", label: "Job completed", title: "Job completed", portal: false, fields: [] },
 ];
+
+export const KIND_LABELS = Object.fromEntries(REQUEST_TYPES.map((t) => [t.kind, t.label]));
+export const KIND_ORDER = [
+  ...REQUEST_TYPES.filter((t) => t.portal === false).map((t) => t.kind),
+  ...REQUEST_TYPES.filter((t) => t.portal !== false).map((t) => t.kind),
+];
+export const kindLabel = (k) => KIND_LABELS[k] || String(k || "other").replace(/_/g, " ");
+
+// Append the common fields a form doesn't already cover.
+export function withCommonFields(form) {
+  const fields = form.fields || [];
+  const type = REQUEST_TYPES.find((t) => t.kind === form.kind);
+  const ids = new Set(fields.map((x) => x.id));
+  const hasFiles = fields.some((x) => x.type === "files" || x.type === "photos");
+  const extra = [];
+  if (!ids.has("priority") && !ids.has("urgent")) extra.push(COMMON_FIELDS.priority);
+  if (!ids.has("due_date") && !type?.noDue) extra.push(COMMON_FIELDS.due_date);
+  if (!hasFiles) extra.push(COMMON_FIELDS.attachments);
+  return extra.length ? { ...form, fields: [...fields, ...extra] } : form;
+}
+
+// Standard portal forms for every client (id "std:<kind>" — not a RequestForm record).
+export const STANDARD_FORMS = REQUEST_TYPES.filter((t) => t.portal !== false).map((t) => ({
+  id: `std:${t.kind}`, kind: t.kind, title: t.title, intro: t.intro, fields: t.fields, standard: true,
+}));
+
+// What a client sees in their portal: custom forms replace the standard form of the same kind.
+export function portalForms(customForms = []) {
+  const custom = (customForms || []).filter((x) => x.active !== false);
+  const kinds = new Set(custom.map((x) => x.kind));
+  const all = [...custom, ...STANDARD_FORMS.filter((s) => !kinds.has(s.kind))];
+  return KIND_ORDER.flatMap((k) => all.filter((x) => x.kind === k))
+    .concat(all.filter((x) => !KIND_ORDER.includes(x.kind)))
+    .map(withCommonFields);
+}
+
+// Map the form's priority answer (or a legacy "urgent" checkbox) to ClientRequest.priority.
+export function priorityFor(vals) {
+  if (vals?.urgent === true) return "urgent";
+  const p = String(vals?.priority || "").toLowerCase();
+  return ["low", "high", "urgent"].includes(p) ? p : "normal";
+}
+
+// Shared forms copied into a client's RequestForm records by "Set up default forms" (each gets a public link).
+export const BASE_FORMS = REQUEST_TYPES.filter((t) => t.base).map(({ kind, title, intro, fields, claude_instructions }) => ({ kind, title, intro, fields, claude_instructions }));
 
 // Industry-specific project / job forms. Every client gets one of these as their "New project" form.
 const PROJECT_COMMON_TAIL = [
