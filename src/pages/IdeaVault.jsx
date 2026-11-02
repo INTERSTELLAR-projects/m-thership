@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useCategoryList } from "@/hooks/useOptionList";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Pencil, Trash2, Check, X, Lightbulb, Search, Settings, GripVertical, Loader2, Sparkles, ChevronDown, ChevronUp, ArrowLeft, Zap, Rocket } from "lucide-react";
@@ -14,9 +14,6 @@ import { generatePlan, createProjectFromPlan } from "@/features/ideas/planGen";
 // Categories are shared: Settings > Lists & fields > Idea categories (old per-browser list seeds it once).
 const IDEA_CATS_KEY = "idea_vault_categories";
 
-function persistCats() {
-  // kept as a no-op so older call sites stay harmless; categories now live in AppSettings.
-}
 const STATUS_OPTIONS = ["New", "In Review", "Planned", "Implemented", "Shelved"];
 const fieldCls = "bg-ink/[0.03] border border-ink/[0.13] rounded-md px-2 py-1.5 text-xs text-ink outline-none focus:border-[#ff6a00]/60";
 const pill = (on) => `px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${on ? "border-[#ff3c00]/40 bg-[#ff3c00]/[0.07] text-[#d13300]" : "border-transparent text-ink/50 hover:text-ink/75"}`;
@@ -27,9 +24,9 @@ export default function IdeaVault() {
   const openId = params.get("idea");
   const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [categories, saveCats] = useCategoryList("idea_categories", IDEA_CATS_KEY);
-  const catsRef = useRef(categories);
-  catsRef.current = categories;
+  const [storedCats, saveCats] = useCategoryList("idea_categories", IDEA_CATS_KEY);
+  // Any category an idea already uses always shows, even if it was archived in Settings.
+  const categories = useMemo(() => [...new Set([...storedCats, ...ideas.map((i) => i.category).filter(Boolean)])], [storedCats, ideas]);
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -47,10 +44,6 @@ export default function IdeaVault() {
   useEffect(() => {
     base44.entities.Idea.list("-created_date", 200).then((data) => {
       setIdeas(data);
-      const saved = catsRef.current;
-      const existingCats = [...new Set(data.map((i) => i.category).filter(Boolean))];
-      const merged = [...new Set([...saved, ...existingCats])];
-      if (merged.length !== saved.length) { saveCats(merged).catch(() => null); persistCats(); }
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
