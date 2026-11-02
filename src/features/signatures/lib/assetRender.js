@@ -25,7 +25,6 @@ const rgba = (hex, a) => {
 };
 const clamp01 = (t) => Math.max(0, Math.min(1, t));
 const prog = (f, start, len) => clamp01((f - start) / len);
-const easeOut = (t) => 1 - Math.pow(1 - t, 3);
 const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 // 0 → 1 → 0 with eased in/out, so every effect leaves and returns to the resting design.
 const bump = (t) => Math.sin(Math.PI * easeInOut(clamp01(t)));
@@ -128,7 +127,7 @@ function rosette(ctx, cx, cy, R) {
 function drawBadge(ctx, spec, px, { pop = 1, check = 1, gleam = 0, ring = 0 }) {
   const cx = px / 2;
   const cy = px / 2;
-  const R = px * (spec.anim === "pulse" ? 0.37 : 0.47);
+  const R = px * (spec.anim === "pulse" ? 0.37 : 0.44);
   const base = spec.color || "#0a95ff";
   ctx.fillStyle = spec.bg || "#ffffff";
   ctx.fillRect(0, 0, px, px);
@@ -194,7 +193,7 @@ async function renderBadge(spec) {
     40,
     (ctx, f) =>
       drawBadge(ctx, spec, px, {
-        pop: 1 + 0.1 * bump(prog(f, 1, 14)),
+        pop: 1 + 0.08 * bump(prog(f, 1, 14)),
         check: 1,
         gleam: pulse ? 0 : prog(f, 7, 24),
         ring: pulse ? prog(f, 3, 30) : 0,
