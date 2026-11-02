@@ -1,0 +1,97 @@
+{
+  "name": "OutreachProfile",
+  "type": "object",
+  "description": "Backlinks & Citations: per-client research criteria the CRM/Constellations don't hold (exact NAP address, listing description, outreach on/off). Values here override CRMClient + ClientDossier when the research task builds its brief.",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id (one profile per client)"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Research task only runs for clients with outreach enabled"
+    },
+    "nap_name": {
+      "type": "string",
+      "description": "Exact business name as it should appear on every citation"
+    },
+    "nap_address": {
+      "type": "string",
+      "description": "Exact street address (or 'service-area business, hide address')"
+    },
+    "nap_phone": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "industry": {
+      "type": "string"
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "city": {
+      "type": "string",
+      "description": "Primary city, ST"
+    },
+    "service_area": {
+      "type": "string",
+      "description": "Cities / radius / national"
+    },
+    "description": {
+      "type": "string",
+      "description": "Listing description (short, factual, no claims we can't back)"
+    },
+    "hours": {
+      "type": "string"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Preferred directory categories"
+    },
+    "pitch_angles": {
+      "type": "string",
+      "description": "Story hooks for news / podcasts: founder story, community work, milestones"
+    },
+    "avoid": {
+      "type": "string",
+      "description": "Outlets, competitors or topics to stay away from"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
