@@ -1,43 +1,78 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PageHeader from "../components/PageHeader";
-import { CheckCircle2, Clock, Zap, TrendingUp, Target, BarChart3, Loader2, Activity } from "lucide-react";
-// Clock is used in TasksAnalytics KPI row
+import { CheckCircle2, Clock, TrendingUp, Target, BarChart3, Loader2, Activity, AlertTriangle, FolderKanban, Timer } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import GameChartTooltip from "../components/charts/GameChartTooltip";
 import TimeIntelligence from "@/features/tasks/components/TimeIntelligence";
+import { TASK_STATUSES, OPEN_STATUSES, TASK_TYPES, PROJECT_TYPES, PROJECT_STATUSES } from "@/features/tasks/lib/constants";
+import { TIMER_CHANGED, totalSeconds } from "@/features/tasks/lib/timer";
+import { TASKS_CHANGED } from "@/features/tasks/lib/clients";
+
+// Output = one source of truth: the Task engine (Task), Projects (Project) and the task clock (TimeEntry).
 
 // ─── helpers ────────────────────────────────────────────────────────────────
-function dayKey(dateStr) {
-  const d = new Date(dateStr);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
-}
-function weekLabel(dateStr) {
-  const d = new Date(dateStr);
-  const week = Math.ceil(d.getDate() / 7);
-  return `W${week} ${d.toLocaleString("default", { month: "short" })}`;
-}
-function last30Days() {
+const DAY = 86400000;
+const asArray = (r) => (Array.isArray(r) ? r : (r && r.items) || []);
+const dayKey = (d) => `${d.getMonth() + 1}/${d.getDate()}`;
+const startOfWeek = (d) => {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  x.setDate(x.getDate() - x.getDay());
+  return x;
+};
+const fmtH = (h) => (h >= 100 ? `${Math.round(h)}h` : `${(Math.round(h * 10) / 10).toFixed(h && h < 10 ? 1 : 0)}h`);
+
+function last30() {
   return Array.from({ length: 30 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (29 - i));
-    return `${d.getMonth() + 1}/${d.getDate()}`;
+    const d = new Date(Date.now() - (29 - i) * DAY);
+    return { key: dayKey(d), day: dayKey(d), completed: 0 };
   });
 }
 function last8Weeks() {
+  const now = startOfWeek(new Date());
   return Array.from({ length: 8 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (7 * (7 - i)));
-    return weekLabel(d.toISOString());
+    const s = new Date(now.getTime() - (7 - i) * 7 * DAY);
+    return { start: s, week: s.toLocaleDateString("en-US", { month: "short", day: "numeric" }), hours: 0, completed: 0 };
   });
 }
-
-const TOOLTIP_STYLE = {
-  contentStyle: { background: "#f5f3f0", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 12 },
-  labelStyle: { color: "rgba(255,255,255,0.5)" },
-  itemStyle: { color: "#ff3c00" },
+const weekIndex = (weeks, date) => {
+  for (let i = weeks.length - 1; i >= 0; i--) if (date >= weeks[i].start) return i;
+  return -1;
 };
+
+function useOutputData() {
+  const [state, setState] = useState({ loading: true, tasks: [], projects: [], entries: [] });
+  const load = useCallback(async () => {
+    const [tasks, projects, entries] = await Promise.all([
+      base44.entities.Task.list("-updated_date", 2000).catch(() => []),
+      base44.entities.Project.list("-updated_date", 500).catch(() => []),
+      base44.entities.TimeEntry.list("-ended_at", 2000).catch(() => []),
+    ]);
+    setState({ loading: false, tasks: asArray(tasks), projects: asArray(projects), entries: asArray(entries) });
+  }, []);
+  useEffect(() => {
+    load();
+    const reload = () => load();
+    window.addEventListener(TIMER_CHANGED, reload);
+    window.addEventListener(TASKS_CHANGED, reload);
+    const unsubs = [base44.entities.Task, base44.entities.Project, base44.entities.TimeEntry].map((e) => {
+      try {
+        return e.subscribe(() => reload());
+      } catch {
+        return () => {};
+      }
+    });
+    return () => {
+      window.removeEventListener(TIMER_CHANGED, reload);
+      window.removeEventListener(TASKS_CHANGED, reload);
+      unsubs.forEach((u) => typeof u === "function" && u());
+    };
+  }, [load]);
+  return state;
+}
 
 function StatCard({ label, value, sub, icon: Icon, color = "text-orange-500" }) {
   return (
@@ -52,208 +87,171 @@ function StatCard({ label, value, sub, icon: Icon, color = "text-orange-500" }) 
   );
 }
 
-// ─── TASKS TAB ───────────────────────────────────────────────────────────────
-function TasksAnalytics() {
-  const [items, setItems] = useState([]);
-  const [clientItems, setClientItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+const H3 = ({ children }) => (
+  <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">{children}</h3>
+);
 
-  useEffect(() => {
-    Promise.all([
-      base44.entities.ToDoItem.list("created_date", 500),
-      base44.entities.ClientOperationItem.list("created_date", 500),
-    ]).then(([todos, ops]) => {
-      setItems(todos);
-      setClientItems(ops);
-      setLoading(false);
+function Bars({ rows, total }) {
+  return (
+    <div className="space-y-3">
+      {rows.map((s) => {
+        const pct = total ? Math.round((s.count / total) * 100) : 0;
+        return (
+          <div key={s.label}>
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-ink/60 text-xs">{s.label}</span>
+              <span className="text-ink/70 text-xs font-bold">
+                {s.count} <span className="text-ink/[0.48] font-normal">({pct}%)</span>
+              </span>
+            </div>
+            <div className="h-2 bg-ink/[0.06] rounded-full overflow-hidden">
+              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: s.color }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const Loading = () => (
+  <div className="flex justify-center py-20">
+    <Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" />
+  </div>
+);
+
+// ─── TASK OUTPUT ─────────────────────────────────────────────────────────────
+function TasksAnalytics({ data }) {
+  const m = useMemo(() => {
+    const { tasks, entries } = data;
+    const now = Date.now();
+    const open = tasks.filter((t) => OPEN_STATUSES.includes(t.status || "inbox"));
+    const done = tasks.filter((t) => t.status === "done");
+    const doneAt = (t) => new Date(t.completed_at || t.updated_date || t.created_date);
+    const weekStart = startOfWeek(new Date());
+    const doneThisWeek = done.filter((t) => doneAt(t) >= weekStart).length;
+    const done30 = done.filter((t) => now - doneAt(t).getTime() <= 30 * DAY).length;
+    const overdue = open.filter((t) => t.due_date && new Date(t.due_date).getTime() < now - DAY).length;
+
+    const days = last30();
+    const byDay = Object.fromEntries(days.map((d) => [d.key, d]));
+    done.forEach((t) => {
+      const k = dayKey(doneAt(t));
+      if (byDay[k] && now - doneAt(t).getTime() <= 30 * DAY) byDay[k].completed += 1;
     });
 
-    const unsub1 = base44.entities.ToDoItem.subscribe((e) => {
-      setItems((prev) => {
-        if (e.type === "create") return [...prev, e.data];
-        if (e.type === "update") return prev.map((i) => i.id === e.id ? e.data : i);
-        if (e.type === "delete") return prev.filter((i) => i.id !== e.id);
-        return prev;
-      });
+    const weeks = last8Weeks();
+    entries.forEach((e) => {
+      const i = weekIndex(weeks, new Date(e.ended_at || e.created_date));
+      if (i >= 0) weeks[i].hours += (Number(e.seconds) || 0) / 3600;
     });
-    const unsub2 = base44.entities.ClientOperationItem.subscribe((e) => {
-      setClientItems((prev) => {
-        if (e.type === "create") return [...prev, e.data];
-        if (e.type === "update") return prev.map((i) => i.id === e.id ? e.data : i);
-        if (e.type === "delete") return prev.filter((i) => i.id !== e.id);
-        return prev;
-      });
+    // A clock that's running right now counts toward this week too.
+    const running = tasks.filter((t) => t.timer_started_at);
+    running.forEach((t) => {
+      weeks[weeks.length - 1].hours += (totalSeconds(t) - (Number(t.logged_seconds) || 0)) / 3600;
     });
-    return () => { unsub1(); unsub2(); };
-  }, []);
+    weeks.forEach((w) => (w.hours = Math.round(w.hours * 10) / 10));
+    const hours30 = entries.filter((e) => now - new Date(e.ended_at || e.created_date).getTime() <= 30 * DAY).reduce((s, e) => s + (Number(e.seconds) || 0) / 3600, 0);
 
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" /></div>;
+    const statusRows = TASK_STATUSES.map((s) => ({ label: s.label, color: s.color, count: tasks.filter((t) => (t.status || "inbox") === s.value).length }));
+    const typeRows = TASK_TYPES.map((s) => ({ label: s.label, color: s.color, count: tasks.filter((t) => (t.task_type || "billable") === s.value).length })).filter((r) => r.count);
 
-  const TO_HOURS = { Hours: 1, Days: 8, Weeks: 40, Months: 160 };
-  const toHours = (amount, unit) => (parseFloat(amount) || 0) * (TO_HOURS[unit] || 1);
-  const fmtHours = (h) => {
-    if (h >= 160) return `${(h / 160).toFixed(1)}mo`;
-    if (h >= 40) return `${(h / 40).toFixed(1)}wk`;
-    if (h >= 8) return `${(h / 8).toFixed(1)}d`;
-    return `${h.toFixed(1)}h`;
-  };
+    const byClient = new Map();
+    tasks.forEach((t) => {
+      const k = t.client_name || "Interstellar (internal)";
+      const r = byClient.get(k) || { name: k, open: 0, done: 0, hours: 0 };
+      if (t.status === "done") r.done += 1;
+      else r.open += 1;
+      r.hours += totalSeconds(t) / 3600;
+      byClient.set(k, r);
+    });
+    const clients = [...byClient.values()].sort((a, b) => b.open + b.done - (a.open + a.done)).slice(0, 10);
 
-  const allTasks = [...items, ...clientItems];
-  const completed = allTasks.filter((t) => t.done || t.status === "Completed");
-  const inProgress = allTasks.filter((t) => (t.status === "In Progress") && !t.done);
-  const pending = allTasks.filter((t) => (!t.status || t.status === "Pending") && !t.done);
-
-  // Actual vs estimated time (ToDoItems only — they store actualAmount)
-  const todoCompleted = items.filter((t) => t.done || t.status === "Completed");
-  const totalActualHours = todoCompleted.reduce((s, t) => s + toHours(t.actualAmount, t.actualUnit), 0);
-  const totalEstHours = todoCompleted.reduce((s, t) => s + toHours(t.estimatedAmount, t.estimatedUnit), 0);
-  const avgActualPerTask = todoCompleted.filter(t => t.actualAmount).length
-    ? (totalActualHours / todoCompleted.filter(t => t.actualAmount).length).toFixed(1)
-    : "—";
-
-  // Completion rate
-  const completionRate = allTasks.length ? Math.round((completed.length / allTasks.length) * 100) : 0;
-
-  // Tasks completed per day (last 30 days) — use completedDate when available
-  const days = last30Days();
-  const completedByDay = {};
-  days.forEach((d) => { completedByDay[d] = 0; });
-  completed.forEach((t) => {
-    const d = new Date(t.completedDate || t.updated_date || t.created_date);
-    const key = `${d.getMonth() + 1}/${d.getDate()}`;
-    if (completedByDay[key] !== undefined) completedByDay[key]++;
-  });
-  const dailyData = days.map((d) => ({ day: d, completed: completedByDay[d] }));
-
-  // Avg per day (last 30 days)
-  const totalLast30 = dailyData.reduce((s, d) => s + d.completed, 0);
-  const avgPerDay = (totalLast30 / 30).toFixed(1);
-
-  // Pace — tasks per week
-  const weeks = last8Weeks();
-  const completedByWeek = {};
-  weeks.forEach((w) => { completedByWeek[w] = 0; });
-  completed.forEach((t) => {
-    const d = new Date(t.completedDate || t.updated_date || t.created_date);
-    const key = weekLabel(d.toISOString());
-    if (completedByWeek[key] !== undefined) completedByWeek[key]++;
-  });
-  const weeklyData = weeks.map((w) => ({ week: w, completed: completedByWeek[w] }));
-
-  // Actual hours per week (for time tracking chart)
-  const actualByWeek = {};
-  weeks.forEach((w) => { actualByWeek[w] = 0; });
-  todoCompleted.filter(t => t.actualAmount).forEach((t) => {
-    const d = new Date(t.completedDate || t.updated_date || t.created_date);
-    const key = weekLabel(d.toISOString());
-    if (actualByWeek[key] !== undefined) actualByWeek[key] += toHours(t.actualAmount, t.actualUnit);
-  });
-  const actualWeeklyData = weeks.map((w) => ({ week: w, hours: parseFloat(actualByWeek[w].toFixed(1)) }));
-
-  // Priority vs client split
-  const priorityDone = items.filter((t) => t.done || t.status === "Completed").length;
-  const clientDone = clientItems.filter((t) => t.done || t.status === "Completed").length;
-
-  // Status breakdown for bar chart
-  const statusData = [
-    { label: "Completed", count: completed.length, fill: "#22c55e" },
-    { label: "In Progress", count: inProgress.length, fill: "#ff3c00" },
-    { label: "Pending", count: pending.length, fill: "rgba(255,255,255,0.15)" },
-  ];
+    return {
+      total: tasks.length,
+      open: open.length,
+      done: done.length,
+      doneThisWeek,
+      done30,
+      overdue,
+      rate: tasks.length ? Math.round((done.length / tasks.length) * 100) : 0,
+      days,
+      weeks,
+      hours30,
+      statusRows,
+      typeRows,
+      clients,
+      running: running.length,
+    };
+  }, [data]);
 
   return (
     <div className="space-y-6">
-      {/* KPI row */}
-      <div className="grid grid-cols-5 gap-4">
-        <StatCard label="Total Tasks" value={allTasks.length} icon={Target} color="text-ink/70" />
-        <StatCard label="Completed" value={completed.length} icon={CheckCircle2} color="text-green-600" />
-        <StatCard label="In Progress" value={inProgress.length} icon={Activity} color="text-orange-600" />
-        <StatCard label="Completion Rate" value={`${completionRate}%`} icon={TrendingUp} color="text-blue-600" />
-        <StatCard label="Avg Time / Task" value={avgActualPerTask === "—" ? "—" : `${avgActualPerTask}h`} icon={Clock} color="text-purple-600" sub="actual hours logged" />
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <StatCard label="Open tasks" value={m.open} sub={`${m.total} total`} icon={Target} color="text-ink/70" />
+        <StatCard label="Done this week" value={m.doneThisWeek} sub={`${m.done30} in the last 30 days`} icon={CheckCircle2} color="text-green-600" />
+        <StatCard label="Completion rate" value={`${m.rate}%`} sub={`${m.done} done all-time`} icon={TrendingUp} color="text-blue-600" />
+        <StatCard label="Hours clocked (30d)" value={fmtH(m.hours30)} sub={m.running ? `${m.running} clock running now` : "from the task clock"} icon={Clock} color="text-purple-600" />
+        <StatCard label="Overdue" value={m.overdue} sub="open with a past due date" icon={AlertTriangle} color={m.overdue ? "text-red-600" : "text-ink/50"} />
       </div>
 
-      {/* Charts row */}
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid md:grid-cols-2 gap-5">
         <div className="game-panel p-5">
-          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Tasks Completed — Last 30 Days</h3>
+          <H3>Tasks completed — last 30 days</H3>
           <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={dailyData}>
+            <AreaChart data={m.days}>
               <defs>
                 <linearGradient id="gc1" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#ff3c00" stopOpacity={0.6} />
                   <stop offset="100%" stopColor="#ffaa00" stopOpacity={0.04} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="day" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} interval={6} />
-              <YAxis allowDecimals={false} tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} axisLine={false} />
-              <Tooltip content={<GameChartTooltip />} cursor={{ stroke: 'rgba(255,170,0,0.25)', strokeWidth: 1 }} />
-              <Area type="monotone" dataKey="completed" stroke="#ff3c00" fill="url(#gc1)" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#ff3c00', stroke: '#ffaa00', strokeWidth: 1 }} style={{ filter: 'drop-shadow(0 0 5px rgba(255,170,0,0.4))' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
+              <XAxis dataKey="day" tick={{ fill: "rgba(0,0,0,0.35)", fontSize: 10 }} tickLine={false} interval={6} />
+              <YAxis allowDecimals={false} tick={{ fill: "rgba(0,0,0,0.35)", fontSize: 10 }} tickLine={false} axisLine={false} />
+              <Tooltip content={<GameChartTooltip />} cursor={{ stroke: "rgba(255,170,0,0.25)", strokeWidth: 1 }} />
+              <Area type="monotone" dataKey="completed" stroke="#ff3c00" fill="url(#gc1)" strokeWidth={2} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
-
         <div className="game-panel p-5">
-          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Actual Hours Logged — Weekly</h3>
+          <H3>Hours clocked — weekly</H3>
           <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={actualWeeklyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="week" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} />
-              <YAxis tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} axisLine={false} />
-              <defs><linearGradient id="oaBarPurple" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#C084FC" /><stop offset="100%" stopColor="#7C3AED" stopOpacity="0.7" /></linearGradient></defs>
-              <Tooltip content={<GameChartTooltip suffix="h" />} cursor={{ fill: 'rgba(168,85,247,0.08)' }} />
-              <Bar dataKey="hours" fill="url(#oaBarPurple)" radius={[6, 6, 0, 0]} style={{ filter: 'drop-shadow(0 0 6px rgba(168,85,247,0.3))' }} />
+            <BarChart data={m.weeks}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
+              <XAxis dataKey="week" tick={{ fill: "rgba(0,0,0,0.35)", fontSize: 10 }} tickLine={false} />
+              <YAxis tick={{ fill: "rgba(0,0,0,0.35)", fontSize: 10 }} tickLine={false} axisLine={false} />
+              <Tooltip content={<GameChartTooltip suffix="h" />} cursor={{ fill: "rgba(255,60,0,0.06)" }} />
+              <Bar dataKey="hours" fill="#ff3c00" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-          {totalActualHours === 0 && (
-            <p className="text-ink/[0.38] text-[10px] text-center mt-2">Log actual time when completing tasks to populate this chart.</p>
+          {!m.weeks.some((w) => w.hours) && (
+            <p className="text-ink/[0.45] text-[11px] text-center mt-2">Start the clock on a task (Tasks or a project) and the hours show up here and in Time Intelligence.</p>
           )}
         </div>
       </div>
 
-      {/* Bottom row */}
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid md:grid-cols-3 gap-5">
         <div className="game-panel p-5">
-          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Status Breakdown</h3>
-          <div className="space-y-3">
-            {statusData.map((s) => {
-              const pct = allTasks.length ? Math.round((s.count / allTasks.length) * 100) : 0;
-              return (
-                <div key={s.label}>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-ink/50 text-xs">{s.label}</span>
-                    <span className="text-ink/70 text-xs font-bold">{s.count} <span className="text-ink/[0.48] font-normal">({pct}%)</span></span>
-                  </div>
-                  <div className="h-2 bg-ink/[0.04] rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: s.fill }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <H3>Status</H3>
+          <Bars rows={m.statusRows} total={m.total} />
         </div>
-
         <div className="game-panel p-5">
-          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Task Source & Time Breakdown</h3>
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between mb-1.5"><span className="text-ink/50 text-xs">Interstellar To-Do</span><span className="text-purple-600 text-xs font-bold">{items.filter(t=>t.done||t.status==="Completed").length} / {items.length}</span></div>
-              <div className="h-2 bg-ink/[0.04] rounded-full overflow-hidden"><div className="h-full rounded-full bg-purple-500/70 transition-all duration-700" style={{ width: `${items.length ? Math.round((items.filter(t=>t.done||t.status==="Completed").length/items.length)*100) : 0}%` }} /></div>
-            </div>
-            <div>
-              <div className="flex justify-between mb-1.5"><span className="text-ink/50 text-xs">Client Projects</span><span className="text-orange-600 text-xs font-bold">{clientItems.filter(t=>t.done||t.status==="Completed").length} / {clientItems.length}</span></div>
-              <div className="h-2 bg-ink/[0.04] rounded-full overflow-hidden"><div className="h-full rounded-full bg-orange-500/70 transition-all duration-700" style={{ width: `${clientItems.length ? Math.round((clientItems.filter(t=>t.done||t.status==="Completed").length/clientItems.length)*100) : 0}%` }} /></div>
-            </div>
-            <div className="pt-3 border-t border-ink/[0.13] grid grid-cols-2 gap-3">
-              <div className="bg-ink/[0.02] rounded-lg p-3 border border-ink/[0.13] text-center">
-                <p className="text-purple-600 text-lg font-bold">{totalActualHours > 0 ? fmtHours(totalActualHours) : "—"}</p>
-                <p className="text-ink/[0.43] text-[10px] uppercase tracking-wider mt-0.5">Actual Time Total</p>
+          <H3>Billable vs internal</H3>
+          {m.typeRows.length ? <Bars rows={m.typeRows} total={m.total} /> : <p className="text-xs text-ink/50">No tasks yet.</p>}
+        </div>
+        <div className="game-panel p-5">
+          <H3>By client</H3>
+          <div className="space-y-2">
+            {m.clients.map((c) => (
+              <div key={c.name} className="flex items-center justify-between text-xs">
+                <span className="text-ink/70 truncate pr-2">{c.name}</span>
+                <span className="text-ink/50 whitespace-nowrap">
+                  <b className="text-ink/80">{c.open}</b> open · {c.done} done{c.hours >= 0.1 ? ` · ${fmtH(c.hours)}` : ""}
+                </span>
               </div>
-              <div className="bg-ink/[0.02] rounded-lg p-3 border border-ink/[0.13] text-center">
-                <p className="text-blue-600 text-lg font-bold">{totalEstHours > 0 ? fmtHours(totalEstHours) : "—"}</p>
-                <p className="text-ink/[0.43] text-[10px] uppercase tracking-wider mt-0.5">Estimated Total</p>
-              </div>
-            </div>
+            ))}
+            {!m.clients.length && <p className="text-xs text-ink/50">No tasks yet.</p>}
           </div>
         </div>
       </div>
@@ -261,176 +259,123 @@ function TasksAnalytics() {
   );
 }
 
-// ─── PROJECTS TAB ─────────────────────────────────────────────────────────────
-function ProjectsAnalytics() {
-  const [webOps, setWebOps] = useState([]);
-  const [forge, setForge] = useState([]);
-  const [loading, setLoading] = useState(true);
+// ─── PROJECT OUTPUT ──────────────────────────────────────────────────────────
+const ACTIVE_PROJECT = ["planning", "in_progress", "review"];
+const SHIPPED_PROJECT = ["launched", "done"];
 
-  useEffect(() => {
-    Promise.all([
-      base44.entities.WebOpsProject.list("created_date", 200),
-      base44.entities.ForgeProject.list("created_date", 200),
-    ]).then(([w, f]) => {
-      setWebOps(w);
-      setForge(f);
-      setLoading(false);
+function ProjectsAnalytics({ data }) {
+  const m = useMemo(() => {
+    const { tasks, projects, entries } = data;
+    const now = Date.now();
+    const per = new Map(projects.map((p) => [p.id, { total: 0, done: 0, sec: 0, estMin: 0 }]));
+    tasks.forEach((t) => {
+      const r = t.project_id && per.get(t.project_id);
+      if (!r) return;
+      r.total += 1;
+      if (t.status === "done") r.done += 1;
+      r.sec += totalSeconds(t);
+      r.estMin += Number(t.estimated_minutes) || (Number(t.estimated_hours) || 0) * 60;
     });
-
-    const u1 = base44.entities.WebOpsProject.subscribe((e) => {
-      setWebOps((prev) => {
-        if (e.type === "create") return [...prev, e.data];
-        if (e.type === "update") return prev.map((i) => i.id === e.id ? e.data : i);
-        if (e.type === "delete") return prev.filter((i) => i.id !== e.id);
-        return prev;
-      });
+    const rows = projects.map((p) => {
+      const r = per.get(p.id);
+      const progress = r.total ? Math.round((r.done / r.total) * 100) : Number(p.progress) || 0;
+      const logged = Math.max(r.sec / 3600, Number(p.logged_hours) || 0);
+      const est = Number(p.estimated_hours) || r.estMin / 60;
+      const overdue = p.due_date && !SHIPPED_PROJECT.includes(p.status) && new Date(p.due_date).getTime() < now - DAY;
+      return { ...p, progress, logged, est, tasksTotal: r.total, tasksDone: r.done, overdue };
     });
-    const u2 = base44.entities.ForgeProject.subscribe((e) => {
-      setForge((prev) => {
-        if (e.type === "create") return [...prev, e.data];
-        if (e.type === "update") return prev.map((i) => i.id === e.id ? e.data : i);
-        if (e.type === "delete") return prev.filter((i) => i.id !== e.id);
-        return prev;
-      });
-    });
-    return () => { u1(); u2(); };
-  }, []);
+    const active = rows.filter((p) => ACTIVE_PROJECT.includes(p.status));
+    const shipped = rows.filter((p) => SHIPPED_PROJECT.includes(p.status));
+    const onHold = rows.filter((p) => p.status === "on_hold");
+    const avgProgress = active.length ? Math.round(active.reduce((s, p) => s + p.progress, 0) / active.length) : 0;
+    const logged = rows.reduce((s, p) => s + p.logged, 0);
+    const est = rows.reduce((s, p) => s + p.est, 0);
+    const statusRows = PROJECT_STATUSES.map((s) => ({ label: s.label, color: s.color || "#ff3c00", count: rows.filter((p) => p.status === s.value).length })).filter((r) => r.count);
+    const typeRows = PROJECT_TYPES.map((s) => ({ label: s.label, color: s.color || "#ff3c00", count: rows.filter((p) => p.type === s.value).length })).filter((r) => r.count);
+    const noTasks = active.filter((p) => !p.tasksTotal).length;
+    const entriesNoProject = entries.filter((e) => !e.project_id).length;
+    return { rows, active, shipped, onHold, avgProgress, logged, est, statusRows, typeRows, noTasks, entriesNoProject, overdue: rows.filter((p) => p.overdue).length };
+  }, [data]);
 
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" /></div>;
-
-  const all = [...webOps, ...forge];
-  const completed = all.filter((p) => p.status === "Completed");
-  const active = all.filter((p) => p.status !== "Completed" && p.status !== "On Hold");
-  const onHold = all.filter((p) => p.status === "On Hold");
-  const avgProgress = active.length ? Math.round(active.reduce((s, p) => s + (p.progress || 0), 0) / active.length) : 0;
-
-  // Completion rate
-  const completionRate = all.length ? Math.round((completed.length / all.length) * 100) : 0;
-
-  // Status distribution for all projects
-  const statusGroups = {};
-  all.forEach((p) => { statusGroups[p.status || "Unknown"] = (statusGroups[p.status || "Unknown"] || 0) + 1; });
-  const statusColors = {
-    Completed: "#22c55e", Planning: "#3b82f6", Development: "#ff3c00",
-    "In Progress": "#ff3c00", Testing: "#a855f7", Deployment: "#eab308",
-    Review: "#a855f7", "On Hold": "rgba(255,255,255,0.2)", "Waiting on Client": "#eab308",
-  };
-
-  // WebOps vs Forge breakdown
-  const webOpsCompleted = webOps.filter((p) => p.status === "Completed").length;
-  const forgeCompleted = forge.filter((p) => p.status === "Completed").length;
-
-  // Weekly project completions
-  const weeks = last8Weeks();
-  const compByWeek = {};
-  weeks.forEach((w) => { compByWeek[w] = 0; });
-  completed.forEach((p) => {
-    const d = new Date(p.updated_date || p.created_date);
-    const key = weekLabel(d.toISOString());
-    if (compByWeek[key] !== undefined) compByWeek[key]++;
-  });
-  const weeklyData = weeks.map((w) => ({ week: w, completed: compByWeek[w] }));
-
-  // Progress distribution of active projects
-  const progressBuckets = [
-    { label: "0–25%", count: active.filter(p => (p.progress||0) <= 25).length },
-    { label: "26–50%", count: active.filter(p => (p.progress||0) > 25 && (p.progress||0) <= 50).length },
-    { label: "51–75%", count: active.filter(p => (p.progress||0) > 50 && (p.progress||0) <= 75).length },
-    { label: "76–99%", count: active.filter(p => (p.progress||0) > 75 && (p.progress||0) < 100).length },
-  ];
+  const list = [...m.rows].sort((a, b) => (ACTIVE_PROJECT.includes(b.status) ? 1 : 0) - (ACTIVE_PROJECT.includes(a.status) ? 1 : 0) || b.progress - a.progress);
 
   return (
     <div className="space-y-6">
-      {/* KPI row */}
-      <div className="grid grid-cols-5 gap-4">
-        <StatCard label="Total Projects" value={all.length} icon={Target} color="text-ink/70" />
-        <StatCard label="Completed" value={completed.length} icon={CheckCircle2} color="text-green-600" />
-        <StatCard label="Active" value={active.length} icon={Activity} color="text-orange-600" />
-        <StatCard label="Completion Rate" value={`${completionRate}%`} icon={TrendingUp} color="text-blue-600" />
-        <StatCard label="Avg Progress" value={`${avgProgress}%`} icon={Zap} color="text-purple-600" sub="across active projects" />
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <StatCard label="Active projects" value={m.active.length} sub={`${m.rows.length} total`} icon={FolderKanban} color="text-orange-600" />
+        <StatCard label="Launched / done" value={m.shipped.length} icon={CheckCircle2} color="text-green-600" />
+        <StatCard label="Avg progress (active)" value={`${m.avgProgress}%`} sub="done tasks ÷ all tasks" icon={TrendingUp} color="text-blue-600" />
+        <StatCard label="Hours clocked" value={fmtH(m.logged)} sub={m.est ? `of ${fmtH(m.est)} estimated` : "no estimates yet"} icon={Timer} color="text-purple-600" />
+        <StatCard label="Overdue" value={m.overdue} sub={`${m.onHold.length} on hold`} icon={AlertTriangle} color={m.overdue ? "text-red-600" : "text-ink/50"} />
       </div>
 
-      {/* Charts row */}
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid md:grid-cols-2 gap-5">
         <div className="game-panel p-5">
-          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Projects Completed — Weekly Pace</h3>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={weeklyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="week" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} />
-              <YAxis allowDecimals={false} tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} axisLine={false} />
-              <defs><linearGradient id="oaBarGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#4ADE80" /><stop offset="100%" stopColor="#16A34A" stopOpacity="0.7" /></linearGradient></defs>
-              <Tooltip content={<GameChartTooltip />} cursor={{ fill: 'rgba(34,197,94,0.08)' }} />
-              <Bar dataKey="completed" fill="url(#oaBarGreen)" radius={[6, 6, 0, 0]} style={{ filter: 'drop-shadow(0 0 6px rgba(34,197,94,0.3))' }} />
-            </BarChart>
-          </ResponsiveContainer>
+          <H3>Status</H3>
+          {m.statusRows.length ? <Bars rows={m.statusRows} total={m.rows.length} /> : <p className="text-xs text-ink/50">No projects yet.</p>}
         </div>
-
         <div className="game-panel p-5">
-          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Active Projects — Progress Distribution</h3>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={progressBuckets}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} />
-              <YAxis allowDecimals={false} tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} tickLine={false} axisLine={false} />
-              <defs><linearGradient id="oaBarBlue" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#60A5FA" /><stop offset="100%" stopColor="#2563EB" stopOpacity="0.7" /></linearGradient></defs>
-              <Tooltip content={<GameChartTooltip />} cursor={{ fill: 'rgba(59,130,246,0.08)' }} />
-              <Bar dataKey="count" fill="url(#oaBarBlue)" radius={[6, 6, 0, 0]} style={{ filter: 'drop-shadow(0 0 6px rgba(59,130,246,0.3))' }} />
-            </BarChart>
-          </ResponsiveContainer>
+          <H3>By package type</H3>
+          {m.typeRows.length ? <Bars rows={m.typeRows} total={m.rows.length} /> : <p className="text-xs text-ink/50">No projects yet.</p>}
         </div>
       </div>
 
-      {/* Bottom row */}
-      <div className="grid grid-cols-2 gap-5">
-        <div className="game-panel p-5">
-          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Status Breakdown</h3>
-          <div className="space-y-3">
-            {Object.entries(statusGroups).map(([status, count]) => {
-              const pct = all.length ? Math.round((count / all.length) * 100) : 0;
-              const color = statusColors[status] || "#ff3c00";
+      <div className="game-panel p-0 overflow-x-auto">
+        <div className="p-5 pb-3">
+          <H3>Every project</H3>
+          {m.noTasks > 0 && <p className="text-[11px] text-ink/55 -mt-2">{m.noTasks} active project(s) have no tasks yet, so their progress can&apos;t move. Add tasks or run an SOP on them.</p>}
+        </div>
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="text-left text-ink/45 border-b border-ink/10">
+              <th className="px-5 py-2 font-medium">Project</th>
+              <th className="px-3 py-2 font-medium">Client</th>
+              <th className="px-3 py-2 font-medium">Status</th>
+              <th className="px-3 py-2 font-medium w-40">Progress</th>
+              <th className="px-3 py-2 font-medium">Tasks</th>
+              <th className="px-3 py-2 font-medium">Hours</th>
+              <th className="px-5 py-2 font-medium">Due</th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.map((p) => {
+              const st = PROJECT_STATUSES.find((s) => s.value === p.status);
               return (
-                <div key={status}>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-ink/50 text-xs">{status}</span>
-                    <span className="text-ink/70 text-xs font-bold">{count} <span className="text-ink/[0.48] font-normal">({pct}%)</span></span>
-                  </div>
-                  <div className="h-2 bg-ink/[0.04] rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: color }} />
-                  </div>
-                </div>
+                <tr key={p.id} className="border-b border-ink/[0.06] hover:bg-ink/[0.02]">
+                  <td className="px-5 py-2.5">
+                    <Link to={`/projects/${p.id}`} className="text-ink/85 hover:text-[#ff3c00] font-medium">
+                      {p.title}
+                    </Link>
+                  </td>
+                  <td className="px-3 py-2.5 text-ink/60">{p.client_name || "Internal"}</td>
+                  <td className="px-3 py-2.5">
+                    <span className="inline-flex items-center gap-1.5 text-ink/70">
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: st?.color || "#8a8580" }} />
+                      {st?.label || p.status}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="h-1.5 flex-1 bg-ink/[0.07] rounded-full overflow-hidden">
+                        <div className="h-full flame-bg rounded-full" style={{ width: `${p.progress}%` }} />
+                      </div>
+                      <span className="text-ink/60 w-8 text-right">{p.progress}%</span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2.5 text-ink/60">
+                    {p.tasksDone}/{p.tasksTotal}
+                  </td>
+                  <td className={`px-3 py-2.5 ${p.est && p.logged > p.est ? "text-[#ff3c00] font-semibold" : "text-ink/60"}`}>
+                    {p.logged >= 0.05 ? fmtH(p.logged) : "—"}
+                    {p.est ? <span className="text-ink/40"> / {fmtH(p.est)}</span> : null}
+                  </td>
+                  <td className={`px-5 py-2.5 ${p.overdue ? "text-red-600 font-semibold" : "text-ink/60"}`}>{p.due_date ? new Date(p.due_date).toLocaleDateString() : "—"}</td>
+                </tr>
               );
             })}
-          </div>
-        </div>
-
-        <div className="game-panel p-5">
-          <h3 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-4">Division Breakdown</h3>
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between mb-1.5"><span className="text-ink/50 text-xs">Web Øps</span><span className="text-blue-600 text-xs font-bold">{webOpsCompleted} / {webOps.length} completed</span></div>
-              <div className="h-2 bg-ink/[0.04] rounded-full overflow-hidden"><div className="h-full rounded-full bg-blue-500/70 transition-all duration-700" style={{ width: `${webOps.length ? Math.round((webOpsCompleted/webOps.length)*100) : 0}%` }} /></div>
-            </div>
-            <div>
-              <div className="flex justify-between mb-1.5"><span className="text-ink/50 text-xs">Førge</span><span className="text-orange-600 text-xs font-bold">{forgeCompleted} / {forge.length} completed</span></div>
-              <div className="h-2 bg-ink/[0.04] rounded-full overflow-hidden"><div className="h-full rounded-full bg-orange-500/70 transition-all duration-700" style={{ width: `${forge.length ? Math.round((forgeCompleted/forge.length)*100) : 0}%` }} /></div>
-            </div>
-            <div className="pt-3 border-t border-ink/[0.13] grid grid-cols-3 gap-3">
-              <div className="bg-ink/[0.02] rounded-lg p-3 border border-ink/[0.13] text-center">
-                <p className="text-green-600 text-lg font-bold">{completed.length}</p>
-                <p className="text-ink/[0.43] text-[10px] uppercase tracking-wider mt-0.5">Done</p>
-              </div>
-              <div className="bg-ink/[0.02] rounded-lg p-3 border border-ink/[0.13] text-center">
-                <p className="text-orange-600 text-lg font-bold">{active.length}</p>
-                <p className="text-ink/[0.43] text-[10px] uppercase tracking-wider mt-0.5">Active</p>
-              </div>
-              <div className="bg-ink/[0.02] rounded-lg p-3 border border-ink/[0.13] text-center">
-                <p className="text-ink/[0.58] text-lg font-bold">{onHold.length}</p>
-                <p className="text-ink/[0.43] text-[10px] uppercase tracking-wider mt-0.5">On Hold</p>
-              </div>
-            </div>
-          </div>
-        </div>
+          </tbody>
+        </table>
+        {!list.length && <p className="px-5 py-6 text-xs text-ink/50">No projects yet. Start one from a package or the Projects page.</p>}
       </div>
     </div>
   );
@@ -438,10 +383,11 @@ function ProjectsAnalytics() {
 
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 export default function OutputAnalytics() {
+  const data = useOutputData();
   return (
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Agency / Output" rightText="Real-Time Performance" />
-      <div className="px-8 py-6">
+      <div className="px-5 md:px-8 py-6">
         <Tabs defaultValue="time" className="w-full">
           <TabsList className="bg-card border border-ink/[0.13] mb-6">
             <TabsTrigger value="time" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58] gap-2">
@@ -451,12 +397,14 @@ export default function OutputAnalytics() {
               <BarChart3 className="w-3.5 h-3.5" /> Task Output
             </TabsTrigger>
             <TabsTrigger value="projects" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58] gap-2">
-              <TrendingUp className="w-3.5 h-3.5" /> Project Output
+              <Activity className="w-3.5 h-3.5" /> Project Output
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="time"><TimeIntelligence /></TabsContent>
-          <TabsContent value="tasks"><TasksAnalytics /></TabsContent>
-          <TabsContent value="projects"><ProjectsAnalytics /></TabsContent>
+          <TabsContent value="time">
+            <TimeIntelligence />
+          </TabsContent>
+          <TabsContent value="tasks">{data.loading ? <Loading /> : <TasksAnalytics data={data} />}</TabsContent>
+          <TabsContent value="projects">{data.loading ? <Loading /> : <ProjectsAnalytics data={data} />}</TabsContent>
         </Tabs>
       </div>
     </div>
