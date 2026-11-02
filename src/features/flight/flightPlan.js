@@ -144,6 +144,5 @@ export function scenarioPieces({ lane, care, tier, addon }) {
 // does not yet match this flow. Kept here so they stay visible until fixed.
 // All six loose ends found on Oct 31 were fixed on Oct 31 – Nov 1 (care plan required at start,
 // no double GravïtyCare, system care hand-off step, build prices, $750 public / $500 referral, Closing SOP).
-export const LOOSE_ENDS = [
-  { title: "Transmission has no fixed price", detail: "Transmission still starts with a $1,500 placeholder value when sold alone; set its real price when you decide it." },
-];
+// Nov 2, 2026: Justin confirmed Transmission sold alone is $1,500 (already the value in start-service).
+export const LOOSE_ENDS = [];
