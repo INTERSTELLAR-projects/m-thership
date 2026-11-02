@@ -13,7 +13,8 @@
         "t1_classic",
         "t2_minimal",
         "t3_compact",
-        "t4_centered"
+        "t4_centered",
+        "t5_rail"
       ],
       "default": "t1_classic"
     },
