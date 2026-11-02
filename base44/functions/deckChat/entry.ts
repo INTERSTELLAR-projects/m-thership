@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
 
-const LAYOUTS = ['cover', 'list', 'bullets', 'split', 'image', 'stats', 'quote', 'compare', 'timeline', 'closing'];
-const THEMES = ['signal', 'signal-dark', 'paper', 'midnight', 'cobalt', 'sandstone', 'carbon', 'violet', 'custom'];
+const LAYOUTS = ['cover', 'section', 'list', 'bullets', 'split', 'image', 'stats', 'bigstat', 'quote', 'compare', 'timeline', 'pricing', 'closing'];
+const THEMES = ['interstellar', 'interstellar-dark', 'signal', 'signal-dark', 'paper', 'midnight', 'cobalt', 'sandstone', 'carbon', 'violet', 'custom'];
 const MAX_SLIDES = 20;
 const MAX_VISUALS = 4;
 
@@ -39,12 +39,27 @@ const SLIDE_SCHEMA = {
         required: ['heading', 'text']
       }
     },
+    offers: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          price: { type: 'string' },
+          period: { type: 'string' },
+          description: { type: 'string' },
+          features: { type: 'array', items: { type: 'string' } },
+          highlighted: { type: 'boolean' }
+        },
+        required: ['name', 'price', 'period', 'description', 'features', 'highlighted']
+      }
+    },
     attribution: { type: 'string' },
     image_prompt: { type: 'string' },
     needs_visual: { type: 'boolean' },
     notes: { type: 'string' }
   },
-  required: ['id', 'layout', 'eyebrow', 'title', 'subtitle', 'body', 'bullets', 'stats', 'steps', 'columns', 'attribution', 'image_prompt', 'needs_visual', 'notes']
+  required: ['id', 'layout', 'eyebrow', 'title', 'subtitle', 'body', 'bullets', 'stats', 'steps', 'columns', 'offers', 'attribution', 'image_prompt', 'needs_visual', 'notes']
 };
 
 const RESPONSE_SCHEMA = {
@@ -96,6 +111,9 @@ LAYOUTS (pick what the content needs and vary them across the deck)
 - compare: exactly two columns. columns holds [{heading, text}] where text is 2 or 3 short lines separated by "\\n".
 - timeline: 3 or 4 steps. steps holds [{label, text}] with a short label like "Phase 1" or "Week 2" and one line of text.
 - closing: one decisive statement in body, and the next step in subtitle.
+- section: a chapter divider. eyebrow like "02 · Approach", a big title, a one-line subtitle.
+- bigstat: ONE huge figure in stats[0] {value, label}; subtitle gives the context or source. Only real figures from the request.
+- pricing: 1 to 3 offers [{name, price, period, description, features, highlighted}]; mark the recommended one highlighted. Use only prices the user gave.
 
 VISUALS
 - Set needs_visual true on at most 4 slides per deck, and only on cover, image or split slides.
@@ -111,8 +129,8 @@ FIELDS
 - Always return the complete deck in "slides". Never return a partial list, a patch, or a description of changes.
 
 THEMES
-- "signal" is the default light theme (snow background, orange #FD5638 accent, dark text, Manrope). Prefer it for most corporate decks unless the content asks for something else.
-- "signal-dark" is the dark companion (#2E2E2E background, orange accent, light text).
+- "interstellar" is the default: Interstellar Strategies' own look (warm off-white, ink text, brand gradient #ff3c00 to #ff6a00 to #ffaa00, Manrope). Never gold or yellow. "interstellar-dark" is its dark companion.
+- "signal" and "signal-dark" are the older orange themes.
 - The other presets (paper, midnight, cobalt, sandstone, carbon, violet) are still available when the topic or audience suits them.
 - Only use "custom" when the user gives brand colors or a font style.
 
@@ -154,6 +172,16 @@ function normalizeSlide(raw, fallbackId) {
     columns: asList(s.columns, 2)
       .map((x) => ({ heading: asText(x && x.heading, 70), text: asText(x && x.text, 420) }))
       .filter((x) => x.heading || x.text),
+    offers: asList(s.offers, 3)
+      .map((x) => ({
+        name: asText(x && x.name, 60),
+        price: asText(x && x.price, 30),
+        period: asText(x && x.period, 30),
+        description: asText(x && x.description, 200),
+        features: asList(x && x.features, 8).map((f) => asText(f, 120)).filter(Boolean),
+        highlighted: Boolean(x && x.highlighted)
+      }))
+      .filter((x) => x.name || x.price),
     attribution: asText(s.attribution, 120),
     image_prompt: asText(s.image_prompt, 400),
     image_url: asText(s.image_url, 700),
@@ -174,7 +202,7 @@ export default async function (req) {
     if (!instruction) return Response.json({ error: 'A prompt is required.' }, { status: 400 });
 
     const options = payload && typeof payload.options === 'object' && payload.options ? payload.options : {};
-    const theme = THEMES.indexOf(options.theme) !== -1 ? options.theme : 'paper';
+    const theme = THEMES.indexOf(options.theme) !== -1 ? options.theme : 'interstellar';
     const tone = asText(options.tone, 80) || 'Clear and confident';
     const audience = asText(options.audience, 160);
     const requested = Number(options.slideCount);
