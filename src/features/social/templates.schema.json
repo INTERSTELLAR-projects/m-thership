@@ -1,0 +1,380 @@
+{
+  "version": 1,
+  "canvas": { "width": 1080, "height": 1080, "format": "png" },
+  "spec_common": {
+    "eyebrow": { "type": "string", "max": 36, "description": "Small mono label top-left, shown in parentheses, e.g. 'Command System'. No parentheses needed." },
+    "headline": { "type": "string", "max": 72, "required": true, "description": "The hook. One idea. Sentence case." },
+    "accent_word": { "type": "string", "max": 24, "description": "A word or short phrase that appears verbatim in the headline; it renders in the orange gradient." },
+    "subhead": { "type": "string", "max": 140, "description": "One supporting line under the headline. Some templates hide it when space is tight." },
+    "body": { "type": "string", "max": 220, "description": "Optional extra line (quote_hook, big_stat note area)." },
+    "cta": { "type": "string", "max": 34, "description": "Footer call-to-action pill, e.g. 'Book a free strategy call'. Empty = slogan only." },
+    "theme": { "type": "string", "enum": ["light", "dark"], "description": "light = canvas #ebe8e4 with grid; dark = ink with grain and orange glow." },
+    "lockup": { "type": "string", "enum": ["interstellar", "mothership", "none"], "description": "Footer logo lockup. 'mothership' for product showcase posts." },
+    "mock": { "type": "object", "description": "Template-specific data, see templates.<key>.mock." }
+  },
+  "templates": {
+    "pain_fix": {
+      "label": "Pain point vs fix",
+      "description": "Split card: what the owner lives with today vs the same job inside one system.",
+      "best_for": ["pain_point", "education"],
+      "mock": {
+        "before_label": { "type": "string", "max": 18 },
+        "before_items": { "type": "array", "items": "string (max 46)", "min": 3, "max": 5 },
+        "after_label": { "type": "string", "max": 18 },
+        "after_items": { "type": "array", "items": "string (max 46)", "min": 3, "max": 5 }
+      },
+      "example": {
+        "eyebrow": "The app pile",
+        "headline": "Your business runs on 9 logins and a spreadsheet.",
+        "accent_word": "9 logins",
+        "subhead": "Every new tool fixed one problem and created two more.",
+        "cta": "See the Command System",
+        "theme": "light",
+        "lockup": "interstellar",
+        "mock": {
+          "before_label": "Today",
+          "before_items": ["Leads in one app, jobs in another", "Invoices typed in twice", "Follow-ups living in your head", "A spreadsheet holding it together"],
+          "after_label": "One system",
+          "after_items": ["Every lead lands in one pipeline", "Quote to invoice in one click", "Follow-ups that send themselves", "One login for the whole team"]
+        }
+      }
+    },
+    "dashboard": {
+      "label": "Dashboard mock",
+      "description": "Møthership-style financial screen: dark MRR hero card plus four KPI tiles for a fictional business. Shows a Sample data tag.",
+      "best_for": ["product_showcase", "proof_of_process"],
+      "mock": {
+        "business": { "type": "string", "description": "Fictional business name" },
+        "screen": { "type": "string", "description": "Screen name in the window bar, e.g. 'Financial'" },
+        "hero": { "type": "object", "fields": { "label": "string", "value": "string, e.g. '$48,210'", "delta": "string, e.g. '+12.4%'", "sub": "string", "spark": "array of 6-12 numbers" } },
+        "kpis": { "type": "array", "min": 4, "max": 4, "items": { "label": "string", "value": "string", "sub": "string", "hot": "boolean" } }
+      },
+      "example": {
+        "eyebrow": "Command System",
+        "headline": "Know your numbers before your coffee gets cold.",
+        "accent_word": "numbers",
+        "subhead": "Revenue, jobs, leads and follow-ups on one screen, live.",
+        "cta": "Book a free strategy call",
+        "theme": "light",
+        "lockup": "mothership",
+        "mock": {
+          "business": "Ridgeline Plumbing",
+          "screen": "Financial",
+          "hero": { "label": "Collected this month", "value": "$48,210", "delta": "+12.4%", "sub": "vs last month", "spark": [21, 24, 23, 28, 27, 31, 30, 35, 38, 37, 42, 48] },
+          "kpis": [
+            { "label": "Jobs booked", "value": "64", "sub": "11 this week" },
+            { "label": "Open quotes", "value": "$18.6K", "sub": "7 waiting", "hot": true },
+            { "label": "New leads", "value": "23", "sub": "4 in 24h" },
+            { "label": "Avg. ticket", "value": "$753", "sub": "up from $690" }
+          ]
+        }
+      }
+    },
+    "command_briefing": {
+      "label": "Command Briefing",
+      "description": "The Mission Control briefing card: greeting, date, the one thing to do today, status chips and three KPI tiles.",
+      "best_for": ["product_showcase", "pain_point"],
+      "mock": {
+        "name": { "type": "string", "description": "Owner first name (fictional), e.g. 'Dana'" },
+        "greeting": { "type": "string", "enum": ["Good morning", "Good afternoon", "Good evening"] },
+        "date_line": { "type": "string", "description": "e.g. 'Monday, November 9, 2026'" },
+        "one_thing": { "type": "string", "max": 80 },
+        "chips": { "type": "array", "max": 4, "items": { "label": "string", "hot": "boolean" } },
+        "tiles": { "type": "array", "min": 3, "max": 3, "items": { "label": "string", "value": "string", "sub": "string", "flame": "boolean" } }
+      },
+      "example": {
+        "eyebrow": "Mission Control",
+        "headline": "Open one screen. Know the one thing that matters today.",
+        "accent_word": "one thing",
+        "subhead": "Your system reads every lead, job and invoice, then tells you where to start.",
+        "cta": "See it in a free call",
+        "theme": "light",
+        "lockup": "mothership",
+        "mock": {
+          "name": "Dana",
+          "greeting": "Good morning",
+          "date_line": "Monday, November 9, 2026",
+          "one_thing": "Call back the 3 water-heater leads from last night before 10am.",
+          "chips": [{ "label": "3 new leads", "hot": true }, { "label": "2 quotes to approve", "hot": true }, { "label": "On pace", "hot": false }],
+          "tiles": [
+            { "label": "Due today", "value": "8", "sub": "none overdue" },
+            { "label": "Calls this week", "value": "14", "sub": "5 new leads" },
+            { "label": "Collected (mo)", "value": "$31,420", "sub": "11 invoices paid", "flame": true }
+          ]
+        }
+      }
+    },
+    "portal_preview": {
+      "label": "Portal preview",
+      "description": "Browser frame with the client portal: Møthership header, 'Here's what we did for <business>' and monthly counters.",
+      "best_for": ["product_showcase", "proof_of_process"],
+      "mock": {
+        "business": { "type": "string" },
+        "month": { "type": "string", "description": "e.g. 'November'" },
+        "counters": { "type": "array", "min": 3, "max": 4, "items": { "value": "string", "label": "string" } },
+        "feed": { "type": "array", "max": 3, "items": { "tag": "string", "title": "string", "date": "string" } }
+      },
+      "example": {
+        "eyebrow": "Client portal",
+        "headline": "Your clients should never have to ask what you did this month.",
+        "accent_word": "never",
+        "subhead": "Every blog, post, fix and update lands in their portal as it ships.",
+        "cta": "Book a free strategy call",
+        "theme": "dark",
+        "lockup": "mothership",
+        "mock": {
+          "business": "Summit Air HVAC",
+          "month": "November",
+          "counters": [{ "value": "4", "label": "Blogs published" }, { "value": "12", "label": "Google posts" }, { "value": "9", "label": "Website updates" }, { "value": "6", "label": "Listings fixed" }],
+          "feed": [{ "tag": "Blog", "title": "When to replace a furnace vs repair it", "date": "Nov 6" }, { "tag": "Google post", "title": "Fall tune-up slots open this week", "date": "Nov 4" }]
+        }
+      }
+    },
+    "stack_collapse": {
+      "label": "Stack collapse",
+      "description": "A pile of separate app chips with monthly costs collapsing into one Command System card. Costs are hypothetical and the template labels them so.",
+      "best_for": ["pain_point", "product_showcase", "offer"],
+      "mock": {
+        "apps": { "type": "array", "min": 5, "max": 8, "items": { "name": "generic tool category, never a real brand", "cost": "number, monthly USD" } },
+        "total_note": { "type": "string", "description": "e.g. 'Hypothetical stack, typical list prices'" },
+        "system_name": { "type": "string" },
+        "system_items": { "type": "array", "max": 5, "items": "string" }
+      },
+      "example": {
+        "eyebrow": "Stack collapse",
+        "headline": "Eight apps. Eight bills. Zero of them talk.",
+        "accent_word": "Zero",
+        "subhead": "Collapse the stack into one system built around how you work.",
+        "cta": "Book a free strategy call",
+        "theme": "light",
+        "lockup": "interstellar",
+        "mock": {
+          "apps": [{ "name": "CRM", "cost": 79 }, { "name": "Scheduling", "cost": 49 }, { "name": "Invoicing", "cost": 35 }, { "name": "Forms", "cost": 29 }, { "name": "Review requests", "cost": 99 }, { "name": "Email marketing", "cost": 45 }, { "name": "Team chat", "cost": 24 }, { "name": "Spreadsheets", "cost": 0 }],
+          "total_note": "Hypothetical stack at typical list prices",
+          "system_name": "One Command System",
+          "system_items": ["CRM + pipeline", "Scheduling + invoicing", "Client portal", "Review requests", "Automations"]
+        }
+      }
+    },
+    "before_after_site": {
+      "label": "Before / after website",
+      "description": "Two browser frames: a dated site with flagged issues vs a custom site with a clear call button and a performance ring.",
+      "best_for": ["education", "proof_of_process", "pain_point"],
+      "mock": {
+        "business": { "type": "string" },
+        "trade": { "type": "string", "description": "e.g. 'Roofing'" },
+        "before_issues": { "type": "array", "max": 3, "items": "string (max 28)" },
+        "after_headline": { "type": "string", "max": 40 },
+        "after_cta": { "type": "string", "max": 18 },
+        "after_badges": { "type": "array", "max": 3, "items": "string (max 22)" },
+        "score": { "type": "number", "description": "Performance score shown on the ring (sample)" }
+      },
+      "example": {
+        "eyebrow": "Website",
+        "headline": "Pretty doesn't ring the phone. Clear does.",
+        "accent_word": "Clear",
+        "subhead": "A site built around one job: turning visitors into calls.",
+        "cta": "Get your free Intel Briefing",
+        "theme": "light",
+        "lockup": "interstellar",
+        "mock": {
+          "business": "Bayview Roofing",
+          "trade": "Roofing",
+          "before_issues": ["No phone number above the fold", "8s load on mobile", "Nothing for Google to read"],
+          "after_headline": "Roof leak? We're there today.",
+          "after_cta": "Call now",
+          "after_badges": ["Same-day inspections", "Licensed + insured", "Free estimates"],
+          "score": 98
+        }
+      }
+    },
+    "checklist": {
+      "label": "Checklist",
+      "description": "Numbered checklist panel. Good for 'N signs you...' posts.",
+      "best_for": ["education", "pain_point"],
+      "mock": {
+        "items": { "type": "array", "min": 3, "max": 6, "items": "string (max 52)" },
+        "checked": { "type": "number", "description": "How many items render as checked (from the top)" }
+      },
+      "example": {
+        "eyebrow": "Self check",
+        "headline": "5 signs you've outgrown your apps",
+        "accent_word": "outgrown",
+        "subhead": "Two or more? It's time for one system.",
+        "cta": "Book a free strategy call",
+        "theme": "dark",
+        "lockup": "interstellar",
+        "mock": {
+          "items": ["You copy the same info into three places", "Leads wait hours for a reply", "Only you know where things stand", "Your spreadsheet has a spreadsheet", "You pay for features you never open"],
+          "checked": 5
+        }
+      }
+    },
+    "big_stat": {
+      "label": "Big stat",
+      "description": "One giant number with a label. Only real, sourced numbers (put the source in note) or clearly hypothetical ones (hypothetical: true renders a 'Hypothetical example' tag).",
+      "best_for": ["education", "pain_point"],
+      "mock": {
+        "value": { "type": "string", "max": 8, "description": "e.g. '$4,680' or '3 hrs'" },
+        "label": { "type": "string", "max": 70 },
+        "note": { "type": "string", "max": 90, "description": "Source or the math behind a hypothetical" },
+        "hypothetical": { "type": "boolean" }
+      },
+      "example": {
+        "eyebrow": "Do the math",
+        "headline": "What a slow reply can cost a service business",
+        "accent_word": "slow reply",
+        "theme": "dark",
+        "lockup": "interstellar",
+        "cta": "Book a free strategy call",
+        "mock": {
+          "value": "$4,680",
+          "label": "a month in jobs that went to whoever called back first",
+          "note": "Example: 6 missed leads a month x $780 average job",
+          "hypothetical": true
+        }
+      }
+    },
+    "quote_hook": {
+      "label": "Quote / hook",
+      "description": "Bold typography only. Optional founder signature with the Interstellar Martian.",
+      "best_for": ["founder_story", "pain_point", "education"],
+      "mock": {
+        "signature": { "type": "string", "description": "e.g. 'Justin Cowell, Founder'. Empty hides the signature row." }
+      },
+      "example": {
+        "eyebrow": "Founder notes",
+        "headline": "Your business shouldn't need you in every loop to move.",
+        "accent_word": "every loop",
+        "body": "I build systems so owners can step out of the day-to-day and back into the work they started the business for.",
+        "theme": "light",
+        "lockup": "interstellar",
+        "cta": "",
+        "mock": { "signature": "Justin Cowell, Founder" }
+      }
+    },
+    "pipeline_board": {
+      "label": "Pipeline board",
+      "description": "Kanban board mock: three columns of lead cards with Martian avatars and values.",
+      "best_for": ["product_showcase", "pain_point"],
+      "mock": {
+        "columns": { "type": "array", "min": 3, "max": 3, "items": { "name": "string", "cards": "array (1-3) of { business, value, note, hot }" } }
+      },
+      "example": {
+        "eyebrow": "Pipeline",
+        "headline": "Every lead in one place. None in your voicemail.",
+        "accent_word": "one place",
+        "subhead": "Calls, forms and referrals land on one board with the next step attached.",
+        "cta": "Book a free strategy call",
+        "theme": "dark",
+        "lockup": "mothership",
+        "mock": {
+          "columns": [
+            { "name": "New lead", "cards": [{ "business": "Maple St. remodel", "value": "$12,400", "note": "Form · 6 min ago", "hot": true }, { "business": "Oak Ave. leak", "value": "$680", "note": "Call · 1 hr ago" }] },
+            { "name": "Quote sent", "cards": [{ "business": "Hillcrest duplex", "value": "$8,950", "note": "Follow-up today", "hot": true }, { "business": "Pine Rd. water heater", "value": "$2,140", "note": "Viewed twice" }] },
+            { "name": "Won", "cards": [{ "business": "Lakeview office", "value": "$5,300", "note": "Deposit paid" }] }
+          ]
+        }
+      }
+    },
+    "review_qr": {
+      "label": "Review / QR",
+      "description": "Phone with an automatic review request text, plus a branded QR card for the counter or truck. Never shows invented review text.",
+      "best_for": ["product_showcase", "education"],
+      "mock": {
+        "business": { "type": "string" },
+        "request_text": { "type": "string", "max": 120 },
+        "qr_url": { "type": "string", "description": "URL encoded in the QR (use the agency site, never a client's)" },
+        "tiles": { "type": "array", "max": 2, "items": { "label": "string", "value": "string" } }
+      },
+      "example": {
+        "eyebrow": "Reviews on autopilot",
+        "headline": "Ask for the review while the job is still fresh.",
+        "accent_word": "still fresh",
+        "subhead": "The system texts every finished job a review link. The QR handles everyone else.",
+        "cta": "Book a free strategy call",
+        "theme": "light",
+        "lockup": "interstellar",
+        "mock": {
+          "business": "Cedar & Stone Landscaping",
+          "request_text": "Thanks for choosing Cedar & Stone today! Got 20 seconds to tell Google how we did?",
+          "qr_url": "https://interstellar-strategies.com",
+          "tiles": [{ "label": "Requests sent", "value": "38" }, { "label": "Reviews this month", "value": "21" }]
+        }
+      }
+    },
+    "offer_stack": {
+      "label": "Offer stack",
+      "description": "Value stack for a real offer (Mission ALPHA / BRAVO). Item values and price must come from brand.js offers.",
+      "best_for": ["offer"],
+      "mock": {
+        "offer_name": { "type": "string" },
+        "items": { "type": "array", "min": 3, "max": 7, "items": { "name": "string", "value": "string, e.g. '$4,997' or 'Free'" } },
+        "total_label": { "type": "string" },
+        "price": { "type": "string" },
+        "price_note": { "type": "string", "max": 60 }
+      },
+      "example": {
+        "eyebrow": "Mission ALPHA",
+        "headline": "Everything your business runs on. Built once, built right.",
+        "accent_word": "built right",
+        "cta": "Book a free strategy call",
+        "theme": "dark",
+        "lockup": "interstellar",
+        "mock": {
+          "offer_name": "Mission ALPHA",
+          "items": [{ "name": "Custom Website", "value": "$4,997" }, { "name": "Command System", "value": "$5,997" }, { "name": "Ops Command", "value": "$3,000" }, { "name": "Brand Arsenal", "value": "$2,500" }, { "name": "Launch Grid", "value": "$1,400" }, { "name": "Transmission", "value": "$1,500" }, { "name": "Intel Briefing", "value": "Free" }],
+          "total_label": "$19,394 if bought separately",
+          "price": "$8,997",
+          "price_note": "Runs on HyperCare+ after launch"
+        }
+      }
+    },
+    "carousel_cover": {
+      "label": "Carousel cover",
+      "description": "Cover slide for a carousel: giant headline, part counter, swipe cue, glowing wordmark band.",
+      "best_for": ["education", "founder_story", "pain_point"],
+      "mock": {
+        "series": { "type": "string", "description": "Series name, e.g. 'Systems 101'" },
+        "slides": { "type": "number", "description": "Total slides in the carousel" },
+        "swipe_label": { "type": "string" }
+      },
+      "example": {
+        "eyebrow": "Systems 101",
+        "headline": "How to tell if your business runs on duct tape",
+        "accent_word": "duct tape",
+        "subhead": "A 6-slide gut check for owners.",
+        "theme": "dark",
+        "lockup": "interstellar",
+        "cta": "",
+        "mock": { "series": "Systems 101", "slides": 6, "swipe_label": "Swipe" }
+      }
+    },
+    "toast_stack": {
+      "label": "Notification stack",
+      "description": "A cascade of app notifications (lead, paid invoice, booking, review request) for a fictional business.",
+      "best_for": ["product_showcase", "pain_point"],
+      "mock": {
+        "app_name": { "type": "string", "description": "Shown as the notification source, e.g. 'Møthership'" },
+        "toasts": { "type": "array", "min": 3, "max": 5, "items": { "icon": "lead | paid | booked | review | task | message", "title": "string (max 34)", "body": "string (max 60)", "time": "string" } }
+      },
+      "example": {
+        "eyebrow": "Automations",
+        "headline": "This is what a business that runs itself sounds like.",
+        "accent_word": "runs itself",
+        "cta": "Book a free strategy call",
+        "theme": "light",
+        "lockup": "mothership",
+        "mock": {
+          "app_name": "Møthership",
+          "toasts": [
+            { "icon": "lead", "title": "New lead · Lakeside Electric", "body": "Panel upgrade quote request. Auto-reply sent.", "time": "now" },
+            { "icon": "booked", "title": "Job booked", "body": "Thursday 9:00am · EV charger install", "time": "4m" },
+            { "icon": "paid", "title": "Invoice paid · $1,240", "body": "Receipt sent and books updated.", "time": "12m" },
+            { "icon": "review", "title": "Review request sent", "body": "Job closed, review link texted to the customer.", "time": "31m" }
+          ]
+        }
+      }
+    }
+  }
+}
