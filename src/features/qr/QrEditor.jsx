@@ -108,7 +108,7 @@ export default function QrEditor({ store, id, start = {}, clients = [], onExit, 
         setBrand(b);
         const client = clients.find((c) => c.id === start.clientId);
         setD(normalize({
-          client_id: start.clientId || "", client_name: client?.business || (isAdmin ? "" : b?.company) || "", folder: start.folder || "",
+          client_id: start.clientId || "", client_name: client?.business || b?.company || "", folder: start.folder || "",
           destination: (b?.website && httpUrl(b.website)) || "",
           style: applyPack({}, brandPack(b)?.style || {}),
         }));
