@@ -3,8 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { itemsOf, TASKS_CHANGED } from "@/features/tasks/lib/clients";
 import { TIMER_CHANGED } from "@/features/tasks/lib/timer";
 
-const EMPTY = { clients: [], projects: [], tasks: [], templates: [], worklog: [], automations: [], intel: [], orbit: [] };
-const LIVE = ["Task", "WorkLog", "Automation", "SeoIntel", "Project", "OrbitSEOClient", "CRMClient"];
+const EMPTY = { clients: [], projects: [], tasks: [], templates: [], worklog: [], automations: [], intel: [], orbit: [], flights: [] };
+const LIVE = ["Task", "WorkLog", "Automation", "SeoIntel", "Project", "OrbitSEOClient", "CRMClient", "OnboardingFlight"];
 
 const safe = (p) => p.then(itemsOf).catch(() => []);
 
@@ -17,7 +17,7 @@ export default function usePackageData() {
 
   const load = useCallback(async () => {
     const since = new Date(Date.now() - 120 * 86400000).toISOString().slice(0, 10);
-    const [clients, projects, tasks, templates, worklog, automations, intel, orbit] = await Promise.all([
+    const [clients, projects, tasks, templates, worklog, automations, intel, orbit, flights] = await Promise.all([
       safe(base44.entities.CRMClient.list({ sort: "business", limit: 200 })),
       safe(base44.entities.Project.list({ sort: "-updated_date", limit: 300 })),
       safe(base44.entities.Task.list({ sort: "-updated_date", limit: 500 })),
@@ -25,9 +25,10 @@ export default function usePackageData() {
       safe(base44.entities.WorkLog.filter({ date: { $gte: since } }, { sort: "-date", limit: 500 })),
       safe(base44.entities.Automation.list({ sort: "-updated_date", limit: 300 })),
       safe(base44.entities.SeoIntel.list({ sort: "-brief_date", limit: 100 })),
-      safe(base44.entities.OrbitSEOClient.list({ sort: "businessName", limit: 200 }))
+      safe(base44.entities.OrbitSEOClient.list({ sort: "businessName", limit: 200 })),
+      safe(base44.entities.OnboardingFlight.list({ sort: "-updated_date", limit: 300 }))
     ]);
-    setData({ clients, projects, tasks, templates, worklog, automations, intel, orbit });
+    setData({ clients, projects, tasks, templates, worklog, automations, intel, orbit, flights });
     setUpdatedAt(new Date());
     setLoading(false);
   }, []);
