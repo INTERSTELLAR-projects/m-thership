@@ -39,8 +39,10 @@ export default function ContentPlans() {
       const status = approved ? "approved" : mine.some((p) => p.status === "draft") || pendingJob ? "draft" : "none";
       const plan = approved ? normalizeContentPlan(approved) : null;
       const a = (autos.data || []).filter((x) => x.client_id === c.id);
-      const projectAuto = a.find((x) => x.kind === "project_page");
-      const projectsOn = !!(approved && approved.projects && approved.projects.enabled) || !!(projectAuto && /submission|job|project/i.test(projectAuto.name) && projectAuto.status !== "paused");
+      // Only submission-driven page tasks count (a city-page batch task is not a submission pipeline).
+      const projectAuto = a.find((x) => x.kind === "project_page" && /submission|job|project/i.test(x.name || ""));
+      const projectsOn = !!(approved && approved.projects && approved.projects.enabled) || projectAuto?.status === "active";
+      const projectsSetup = !projectsOn && projectAuto?.status === "setup";
       const contentAutos = a.filter((x) => x.kind === "blog" || x.kind === "gbp_post").map((x) => x.name);
       return {
         client: c,
@@ -52,6 +54,7 @@ export default function ContentPlans() {
         gbpContracted: contracted(c, "gbp"),
         next: plan ? nextPostDue(plan) : null,
         projectsOn,
+        projectsSetup,
         projectNote: approved?.projects?.publish_url_pattern || projectAuto?.name || "",
         automation: approved?.automation_name || contentAutos.join(" · "),
         automationStatus: approved?.automation_status || "",
@@ -115,7 +118,7 @@ export default function ContentPlans() {
                     {r.next && r.automationStatus === "paused" && <p className="text-[10.5px] text-amber-700">task paused</p>}
                   </td>
                   <td className="px-3 py-2.5">
-                    {r.projectsOn ? <span className="text-green-700">on</span> : <span className="inline-flex items-center gap-1 text-amber-700"><CircleAlert className="h-3 w-3" /> no pipeline</span>}
+                    {r.projectsOn ? <span className="text-green-700">on</span> : r.projectsSetup ? <span className="text-[#c24100]">being set up</span> : <span className="inline-flex items-center gap-1 text-amber-700"><CircleAlert className="h-3 w-3" /> no pipeline</span>}
                     {r.projectNote && <p className="max-w-[180px] truncate font-mono text-[10.5px] text-ink/45">{r.projectNote}</p>}
                   </td>
                   <td className="max-w-[260px] px-3 py-2.5">
@@ -141,7 +144,7 @@ export default function ContentPlans() {
                 {noPipeline.map((r) => (
                   <li key={r.client.id} className="flex flex-wrap items-center justify-between gap-2 text-[12.5px]">
                     <Link to={`/clients/${r.client.id}?tab=content`} className="hover:text-[#ff3c00]">{r.client.business}</Link>
-                    <span className="text-[11px] text-ink/50">{r.client.ops_app_id ? "has an ops app, no publishing task" : "no ops / portal app"}</span>
+                    <span className="text-[11px] text-ink/50">{r.projectsSetup ? "publishing task being set up" : r.client.ops_app_id ? "has an ops app, no publishing task" : "no ops / portal app"}</span>
                   </li>
                 ))}
               </ul>
