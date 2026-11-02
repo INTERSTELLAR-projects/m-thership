@@ -180,8 +180,6 @@ export default function PlanToExecute({ mrr }) {
             ${selected ? Math.round(selected.target_mrr).toLocaleString() : "—"}
           </span>
         </button>
-        <span className="text-ink/[0.38]">·</span>
-        <span className="text-ink/[0.58] text-[11px] uppercase tracking-[0.1em] font-mono">Syncs to Daily Briefing</span>
       </div>
 
       {/* Goal switcher */}
