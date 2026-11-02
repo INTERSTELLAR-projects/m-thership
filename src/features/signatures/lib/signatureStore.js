@@ -34,8 +34,11 @@ export function startFrom(template, brand) {
     const colors = (brand.colors || []).map((x) => (typeof x === "string" ? x : x?.hex)).filter(isHex);
     const accent = colors.find((x) => !NEUTRAL.test(x));
     if (accent && brand.applyColors) {
+      const old = [t.accent_color, t.accent_color_2].map((c) => String(c || "").toLowerCase());
       theme.accent_color = accent;
       theme.accent_color_2 = colors.find((x) => x !== accent && !NEUTRAL.test(x)) || accent;
+      // Contact icons that followed the old accent follow the new one too.
+      if (old.includes(String(theme.contact_icon_color || "").toLowerCase())) theme.contact_icon_color = theme.accent_color_2;
     }
   }
   return { fields, theme, template_id: template?.template_id || "t5_rail" };
