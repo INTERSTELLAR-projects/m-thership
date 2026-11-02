@@ -73,7 +73,7 @@ export const brandFromClient = async (client) => {
   return {
     company: client.business,
     website: client.domain,
-    logo_url: d?.brand_identity?.logo_url || client.logo_url,
+    logo_url: client.logo_url || d?.brand_identity?.logo_url,
     slogan: d?.tagline,
     colors: d?.brand_identity?.colors,
     applyColors: true,

@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
       return Response.json({
         signatures: (sigs || []).map((s: Record<string, unknown>) => pick(s, SIG_KEYS)),
         templates: [...(own || []), ...(global || []).filter((t: Record<string, unknown>) => t.portal_visible !== false)].map((t: Record<string, unknown>) => pick(t, TPL_KEYS)),
-        brand: { company: client.business, website: client.domain, logo_url: bi.logo_url || client.logo_url || "", slogan: d.tagline || "", colors: bi.colors || [] },
+        brand: { company: client.business, website: client.domain, logo_url: client.logo_url || bi.logo_url || "", slogan: d.tagline || "", colors: bi.colors || [] },
       });
     }
 
