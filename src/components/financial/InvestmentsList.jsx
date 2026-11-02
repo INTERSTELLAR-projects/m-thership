@@ -3,7 +3,9 @@ import { Plus, Trash2, Edit, Check, X, ShoppingBag, GripVertical, Settings } fro
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { base44 } from "@/api/base44Client";
 
-const DEFAULT_CATEGORIES = ["Software", "Hardware", "Marketing", "Education", "Team", "Other"];
+import { useCategoryList } from "@/hooks/useOptionList";
+
+// Categories are shared: Settings > Lists & fields > Investment categories.
 const INV_CATS_KEY = "investment_categories";
 const PRIORITY_COLORS = {
   High: "bg-red-500/10 text-red-600/80",
@@ -11,17 +13,10 @@ const PRIORITY_COLORS = {
   Low: "bg-ink/[0.04] text-ink/[0.48]",
 };
 
-function loadCats() {
-  try {
-    const s = JSON.parse(localStorage.getItem(INV_CATS_KEY));
-    if (Array.isArray(s) && s.length > 0) return s;
-  } catch {}
-  return DEFAULT_CATEGORIES;
-}
 
 export default function InvestmentsList() {
   const [items, setItems] = useState([]);
-  const [categories, setCategories] = useState(loadCats);
+  const [categories, saveCats] = useCategoryList("investment_categories", INV_CATS_KEY);
   const [catFilter, setCatFilter] = useState("All");
   const [managingCats, setManagingCats] = useState(false);
   const [newCatName, setNewCatName] = useState("");
@@ -35,10 +30,6 @@ export default function InvestmentsList() {
     base44.entities.Investment.list("-created_date", 200).then(setItems);
   }, []);
 
-  const saveCats = (next) => {
-    setCategories(next);
-    localStorage.setItem(INV_CATS_KEY, JSON.stringify(next));
-  };
 
   const addItem = async (category) => {
     if (!newItem.name.trim()) return;
