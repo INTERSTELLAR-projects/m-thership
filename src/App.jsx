@@ -25,6 +25,7 @@ import Reviews from './pages/Reviews';
 import PublicRequest from './pages/PublicRequest';
 import SignaturesPage from '@/features/signatures/SignaturesPage';
 import SignatureEditor from '@/features/signatures/EditorPage';
+import QrPage, { QrEditorPage } from '@/features/qr/QrPage';
 import PresentationStudio from '@/features/presentations/StudioPage';
 import PresentationProjects from '@/features/presentations/ProjectsPage';
 import Prestige from './pages/Prestige';
@@ -111,6 +112,8 @@ const AuthenticatedApp = () => {
         <Route path="/signatures/templates/:id" element={<ProtectedRoute><SignatureEditor mode="template" /></ProtectedRoute>} />
         <Route path="/signatures/new" element={<ProtectedRoute><SignatureEditor /></ProtectedRoute>} />
         <Route path="/signatures/:id" element={<ProtectedRoute><SignatureEditor /></ProtectedRoute>} />
+        <Route path="/qr" element={<ProtectedRoute><QrPage /></ProtectedRoute>} />
+        <Route path="/qr/:id" element={<ProtectedRoute><QrEditorPage /></ProtectedRoute>} />
         <Route path="/presentations" element={<ProtectedRoute><PresentationStudio /></ProtectedRoute>} />
         <Route path="/presentations/deck/:id" element={<ProtectedRoute><PresentationStudio /></ProtectedRoute>} />
         <Route path="/presentations/projects" element={<ProtectedRoute><PresentationProjects /></ProtectedRoute>} />
