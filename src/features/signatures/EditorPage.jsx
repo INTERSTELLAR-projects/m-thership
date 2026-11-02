@@ -294,7 +294,12 @@ export default function EditorPage() {
               ))}
             </div>
           </div>
-          <SignatureForm fields={fields} theme={theme} onFields={setFields} onTheme={setTheme} />
+          <SignatureForm
+            fields={fields}
+            theme={theme}
+            onFields={(next) => setFields((prev) => ({ ...next, assets: { ...(next.assets || {}), ...(prev.assets || {}) } }))}
+            onTheme={setTheme}
+          />
         </div>
         <div className={`flex-1 min-w-0 ${mobileTab === "preview" ? "block" : "hidden"} sm:block`}>
           <SignaturePreview html={previewHtml} templateId={TEMPLATES.find((t) => t.id === templateId)?.name || templateId} />
