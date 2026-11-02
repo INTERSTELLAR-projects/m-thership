@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { useList, useInvalidate, fmtDate, timeAgo } from "@/lib/useData";
 import { Tag, SmallBtn, Panel, Empty } from "@/features/clients/ui";
 import ClientFormsPanel from "@/features/requests/FormBuilder";
-import { KIND_LABELS, KIND_ORDER } from "@/features/requests/formSchema";
+import { KIND_ORDER, kindLabel } from "@/features/requests/formSchema";
 
 const COLUMNS = [["received", "Received"], ["in_progress", "In progress"], ["needs_info", "Needs info"], ["complete", "Complete"]];
 const isImg = (u) => /\.(png|jpe?g|webp|gif|heic)$/i.test(String(u).split("?")[0]);
@@ -24,9 +24,11 @@ function RequestDetail({ r, onClose, onMove }) {
         <div className="flex items-start justify-between gap-4 border-b border-hair px-5 py-4">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <Tag tone="ink">{KIND_LABELS[r.kind] || r.kind}</Tag>
+              <Tag tone="ink">{kindLabel(r.kind)}</Tag>
               <Tag tone={r.status === "received" ? "flame" : r.status === "complete" ? "green" : r.status === "needs_info" ? "amber" : "muted"}>{r.status.replace("_", " ")}</Tag>
               {r.priority === "urgent" && <Tag tone="red">Urgent</Tag>}
+              {r.priority === "high" && <Tag tone="amber">High</Tag>}
+              {r.due_date && <Tag tone="muted">Due {fmtDate(r.due_date)}</Tag>}
               {r.page_status && r.page_status !== "none" && <Tag tone="muted">Page: {r.page_status}</Tag>}
               <span className="mono-label text-[9px] text-ink/45">{r.source || "portal"}</span>
             </div>
@@ -136,10 +138,11 @@ export default function Requests() {
             <select className="h-9 border border-hair bg-paper px-2 text-[12.5px]" value={clientF} onChange={(e) => setClientF(e.target.value)}>
               <option value="all">All clients</option>{activeClients.map((c) => <option key={c.id} value={c.id}>{c.business}</option>)}
             </select>
-            <div className="flex flex-wrap gap-1.5">
-              <SmallBtn active={kind === "all"} onClick={() => setKind("all")}>All</SmallBtn>
-              {KIND_ORDER.map((k) => <SmallBtn key={k} active={kind === k} onClick={() => setKind(k)}>{KIND_LABELS[k]}</SmallBtn>)}
-            </div>
+            <select className="h-9 border border-hair bg-paper px-2 text-[12.5px]" value={kind} onChange={(e) => setKind(e.target.value)}>
+              <option value="all">All request types</option>
+              {KIND_ORDER.map((k) => <option key={k} value={k}>{kindLabel(k)}</option>)}
+              {[...new Set((reqs.data || []).map((r) => r.kind).filter((k) => k && !KIND_ORDER.includes(k)))].map((k) => <option key={k} value={k}>{kindLabel(k)}</option>)}
+            </select>
           </div>
 
           <div className="grid gap-4 px-5 pt-5 md:px-8 lg:grid-cols-4">
@@ -155,8 +158,10 @@ export default function Requests() {
                     {list.map((r) => (
                       <li key={r.id} className="card-hover cursor-pointer border border-hair bg-paper p-3" onClick={() => setOpen(r)}>
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="mono-label text-[9px] text-ink/45">{KIND_LABELS[r.kind] || r.kind}</span>
+                          <span className="mono-label text-[9px] text-ink/45">{kindLabel(r.kind)}</span>
                           {r.priority === "urgent" && <Tag tone="red">Urgent</Tag>}
+                          {r.priority === "high" && <Tag tone="amber">High</Tag>}
+                          {r.due_date && <span className="text-[10.5px] text-ink/50">due {fmtDate(r.due_date)}</span>}
                           {r.page_status && r.page_status !== "none" && <Tag tone="ink">Page {r.page_status}</Tag>}
                         </div>
                         <p className="mt-1 text-[13.5px] font-medium">{r.title}</p>
