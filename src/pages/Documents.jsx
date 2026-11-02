@@ -363,7 +363,6 @@ export default function Documents() {
       published: form?.published || false,
       };
       if (form?.id) {
-      const { id, created_date, updated_date, created_by, ...rest } = form;
       await base44.entities.FormTemplate.update(form.id, { ...formData, published: form.published, publishedDate: form.publishedDate });
       onSave({ ...form, ...formData, published: form.published, publishedDate: form.publishedDate });
       } else {
