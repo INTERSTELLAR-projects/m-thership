@@ -28,12 +28,12 @@ export default function Legal() {
   const dates = items.filter((i) => isDateSection(i.section));
 
   const { dated, undated } = useMemo(() => {
-    const all = dates.filter((d) => !d.done).map((d) => computeDeadline(d));
+    const all = items.filter((d) => isDateSection(d.section) && !d.done).map((d) => computeDeadline(d));
     return {
       dated: all.filter((d) => d.dated).sort((a, b) => a.days - b.days),
       undated: all.filter((d) => !d.dated),
     };
-  }, [dates]);
+  }, [items]);
 
   const addItem = async (item) => {
     const created = await base44.entities.LegalItem.create(item);
