@@ -140,7 +140,7 @@ function Plate({ u, text, hi, master }) {
 }
 
 // Wing: feathers drawn on the left, mirrored to the right. Optional gunmetal under-layer.
-function Wings({ feathers, u, hi, under = true, dx = -3, dy = 5 }) {
+function Wings({ feathers, spines = [], u, hi, under = true, dx = -3, dy = 5 }) {
   const side = (
     <g>
       {under && hi && (
@@ -151,6 +151,11 @@ function Wings({ feathers, u, hi, under = true, dx = -3, dy = 5 }) {
       <g stroke="#1b0b04" strokeWidth={hi ? 0.9 : 1.3} strokeLinejoin="round">
         {feathers.map((d, i) => <path key={d} d={d} fill={i % 2 ? u("od") : u("o")} />)}
       </g>
+      {hi && (
+        <g stroke="rgba(255,255,255,.35)" strokeWidth=".7" strokeLinecap="round">
+          {spines.map(([x1, y1, x2, y2]) => <path key={`${x1}-${y1}`} d={`M${x1} ${y1} L${r2(x1 + (x2 - x1) * 0.82)} ${r2(y1 + (y2 - y1) * 0.82)}`} />)}
+        </g>
+      )}
     </g>
   );
   return (
@@ -185,7 +190,7 @@ function Laurel({ u, hi, cy = 70, R = 56 }) {
     <g>
       <path d={`M${p(196)} A${R} ${R} 0 0 1 ${p(330)}`} fill="none" stroke={u("od")} strokeWidth="1.8" strokeLinecap="round" />
       {leaves}
-      <ellipse cx={r2(80 + R * Math.sin(rad(tip)))} cy={r2(cy - R * Math.cos(rad(tip)))} rx={rx} ry={ry} transform={`rotate(${tip} ${p(tip).replace(" ", " ")})`} fill={u("oh")} stroke="rgba(40,10,0,.55)" strokeWidth=".6" />
+      <ellipse cx={r2(80 + R * Math.sin(rad(tip)))} cy={r2(cy - R * Math.cos(rad(tip)))} rx={rx} ry={ry} transform={`rotate(${tip} ${p(tip)})`} fill={u("oh")} stroke="rgba(40,10,0,.55)" strokeWidth=".6" />
     </g>
   );
   return (
@@ -220,6 +225,8 @@ const FEATHERS2 = [
   "M44 62 C32 66 22 72 14 84 C24 82 34 80 44 76 Z",
   "M44 74 C36 80 30 88 26 98 C34 94 40 90 46 86 Z",
 ];
+const SPINES2 = [[44, 42, 2, 38], [44, 56, 6, 62], [44, 69, 14, 84], [45, 80, 26, 98]];
+const SPINES5 = [[50, 48, 0, 30], [50, 60, 2, 52], [50, 71, 6, 76], [51, 81, 14, 98], [54, 90, 28, 112]];
 const FEATHERS5 = [
   "M50 42 C34 30 14 26 0 30 C12 38 30 48 50 54 Z",
   "M50 54 C32 46 14 46 2 52 C14 58 30 64 50 66 Z",
@@ -289,13 +296,7 @@ function Tier1({ u, hi }) {
 function Tier2({ u, hi }) {
   return (
     <g>
-      <Wings feathers={FEATHERS2} u={u} hi={hi} />
-      {hi && (
-        <g transform={MIRROR}>
-          {FEATHERS2.map((d, i) => <path key={i} d={`M44 ${42 + i * 13} L${14 + i * 4} ${38 + i * 16}`} stroke="rgba(255,255,255,.3)" strokeWidth=".7" />)}
-        </g>
-      )}
-      {hi && FEATHERS2.map((d, i) => <path key={i} d={`M44 ${42 + i * 13} L${14 + i * 4} ${38 + i * 16}`} stroke="rgba(255,255,255,.3)" strokeWidth=".7" />)}
+      <Wings feathers={FEATHERS2} spines={SPINES2} u={u} hi={hi} />
       <Body d={SHIELD2} u={u} hi={hi} k={0.86} cy={70} />
       {hi && (
         <g fill={u("o")}>
@@ -375,7 +376,7 @@ const ORBIT_FRONT = "M-74 0 A74 21 0 0 0 74 0";
 function Comet({ u }) {
   return (
     <g>
-      <path d={ORBIT} pathLength="100" fill="none" stroke={u("comet")} strokeWidth="2.6" strokeLinecap="round" strokeDasharray="13 87" strokeDashoffset="70" className="pe-comet" />
+      <path d={ORBIT} pathLength="100" fill="none" stroke="#ffaa00" strokeOpacity=".85" strokeWidth="2.6" strokeLinecap="round" strokeDasharray="13 87" strokeDashoffset="70" className="pe-comet" />
       <path d={ORBIT} pathLength="100" fill="none" stroke="#fff" strokeWidth="3.4" strokeLinecap="round" strokeDasharray="0.6 99.4" strokeDashoffset="57" className="pe-comet-head" />
     </g>
   );
@@ -394,7 +395,7 @@ function Master({ u, hi, animated }) {
         <path d={ORBIT} fill="none" stroke={u("o")} strokeWidth={hi ? 2 : 2.6} opacity=".85" />
         {animated && <Comet u={u} />}
       </g>
-      <Wings feathers={FEATHERS5} u={u} hi={hi} />
+      <Wings feathers={FEATHERS5} spines={SPINES5} u={u} hi={hi} />
       <path d={bezel} fill={u("gm")} stroke="#ff6a00" strokeWidth=".9" strokeLinejoin="round" />
       <path d={bezel} fill="none" stroke={u("hl")} strokeWidth="1" />
       <circle cx="80" cy="72" r="39" fill={u("o")} stroke="rgba(30,8,0,.7)" strokeWidth=".8" />
@@ -523,10 +524,6 @@ export default function PrestigeEmblem({ tier = 1, size = 64, locked = false, sh
           <stop offset="0" stopColor="#fff" stopOpacity="0" />
           <stop offset=".5" stopColor="#fff" stopOpacity=".6" />
           <stop offset="1" stopColor="#fff" stopOpacity="0" />
-        </linearGradient>
-        <linearGradient id={`${id}-comet`} gradientUnits="userSpaceOnUse" x1="-74" y1="0" x2="74" y2="0">
-          <stop offset="0" stopColor="#ffaa00" />
-          <stop offset="1" stopColor="#fff" />
         </linearGradient>
         <clipPath id={`${id}-clip`}>{CLIPS[design]}</clipPath>
         <clipPath id={`${id}-front`}>
