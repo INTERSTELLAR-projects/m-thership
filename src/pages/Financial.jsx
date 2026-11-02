@@ -10,6 +10,7 @@ import ExpensesTab from "../components/financial/ExpensesTab";
 import { getCurrentDueDate, getCycleKey, getStatus as expenseStatus, formatDueDate } from "../components/financial/finance/expenses";
 import GoalTab from "../components/financial/GoalTab";
 import InvestmentAdvisor from "../components/financial/InvestmentAdvisor";
+import { useCategoryList } from "@/hooks/useOptionList";
 import useFinanceData from "../components/financial/finance/useFinanceData";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,13 +49,7 @@ const FIN_TABS = [
 ];
 const LIVE_TABS = new Set(["dashboard", "goal", "advisor", "overview"]);
 
-function loadFinCategories() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(FIN_CATS_KEY));
-    if (Array.isArray(saved) && saved.length > 0) return saved;
-  } catch {}
-  return DEFAULT_CATEGORIES;
-}
+// Expense categories are shared: Settings > Lists & fields > Expense categories (old per-browser list seeds it once).
 
 export default function Financial() {
   const now = useMemo(() => new Date(), []);
@@ -67,15 +62,11 @@ export default function Financial() {
     return FIN_TABS.some(([k]) => k === t) ? t : "dashboard";
   });
   const financeData = useFinanceData(LIVE_TABS.has(subPage));
-  const [categories, setCategories] = useState(loadFinCategories);
+  const [categories, saveCats] = useCategoryList("expense_categories", FIN_CATS_KEY);
   const [managingCats, setManagingCats] = useState(false);
   const [newCatName, setNewCatName] = useState("");
   const [editCat, setEditCat] = useState(null);
 
-  const saveCats = (next) => {
-    setCategories(next);
-    localStorage.setItem(FIN_CATS_KEY, JSON.stringify(next));
-  };
 
   useEffect(() => {
     base44.entities.Expense.list("platform", 200).then(async (data) => {
