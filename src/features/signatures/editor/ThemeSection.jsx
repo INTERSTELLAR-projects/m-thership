@@ -9,7 +9,8 @@ const BORDERS = [
   { id: "none", label: "Borderless" },
 ];
 const CONTACT = [
-  { id: "caps", label: "CALL / MAIL / WEB" },
+  { id: "auto", label: "Icons (default)" },
+  { id: "caps", label: "CALL / MAIL" },
   { id: "bold", label: "Phone: / Email:" },
 ];
 
@@ -29,7 +30,7 @@ export default function ThemeSection({ theme, onTheme }) {
       <div>
         <span className="text-xs text-muted-foreground">Contact labels</span>
         <div className="mt-1">
-          <ChoiceGrid value={theme.contact_style} options={CONTACT} onChange={(id) => set({ contact_style: id })} cols={2} />
+          <ChoiceGrid value={theme.contact_style === "icons" ? "auto" : theme.contact_style} options={CONTACT} onChange={(id) => set({ contact_style: id })} />
         </div>
       </div>
 
