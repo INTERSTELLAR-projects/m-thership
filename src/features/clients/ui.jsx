@@ -106,6 +106,15 @@ export function Field({ f, value, onChange }) {
         })}
       </div>
     );
+  if (f.type === "text" && Array.isArray(f.suggestions) && f.suggestions.length) {
+    const listId = `sugg-${f.name}`;
+    return (
+      <>
+        <input className={inputCls} list={listId} value={value ?? ""} placeholder={f.placeholder} onChange={(e) => set(e.target.value)} />
+        <datalist id={listId}>{f.suggestions.map((s) => <option key={s} value={s} />)}</datalist>
+      </>
+    );
+  }
   if (f.type === "list")
     return <input className={inputCls} value={(value || []).join(", ")} placeholder={f.placeholder || "comma, separated"} onChange={(e) => set(e.target.value.split(",").map((s) => s.trim()).filter(Boolean))} />;
   return (
