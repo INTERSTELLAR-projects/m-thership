@@ -44,13 +44,23 @@
       "type": "string",
       "enum": [
         "Pending",
+        "Booked",
         "Confirmed",
-        "Paid Out"
+        "Paid Out",
+        "Lost"
       ],
       "default": "Pending"
     },
     "notes": {
       "type": "string"
+    },
+    "booked_at": {
+      "type": "string",
+      "description": "When the referral booked a call"
+    },
+    "signed_at": {
+      "type": "string",
+      "description": "When the referral signed (status Confirmed)"
     }
   },
   "required": [
