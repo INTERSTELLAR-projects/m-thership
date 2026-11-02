@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { ChartTooltip, FlameDefs, KpiTile, axisProps, gridProps, cursorProps, barCursor } from "@/components/charts/ChartKit";
 import { Search, Upload, Pin, FileText, Folder, Trash2, ExternalLink, X, Pencil, Check, Loader2, Plus, Eye, ArrowLeft } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,66 @@ const CATEGORIES = [
   "Legal Documents",
   "Financial Documents",
 ];
+
+const SHORT = { "Internal Processes": "Processes", "Service Documents": "Service", "Contracts & Agreements": "Contracts", "Presentations": "Decks", "Legal Documents": "Legal", "Financial Documents": "Financial" };
+
+// Read-only overview of the library: counts by category, uploads per month, forms status.
+function LibraryStats({ docs, forms }) {
+  const s = useMemo(() => {
+    const now = new Date();
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      return { y: d.getFullYear(), m: d.getMonth(), label: d.toLocaleDateString("en-US", { month: "short" }), Added: 0 };
+    });
+    docs.forEach((d) => {
+      const t = new Date(d.created_date || 0);
+      const row = months.find((x) => x.y === t.getFullYear() && x.m === t.getMonth());
+      if (row) row.Added += 1;
+    });
+    const byCat = CATEGORIES.map((c) => ({ label: SHORT[c] || c, full: c, Documents: docs.filter((d) => d.category === c).length }));
+    const published = forms.filter((f) => f.published).length;
+    return { months, byCat, thisMonth: months[5].Added, lastMonth: months[4].Added, pinned: docs.filter((d) => d.pinned).length, published, drafts: forms.length - published };
+  }, [docs, forms]);
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <KpiTile accent label="Documents" value={docs.length} sub={`${CATEGORIES.length} categories`} />
+        <KpiTile label="Added this month" value={s.thisMonth} prev={s.lastMonth || undefined} sub="vs last month" />
+        <KpiTile label="Pinned" value={s.pinned} sub="quick access" />
+        <KpiTile label="Forms published" value={s.published} sub={`${s.drafts} draft${s.drafts === 1 ? "" : "s"}`} />
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-md border border-hair bg-card p-4">
+          <p className="mono-label mb-3 flex items-center gap-2 text-[10px] text-ink/60"><span className="h-3 w-[3px] rounded-full flame-bg" />Uploads — last 6 months</p>
+          <ResponsiveContainer width="100%" height={150}>
+            <AreaChart data={s.months} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+              <FlameDefs id="docs-months" />
+              <CartesianGrid {...gridProps()} />
+              <XAxis dataKey="label" {...axisProps()} />
+              <YAxis allowDecimals={false} {...axisProps()} width={40} />
+              <Tooltip content={<ChartTooltip />} cursor={cursorProps()} />
+              <Area type="monotone" dataKey="Added" stroke="#ff3c00" strokeWidth={2.5} fill="url(#docs-months-area)" dot={{ r: 2.5, fill: "#ff3c00", strokeWidth: 0 }} activeDot={{ r: 4, fill: "#ff3c00", stroke: "#fff", strokeWidth: 1.5 }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="rounded-md border border-hair bg-card p-4">
+          <p className="mono-label mb-3 flex items-center gap-2 text-[10px] text-ink/60"><span className="h-3 w-[3px] rounded-full flame-bg" />By category</p>
+          <ResponsiveContainer width="100%" height={150}>
+            <BarChart data={s.byCat} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+              <FlameDefs id="docs-cat" />
+              <CartesianGrid {...gridProps()} />
+              <XAxis dataKey="label" {...axisProps()} interval={0} />
+              <YAxis allowDecimals={false} {...axisProps()} width={40} />
+              <Tooltip content={<ChartTooltip labelFormat={(l, p) => p?.[0]?.payload?.full || l} />} cursor={barCursor()} />
+              <Bar dataKey="Documents" fill="url(#docs-cat-bar)" radius={[5, 5, 0, 0]} maxBarSize={38} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Documents() {
    const [tab, setTab] = useState("documents");
@@ -101,13 +163,15 @@ export default function Documents() {
   return (
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Agency / Documents" rightText="Document Management" />
-      <div className="px-8 py-6 space-y-6">
+      <div className="px-4 md:px-8 py-6 space-y-6">
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="bg-card border border-ink/[0.13] mb-6">
             <TabsTrigger value="documents" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58]">Documents</TabsTrigger>
             <TabsTrigger value="forms" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58]">Forms</TabsTrigger>
           </TabsList>
           <TabsContent value="documents" className="space-y-6">
+        {!loading && <LibraryStats docs={docs} forms={forms} />}
+
         <div className="flex items-center gap-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/[0.38]" />
@@ -117,7 +181,7 @@ export default function Documents() {
           <Button onClick={() => fileRef.current.click()} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold h-9 gap-2"><Upload className="w-4 h-4" />Upload</Button>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           {CATEGORIES.map((cat) => (
             <button key={cat} onClick={() => setActiveFilter(activeFilter === cat ? "All" : cat)} className={`relative overflow-hidden bg-card rounded-md border p-4 text-left transition-all card-hover ${activeFilter === cat ? "border-orange-500/40 bg-orange-500/[0.06]" : "border-ink/[0.13]"}`}>
               <div className="relative flex items-center justify-between mb-2"><Folder className="w-4 h-4 text-orange-600" /><span className="text-orange-600 text-sm font-display font-bold">{categoryCounts[cat] || 0}</span></div>
