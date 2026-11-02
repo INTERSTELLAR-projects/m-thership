@@ -190,7 +190,11 @@ Deno.serve(async (req) => {
 
     if (action === "forms") {
       const forms = await db.RequestForm.filter({ client_id: cid, active: true });
-      return Response.json({ forms: forms.map((f: Record<string, unknown>) => pick(f, ["id", "kind", "title", "intro", "fields"])) });
+      // Request-type labels / order / hidden flags edited in Settings > Lists & fields (labels only, no secrets).
+      const optRows = await db.AppSettings.filter({ key: "option_lists" }, "-created_date", 1).catch(() => []);
+      const typeList = (optRows || [])[0]?.optionLists?.request_types;
+      const type_overrides = Array.isArray(typeList) ? typeList.map((t: Record<string, unknown>) => ({ value: String(t.value || ""), label: String(t.label || ""), archived: t.archived === true })) : null;
+      return Response.json({ forms: forms.map((f: Record<string, unknown>) => pick(f, ["id", "kind", "title", "intro", "fields"])), type_overrides });
     }
 
     if (action === "brand_kit") {
