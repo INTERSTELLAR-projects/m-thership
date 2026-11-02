@@ -28,6 +28,20 @@ function taskDoc(parsed: any, ctx: any, extra: any) {
   };
 }
 
+const IDEA_ANALYSIS_PROMPT = (idea: any) =>
+  [
+    "You are a sharp business strategist and creative advisor. Analyze this business idea and provide:",
+    "1. A quick take on its potential and strengths",
+    "2. 3-5 specific add-ons or expansions that could make it significantly better",
+    "3. Any important considerations or pitfalls to watch for",
+    "",
+    "Be concise, practical, and actionable. Use bullet points.",
+    "",
+    "Idea Title: " + idea.title,
+    "Description: " + (idea.description || "(no description provided)"),
+    "Category: " + idea.category
+  ].join("\n");
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -36,7 +50,7 @@ Deno.serve(async (req) => {
 
     const TODAY = new Date().toISOString().slice(0, 10);
     const body = await req.json().catch(() => ({}));
-    const transcript = String(body && body.transcript ? body.transcript : "").trim().slice(0, 600);
+    const transcript = String(body && body.transcript ? body.transcript : "").trim().slice(0, 4000);
     if (!transcript) return Response.json({ error: "transcript is required" }, { status: 400 });
 
     // Clients come from the CRM (CRMClient.business is the display name).
@@ -78,7 +92,8 @@ Deno.serve(async (req) => {
           context: { clients: ctx.clients, projects: ctx.projects, openTasks: ctx.openTasks.slice(0, 40) },
           board,
           today: TODAY,
-          name: user.full_name
+          name: user.full_name,
+          page: String((body && body.page) || "")
         }),
         response_json_schema: COMMAND_SCHEMA
       });
@@ -88,7 +103,8 @@ Deno.serve(async (req) => {
 
     const c = cleanCommand(parsed, ctx);
     const speech = c.speech || c.answer || "Logged that for you.";
-    const shouldQueue = !parsed || c.intent === "unclear" || c.needs_review || c.confidence < MIN_CONFIDENCE;
+    // Ideas he explicitly asked to save are never ambiguous enough to park.
+    const shouldQueue = (!parsed || c.intent === "unclear" || c.needs_review || c.confidence < MIN_CONFIDENCE) && !c.ideas.length;
     const clientLabel = (id: string | null) => {
       const row = ctx.clients.find((cl: any) => cl.id === id);
       return row ? row.label : null;
@@ -124,6 +140,45 @@ Deno.serve(async (req) => {
 
     if (c.intent === "query" || c.intent === "brief") {
       return Response.json({ queued: false, filed: false, kind: "answer", speech: c.answer || speech, board });
+    }
+
+    // Ideas he asked the core to save: one record per idea, each with its own analysis.
+    if (c.ideas.length) {
+      const docs = c.ideas.map((idea: any) => ({
+        title: idea.title.slice(0, 140),
+        description: idea.description,
+        category: idea.category || "Other",
+        status: "New",
+        date: TODAY
+      }));
+      const created = itemsOf(await base44.entities.Idea.bulkCreate(docs));
+      const analyses = await Promise.all(
+        created.slice(0, 6).map(async (idea: any) => {
+          try {
+            const analysis = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt: IDEA_ANALYSIS_PROMPT(idea) });
+            return { id: idea.id, aiAnalysis: String(analysis || "").slice(0, 6000) };
+          } catch (_error) {
+            return null;
+          }
+        })
+      );
+      const patches = analyses.filter(Boolean) as any[];
+      if (patches.length) await base44.entities.Idea.bulkUpdate(patches);
+      return Response.json({
+        queued: false,
+        filed: true,
+        kind: "idea",
+        ids: created.map((idea: any) => idea.id),
+        count: created.length,
+        titles: created.map((idea: any) => idea.title),
+        speech:
+          c.speech ||
+          "I saved " +
+            (created.length === 1 ? "that idea" : created.length + " ideas") +
+            " to your Idea Vault and analyzed " +
+            (patches.length === 1 ? "it" : "each one") +
+            "."
+      });
     }
 
     if (c.intent === "create_client" && c.client_name) {
