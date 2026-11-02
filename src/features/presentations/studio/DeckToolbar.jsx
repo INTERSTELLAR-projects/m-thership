@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, ChevronDown, Download, FileText, Loader2, Presentation } from 'lucide-react';
+import { Check, ChevronDown, Download, FileText, Loader2, Play, Presentation, Printer, Sparkles } from 'lucide-react';
 import ThemePicker from '@/features/presentations/studio/ThemePicker';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,10 @@ export default function DeckToolbar({
   exporting,
   progress,
   onExport,
-  hasDeck
+  hasDeck,
+  onPresent,
+  onPrint,
+  onGenerate
 }) {
   const total = (progress && progress.total) || 0;
   const done = (progress && progress.done) || 0;
@@ -61,7 +64,17 @@ export default function DeckToolbar({
         )}
       </span>
 
-      <div className="ml-auto flex items-center gap-3">
+      <div className="ml-auto flex flex-wrap items-center gap-2">
+        {onGenerate ? (
+          <Button size="sm" variant="outline" className="gap-2" onClick={onGenerate}>
+            <Sparkles className="h-4 w-4 text-[#ff3c00]" /> Generate with Claude
+          </Button>
+        ) : null}
+        {onPresent ? (
+          <Button size="sm" variant="outline" className="gap-2" disabled={!hasDeck} onClick={onPresent} title="Present full screen (arrow keys to move, N for notes, Esc to exit)">
+            <Play className="h-4 w-4" /> Present
+          </Button>
+        ) : null}
         <ThemePicker value={themeId} brand={brand} onChange={onThemeChange} onBrandChange={onBrandChange} />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -88,6 +101,15 @@ export default function DeckToolbar({
                 <span className="block text-[11px] text-muted-foreground">Your slides, with speaker notes</span>
               </span>
             </DropdownMenuItem>
+            {onPrint ? (
+              <DropdownMenuItem onSelect={() => onPrint()} className="gap-2">
+                <Printer className="h-4 w-4" />
+                <span>
+                  Print / Save as PDF
+                  <span className="block text-[11px] text-muted-foreground">Browser print, one slide per page</span>
+                </span>
+              </DropdownMenuItem>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
