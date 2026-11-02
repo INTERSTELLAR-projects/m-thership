@@ -23,7 +23,7 @@ export default function ClientHealthSummary({ health, businessName }) {
       <div className="grid gap-6 p-5 md:grid-cols-[auto_1fr] md:p-6">
         <div className="flex items-center gap-5">
           {health.score != null ? (
-            <ScoreRing score={health.score} size={128} stroke={11} />
+            <ScoreRing score={health.score} size={128} stroke={11} hideBand />
           ) : (
             <div className="flex h-[128px] w-[128px] flex-col items-center justify-center rounded-full border border-dashed border-white/20 text-center">
               <Activity className="h-6 w-6 text-[#ff6a00]" />
