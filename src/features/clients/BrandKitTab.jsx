@@ -120,7 +120,7 @@ export function KitView({ kit, body }) {
   const has = Object.keys(k).length > 0;
   if (!has) {
     return body ? (
-      <ReactMarkdown className="prose prose-sm max-w-none text-ink/80 [&_table]:text-[12px]">{body}</ReactMarkdown>
+      <div className="prose prose-sm max-w-none text-ink/80 [&_table]:text-[12px]"><ReactMarkdown>{body}</ReactMarkdown></div>
     ) : (
       <p className="text-[13px] text-ink/50">Nothing came back yet.</p>
     );
