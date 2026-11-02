@@ -208,6 +208,67 @@ Deno.serve(async (req) => {
       return Response.json({ playbook: p ? pick(p, ["version", "playbook", "body_md", "summary", "quick_wins_done", "approved_at"]) : null });
     }
 
+    // Social plan: only this client's newest approved plan, and only when it is portal-visible.
+    if (action === "social_plan") {
+      const p = portalKit(await by("SocialPlan", "-version", 20).catch(() => []));
+      return Response.json({ social_plan: p ? pick(p, ["version", "plan", "body_md", "summary", "approved_at"]) : null });
+    }
+
+    // ---- Resources hub: everything Justin has published to this client, in one list ----
+    // Brand kit / playbook / social plan: newest approved + portal_visible only. Client SOPs & guides:
+    // this client's ClientFile rows (category sop|guide, portal_visible !== false). Shared SOPs: SOP-library
+    // TaskTemplates whose portal_client_ids include this client (never time estimates or other clients).
+    const RES_FILE_CATS = ["sop", "guide"];
+    const sharedSop = (t: Row) => ({
+      id: t.id, title: t.name, code: t.sop_code || "", summary: String(t.portal_summary || t.description || "").slice(0, 2000),
+      phases: (() => {
+        const out: { phase: string; steps: { title: string; notes: string }[] }[] = [];
+        for (const it of ((t.items as Row[]) || []).slice(0, 200)) {
+          const phase = String(it.phase || "Steps");
+          let g = out.find((x) => x.phase === phase);
+          if (!g) { g = { phase, steps: [] }; out.push(g); }
+          g.steps.push({ title: String(it.title || "").slice(0, 300), notes: String(it.notes || "").slice(0, 1200) });
+        }
+        return out;
+      })(),
+      updated: t.updated_date || t.created_date || null,
+    });
+    if (action === "resources") {
+      const [kits, books, socials, files, sops] = await Promise.all([
+        by("BrandKit", "-version", 20).catch(() => []), by("IndustryPlaybook", "-version", 20).catch(() => []), by("SocialPlan", "-version", 20).catch(() => []),
+        by("ClientFile", "-delivered_on", 300).catch(() => []), db.TaskTemplate.list("sort_order", 300).catch(() => []),
+      ]);
+      const items: Row[] = [];
+      const doc = (type: string, title: string, r: Row | null) => r && items.push({ id: r.id, type, title, version: r.version || 1, summary: String(r.summary || "").slice(0, 400), updated: r.approved_at || r.updated_date || r.created_date || null });
+      doc("brand_kit", "Brand kit", portalKit(kits));
+      doc("playbook", "2027 Industry Playbook", portalKit(books));
+      doc("social_plan", "Social media plan", portalKit(socials));
+      files.filter((f: Row) => RES_FILE_CATS.includes(String(f.category)) && visible(f)).forEach((f: Row) => items.push({
+        id: f.id, type: f.category, title: f.title, summary: String(f.description || "").slice(0, 400), updated: f.delivered_on || f.updated_date || f.created_date || null,
+      }));
+      (sops || []).filter((t: Row) => ((t.portal_client_ids as string[]) || []).includes(cid)).forEach((t: Row) => {
+        const s = sharedSop(t);
+        items.push({ id: s.id, type: "shared_sop", title: s.title, code: s.code, summary: s.summary.slice(0, 400), updated: s.updated });
+      });
+      return Response.json({ resources: items });
+    }
+
+    if (action === "resource") {
+      const type = String(args.type || "");
+      const id = String(args.id || "");
+      if (type === "sop" || type === "guide") {
+        const f = id ? await db.ClientFile.get(id).catch(() => null) : null;
+        if (!f || f.client_id !== cid || !visible(f) || !RES_FILE_CATS.includes(String(f.category))) return Response.json({ error: "Not found" }, { status: 404 });
+        return Response.json({ resource: { type: f.category, ...pick(f, ["id", "title", "category", "file_url", "link_url", "description", "delivered_on", "updated_date"]) } });
+      }
+      if (type === "shared_sop") {
+        const t = id ? await db.TaskTemplate.get(id).catch(() => null) : null;
+        if (!t || !((t.portal_client_ids as string[]) || []).includes(cid)) return Response.json({ error: "Not found" }, { status: 404 });
+        return Response.json({ resource: { type, ...sharedSop(t) } });
+      }
+      return Response.json({ error: "Unknown resource" }, { status: 400 });
+    }
+
     if (action === "create_request") {
       let kind = reqKind(args.kind);
       const title = String(args.title || "").trim().slice(0, 200);
