@@ -11,15 +11,7 @@
     },
     "kind": {
       "type": "string",
-      "enum": [
-        "site_edit",
-        "project_submission",
-        "job",
-        "new_page",
-        "question",
-        "app_edit",
-        "other"
-      ],
+      "description": "Request type slug. The list lives in one place: REQUEST_TYPES in src/features/requests/formSchema.js (site_edit, new_page, blog_post, gbp_post, social_post, design_asset, email_signature, seo_question, bug, app_edit, billing, question, other, project_submission, job)",
       "default": "site_edit"
     },
     "title": {
@@ -52,10 +44,17 @@
     "priority": {
       "type": "string",
       "enum": [
+        "low",
         "normal",
+        "high",
         "urgent"
       ],
       "default": "normal"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Optional date the client needs it by"
     },
     "submitted_by": {
       "type": "string"
