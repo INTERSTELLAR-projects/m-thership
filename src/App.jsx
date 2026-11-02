@@ -18,6 +18,7 @@ import Comms from './pages/Comms';
 import OrbitSEO from './pages/OrbitSEO';
 
 import Performance from './pages/Performance';
+import ContentPlans from './pages/ContentPlans';
 import SettingsPage from './pages/SettingsPage';
 import IdeaVault from './pages/IdeaVault';
 import Requests from './pages/Requests';
@@ -105,6 +106,7 @@ const AuthenticatedApp = () => {
         <Route path="/packages/:key/:clientId" element={<ProtectedRoute><PackagePage /></ProtectedRoute>} />
 
         <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
+        <Route path="/content-plans" element={<ProtectedRoute><ContentPlans /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/idea-vault" element={<ProtectedRoute><IdeaVault /></ProtectedRoute>} />
         <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
