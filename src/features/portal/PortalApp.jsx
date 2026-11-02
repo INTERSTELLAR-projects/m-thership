@@ -346,7 +346,7 @@ function GoalsView({ d }) {
 function RequestsView({ d, call, refresh, previewId }) {
   const forms = useQuery({ queryKey: ["portal", previewId, "forms"], queryFn: () => call("forms"), retry: false });
   // Every client gets the standard request types; a custom form of the same kind replaces the standard one.
-  const list = useMemo(() => portalForms(forms.data?.forms || []), [forms.data]);
+  const list = useMemo(() => portalForms(forms.data?.forms || [], forms.data?.type_overrides || null), [forms.data]);
   const [form, setForm] = useState(null);
   const [vals, setVals] = useState({});
   const [busy, setBusy] = useState(false);
