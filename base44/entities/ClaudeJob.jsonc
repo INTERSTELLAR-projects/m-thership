@@ -101,6 +101,11 @@
     "result_summary": {
       "type": "string"
     },
+    "result_data": {
+      "additionalProperties": true,
+      "description": "Structured result for typed jobs (e.g. a brand kit JSON). Saved to its target record only when Justin approves.",
+      "type": "object"
+    },
     "review_notes": {
       "type": "string"
     },
