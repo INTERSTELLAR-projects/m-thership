@@ -1,0 +1,99 @@
+{
+  "name": "SeoFix",
+  "description": "A Fix with AI proposal for one site issue. Generated as a draft, approved by Justin, then queued for Claude or marked applied. Never pushed to a live site automatically.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "audit_id": {
+      "type": "string",
+      "description": "SiteAudit id the issue came from (or ClientGap id for Intel findings)"
+    },
+    "issue_key": {
+      "type": "string"
+    },
+    "issue_title": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "fix_type": {
+      "type": "string"
+    },
+    "target_url": {
+      "type": "string"
+    },
+    "proposal": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "summary, before, after, code, code_language, steps, verify, needs_confirmation"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "proposed",
+        "queued",
+        "applied",
+        "dismissed"
+      ],
+      "default": "proposed"
+    },
+    "claude_job_id": {
+      "type": "string"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "applied_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "portal_visible": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "client_id",
+    "issue_title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
