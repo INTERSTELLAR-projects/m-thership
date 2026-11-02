@@ -25,7 +25,6 @@ export function encodeGif(frames, { width, height, delays }) {
 
 function sameFrame(a, b) {
   if (a.length !== b.length) return false;
-  // Sample every 16th byte — good enough to catch holds without a full compare.
-  for (let i = 0; i < a.length; i += 16) if (a[i] !== b[i]) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
   return true;
 }
