@@ -82,6 +82,9 @@ async function startOne(db: any, client: any, key: string, opts: { start: string
     labels: [t.name], notes: [i.phase, t.sop_code, i.notes].filter(Boolean).join(" · "), task_type: "billable",
   })));
   for (let k = 0; k < docs.length; k += 100) await db.Task.bulkCreate(docs.slice(k, k + 100));
+  // The project's budget is the sum of its SOP step estimates, so Output can compare it to clocked time.
+  const estHours = Math.round((docs.reduce((s: number, d: any) => s + (Number(d.estimated_minutes) || 0), 0) / 60) * 10) / 10;
+  if (estHours > 0) await db.Project.update(project.id, { estimated_hours: estHours });
   for (const t of used) await db.TaskTemplate.update(t.id, { times_applied: (Number(t.times_applied) || 0) + 1 });
 
   // Client record: services managed, billing line for subscriptions, status, plan label.
