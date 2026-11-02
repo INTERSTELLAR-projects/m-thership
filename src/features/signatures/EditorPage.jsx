@@ -173,6 +173,7 @@ export default function EditorPage() {
       const accent = colors.find((x) => !/^#(f{6}|0{6}|1c1c1c|f0f0eb)$/i.test(x));
       if (accent) themePatch = { accent_color: accent, accent_color_2: colors.find((x) => x !== accent && isHex(x) && x.toLowerCase() !== "#ffffff") || accent };
       if (d?.brand_identity?.logo_url) patch.logo_url = d.brand_identity.logo_url;
+      if (d?.tagline) patch.slogan = d.tagline;
     } catch {
       /* no dossier */
     }
