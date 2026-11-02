@@ -214,7 +214,7 @@ function DockPanel() {
         <style>{DOCK_CSS}</style>
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={startListening}
           className="group fixed bottom-6 right-5 z-40 flex items-center gap-3 rounded-md border border-ink bg-ink px-4 py-3 text-[#f5f3f0] transition-colors duration-300 hover:bg-[#ff3c00] hover:border-[#ff3c00] sm:right-8"
         >
           <span className="relative grid h-6 w-6 place-items-center">
