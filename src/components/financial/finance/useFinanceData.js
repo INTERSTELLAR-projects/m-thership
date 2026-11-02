@@ -7,6 +7,19 @@ const REFRESH_MS = 5 * 60 * 1000;
 const safeInvoke = (name) =>
   base44.functions.invoke(name, {}).then((r) => r?.data || null).catch((e) => e?.response?.data || null);
 
+// Every money source, raw. Shared with the Command Briefing so its numbers match Financial exactly.
+export async function fetchFinanceRaw() {
+  const [clients, expenses, projections, snapshots, stripeRev, stripeSubs] = await Promise.all([
+    base44.entities.CRMClient.list("-created_date", 500).catch(() => []),
+    base44.entities.Expense.list("platform", 500).catch(() => []),
+    base44.entities.RevenueProjection.list("-expectedCloseDate", 500).catch(() => []),
+    base44.entities.FinanceSnapshot.list("-date", 400).catch(() => []),
+    safeInvoke("stripeRevenue"),
+    safeInvoke("stripeSubscriptions"),
+  ]);
+  return { clients, expenses, projections, snapshots, stripeRev, stripeSubs };
+}
+
 // Loads every money source once (only when `enabled`), recomputes the roll-up,
 // refreshes every 5 minutes and writes one FinanceSnapshot per day.
 export default function useFinanceData(enabled = true) {
@@ -19,15 +32,7 @@ export default function useFinanceData(enabled = true) {
 
   const load = useCallback(async (silent) => {
     if (silent) setRefreshing(true); else setLoading(true);
-    const [clients, expenses, projections, snapshots, stripeRev, stripeSubs] = await Promise.all([
-      base44.entities.CRMClient.list("-created_date", 500).catch(() => []),
-      base44.entities.Expense.list("platform", 500).catch(() => []),
-      base44.entities.RevenueProjection.list("-expectedCloseDate", 500).catch(() => []),
-      base44.entities.FinanceSnapshot.list("-date", 400).catch(() => []),
-      safeInvoke("stripeRevenue"),
-      safeInvoke("stripeSubscriptions"),
-    ]);
-    setRaw({ clients, expenses, projections, snapshots, stripeRev, stripeSubs });
+    setRaw(await fetchFinanceRaw());
     setUpdatedAt(new Date());
     setLoading(false);
     setRefreshing(false);
