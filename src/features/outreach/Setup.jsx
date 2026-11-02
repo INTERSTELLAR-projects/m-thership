@@ -11,9 +11,11 @@ function CriteriaRow({ c, crit, startOpen = false }) {
   const [v, setV] = useState({});
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [touched, setTouched] = useState(false);
   const profile = crit.profile;
 
   useEffect(() => {
+    if (touched) return; // live reloads must not wipe what Justin is typing
     const m = crit.merged;
     setV({
       nap_name: m.name || "", nap_address: m.address || "", nap_phone: m.phone || "", website: m.website || "",
@@ -22,7 +24,7 @@ function CriteriaRow({ c, crit, startOpen = false }) {
       hours: profile?.hours || "", categories: (profile?.categories || []).join(", "),
       pitch_angles: profile?.pitch_angles || "", avoid: profile?.avoid || "",
     });
-  }, [crit, profile]);
+  }, [crit, profile, touched]);
 
   const write = async (fields) => {
     const data = { client_id: c.id, client_name: c.business, ...fields };
@@ -38,10 +40,10 @@ function CriteriaRow({ c, crit, startOpen = false }) {
         services: String(v.services || "").split(",").map((s) => s.trim()).filter(Boolean),
         categories: String(v.categories || "").split(",").map((s) => s.trim()).filter(Boolean),
       });
-      setSaved(true); setTimeout(() => setSaved(false), 1500);
+      setSaved(true); setTouched(false); setTimeout(() => setSaved(false), 1500);
     } finally { setBusy(false); }
   };
-  const set = (k) => (e) => setV((s) => ({ ...s, [k]: e.target.value }));
+  const set = (k) => (e) => { setTouched(true); setV((s) => ({ ...s, [k]: e.target.value })); };
 
   return (
     <div className="border-t border-hair first:border-t-0">
@@ -198,20 +200,21 @@ export function RulesEditor({ rules, rulesId }) {
   const [id, setId] = useState(rulesId);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
-  useEffect(() => { if (rules) setV({ ...rules, blocked_text: (rules.blocked_domains || []).join("\n") }); setId(rulesId); }, [rules, rulesId]);
-  const set = (k) => (e) => setV((s) => ({ ...s, [k]: e.target.value }));
+  const [touched, setTouched] = useState(false);
+  useEffect(() => { if (!touched && rules) setV({ ...rules, blocked_text: (rules.blocked_domains || []).join("\n") }); if (rulesId) setId(rulesId); }, [rules, rulesId, touched]);
+  const set = (k) => (e) => { setTouched(true); setV((s) => ({ ...s, [k]: e.target.value })); };
   const save = async () => {
     setBusy(true); setMsg("");
     try {
       const { blocked_text, ...rest } = v;
       const newId = await saveRules(id, { ...rest, blocked_domains: String(blocked_text ?? "").split(/[\n,]+/).map((s) => s.trim()).filter(Boolean) });
-      setId(newId); setMsg("Saved. The scheduled tasks read these on every run.");
+      setId(newId); setTouched(false); setMsg("Saved. The scheduled tasks read these on every run.");
     } catch (e) { setMsg(e?.message || "Save failed."); } finally { setBusy(false); }
   };
   return (
     <Panel label="AppSettings · outreach_rules" title="Outreach rules" bodyClass="grid gap-3 p-4 md:grid-cols-2">
       <label className="flex items-center gap-2 text-[13px] md:col-span-2">
-        <input type="checkbox" className="h-4 w-4 accent-[#ff3c00]" checked={!!v.sending_paused} onChange={(e) => setV((s) => ({ ...s, sending_paused: e.target.checked }))} />
+        <input type="checkbox" className="h-4 w-4 accent-[#ff3c00]" checked={!!v.sending_paused} onChange={(e) => { setTouched(true); setV((s) => ({ ...s, sending_paused: e.target.checked })); }} />
         Pause all sending (the SEND task exits without sending)
       </label>
       <label><span className="mono-label mb-1 block text-[9px] text-ink/50">Sender name</span><input className={inputCls} value={v.sender_name || ""} onChange={set("sender_name")} /></label>
