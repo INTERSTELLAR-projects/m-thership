@@ -11,10 +11,11 @@ import { PerformanceTab, GoalsTab, FilesTab, AuditTab, MessagesTab } from "@/fea
 import { ServicesTab, NotesTab, DocumentsTab } from "@/pages/CRM";
 import ClientClaudeTab from "@/features/claude/ClientClaudeTab";
 import ConstellationsTab from "@/features/constellations/ConstellationsTab";
+import BrandKitTab from "@/features/clients/BrandKitTab";
 
 const TABS = [
   ["overview", "Overview"], ["constellations", "✧ Constellations"], ["claude", "✦ Claude"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
-  ["performance", "Performance"], ["goals", "Goals & Gaps"], ["files", "Files & Brand"], ["audit", "Intake Audit"], ["messages", "Messages"], ["billing", "Billing & Notes"],
+  ["performance", "Performance"], ["goals", "Goals & Gaps"], ["brand", "Brand kit"], ["files", "Files & Brand"], ["audit", "Intake Audit"], ["messages", "Messages"], ["billing", "Billing & Notes"],
 ];
 
 const PROFILE_FIELDS = [
@@ -123,6 +124,7 @@ export default function ClientCockpit() {
         {tab === "automations" && <AutomationsTab client={client} />}
         {tab === "performance" && <PerformanceTab client={client} />}
         {tab === "goals" && <GoalsTab client={client} />}
+        {tab === "brand" && <BrandKitTab client={client} />}
         {tab === "files" && <FilesTab client={client} />}
         {tab === "audit" && <AuditTab client={client} />}
         {tab === "messages" && <MessagesTab client={client} />}
