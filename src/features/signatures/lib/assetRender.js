@@ -495,7 +495,32 @@ const ICON_PATHS = {
     "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z",
   ],
   mail: ["M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z", "M22 6l-10 7L2 6"],
+  globe: ["M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20", "M2 12h20", "M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"],
+  pin: ["M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z", "M12 7a3 3 0 1 0 0 6 3 3 0 1 0 0-6"],
 };
+
+// Small contact glyph (phone / mail / globe / pin) in a soft accent disc.
+async function renderGlyph(spec) {
+  const size = spec.size || 20;
+  const k = 3;
+  const px = size * k;
+  return {
+    blob: await still(px, px, (ctx) => {
+      ctx.fillStyle = spec.bg || "#ffffff";
+      ctx.fillRect(0, 0, px, px);
+      if (spec.style !== "bare") {
+        ctx.beginPath();
+        ctx.arc(px / 2, px / 2, px / 2, 0, Math.PI * 2);
+        ctx.fillStyle = mix(spec.color || "#ff6a00", spec.bg || "#ffffff", 0.88);
+        ctx.fill();
+      }
+      const g = spec.style === "bare" ? px * 0.86 : px * 0.5;
+      drawLineIcon(ctx, spec.name, (px - g) / 2, (px - g) / 2, g, spec.color || "#ff6a00");
+    }),
+    width: size,
+    height: size,
+  };
+}
 
 function drawLineIcon(ctx, name, x, y, size, color) {
   const paths = ICON_PATHS[name];
@@ -643,6 +668,7 @@ export async function renderAsset(spec) {
   if (spec.kind === "photo") return renderPhoto(spec);
   if (spec.kind === "icon") return renderIcon(spec);
   if (spec.kind === "cta") return renderCta(spec);
+  if (spec.kind === "glyph") return renderGlyph(spec);
   throw new Error("Unknown asset " + spec.kind);
 }
 
