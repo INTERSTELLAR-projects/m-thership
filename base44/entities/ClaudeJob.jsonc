@@ -51,6 +51,7 @@
         "email",
         "research",
         "presentation",
+        "playbook",
         "other"
       ],
       "type": "string"
