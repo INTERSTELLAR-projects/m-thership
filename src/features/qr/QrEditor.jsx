@@ -117,7 +117,7 @@ export default function QrEditor({ store, id, start = {}, clients = [], onExit, 
     return () => {
       alive = false;
     };
-  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const value = useMemo(() => (d ? encodedValue(d) : ""), [d]);
   const scan = useMemo(() => scannability(d?.style), [d?.style]);

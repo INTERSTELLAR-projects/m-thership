@@ -90,7 +90,7 @@ export default function QrLibrary({ store, scopeKey = "admin", clients = [], onO
       folders.get(f).push(c);
     }
     return [...g.values()].sort((a, b) => a.name.localeCompare(b.name));
-  }, [shown, clients, isAdmin]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [shown, clients, isAdmin]);
 
   const totalScans = codes.reduce((a, c) => a + (isDynamic(c) ? Number(c.scans) || 0 : 0), 0);
   const dynCount = codes.filter(isDynamic).length;
