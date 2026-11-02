@@ -31,12 +31,29 @@ Deno.serve(async (req) => {
     const cid = client.id as string;
     const by = (entity: string, sort = "-created_date", limit = 500) => db[entity].filter({ client_id: cid }, sort, limit).then((r: unknown[]) => r || []);
 
+    // Chat helpers. Group membership lives on ChatThread.client_ids and is only ever checked here.
+    const myGroups = async () => ((await db.ChatThread.filter({ kind: "group" }, "-last_message_at", 300).catch(() => [])) || [])
+      .filter((g: Record<string, unknown>) => !g.archived && ((g.client_ids as string[]) || []).includes(cid)) as Record<string, unknown>[];
+    const groupFor = async (id: string) => {
+      const g = await db.ChatThread.get(id).catch(() => null);
+      return g && g.kind === "group" && !g.archived && ((g.client_ids as string[]) || []).includes(cid) ? g as Record<string, unknown> : null;
+    };
+    const groupMsgs = async (gid: string) => ((await db.ConversationMessage.filter({ thread_id: gid }, "created_date", 500).catch(() => [])) || []) as Record<string, unknown>[];
+    const groupUnreadCount = (ms: Record<string, unknown>[]) => ms.filter((m) => m.sender_client_id !== cid && !((m.read_by_client_ids as string[]) || []).includes(cid)).length;
+    const senderOf = (c: Record<string, unknown>) => ({ id: c.id, name: c.business, logo_url: c.logo_url || "", martian_color: c.martian_color || "", accent: c.accent || "" });
+    const chatOut = (m: Record<string, unknown>, sender: unknown) => ({
+      id: m.id, content: m.content, sender_role: m.sender_role, at: m.created_date || m.timestamp,
+      mine: m.sender_role === "client" ? (m.sender_client_id ? m.sender_client_id === cid : !m.thread_id) : user.role === "admin",
+      sender,
+    });
+
     if (action === "home") {
       const [work, autos, reqs, goals, gaps, snaps, tasks, files] = await Promise.all([
         by("WorkLog", "-date", 400), by("Automation"), by("ClientRequest"), by("ClientGoal", "sort"), by("ClientGap"),
         by("PerformanceSnapshot", "-period_end", 60), by("Task", "due_date", 200), by("ClientFile", "-delivered_on", 200),
       ]);
       const msgs = await by("ConversationMessage", "-created_date", 200);
+      const groupUnread = await myGroups().then((gs) => Promise.all(gs.map(async (g) => groupUnreadCount(await groupMsgs(g.id as string))))).then((n) => n.reduce((a, b) => a + b, 0)).catch(() => 0);
       return Response.json({
         client: pick(client, SAFE_CLIENT),
         user: { email: user.email, name: user.full_name, is_admin_preview: user.role === "admin" },
@@ -49,8 +66,73 @@ Deno.serve(async (req) => {
         upcoming: tasks.filter((t: Record<string, unknown>) => t.portal_visible === true && t.status !== "done").map((t: Record<string, unknown>) => pick(t, ["id", "title", "due_date", "status"])),
         files: files.filter(visible).map((f: Record<string, unknown>) => pick(f, ["id", "title", "category", "file_url", "link_url", "description", "delivered_on"])),
         future: (await by("Project")).filter((p: Record<string, unknown>) => p.portal_visible !== false && ["proposed", "backlog", "planning", "in_progress", "review"].includes(String(p.status))).map((p: Record<string, unknown>) => pick(p, ["id", "title", "type", "status", "description", "progress", "due_date"])),
-        unread: msgs.filter((m: Record<string, unknown>) => m.sender_role === "admin" && !m.read_at).length,
+        unread: msgs.filter((m: Record<string, unknown>) => m.sender_role === "admin" && !m.read_at).length + groupUnread,
       });
+    }
+
+    // ---- Chats: the client's 1:1 with Interstellar + group chats they belong to ----
+    // Never returns member lists or member counts. Membership is checked on every call.
+    if (action === "chats") {
+      const [direct, groups] = await Promise.all([by("ConversationMessage", "-created_date", 200), myGroups()]);
+      const dLast = direct[0] as Record<string, unknown> | undefined;
+      const threads: Record<string, unknown>[] = [{
+        id: "direct", kind: "direct", title: "Interstellar Strategies",
+        last_preview: dLast ? String(dLast.content || "").slice(0, 140) : "", last_at: dLast ? (dLast.created_date || dLast.timestamp) : null,
+        unread: direct.filter((m: Record<string, unknown>) => m.sender_role === "admin" && !m.read_at).length,
+      }];
+      for (const g of groups) {
+        const ms = await groupMsgs(g.id as string);
+        const last = ms[ms.length - 1] as Record<string, unknown> | undefined;
+        threads.push({
+          id: g.id, kind: "group", title: g.title, description: g.description || "",
+          last_preview: last ? String(last.content || "").slice(0, 140) : "", last_at: last ? (last.created_date || last.timestamp) : (g.created_date || null),
+          unread: groupUnreadCount(ms),
+        });
+      }
+      return Response.json({ me: senderOf(client), threads });
+    }
+
+    if (action === "chat_messages") {
+      const thread = String(args.thread || "direct");
+      if (thread === "direct") {
+        const msgs = await by("ConversationMessage", "created_date", 500);
+        if (user.role !== "admin") {
+          await Promise.all(msgs.filter((m: Record<string, unknown>) => m.sender_role === "admin" && !m.read_at).map((m: Record<string, unknown>) => db.ConversationMessage.update(m.id as string, { read_at: new Date().toISOString() })));
+        }
+        return Response.json({ messages: msgs.map((m: Record<string, unknown>) => chatOut(m, m.sender_role === "client" ? senderOf(client) : null)) });
+      }
+      const g = await groupFor(thread);
+      if (!g) return Response.json({ error: "Chat not found" }, { status: 404 });
+      const msgs = await groupMsgs(g.id as string);
+      if (user.role !== "admin") {
+        await Promise.all(msgs.filter((m: Record<string, unknown>) => m.sender_client_id !== cid && !((m.read_by_client_ids as string[]) || []).includes(cid))
+          .map((m: Record<string, unknown>) => db.ConversationMessage.update(m.id as string, { read_by_client_ids: [...((m.read_by_client_ids as string[]) || []), cid] })));
+      }
+      const ids = [...new Set(msgs.map((m: Record<string, unknown>) => m.sender_client_id).filter(Boolean) as string[])];
+      const senders: Record<string, unknown> = {};
+      await Promise.all(ids.map(async (id) => { const c = id === cid ? client : await db.CRMClient.get(id).catch(() => null); if (c) senders[id] = senderOf(c as Record<string, unknown>); }));
+      return Response.json({
+        thread: { id: g.id, kind: "group", title: g.title, description: g.description || "" },
+        messages: msgs.map((m: Record<string, unknown>) => chatOut(m, m.sender_role === "client" ? (senders[m.sender_client_id as string] || { name: String(m.sender_name || "Member") }) : null)),
+      });
+    }
+
+    if (action === "chat_send") {
+      const thread = String(args.thread || "direct");
+      const content = String(args.content || "").trim().slice(0, 5000);
+      if (!content) return Response.json({ error: "Empty message" }, { status: 400 });
+      const role = user.role === "admin" ? "admin" : "client";
+      const now = new Date().toISOString();
+      const base = { content, sender_role: role, senderEmail: user.email, messageType: "text", timestamp: now, sender_name: role === "admin" ? "Interstellar Strategies" : client.business };
+      if (thread === "direct") {
+        const m = await db.ConversationMessage.create({ ...base, client_id: cid, recipientEmail: role === "admin" ? (((client.emails as string[]) || [])[0] || "") : "interstellar", ...(role === "client" ? { sender_client_id: cid } : {}) });
+        return Response.json({ message: chatOut(m, role === "client" ? senderOf(client) : null) });
+      }
+      const g = await groupFor(thread);
+      if (!g) return Response.json({ error: "Chat not found" }, { status: 404 });
+      const m = await db.ConversationMessage.create({ ...base, thread_id: g.id, recipientEmail: `group:${g.id}`, ...(role === "client" ? { sender_client_id: cid, read_by_client_ids: [cid] } : { read_at: now }) });
+      await db.ChatThread.update(g.id as string, { last_message_at: now, last_message_preview: content.slice(0, 140) }).catch(() => null);
+      return Response.json({ message: chatOut(m, role === "client" ? senderOf(client) : null) });
     }
 
     if (action === "messages") {
