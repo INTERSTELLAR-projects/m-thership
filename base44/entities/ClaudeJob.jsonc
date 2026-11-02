@@ -53,6 +53,7 @@
         "presentation",
         "playbook",
         "content_plan",
+        "social_plan",
         "other"
       ],
       "type": "string"
