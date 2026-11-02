@@ -212,7 +212,8 @@ function TaskBoardInner({ withDock = false }) {
     });
     const statOf = (k) => stats.get(k) || { open: 0, hot: false };
     const named = clients
-      .filter((c) => c.name)
+      // Inactive clients only appear while they still have open work.
+      .filter((c) => c.name && (String(c.status || "").toLowerCase() !== "inactive" || statOf(c.id).open > 0))
       .map((c) => ({ key: c.id, label: c.name, ...statOf(c.id) }));
     const seen = new Set(named.map((o) => o.key));
     stats.forEach((s, k) => {
