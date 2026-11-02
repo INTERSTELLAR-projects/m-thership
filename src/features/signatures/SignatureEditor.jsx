@@ -106,9 +106,17 @@ export default function SignatureEditor({ store, mode = "signature", id, start =
   const previewHtml = generateSignatureHTML({ fields, theme, template_id: templateId, assets, final: false });
   const finalHtml = generateSignatureHTML({ fields, theme, template_id: templateId, assets, final: true });
 
+  // Only real edits mark the record dirty. Rendered animation files alone never create a
+  // record (opening "New" and leaving doesn't leave an empty signature behind); on an
+  // existing record they're saved so the hosted links stick.
+  const { assets: fieldAssets, ...fieldsNoAssets } = fields;
+  const contentSig = JSON.stringify([fieldsNoAssets, theme, templateId, name, folder, clientId, scope]);
   useEffect(() => {
     dirtyRef.current = true;
-  }, [fields, theme, templateId, name, folder, clientId]);
+  }, [contentSig]);
+  useEffect(() => {
+    if (recRef.current) dirtyRef.current = true;
+  }, [fieldAssets]);
 
   const clientName = clients.find((c) => c.id === clientId)?.business || rec?.client_name || "";
 
@@ -157,7 +165,7 @@ export default function SignatureEditor({ store, mode = "signature", id, start =
     saveTimer.current = setTimeout(() => dirtyRef.current && doSave(), 2500);
     return () => saveTimer.current && clearTimeout(saveTimer.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fields, theme, templateId, name, folder, clientId, scope, loading]);
+  }, [contentSig, fieldAssets, loading]);
 
   const handleCopy = async () => {
     setCopying(true);
