@@ -9,7 +9,9 @@ import OrbRail, { Orb } from "@/features/packages/components/OrbRail";
 import DeliverablesGlance from "@/features/packages/components/DeliverablesGlance";
 import usePackageData from "@/features/packages/usePackageData";
 import { PACKAGES, SUBSCRIPTIONS, DELIVERY_PACKAGES, ORB_STATES, packageByKey, packagePath } from "@/features/packages/registry";
-import { clientsOf, railFor } from "@/features/packages/engine";
+import { clientsOf, railFor, projectsOf } from "@/features/packages/engine";
+import FlightWalkthrough from "@/features/flight/onboarding/FlightWalkthrough";
+import OnboardClientButton from "@/features/flight/onboarding/OnboardClientButton";
 import { dueLabel, dueTone, shortDate } from "@/features/tasks/lib/format";
 import { btnGhost } from "@/features/tasks/lib/ui";
 import { cn } from "@/lib/utils";
@@ -284,6 +286,8 @@ export default function PackagePage() {
 
   const rows = useMemo(() => clientsOf(pkg, liveData).map((c) => ({ client: c, rail: railFor(pkg, c, liveData) })), [pkg, liveData]);
   const selected = rows.find((r) => r.client.id === clientId) || null;
+  const startedProjects = useMemo(() => (selected ? projectsOf(pkg, liveData).filter((p) => p.client_id === selected.client.id) : []), [pkg, liveData, selected]);
+  const flightOf = (cid) => (liveData.flights || []).find((f) => f.client_id === cid && f.package_key === pkg.key && f.status !== "archived");
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [clientId]);
   const counts = { done: rows.filter((r) => r.rail.overall === "done").length, working: rows.filter((r) => r.rail.overall === "working").length, attention: rows.filter((r) => r.rail.overall === "attention").length, off: rows.filter((r) => r.rail.overall === "off").length };
 
@@ -358,6 +362,8 @@ export default function PackagePage() {
               </div>
             </div>
 
+            <FlightWalkthrough key={pkg.key + selected.client.id} pkg={pkg} client={selected.client} startedProjects={startedProjects} onChanged={reload} />
+
             {pkg.key === "orbit-seo" ? (
               <OrbitClientView client={selected.client} rail={selected.rail} data={liveData} onPatch={onPatch} />
             ) : (
@@ -368,6 +374,9 @@ export default function PackagePage() {
           /* ---------- all-in-one ---------- */
           <>
             <div className="flex flex-wrap items-end justify-between gap-3">
+              <div className="w-full">
+                <OnboardClientButton pkg={pkg} clients={liveData.clients} flights={liveData.flights} onCreated={reload} />
+              </div>
               <p className="max-w-2xl text-[13px] leading-relaxed text-ink/60">{pkg.tagline} {pkg.kind === "recurring" ? "Every subscriber, every stage of this cycle, updating as the system works. Click a client to open them." : "Every client on the package and how far through the SOP they are. Fulfilled means every step is done. Click a client to open them."}</p>
               <div className="grid grid-cols-4 gap-2">
                 {[["Fulfilled", counts.done, "#1a1a1a"], ["In flight", counts.working, "#ff3c00"], ["Needs you", counts.attention, "#ff3c00"], ["Not started", counts.off, "#8a8580"]].map(([k, v, c]) => (
@@ -408,6 +417,11 @@ export default function PackagePage() {
                           <div className="mt-0.5 flex items-center gap-2">
                             <StatePill state={rail.overall} />
                             {pkg.kind === "delivery" && rail.total ? <span className="font-mono text-[10px] text-ink/45">{rail.done}/{rail.total}</span> : null}
+                            {(() => {
+                              const f = flightOf(client.id);
+                              if (!f || f.status === "launched") return null;
+                              return <span className="mono-label rounded-sm border border-[#ff3c00]/40 px-1 py-[1px] text-[8px] text-[#ff3c00]" title="Flight plan in progress">{f.status === "kicked_off" ? "launching" : "onboarding"}</span>;
+                            })()}
                             {pkg.kind === "recurring" ? (
                               <span className="font-mono text-[10px] text-ink/45">
                                 {(() => { const l = (client.services || []).find((s) => pkg.price_match.test(String(s.name || ""))); return l && Number(l.price) ? "$" + Number(l.price).toLocaleString("en-US") + "/mo" : "included"; })()}
