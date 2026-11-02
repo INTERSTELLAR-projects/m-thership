@@ -1,6 +1,16 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { createRecognizer, requestMicAccess, speak, speechSupported, stopSpeaking, warmVoices } from "@/features/tasks/lib/speech";
+import {
+  coreVoiceStatus,
+  createRecognizer,
+  requestMicAccess,
+  speak,
+  speechSupported,
+  stopSpeaking,
+  transcribeAudio,
+  warmVoices
+} from "@/features/tasks/lib/speech";
+import { recorderSupported, startRecorder } from "@/features/tasks/lib/recorder";
 import { emitTasksChanged } from "@/features/tasks/lib/clients";
 
 const AssistantContext = createContext(null);
@@ -10,18 +20,42 @@ export const useAssistant = () => useContext(AssistantContext);
 
 const WAKE = /^(hey |ok |okay |yo )?(interstellar|command|computer|mothership)\b[,:.\s]*/i;
 
-// How long a silence has to last before dictation is sent. Long enough to think mid-sentence.
-const SILENCE_MS = 2800;
+const join = (...parts) => parts.map((p) => String(p || "").trim()).filter(Boolean).join(" ");
 
+// Dictation works like Whisper: it records until Justin taps Stop (pauses never end it),
+// then the transcript lands in an editable box. Nothing is sent until he taps Send.
+// Hands-free mode (wake word) is the one opt-in exception that sends on its own.
 export function AssistantProvider({ children }) {
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState("idle");
+  const [mode, setMode] = useState("idle"); // idle | listening | transcribing | processing | speaking
   const [interim, setInterim] = useState("");
+  const [heard, setHeard] = useState(""); // settled Web Speech text this take
+  const [draft, setDraft] = useState("");
+  const [level, setLevel] = useState(0);
   const [turns, setTurns] = useState([]);
   const [notice, setNotice] = useState("");
   const [alwaysOn, setAlwaysOn] = useState(false);
   const [webcamStream, setWebcamStream] = useState(null);
-  const supported = useMemo(() => speechSupported(), []);
+  const [voiceServer, setVoiceServer] = useState(false);
+  const recognitionSupported = useMemo(() => speechSupported(), []);
+  const canRecord = useMemo(() => recorderSupported(), []);
+  const supported = recognitionSupported || canRecord;
+
+  const recRef = useRef(null); // Web Speech recognizer
+  const recorderRef = useRef(null); // MediaRecorder session
+  const dictatingRef = useRef(false);
+  const alwaysRef = useRef(false);
+  const busyRef = useRef(false);
+  const heardRef = useRef("");
+  const interimRef = useRef("");
+  const baseRef = useRef(""); // text already in the box when this take started
+  const levelAtRef = useRef(0);
+  const beginRecRef = useRef(null);
+
+  useEffect(() => warmVoices(() => {}), []);
+  useEffect(() => {
+    coreVoiceStatus().then((s) => setVoiceServer(!!s.available));
+  }, []);
 
   const toggleWebcam = useCallback(async () => {
     if (webcamStream) {
@@ -44,65 +78,41 @@ export function AssistantProvider({ children }) {
     [webcamStream]
   );
 
-  const recRef = useRef(null);
-  const listenRef = useRef(false);
-  const alwaysRef = useRef(false);
-  const busyRef = useRef(false);
-  const runRef = useRef(null);
-  const beginRef = useRef(null);
-  const pendingRef = useRef("");
-  const silenceRef = useRef(null);
-  const flushRef = useRef(null);
-  const [buffer, setBuffer] = useState("");
-
-  const clearSilence = () => {
-    if (silenceRef.current) {
-      clearTimeout(silenceRef.current);
-      silenceRef.current = null;
-    }
-  };
-
-  const armSilence = (ms) => {
-    clearSilence();
-    silenceRef.current = window.setTimeout(() => {
-      silenceRef.current = null;
-      if (flushRef.current) flushRef.current();
-    }, ms);
-  };
-
-  const resetDictation = () => {
-    clearSilence();
-    pendingRef.current = "";
-    setBuffer("");
-  };
-
-  useEffect(() => {
-    warmVoices(() => {});
-  }, []);
-
   const pushTurn = (role, text) => {
     setTurns((prev) => [...prev.slice(-7), { role, text, at: Date.now() + Math.random() }]);
   };
+
+  const stopRecognition = () => {
+    const recognition = recRef.current;
+    recRef.current = null;
+    if (recognition) {
+      try {
+        recognition.stop();
+      } catch (error) {
+        /* already stopped */
+      }
+    }
+  };
+
+  const onLevel = (value) => {
+    const now = performance.now();
+    if (value === 0 || now - levelAtRef.current > 60) {
+      levelAtRef.current = now;
+      setLevel(value);
+    }
+  };
+
+  /* ---------------- Command + reply ---------------- */
 
   const runCommand = useCallback(async (raw) => {
     const text = String(raw || "").trim();
     if (!text || busyRef.current) return;
     busyRef.current = true;
     setInterim("");
-    resetDictation();
     setMode("processing");
     setNotice("Processing command...");
     pushTurn("you", text);
-
-    const activeRecognition = recRef.current;
-    recRef.current = null;
-    if (activeRecognition) {
-      try {
-        activeRecognition.stop();
-      } catch (error) {
-        /* already stopped */
-      }
-    }
+    if (!alwaysRef.current) stopRecognition();
 
     let spoken = "I could not reach the command core just now.";
     try {
@@ -122,80 +132,68 @@ export function AssistantProvider({ children }) {
     pushTurn("ai", spoken);
     setNotice(spoken);
     setMode("speaking");
-    speak(spoken, {
-      onEnd: () => {
-        busyRef.current = false;
-        setMode("idle");
-        if (listenRef.current && beginRef.current) window.setTimeout(() => beginRef.current(), 250);
-      }
-    });
-    window.setTimeout(() => {
+    const done = () => {
       busyRef.current = false;
-    }, 20000);
+      setMode((m) => (m === "speaking" ? "idle" : m));
+      if (alwaysRef.current && beginRecRef.current) window.setTimeout(() => beginRecRef.current(), 250);
+    };
+    speak(spoken, { onEnd: done });
   }, []);
 
-  useEffect(() => {
-    runRef.current = runCommand;
-  }, [runCommand]);
-
-  // Sends everything dictated so far as one command.
-  const flush = useCallback(() => {
-    clearSilence();
-    const text = pendingRef.current.trim();
-    pendingRef.current = "";
-    setBuffer("");
-    setInterim("");
-    if (text.length > 1 && runRef.current) runRef.current(text);
+  const interrupt = useCallback(() => {
+    stopSpeaking();
+    busyRef.current = false;
+    setMode((m) => (m === "speaking" ? "idle" : m));
   }, []);
 
-  useEffect(() => {
-    flushRef.current = flush;
-  }, [flush]);
+  /* ---------------- Web Speech (live words + hands-free) ---------------- */
 
   const beginRecognition = useCallback(() => {
-    if (!supported) {
-      setNotice("Voice capture runs in Chrome. Use the typed command line for now.");
-      return;
-    }
-    if (busyRef.current || recRef.current) return;
+    if (!recognitionSupported || recRef.current) return;
+    if (!dictatingRef.current && !alwaysRef.current) return;
+    if (alwaysRef.current && busyRef.current) return;
     const recognition = createRecognizer({
       onInterim: (text) => {
+        interimRef.current = text;
         setInterim(text);
-        // Still talking — keep waiting.
-        if (text) armSilence(SILENCE_MS);
       },
       onFinal: (text) => {
         if (alwaysRef.current) {
           const match = text.match(WAKE);
           if (!match) return;
-          pendingRef.current = text.replace(WAKE, "").trim();
-          setBuffer(pendingRef.current);
+          const command = text.replace(WAKE, "").trim();
+          interimRef.current = "";
           setInterim("");
-          if (pendingRef.current.length > 2 && flushRef.current) flushRef.current();
+          if (command.length > 2) runCommand(command);
           return;
         }
-        // Keep the whole thought together: a pause no longer sends it.
-        pendingRef.current = (pendingRef.current ? pendingRef.current + " " : "") + text;
-        setBuffer(pendingRef.current);
+        heardRef.current = join(heardRef.current, text);
+        interimRef.current = "";
+        setHeard(heardRef.current);
         setInterim("");
-        armSilence(SILENCE_MS);
       },
       onEnd: () => {
         recRef.current = null;
-        if (pendingRef.current) armSilence(1200);
-        if (listenRef.current && !busyRef.current && beginRef.current) {
-          window.setTimeout(() => {
-            if (listenRef.current && !busyRef.current) beginRef.current();
-          }, 400);
+        // Chrome ends recognition after a pause or ~60s. Keep going until Justin taps Stop.
+        if (interimRef.current && dictatingRef.current) {
+          heardRef.current = join(heardRef.current, interimRef.current);
+          interimRef.current = "";
+          setHeard(heardRef.current);
+          setInterim("");
         }
+        const keepGoing = dictatingRef.current || (alwaysRef.current && !busyRef.current);
+        if (keepGoing && beginRecRef.current) window.setTimeout(() => beginRecRef.current && beginRecRef.current(), 150);
       },
       onError: (event) => {
         const code = event && event.error;
         if (code === "not-allowed" || code === "service-not-allowed") {
-          listenRef.current = false;
+          alwaysRef.current = false;
           setAlwaysOn(false);
-          setMode("idle");
-          setNotice("Microphone access is blocked for this app. Allow it in your browser, then reopen the mic.");
+          if (!recorderRef.current) {
+            dictatingRef.current = false;
+            setMode("idle");
+          }
+          setNotice("Live captions are blocked for this app. Allow the microphone in your browser.");
         }
       }
     });
@@ -203,73 +201,171 @@ export function AssistantProvider({ children }) {
     recRef.current = recognition;
     try {
       recognition.start();
-      setMode("listening");
-      setNotice(alwaysRef.current ? "Listening. Say Interstellar, then your command." : "Listening...");
     } catch (error) {
       recRef.current = null;
     }
-  }, [supported]);
+  }, [recognitionSupported, runCommand]);
 
   useEffect(() => {
-    beginRef.current = beginRecognition;
+    beginRecRef.current = beginRecognition;
   }, [beginRecognition]);
+
+  /* ---------------- Dictation ---------------- */
+
+  const finishDictation = useCallback(async () => {
+    if (!dictatingRef.current) return;
+    dictatingRef.current = false;
+    stopRecognition();
+    const spokenText = join(heardRef.current, interimRef.current);
+    const session = recorderRef.current;
+    recorderRef.current = null;
+    setInterim("");
+    let finalText = spokenText;
+
+    if (session) {
+      const blob = await session.stop();
+      if (voiceServer && blob.size > 2000) {
+        setMode("transcribing");
+        setNotice("Transcribing...");
+        try {
+          const text = await transcribeAudio(blob);
+          if (text) finalText = text;
+        } catch (error) {
+          setNotice("Server transcription failed, using the live captions instead.");
+        }
+      }
+    }
+
+    heardRef.current = "";
+    interimRef.current = "";
+    setHeard("");
+    setDraft(join(baseRef.current, finalText));
+    setMode("idle");
+    setNotice((n) => (n === "Transcribing..." || n === "Recording... tap Stop when you're done." ? "" : n));
+  }, [voiceServer]);
 
   const startListening = useCallback(async () => {
     setOpen(true);
+    if (dictatingRef.current) return;
     if (!supported) {
-      setNotice("Voice capture runs in Chrome. Use the typed command line for now.");
+      setNotice("Voice capture is not available in this browser. Type the command instead.");
       return;
-    }
-    const granted = await requestMicAccess();
-    if (!granted) {
-      setNotice("Microphone permission was refused. Allow mic access in your browser to talk to the assistant.");
-      return;
-    }
-    listenRef.current = true;
-    beginRecognition();
-  }, [supported, beginRecognition]);
-
-  const stopListening = useCallback(() => {
-    listenRef.current = false;
-    alwaysRef.current = false;
-    setAlwaysOn(false);
-    resetDictation();
-    const recognition = recRef.current;
-    recRef.current = null;
-    if (recognition) {
-      try {
-        recognition.stop();
-      } catch (error) {
-        /* already stopped */
-      }
     }
     stopSpeaking();
-    setMode("idle");
+    busyRef.current = false;
+    alwaysRef.current = false;
+    setAlwaysOn(false);
+    stopRecognition();
+
+    baseRef.current = draft;
+    heardRef.current = "";
+    interimRef.current = "";
+    setHeard("");
     setInterim("");
+
+    if (canRecord) {
+      try {
+        recorderRef.current = await startRecorder({
+          onLevel,
+          onAutoStop: () => {
+            setNotice("Ten minute limit reached, stopping.");
+            finishDictation();
+          }
+        });
+      } catch (error) {
+        recorderRef.current = null;
+        if (!recognitionSupported) {
+          setNotice("Microphone permission was refused. Allow mic access in your browser to talk to the core.");
+          return;
+        }
+      }
+    } else {
+      const granted = await requestMicAccess();
+      if (!granted) {
+        setNotice("Microphone permission was refused. Allow mic access in your browser to talk to the core.");
+        return;
+      }
+    }
+
+    dictatingRef.current = true;
+    setMode("listening");
+    setNotice("Recording... tap Stop when you're done.");
+    beginRecognition();
+  }, [supported, canRecord, recognitionSupported, draft, beginRecognition, finishDictation]);
+
+  const cancelDictation = useCallback(() => {
+    dictatingRef.current = false;
+    stopRecognition();
+    if (recorderRef.current) recorderRef.current.cancel();
+    recorderRef.current = null;
+    heardRef.current = "";
+    interimRef.current = "";
+    setHeard("");
+    setInterim("");
+    setMode("idle");
     setNotice("");
   }, []);
+
+  // Stop everything: dictation keeps what was captured, hands-free turns off, speech stops.
+  const stopListening = useCallback(() => {
+    if (dictatingRef.current) finishDictation();
+    alwaysRef.current = false;
+    setAlwaysOn(false);
+    if (!dictatingRef.current) stopRecognition();
+    stopSpeaking();
+    busyRef.current = false;
+    setMode((m) => (m === "listening" || m === "transcribing" ? m : "idle"));
+  }, [finishDictation]);
 
   const toggleAlwaysOn = useCallback(
     async (next) => {
       if (!next) {
-        stopListening();
+        alwaysRef.current = false;
+        setAlwaysOn(false);
+        stopRecognition();
+        setMode("idle");
+        setNotice("");
         return;
       }
       setOpen(true);
+      if (!recognitionSupported) {
+        setNotice("Hands-free mode needs Chrome or Edge.");
+        return;
+      }
+      if (dictatingRef.current) cancelDictation();
+      const granted = await requestMicAccess();
+      if (!granted) {
+        setNotice("Microphone permission was refused.");
+        return;
+      }
       alwaysRef.current = true;
       setAlwaysOn(true);
-      await startListening();
-      setAlwaysOn(true);
+      setMode("listening");
+      setNotice("Hands free. Say Interstellar, then your command.");
+      beginRecognition();
     },
-    [startListening, stopListening]
+    [recognitionSupported, cancelDictation, beginRecognition]
   );
 
-  useEffect(() => {
-    alwaysRef.current = alwaysOn;
-  }, [alwaysOn]);
+  const sendDraft = useCallback(() => {
+    const text = draft.trim();
+    if (!text) return;
+    setDraft("");
+    runCommand(text);
+  }, [draft, runCommand]);
 
-  useEffect(() => () => stopListening(), [stopListening]);
+  useEffect(
+    () => () => {
+      dictatingRef.current = false;
+      alwaysRef.current = false;
+      stopRecognition();
+      if (recorderRef.current) recorderRef.current.cancel();
+      stopSpeaking();
+    },
+    []
+  );
 
+  const listening = mode === "listening";
   const value = {
     open,
     setOpen,
@@ -279,22 +375,32 @@ export function AssistantProvider({ children }) {
     notice,
     alwaysOn,
     supported,
+    voiceServer,
+    level,
     webcamStream,
     webcamOn: !!webcamStream,
     toggleWebcam,
-    listening: mode === "listening",
-    busy: mode === "processing" || mode === "speaking",
+    listening,
+    dictating: listening && !alwaysOn,
+    busy: mode === "processing" || mode === "speaking" || mode === "transcribing",
+    speaking: mode === "speaking",
     startListening,
     stopListening,
+    finishDictation,
+    cancelDictation,
     toggleAlwaysOn,
     runCommand,
-    // What is being dictated right now (settled chunks + the live phrase).
-    capturing: [buffer, interim].filter(Boolean).join(" ").trim(),
-    sendNow: flush,
+    interrupt,
+    draft,
+    setDraft,
+    sendDraft,
+    // What is being dictated right now (box text + settled words + the live phrase).
+    capturing: listening && !alwaysOn ? join(baseRef.current, heard, interim) : "",
+    sendNow: sendDraft,
     clear: () => {
       setTurns([]);
       setNotice("");
-      resetDictation();
+      setDraft("");
     }
   };
 
