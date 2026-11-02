@@ -125,6 +125,19 @@ export const mailHref = (text) => `mailto:?subject=${encodeURIComponent("You sho
 
 export const money = (n) => (n ? `$${Math.round(n).toLocaleString()}` : "");
 
+// Props for <PrestigeUnlock> for a given tier.
+export function unlockProps(idx, offer, memberName = "") {
+  const t = tierAt(idx, offer);
+  const head = unlockHeadline(idx, offer);
+  const next = offer.tiers[idx];
+  const rewards = [];
+  if (t) rewards.push({ title: t.unlock || `${t.name} unlock`, detail: t.detail, value: t.value ? `${money(t.value)} value` : "" });
+  rewards.push({ title: `Every booked call: ${offer.booked.title}`, detail: offer.booked.detail, value: offer.booked.value ? `${money(offer.booked.value)} value` : "" });
+  rewards.push({ title: `Every signed referral: ${offer.signed.title}`, detail: offer.signed.detail, value: offer.signed.value ? `${money(offer.signed.value)} value` : "" });
+  if (next) rewards.push({ title: `Next: ${next.name} at ${next.threshold} signed`, detail: next.unlock ? `Unlocks ${next.unlock}.` : "", value: "" });
+  return { tierIndex: idx, title: head.title, subtitle: head.subtitle, memberName, rewards };
+}
+
 // ---- Rewards engine ----
 // Returns the PrestigeReward payloads a referral status change earns. Rewards are only created
 // for the transition that just happened (never retroactively), de-duplicated against `existing`.
