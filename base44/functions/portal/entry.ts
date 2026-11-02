@@ -213,7 +213,7 @@ Deno.serve(async (req) => {
       const emails = ((client.portal_emails as string[]) || []).map((e) => String(e).toLowerCase());
       const allMembers = await db.PrestigeMember.list("-created_date", 500).catch(() => []);
       let member = (allMembers || []).find((m: Record<string, unknown>) => m.client_id === cid)
-        || (allMembers || []).find((m: Record<string, unknown>) => m.email && (emails.includes(String(m.email).toLowerCase()) || String(m.email).toLowerCase() === email))
+        || (allMembers || []).find((m: Record<string, unknown>) => (!m.client_id || m.client_id === cid) && m.email && (emails.includes(String(m.email).toLowerCase()) || String(m.email).toLowerCase() === email))
         || null;
       const slug = (s: unknown) => String(s || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 32) || "friend";
 
