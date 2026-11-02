@@ -69,10 +69,11 @@ const rank = (a, b) => {
 
 async function fetchOpenTasks() {
   const out = [];
-  let page = await base44.entities.Task.filter({ status: { $ne: "done" } }, { sort: "priority", limit: 500 });
+  const query = { status: { $ne: "done" } };
+  let page = await base44.entities.Task.filter(query, { sort: "priority", limit: 500 });
   out.push(...itemsOf(page));
   for (let i = 0; i < 4 && page && page.has_more && page.next_cursor; i += 1) {
-    page = await base44.entities.Task.filter({}, { cursor: page.next_cursor, limit: 500 });
+    page = await base44.entities.Task.filter(query, { cursor: page.next_cursor, limit: 500 });
     out.push(...itemsOf(page));
   }
   return out;
