@@ -181,7 +181,7 @@ export default function FlightWalkthrough({ pkg, client: baseClient, startedProj
 
   const goStep = (id) => {
     setStep(id);
-    if (flight && flight.current_step !== id) patchFlight(flight, { current_step: id }).then(setFlight).catch(() => null);
+    serial((f) => (f && f.current_step !== id ? patchFlight(f, { current_step: id }) : null)).catch(() => null);
   };
   const patch = (p) => run("save", () => serial((f) => patchFlight(f, p)));
   const saveField = (key, value) => run("save", () => serial((f) => saveAnswers(f, client, { [key]: value })));
@@ -200,20 +200,26 @@ export default function FlightWalkthrough({ pkg, client: baseClient, startedProj
       return patchFlight(f, { launch_checks: next });
     }));
 
-  const doIntake = () => run("intake", async () => setFlight(await sendIntake(flight, client, ev)), client.portal_enabled ? "Intake request is live in their portal. Their answers land back here to apply." : "Intake form created. Their portal is off: turn it on in the cockpit, or copy the list and email it.");
+  const doIntake = () => run("intake", () => serial((f) => sendIntake(f, client, ev)), client.portal_enabled ? "Intake request is live in their portal. Their answers land back here to apply." : "Intake form created. Their portal is off: turn it on in the cockpit, or copy the list and email it.");
   const doApply = () => run("apply", async () => {
-    let f = flight;
-    for (const r of pending) f = await applyIntake(f, client, r);
-    setFlight(f);
+    await serial(async (start) => {
+      let f = start;
+      for (const r of pending) f = await applyIntake(f, client, r);
+      return f;
+    });
     await reload();
   }, "Client answers applied and copied to the CRM + intake audit.");
   const doKickoff = () => run("kickoff", async () => {
-    const out = await kickoff(flight, client, ev);
-    setFlight(out.flight);
+    let result = null;
+    await serial(async (f) => {
+      const out = await kickoff(f, client, ev);
+      result = out.result;
+      return out.flight;
+    });
     setStep("launch");
-    return out.result;
+    return result;
   }, (r) => "Service started: " + ((r && r.tasks) || 0) + " SOP steps created" + (r && r.care ? " plus the care plan" : "") + ".");
-  const doLaunched = () => run("launch", async () => setFlight(await patchFlight(flight, { status: "launched", launched_at: new Date().toISOString() })), "Marked launched.");
+  const doLaunched = () => run("launch", () => serial((f) => patchFlight(f, { status: "launched", launched_at: new Date().toISOString() })), "Marked launched.");
   const copyList = async () => {
     try {
       await navigator.clipboard.writeText(missingAsText(ev, client.business));
