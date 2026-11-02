@@ -36,7 +36,7 @@ export default function Comms() {
     const u1 = base44.entities.ConversationMessage.subscribe(() => invalidate("ConversationMessage"));
     const u2 = base44.entities.ChatThread.subscribe(() => invalidate("ChatThread"));
     return () => { u1?.(); u2?.(); };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const clientMap = useMemo(() => Object.fromEntries((clients.data || []).map((c) => [c.id, c])), [clients.data]);
 
@@ -74,7 +74,7 @@ export default function Comms() {
     if (!unreadIds) return;
     const now = new Date().toISOString();
     Promise.all(unreadIds.split(",").map((id) => base44.entities.ConversationMessage.update(id, { read_at: now }))).then(() => invalidate("ConversationMessage"));
-  }, [unreadIds]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [unreadIds]);
 
   const open = (t) => { setSel(t.key); setMobileRoom(true); setSettings(false); };
 
