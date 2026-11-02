@@ -68,8 +68,10 @@ function shapePath(ctx, shape, x, y, w, h) {
 
 function shine(ctx, x, y, w, h, t, alpha = 0.6) {
   if (t <= 0 || t >= 1) return;
-  const band = Math.max(w, h) * 0.6;
-  const cx = x - band + (w + band * 2) * easeInOut(t);
+  // Sine-eased glide that is on screen for the whole sweep (no wasted off-canvas frames).
+  const band = Math.max(w, h) * 0.55;
+  const p = (1 - Math.cos(Math.PI * t)) / 2;
+  const cx = x - band * 0.45 + (w + band * 0.9) * p;
   const g = ctx.createLinearGradient(cx - band / 2, 0, cx + band / 2, 0);
   g.addColorStop(0, "rgba(255,255,255,0)");
   g.addColorStop(0.35, `rgba(255,255,255,${alpha * 0.35})`);
@@ -236,7 +238,7 @@ async function renderPhoto(spec) {
   const img = await loadImage(spec.src);
   const size = spec.size || 120;
   // Animated photos are the heaviest asset: 1.6× keeps them crisp on retina at a sane file size.
-  const k = !spec.anim || spec.anim === "none" ? Math.min(2, 340 / size) : Math.min(1.6, 260 / size);
+  const k = !spec.anim || spec.anim === "none" ? Math.min(2, 340 / size) : Math.min(1.5, 240 / size);
   const px = Math.round(size * k);
   const accent = spec.accent || "#ff6a00";
   const accent2 = spec.accent2 || mix(accent, "#ffffff", 0.4);
@@ -474,13 +476,13 @@ async function renderIcon(spec) {
   if (!spec.anim || spec.anim === "none") return out(await still(px, px, (ctx) => drawIcon(ctx, spec, px)));
   // Every icon GIF has the same length; only the start offset differs, so the wave stays in sync.
   const start = 1 + Math.min(spec.index || 0, 6) * 4;
-  const total = 44;
+  const total = 50;
   if (spec.anim === "pop") {
     return out(
       film(px, px, total, (ctx, f) => drawIcon(ctx, spec, px, { squash: 1 - 0.13 * bump(prog(f, start, 14)) }), holdLast(2800, STEP))
     );
   }
-  return out(film(px, px, total, (ctx, f) => drawIcon(ctx, spec, px, { gleam: prog(f, start, 18) }), holdLast(2800, STEP)));
+  return out(film(px, px, total, (ctx, f) => drawIcon(ctx, spec, px, { gleam: prog(f, start, 24) }), holdLast(2800, STEP)));
 }
 
 // ---- CTA button --------------------------------------------------------------------
