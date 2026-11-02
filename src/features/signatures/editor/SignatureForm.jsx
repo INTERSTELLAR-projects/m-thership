@@ -108,6 +108,10 @@ export default function SignatureForm({ fields, theme, onFields, onTheme }) {
         {fields.website_show && (
           <Input value={fields.website} onChange={(e) => setF({ website: e.target.value })} className="h-9" placeholder="company.com" />
         )}
+        <ToggleRow label="Address" checked={!!fields.address_show} onChange={(v) => setF({ address_show: v })} />
+        {fields.address_show && (
+          <Input value={fields.address || ""} onChange={(e) => setF({ address: e.target.value })} className="h-9" placeholder="Molalla, OR" />
+        )}
       </Section>
 
       <Section title="Profile photo" hint="Upload a regular photo. The animation is generated for you.">
@@ -149,7 +153,7 @@ export default function SignatureForm({ fields, theme, onFields, onTheme }) {
                 <ChoiceGrid value={fields.photo_shape} options={PHOTO_SHAPES} onChange={(id) => setF({ photo_shape: id })} cols={4} />
               </div>
             </div>
-            <RangeField label="Size" value={Number(fields.photo_px) || 124} min={64} max={180} step={4} suffix="px" onChange={(v) => setF({ photo_px: v })} />
+            <RangeField label="Size" value={Number(fields.photo_px) || 96} min={56} max={160} step={4} suffix="px" onChange={(v) => setF({ photo_px: v })} />
             <ToggleRow label="Accent ring" checked={!!fields.photo_ring} onChange={(v) => setF({ photo_ring: v })} />
           </>
         )}
@@ -175,7 +179,24 @@ export default function SignatureForm({ fields, theme, onFields, onTheme }) {
           )}
         </div>
         {fields.logo_url && (
-          <RangeField label="Logo height" value={Number(fields.logo_height) || 34} min={20} max={70} suffix="px" onChange={(v) => setF({ logo_height: v })} />
+          <>
+            <div>
+              <span className="text-xs text-muted-foreground">Placement</span>
+              <div className="mt-1">
+                <ChoiceGrid
+                  value={fields.logo_position || "brand"}
+                  options={[
+                    { id: "brand", label: "Beside company" },
+                    { id: "top", label: "Top" },
+                    { id: "footer", label: "Footer" },
+                  ]}
+                  onChange={(id) => setF({ logo_position: id })}
+                />
+              </div>
+            </div>
+            <RangeField label="Logo height" value={Number(fields.logo_height) || 24} min={16} max={60} suffix="px" onChange={(v) => setF({ logo_height: v })} />
+            <p className="text-[11px] text-muted-foreground">Beside company caps at 34px, footer at 40px, top at 60px so it never overpowers the name.</p>
+          </>
         )}
       </Section>
 
