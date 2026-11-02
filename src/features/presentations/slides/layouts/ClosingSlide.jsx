@@ -28,7 +28,7 @@ export default function ClosingSlide({ theme, slide }) {
           height: 4,
           marginTop: 40,
           borderRadius: 4,
-          background: theme.accent
+          background: theme.accentGradient || theme.accent
         }}
       />
     </div>
