@@ -152,6 +152,16 @@ function DockPanel() {
                   Talk
                 </button>
               )}
+              {mode === "listening" && capturing ? (
+                <button
+                  type="button"
+                  onClick={sendNow}
+                  className="flex items-center gap-2 rounded-md border border-[#ffaa00]/60 bg-[#ffaa00]/15 px-3 py-2 text-[11.5px] font-medium text-[#ffaa00]"
+                >
+                  <ArrowUp className="h-3.5 w-3.5" />
+                  Send now
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={() => toggleAlwaysOn(!alwaysOn)}
@@ -189,7 +199,7 @@ function DockPanel() {
               {turn.text}
             </p>
           ))}
-          {interim ? <p className="text-[11.5px] italic leading-relaxed text-[#ffaa00]">{interim}...</p> : null}
+          {capturing ? <p className="text-[11.5px] italic leading-relaxed text-[#ffaa00]">{capturing}...</p> : null}
         </div>
 
         {notice ? (

@@ -1,7 +1,7 @@
 export const TASK_CATEGORIES = ["design", "development", "strategy", "content", "marketing", "sales", "admin", "finance", "ops"];
 export const PROJECT_TYPES = ["website", "app", "branding", "marketing", "seo", "automation", "consulting", "internal", "other"];
 export const TASK_STATUSES = ["inbox", "next", "doing", "blocked", "done"];
-export const INTENTS = ["create_task", "create_tasks", "create_project", "create_client", "update_task", "log_time", "query", "brief", "unclear"];
+export const INTENTS = ["create_task", "create_tasks", "create_project", "create_client", "create_ideas", "update_task", "log_time", "query", "brief", "unclear"];
 
 // Below this confidence a parsed command is parked in the voice inbox instead of filed.
 export const MIN_CONFIDENCE = 0.55;
@@ -42,6 +42,18 @@ export const COMMAND_SCHEMA = {
         },
         required: ["title"]
       }
+    },
+    ideas: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          description: { type: "string" },
+          category: { type: "string" }
+        },
+        required: ["title", "description"]
+      }
     }
   },
   required: ["intent", "speech"]
@@ -53,6 +65,7 @@ export function buildPrompt(input: any) {
     "You convert one spoken utterance into one structured operation on his work system (clients, projects, tasks).",
     "",
     "Today is " + input.today + ". The owner is " + (input.name || "the operator") + ".",
+    input.page ? "He is currently on the page " + input.page + "." : "",
     "",
     'He says: "' + input.transcript + '"',
     "",
@@ -68,6 +81,10 @@ export function buildPrompt(input: any) {
     "- due_date must be YYYY-MM-DD; resolve relative phrases ('tomorrow', 'friday', 'next week') against today.",
     "- Reuse an existing client_id / project_id from the lists above when his words clearly match one, otherwise leave the id empty and give the name/title so a new one can be matched or created.",
     "- If he dictates several tasks at once, use create_tasks and put each one in items.",
+    "- If he asks to save ideas (his idea vault, or 'add these ideas'), use intent 'create_ideas' and put each idea in 'ideas'.",
+    "- One idea per distinct concept. Never merge two different ideas, and never drop detail: each description keeps everything he said about that idea, in his own words, however rambling.",
+    "- Idea category is one of: Product, Service, Marketing, Sales, Operations, Content, Tools, Other.",
+    "- If he filed ideas, 'speech' says how many were saved and that each one was analyzed.",
     "- If he asks a question about his workload or what to focus on, use intent 'query' and answer it in 'answer' using the board snapshot and open tasks.",
     "- If he asks for a briefing, use intent 'brief' and write 2-3 spoken sentences in 'answer' naming the one thing to do next.",
     "- Never name a blocked task as the thing to do next. If the most urgent work is blocked, say what it is waiting on and name the strongest unblocked task instead.",
@@ -118,6 +135,17 @@ export function cleanCommand(raw: any, ctx: any) {
         .filter((item: any) => item.title)
     : [];
 
+  const ideas = Array.isArray(src.ideas)
+    ? src.ideas
+        .slice(0, 8)
+        .map((idea: any) => ({
+          title: text(idea && idea.title),
+          description: text(idea && idea.description) || "",
+          category: text(idea && idea.category)
+        }))
+        .filter((idea: any) => idea.title)
+    : [];
+
   return {
     intent,
     speech: text(src.speech),
@@ -140,7 +168,8 @@ export function cleanCommand(raw: any, ctx: any) {
     estimated_days: num(src.estimated_days),
     hours: num(src.hours),
     labels: Array.isArray(src.labels) ? src.labels.filter((l: any) => typeof l === "string").slice(0, 6) : [],
-    items
+    items,
+    ideas
   };
 }
 
