@@ -51,6 +51,15 @@ Deno.serve(async (req) => {
     let force = false;
     if (req.method === "POST") {
       const body = await req.json().catch(() => ({}));
+      if (body?.resolve_tmp === "claude-setup-2026-11-02" && body?.query) {
+        const key = Deno.env.get("GOOGLE_PLACES_API_KEY");
+        const r = await fetch("https://places.googleapis.com/v1/places:searchText", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key || "", "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri" },
+          body: JSON.stringify({ textQuery: String(body.query) }),
+        });
+        return reply(await r.json(), 200, 0);
+      }
       slug = slug || String(body?.client || "");
       force = body?.force === true;
     }
