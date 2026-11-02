@@ -27,7 +27,7 @@ export default function EditorPage({ mode = "signature" }) {
 
   return (
     <SignatureEditor
-      key={`${mode}-${id || "new"}`}
+      key={mode}
       store={adminStore}
       mode={mode}
       id={id}
