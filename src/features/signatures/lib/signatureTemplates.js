@@ -83,7 +83,7 @@ export function normalize(fields = {}, theme = {}) {
   const f = {
     ...DEFAULT_FIELDS,
     ...fields,
-    social: { ...DEFAULT_FIELDS.social, ...(fields.social || {}) },
+    social: fields.social ? { ...SOCIAL_DEFAULTS, ...fields.social } : { ...DEFAULT_FIELDS.social },
     cta: { ...DEFAULT_CTA, ...(fields.cta || {}) },
     assets: fields.assets || {},
   };
