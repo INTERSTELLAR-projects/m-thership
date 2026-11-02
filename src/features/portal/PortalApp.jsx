@@ -5,7 +5,8 @@ import { base44 } from "@/api/base44Client";
 import { LOGO_URL } from "@/lib/nav";
 import { WORK_KINDS, SERVICE_LABELS, fmtDate, timeAgo } from "@/lib/useData";
 import { Panel, Empty, Tag, Btn, Field } from "@/features/clients/ui";
-import { PerformanceView, FileGrid, MessageThread } from "@/features/clients/tabsGrowth";
+import { PerformanceView, FileGrid } from "@/features/clients/tabsGrowth";
+import PortalChats from "@/features/portal/PortalChats";
 import { INTAKE_SECTIONS, intakeProgress } from "@/features/clients/intakeQuestions";
 import GridTrail from "@/components/GridTrail";
 import PortalSignatures from "@/features/signatures/PortalSignatures";
@@ -369,19 +370,7 @@ function RequestsView({ d, call, refresh, previewId }) {
 }
 
 function MessagesView({ call, previewId }) {
-  const q = useQuery({ queryKey: ["portal", previewId, "messages"], queryFn: () => call("messages"), refetchInterval: 15000 });
-  const qc = useQueryClient();
-  return (
-    <div className="space-y-4">
-      <p className="label-cross">(Messages)</p>
-      <MessageThread
-        messages={q.data?.messages || []}
-        meRole={previewId ? "admin" : "client"}
-        placeholder="Message the Interstellar team…"
-        onSend={async (content) => { await call("send_message", { content }); qc.invalidateQueries({ queryKey: ["portal", previewId, "messages"] }); }}
-      />
-    </div>
-  );
+  return <PortalChats call={call} previewId={previewId} />;
 }
 
 function IntakeView({ call, onClose }) {
