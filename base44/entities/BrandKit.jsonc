@@ -1,0 +1,79 @@
+{
+  "name": "BrandKit",
+  "description": "A client's approved brand kit (logo usage, palette, typography, voice, taglines, imagery, do/don't). Created only when Justin approves a Claude brand-kit job. Admin-only; the portal may show approved kits with portal_visible = true.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "archived"
+      ],
+      "default": "approved"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
+    },
+    "summary": {
+      "type": "string"
+    },
+    "kit": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Structured kit: overview, logo, palette, typography, voice, taglines, messaging, imagery, applications, dos, donts"
+    },
+    "body_md": {
+      "type": "string",
+      "description": "Full brand kit as markdown (Claude's result_body)"
+    },
+    "source_job_id": {
+      "type": "string",
+      "description": "ClaudeJob that produced it"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "portal_visible": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show in the client portal (only approved kits)"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
