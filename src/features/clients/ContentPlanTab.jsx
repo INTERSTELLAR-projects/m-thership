@@ -228,11 +228,11 @@ function GeoRings({ rings }) {
     <ol className="space-y-2">
       {rings.map((r, i) => (
         <li key={`${r.ring}-${i}`} className="flex items-start gap-3">
-          <span className="relative mt-0.5 grid shrink-0 place-items-center" style={{ width: 40, height: 22 }}>
-            {Array.from({ length: i + 1 }).map((_, k) => (
-              <span key={k} className="absolute rounded-full border border-[#ff3c00]" style={{ width: 8 + k * 9, height: 8 + k * 9 > 22 ? 22 : 8 + k * 9, opacity: 1 - k * 0.2 }} />
+          <svg width="30" height="30" viewBox="0 0 30 30" className="mt-0.5 shrink-0" aria-hidden="true">
+            {rings.map((_, k) => (
+              <circle key={k} cx="15" cy="15" r={3 + k * (11 / Math.max(1, rings.length - 1))} fill={k === 0 && i === 0 ? "#ff3c00" : "none"} stroke={k <= i ? "#ff3c00" : "currentColor"} strokeOpacity={k <= i ? 1 - (i - k) * 0.2 : 0.15} strokeWidth={k === i ? 2 : 1} />
             ))}
-          </span>
+          </svg>
           <div className="min-w-0">
             <p className="text-[12.5px]"><span className="font-mono text-[11px] font-semibold text-[#ff3c00]">{r.ring}</span>{r.label ? <span className="ml-2 text-ink/55">{r.label}</span> : null}</p>
             <p className="text-[12.5px] text-ink/80">{r.cities.join(" · ")}</p>
