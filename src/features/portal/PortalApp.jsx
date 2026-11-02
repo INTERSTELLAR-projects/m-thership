@@ -10,6 +10,7 @@ import PortalChats from "@/features/portal/PortalChats";
 import { INTAKE_SECTIONS, intakeProgress } from "@/features/clients/intakeQuestions";
 import GridTrail from "@/components/GridTrail";
 import PortalSignatures from "@/features/signatures/PortalSignatures";
+import ClientHealthSummary from "@/features/performance/ClientHealthSummary";
 import RequestFormRenderer, { isComplete } from "@/features/requests/RequestFormRenderer";
 import { KIND_LABELS, KIND_ORDER, toAnswers, titleFor, detailsFor, attachmentsFor } from "@/features/requests/formSchema";
 
@@ -197,6 +198,8 @@ function ResultsView({ d }) {
     <div className="space-y-4">
       <p className="label-cross">(Results)</p>
       <h2 className="text-[32px] font-semibold tracking-[-0.04em]">How people are finding you</h2>
+      {/* site_health comes from the portal function (already filtered: no score under 70). Hidden until it's returned. */}
+      {d.site_health && <ClientHealthSummary health={d.site_health} businessName={d.client.business} />}
       <PerformanceView snapshots={d.snapshots} compact />
     </div>
   );
