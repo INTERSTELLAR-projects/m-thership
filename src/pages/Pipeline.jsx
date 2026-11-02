@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import NewLeadDialog from "@/features/pipeline/NewLeadDialog";
 import { ContactLinks, LeadDialog, LostDialog, SourceBadge, WonDialog } from "@/features/pipeline/LeadDialogs";
 import {
-  STAGES, STAGE_LABEL, OPEN_STAGES, SOURCES, isLeadish, stageOf, sourceOf, interestOf, bookedCallOf, reachedCall,
+  STAGES, OPEN_STAGES, SOURCES, isLeadish, stageOf, sourceOf, interestOf, bookedCallOf, reachedCall,
   daysInStage, isOverdue, noteDate, money,
 } from "@/features/pipeline/pipeline";
 
@@ -255,7 +255,7 @@ export default function Pipeline() {
         lead={lead}
         onClose={() => setOpenId(null)}
         onPatch={patch}
-        onMove={move}
+        onMove={(c, s) => { if (s === "won" || s === "lost") setOpenId(null); move(c, s); }}
         onWon={(c) => { setOpenId(null); setWonLead(c); }}
         onLost={(c) => { setOpenId(null); setLostLead(c); }}
       />
@@ -265,4 +265,3 @@ export default function Pipeline() {
   );
 }
 
-export { STAGE_LABEL };
