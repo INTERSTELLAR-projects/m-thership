@@ -1,0 +1,63 @@
+{
+  "name": "RevenueGoal",
+  "description": "Big agency revenue goal shown on Financial > Goal (e.g. $1M revenue in 2027). Separate from Goal, which drives the MRR Plan to Execute engine.",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "target_amount": {
+      "type": "number",
+      "default": 1000000
+    },
+    "metric": {
+      "type": "string",
+      "enum": [
+        "annual_revenue",
+        "run_rate"
+      ],
+      "default": "annual_revenue",
+      "description": "annual_revenue = revenue collected between start_date and deadline; run_rate = MRR x 12 reached by the deadline"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date"
+    },
+    "is_primary": {
+      "type": "boolean",
+      "default": true
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "target_amount"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
