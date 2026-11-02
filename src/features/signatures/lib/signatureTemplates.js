@@ -460,7 +460,7 @@ function tSplit(c) {
 
 // Stack: centered card, built mobile-first.
 function tStack(c) {
-  const { f, t } = c;
+  const { t } = c;
   const photo = photoBlock(c);
   const inner = `<div style="text-align:center;font-family:${fontOf(t)};">${topLogo(c, true)}${
     photo ? `<table ${TBL} align="center" style="margin:0 auto 12px auto;"><tr><td>${photo}</td></tr></table>` : ""
@@ -470,7 +470,6 @@ function tStack(c) {
     c,
     true
   )}</div>`;
-  void f;
   return frame(c, inner, "22px 24px", { center: true, maxWidth: 420 });
 }
 
