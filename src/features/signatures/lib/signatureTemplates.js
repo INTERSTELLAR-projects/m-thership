@@ -19,7 +19,7 @@ export const DEFAULT_THEME = {
   surface_color: "#ffffff",
   font: "Inter",
   border_style: "gradient", // gradient | box (hairline) | none
-  border_width: 1.5,
+  border_width: 2,
   border_radius: "18px",
   accent_bar: false,
   divider_anim: "sweep", // sweep | none — a soft light gliding along the divider
@@ -457,12 +457,12 @@ function frame(c, inner, pad = "20px 22px", { center = false, maxWidth = 500 } =
     )};${extra}">${accentBar(t, radius)}<tr><td style="padding:${pad};">${inner}</td></tr></table>`;
   if (t.border_style === "gradient") {
     // Thin gradient border: a gradient cell with a hair of padding around the white card.
-    const bw = Number(t.border_width) || 1.5;
+    // Whole pixels only (fractional borders render 1px on some sides, 2px on others),
+    // and a gradient that stays fully saturated so every edge reads the same weight.
+    const bw = Math.max(1, Math.round(Number(t.border_width) || 2));
     const a1 = esc(t.accent_color);
     const a2 = esc(t.accent_color_2 || t.accent_color);
-    return `<table ${TBL}${al} bgcolor="${a1}" style="border-collapse:separate;max-width:${maxWidth}px;border-radius:${R}px;background-color:${a1};background-image:linear-gradient(135deg,${a1} 0%,${a2} 45%,${esc(
-      mix(t.accent_color, "#ffffff", 0.55)
-    )} 70%,${a1} 100%);"><tr><td style="padding:${bw}px;border-radius:${R}px;">${card(Math.max(0, R - bw))}</td></tr></table>`;
+    return `<table ${TBL}${al} bgcolor="${a1}" style="border-collapse:separate;max-width:${maxWidth}px;border-radius:${R}px;background-color:${a1};background-image:linear-gradient(135deg,${a1} 0%,${a2} 50%,${a1} 100%);"><tr><td style="padding:${bw}px;border-radius:${R}px;">${card(Math.max(0, R - bw))}</td></tr></table>`;
   }
   return `<table ${TBL}${al} style="max-width:${maxWidth}px;"><tr><td>${card(R, `border:1px solid ${esc(t.border_color)};`)}</td></tr></table>`;
 }

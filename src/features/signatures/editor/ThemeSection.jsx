@@ -45,10 +45,10 @@ export default function ThemeSection({ theme, onTheme }) {
       {theme.border_style === "gradient" && (
         <RangeField
           label="Border thickness"
-          value={Number(theme.border_width) || 1.5}
+          value={Math.round(Number(theme.border_width) || 2)}
           min={1}
-          max={3}
-          step={0.5}
+          max={4}
+          step={1}
           suffix="px"
           onChange={(v) => set({ border_width: v })}
         />
