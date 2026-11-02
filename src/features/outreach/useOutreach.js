@@ -17,7 +17,7 @@ export default function useOutreach(clientId = null) {
     const scope = clientId ? { client_id: clientId } : null;
     const list = (name, sort, limit) => (scope ? arr(base44.entities[name].filter(scope, sort, limit)) : arr(base44.entities[name].list(sort, limit)));
     const [clients, dossiers, profiles, targets, messages, runs, rules] = await Promise.all([
-      clientId ? arr(base44.entities.CRMClient.filter({ id: clientId }, "business", 1)) : arr(base44.entities.CRMClient.list("business", 300)),
+      clientId ? base44.entities.CRMClient.get(clientId).then((c) => (c ? [c] : [])).catch(() => []) : arr(base44.entities.CRMClient.list("business", 300)),
       list("ClientDossier", "-updated_date", 300),
       list("OutreachProfile", "-updated_date", 300),
       list("OutreachTarget", "-updated_date", 2000),
