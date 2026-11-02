@@ -1,55 +1,98 @@
-import { GIFEncoder, quantize, applyPalette } from "gifenc";
+import { GIFEncoder, quantize } from "gifenc";
 
-// frames: array of Uint8ClampedArray RGBA buffers (same width/height).
-// delays: ms per frame. Consecutive identical frames are merged, and pixels that did not
-// change since the previous frame are written as transparent (dispose = keep), so a photo
-// with a moving ring only pays for the ring — not the whole photo — on every frame.
+// High-quality GIF encoding for signature assets.
+// - One shared palette for every frame (sampled across the animation), so colours never
+//   flicker between frames.
+// - 4×4 ordered (Bayer) dithering in full 8-bit precision, so gradients stay smooth instead
+//   of banding. Ordered dithering is fixed per pixel, so still areas never shimmer.
+// - Pixels that did not change since the previous frame are written as transparent
+//   (dispose = keep): files stay small and only the moving part is redrawn.
+// - Consecutive identical frames are merged into one longer frame.
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v / 16 - 0.47) * 7);
+
 export function encodeGif(frames, { width, height, delays }) {
-  const gif = GIFEncoder();
   const merged = [];
   frames.forEach((f, i) => {
     const prev = merged[merged.length - 1];
-    if (prev && sameFrame(prev.data, f)) prev.delay += delays[i] ?? 60;
-    else merged.push({ data: f, delay: delays[i] ?? 60 });
+    if (prev && sameFrame(prev.data, f)) prev.delay += delays[i] ?? 40;
+    else merged.push({ data: f, delay: delays[i] ?? 40 });
   });
 
+  const palette = buildPalette(merged.map((m) => m.data));
+  const transparentIndex = palette.length;
+  const fullPalette = [...palette, [0, 0, 0]];
+  const nearest = makeNearest(palette);
+
+  const gif = GIFEncoder();
   merged.forEach((f, i) => {
+    const prev = i > 0 ? merged[i - 1].data : null;
+    const data = f.data;
+    const index = new Uint8Array(width * height);
+    for (let y = 0, q = 0; y < height; y++) {
+      for (let x = 0; x < width; x++, q++) {
+        const p = q * 4;
+        if (prev && data[p] === prev[p] && data[p + 1] === prev[p + 1] && data[p + 2] === prev[p + 2]) {
+          index[q] = transparentIndex;
+          continue;
+        }
+        const o = BAYER[(y & 3) * 4 + (x & 3)];
+        index[q] = nearest(data[p] + o, data[p + 1] + o, data[p + 2] + o);
+      }
+    }
     const delay = Math.max(20, Math.round(f.delay));
-    if (i === 0) {
-      const palette = quantize(f.data, 256, { format: "rgb565" });
-      const index = applyPalette(f.data, palette, "rgb565");
-      gif.writeFrame(index, width, height, { palette, delay, repeat: 0, dispose: 1 });
-      return;
-    }
-    const prev = merged[i - 1].data;
-    const changed = changedOnly(f.data, prev);
-    const palette = quantize(changed, 255, { format: "rgb565" });
-    const index = applyPalette(f.data, palette, "rgb565");
-    const transparentIndex = palette.length;
-    palette.push([0, 0, 0]);
-    for (let p = 0, q = 0; q < index.length; p += 4, q++) {
-      if (f.data[p] === prev[p] && f.data[p + 1] === prev[p + 1] && f.data[p + 2] === prev[p + 2]) index[q] = transparentIndex;
-    }
-    gif.writeFrame(index, width, height, { palette, delay, transparent: true, transparentIndex, dispose: 1 });
+    if (i === 0) gif.writeFrame(index, width, height, { palette: fullPalette, delay, repeat: 0, dispose: 1 });
+    else gif.writeFrame(index, width, height, { delay, transparent: true, transparentIndex, dispose: 1 });
   });
   gif.finish();
   return new Blob([gif.bytes()], { type: "image/gif" });
 }
 
-// RGBA buffer where unchanged pixels are fully transparent, so the palette is spent on what moved.
-function changedOnly(cur, prev) {
-  const out = new Uint8ClampedArray(cur.length);
-  let any = false;
-  for (let p = 0; p < cur.length; p += 4) {
-    if (cur[p] !== prev[p] || cur[p + 1] !== prev[p + 1] || cur[p + 2] !== prev[p + 2]) {
-      out[p] = cur[p];
-      out[p + 1] = cur[p + 1];
-      out[p + 2] = cur[p + 2];
-      out[p + 3] = 255;
-      any = true;
+// 255-colour palette sampled from up to 6 frames spread across the animation.
+function buildPalette(frames) {
+  const picks = [...new Set([0, 0.2, 0.4, 0.5, 0.6, 0.8].map((t) => Math.round(t * (frames.length - 1))))];
+  const px = frames[0].length / 4;
+  const step = px * picks.length > 400000 ? 2 : 1;
+  const sample = new Uint8ClampedArray(Math.ceil(px / step) * 4 * picks.length);
+  let o = 0;
+  for (const k of picks) {
+    const d = frames[k];
+    for (let p = 0; p < d.length; p += 4 * step) {
+      sample[o++] = d[p];
+      sample[o++] = d[p + 1];
+      sample[o++] = d[p + 2];
+      sample[o++] = 255;
     }
   }
-  return any ? out : cur;
+  return quantize(sample.subarray(0, o), 255, { format: "rgb565" });
+}
+
+// Exact nearest-colour lookup (full precision) with a cache keyed on 6 bits per channel.
+function makeNearest(palette) {
+  const cache = new Map();
+  const n = palette.length;
+  return (r, g, b) => {
+    r = r < 0 ? 0 : r > 255 ? 255 : r;
+    g = g < 0 ? 0 : g > 255 ? 255 : g;
+    b = b < 0 ? 0 : b > 255 ? 255 : b;
+    const key = ((r >> 2) << 12) | ((g >> 2) << 6) | (b >> 2);
+    const hit = cache.get(key);
+    if (hit !== undefined) return hit;
+    let best = 0;
+    let bestD = Infinity;
+    for (let i = 0; i < n; i++) {
+      const c = palette[i];
+      const dr = c[0] - r;
+      const dg = c[1] - g;
+      const db = c[2] - b;
+      const dist = dr * dr * 0.3 + dg * dg * 0.59 + db * db * 0.11;
+      if (dist < bestD) {
+        bestD = dist;
+        best = i;
+      }
+    }
+    cache.set(key, best);
+    return best;
+  };
 }
 
 function sameFrame(a, b) {
