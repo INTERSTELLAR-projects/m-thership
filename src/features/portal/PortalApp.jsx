@@ -98,11 +98,12 @@ function Shell({ client, tab, setTab, unread, preview, children }) {
   );
 }
 
-function Counter({ value, label }) {
+function Counter({ value, label, total }) {
   return (
     <div className="border-r border-hair px-5 py-6 last:border-r-0">
       <p className="text-[44px] font-semibold leading-none tracking-[-0.05em] tabular-nums">{value}</p>
       <p className="mono-label mt-3 text-[10px] text-ink/55">{label}</p>
+      {total != null && <p className="mt-1 text-[12px] text-ink/45">{total} all time</p>}
     </div>
   );
 }
@@ -112,6 +113,7 @@ function HomeView({ d, go, openAudit }) {
   const monthStart = ms.toISOString().slice(0, 10);
   const month = d.work.filter((w) => (w.date || "") >= monthStart);
   const c = (...k) => month.filter((w) => k.includes(w.kind)).length;
+  const t = (...k) => d.work.filter((w) => k.includes(w.kind) && w.status === "live").length;
   const monthName = new Date().toLocaleDateString("en-US", { month: "long" });
   const allTime = d.work.length;
   const openReq = d.requests.filter((r) => !["complete", "declined"].includes(r.status));
@@ -125,10 +127,10 @@ function HomeView({ d, go, openAudit }) {
         </h1>
         <p className="mt-3 max-w-2xl text-[15px] text-ink/60">Every blog, Google post, site update and listing we publish for you shows up here as it happens. {allTime ? `${allTime} pieces of work logged so far.` : ""}</p>
         <div className="mt-6 grid overflow-hidden rounded-md border border-hair bg-card sm:grid-cols-2 lg:grid-cols-4">
-          <Counter value={c("blog")} label="Blogs published" />
-          <Counter value={c("gbp_post")} label="Google posts" />
-          <Counter value={c("site_edit", "new_page", "project_page")} label="Website updates" />
-          <Counter value={c("citation", "press", "mention", "backlink")} label="Listings, press & mentions" />
+          <Counter value={c("blog")} total={t("blog")} label={`Blogs published in ${monthName}`} />
+          <Counter value={c("gbp_post")} total={t("gbp_post")} label={`Google posts in ${monthName}`} />
+          <Counter value={c("site_edit", "new_page", "project_page")} total={t("site_edit", "new_page", "project_page", "deliverable")} label={`Website updates in ${monthName}`} />
+          <Counter value={c("citation", "press", "mention", "backlink")} total={t("citation", "press", "mention", "backlink")} label={`Listings & press in ${monthName}`} />
         </div>
       </section>
 
