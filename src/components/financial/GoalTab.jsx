@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CartesianGrid, ComposedChart, Line, Area, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Crown, Flag, Gauge, Loader2, Pencil, RefreshCw, Route, Sparkles, Target, TrendingUp, Users, X, Zap, History } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { compactMoney, computeGoal, money, monthLabel, addMonths } from "./finance/metrics";
+import { compactMoney, computeGoal, money, monthLabel } from "./finance/metrics";
 import { CountUp, EmptyState, EstimateTag, FinanceStyles, MoneyTooltip, Panel, Sparkline, SourceNote } from "./finance/ui";
 import useRevenueGoal from "./finance/useRevenueGoal";
 import { generateRoutes } from "./finance/ai";
@@ -370,5 +370,3 @@ function RouteCard({ route, index }) {
 
 function fmtDate(d) { return d ? new Date(`${d}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"; }
 function fmtDateTime(d) { return d ? new Date(d).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—"; }
-// keep addMonths referenced for future window math helpers
-void addMonths;
