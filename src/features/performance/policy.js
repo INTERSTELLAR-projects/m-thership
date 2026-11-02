@@ -57,7 +57,6 @@ export function clientHealthSummary({ audits = [], fixes = [], work = [] }) {
   const done = audits.filter((a) => typeof a.health_score === "number" && a.strategy !== "desktop")
     .sort((a, b) => String(a.run_at).localeCompare(String(b.run_at)));
   const latest = done[done.length - 1] || null;
-  const first = done[0] || null;
   const score = latest?.health_score ?? null;
   const show = score != null && score >= CLIENT_SCORE_FLOOR;
   const fixesApplied = fixes.filter((f) => f.status === "applied" && f.portal_visible !== false).length;
@@ -65,8 +64,8 @@ export function clientHealthSummary({ audits = [], fixes = [], work = [] }) {
   return {
     score: show ? score : null,
     band: show ? band(score).label : score != null ? "Improving" : null,
-    improved_by: latest && first && latest !== first && latest.health_score > first.health_score ? latest.health_score - first.health_score : null,
-    trend: show ? done.slice(-12).map((a) => ({ date: String(a.run_at).slice(0, 10), score: a.health_score })) : [],
+    // Only points at or above the floor, so a low early score is never revealed.
+    trend: show ? done.filter((a) => a.health_score >= CLIENT_SCORE_FLOOR).slice(-12).map((a) => ({ date: String(a.run_at).slice(0, 10), score: a.health_score })) : [],
     fixes_applied: fixesApplied,
     edits_made: edits,
     last_checked: latest?.run_at || null,
