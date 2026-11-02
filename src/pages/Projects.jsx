@@ -55,8 +55,14 @@ export default function Projects() {
       setTaskTime(timeMap);
       setProjects(itemsOf(projectPage));
       setClients(clientRows);
-      setCounts(toMap(taskAgg && taskAgg.rows));
-      setDoneCounts(toMap(doneAgg && doneAgg.rows));
+      // Fall back to counting the task rows if the aggregate endpoint is unavailable.
+      const tally = (pick) =>
+        itemsOf(taskRows).reduce((acc, task) => {
+          if (task.project_id && pick(task)) acc[task.project_id] = (acc[task.project_id] || 0) + 1;
+          return acc;
+        }, {});
+      setCounts(taskAgg && taskAgg.rows ? toMap(taskAgg.rows) : tally(() => true));
+      setDoneCounts(doneAgg && doneAgg.rows ? toMap(doneAgg.rows) : tally((task) => task.status === "done"));
     } finally {
       setLoading(false);
     }
