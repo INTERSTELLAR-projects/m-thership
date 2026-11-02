@@ -31,7 +31,8 @@ export default function TargetCard({ t, onPatch, showClient = true, compact = fa
     const { id: _i, created_date: _c, updated_date: _u, created_by: _b, created_by_id: _bi, is_sample: _s, ...fields } = v;
     fields.domain = domainOf(fields.url) || fields.domain || "";
     fields.last_action_at = nowIso();
-    if (fields.live_url && t.status !== "won" && fields.status !== "won") fields.status = "won";
+    delete fields.status; // status is changed by the select above, never by a stale editor copy
+    if (fields.live_url && !t.live_url && t.status !== "won") fields.status = "won";
     try {
       await base44.entities.OutreachTarget.update(t.id, fields);
       onPatch("OutreachTarget", t.id, fields);
