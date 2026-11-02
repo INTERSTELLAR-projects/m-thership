@@ -380,8 +380,10 @@ export function toAnswers(fields, vals) {
   return fields.map((fl) => ({ id: fl.id, label: fl.label, type: fl.type, value: vals[fl.id] ?? (fl.type === "checkbox" ? false : fl.type === "multi_select" || fl.type === "photos" || fl.type === "files" ? [] : "") }));
 }
 export function titleFor(form, vals) {
-  const first = form.fields.find((x) => x.type === "short_text" && vals[x.id]);
-  const t = first ? vals[first.id] : "";
+  const pickBy = (type) => form.fields.find((x) => x.type === type && x.id !== "priority" && vals[x.id]);
+  const first = pickBy("short_text") || pickBy("select") || pickBy("long_text");
+  const raw = first ? String(vals[first.id]).replace(/\s+/g, " ").trim() : "";
+  const t = raw.length > 90 ? `${raw.slice(0, 87)}…` : raw;
   return t ? `${KIND_LABELS[form.kind] || form.title}: ${t}` : `${form.title} from ${form.client_name}`;
 }
 export function detailsFor(form, vals) {
