@@ -200,7 +200,7 @@ function TasksAnalytics({ data }) {
               <XAxis dataKey="day" {...axisProps()} interval={6} />
               <YAxis allowDecimals={false} {...axisProps()} width={40} />
               <Tooltip content={<ChartTooltip />} cursor={cursorProps()} />
-              <Area type="monotone" dataKey="completed" name="Completed" stroke="url(#out-done-stroke)" fill="url(#out-done-area)" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: "#ff3c00", stroke: "#fff", strokeWidth: 1.5 }} />
+              <Area type="monotone" dataKey="completed" name="Completed" stroke="#ff3c00" fill="url(#out-done-area)" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: "#ff3c00", stroke: "#fff", strokeWidth: 1.5 }} />
             </AreaChart>
           </ResponsiveContainer>
         </ChartPanel>

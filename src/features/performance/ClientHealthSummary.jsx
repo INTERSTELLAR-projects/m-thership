@@ -60,7 +60,7 @@ export default function ClientHealthSummary({ health, businessName }) {
                   <XAxis dataKey="label" {...axisProps(true)} minTickGap={24} />
                   <YAxis domain={[60, 100]} {...axisProps(true)} width={40} />
                   <Tooltip content={<ChartTooltip dark />} cursor={cursorProps(true)} />
-                  <Area type="monotone" dataKey="score" name="Health" stroke="url(#client-health-stroke)" strokeWidth={2.5} fill="url(#client-health-area)" dot={false} activeDot={{ r: 4, fill: "#ff6a00", stroke: "#fff", strokeWidth: 1.5 }} isAnimationActive />
+                  <Area type="monotone" dataKey="score" name="Health" stroke="#ff3c00" strokeWidth={2.5} fill="url(#client-health-area)" dot={false} activeDot={{ r: 4, fill: "#ff6a00", stroke: "#fff", strokeWidth: 1.5 }} isAnimationActive />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

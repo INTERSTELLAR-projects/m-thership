@@ -177,7 +177,7 @@ export default function Performance() {
                       <XAxis dataKey="label" {...axisProps(true)} minTickGap={20} />
                       <YAxis domain={[0, 100]} {...axisProps(true)} width={40} />
                       <Tooltip content={<ChartTooltip dark />} cursor={cursorProps(true)} />
-                      <Area type="monotone" dataKey="Avg health" stroke="url(#portfolio-stroke)" strokeWidth={2.5} fill="url(#portfolio-area)" dot={false} activeDot={{ r: 4, fill: "#ff6a00", stroke: "#fff", strokeWidth: 1.5 }} />
+                      <Area type="monotone" dataKey="Avg health" stroke="#ff3c00" strokeWidth={2.5} fill="url(#portfolio-area)" dot={false} activeDot={{ r: 4, fill: "#ff6a00", stroke: "#fff", strokeWidth: 1.5 }} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>

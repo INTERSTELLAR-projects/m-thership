@@ -223,7 +223,7 @@ export default function ClientSiteDashboard({ client, audits = [], fixes = [], g
                       <YAxis domain={[0, 100]} {...axisProps(true)} width={40} />
                       <Tooltip content={<ChartTooltip dark />} cursor={cursorProps(true)} />
                       <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 11, color: "rgba(255,255,255,0.6)" }} />
-                      <Area type="monotone" dataKey="Health" stroke="url(#site-trend-stroke)" strokeWidth={2.5} fill="url(#site-trend-area)" dot={false} activeDot={{ r: 4, fill: "#ff6a00", stroke: "#fff", strokeWidth: 1.5 }} connectNulls />
+                      <Area type="monotone" dataKey="Health" stroke="#ff3c00" strokeWidth={2.5} fill="url(#site-trend-area)" dot={false} activeDot={{ r: 4, fill: "#ff6a00", stroke: "#fff", strokeWidth: 1.5 }} connectNulls />
                       <Area type="monotone" dataKey="SEO" stroke="#ffaa00" strokeWidth={1.5} fill="none" dot={false} strokeDasharray="4 3" connectNulls />
                       <Area type="monotone" dataKey="Performance" stroke="rgba(255,255,255,0.55)" strokeWidth={1.5} fill="none" dot={false} connectNulls />
                     </AreaChart>
