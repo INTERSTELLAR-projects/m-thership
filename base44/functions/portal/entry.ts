@@ -86,6 +86,7 @@ Deno.serve(async (req) => {
         by("PerformanceSnapshot", "-period_end", 60), by("Task", "due_date", 200), by("ClientFile", "-delivered_on", 200),
         by("SiteAudit", "-run_at", 60).catch(() => []), by("SeoFix", "-updated_date", 500).catch(() => []), by("BrandKit", "-version", 20).catch(() => []),
       ]);
+      const playbooks = await by("IndustryPlaybook", "-version", 20).catch(() => []);
       const msgs = await by("ConversationMessage", "-created_date", 200);
       const groupUnread = await myGroups().then((gs) => Promise.all(gs.map(async (g) => groupUnreadCount(await groupMsgs(g.id as string))))).then((n) => n.reduce((a, b) => a + b, 0)).catch(() => 0);
       return Response.json({
@@ -96,6 +97,7 @@ Deno.serve(async (req) => {
         requests: reqs.map((r: Record<string, unknown>) => pick(r, ["id", "kind", "title", "details", "status", "priority", "due_date", "client_note", "page_status", "page_url", "created_date", "completed_at", "attachments"])),
         site_health: clientHealthSummary({ audits, fixes, work }),
         has_brand_kit: !!portalKit(kits),
+        has_playbook: !!portalKit(playbooks),
         goals: goals.map((g: Record<string, unknown>) => pick(g, ["id", "year", "title", "metric", "baseline_value", "target_value", "current_value", "unit", "status", "plan_steps"])),
         gaps: gaps.filter(visible).map((g: Record<string, unknown>) => pick(g, ["id", "title", "area", "severity", "status", "recommendation", "impact"])),
         snapshots: snaps.map((s: Record<string, unknown>) => pick(s, ["id", "source", "period_start", "period_end", "metrics"])),
@@ -194,6 +196,12 @@ Deno.serve(async (req) => {
     if (action === "brand_kit") {
       const k = portalKit(await by("BrandKit", "-version", 20).catch(() => []));
       return Response.json({ brand_kit: k ? pick(k, ["version", "kit", "body_md", "summary"]) : null });
+    }
+
+    // Industry playbook: only this client's newest approved playbook, and only when it is portal-visible.
+    if (action === "playbook") {
+      const p = portalKit(await by("IndustryPlaybook", "-version", 20).catch(() => []));
+      return Response.json({ playbook: p ? pick(p, ["version", "playbook", "body_md", "summary", "quick_wins_done", "approved_at"]) : null });
     }
 
     if (action === "create_request") {
