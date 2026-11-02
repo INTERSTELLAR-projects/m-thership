@@ -16,7 +16,7 @@ import { fmtDate } from "@/lib/useData";
 // Mission Control's Command Briefing: the day in ten seconds. Every number is live from the
 // current entities (see features/briefing/loadBriefing.js); empty sections collapse.
 const COLLAPSE_KEY = "command_briefing_collapsed";
-const OUTREACH_ROUTE = "/outreach";
+const OUTREACH_ROUTE = "/backlinks";
 
 const readCollapsed = () => {
   try { return localStorage.getItem(COLLAPSE_KEY) === "1"; } catch { return false; }
