@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Check, ClipboardCopy, Flag, Loader2, Lock, Plane, Rocket, Send, ShieldCheck, Sparkles } from "lucide-react";
 import Panel from "@/features/tasks/ui-kit/Panel";
@@ -126,6 +126,22 @@ export default function FlightWalkthrough({ pkg, client: baseClient, startedProj
   const [step, setStep] = useState("client");
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState(null);
+  // Saves run one after another on the latest record, so two quick edits never overwrite each other.
+  const flightRef = useRef(null);
+  const queueRef = useRef(Promise.resolve());
+  useEffect(() => { flightRef.current = flight; }, [flight]);
+  const serial = (fn) => {
+    const p = queueRef.current.then(async () => {
+      const next = await fn(flightRef.current);
+      if (next) {
+        flightRef.current = next;
+        setFlight(next);
+      }
+      return next;
+    });
+    queueRef.current = p.catch(() => null);
+    return p;
+  };
 
   const reload = useCallback(async () => {
     const c = await loadContext(baseClient.id, pkg.key);
@@ -167,20 +183,22 @@ export default function FlightWalkthrough({ pkg, client: baseClient, startedProj
     setStep(id);
     if (flight && flight.current_step !== id) patchFlight(flight, { current_step: id }).then(setFlight).catch(() => null);
   };
-  const patch = (p) => run("save", async () => setFlight(await patchFlight(flight, p)));
-  const saveField = (key, value) => run("save", async () => setFlight(await saveAnswers(flight, client, { [key]: value })));
-  const skip = (key, reason) => run("save", async () => setFlight(await patchFlight(flight, { skipped: { ...(flight.skipped || {}), [key]: { reason, at: new Date().toISOString() } } })));
-  const unskip = (key) => {
-    const next = { ...(flight.skipped || {}) };
-    delete next[key];
-    return run("save", async () => setFlight(await patchFlight(flight, { skipped: next })));
-  };
-  const toggleCheck = (key) => {
-    const next = { ...(flight.launch_checks || {}) };
-    if (next[key]) delete next[key];
-    else next[key] = new Date().toISOString();
-    return run("save", async () => setFlight(await patchFlight(flight, { launch_checks: next })));
-  };
+  const patch = (p) => run("save", () => serial((f) => patchFlight(f, p)));
+  const saveField = (key, value) => run("save", () => serial((f) => saveAnswers(f, client, { [key]: value })));
+  const skip = (key, reason) => run("save", () => serial((f) => patchFlight(f, { skipped: { ...(f.skipped || {}), [key]: { reason, at: new Date().toISOString() } } })));
+  const unskip = (key) =>
+    run("save", () => serial((f) => {
+      const next = { ...(f.skipped || {}) };
+      delete next[key];
+      return patchFlight(f, { skipped: next });
+    }));
+  const toggleCheck = (key) =>
+    run("save", () => serial((f) => {
+      const next = { ...(f.launch_checks || {}) };
+      if (next[key]) delete next[key];
+      else next[key] = new Date().toISOString();
+      return patchFlight(f, { launch_checks: next });
+    }));
 
   const doIntake = () => run("intake", async () => setFlight(await sendIntake(flight, client, ev)), client.portal_enabled ? "Intake request is live in their portal. Their answers land back here to apply." : "Intake form created. Their portal is off: turn it on in the cockpit, or copy the list and email it.");
   const doApply = () => run("apply", async () => {
