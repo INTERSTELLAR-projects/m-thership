@@ -288,9 +288,13 @@ export function AssistantProvider({ children }) {
     stopListening,
     toggleAlwaysOn,
     runCommand,
+    // What is being dictated right now (settled chunks + the live phrase).
+    capturing: [buffer, interim].filter(Boolean).join(" ").trim(),
+    sendNow: flush,
     clear: () => {
       setTurns([]);
       setNotice("");
+      resetDictation();
     }
   };
 
