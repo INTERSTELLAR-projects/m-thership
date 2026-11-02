@@ -66,7 +66,8 @@ function shapePath(ctx, shape, x, y, w, h) {
   } else rr(ctx, x, y, w, h, w * 0.22);
 }
 
-function shine(ctx, x, y, w, h, t, alpha = 0.6) {
+function shine(ctx, x, y, w, h, t, alpha = 0.6, rgb = null) {
+  const col = rgb ? `${rgb.r},${rgb.g},${rgb.b}` : "255,255,255";
   if (t <= 0 || t >= 1) return;
   // Sine-eased glide that is on screen for the whole sweep (no wasted off-canvas frames).
   const band = Math.max(w, h) * 0.55;
@@ -74,11 +75,11 @@ function shine(ctx, x, y, w, h, t, alpha = 0.6) {
   const cx = x - band * 0.5 + (w + band) * p;
   // Gradient is built in the band's own (translated + rotated) space.
   const g = ctx.createLinearGradient(-band / 2, 0, band / 2, 0);
-  g.addColorStop(0, "rgba(255,255,255,0)");
-  g.addColorStop(0.35, `rgba(255,255,255,${alpha * 0.35})`);
-  g.addColorStop(0.5, `rgba(255,255,255,${alpha})`);
-  g.addColorStop(0.65, `rgba(255,255,255,${alpha * 0.35})`);
-  g.addColorStop(1, "rgba(255,255,255,0)");
+  g.addColorStop(0, `rgba(${col},0)`);
+  g.addColorStop(0.35, `rgba(${col},${alpha * 0.35})`);
+  g.addColorStop(0.5, `rgba(${col},${alpha})`);
+  g.addColorStop(0.65, `rgba(${col},${alpha * 0.35})`);
+  g.addColorStop(1, `rgba(${col},0)`);
   ctx.save();
   ctx.translate(cx, y + h / 2);
   ctx.rotate(0.38);
@@ -417,26 +418,21 @@ async function renderPhoto(spec) {
 
 // ---- social icons ------------------------------------------------------------------
 
-function drawIcon(ctx, spec, px, { squash = 1, gleam = 0 } = {}) {
+// Static icon art (container + glyph) on a transparent layer, cached per spec.
+const layerCache = new Map();
+function iconLayer(spec, px) {
+  const key = JSON.stringify([spec.platform, spec.style, spec.shape, spec.accent, px]);
+  if (layerCache.has(key)) return layerCache.get(key);
+  const { c, ctx } = makeCanvas(px, px);
   const platform = PLATFORM_BY_ID[spec.platform];
   const accent = spec.accent || "#ff6a00";
   const style = spec.style || "brand";
   const shape = spec.shape || "circle";
-  const brandOf = (x, y, w, h) =>
-    platform.id === "website" ? accent : brandGradient(ctx, platform, x, y, w, h);
-  ctx.fillStyle = spec.bg || "#ffffff";
-  ctx.fillRect(0, 0, px, px);
-  const c = px / 2;
-  ctx.save();
-  ctx.translate(c, c);
-  ctx.scale(squash, squash);
-  ctx.translate(-c, -c);
-
-  let clip = () => shapePath(ctx, shape, 0, 0, px, px);
+  const brandOf = (x, y, w, h) => (platform.id === "website" ? accent : brandGradient(ctx, platform, x, y, w, h));
+  const m = px / 2;
   if (style === "logo") {
     const g = px * 0.92;
-    drawGlyph(ctx, platform, c, c, g, brandOf(c - g / 2, c - g / 2, g, g));
-    clip = () => rr(ctx, 0, 0, px, px, px * 0.2);
+    drawGlyph(ctx, platform, m, m, g, brandOf(m - g / 2, m - g / 2, g, g));
   } else {
     const container = {
       brand: { fill: brandOf(0, 0, px, px), glyph: "#ffffff" },
@@ -458,15 +454,35 @@ function drawIcon(ctx, spec, px, { squash = 1, gleam = 0 } = {}) {
       ctx.lineWidth = lw;
       ctx.stroke();
     }
-    drawGlyph(ctx, platform, c, c, px * (platform.id === "website" ? 0.5 : 0.52), container.glyph);
+    drawGlyph(ctx, platform, m, m, px * (platform.id === "website" ? 0.5 : 0.52), container.glyph);
   }
-  if (gleam > 0) {
-    ctx.save();
-    clip();
-    ctx.clip();
-    shine(ctx, 0, 0, px, px, gleam, style === "white" || style === "soft" || style === "outline" ? 0.35 : 0.55);
-    ctx.restore();
+  layerCache.set(key, c);
+  return c;
+}
+
+// Light styles get a brand-tinted sheen (a white one would vanish on a white chip);
+// either way the sheen only lands on the icon's own pixels (source-atop), never the background.
+function drawIcon(ctx, spec, px, { squash = 1, gleam = 0 } = {}) {
+  ctx.fillStyle = spec.bg || "#ffffff";
+  ctx.fillRect(0, 0, px, px);
+  const layer = iconLayer(spec, px);
+  let art = layer;
+  if (gleam > 0 && gleam < 1) {
+    const tmp = makeCanvas(px, px);
+    tmp.ctx.drawImage(layer, 0, 0);
+    tmp.ctx.globalCompositeOperation = "source-atop";
+    const light = ["white", "soft", "outline"].includes(spec.style);
+    const platform = PLATFORM_BY_ID[spec.platform];
+    const tint = platform.id === "website" || !platform.brand || platform.brand === "#000000" ? spec.accent || "#ff6a00" : platform.brand;
+    shine(tmp.ctx, 0, 0, px, px, gleam, light ? 0.42 : 0.6, light ? hex2rgb(tint) : null);
+    art = tmp.c;
   }
+  const m = px / 2;
+  ctx.save();
+  ctx.translate(m, m);
+  ctx.scale(squash, squash);
+  ctx.translate(-m, -m);
+  ctx.drawImage(art, 0, 0);
   ctx.restore();
 }
 
