@@ -1,0 +1,62 @@
+{
+  "name": "QrTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "default": "Untitled template"
+    },
+    "description": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "global",
+        "client"
+      ],
+      "default": "global",
+      "description": "global = offered to every client; client = only that client"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "style": {
+      "type": "object",
+      "additionalProperties": true,
+      "default": {}
+    },
+    "portal_visible": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
