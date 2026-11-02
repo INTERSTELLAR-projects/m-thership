@@ -18,13 +18,14 @@ import RequestFormRenderer, { isComplete } from "@/features/requests/RequestForm
 import { kindLabel, portalForms, priorityFor, toAnswers, titleFor, detailsFor, attachmentsFor } from "@/features/requests/formSchema";
 import { KitView } from "@/features/clients/BrandKitTab";
 import PortalPlaybook from "@/features/portal/PortalPlaybook";
+import PortalResources from "@/features/portal/PortalResources";
 import { PortalGbp, ReviewLinkQuick } from "@/features/gbp/GbpPanel";
 import PortalAssistant, { AssistantLauncher } from "@/features/portal/assistant/PortalAssistant";
 
 // Free-for-life bonus tools: tagged in the nav and listed together on Home.
 const BONUS_TABS = ["signatures", "qr"];
 
-const TABS = [["home", "Home"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["referrals", "Referrals"], ["messages", "Messages"]];
+const TABS = [["home", "Home"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["resources", "Resources"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["referrals", "Referrals"], ["messages", "Messages"]];
 
 function usePortal(previewId) {
   const call = async (action, args = {}) => (await base44.functions.invoke("portal", { action, client_id: previewId, ...args })).data;
@@ -71,6 +72,7 @@ export default function PortalApp({ previewId }) {
           {tab === "files" && (d.files.length ? <FileGrid files={d.files} /> : <Panel><Empty>Your brand kit, SOPs, presentations and other deliverables will appear here.</Empty></Panel>)}
           {tab === "brand" && d.has_brand_kit && <BrandKitView call={call} previewId={previewId} business={d.client.business} />}
           {tab === "playbook" && d.has_playbook && <PortalPlaybook call={call} previewId={previewId} business={d.client.business} />}
+          {tab === "resources" && <PortalResources call={call} previewId={previewId} business={d.client.business} go={setTab} />}
           {tab === "requests" && <RequestsView d={d} call={call} refresh={refresh} previewId={previewId} />}
           {tab === "signatures" && (
             <div className="space-y-4">
