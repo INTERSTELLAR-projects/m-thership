@@ -11,7 +11,8 @@
       "enum": [
         "update",
         "action",
-        "horizon"
+        "horizon",
+        "deep_dive"
       ],
       "default": "update"
     },
@@ -27,6 +28,8 @@
         "geo",
         "aeo",
         "local",
+        "national",
+        "global",
         "policy",
         "tools"
       ],
