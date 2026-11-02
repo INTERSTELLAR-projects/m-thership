@@ -54,7 +54,9 @@ export function useOptionList(key) {
     await saveOptionList(key, next);
     await qc.invalidateQueries({ queryKey: QK });
   }, [key, qc]);
-  return { def: LIST_BY_KEY[key], items, options, values: options.map((o) => o.value), labels: options.map((o) => o.label), labelOf, save, isLoading };
+  const values = useMemo(() => options.map((o) => o.value), [options]);
+  const labels = useMemo(() => options.map((o) => o.label), [options]);
+  return { def: LIST_BY_KEY[key], items, options, values, labels, labelOf, save, isLoading };
 }
 
 /**
