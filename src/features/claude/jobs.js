@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { auditInstructions, buildInstructions as buildBrief } from "./briefs";
 import { settleTimer } from "@/features/tasks/lib/timer";
+import { isBrandKitJob, saveApprovedKit } from "./brandKit";
 
 export const JOB_STATUS = {
   queued: { label: "Queued", tone: "bg-ink/[0.07] text-ink/70" },
@@ -167,6 +168,8 @@ export async function queueBuild(client, type, { refs = [], extra = "" } = {}) {
 // Approve: the job is final, its task is done, and it lands in Live Ops + the client's page.
 export async function approveJob(job) {
   const now = new Date().toISOString();
+  // Brand kit: only an approved result is saved onto the client profile.
+  if (isBrandKitJob(job)) await saveApprovedKit(job);
   await base44.entities.ClaudeJob.update(job.id, { status: "approved", approved_at: now });
   // Intel audit: findings become visible in the client portal, and the briefing is logged as work.
   if (job.kind === "audit" && job.client_id) {
