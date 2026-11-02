@@ -31,6 +31,7 @@ export function useDictation({ previewId, serverVoice, onText }) {
   const live = useRef(false);
   const onTextRef = useRef(onText);
   onTextRef.current = onText;
+  const stopRef = useRef(null);
 
   const stopRecognizer = () => {
     live.current = false;
@@ -97,7 +98,6 @@ export function useDictation({ previewId, serverVoice, onText }) {
     }
   }, [state, interim, previewId]);
 
-  const stopRef = useRef(stop);
   stopRef.current = stop;
 
   const cancel = useCallback(() => {
