@@ -1,173 +1,280 @@
-import { useState, useEffect } from "react";
-import { Plus, CheckSquare, CalendarDays, Trash2, Pencil, Check, X } from "lucide-react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { Plus, Trash2, Pencil, Check, X, Repeat, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 import MicButton from "../components/MicButton";
-import GlowCard from "../components/game/GlowCard";
-import SectionTitle from "../components/game/SectionTitle";
-import StatTile from "../components/game/StatTile";
+import DeadlineHero, { URGENCY } from "@/features/legal/DeadlineHero";
+import { computeDeadline, categoryOf, fmtDate, toDueString, toEditorValue } from "@/features/legal/legalDates";
 
-const DEFAULT_TODOS = [
-  { section: "todo", task: "Review updated contractor agreement", done: false },
-  { section: "todo", task: "Update privacy policy for new data regulations", done: false },
-  { section: "todo", task: "File Q1 state taxes", done: true },
-  { section: "todo", task: "Renew cyber liability insurance", done: false },
-];
-const DEFAULT_DATES = [
-  { section: "date", task: "Business License Renewal", dueDate: "Jun 30, 2026" },
-  { section: "date", task: "Annual Insurance Review", dueDate: "May 15, 2026" },
-  { section: "date", task: "Tax Filing Deadline", dueDate: "Apr 15, 2026" },
-  { section: "date", task: "Contract Renewal - NW Tree Service", dueDate: "Jul 01, 2026" },
-];
+// LegalItem sections: "todo" = checklist, "date" / "deadline" = dated items (both feed the countdown hero).
+const isDateSection = (s) => s === "date" || s === "deadline";
 
 export default function Legal() {
-  const [todos, setTodos] = useState([]);
-  const [dates, setDates] = useState([]);
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editDateId, setEditDateId] = useState(null);
+  const [addingDate, setAddingDate] = useState(false);
+  const datesRef = useRef(null);
 
   useEffect(() => {
-    base44.entities.LegalItem.list("created_date", 500).then(async (data) => {
-      if (data.length === 0) {
-        const all = [...DEFAULT_TODOS, ...DEFAULT_DATES];
-        const created = await base44.entities.LegalItem.bulkCreate(all);
-        setTodos(created.filter((i) => i.section === "todo"));
-        setDates(created.filter((i) => i.section === "date"));
-      } else {
-        setTodos(data.filter((i) => i.section === "todo"));
-        setDates(data.filter((i) => i.section === "date"));
-      }
-      setLoading(false);
-    });
+    base44.entities.LegalItem.list("created_date", 500)
+      .then((data) => setItems(Array.isArray(data) ? data : []))
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
   }, []);
+
+  const todos = items.filter((i) => i.section === "todo");
+  const dates = items.filter((i) => isDateSection(i.section));
+
+  const { dated, undated } = useMemo(() => {
+    const all = dates.filter((d) => !d.done).map((d) => computeDeadline(d));
+    return {
+      dated: all.filter((d) => d.dated).sort((a, b) => a.days - b.days),
+      undated: all.filter((d) => !d.dated),
+    };
+  }, [dates]);
 
   const addItem = async (item) => {
     const created = await base44.entities.LegalItem.create(item);
-    if (item.section === "todo") setTodos((p) => [...p, created]);
-    if (item.section === "date") setDates((p) => [...p, created]);
+    setItems((p) => [...p, created]);
   };
-
-  const updateItem = async (id, changes, section) => {
+  const updateItem = async (id, changes) => {
     await base44.entities.LegalItem.update(id, changes);
-    if (section === "todo") setTodos((p) => p.map((i) => i.id === id ? { ...i, ...changes } : i));
-    if (section === "date") setDates((p) => p.map((i) => i.id === id ? { ...i, ...changes } : i));
+    setItems((p) => p.map((i) => (i.id === id ? { ...i, ...changes } : i)));
   };
-
-  const deleteItem = async (id, section) => {
+  const deleteItem = async (id) => {
     await base44.entities.LegalItem.delete(id);
-    if (section === "todo") setTodos((p) => p.filter((i) => i.id !== id));
-    if (section === "date") setDates((p) => p.filter((i) => i.id !== id));
+    setItems((p) => p.filter((i) => i.id !== id));
   };
 
-  const openCount = todos.filter((t) => !t.done).length;
-  const doneCount = todos.filter((t) => t.done).length;
+  const scrollToDates = () => setTimeout(() => datesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 30);
+  const editFromHero = (id) => {
+    setAddingDate(false);
+    setEditDateId(id);
+    scrollToDates();
+  };
+  const addFromHero = () => {
+    setEditDateId(null);
+    setAddingDate(true);
+    scrollToDates();
+  };
 
-  if (loading) return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
-      <div className="w-10 h-10 rounded-full border-2 border-orange-500/20 border-t-orange-500 animate-spin" />
-      <p className="text-ink/[0.43] text-[10px] tracking-[0.3em] uppercase font-display">Initializing Legal Ops</p>
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-ink/40" />
+        <p className="mono-label text-[10px] text-ink/45">Loading legal</p>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Agency / Legal" rightText="Legal Management" />
-      <div className="px-8 py-6 space-y-6">
-        <div className="grid grid-cols-3 gap-4">
-          <StatTile label="Open To-Dos" value={openCount} color="orange" />
-          <StatTile label="Important Dates" value={dates.length} color="yellow" />
-          <StatTile label="Completed" value={doneCount} color="green" />
+      <div className="mx-auto max-w-7xl space-y-8 px-4 py-6 md:px-8">
+        <DeadlineHero dated={dated} undated={undated} onEdit={editFromHero} onAdd={addFromHero} />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+          <div ref={datesRef} className="scroll-mt-6 lg:col-span-3">
+            <DatesSection
+              items={dates}
+              editId={editDateId}
+              setEditId={setEditDateId}
+              adding={addingDate}
+              setAdding={setAddingDate}
+              onAdd={(i) => addItem({ ...i, section: "date" })}
+              onUpdate={updateItem}
+              onDelete={deleteItem}
+            />
+          </div>
+          <div className="lg:col-span-2">
+            <TodosSection items={todos} onAdd={(i) => addItem({ ...i, section: "todo" })} onUpdate={updateItem} onDelete={deleteItem} />
+          </div>
         </div>
-        <TodosSection items={todos} onAdd={(i) => addItem({ ...i, section: "todo" })} onUpdate={(id, c) => updateItem(id, c, "todo")} onDelete={(id) => deleteItem(id, "todo")} />
-        <DatesSection items={dates} onAdd={(i) => addItem({ ...i, section: "date" })} onUpdate={(id, c) => updateItem(id, c, "date")} onDelete={(id) => deleteItem(id, "date")} />
       </div>
     </div>
   );
 }
+
+function Panel({ label, title, count, children }) {
+  return (
+    <section className="game-panel">
+      <div className="flex items-end justify-between gap-3 border-b border-hair px-5 py-4">
+        <div>
+          <p className="mono-label text-[9.5px] text-ink/50">{label}</p>
+          <h3 className="mt-1 text-lg font-semibold tracking-[-0.02em] text-ink">{title}</h3>
+        </div>
+        {count !== undefined && <span className="font-mono text-xs text-ink/45">{String(count).padStart(2, "0")}</span>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+const iconBtn = "rounded p-1.5 text-ink/35 transition-colors hover:bg-ink/[0.05]";
 
 function TodosSection({ items, onAdd, onUpdate, onDelete }) {
   const [editId, setEditId] = useState(null);
   const [editVal, setEditVal] = useState("");
   const [adding, setAdding] = useState(false);
   const [newTask, setNewTask] = useState("");
+  const open = items.filter((t) => !t.done);
+  const ordered = [...open, ...items.filter((t) => t.done)];
+
+  const saveNew = () => {
+    if (!newTask.trim()) return;
+    onAdd({ task: newTask.trim(), done: false });
+    setAdding(false);
+    setNewTask("");
+  };
+  const saveEdit = (id) => {
+    onUpdate(id, { task: editVal });
+    setEditId(null);
+  };
 
   return (
-    <GlowCard>
-      <SectionTitle icon={CheckSquare} title="Legal To-Do List" count={items.filter((t) => !t.done).length} className="mb-4" />
-      <div className="space-y-0.5">
-        {items.map((t) => (
-          <div key={t.id} className="flex items-center gap-3 py-2 border-b border-ink/[0.13] last:border-0 group hover:bg-orange-500/[0.02] -mx-2 px-2 rounded-lg transition-colors">
-            <button onClick={() => onUpdate(t.id, { done: !t.done })} className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ${t.done ? "bg-gradient-to-br from-orange-500 to-amber-400 border-orange-500/40 text-white" : "border-ink/15 hover:border-orange-500/50"}`}>
-              {t.done && <Check className="w-3 h-3" />}
+    <Panel label={`${open.length} open · ${items.length - open.length} done`} title="Legal to-dos" count={open.length}>
+      <ul className="divide-y divide-hair">
+        {ordered.map((t) => (
+          <li key={t.id} className="group flex items-center gap-3 px-5 py-3 transition-colors hover:bg-ink/[0.02]">
+            <button
+              onClick={() => onUpdate(t.id, { done: !t.done })}
+              className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border transition-all ${t.done ? "flame-bg border-transparent text-white" : "border-ink/25 hover:border-[#ff3c00]"}`}
+              aria-label={t.done ? "Mark not done" : "Mark done"}
+            >
+              {t.done && <Check className="h-3 w-3" />}
             </button>
             {editId === t.id ? (
               <>
-                <Input value={editVal} onChange={(e) => setEditVal(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { onUpdate(t.id, { task: editVal }); setEditId(null); } if (e.key === "Escape") setEditId(null); }} className="h-7 bg-ink/[0.04] border-ink/[0.13] text-ink text-xs flex-1" autoFocus />
-                <button onClick={() => { onUpdate(t.id, { task: editVal }); setEditId(null); }} className="p-1 text-green-600/70 hover:text-green-600"><Check className="w-3.5 h-3.5" /></button>
-                <button onClick={() => setEditId(null)} className="p-1 text-ink/[0.48] hover:text-ink/60"><X className="w-3.5 h-3.5" /></button>
+                <Input value={editVal} onChange={(e) => setEditVal(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") saveEdit(t.id); if (e.key === "Escape") setEditId(null); }} className="h-8 flex-1 border-hair bg-paper text-sm text-ink" autoFocus />
+                <button onClick={() => saveEdit(t.id)} className={`${iconBtn} text-green-700`}><Check className="h-3.5 w-3.5" /></button>
+                <button onClick={() => setEditId(null)} className={iconBtn}><X className="h-3.5 w-3.5" /></button>
               </>
             ) : (
               <>
-                <span className={`text-sm flex-1 ${t.done ? "text-ink/[0.48] line-through" : "text-ink/75"}`}>{t.task}</span>
-                <button onClick={() => { setEditId(t.id); setEditVal(t.task); }} className="p-1 text-ink/[0.33] hover:text-orange-600 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3 h-3" /></button>
-                <button onClick={() => onDelete(t.id)} className="p-1 text-ink/[0.33] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
+                <span className={`flex-1 text-sm ${t.done ? "text-ink/40 line-through" : "text-ink/85"}`}>{t.task}</span>
+                <div className="flex opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
+                  <button onClick={() => { setEditId(t.id); setEditVal(t.task); }} className={`${iconBtn} hover:text-[#ff3c00]`} aria-label="Edit"><Pencil className="h-3.5 w-3.5" /></button>
+                  <button onClick={() => onDelete(t.id)} className={`${iconBtn} hover:text-red-600`} aria-label="Delete"><Trash2 className="h-3.5 w-3.5" /></button>
+                </div>
               </>
             )}
-          </div>
+          </li>
         ))}
+        {items.length === 0 && !adding && <li className="px-5 py-6 text-sm text-ink/45">No to-dos yet.</li>}
+      </ul>
+      <div className="border-t border-hair px-5 py-3">
         {adding ? (
-          <div className="flex items-center gap-2 pt-3">
-            <Input value={newTask} onChange={(e) => setNewTask(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { if (newTask.trim()) { onAdd({ task: newTask.trim(), done: false }); setAdding(false); setNewTask(""); } } if (e.key === "Escape") setAdding(false); }} className="h-7 bg-ink/[0.04] border-ink/[0.13] text-ink text-xs flex-1" placeholder="New task..." autoFocus />
+          <div className="flex items-center gap-2">
+            <Input value={newTask} onChange={(e) => setNewTask(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") saveNew(); if (e.key === "Escape") setAdding(false); }} className="h-8 flex-1 border-hair bg-paper text-sm text-ink" placeholder="New task…" autoFocus />
             <MicButton onResult={(t) => setNewTask((p) => p + (p ? " " : "") + t)} />
-            <button onClick={() => { if (newTask.trim()) { onAdd({ task: newTask.trim(), done: false }); setAdding(false); setNewTask(""); } }} className="p-1 text-green-600/70 hover:text-green-600"><Check className="w-3.5 h-3.5" /></button>
-            <button onClick={() => setAdding(false)} className="p-1 text-ink/[0.48] hover:text-ink/60"><X className="w-3.5 h-3.5" /></button>
+            <button onClick={saveNew} className={`${iconBtn} text-green-700`}><Check className="h-3.5 w-3.5" /></button>
+            <button onClick={() => setAdding(false)} className={iconBtn}><X className="h-3.5 w-3.5" /></button>
           </div>
         ) : (
-          <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-orange-600/80 hover:text-orange-600 text-xs pt-3 transition-colors"><Plus className="w-3.5 h-3.5" />Add task</button>
+          <button onClick={() => setAdding(true)} className="mono-label inline-flex items-center gap-1.5 text-[10px] text-[#ff3c00] hover:text-[#e03500]"><Plus className="h-3.5 w-3.5" />Add task</button>
         )}
       </div>
-    </GlowCard>
+    </Panel>
   );
 }
 
-function DatesSection({ items, onAdd, onUpdate, onDelete }) {
-  const [editId, setEditId] = useState(null);
-  const [editVal, setEditVal] = useState({});
-  const [adding, setAdding] = useState(false);
-  const [newVal, setNewVal] = useState({ task: "", dueDate: "" });
+function DateEditor({ initial, onSave, onCancel, autoFocusName }) {
+  const start = toEditorValue(initial.dueDate);
+  const [task, setTask] = useState(initial.task || "");
+  const [iso, setIso] = useState(start.iso);
+  const [annual, setAnnual] = useState(start.annual);
+  const unparsed = initial.dueDate && !start.iso ? initial.dueDate : null;
+
+  const save = () => {
+    if (!task.trim()) return;
+    const changes = { task: task.trim() };
+    if (iso) changes.dueDate = toDueString(iso, annual);
+    else if (!unparsed) changes.dueDate = "";
+    onSave(changes);
+  };
 
   return (
-    <GlowCard>
-      <SectionTitle icon={CalendarDays} title="Important Dates" count={items.length} className="mb-4" />
-      <div className="grid grid-cols-2 gap-3">
-        {items.map((d) => editId === d.id ? (
-          <div key={d.id} className="flex items-center gap-2 py-2 px-3 bg-ink/[0.02] rounded-lg border border-orange-500/30">
-            <Input value={editVal.task} onChange={(e) => setEditVal({ ...editVal, task: e.target.value })} className="h-7 bg-ink/[0.04] border-ink/[0.13] text-ink text-xs flex-1" placeholder="Event" />
-            <Input value={editVal.dueDate} onChange={(e) => setEditVal({ ...editVal, dueDate: e.target.value })} className="h-7 bg-ink/[0.04] border-ink/[0.13] text-ink text-xs w-28" placeholder="Date" />
-            <button onClick={() => { onUpdate(d.id, editVal); setEditId(null); }} className="p-1 text-green-600/70 hover:text-green-600"><Check className="w-3.5 h-3.5" /></button>
-            <button onClick={() => setEditId(null)} className="p-1 text-ink/[0.48] hover:text-ink/60"><X className="w-3.5 h-3.5" /></button>
-          </div>
-        ) : (
-          <div key={d.id} className="relative overflow-hidden flex items-center justify-between py-2.5 px-3.5 bg-ink/[0.02] rounded-lg border border-ink/[0.13] hover:border-orange-500/30 hover:bg-orange-500/[0.03] transition-all group">
-            <span className="relative text-ink/75 text-sm">{d.task}</span>
-            <div className="relative flex items-center gap-2">
-              <span className="text-[11px] font-display font-bold tracking-wider px-2 py-1 rounded bg-gradient-to-r from-orange-500/15 to-amber-400/10 border border-orange-500/20 text-orange-600">{d.dueDate}</span>
-              <button onClick={() => { setEditId(d.id); setEditVal({ task: d.task, dueDate: d.dueDate }); }} className="p-1 text-ink/[0.33] hover:text-orange-600 opacity-0 group-hover:opacity-100 transition-all"><Pencil className="w-3 h-3" /></button>
-              <button onClick={() => onDelete(d.id)} className="p-1 text-ink/[0.33] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
-            </div>
-          </div>
-        ))}
+    <div className="space-y-3 bg-[#ff3c00]/[0.03] px-5 py-4">
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Input value={task} onChange={(e) => setTask(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") onCancel(); }} className="h-9 flex-1 border-hair bg-paper text-sm text-ink" placeholder="e.g. Business License Renewal" autoFocus={autoFocusName} />
+        <Input type="date" value={iso} onChange={(e) => setIso(e.target.value)} className="h-9 border-hair bg-paper text-sm text-ink sm:w-44" autoFocus={!autoFocusName} />
+      </div>
+      {unparsed && <p className="font-mono text-[11px] text-amber-700">Current text “{unparsed}” isn’t a date the countdown can read. Pick one above, or leave blank to keep it.</p>}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-ink/70">
+          <input type="checkbox" checked={annual} onChange={(e) => setAnnual(e.target.checked)} className="h-3.5 w-3.5 accent-[#ff3c00]" />
+          <Repeat className="h-3.5 w-3.5 text-ink/45" />Repeats every year
+        </label>
+        <div className="flex items-center gap-2">
+          <button onClick={onCancel} className="mono-label rounded-md border border-hair px-3 py-1.5 text-[10px] text-ink/60 hover:text-ink">Cancel</button>
+          <button onClick={save} className="mono-label rounded-md flame-bg px-3 py-1.5 text-[10px] text-white">Save</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DatesSection({ items, editId, setEditId, adding, setAdding, onAdd, onUpdate, onDelete }) {
+  const rows = useMemo(() => {
+    const all = items.map((d) => computeDeadline(d));
+    return [...all.filter((r) => r.dated).sort((a, b) => a.days - b.days), ...all.filter((r) => !r.dated)];
+  }, [items]);
+
+  return (
+    <Panel label="Renewals · filings · contracts" title="Important dates" count={items.length}>
+      <div className="hidden grid-cols-[1fr_9rem_7rem_4.5rem] gap-3 border-b border-hair px-5 py-2 md:grid">
+        {["Item", "Date", "Countdown", ""].map((h) => <span key={h} className="mono-label text-[9px] text-ink/45">{h}</span>)}
+      </div>
+      <ul className="divide-y divide-hair">
+        {rows.map((r) => {
+          const d = r.item;
+          if (editId === d.id)
+            return (
+              <li key={d.id}>
+                <DateEditor initial={d} onSave={(c) => { onUpdate(d.id, c); setEditId(null); }} onCancel={() => setEditId(null)} />
+              </li>
+            );
+          const u = r.dated ? URGENCY[r.urgency] : null;
+          return (
+            <li key={d.id} className="group grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1 px-5 py-3 transition-colors hover:bg-ink/[0.02] md:grid-cols-[1fr_9rem_7rem_4.5rem]">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-ink/90">{d.task || "Untitled"}</p>
+                <p className="mono-label mt-0.5 text-[9px] text-ink/45">
+                  {categoryOf(d)}
+                  {r.recurring && " · yearly"}
+                  {d.section === "deadline" && " · deadline"}
+                </p>
+              </div>
+              <div className="order-3 col-span-2 font-mono text-[11px] text-ink/65 md:order-none md:col-span-1">
+                {r.dated ? fmtDate(r.due) : (
+                  <button onClick={() => setEditId(d.id)} className="text-[#ff3c00] hover:underline">{d.dueDate ? `“${d.dueDate}” · fix date` : "Add a date →"}</button>
+                )}
+              </div>
+              <div className="order-4 col-span-2 md:order-none md:col-span-1">
+                {r.dated ? (
+                  <span className={`mono-label inline-block rounded border px-1.5 py-0.5 text-[9.5px] ${u.chip}`}>
+                    {r.days === 0 ? "Today" : r.overdue ? `${-r.days}d overdue` : `${r.days}d`}
+                  </span>
+                ) : <span className="font-mono text-[11px] text-ink/30">—</span>}
+              </div>
+              <div className="flex justify-end opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
+                <button onClick={() => { setAdding(false); setEditId(d.id); }} className={`${iconBtn} hover:text-[#ff3c00]`} aria-label="Edit"><Pencil className="h-3.5 w-3.5" /></button>
+                <button onClick={() => onDelete(d.id)} className={`${iconBtn} hover:text-red-600`} aria-label="Delete"><Trash2 className="h-3.5 w-3.5" /></button>
+              </div>
+            </li>
+          );
+        })}
+        {items.length === 0 && !adding && <li className="px-5 py-6 text-sm text-ink/45">No dates yet — add your first renewal or filing date.</li>}
+      </ul>
+      <div className="border-t border-hair">
         {adding ? (
-          <div className="flex items-center gap-2 py-2 px-3 bg-ink/[0.02] rounded-lg border border-orange-500/30">
-            <Input value={newVal.task} onChange={(e) => setNewVal({ ...newVal, task: e.target.value })} className="h-7 bg-ink/[0.04] border-ink/[0.13] text-ink text-xs flex-1" placeholder="Event name" autoFocus />
-            <Input value={newVal.dueDate} onChange={(e) => setNewVal({ ...newVal, dueDate: e.target.value })} className="h-7 bg-ink/[0.04] border-ink/[0.13] text-ink text-xs w-28" placeholder="Date" />
-            <button onClick={() => { if (newVal.task) { onAdd(newVal); setAdding(false); setNewVal({ task: "", dueDate: "" }); } }} className="p-1 text-green-600/70 hover:text-green-600"><Check className="w-3.5 h-3.5" /></button>
-            <button onClick={() => setAdding(false)} className="p-1 text-ink/[0.48] hover:text-ink/60"><X className="w-3.5 h-3.5" /></button>
-          </div>
+          <DateEditor initial={{ task: "", dueDate: "" }} autoFocusName onSave={(c) => { onAdd(c); setAdding(false); }} onCancel={() => setAdding(false)} />
         ) : (
-          <button onClick={() => setAdding(true)} className="relative flex items-center gap-2 py-2 px-3 bg-ink/[0.02] rounded-lg border border-dashed border-orange-500/20 text-orange-600/80 hover:text-orange-600 hover:border-orange-500/40 transition-all text-xs"><Plus className="w-3.5 h-3.5" />Add date</button>
+          <div className="px-5 py-3">
+            <button onClick={() => { setEditId(null); setAdding(true); }} className="mono-label inline-flex items-center gap-1.5 text-[10px] text-[#ff3c00] hover:text-[#e03500]"><Plus className="h-3.5 w-3.5" />Add date</button>
+          </div>
         )}
       </div>
-    </GlowCard>
+    </Panel>
   );
 }
