@@ -27,6 +27,14 @@ const CSS = `
 .mtn-svg.mtn-active .mtn-bulb { animation-duration: .5s; }
 .mtn-svg.mtn-active .mtn-mouth-idle { display: none; }
 .mtn-svg.mtn-active .mtn-mouth-talk { display: inline; animation: mtn-talk .32s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+@keyframes mtn-orbit { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+@keyframes mtn-cape { 0%,100% { transform: skewX(0deg) } 50% { transform: skewX(-4deg) } }
+@keyframes mtn-pulse { 0%,100% { opacity: .55; transform: scale(.92) } 50% { opacity: 1; transform: scale(1.08) } }
+@keyframes mtn-twinkle { 0%,100% { opacity: 0; transform: scale(.4) } 50% { opacity: 1; transform: scale(1) } }
+.mtn-svg .mtn-orbit { animation: mtn-orbit 9s linear infinite; transform-origin: 50px 58px; }
+.mtn-svg .mtn-cape { animation: mtn-cape 3.2s ease-in-out infinite; transform-origin: 50% 0%; transform-box: fill-box; }
+.mtn-svg .mtn-orb { animation: mtn-pulse 1.8s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+.mtn-svg .mtn-spark { animation: mtn-twinkle 2.6s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
 @media (prefers-reduced-motion: reduce) {
   .mtn-svg *, .mtn-svg.mtn-active * { animation: none !important; }
 }
@@ -61,7 +69,7 @@ export default function Martian({ palette = MARTIAN_PALETTES.orange, size = "md"
 
   return (
     <svg
-      viewBox="0 0 100 112"
+      viewBox={king ? "-14 -14 128 132" : "0 0 100 112"}
       width={px}
       height={px * 1.12}
       role="img"
@@ -81,9 +89,60 @@ export default function Martian({ palette = MARTIAN_PALETTES.orange, size = "md"
         </radialGradient>
       </defs>
 
+      {king && (
+        <defs>
+          <linearGradient id={`kc-${uid}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#fff1d6" />
+            <stop offset="0.35" stopColor="#ffaa00" />
+            <stop offset="1" stopColor="#ff3c00" />
+          </linearGradient>
+          <linearGradient id={`kp-${uid}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#2a1208" />
+            <stop offset="1" stopColor="#140a06" />
+          </linearGradient>
+          <linearGradient id={`kl-${uid}`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#ff3c00" />
+            <stop offset="0.5" stopColor="#ff6a00" />
+            <stop offset="1" stopColor="#ffaa00" />
+          </linearGradient>
+          <radialGradient id={`ka-${uid}`} cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stopColor="#ff6a00" stopOpacity="0.38" />
+            <stop offset="0.6" stopColor="#ff3c00" stopOpacity="0.12" />
+            <stop offset="1" stopColor="#ff3c00" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id={`ko-${uid}`} cx="0.4" cy="0.35" r="0.65">
+            <stop offset="0" stopColor="#ffffff" />
+            <stop offset="0.45" stopColor="#ffaa00" />
+            <stop offset="1" stopColor="#ff3c00" />
+          </radialGradient>
+        </defs>
+      )}
+
+      {/* King Martian: command aura, orbit ring (back half) and royal cape behind the body */}
+      {king && (
+        <g>
+          <circle cx="50" cy="58" r="62" fill={`url(#ka-${uid})`} />
+          <g className="mtn-orbit" style={anim}>
+            <ellipse cx="50" cy="58" rx="60" ry="18" fill="none" stroke={`url(#kl-${uid})`} strokeWidth="1.6" strokeDasharray="3 5" opacity="0.7" transform="rotate(-18 50 58)" />
+            <circle cx="107" cy="40" r="3.2" fill="#ffaa00" />
+            <circle cx="107" cy="40" r="6" fill="#ff6a00" opacity="0.25" />
+          </g>
+          <path className="mtn-spark" style={{ animationDelay: "-0.4s" }} d="M-4 24 l2 -6 l2 6 l6 2 l-6 2 l-2 6 l-2 -6 l-6 -2 Z" fill="#ffaa00" />
+          <path className="mtn-spark" style={{ animationDelay: "-1.6s" }} d="M104 92 l1.5 -4.5 l1.5 4.5 l4.5 1.5 l-4.5 1.5 l-1.5 4.5 l-1.5 -4.5 l-4.5 -1.5 Z" fill="#ff6a00" />
+          <path className="mtn-spark" style={{ animationDelay: "-2.2s" }} d="M96 4 l1.2 -3.6 l1.2 3.6 l3.6 1.2 l-3.6 1.2 l-1.2 3.6 l-1.2 -3.6 l-3.6 -1.2 Z" fill="#fff1d6" />
+        </g>
+      )}
+
       <ellipse cx="50" cy="106" rx="24" ry="4" fill="#000" opacity="0.12" />
 
       <g className="mtn-body" style={anim}>
+        {king && (
+          <g className="mtn-cape" style={anim}>
+            <path d="M22 46 Q8 78 12 104 L88 104 Q92 78 78 46 Z" fill={`url(#kp-${uid})`} />
+            <path d="M22 46 Q12 78 16 101 L84 101 Q88 78 78 46" fill="none" stroke={`url(#kl-${uid})`} strokeWidth="2.4" />
+            <path d="M28 44 L50 54 L72 44" fill="none" stroke="#ffaa00" strokeWidth="3" strokeLinecap="round" />
+          </g>
+        )}
         {/* antennae */}
         <g className="mtn-ant-l" style={anim}>
           <path d="M38 26 Q32 14 26 8" stroke={palette.shade} strokeWidth="3.5" fill="none" strokeLinecap="round" />
@@ -126,14 +185,31 @@ export default function Martian({ palette = MARTIAN_PALETTES.orange, size = "md"
         <path className="mtn-mouth-idle" d="M42 75 Q50 82 58 75" stroke="#1d1b2b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
         <ellipse className="mtn-mouth-talk" cx="50" cy="77" rx="5" ry="4" fill="#1d1b2b" />
 
-        {/* crown for the King Martian */}
+        {/* King Martian: chest emblem, star scepter and a tall commander's crown */}
         {king && (
-          <g transform="translate(0 -2)">
-            <path d="M34 26 L36 12 L43 20 L50 8 L57 20 L64 12 L66 26 Z" fill="#ffc531" stroke="#c97a00" strokeWidth="1.6" strokeLinejoin="round" />
-            <rect x="34" y="23.5" width="32" height="4.5" rx="1.5" fill="#ffb000" stroke="#c97a00" strokeWidth="1.2" />
-            <circle cx="50" cy="17" r="2.4" fill="#ff3c00" />
-            <circle cx="41" cy="22" r="1.6" fill="#3b82f6" />
-            <circle cx="59" cy="22" r="1.6" fill="#22c55e" />
+          <g>
+            {/* chest emblem */}
+            <circle cx="50" cy="90" r="5.2" fill="#1d1b2b" stroke={`url(#kl-${uid})`} strokeWidth="1.6" />
+            <path d="M50 86.2 l1.2 2.6 l2.8 .3 l-2.1 1.9 l.6 2.8 l-2.5 -1.4 l-2.5 1.4 l.6 -2.8 l-2.1 -1.9 l2.8 -.3 Z" fill="#ffaa00" />
+            {/* scepter in the right hand */}
+            <line x1="90" y1="84" x2="98" y2="34" stroke="#3a2a20" strokeWidth="3.4" strokeLinecap="round" />
+            <line x1="90" y1="84" x2="98" y2="34" stroke={`url(#kl-${uid})`} strokeWidth="1.4" strokeLinecap="round" />
+            <circle cx="98.5" cy="30" r="9" fill="#ff6a00" opacity="0.25" className="mtn-orb" style={anim} />
+            <circle cx="98.5" cy="30" r="5.5" fill={`url(#ko-${uid})`} stroke="#ff3c00" strokeWidth="1" />
+            <ellipse cx="98.5" cy="30" rx="9" ry="2.6" fill="none" stroke="#ffaa00" strokeWidth="1.1" transform="rotate(-20 98.5 30)" />
+            {/* crown */}
+            <g transform="translate(0 -5)">
+              <path d="M30 30 L32 10 L41 20 L50 0 L59 20 L68 10 L70 30 Z" fill={`url(#kc-${uid})`} stroke="#8a2e00" strokeWidth="1.6" strokeLinejoin="round" />
+              <path d="M36 26 L37.5 15 L43 21 L50 8 L57 21 L62.5 15 L64 26" fill="none" stroke="#fff1d6" strokeWidth="0.9" opacity="0.7" />
+              <rect x="29" y="26.5" width="42" height="6" rx="2" fill={`url(#kl-${uid})`} stroke="#8a2e00" strokeWidth="1.2" />
+              <circle cx="50" cy="0" r="3" fill="#fff" stroke="#ff3c00" strokeWidth="1.2" />
+              <circle cx="32" cy="10" r="2.2" fill="#fff1d6" stroke="#ff3c00" strokeWidth="1" />
+              <circle cx="68" cy="10" r="2.2" fill="#fff1d6" stroke="#ff3c00" strokeWidth="1" />
+              <circle cx="50" cy="18" r="3.4" fill={`url(#ko-${uid})`} stroke="#8a2e00" strokeWidth="1" className="mtn-orb" style={anim} />
+              <circle cx="38" cy="29.5" r="1.5" fill="#fff" />
+              <circle cx="50" cy="29.5" r="1.5" fill="#fff" />
+              <circle cx="62" cy="29.5" r="1.5" fill="#fff" />
+            </g>
           </g>
         )}
       </g>
