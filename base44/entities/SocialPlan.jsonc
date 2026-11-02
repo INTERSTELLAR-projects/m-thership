@@ -1,0 +1,91 @@
+{
+  "name": "SocialPlan",
+  "description": "A client's approved social media plan: goals & audience, platform strategy (role, cadence, formats, posting-time starting points), content pillars, formats playbook, 4-week starter calendar, creation workflow with weekly time budget, brand-kit editing guidelines, caption/hashtag rules, engagement routine, consistency system, repurposing, KPIs, who does what and compliance. Versioned like IndustryPlaybook: created only when Justin approves a social_plan job (Claude Queue or in-app quick draft). Admin-only; the portal shows the newest approved plan only when portal_visible = true.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "archived"
+      ],
+      "default": "approved"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
+    },
+    "summary": {
+      "type": "string"
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Structured plan (see SOCIAL_PLAN_JSON_SCHEMA in src/features/claude/socialPlan.js)"
+    },
+    "body_md": {
+      "type": "string",
+      "description": "The plan as markdown (Claude's result_body, or generated from the JSON)"
+    },
+    "direction": {
+      "type": "string",
+      "description": "Justin's typed or dictated direction the plan was generated from"
+    },
+    "source_job_id": {
+      "type": "string",
+      "description": "ClaudeJob that produced it"
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "claude_queue or quick_draft"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "portal_visible": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show in the client portal (only the newest approved plan)"
+    },
+    "presentation_id": {
+      "type": "string",
+      "description": "Latest Presentation generated from this plan"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
