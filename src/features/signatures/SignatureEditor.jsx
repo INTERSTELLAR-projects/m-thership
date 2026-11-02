@@ -88,10 +88,7 @@ export default function SignatureEditor({ store, mode = "signature", id, start =
       } catch (e) {
         console.error(e);
       }
-      if (!cancelled) {
-        setLoading(false);
-        setTimeout(() => (dirtyRef.current = false), 0);
-      }
+      if (!cancelled) setLoading(false);
     })();
     return () => {
       cancelled = true;
@@ -111,9 +108,12 @@ export default function SignatureEditor({ store, mode = "signature", id, start =
   // existing record they're saved so the hosted links stick.
   const { assets: fieldAssets, ...fieldsNoAssets } = fields;
   const contentSig = JSON.stringify([fieldsNoAssets, theme, templateId, name, folder, clientId, scope]);
+  const baseRef = useRef(null);
   useEffect(() => {
-    dirtyRef.current = true;
-  }, [contentSig]);
+    if (loading) return;
+    if (baseRef.current === null) baseRef.current = contentSig;
+    else if (contentSig !== baseRef.current) dirtyRef.current = true;
+  }, [contentSig, loading]);
   useEffect(() => {
     if (recRef.current) dirtyRef.current = true;
   }, [fieldAssets]);
