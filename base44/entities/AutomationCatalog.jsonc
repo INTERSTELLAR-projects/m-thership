@@ -1,0 +1,116 @@
+{
+  "name": "AutomationCatalog",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Stable unique key, e.g. claude:trig_... or base44:workflow:process-runs"
+    },
+    "name": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "description": "claude_task | base44_workflow | base44_function | stripe_webhook | public_endpoint | browser"
+    },
+    "description": {
+      "type": "string",
+      "description": "Plain-English: what it does"
+    },
+    "how_it_works": {
+      "type": "string",
+      "description": "Trigger, schedule and the systems it touches"
+    },
+    "schedule_human": {
+      "type": "string"
+    },
+    "cron": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string",
+      "description": "client | all_clients | agency | personal"
+    },
+    "client_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "client_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "email_justin | push | portal | client_email_draft | website_change | mothership_records | chat_package | none"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_run_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_status": {
+      "type": "string",
+      "description": "success | failed | skipped | never | unknown"
+    },
+    "next_run_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "run_match": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "AutomationRun.automation_name values that belong to this automation (for live last-run)"
+    },
+    "external_id": {
+      "type": "string",
+      "description": "Claude scheduled task id, workflow id or function name"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "snapshot_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this row was last refreshed from its source"
+    }
+  },
+  "required": [
+    "key",
+    "name",
+    "source"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
