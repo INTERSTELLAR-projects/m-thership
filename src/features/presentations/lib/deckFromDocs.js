@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { buildBrief, clientFacts, quickDraft } from "@/features/presentations/lib/deckSchema";
 import { queueDeckJob } from "@/features/presentations/lib/claudeDeckJob";
 import { playbookToMarkdown } from "@/features/claude/playbook";
+import { socialPlanToMarkdown } from "@/features/claude/socialPlan";
 
 const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 const normHex = (h) => {
@@ -83,6 +84,48 @@ export async function playbookDeckBrief(client, record) {
     extra,
   });
   return { brief, brand, title: `${client.business} — 2027 Industry Playbook` };
+}
+
+export async function socialPlanDeckBrief(client, record) {
+  const [facts, kit] = await Promise.all([clientFacts(client.id), approvedKit(client.id)]);
+  const brand = kit ? brandFromKit(kit.kit) : null;
+  const plan = record.plan || {};
+  const platforms = (plan.platforms || []).map((p) => p.name || p.id).join(", ");
+  const content = (record.body_md && record.body_md.length > 400 ? record.body_md : socialPlanToMarkdown(plan, client.business)).slice(0, 12000);
+  const extra = [
+    "This deck presents the client's APPROVED social media plan. Use only what is in the plan below; do not add new numbers, results or claims.",
+    "Any figure marked est. stays labelled \"est.\". Unknown figures are never filled in. Posting days and times are shown as starting points to test, not data.",
+    "",
+    "## Required slide order",
+    "1. cover: the plan headline, subtitle = the platforms and weekly rhythm.",
+    "2. bullets: goals and audience (what social does for the business).",
+    `3. One slide per platform (${platforms || "each platform"}): role, cadence, best formats, starting-point posting times.`,
+    "4. bullets: content pillars with one example post each.",
+    "5. timeline: the creation workflow (steps: Capture, Edit, Caption, Schedule, Engage) with the weekly time budget.",
+    "6. list or table: the 4-week starter calendar (one slide per week or a compact overview).",
+    "7. bullets: editing guidelines from the brand kit, caption and hashtag rules.",
+    "8. bullets: repurposing (blog → GBP post → reel → carousel) and the consistency system.",
+    "9. compare: what Interstellar does vs what you do.",
+    "10. bullets: KPIs to track (real figures only).",
+    "11. closing: the first step this week.",
+    "",
+    "## Look",
+    lookLines(brand),
+    "",
+    "## The approved social plan",
+    content,
+  ].join("\n");
+  const brief = buildBrief({
+    topic: `${client.business}: Social Media Plan`,
+    audience: `${client.business} owner${client.contact ? ` (${client.contact})` : ""} and whoever creates their content`,
+    goals: "Walk the owner through which platforms, what to post, how content gets made every week, and who does what.",
+    slideCount: Math.min(18, 10 + (plan.platforms || []).length),
+    tone: "Clear and confident",
+    look: brand ? "client" : "interstellar",
+    facts,
+    extra,
+  });
+  return { brief, brand, title: `${client.business} — Social Media Plan` };
 }
 
 export async function brandKitDeckBrief(client, record) {
