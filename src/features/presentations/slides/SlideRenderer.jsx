@@ -11,6 +11,9 @@ import QuoteSlide from '@/features/presentations/slides/layouts/QuoteSlide';
 import CompareSlide from '@/features/presentations/slides/layouts/CompareSlide';
 import TimelineSlide from '@/features/presentations/slides/layouts/TimelineSlide';
 import ClosingSlide from '@/features/presentations/slides/layouts/ClosingSlide';
+import SectionSlide from '@/features/presentations/slides/layouts/SectionSlide';
+import BigStatSlide from '@/features/presentations/slides/layouts/BigStatSlide';
+import PricingSlide from '@/features/presentations/slides/layouts/PricingSlide';
 
 const LAYOUTS = {
   cover: CoverSlide,
@@ -22,7 +25,13 @@ const LAYOUTS = {
   quote: QuoteSlide,
   compare: CompareSlide,
   timeline: TimelineSlide,
-  closing: ClosingSlide
+  closing: ClosingSlide,
+  section: SectionSlide,
+  bigstat: BigStatSlide,
+  pricing: PricingSlide,
+  // aliases a generator might use
+  'two-column': CompareSlide,
+  'image-text': SplitSlide
 };
 
 export default function SlideRenderer({ slide, theme, index = 0, total = 1, deckTitle = '' }) {
