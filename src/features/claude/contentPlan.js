@@ -533,7 +533,7 @@ export async function saveApprovedContentPlan(job) {
   const me = await base44.auth.me().catch(() => null);
   await Promise.all(existing.filter((k) => k.status === "approved").map((k) => base44.entities.ContentPlan.update(k.id, { status: "archived" })));
   const version = existing.reduce((max, k) => Math.max(max, Number(k.version) || 0), 0) + 1;
-  const { unknowns, ...rest } = plan; // eslint-disable-line no-unused-vars
+  const { unknowns: _unknowns, ...rest } = plan;
   return base44.entities.ContentPlan.create({
     client_id: job.client_id,
     client_name: job.client_name || "",
