@@ -378,7 +378,7 @@ function IdeaCard({ idea, generating, onOpen, onEdit, onDelete, onPlan }) {
     <div onClick={onOpen} className="game-panel group flex cursor-pointer flex-col p-5 transition-colors hover:border-ink/40">
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="mono-label rounded border border-ink/12 px-1.5 py-0.5 text-[9.5px] text-ink/55">{idea.category || "—"}</span>
+          <span className="mono-label rounded border border-ink/10 px-1.5 py-0.5 text-[9.5px] text-ink/55">{idea.category || "—"}</span>
           <StatusBadge status={idea.status} />
           {idea.project_id && <span className="mono-label inline-flex items-center gap-1 rounded bg-ink px-1.5 py-0.5 text-[9px] text-white"><Rocket className="h-2.5 w-2.5" />Project</span>}
         </div>
