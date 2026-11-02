@@ -28,6 +28,21 @@
       "default": {},
       "description": "Visual theme (colors, font, border)"
     },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient this signature belongs to (empty = Interstellar internal)"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "folder": {
+      "type": "string",
+      "description": "Project / folder used to organize signatures"
+    },
+    "source_template_id": {
+      "type": "string",
+      "description": "SignatureTemplate this signature was started from"
+    },
     "generated_html": {
       "type": "string",
       "default": "",

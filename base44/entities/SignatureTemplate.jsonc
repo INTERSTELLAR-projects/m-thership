@@ -1,0 +1,83 @@
+{
+  "name": "SignatureTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Template name"
+    },
+    "description": {
+      "type": "string"
+    },
+    "folder": {
+      "type": "string",
+      "description": "Project / folder used to organize templates"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "global",
+        "client"
+      ],
+      "default": "global",
+      "description": "global = Interstellar template available to every client; client = one client's own template"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "description": "New signatures start from the default (client default wins over global default)"
+    },
+    "portal_visible": {
+      "type": "boolean",
+      "default": true,
+      "description": "Global templates: show in client portals"
+    },
+    "template_id": {
+      "type": "string",
+      "default": "t5_rail"
+    },
+    "fields": {
+      "type": "object",
+      "default": {}
+    },
+    "theme": {
+      "type": "object",
+      "default": {}
+    },
+    "preview_html": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
