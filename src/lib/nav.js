@@ -5,6 +5,7 @@ import {
 import { Link2 as BacklinksIcon } from "lucide-react";
 import { CalendarRange as ContentPlansIcon } from "lucide-react";
 import { SUBSCRIPTIONS, DELIVERY_PACKAGES, packagePath } from "@/features/packages/registry";
+import { Zap as AutomationsIcon } from "lucide-react";
 
 export const LOGO_URL =
   "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/536102fbf_interstellar-mark-v2.webp";
@@ -58,6 +59,7 @@ export const NAV_GROUPS = [
       { label: "Financial", icon: DollarSign, path: "/financial" },
       { label: "Output", icon: Activity, path: "/output-analytics" },
       { label: "Prestige", icon: Crown, path: "/prestige" },
+      { label: "Automations", icon: AutomationsIcon, path: "/automations" },
       { label: "Documents", icon: FileText, path: "/documents" },
       { label: "Idea Vault", icon: Lightbulb, path: "/idea-vault" },
       { label: "Legal", icon: Scale, path: "/legal" },
