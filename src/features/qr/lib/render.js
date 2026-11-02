@@ -30,6 +30,25 @@ const CORNER_R = { square: 0, rounded: 0.28, "extra-rounded": 0.42, circle: 0.5 
 const finderOrigins = (n) => [[0, 0], [n - 7, 0], [0, n - 7]];
 const inFinder = (x, y, n) => finderOrigins(n).some(([fx, fy]) => x >= fx && x < fx + 7 && y >= fy && y < fy + 7);
 
+// Alignment-pattern cells. Scanners lock onto these to correct perspective, so they are always drawn as solid
+// squares whatever the dot style (dots/diamonds there are the #1 reason styled codes fail to read).
+function alignmentCells(n) {
+  const v = (n - 17) / 4;
+  const cells = new Set();
+  if (v < 2) return cells;
+  const num = Math.floor(v / 7) + 2;
+  const step = v === 32 ? 26 : Math.ceil((n - 13) / (2 * num - 2)) * 2;
+  const pos = [6];
+  for (let p = n - 7; pos.length < num; p -= step) pos.splice(1, 0, p);
+  for (let i = 0; i < num; i++) {
+    for (let j = 0; j < num; j++) {
+      if ((i === 0 && j === 0) || (i === 0 && j === num - 1) || (i === num - 1 && j === 0)) continue;
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) cells.add((pos[j] + dy) * n + pos[i] + dx);
+    }
+  }
+  return cells;
+}
+
 export function layoutQR(matrix, styleIn) {
   const s = { ...DEFAULT_STYLE, ...(styleIn || {}) };
   const n = matrix.length;
@@ -70,12 +89,14 @@ export function layoutQR(matrix, styleIn) {
   const clearHalf = logo ? (n * (size / 100)) / 2 + 0.6 : 0;
   const knocked = (x, y) => logo && Math.abs(x + 0.5 - center) < clearHalf && Math.abs(y + 0.5 - center) < clearHalf;
   const dark = (x, y) => matrix[y][x] && !inFinder(x, y, n) && !knocked(x, y);
+  const align = alignmentCells(n);
   let body = "";
   for (let y = 0; y < n; y++) {
     for (let x = 0; x < n; x++) {
       if (!dark(x, y)) continue;
       const px = qx + x * U, py = qy + y * U;
-      if (s.dot_style === "dots") body += circlePath(px + U / 2, py + U / 2, U * 0.42);
+      if (align.has(y * n + x)) body += rrPath(px, py, U, U, s.dot_style === "square" ? 0 : U * 0.18);
+      else if (s.dot_style === "dots") body += circlePath(px + U / 2, py + U / 2, U * 0.42);
       else if (s.dot_style === "diamond") body += diamondPath(px + U / 2, py + U / 2, U * 0.52);
       else if (s.dot_style === "rounded") body += rrPath(px, py, U, U, U * 0.35);
       else {
