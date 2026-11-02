@@ -53,7 +53,6 @@ export const STEPS = [
 ];
 export const stepById = (id) => STEPS.find((s) => s.id === id) || STEPS[0];
 
-const BUILDS = ["website", "system", "ops_command", "brand_arsenal", "launch_grid", "transmission"];
 const ALL = "*";
 
 // Small readers for the prefill sources.
