@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Loader2, Sparkles } from 'lucide-react';
+import PresentMode from '@/features/presentations/studio/PresentMode';
+import GenerateDeckDialog from '@/features/presentations/studio/GenerateDeckDialog';
+import { deckFromJob } from '@/features/presentations/lib/deckSchema';
+import { queueDeckJob } from '@/features/presentations/lib/claudeDeckJob';
+import { approveJob, JOB_STATUS } from '@/features/claude/jobs';
 import { base44 } from '@/api/base44Client';
 import ChatPanel from '@/features/presentations/studio/ChatPanel';
 import DeckToolbar from '@/features/presentations/studio/DeckToolbar';
@@ -34,10 +39,12 @@ const EMPTY_DECK = {
   title: 'Untitled deck',
   subtitle: '',
   summary: '',
-  theme: 'signal',
+  theme: 'interstellar',
   brand: null,
   prompt: '',
   project_id: '',
+  claude_job_id: '',
+  generation_status: 'none',
   slides: []
 };
 
@@ -79,6 +86,11 @@ export default function StudioPage() {
     projectId: '',
     visuals: true
   });
+
+  const [presenting, setPresenting] = useState(false);
+  const [genOpen, setGenOpen] = useState(false);
+  const [job, setJob] = useState(null);
+  const [loadingJob, setLoadingJob] = useState(false);
 
   const exportRef = useRef(null);
   const snapshotRef = useRef(serialize(EMPTY_DECK));
@@ -136,6 +148,8 @@ export default function StudioPage() {
           brand: record.brand || null,
           prompt: record.prompt || '',
           project_id: record.project_id || '',
+          claude_job_id: record.claude_job_id || '',
+          generation_status: record.generation_status || 'none',
           slides
         };
         deckIdRef.current = record.id;
@@ -193,6 +207,25 @@ export default function StudioPage() {
     }, 900);
     return () => clearTimeout(timer);
   }, [deck]);
+
+  // A deck being built in the Claude Queue: watch its job until the result is back.
+  useEffect(() => {
+    if (!deck.claude_job_id || deck.generation_status !== 'waiting_claude') {
+      setJob(null);
+      return undefined;
+    }
+    let live = true;
+    const poll = () =>
+      base44.entities.ClaudeJob.get(deck.claude_job_id)
+        .then((j) => live && setJob(j))
+        .catch(() => null);
+    poll();
+    const timer = setInterval(poll, 20000);
+    return () => {
+      live = false;
+      clearInterval(timer);
+    };
+  }, [deck.claude_job_id, deck.generation_status]);
 
   const generateVisualsFor = async (slides, themeId, brand) => {
     const targets = slides
@@ -367,6 +400,111 @@ export default function StudioPage() {
     }
   };
 
+  /* ---------- Generate with Claude ---------- */
+  const applyDeck = (incoming, extra = {}) => {
+    setDeck((prev) => ({
+      ...prev,
+      title: incoming.title || prev.title,
+      subtitle: incoming.subtitle || '',
+      summary: incoming.summary || '',
+      theme: incoming.theme || prev.theme,
+      brand: incoming.theme === 'custom' ? incoming.brand || DEFAULT_CUSTOM_BRAND : null,
+      slides: incoming.slides,
+      ...extra
+    }));
+    setSelectedId(incoming.slides[0] ? incoming.slides[0].id : null);
+  };
+
+  const handleDraft = async ({ deck: drafted, brief, meta, target }) => {
+    const record = {
+      client_id: meta.client_id || '',
+      client_name: meta.client_name || '',
+      brief: meta.brief || {},
+      audience: meta.audience || '',
+      tone: meta.tone || options.tone,
+      generated_by: 'quick_draft',
+      generation_status: 'ready'
+    };
+    if (target === 'replace' && deck.id) {
+      applyDeck(drafted, { prompt: brief });
+      await base44.entities.Presentation.update(deck.id, record);
+      setMessages((prev) => [...prev, { role: 'assistant', content: `Drafted “${drafted.title}” from your brief. Edit any slide, or ask me for changes.` }]);
+      if (options.visuals) await generateVisualsFor(drafted.slides, drafted.theme, drafted.brand);
+      return;
+    }
+    const created = await base44.entities.Presentation.create({
+      ...record,
+      title: drafted.title,
+      subtitle: drafted.subtitle,
+      summary: drafted.summary,
+      theme: drafted.theme,
+      brand: drafted.brand,
+      slides: drafted.slides,
+      prompt: brief,
+      project_id: options.projectId || ''
+    });
+    toast({ title: 'Draft ready', description: drafted.title });
+    navigate(PRESENTATIONS_ROUTES.deck(created.id));
+  };
+
+  const handleSendToClaude = async ({ brief, meta, title, target }) => {
+    const record = {
+      client_id: meta.client_id || '',
+      client_name: meta.client_name || '',
+      brief: meta.brief || {},
+      audience: meta.audience || '',
+      tone: meta.tone || options.tone,
+      generation_status: 'waiting_claude'
+    };
+    let presentationId = target === 'replace' && deck.id ? deck.id : null;
+    if (presentationId) {
+      await base44.entities.Presentation.update(presentationId, record);
+    } else {
+      const created = await base44.entities.Presentation.create({
+        ...record,
+        title: title || 'Deck for Claude',
+        prompt: brief,
+        theme: 'interstellar',
+        slides: [],
+        project_id: options.projectId || ''
+      });
+      presentationId = created.id;
+    }
+    const queued = await queueDeckJob({ presentationId, brief, meta, title });
+    await base44.entities.Presentation.update(presentationId, { claude_job_id: queued.id });
+    toast({ title: 'Sent to the Claude Queue', description: 'The deck lands here when Claude is done. You approve it by loading it.' });
+    if (presentationId === deck.id) {
+      setDeck((prev) => ({ ...prev, claude_job_id: queued.id, generation_status: 'waiting_claude' }));
+    } else {
+      navigate(PRESENTATIONS_ROUTES.deck(presentationId));
+    }
+  };
+
+  const loadClaudeDeck = async () => {
+    const drafted = deckFromJob(job);
+    if (!drafted) {
+      toast({ title: 'The job has no deck in result_data yet', variant: 'destructive' });
+      return;
+    }
+    setLoadingJob(true);
+    try {
+      applyDeck(drafted, { generation_status: 'ready' });
+      await approveJob(job);
+      if (deck.id) await base44.entities.Presentation.update(deck.id, { generation_status: 'ready', generated_by: 'claude_queue' });
+      setMessages((prev) => [...prev, { role: 'assistant', content: `Loaded Claude's deck “${drafted.title}”. Every slide is editable.` }]);
+      if (options.visuals) await generateVisualsFor(drafted.slides, drafted.theme, drafted.brand);
+    } catch (error) {
+      toast({ title: 'Could not load the deck', description: error.message, variant: 'destructive' });
+    } finally {
+      setLoadingJob(false);
+    }
+  };
+
+  const stopWaiting = async () => {
+    setDeck((prev) => ({ ...prev, generation_status: 'none' }));
+    if (deck.id) await base44.entities.Presentation.update(deck.id, { generation_status: 'none' }).catch(() => null);
+  };
+
   const handleOptionsChange = (patch) => {
     setOptions((prev) => ({ ...prev, ...patch }));
     if (patch.projectId !== undefined && deck.id) {
@@ -432,7 +570,34 @@ export default function StudioPage() {
             progress={progress}
             onExport={handleExport}
             hasDeck={deck.slides.length > 0}
+            onPresent={() => setPresenting(true)}
+            onPrint={() => window.print()}
+            onGenerate={() => setGenOpen(true)}
           />
+
+          {deck.generation_status === 'waiting_claude' ? (
+            <div className="flex flex-wrap items-center gap-3 border-b border-border/70 bg-[#ff3c00]/[0.05] px-4 py-2.5 text-sm">
+              {job && job.status === 'needs_approval' && deckFromJob(job) ? (
+                <>
+                  <Sparkles className="h-4 w-4 text-[#ff3c00]" />
+                  <span className="min-w-0 flex-1">Claude's deck is ready{job.result_summary ? `: ${job.result_summary}` : '.'}</span>
+                  <button type="button" disabled={loadingJob} onClick={loadClaudeDeck} className="inline-flex h-8 items-center gap-1.5 bg-[#ff3c00] px-3 text-[12.5px] font-medium text-white hover:bg-[#1a1a1a] disabled:opacity-50">
+                    {loadingJob ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null} Load into editor + approve
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin text-[#ff3c00]" />
+                  <span className="min-w-0 flex-1">
+                    Claude Queue is building this deck · {job ? (JOB_STATUS[job.status] || {}).label || job.status : 'checking'}
+                    {job && job.status === 'needs_approval' ? ' (no deck in result_data; open the job)' : ''}
+                  </span>
+                </>
+              )}
+              {deck.claude_job_id ? <Link to={`/claude?job=${deck.claude_job_id}`} className="text-[12px] text-muted-foreground underline-offset-2 hover:underline">Open job</Link> : null}
+              <button type="button" onClick={stopWaiting} className="text-[12px] text-muted-foreground hover:text-foreground">Stop waiting</button>
+            </div>
+          ) : null}
 
           <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
             <div className="thin-scroll flex min-h-0 flex-1 items-center justify-center overflow-auto p-4 lg:p-6">
@@ -486,6 +651,19 @@ export default function StudioPage() {
       </div>
 
       <ExportRenderer containerRef={exportRef} slides={deck.slides} themeId={deck.theme} brand={deck.brand} deckTitle={deck.title} />
+
+      {presenting && deck.slides.length ? (
+        <PresentMode slides={deck.slides} theme={theme} deckTitle={deck.title} startIndex={selectedIndex} onClose={() => setPresenting(false)} />
+      ) : null}
+
+      <GenerateDeckDialog
+        open={genOpen}
+        onOpenChange={setGenOpen}
+        hasSlides={deck.slides.length > 0}
+        defaults={{ audience: options.audience, tone: options.tone, slideCount: options.slideCount }}
+        onDraft={handleDraft}
+        onSendToClaude={handleSendToClaude}
+      />
     </div>
   );
 }
