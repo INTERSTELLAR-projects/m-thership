@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
-import { Plus, DollarSign, TrendingUp, AlertCircle, Edit, Check, X, Trash2, Loader2, Settings, GripVertical } from "lucide-react";
+import { Plus, Edit, Check, X, Trash2, Loader2, Settings, GripVertical } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import InvestmentsList from "../components/financial/InvestmentsList";
 import StripeRevenue from "../components/financial/StripeRevenue";
 import RevenueProjections from "../components/financial/RevenueProjections";
 import ProjectProjections from "../components/financial/ProjectProjections";
 import FinanceDashboard from "../components/financial/FinanceDashboard";
+import ExpensesTab from "../components/financial/ExpensesTab";
+import { getCurrentDueDate, getCycleKey, getStatus as expenseStatus, formatDueDate } from "../components/financial/finance/expenses";
 import GoalTab from "../components/financial/GoalTab";
 import InvestmentAdvisor from "../components/financial/InvestmentAdvisor";
 import useFinanceData from "../components/financial/finance/useFinanceData";
@@ -47,7 +49,7 @@ const FIN_TABS = [
   ["dashboard", "Dashboard"], ["goal", "Goal"], ["advisor", "Advisor"], ["overview", "Expenses"], ["categories", "Categories"],
   ["stripe", "Stripe"], ["projections", "Projections"], ["investments", "Investments"],
 ];
-const LIVE_TABS = new Set(["dashboard", "goal", "advisor"]);
+const LIVE_TABS = new Set(["dashboard", "goal", "advisor", "overview"]);
 
 function loadFinCategories() {
   try {
@@ -57,29 +59,10 @@ function loadFinCategories() {
   return DEFAULT_CATEGORIES;
 }
 
-function getCurrentDueDate(expense, now) {
-  if (expense.frequency === "Monthly" || expense.frequency === "Quarterly") {
-    return new Date(now.getFullYear(), now.getMonth(), expense.dueDay);
-  }
-  const thisYear = new Date(now.getFullYear(), (expense.dueMonth || 1) - 1, expense.dueDay);
-  if (thisYear < now) return new Date(now.getFullYear() + 1, (expense.dueMonth || 1) - 1, expense.dueDay);
-  return thisYear;
-}
-
-function getCycleKey(expense, now) {
-  const due = getCurrentDueDate(expense, now);
-  if (expense.frequency === "Monthly" || expense.frequency === "Quarterly") return `${due.getFullYear()}-${due.getMonth()}`;
-  return `${due.getFullYear()}`;
-}
-
-function formatDueDate(date) { return date.toLocaleDateString("en-US", { month: "short", day: "numeric" }); }
-
 export default function Financial() {
   const now = useMemo(() => new Date(), []);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [freqFilter, setFreqFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [subPage, setSubPage] = useState("dashboard");
@@ -106,12 +89,7 @@ export default function Financial() {
     });
   }, []);
 
-  const getStatus = (expense) => {
-    const key = getCycleKey(expense, now);
-    if ((expense.paidCycles || []).includes(key)) return "Paid";
-    if (getCurrentDueDate(expense, now) < now) return "Overdue";
-    return "Upcoming";
-  };
+  const getStatus = (expense) => expenseStatus(expense, now);
 
   const markPaid = async (expense) => {
     const key = getCycleKey(expense, now);
@@ -130,17 +108,23 @@ export default function Financial() {
     setEditingId(null);
   };
 
+  // Used by the Expenses tab's edit dialog: same entity fields as the inline editor.
+  const updateExpense = async (id, fields) => {
+    await base44.entities.Expense.update(id, fields);
+    setExpenses((prev) => prev.map((e) => e.id === id ? { ...e, ...fields } : e));
+  };
+
+  const addExpense = async (form) => {
+    const created = await base44.entities.Expense.create({ ...form, paidCycles: [] });
+    setExpenses((prev) => [...prev, created]);
+  };
+
   const deleteExpense = async (id) => {
     await base44.entities.Expense.delete(id);
     setExpenses((prev) => prev.filter((e) => e.id !== id));
   };
 
   const enriched = expenses.map((e) => ({ ...e, dueDate: getCurrentDueDate(e, now), status: getStatus(e) }));
-  const upcoming = enriched.filter((e) => e.status !== "Paid").sort((a, b) => a.dueDate - b.dueDate).slice(0, 8);
-  const filtered = enriched.filter((e) => freqFilter === "All" || e.frequency === freqFilter).filter((e) => statusFilter === "All" || e.status === statusFilter).sort((a, b) => a.dueDate - b.dueDate);
-  const totalMonthly = enriched.filter((e) => e.frequency === "Monthly").reduce((s, e) => s + e.amount, 0);
-  const totalAnnual = enriched.filter((e) => e.frequency === "Annually").reduce((s, e) => s + e.amount, 0);
-  const overdueCount = enriched.filter((e) => e.status === "Overdue").length;
   const grouped = categories.reduce((acc, cat) => { acc[cat] = enriched.filter((e) => e.category === cat); return acc; }, {});
 
   if (loading) return (
