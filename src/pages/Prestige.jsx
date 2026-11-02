@@ -664,6 +664,7 @@ function MemberCard({ m, offer, stats, refs, memberRewards, client, expanded, on
         <div className="flex flex-wrap items-center gap-1.5 md:justify-end">
           <button type="button" onClick={() => onCopy(link, "Referral link")} className="inline-flex h-8 items-center gap-1.5 border border-hair px-2.5 text-[11.5px] font-medium text-ink/70 hover:border-[#ff3c00] hover:text-[#ff3c00]" title={link}><Copy className="h-3 w-3" />Link</button>
           <a href={smsHref(text)} className="inline-flex h-8 items-center gap-1.5 border border-hair px-2.5 text-[11.5px] font-medium text-ink/70 hover:border-[#ff3c00] hover:text-[#ff3c00]" title="Text the share message"><MessageSquare className="h-3 w-3" />Text</a>
+          <a href={mailHref(text)} className="inline-flex h-8 items-center gap-1.5 border border-hair px-2.5 text-[11.5px] font-medium text-ink/70 hover:border-[#ff3c00] hover:text-[#ff3c00]" title="Email the share message"><Mail className="h-3 w-3" />Email</a>
           <button type="button" onClick={() => onCopy(text, "Share message")} className="inline-flex h-8 items-center gap-1.5 border border-hair px-2.5 text-[11.5px] font-medium text-ink/70 hover:border-[#ff3c00] hover:text-[#ff3c00]"><Copy className="h-3 w-3" />Message</button>
           <button type="button" onClick={onAddReferral} className="inline-flex h-8 items-center gap-1 bg-[#ff3c00] px-2.5 text-[11.5px] font-medium text-white hover:bg-ink"><Plus className="h-3 w-3" />Referral</button>
           <button type="button" onClick={onEdit} className="p-1.5 text-ink/40 hover:text-ink" title="Edit"><Pencil className="h-3.5 w-3.5" /></button>
@@ -775,5 +776,3 @@ function ReferralsList({ referrals, members, offer, statsFor, onEdit, onDelete, 
   );
 }
 
-// eslint helper: keep Mail import usable for future share options
-export const _shareIcons = { Mail, mailHref };
