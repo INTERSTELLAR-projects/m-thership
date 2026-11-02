@@ -22,7 +22,7 @@ export default function DesignSection({ theme, onTheme, fields }) {
           shape: theme.icon_shape,
           size,
           accent: theme.accent_color,
-          bg: theme.border_style === "box" ? theme.surface_color : "#ffffff",
+          bg: theme.border_style === "none" ? "#ffffff" : theme.surface_color,
         }),
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
