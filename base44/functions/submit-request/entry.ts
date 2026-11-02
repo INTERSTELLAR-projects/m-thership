@@ -6,7 +6,8 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 // The key is per form and only lets a site submit to that one form.
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
 const json = (b: unknown, s = 200) => Response.json(b, { status: s, headers: CORS });
-const KINDS = ["site_edit", "project_submission", "job", "new_page", "question", "app_edit", "other"];
+// Request types live in REQUEST_TYPES (src/features/requests/formSchema.js); any slug kind is accepted.
+const reqKind = (k: unknown) => (/^[a-z][a-z0-9_]{1,39}$/.test(String(k || "")) ? String(k) : "other");
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
@@ -32,18 +33,20 @@ Deno.serve(async (req) => {
 
     const answers = fields.map((f) => ({ id: f.id, label: f.label, type: f.type, value: vals[f.id] ?? null }));
     const firstText = fields.find((f) => f.type === "short_text" && vals[f.id]);
-    const labels: Record<string, string> = { site_edit: "Website edit", project_submission: "New project", job: "Job completed", new_page: "New page", question: "Question", app_edit: "Ørigin 1.0 edit", other: "Request" };
-    const title = (firstText ? `${labels[form.kind] || form.title}: ${String(vals[firstText.id]).slice(0, 120)}` : `${form.title} from ${form.client_name}`).slice(0, 200);
+    const title = (firstText ? `${form.title}: ${String(vals[firstText.id]).slice(0, 120)}` : `${form.title} from ${form.client_name}`).slice(0, 200);
     const details = fields.filter((f) => !["photos", "files"].includes(f.type) && vals[f.id] != null && vals[f.id] !== "" && vals[f.id] !== false)
       .map((f) => `${f.label}: ${Array.isArray(vals[f.id]) ? vals[f.id].join(", ") : vals[f.id] === true ? "Yes" : vals[f.id]}`).join("\n").slice(0, 8000);
     const attachments = fields.filter((f) => ["photos", "files"].includes(f.type)).flatMap((f) => (Array.isArray(vals[f.id]) ? vals[f.id] : [])).filter((u) => /^https?:\/\//.test(String(u))).slice(0, 40).map(String);
-    const kind = KINDS.includes(form.kind) ? form.kind : "other";
+    const kind = reqKind(form.kind);
+    const pr = String(vals.priority || "").toLowerCase();
+    const priority = vals.urgent === true ? "urgent" : ["low", "high", "urgent"].includes(pr) ? pr : "normal";
+    const due = String(vals.due_date || "");
     const client = await db.CRMClient.get(form.client_id).catch(() => null);
 
     const r = await db.ClientRequest.create({
       client_id: form.client_id, client_name: client?.business || form.client_name, kind, title, details, attachments,
       fields: vals, answers, form_id: form.id, form_title: form.title,
-      status: "received", priority: vals.urgent === true ? "urgent" : "normal",
+      status: "received", priority, ...(/^\d{4}-\d{2}-\d{2}$/.test(due) ? { due_date: due } : {}),
       submitted_by: String(body.contact_email || "").slice(0, 200) || "client site",
       contact_name: String(body.contact_name || "").slice(0, 120), contact_email: String(body.contact_email || "").slice(0, 200),
       source: ["public_form", "client_app"].includes(body.source) ? body.source : "public_form",
