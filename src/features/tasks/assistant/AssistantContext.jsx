@@ -12,6 +12,7 @@ import {
 } from "@/features/tasks/lib/speech";
 import { recorderSupported, startRecorder } from "@/features/tasks/lib/recorder";
 import { emitTasksChanged } from "@/features/tasks/lib/clients";
+import { briefingScript } from "@/features/briefing/oneThing";
 
 const AssistantContext = createContext(null);
 
@@ -19,6 +20,9 @@ const AssistantContext = createContext(null);
 export const useAssistant = () => useContext(AssistantContext);
 
 const WAKE = /^(hey |ok |okay |yo )?(interstellar|command|computer|mothership)\b[,:.\s]*/i;
+
+// "Brief me", "daily briefing", "catch me up", "what's on today" read the Command Briefing aloud.
+const BRIEF = /\b(brief me|briefing|morning brief|daily brief|catch me up|what'?s on (for )?today|status report)\b/i;
 
 const join = (...parts) => parts.map((p) => String(p || "").trim()).filter(Boolean).join(" ");
 
@@ -115,6 +119,25 @@ export function AssistantProvider({ children }) {
     if (!alwaysRef.current) stopRecognition();
 
     let spoken = "I could not reach the command core just now.";
+    if (BRIEF.test(text) && text.split(/\s+/).length <= 8) {
+      try {
+        const me = await base44.auth.me().catch(() => null);
+        spoken = await briefingScript(String((me && me.full_name) || "").split(" ")[0]);
+      } catch {
+        spoken = "I could not assemble the briefing just now.";
+      }
+      pushTurn("ai", spoken);
+      setNotice(spoken);
+      setMode("speaking");
+      speak(spoken, {
+        onEnd: () => {
+          busyRef.current = false;
+          setMode((m) => (m === "speaking" ? "idle" : m));
+          if (alwaysRef.current && beginRecRef.current) window.setTimeout(() => beginRecRef.current(), 250);
+        }
+      });
+      return;
+    }
     try {
       const response = await base44.functions.invoke("voice-command", {
         transcript: text,
