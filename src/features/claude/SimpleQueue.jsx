@@ -95,7 +95,7 @@ function SimpleCard({ job, open, onToggle, renderDetail }) {
           <button type="button" onClick={() => setSendingBack(false)} className="px-1 text-ink/45 hover:text-ink" aria-label="Close"><X className="h-4 w-4" /></button>
         </form>
       )}
-      {open && <div className="max-h-[70vh] overflow-hidden border-t border-hair">{renderDetail(job)}</div>}
+      {open && <div className="max-h-[70vh] overflow-y-auto border-t border-hair">{renderDetail(job)}</div>}
     </li>
   );
 }
