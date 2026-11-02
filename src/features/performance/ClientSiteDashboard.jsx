@@ -147,7 +147,7 @@ export default function ClientSiteDashboard({ client, audits = [], fixes = [], g
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-white/50">
             <a href={siteUrl(client)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-white">{client.domain || (client.websites || [])[0]} <ExternalLink className="h-3 w-3" /></a>
             <span>{cur ? `Audited ${timeAgo(cur.run_at)}` : "Never audited"}</span>
-            {blocked && <span className="inline-flex items-center gap-1 rounded-sm border border-[#ffaa00]/30 px-1.5 py-0.5 text-[10.5px] text-[#ffc566]"><CircleSlash className="h-3 w-3" /> Auto-audit off until it leaves Framer</span>}
+            {blocked && <span className="inline-flex items-center gap-1 rounded-sm border border-[#ffaa00]/30 px-1.5 py-0.5 text-[10.5px] text-[#ffc566]"><CircleSlash className="h-3 w-3" /> Auto-audit off until the new site is live</span>}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
