@@ -15,6 +15,8 @@ import BrandKitTab from "@/features/clients/BrandKitTab";
 import PlaybookTab from "@/features/clients/PlaybookTab";
 import ContentPlanTab from "@/features/clients/ContentPlanTab";
 import { ClientGbpTab } from "@/features/gbp/GbpPanel";
+import ClientAutomationsCard from "@/features/automations/ClientAutomationsCard";
+import { useOptionList } from "@/hooks/useOptionList";
 import ClientOutreachTab from "@/features/outreach/ClientOutreachTab";
 
 const TABS = [
@@ -50,6 +52,7 @@ export default function ClientCockpit() {
   const [inviting, setInviting] = useState(false);
   const [starting, setStarting] = useState(false);
   const qc = useQueryClient();
+  const industries = useOptionList("client_industries").labels;
 
   if (isLoading) return <div className="px-8 py-16 text-center text-ink/50">Loading…</div>;
   if (!client) return <div className="px-8 py-16 text-center text-ink/50">Client not found. <Link className="text-[#ff3c00]" to="/crm">Back to clients</Link></div>;
@@ -125,7 +128,7 @@ export default function ClientCockpit() {
         {tab === "work" && <WorkTab client={client} />}
         {tab === "tasks" && <TasksTab client={client} />}
         {tab === "requests" && <RequestsTab client={client} />}
-        {tab === "automations" && <AutomationsTab client={client} />}
+        {tab === "automations" && <><ClientAutomationsCard client={client} /><AutomationsTab client={client} /></>}
         {tab === "performance" && <PerformanceTab client={client} />}
         {tab === "gbp" && <ClientGbpTab client={client} />}
         {tab === "citations" && <ClientOutreachTab client={client} />}
@@ -148,7 +151,7 @@ export default function ClientCockpit() {
       </div>
 
       <StartServiceDialog open={starting} client={client} onClose={() => setStarting(false)} />
-      <FormDialog open={editing} title="Edit client" fields={PROFILE_FIELDS} initial={client} onClose={() => setEditing(false)} onSubmit={save} />
+      <FormDialog open={editing} title="Edit client" fields={PROFILE_FIELDS.map((f) => (f.name === "industry" ? { ...f, suggestions: industries, placeholder: "Category · detail" } : f))} initial={client} onClose={() => setEditing(false)} onSubmit={save} />
     </div>
   );
 }
