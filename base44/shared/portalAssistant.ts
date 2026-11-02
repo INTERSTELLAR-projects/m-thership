@@ -19,8 +19,10 @@ export const AGENT_NAME = "interstellar_assistant";
 
 export const pick = (o: Row, keys: string[]) => Object.fromEntries(keys.filter((k) => o?.[k] !== undefined && o?.[k] !== null && o?.[k] !== "").map((k) => [k, o[k]]));
 export const visible = (r: Row) => r?.portal_visible !== false;
-export const json = (body: unknown, status = 200) => Response.json(body, { status });
 export const today = () => new Date().toISOString().slice(0, 10);
+// Every result carries today's date so the agent can resolve "next Friday" without guessing.
+export const json = (body: unknown, status = 200) =>
+  Response.json(body && typeof body === "object" && !Array.isArray(body) ? { ...(body as Row), today: today() } : body, { status });
 export const daysAgo = (n: number) => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10);
 const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 
