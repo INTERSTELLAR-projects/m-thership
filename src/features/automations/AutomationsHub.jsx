@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Activity, AlertTriangle, CalendarClock, Check, ChevronDown, ChevronRight, Copy, PauseCircle, RefreshCw, Search, Zap,
 } from "lucide-react";
@@ -133,11 +133,12 @@ function RefreshNote({ meta }) {
 export default function AutomationsHub({ clientId = null }) {
   const { rows, runs, clients, meta, isLoading, error, refetch } = useAutomationHub();
   const [q, setQ] = useState("");
-  const [client, setClient] = useState(clientId || "all");
+  const [params] = useSearchParams();
+  const [client, setClient] = useState(clientId || params.get("client") || "all");
   const [source, setSource] = useState("all");
   const [channel, setChannel] = useState("all");
   const [status, setStatus] = useState("all");
-  const [view, setView] = useState(clientId ? "list" : "list");
+  const [view, setView] = useState("list");
   const [openKey, setOpenKey] = useState(null);
 
   const filtered = useMemo(() => {
