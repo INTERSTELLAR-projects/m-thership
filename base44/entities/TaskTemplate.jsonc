@@ -75,6 +75,17 @@
       "description": "Playbook key used when a service is started (onboarding, website, system, orbit_local\u2026)",
       "type": "string"
     },
+    "portal_client_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "CRMClient ids whose client portal shows this SOP under Resources (step titles, phases and notes only; never time estimates). Empty = internal only."
+    },
+    "portal_summary": {
+      "type": "string",
+      "description": "Optional client-facing intro shown in the portal instead of the internal description"
+    },
     "sop_code": {
       "description": "Source SOP, e.g. SOP-04",
       "type": "string"
