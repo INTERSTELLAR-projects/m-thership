@@ -6,6 +6,10 @@ import InvestmentsList from "../components/financial/InvestmentsList";
 import StripeRevenue from "../components/financial/StripeRevenue";
 import RevenueProjections from "../components/financial/RevenueProjections";
 import ProjectProjections from "../components/financial/ProjectProjections";
+import FinanceDashboard from "../components/financial/FinanceDashboard";
+import GoalTab from "../components/financial/GoalTab";
+import InvestmentAdvisor from "../components/financial/InvestmentAdvisor";
+import useFinanceData from "../components/financial/finance/useFinanceData";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -40,6 +44,11 @@ const INITIAL_EXPENSES = [
 const DEFAULT_CATEGORIES = ["AI Tools", "Design", "Finance", "Hosting", "Marketing", "Operations", "SEO"];
 const FREQUENCIES = ["Monthly", "Quarterly", "Annually"];
 const FIN_CATS_KEY = "financial_categories";
+const FIN_TABS = [
+  ["dashboard", "Dashboard"], ["goal", "Goal"], ["advisor", "Advisor"], ["overview", "Expenses"], ["categories", "Categories"],
+  ["analytics", "Analytics"], ["stripe", "Stripe"], ["projections", "Projections"], ["investments", "Investments"],
+];
+const LIVE_TABS = new Set(["dashboard", "goal", "advisor"]);
 
 function loadFinCategories() {
   try {
@@ -74,7 +83,8 @@ export default function Financial() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
-  const [subPage, setSubPage] = useState("overview");
+  const [subPage, setSubPage] = useState("dashboard");
+  const financeData = useFinanceData(LIVE_TABS.has(subPage));
   const [categories, setCategories] = useState(loadFinCategories);
   const [managingCats, setManagingCats] = useState(false);
   const [newCatName, setNewCatName] = useState("");
@@ -142,14 +152,20 @@ export default function Financial() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Agency / Financial" rightText="Expense Management" />
-      <div className="px-8 pt-4 flex gap-1 border-b border-ink/[0.13]">
-        {["overview", "categories", "analytics", "stripe", "projections", "investments"].map((tab) => (
-          <button key={tab} onClick={() => setSubPage(tab)} className={`px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all rounded-t-lg ${subPage === tab ? "bg-orange-500/15 text-orange-500 border-b-2 border-orange-500" : "text-ink/[0.48] hover:text-ink/60"}`}>{tab === "overview" ? "Overview" : tab === "categories" ? "Categories" : tab === "analytics" ? "Analytics" : tab === "stripe" ? "Stripe" : tab === "projections" ? "Projections" : "Investments"}</button>
+      <PageHeader breadcrumb="Agency / Financial" rightText="Money · Goal · Advisor" />
+      <div className="px-5 md:px-8 pt-4 flex gap-1 border-b border-ink/[0.13] overflow-x-auto">
+        {FIN_TABS.map(([tab, label]) => (
+          <button key={tab} onClick={() => setSubPage(tab)} className={`shrink-0 whitespace-nowrap px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all rounded-t-lg ${subPage === tab ? "bg-orange-500/15 text-orange-500 border-b-2 border-orange-500" : "text-ink/[0.48] hover:text-ink/60"}`}>{label}</button>
         ))}
       </div>
-      <div className="px-8 py-6 space-y-6">
-        {subPage === "overview" ? (
+      <div className="px-5 md:px-8 py-6 space-y-6">
+        {subPage === "dashboard" ? (
+          <FinanceDashboard data={financeData} />
+        ) : subPage === "goal" ? (
+          <GoalTab data={financeData} />
+        ) : subPage === "advisor" ? (
+          <InvestmentAdvisor data={financeData} />
+        ) : subPage === "overview" ? (
           <>
             <div className="grid grid-cols-3 gap-4">
               <SummaryCard icon={DollarSign} label="Total Monthly" value={`$${totalMonthly.toFixed(2)}`} />
