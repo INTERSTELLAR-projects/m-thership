@@ -64,7 +64,8 @@
   height: clamp(7rem, 17vw, 15rem);
   overflow: hidden;
   pointer-events: none;
-  background-color: #0f0f0f;
+  /* transparent so the dark footer (and its grid) shows through the top, as on the website */
+  background-color: transparent;
 }
 .is-glow-band__wash {
   position: absolute;
