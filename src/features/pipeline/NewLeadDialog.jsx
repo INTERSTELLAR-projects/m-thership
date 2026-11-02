@@ -4,7 +4,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { base44 } from "@/api/base44Client";
 import { inputClass, textareaClass, labelClass, btnGhost, btnSmallFlame } from "@/features/tasks/lib/ui";
 import { cn } from "@/lib/utils";
-import { INTEREST_OPTIONS, REVENUE_OPTIONS, TEAM_OPTIONS, TIMELINE_OPTIONS, SOURCES, STAGES, noteDate } from "./pipeline";
+import { INTEREST_OPTIONS, REVENUE_OPTIONS, TEAM_OPTIONS, TIMELINE_OPTIONS, STAGES, noteDate } from "./pipeline";
+import { useLeadSources } from "./useLeadSources";
+import { useOptionList } from "@/hooks/useOptionList";
 
 const EMPTY = {
   full_name: "", email: "", phone: "", business: "", website: "", industry: "",
@@ -37,6 +39,8 @@ function Pick({ value, onChange, options, placeholder = "Pick one" }) {
 // Manual lead entry for referrals, cold approach, ads, etc. Asks everything the website booking form asks.
 export default function NewLeadDialog({ open, onOpenChange, onCreated, defaultSource = "referral" }) {
   const [v, setV] = useState({ ...EMPTY, source: defaultSource });
+  const { visible: SOURCES, all: ALL_SOURCES } = useLeadSources();
+  const industries = useOptionList("client_industries").labels;
   const [members, setMembers] = useState([]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -81,7 +85,7 @@ export default function NewLeadDialog({ open, onOpenChange, onCreated, defaultSo
         ...(isSocial ? { social: site } : {}),
       };
       Object.keys(details).forEach((k) => !details[k] && delete details[k]);
-      const srcLabel = (SOURCES.find((s) => s.key === v.source) || {}).label || v.source;
+      const srcLabel = (ALL_SOURCES.find((s) => s.key === v.source) || {}).label || v.source;
       const note = [
         `Lead added by hand. Source: ${srcLabel}${v.funnel ? ` · funnel "${v.funnel}"` : ""}${v.referrer ? ` · referred by ${v.referrer}${member ? " (Prestige member)" : ""}` : ""}`,
         v.industry && `Industry: ${v.industry}`,
@@ -148,7 +152,7 @@ export default function NewLeadDialog({ open, onOpenChange, onCreated, defaultSo
             <div className="grid gap-3 sm:grid-cols-2">
               <L label="Business name"><input value={v.business} onChange={(e) => set("business")(e.target.value)} className={inputClass} /></L>
               <L label="Website or social link"><input value={v.website} onChange={(e) => set("website")(e.target.value)} placeholder="https://… or instagram.com/…" className={inputClass} /></L>
-              <L label="Industry / trade"><input value={v.industry} onChange={(e) => set("industry")(e.target.value)} placeholder="Hardscape, barbershop, coaching…" className={inputClass} /></L>
+              <L label="Industry / trade"><input list="lead-industry-options" value={v.industry} onChange={(e) => set("industry")(e.target.value)} placeholder="Hardscape, barbershop, coaching…" className={inputClass} /><datalist id="lead-industry-options">{industries.map((i) => <option key={i} value={i} />)}</datalist></L>
               <L label="Annual revenue"><Pick value={v.annual_revenue} onChange={set("annual_revenue")} options={REVENUE_OPTIONS} /></L>
               <L label="Team size"><Pick value={v.team_size} onChange={set("team_size")} options={TEAM_OPTIONS} /></L>
               <L label="Most interested in"><Pick value={v.interest} onChange={set("interest")} options={INTEREST_OPTIONS} /></L>
