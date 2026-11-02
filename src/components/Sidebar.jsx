@@ -2,7 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import { LogOut, Search, X } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { NAV_GROUPS, SETTINGS_ITEM, LOGO_URL } from "@/lib/nav";
+import { NAV_GROUPS, SETTINGS_ITEM } from "@/lib/nav";
+import BrandLockup from "@/components/brand/BrandLockup";
 
 function NavItem({ item, onClose }) {
   const location = useLocation();
@@ -36,14 +37,8 @@ export default function Sidebar({ onOpenCommand, open, onClose }) {
     >
       {/* Brand */}
       <div className="flex h-[60px] items-center justify-between border-b border-hair px-4">
-        <Link to="/" onClick={onClose} className="flex items-center gap-2.5">
-          <img src={LOGO_URL} alt="" className="h-7 w-9 object-contain" />
-          <div className="leading-none">
-            <p className="text-[15px] font-semibold tracking-[-0.03em] text-ink">
-              MØTHERSHIP<span className="align-super text-[8px] text-[#ff3c00]">®</span>
-            </p>
-            <p className="mono-label mt-1 text-[9px] text-ink/45">Interstellar</p>
-          </div>
+        <Link to="/" onClick={onClose} className="flex min-w-0 items-center" aria-label="Møthership by Interstellar — home">
+          <BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={20} />
         </Link>
         <button onClick={onClose} className="p-1.5 text-ink/50 hover:text-ink md:hidden" aria-label="Close menu">
           <X className="h-4 w-4" />
