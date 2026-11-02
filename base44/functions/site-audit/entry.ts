@@ -8,7 +8,7 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 //   { action: "run_due", max_age_days?: 7, limit?: 3 }   (auto mode, for a schedule)
 //
 // Optional secret PAGESPEED_API_KEY raises Google's quota; without it PageSpeed still works at a low rate.
-// Clients whose site is still on Framer (PowerLift) never get automatic audits.
+// Clients whose new site isn't live yet (Bobablastic Molalla, The Bulba Bros) never get automatic audits.
 
 const AUTO_BLOCKED = [/boba\s*blastic/i, /bulba\s*bros/i];
 const isAutoBlocked = (c: Record<string, unknown>) => AUTO_BLOCKED.some((re) => re.test(String(c.business || "")));
