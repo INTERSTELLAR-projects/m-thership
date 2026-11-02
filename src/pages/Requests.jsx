@@ -7,6 +7,7 @@ import { useList, useInvalidate, fmtDate, timeAgo } from "@/lib/useData";
 import { Tag, SmallBtn, Panel, Empty } from "@/features/clients/ui";
 import ClientFormsPanel from "@/features/requests/FormBuilder";
 import { KIND_ORDER, kindLabel } from "@/features/requests/formSchema";
+import { useOptionList } from "@/hooks/useOptionList";
 
 const COLUMNS = [["received", "Received"], ["in_progress", "In progress"], ["needs_info", "Needs info"], ["complete", "Complete"]];
 const isImg = (u) => /\.(png|jpe?g|webp|gif|heic)$/i.test(String(u).split("?")[0]);
@@ -75,6 +76,8 @@ function RequestDetail({ r, onClose, onMove }) {
 }
 
 export default function Requests() {
+  // Loads Settings > Lists & fields > Request types so kindLabel() shows Justin's labels (re-renders when they change).
+  useOptionList("request_types");
   const [params, setParams] = useSearchParams();
   const view = params.get("view") || "queue";
   const reqs = useList("ClientRequest", { sort: "-created_date", limit: 500 });
