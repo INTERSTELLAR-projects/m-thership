@@ -106,7 +106,7 @@ export function KpiTile({ label, value, display, sub, prev, goodWhen = "up", dec
       </div>
       <div className="mt-2 flex min-h-[16px] items-center gap-2">
         {delta != null && (
-          <span className={`inline-flex items-center gap-0.5 rounded-sm px-1.5 py-0.5 text-[10.5px] font-semibold tabular-nums ${flat ? (dark ? "bg-white/10 text-white/60" : "bg-ink/[0.06] text-ink/55") : good ? "bg-green-600/12 text-green-700" : "bg-[#ff3c00]/12 text-[#c24100]"}`}>
+          <span className={`inline-flex items-center gap-0.5 rounded-sm px-1.5 py-0.5 text-[10.5px] font-semibold tabular-nums ${flat ? (dark ? "bg-white/10 text-white/60" : "bg-ink/[0.06] text-ink/55") : good ? (dark ? "bg-emerald-400/12 text-emerald-300" : "bg-green-600/12 text-green-700") : (dark ? "bg-[#ff3c00]/15 text-[#ff8a5c]" : "bg-[#ff3c00]/12 text-[#c24100]")}`}>
             <Icon className="h-3 w-3" />{flat ? "0%" : `${delta > 0 ? "+" : ""}${Math.round(delta)}%`}
           </span>
         )}
