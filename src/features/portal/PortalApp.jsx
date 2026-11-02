@@ -17,11 +17,12 @@ import ClientHealthSummary from "@/features/performance/ClientHealthSummary";
 import RequestFormRenderer, { isComplete } from "@/features/requests/RequestFormRenderer";
 import { kindLabel, portalForms, priorityFor, toAnswers, titleFor, detailsFor, attachmentsFor } from "@/features/requests/formSchema";
 import { KitView } from "@/features/clients/BrandKitTab";
+import PortalPlaybook from "@/features/portal/PortalPlaybook";
 
 // Free-for-life bonus tools: tagged in the nav and listed together on Home.
 const BONUS_TABS = ["signatures", "qr"];
 
-const TABS = [["home", "Home"], ["results", "Results"], ["goals", "Goals"], ["files", "Files"], ["brand", "Brand kit"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["referrals", "Referrals"], ["messages", "Messages"]];
+const TABS = [["home", "Home"], ["results", "Results"], ["goals", "Goals"], ["files", "Files"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["referrals", "Referrals"], ["messages", "Messages"]];
 
 function usePortal(previewId) {
   const call = async (action, args = {}) => (await base44.functions.invoke("portal", { action, client_id: previewId, ...args })).data;
@@ -37,7 +38,7 @@ export default function PortalApp({ previewId }) {
   const refresh = () => qc.invalidateQueries({ queryKey: ["portal", previewId] });
   const d = home.data;
   // The Brand kit tab only exists when an approved, portal-visible kit does.
-  const tabs = TABS.filter(([k]) => k !== "brand" || d?.has_brand_kit);
+  const tabs = TABS.filter(([k]) => (k !== "brand" || d?.has_brand_kit) && (k !== "playbook" || d?.has_playbook));
 
   if (home.isLoading) return <Shell><p className="py-24 text-center text-ink/50">Loading your portal…</p></Shell>;
   if (home.isError || !d?.client) {
@@ -65,6 +66,7 @@ export default function PortalApp({ previewId }) {
           {tab === "goals" && <GoalsView d={d} />}
           {tab === "files" && (d.files.length ? <FileGrid files={d.files} /> : <Panel><Empty>Your brand kit, SOPs, presentations and other deliverables will appear here.</Empty></Panel>)}
           {tab === "brand" && d.has_brand_kit && <BrandKitView call={call} previewId={previewId} business={d.client.business} />}
+          {tab === "playbook" && d.has_playbook && <PortalPlaybook call={call} previewId={previewId} business={d.client.business} />}
           {tab === "requests" && <RequestsView d={d} call={call} refresh={refresh} previewId={previewId} />}
           {tab === "signatures" && (
             <div className="space-y-4">
