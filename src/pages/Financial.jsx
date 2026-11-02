@@ -11,10 +11,7 @@ import { getCurrentDueDate, getCycleKey, getStatus as expenseStatus, formatDueDa
 import GoalTab from "../components/financial/GoalTab";
 import InvestmentAdvisor from "../components/financial/InvestmentAdvisor";
 import useFinanceData from "../components/financial/finance/useFinanceData";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
@@ -149,44 +146,8 @@ export default function Financial() {
         ) : subPage === "advisor" ? (
           <InvestmentAdvisor data={financeData} />
         ) : subPage === "overview" ? (
-          <>
-            <div className="grid grid-cols-3 gap-4">
-              <SummaryCard icon={DollarSign} label="Total Monthly" value={`$${totalMonthly.toFixed(2)}`} />
-              <SummaryCard icon={TrendingUp} label="Total Annual" value={`$${totalAnnual.toFixed(2)}`} />
-              <SummaryCard icon={AlertCircle} label="Overdue / Unpaid" value={`${overdueCount} bills`} danger={overdueCount > 0} />
-            </div>
-            {upcoming.length > 0 && (
-              <div>
-                <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-3">Upcoming Expenses</h2>
-                <div className="grid grid-cols-2 gap-3">
-                  {upcoming.map((e) => (
-                    <div key={e.id} className={`bg-card rounded-md border p-4 flex items-center gap-4 ${e.status === "Overdue" ? "border-red-500/20" : "border-ink/[0.13]"}`}>
-                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/25 to-yellow-400/10 border border-orange-500/25 flex items-center justify-center text-orange-600 font-display font-extrabold text-xs shrink-0">{e.platform?.charAt(0)}</div>
-                      <div className="flex-1 min-w-0"><p className="text-ink/85 text-sm font-medium truncate">{e.platform}</p><p className="text-ink/[0.43] text-xs">{formatDueDate(e.dueDate)}</p></div>
-                      <div className="text-right shrink-0"><p className="text-sm font-display font-bold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">${e.amount.toFixed(2)}</p><StatusBadge status={e.status} /></div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mr-2">All Expenses</h2>
-                {["All", "Monthly", "Quarterly", "Annually"].map((f) => <FilterPill key={f} label={f} active={freqFilter === f} onClick={() => setFreqFilter(f)} />)}
-                <span className="text-ink/[0.28] mx-1">|</span>
-                {["All", "Upcoming", "Paid", "Overdue"].map((f) => <FilterPill key={f} label={f} active={statusFilter === f} onClick={() => setStatusFilter(f)} danger={f === "Overdue"} />)}
-              </div>
-              <AddExpenseDialog categories={categories} onAdd={async (form) => {
-                const created = await base44.entities.Expense.create({ ...form, paidCycles: [] });
-                setExpenses((prev) => [...prev, created]);
-              }} />
-            </div>
-            <div className="space-y-2">
-              {filtered.map((expense) => (
-                <ExpenseRow key={expense.id} expense={expense} isEditing={editingId === expense.id} editForm={editForm} setEditForm={setEditForm} onEdit={() => startEdit(expense)} onSave={saveEdit} onCancel={() => setEditingId(null)} onMarkPaid={() => markPaid(expense)} onDelete={() => deleteExpense(expense.id)} categories={categories} />
-              ))}
-            </div>
-          </>
+          <ExpensesTab expenses={expenses} categories={categories} now={now} finance={financeData}
+            onAdd={addExpense} onUpdate={updateExpense} onDelete={deleteExpense} onMarkPaid={markPaid} />
         ) : subPage === "projections" ? (
           <>
             <RevenueProjections />
@@ -333,68 +294,6 @@ function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave,
           <button onClick={onMarkPaid} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-ink/[0.04] text-ink/[0.48] border border-ink/[0.13] hover:bg-green-500/10 hover:text-green-600/80 hover:border-green-500/20 transition-all">Mark Paid</button>
         )}
       </div>
-    </div>
-  );
-}
-
-function AddExpenseDialog({ onAdd, categories }) {
-  categories = categories || DEFAULT_CATEGORIES;
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ platform: "", amount: "", frequency: "Monthly", category: "Operations", dueDay: "", dueMonth: "" });
-  const handleAdd = async () => {
-    if (!form.platform || !form.amount) return;
-    await onAdd({ ...form, amount: parseFloat(form.amount), dueDay: parseInt(form.dueDay) || 1, dueMonth: form.frequency === "Annually" ? (parseInt(form.dueMonth) || 1) : null });
-    setOpen(false);
-    setForm({ platform: "", amount: "", frequency: "Monthly", category: "Operations", dueDay: "", dueMonth: "" });
-  };
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold h-9 gap-2"><Plus className="w-4 h-4" />Add Expense</Button></DialogTrigger>
-      <DialogContent className="bg-card border-ink/[0.13] text-ink">
-        <DialogHeader><DialogTitle className="text-ink">Add New Expense</DialogTitle></DialogHeader>
-        <div className="space-y-4 pt-2">
-          <div><Label className="text-ink/50 text-xs">Platform</Label><Input value={form.platform} onChange={(e) => setForm({ ...form, platform: e.target.value })} className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1" /></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><Label className="text-ink/50 text-xs">Amount ($)</Label><Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1" /></div>
-            <div><Label className="text-ink/50 text-xs">Frequency</Label>
-              <Select value={form.frequency} onValueChange={(v) => setForm({ ...form, frequency: v })}>
-                <SelectTrigger className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-card border-ink/[0.13]">{FREQUENCIES.map((f) => <SelectItem key={f} value={f} className="text-ink/70">{f}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><Label className="text-ink/50 text-xs">Due Day (1-31)</Label><Input type="number" value={form.dueDay} onChange={(e) => setForm({ ...form, dueDay: e.target.value })} className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1" /></div>
-            {form.frequency === "Annually" && <div><Label className="text-ink/50 text-xs">Due Month (1-12)</Label><Input type="number" value={form.dueMonth} onChange={(e) => setForm({ ...form, dueMonth: e.target.value })} className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1" /></div>}
-          </div>
-          <div><Label className="text-ink/50 text-xs">Category</Label>
-            <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
-              <SelectTrigger className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1"><SelectValue /></SelectTrigger>
-              <SelectContent className="bg-card border-ink/[0.13]">{categories.map((c) => <SelectItem key={c} value={c} className="text-ink/70">{c}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <Button onClick={handleAdd} className="w-full bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold">Add Expense</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function StatusBadge({ status }) {
-  if (status === "Paid") return <span className="text-[10px] font-semibold text-green-600/60">Paid</span>;
-  if (status === "Overdue") return <span className="text-[10px] font-semibold text-red-600/70">Overdue</span>;
-  return <span className="text-[10px] font-semibold text-orange-600/80">Upcoming</span>;
-}
-
-function FilterPill({ label, active, onClick, danger }) {
-  return <button onClick={onClick} className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${active ? danger ? "bg-red-500/15 text-red-600 border border-red-500/20" : "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-600 border border-orange-500/30" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{label}</button>;
-}
-
-function SummaryCard({ icon: Icon, label, value, danger }) {
-  return (
-    <div className="game-panel p-5">
-      <div className="flex items-center gap-2 mb-3"><Icon className={`w-4 h-4 ${danger ? "text-red-600/60" : "text-ink/[0.43]"}`} /><span className="text-ink/[0.48] text-xs">{label}</span></div>
-      <p className={`text-xl font-bold ${danger ? "text-red-600/80" : "text-ink/80"}`}>{value}</p>
     </div>
   );
 }
