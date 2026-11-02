@@ -3,38 +3,120 @@
   "description": "A client's tailored request form (one per request type). Submissions land in ClientRequest.",
   "type": "object",
   "properties": {
-    "client_id": { "type": "string", "description": "CRMClient id" },
-    "client_name": { "type": "string" },
-    "kind": { "type": "string", "enum": ["site_edit", "project_submission", "job", "new_page", "question", "app_edit", "other"], "default": "project_submission" },
-    "title": { "type": "string" },
-    "intro": { "type": "string", "description": "Short line shown above the form" },
-    "industry": { "type": "string" },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "description": "Request type slug (REQUEST_TYPES in src/features/requests/formSchema.js)",
+      "default": "project_submission"
+    },
+    "title": {
+      "type": "string"
+    },
+    "intro": {
+      "type": "string",
+      "description": "Short line shown above the form"
+    },
+    "industry": {
+      "type": "string"
+    },
     "fields": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "label": { "type": "string" },
-          "type": { "type": "string", "enum": ["short_text", "long_text", "select", "multi_select", "date", "number", "email", "phone", "url", "checkbox", "photos", "files"] },
-          "required": { "type": "boolean" },
-          "options": { "type": "array", "items": { "type": "string" } },
-          "placeholder": { "type": "string" },
-          "help": { "type": "string" }
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "short_text",
+              "long_text",
+              "select",
+              "multi_select",
+              "date",
+              "number",
+              "email",
+              "phone",
+              "url",
+              "checkbox",
+              "photos",
+              "files"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "help": {
+            "type": "string"
+          }
         }
       }
     },
-    "claude_instructions": { "type": "string", "description": "How Claude should turn a submission into a post or change on the client's site" },
-    "publish_target": { "type": "string", "description": "Where the result goes, e.g. 'Projects page on palmshorehardscape.com'" },
-    "form_key": { "type": "string", "description": "Secret key used by the public submit endpoint" },
-    "active": { "type": "boolean", "default": true },
-    "submissions": { "type": "number", "default": 0 }
+    "claude_instructions": {
+      "type": "string",
+      "description": "How Claude should turn a submission into a post or change on the client's site"
+    },
+    "publish_target": {
+      "type": "string",
+      "description": "Where the result goes, e.g. 'Projects page on palmshorehardscape.com'"
+    },
+    "form_key": {
+      "type": "string",
+      "description": "Secret key used by the public submit endpoint"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "submissions": {
+      "type": "number",
+      "default": 0
+    }
   },
-  "required": ["client_id", "kind", "title"],
+  "required": [
+    "client_id",
+    "kind",
+    "title"
+  ],
   "rls": {
-    "create": { "user_condition": { "role": "admin" } },
-    "read": { "user_condition": { "role": "admin" } },
-    "update": { "user_condition": { "role": "admin" } },
-    "delete": { "user_condition": { "role": "admin" } }
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
   }
 }
