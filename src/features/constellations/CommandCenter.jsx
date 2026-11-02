@@ -157,7 +157,7 @@ export default function CommandCenter({ client, con, onOpenDeck }) {
       const faceYaw = sel ? -(ANGLE_OF[sel] ?? 0) : 0;
       const tYaw = faceYaw + v.mx * (sel ? 4 : 16);
       const tPitch = -v.my * (sel ? 2 : 7);
-      const tZ = sel ? 360 : v.zoom;
+      const tZ = sel ? 520 : v.zoom;
       const narrow = (root.current?.offsetWidth || 1200) < 900;
       const tTx = sel && !narrow ? -(root.current?.offsetWidth || 1200) * 0.12 : 0;
       const col = COLS.find((c) => c.ids.includes(sel));
