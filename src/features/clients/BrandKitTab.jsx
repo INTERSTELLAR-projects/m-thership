@@ -12,6 +12,7 @@ import { useJobs, useRefreshJobs, approveJob, requestChanges, chatPrompt, JOB_ST
 import { KIT_SECTIONS, brandKitBrief, gatherBrandInputs, isBrandKitJob, kitFromJob, queueBrandKit } from "@/features/claude/brandKit";
 import { brandKitDeckBrief } from "@/features/presentations/lib/deckFromDocs";
 import DeckFromDocButton from "@/features/presentations/DeckFromDocButton";
+import DictationBox from "@/features/voice/DictationBox";
 
 const asList = (v) => (Array.isArray(v) ? v : v ? [v] : []);
 const text = (v) => (typeof v === "string" || typeof v === "number" ? String(v) : "");
@@ -260,16 +261,13 @@ function GenerateDialog({ client, open, onClose, onQueued, revising }) {
               ))}
             </div>
           ) : null}
-          <label className="block">
-            <span className="mono-label text-[9.5px] text-ink/50">{revising ? "What should change from the current kit?" : "Direction for Claude (optional)"}</span>
-            <textarea
-              value={extra}
-              onChange={(e) => setExtra(e.target.value)}
-              rows={3}
-              placeholder="e.g. Keep the existing logo. Earthy, premium, calm. Avoid red."
-              className="mt-1.5 w-full rounded-sm border border-hair bg-card px-3 py-2 text-[13px] outline-none focus:border-[#ff3c00]"
-            />
-          </label>
+          <DictationBox
+            label={revising ? "What should change from the current kit?" : "Direction for Claude (optional) — type or dictate"}
+            value={extra}
+            onChange={setExtra}
+            rows={3}
+            placeholder="e.g. Keep the existing logo. Earthy, premium, calm. Avoid red."
+          />
           {brief && (
             <details>
               <summary className="mono-label cursor-pointer text-[9.5px] text-ink/50 hover:text-[#ff3c00]">Show full brief</summary>
