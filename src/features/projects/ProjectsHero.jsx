@@ -123,7 +123,7 @@ export default function ProjectsHero({ projects, taskTime, counts, doneCounts, t
       {/* Headline metrics */}
       <div className="overflow-hidden rounded-md border border-hair bg-card">
         <div className="flame-bg h-[3px] w-full" />
-        <div className="grid grid-cols-2 divide-hair md:grid-cols-4 xl:grid-cols-7 [&>*]:border-b [&>*]:border-r">
+        <div className="-mr-px grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 [&>*]:border-b [&>*]:border-r">
           <Metric label="Total projects" value={m.count} sub={m.pipeline ? m.pipeline + " in pipeline" : "Nothing proposed yet"} accent />
           <Metric label="Active" value={m.active} sub="Planning · in flight · review" />
           <Metric label="Launched / closed" value={m.shipped} sub={pct(m.shipped, m.count) + "% of portfolio"} />
