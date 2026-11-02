@@ -1,0 +1,83 @@
+{
+  "name": "PrestigeReward",
+  "type": "object",
+  "properties": {
+    "memberId": {
+      "type": "string"
+    },
+    "memberName": {
+      "type": "string"
+    },
+    "referralId": {
+      "type": "string",
+      "description": "Referral that earned it (booked / signed rewards)"
+    },
+    "referredClientName": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "booked",
+        "signed",
+        "tier"
+      ]
+    },
+    "tier_index": {
+      "type": "number",
+      "description": "1-based tier index for tier unlock rewards"
+    },
+    "title": {
+      "type": "string"
+    },
+    "value": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "owed",
+        "delivered",
+        "void"
+      ],
+      "default": "owed"
+    },
+    "earned_at": {
+      "type": "string"
+    },
+    "delivered_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "memberId",
+    "kind",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
