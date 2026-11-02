@@ -1,7 +1,62 @@
 export const SLIDE_W = 1280;
 export const SLIDE_H = 720;
 
+// Interstellar Strategies brand gradient: #ff3c00 → #ff6a00 → #ffaa00 (deep → mid → light orange). Never gold.
+const INTERSTELLAR_GRADIENT = 'linear-gradient(90deg, #ff3c00 0%, #ff6a00 55%, #ffaa00 100%)';
+
 export const SLIDE_THEMES = [
+  {
+    id: 'interstellar',
+    name: 'Interstellar',
+    dark: false,
+    bg: '#F7F4EF',
+    bgGradient:
+      'radial-gradient(closest-side at 100% 100%, rgba(255,106,0,0.16), rgba(255,106,0,0) 72%), #F7F4EF',
+    fg: '#1A1A1A',
+    muted: 'rgba(26,26,26,0.66)',
+    faint: 'rgba(26,26,26,0.38)',
+    accent: '#FF3C00',
+    accentGradient: INTERSTELLAR_GRADIENT,
+    accentInk: '#FFFFFF',
+    accentSoft: 'rgba(255,60,0,0.10)',
+    panel: 'rgba(255,255,255,0.78)',
+    border: 'rgba(26,26,26,0.14)',
+    hairline: 'rgba(26,26,26,0.10)',
+    headingFont: "'Manrope', sans-serif",
+    bodyFont: "'Manrope', sans-serif",
+    monoFont: "'JetBrains Mono', monospace",
+    displayFont: "'Manrope', sans-serif",
+    headingWeight: 600,
+    eyebrowColor: '#FF6A00',
+    radius: 6,
+    swatch: ['#F7F4EF', '#FF3C00', '#FFAA00']
+  },
+  {
+    id: 'interstellar-dark',
+    name: 'Interstellar Dark',
+    dark: true,
+    bg: '#121212',
+    bgGradient:
+      'radial-gradient(closest-side at 100% 100%, rgba(255,60,0,0.26), rgba(255,60,0,0) 70%), #121212',
+    fg: '#F7F4EF',
+    muted: 'rgba(247,244,239,0.68)',
+    faint: 'rgba(247,244,239,0.38)',
+    accent: '#FF6A00',
+    accentGradient: INTERSTELLAR_GRADIENT,
+    accentInk: '#FFFFFF',
+    accentSoft: 'rgba(255,106,0,0.18)',
+    panel: 'rgba(255,255,255,0.06)',
+    border: 'rgba(255,255,255,0.16)',
+    hairline: 'rgba(255,255,255,0.12)',
+    headingFont: "'Manrope', sans-serif",
+    bodyFont: "'Manrope', sans-serif",
+    monoFont: "'JetBrains Mono', monospace",
+    displayFont: "'Manrope', sans-serif",
+    headingWeight: 600,
+    eyebrowColor: '#FFAA00',
+    radius: 6,
+    swatch: ['#121212', '#FF6A00', '#FFAA00']
+  },
   {
     id: 'signal',
     name: 'Signal',
@@ -187,15 +242,18 @@ export const SLIDE_THEMES = [
 ];
 
 export const SLIDE_LAYOUTS = [
-  { id: 'cover', label: 'Cover' },
-  { id: 'list', label: 'Numbered list' },
+  { id: 'cover', label: 'Title / cover' },
+  { id: 'section', label: 'Section divider' },
   { id: 'bullets', label: 'Bullets' },
-  { id: 'split', label: 'Text + image' },
+  { id: 'list', label: 'Numbered list' },
+  { id: 'compare', label: 'Two columns' },
+  { id: 'split', label: 'Image + text' },
   { id: 'image', label: 'Full image' },
   { id: 'stats', label: 'Key figures' },
+  { id: 'bigstat', label: 'Big stat' },
   { id: 'quote', label: 'Quote' },
-  { id: 'compare', label: 'Two columns' },
   { id: 'timeline', label: 'Timeline' },
+  { id: 'pricing', label: 'Pricing / offer' },
   { id: 'closing', label: 'Closing' }
 ];
 
@@ -315,7 +373,8 @@ export function blankSlide(layout = 'bullets') {
     subtitle: '',
     body: '',
     bullets: layout === 'bullets' || layout === 'split' || layout === 'list' ? [''] : [],
-    stats: layout === 'stats' ? [{ value: '', label: '' }] : [],
+    stats: layout === 'stats' || layout === 'bigstat' ? [{ value: '', label: '' }] : [],
+    offers: layout === 'pricing' ? [{ name: '', price: '', period: '', description: '', features: [], highlighted: true }] : [],
     steps: layout === 'timeline' ? [{ label: '', text: '' }] : [],
     columns: layout === 'compare' ? [{ heading: '', text: '' }, { heading: '', text: '' }] : [],
     attribution: '',
