@@ -132,15 +132,30 @@ export function useSignatureAssets(specMap, saved, onSaved) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keys]);
 
-  const get = (key, final = false) => {
+  const lastBySlot = useRef({});
+
+  // final=true: hosted URL only (for copying). Preview: prefer the local blob even after upload,
+  // so the preview HTML never swaps image URLs (which would restart every animation), and keep
+  // showing the previous image for the same slot while a changed one re-renders.
+  const get = (key, final = false, slot = null) => {
     const s = saved?.[key];
-    if (s?.url) return { url: s.url, width: s.w, height: s.h };
     const e = mem.get(key);
-    if (!e) return null;
-    if (e.status === "failed") return { failed: true };
-    if (e.url) return { url: e.url, width: e.width, height: e.height };
-    if (!final && e.local) return { url: e.local, width: e.width, height: e.height };
-    return null;
+    if (final) {
+      if (s?.url) return { url: s.url, width: s.w, height: s.h };
+      if (e?.status === "failed") return { failed: true };
+      if (e?.url) return { url: e.url, width: e.width, height: e.height };
+      return null;
+    }
+    let r = null;
+    if (e?.local) r = { url: e.local, width: e.width, height: e.height };
+    else if (s?.url) r = { url: s.url, width: s.w, height: s.h };
+    else if (e?.url) r = { url: e.url, width: e.width, height: e.height };
+    else if (e?.status === "failed") r = { failed: true };
+    if (slot) {
+      if (r && !r.failed) lastBySlot.current[slot] = r;
+      else if (!r && lastBySlot.current[slot]) return lastBySlot.current[slot];
+    }
+    return r;
   };
 
   const pending = Object.keys(specMap).filter((k) => get(k, true) === null).length;
