@@ -55,6 +55,8 @@ export default function SignatureEditor({ store, mode = "signature", id, start =
   // ---- load existing / start new from the default (or chosen) template ----
   useEffect(() => {
     let cancelled = false;
+    // Just-created record whose id was pushed into the URL: nothing to reload.
+    if (id && recRef.current?.id === id) return undefined;
     (async () => {
       try {
         if (id) {
