@@ -1,8 +1,9 @@
 // Shared rules for site performance: who may be audited automatically, how scores are banded,
 // and what a client is allowed to see. Scores only ever come from a real SiteAudit record.
 
-// Sites still on Framer get no automatic audits (PowerLift until it moves to Base44).
-export const AUTO_AUDIT_BLOCKED = [/power\s*lift/i];
+// Sites that aren't live yet get no automatic audits (Nov 2, 2026: Bobablastic Molalla and The Bulba Bros,
+// until their new sites launch). Every other client is audited, whatever platform the live site is on.
+export const AUTO_AUDIT_BLOCKED = [/boba\s*blastic/i, /bulba\s*bros/i];
 export const isAutoAuditBlocked = (client) => AUTO_AUDIT_BLOCKED.some((re) => re.test(String(client?.business || "")));
 
 // Clients never see a number below this; they see progress and fixes instead.
