@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import TaskRail from "@/features/tasks/components/TaskRail";
+import { settleTimer } from "@/features/tasks/lib/timer";
 
 // Mission Control: Focus now + Next up from the task engine.
 export default function FocusWidget() {
@@ -17,6 +18,7 @@ export default function FocusWidget() {
     },
   });
   const complete = async (task) => {
+    await settleTimer(task);
     await base44.entities.Task.update(task.id, { status: "done", completed_at: new Date().toISOString(), is_focus: false });
     qc.invalidateQueries({ queryKey: ["Task"] });
   };

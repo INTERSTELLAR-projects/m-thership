@@ -11,6 +11,7 @@ import TaskFormDialog from "@/features/tasks/components/TaskFormDialog";
 import ProjectFormDialog from "@/features/tasks/components/ProjectFormDialog";
 import ApplyTemplateDialog from "@/features/tasks/components/ApplyTemplateDialog";
 import { projectStatusMeta, projectTypeMeta, statusPatch } from "@/features/tasks/lib/constants";
+import { settleTimer } from "@/features/tasks/lib/timer";
 import { moneyFull, percent, hours as hoursLabel, longDate } from "@/features/tasks/lib/format";
 import { fmtMinutes, itemMinutes } from "@/features/tasks/lib/estimate";
 import { applySop } from "@/features/tasks/lib/applySop";
@@ -74,6 +75,7 @@ export default function ProjectDetail() {
     const patch = statusPatch(task.status === "done" ? "next" : "done");
     const rows = tasks.map((row) => (row.id === task.id ? { ...row, ...patch } : row));
     setTasks(rows);
+    if (patch.status === "done") await settleTimer(task);
     await base44.entities.Task.update(task.id, patch);
     syncProgress(rows);
   };

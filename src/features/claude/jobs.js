@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { auditInstructions, buildInstructions as buildBrief } from "./briefs";
+import { settleTimer } from "@/features/tasks/lib/timer";
 
 export const JOB_STATUS = {
   queued: { label: "Queued", tone: "bg-ink/[0.07] text-ink/70" },
@@ -189,6 +190,7 @@ export async function approveJob(job) {
     });
   }
   if (job.task_id && job.complete_task_on_approve !== false) {
+    await settleTimer(job.task_id);
     await base44.entities.Task.update(job.task_id, { status: "done", completed_at: now }).catch(() => null);
   }
   await base44.entities.AutomationRun.create({

@@ -88,3 +88,20 @@ export async function stopTimer(task) {
   announce({ running: null, stopped: [task.id] });
   return next;
 }
+
+// Call before marking a task done (or deleting it): if its clock is running, the run is
+// closed out first so the time lands in TimeEntry, the task and its project instead of
+// being lost. Reads the task fresh, because list rows can be stale.
+export async function settleTimer(taskOrId) {
+  try {
+    const id = typeof taskOrId === "string" ? taskOrId : taskOrId && taskOrId.id;
+    if (!id) return null;
+    const fresh = await base44.entities.Task.get(id);
+    if (!fresh || !fresh.timer_started_at) return fresh;
+    const next = await closeRun(fresh);
+    announce({ running: null, stopped: [id] });
+    return next;
+  } catch {
+    return null;
+  }
+}

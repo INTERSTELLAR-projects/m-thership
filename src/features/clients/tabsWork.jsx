@@ -4,6 +4,7 @@ import { Plus, ArrowUpRight, CheckCircle2, XCircle, Pencil, ExternalLink, Play }
 import { useClientRecords } from "./hooks";
 import { Panel, Empty, Btn, SmallBtn, Tag, Stat, FormDialog } from "./ui";
 import { WORK_KINDS, SERVICE_LABELS, fmtDate, timeAgo } from "@/lib/useData";
+import { settleTimer } from "@/features/tasks/lib/timer";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const kindOptions = Object.entries(WORK_KINDS).filter(([value]) => value !== "claude_job").map(([value, label]) => ({ value, label }));
@@ -222,9 +223,13 @@ export function TasksTab({ client }) {
   ];
   const save = (v) => {
     const data = { ...v, priority: v.priority ? Number(v.priority) : 3, completed_at: v.status === "done" ? new Date().toISOString() : null };
+    if (edit?.id && v.status === "done" && edit.status !== "done") return settleTimer(edit).then(() => tasks.update(edit.id, data));
     return edit?.id ? tasks.update(edit.id, data) : tasks.create({ ...data, client_name: client.business, source: "manual" });
   };
-  const toggle = (t) => tasks.update(t.id, { status: t.status === "done" ? "next" : "done", completed_at: t.status === "done" ? null : new Date().toISOString() });
+  const toggle = async (t) => {
+    if (t.status !== "done") await settleTimer(t);
+    return tasks.update(t.id, { status: t.status === "done" ? "next" : "done", completed_at: t.status === "done" ? null : new Date().toISOString() });
+  };
 
   return (
     <div className="space-y-4">

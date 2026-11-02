@@ -11,6 +11,7 @@ import AssistantDock from "@/features/tasks/assistant/AssistantDock";
 import { AssistantProvider, useAssistant } from "@/features/tasks/assistant/AssistantContext";
 import RollButton from "@/features/tasks/ui-kit/RollButton";
 import { statusPatch } from "@/features/tasks/lib/constants";
+import { settleTimer } from "@/features/tasks/lib/timer";
 import { fetchClients, itemsOf, TASKS_CHANGED } from "@/features/tasks/lib/clients";
 import { btnGhost } from "@/features/tasks/lib/ui";
 
@@ -103,6 +104,7 @@ function TaskBoardInner({ withDock = false }) {
 
   const updateTask = async (task, patch) => {
     patchLocal(task.id, patch);
+    if (patch.status === "done") await settleTimer(task);
     try {
       await base44.entities.Task.update(task.id, patch);
     } catch (error) {
@@ -116,6 +118,7 @@ function TaskBoardInner({ withDock = false }) {
     setFocus((prev) => prev.filter((row) => row.id !== task.id));
     setNext((prev) => prev.filter((row) => row.id !== task.id));
     setTotal((prev) => Math.max(0, prev - 1));
+    await settleTimer(task);
     await base44.entities.Task.delete(task.id);
   };
 
@@ -124,6 +127,7 @@ function TaskBoardInner({ withDock = false }) {
     setFocus((prev) => prev.filter((row) => row.id !== task.id));
     setNext((prev) => prev.filter((row) => row.id !== task.id));
     setTasks((prev) => prev.map((row) => (row.id === task.id ? { ...row, ...patch } : row)));
+    await settleTimer(task);
     await base44.entities.Task.update(task.id, patch);
   };
 

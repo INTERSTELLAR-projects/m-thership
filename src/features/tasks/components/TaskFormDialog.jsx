@@ -8,6 +8,7 @@ import Field from "@/features/tasks/ui-kit/Field";
 import RollButton from "@/features/tasks/ui-kit/RollButton";
 import { CATEGORIES, PRIORITIES, TASK_STATUSES, TASK_TYPES } from "@/features/tasks/lib/constants";
 import {
+import { settleTimer } from "@/features/tasks/lib/timer";
   btnDanger,
   btnGhost,
   dialogClass,
@@ -96,7 +97,10 @@ export default function TaskFormDialog({ open, onOpenChange, projects = [], clie
       parent_task_id: form.parent_task_id || null
     };
     const wasDone = initial && initial.status === "done";
-    if (form.status === "done" && !wasDone) payload.completed_at = new Date().toISOString();
+    if (form.status === "done" && !wasDone) {
+      payload.completed_at = new Date().toISOString();
+      if (initial && initial.id) await settleTimer(initial);
+    }
     if (form.status !== "done" && wasDone) payload.completed_at = null;
     try {
       if (initial && initial.id) await base44.entities.Task.update(initial.id, payload);
