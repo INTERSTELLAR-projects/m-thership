@@ -73,7 +73,8 @@ Deno.serve(async (req) => {
     // The platform proxy replaces user-agent with "Base44-Backend" and forwards the visitor's in x-base44-caller-user-agent.
     const ua = req.headers.get("x-base44-caller-user-agent") || req.headers.get("user-agent") || "";
     const prefetch = /prefetch|prerender/i.test(`${req.headers.get("purpose") || ""} ${req.headers.get("sec-purpose") || ""}`);
-    if (req.method === "GET" && !prefetch && !BOT_RE.test(ua)) {
+    const verifiedBot = /^(1|true|yes)$/i.test(req.headers.get("x-render-verified-bot") || "");
+    if (req.method === "GET" && !prefetch && !verifiedBot && ua && !BOT_RE.test(ua)) {
       const { device, os } = classify(ua);
       const at = new Date().toISOString();
       const country = (req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || req.headers.get("x-country-code") || "").toUpperCase();
