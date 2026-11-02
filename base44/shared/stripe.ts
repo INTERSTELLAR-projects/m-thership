@@ -133,6 +133,7 @@ export async function loadPicture(base44: any, key: string) {
       status: s.status,
       started: s.start_date ? new Date(s.start_date * 1000).toISOString().slice(0, 10) : null,
       current_period_end: s.current_period_end ? new Date(s.current_period_end * 1000).toISOString().slice(0, 10) : null,
+      ended: s.ended_at ? new Date(s.ended_at * 1000).toISOString().slice(0, 10) : (s.canceled_at && s.status === "canceled" ? new Date(s.canceled_at * 1000).toISOString().slice(0, 10) : null),
       cancel_at_period_end: Boolean(s.cancel_at_period_end),
       customer: { id: cust.id, name: cust.name || cust.description || null, email: cust.email || null },
       client: client ? { id: client.id, business: client.business } : null,
