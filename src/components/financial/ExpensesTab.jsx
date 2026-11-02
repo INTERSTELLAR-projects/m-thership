@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { AlertTriangle, CalendarClock, CalendarDays, Check, Crown, Edit, Flame, Layers, Loader2, Percent, PieChart as PieIcon, Plus, Receipt, Search, Sparkles, Trash2, TrendingUp, X } from "lucide-react";
+import { AlertTriangle, CalendarClock, Check, Crown, Edit, Flame, Layers, Loader2, Percent, PieChart as PieIcon, Plus, Receipt, Search, Sparkles, Trash2, TrendingUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -638,7 +638,7 @@ function ExpenseFormDialog({ open, onOpenChange, initial, categories, onSubmit }
   );
 }
 
-// Re-exported so the legend matches the Dashboard.
+// Same legend style as the Dashboard.
 function ChartLegend({ items }) {
   return (
     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
@@ -648,5 +648,3 @@ function ChartLegend({ items }) {
     </div>
   );
 }
-
-export { CalendarDays };
