@@ -1,0 +1,156 @@
+{
+  "name": "QrCode",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "default": "Untitled QR code"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient this code belongs to (empty = Interstellar internal). Portal users only ever see their own client's codes."
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "folder": {
+      "type": "string",
+      "description": "Project folder used to organize codes inside a client"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "static",
+        "dynamic"
+      ],
+      "default": "dynamic",
+      "description": "static = data in the image; dynamic = image holds the M\u00f8thership short link, destination is editable and scans are counted"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "link",
+        "text",
+        "email",
+        "phone",
+        "sms",
+        "wifi",
+        "whatsapp"
+      ],
+      "default": "link"
+    },
+    "destination": {
+      "type": "string",
+      "description": "Dynamic codes: where the short link redirects (http/https only)"
+    },
+    "url": {
+      "type": "string"
+    },
+    "text": {
+      "type": "string"
+    },
+    "email_to": {
+      "type": "string"
+    },
+    "email_subject": {
+      "type": "string"
+    },
+    "email_body": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "sms_body": {
+      "type": "string"
+    },
+    "wifi_ssid": {
+      "type": "string"
+    },
+    "wifi_password": {
+      "type": "string"
+    },
+    "wifi_encryption": {
+      "type": "string",
+      "enum": [
+        "WPA",
+        "WEP",
+        "nopass"
+      ],
+      "default": "WPA"
+    },
+    "wifi_hidden": {
+      "type": "boolean",
+      "default": false
+    },
+    "whatsapp_number": {
+      "type": "string"
+    },
+    "whatsapp_message": {
+      "type": "string"
+    },
+    "style": {
+      "type": "object",
+      "additionalProperties": true,
+      "default": {},
+      "description": "Design: dot/corner shapes, colours, gradient, frame + CTA text, logo"
+    },
+    "short_code": {
+      "type": "string",
+      "description": "Permanent short code for dynamic codes. Never changes once minted (it is printed)."
+    },
+    "encoded_url": {
+      "type": "string",
+      "description": "Exact redirect URL drawn into the image when the short code was minted"
+    },
+    "scans": {
+      "type": "number",
+      "default": 0
+    },
+    "last_scan_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "false = paused: the redirect shows a paused page instead of forwarding"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "portal"
+      ],
+      "default": "admin"
+    },
+    "created_by_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
