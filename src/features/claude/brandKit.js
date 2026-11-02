@@ -123,7 +123,8 @@ export async function gatherBrandInputs(client) {
 export function brandKitBrief(client, { intake, requests, dossier, files, current, extra = "" } = {}) {
   return `# Generate brand kit: ${client.business}
 
-Build a complete, client-ready brand kit for ${client.business}. Mirror the structure of our reference kits (the "Soft River" format): brand overview, logo usage, color palette with hex codes, typography, voice & tone, taglines & messaging, imagery, applications, and do / don't rules. It must be specific to this business — no generic filler.
+Build a complete, client-ready brand kit for ${client.business}: brand overview, logo usage, color palette with hex codes, typography, voice & tone, taglines & messaging, imagery, applications, and do / don't rules. It must be specific to this business — no generic filler.
+Reference format: Justin's "Soft River" brand kit. If you can reach it (search Google Drive for "Soft River"), mirror its section order, depth and presentation; otherwise follow the structure below.
 
 ## Client
 ${clientBlock(client)}
