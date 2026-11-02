@@ -66,6 +66,36 @@
       "type": "string",
       "description": "Audience the deck is written for"
     },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient the deck is for (optional)"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "brief": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "The generation brief: topic, audience, goals, slide count, tone, look, extra"
+    },
+    "claude_job_id": {
+      "type": "string",
+      "description": "ClaudeJob building this deck (Claude Queue)"
+    },
+    "generation_status": {
+      "type": "string",
+      "enum": [
+        "none",
+        "waiting_claude",
+        "ready"
+      ],
+      "default": "none",
+      "description": "waiting_claude while a Claude Queue job is building it"
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "chat, quick_draft or claude_queue"
+    },
     "slides": {
       "type": "array",
       "description": "Ordered slides in the deck",
@@ -134,6 +164,36 @@
                 },
                 "text": {
                   "type": "string"
+                }
+              }
+            }
+          },
+          "offers": {
+            "type": "array",
+            "description": "Pricing / offer cards",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "price": {
+                  "type": "string"
+                },
+                "period": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "features": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "highlighted": {
+                  "type": "boolean"
                 }
               }
             }
