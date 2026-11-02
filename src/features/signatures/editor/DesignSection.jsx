@@ -61,7 +61,6 @@ export default function DesignSection({ theme, onTheme, fields }) {
         <div className="mt-1">
           <ChoiceGrid value={theme.icon_layout} options={ICON_LAYOUTS} onChange={(id) => set({ icon_layout: id })} />
         </div>
-        <p className="text-[11px] text-muted-foreground mt-1">The Signature template always stacks icons in its side rail.</p>
       </div>
 
       <div>
