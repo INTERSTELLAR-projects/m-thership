@@ -305,8 +305,10 @@ export function RequestsTab({ client }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <Tag tone={r.status === "received" ? "flame" : r.status === "complete" ? "green" : r.status === "needs_info" ? "amber" : "muted"}>{r.status.replace("_", " ")}</Tag>
-                    <span className="mono-label text-[9px] text-ink/45">{r.kind.replace("_", " ")}</span>
+                    <span className="mono-label text-[9px] text-ink/45">{kindLabel(r.kind)}</span>
                     {r.priority === "urgent" && <Tag tone="red">Urgent</Tag>}
+                    {r.priority === "high" && <Tag tone="amber">High</Tag>}
+                    {r.due_date && <span className="text-[10.5px] text-ink/50">due {fmtDate(r.due_date)}</span>}
                     {r.page_status && r.page_status !== "none" && <Tag tone="ink">Page: {r.page_status}</Tag>}
                   </div>
                   <p className="mt-1 text-[13.5px] font-medium">{r.title}</p>
