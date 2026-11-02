@@ -436,7 +436,7 @@ function actionRow(c, { center = false, mt = 14 } = {}) {
   // comfortable 18px gap, and the button settles lower in the card.
   const parts = [];
   if (social) parts.push(`<div style="display:inline-block;vertical-align:middle;margin:10px ${center ? 0 : 18}px 8px 0;">${social}</div>`);
-  if (cta) parts.push(`<div style="display:inline-block;vertical-align:middle;margin:10px 0 2px 0;">${cta}</div>`);
+  if (cta) parts.push(`<div style="display:inline-block;vertical-align:middle;margin:10px 0 8px 0;">${cta}</div>`);
   const top = Math.max(0, mt - 10);
   if (center) return `<div style="text-align:center;margin-top:${top}px;">${parts.join("<br />")}</div>`;
   return `<div style="margin-top:${top}px;">${parts.join("")}</div>`;
