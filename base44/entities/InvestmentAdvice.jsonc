@@ -1,0 +1,140 @@
+{
+  "name": "InvestmentAdvice",
+  "description": "One recommendation from the Financial > Advisor. Justin's feedback (status + note) and the snapshot at generation time are fed back into the next generation so the advisor adapts. Advisory only: never executes trades or moves money.",
+  "type": "object",
+  "properties": {
+    "batch_id": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "trigger": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "scheduled"
+      ],
+      "default": "manual"
+    },
+    "title": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "business",
+        "personal"
+      ],
+      "default": "business"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "hire",
+        "ads",
+        "tools",
+        "productized_offer",
+        "systems",
+        "sales",
+        "training",
+        "personal_general",
+        "other"
+      ],
+      "default": "other"
+    },
+    "rationale": {
+      "type": "string"
+    },
+    "first_step": {
+      "type": "string"
+    },
+    "est_cost": {
+      "type": "number",
+      "description": "Estimate, USD"
+    },
+    "cost_type": {
+      "type": "string",
+      "enum": [
+        "one_time",
+        "monthly",
+        "time_only"
+      ],
+      "default": "one_time"
+    },
+    "hours_per_week": {
+      "type": "number"
+    },
+    "est_monthly_impact": {
+      "type": "number",
+      "description": "Estimated added MRR / monthly revenue, USD"
+    },
+    "payback_months": {
+      "type": "number"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "priority": {
+      "type": "number",
+      "default": 3
+    },
+    "learning_summary": {
+      "type": "string",
+      "description": "What the advisor says it learned from prior feedback (same on every record of a batch)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "accepted",
+        "rejected",
+        "done"
+      ],
+      "default": "new"
+    },
+    "feedback_note": {
+      "type": "string"
+    },
+    "feedback_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
