@@ -2,29 +2,23 @@ import React, { useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Upload, Trash2, ImageIcon } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { SOCIAL_PLATFORMS, ICON_STYLES, CTA_STYLES } from "@/features/signatures/lib/iconLibrary";
+import { SOCIAL_PLATFORMS } from "@/features/signatures/lib/iconLibrary";
+import { Section, ToggleRow, ChoiceGrid } from "./Controls";
+import DesignSection from "./DesignSection";
+import CtaSection from "./CtaSection";
+import ThemeSection from "./ThemeSection";
 
-function Section({ title, children }) {
-  return (
-    <div className="border-b border-border pb-5 mb-5 last:border-0 last:mb-0">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">{title}</h3>
-      <div className="space-y-3">{children}</div>
-    </div>
-  );
-}
-
-function ToggleRow({ label, checked, onChange, children }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="text-sm">{label}</span>
-      <Switch checked={checked} onCheckedChange={onChange} />
-      {children}
-    </div>
-  );
-}
+const SIDES = [
+  { id: "left", label: "Left" },
+  { id: "right", label: "Right" },
+];
+const SIZES = [
+  { id: "sm", label: "Small" },
+  { id: "md", label: "Medium" },
+  { id: "lg", label: "Large" },
+];
 
 export default function SignatureForm({ fields, theme, onFields, onTheme, onUpload }) {
   const photoRef = useRef(null);
@@ -33,7 +27,6 @@ export default function SignatureForm({ fields, theme, onFields, onTheme, onUplo
   const setF = (patch) => onFields({ ...fields, ...patch });
   const setSocial = (id, patch) =>
     onFields({ ...fields, social: { ...fields.social, [id]: { ...fields.social[id], ...patch } } });
-  const setCta = (patch) => onFields({ ...fields, cta: { ...fields.cta, ...patch } });
 
   const handleFile = async (e, type) => {
     const file = e.target.files?.[0];
@@ -50,30 +43,30 @@ export default function SignatureForm({ fields, theme, onFields, onTheme, onUplo
       <Section title="Identity">
         <div>
           <Label className="text-xs">Full name</Label>
-          <Input value={fields.full_name} onChange={(e) => setF({ full_name: e.target.value })} className="h-10" />
+          <Input value={fields.full_name} onChange={(e) => setF({ full_name: e.target.value })} className="h-10 mt-1" />
         </div>
         <div>
           <Label className="text-xs">Job title</Label>
-          <Input value={fields.job_title} onChange={(e) => setF({ job_title: e.target.value })} className="h-10" />
+          <Input value={fields.job_title} onChange={(e) => setF({ job_title: e.target.value })} className="h-10 mt-1" />
         </div>
         <div>
           <Label className="text-xs">Company name</Label>
-          <Input value={fields.company_name} onChange={(e) => setF({ company_name: e.target.value })} className="h-10" />
+          <Input value={fields.company_name} onChange={(e) => setF({ company_name: e.target.value })} className="h-10 mt-1" />
         </div>
       </Section>
 
       <Section title="Contact">
         <ToggleRow label="Phone" checked={fields.phone_show} onChange={(v) => setF({ phone_show: v })} />
         {fields.phone_show && (
-          <Input value={fields.phone} onChange={(e) => setF({ phone: e.target.value })} className="h-10" placeholder="+1 (555) 555-0100" />
+          <Input value={fields.phone} onChange={(e) => setF({ phone: e.target.value })} className="h-9" placeholder="+1 (555) 555-0100" />
         )}
         <ToggleRow label="Email" checked={fields.email_show} onChange={(v) => setF({ email_show: v })} />
         {fields.email_show && (
-          <Input value={fields.email} onChange={(e) => setF({ email: e.target.value })} className="h-10" placeholder="you@company.com" />
+          <Input value={fields.email} onChange={(e) => setF({ email: e.target.value })} className="h-9" placeholder="you@company.com" />
         )}
         <ToggleRow label="Website" checked={fields.website_show} onChange={(v) => setF({ website_show: v })} />
         {fields.website_show && (
-          <Input value={fields.website} onChange={(e) => setF({ website: e.target.value })} className="h-10" placeholder="company.com" />
+          <Input value={fields.website} onChange={(e) => setF({ website: e.target.value })} className="h-9" placeholder="company.com" />
         )}
       </Section>
 
@@ -96,7 +89,19 @@ export default function SignatureForm({ fields, theme, onFields, onTheme, onUplo
             </Button>
           )}
         </div>
-        <ToggleRow label="Rounded corners" checked={fields.photo_rounded} onChange={(v) => setF({ photo_rounded: v })} />
+        <div>
+          <span className="text-xs text-muted-foreground">Photo side</span>
+          <div className="mt-1">
+            <ChoiceGrid value={fields.photo_side} options={SIDES} onChange={(id) => setF({ photo_side: id })} cols={2} />
+          </div>
+        </div>
+        <div>
+          <span className="text-xs text-muted-foreground">Photo size</span>
+          <div className="mt-1">
+            <ChoiceGrid value={fields.photo_size} options={SIZES} onChange={(id) => setF({ photo_size: id })} />
+          </div>
+        </div>
+        <ToggleRow label="Circular crop" checked={fields.photo_rounded} onChange={(v) => setF({ photo_rounded: v })} />
       </Section>
 
       <Section title="Company logo">
@@ -120,152 +125,25 @@ export default function SignatureForm({ fields, theme, onFields, onTheme, onUplo
         </div>
       </Section>
 
-      <Section title="Social links">
-        <div className="text-xs text-muted-foreground -mt-1 mb-1">Toggle the networks to show in your signature.</div>
+      <Section title="Social links" hint="Toggle the networks to show, then paste each link.">
         {SOCIAL_PLATFORMS.map((p) => (
           <div key={p.id}>
-            <ToggleRow
-              label={p.label}
-              checked={fields.social[p.id]?.show}
-              onChange={(v) => setSocial(p.id, { show: v })}
-            />
+            <ToggleRow label={p.label} checked={fields.social[p.id]?.show} onChange={(v) => setSocial(p.id, { show: v })} />
             {fields.social[p.id]?.show && (
               <Input
                 value={fields.social[p.id]?.url || ""}
                 onChange={(e) => setSocial(p.id, { url: e.target.value })}
                 className="h-9 mt-2"
-                placeholder={`https://${p.id}.com/yourhandle`}
+                placeholder={`https://${p.id === "x" ? "x" : p.id}.com/yourhandle`}
               />
             )}
           </div>
         ))}
-        <div>
-          <Label className="text-xs">Icon style</Label>
-          <div className="grid grid-cols-3 gap-2 mt-1">
-            {ICON_STYLES.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => onTheme({ ...theme, icon_style: s.id })}
-                className={`text-xs rounded-none border px-2 py-2 text-center transition ${
-                  theme.icon_style === s.id ? "border-[#ff3c00] bg-[#fff1ea] text-[#ff6a00]" : "border-border hover:bg-muted"
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
       </Section>
 
-      <Section title="Verified badge">
-        <ToggleRow
-          label="Show verified checkmark next to name"
-          checked={fields.verified_badge}
-          onChange={(v) => setF({ verified_badge: v })}
-        />
-      </Section>
-
-      <Section title="Call-to-action button">
-        <div>
-          <Label className="text-xs">Button label</Label>
-          <Input value={fields.cta?.label || ""} onChange={(e) => setCta({ label: e.target.value })} className="h-10" />
-        </div>
-        <div>
-          <Label className="text-xs">Button URL</Label>
-          <Input value={fields.cta?.url || ""} onChange={(e) => setCta({ url: e.target.value })} className="h-10" placeholder="https://cal.com/you" />
-        </div>
-        <div>
-          <Label className="text-xs">Button style</Label>
-          <div className="grid grid-cols-3 gap-2 mt-1">
-            {CTA_STYLES.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => setCta({ style: s.id })}
-                className={`text-xs rounded-none border px-2 py-2 text-center transition ${
-                  fields.cta?.style === s.id ? "border-[#ff3c00] bg-[#fff1ea] text-[#ff6a00]" : "border-border hover:bg-muted"
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </Section>
-
-      <Section title="Theme">
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label className="text-xs">Accent color</Label>
-            <input
-              type="color"
-              value={theme.accent_color}
-              onChange={(e) => onTheme({ ...theme, accent_color: e.target.value })}
-              className="w-full h-9 rounded border border-border cursor-pointer"
-            />
-          </div>
-          <div>
-            <Label className="text-xs">Text color</Label>
-            <input
-              type="color"
-              value={theme.text_color}
-              onChange={(e) => onTheme({ ...theme, text_color: e.target.value })}
-              className="w-full h-9 rounded border border-border cursor-pointer"
-            />
-          </div>
-          <div>
-            <Label className="text-xs">Border color</Label>
-            <input
-              type="color"
-              value={theme.border_color}
-              onChange={(e) => onTheme({ ...theme, border_color: e.target.value })}
-              className="w-full h-9 rounded border border-border cursor-pointer"
-            />
-          </div>
-          <div>
-            <Label className="text-xs">Border radius</Label>
-            <Input
-              value={theme.border_radius}
-              onChange={(e) => onTheme({ ...theme, border_radius: e.target.value })}
-              className="h-9"
-              placeholder="10px"
-            />
-          </div>
-        </div>
-        <div>
-          <Label className="text-xs">Font</Label>
-          <select
-            value={theme.font}
-            onChange={(e) => onTheme({ ...theme, font: e.target.value })}
-            className="w-full h-9 rounded border border-border bg-background px-2 text-sm"
-          >
-            {["Inter", "Arial", "Helvetica", "Georgia"].map((f) => (
-              <option key={f} value={f}>{f}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <Label className="text-xs">Border style</Label>
-          <div className="grid grid-cols-2 gap-2 mt-1">
-            {[
-              { id: "box", label: "Rounded box" },
-              { id: "none", label: "No border" },
-            ].map((b) => (
-              <button
-                key={b.id}
-                type="button"
-                onClick={() => onTheme({ ...theme, border_style: b.id })}
-                className={`text-xs rounded-none border px-2 py-2 text-center transition ${
-                  theme.border_style === b.id ? "border-[#ff3c00] bg-[#fff1ea] text-[#ff6a00]" : "border-border hover:bg-muted"
-                }`}
-              >
-                {b.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </Section>
+      <DesignSection theme={theme} onTheme={onTheme} fields={fields} onFields={onFields} />
+      <CtaSection cta={fields.cta} onChange={(patch) => setF({ cta: { ...fields.cta, ...patch } })} />
+      <ThemeSection theme={theme} onTheme={onTheme} />
     </div>
   );
 }
