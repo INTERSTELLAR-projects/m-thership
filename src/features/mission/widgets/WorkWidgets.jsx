@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarCheck, Circle, CheckCircle2, Sparkles, FolderKanban, Timer, Loader2, AlertTriangle } from "lucide-react";
+import { CalendarCheck, Circle, Sparkles, FolderKanban, Timer, Loader2, AlertTriangle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { settleTimer, runningTimers, runningSeconds, TIMER_CHANGED } from "@/features/tasks/lib/timer";
 import { TASKS_CHANGED } from "@/features/tasks/lib/clients";
@@ -141,6 +141,7 @@ export function ClaudeQueueWidget() {
 
 /* ─── Projects in flight ───────────────────────────────────────────────── */
 const ACTIVE_PROJECT = ["planning", "in_progress", "review"];
+const PROJECT_KEYS = ["Project", "Task"];
 export function ProjectsWidget() {
   const q = useQuery({
     queryKey: ["Project", "mission-flight"],
@@ -159,7 +160,7 @@ export function ProjectsWidget() {
         .sort((a, b) => (a.due_date || "9999").localeCompare(b.due_date || "9999"));
     },
   });
-  useTaskEvents(TASK_KEYS);
+  useTaskEvents(PROJECT_KEYS);
   const today = todayKey();
   const rows = q.data || [];
   return (
@@ -292,4 +293,3 @@ export function TimeWeekWidget() {
   );
 }
 
-export { CheckCircle2 };
