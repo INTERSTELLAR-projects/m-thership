@@ -62,7 +62,10 @@ export default function Financial() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
-  const [subPage, setSubPage] = useState("dashboard");
+  const [subPage, setSubPage] = useState(() => {
+    const t = new URLSearchParams(window.location.search).get("tab");
+    return FIN_TABS.some(([k]) => k === t) ? t : "dashboard";
+  });
   const financeData = useFinanceData(LIVE_TABS.has(subPage));
   const [categories, setCategories] = useState(loadFinCategories);
   const [managingCats, setManagingCats] = useState(false);
