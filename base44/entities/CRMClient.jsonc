@@ -11,9 +11,21 @@
       },
       "type": "array"
     },
-    "stripe_customer_id": { "type": "string", "description": "Stripe customer id; set by the Stripe sync so subscriptions land on the right client" },
-    "stripe_customer_ids": { "type": "array", "items": { "type": "string" }, "description": "Every Stripe customer that pays for this client (a client can have more than one payer)" },
-    "stripe_synced_at": { "type": "string", "format": "date-time" },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "Stripe customer id; set by the Stripe sync so subscriptions land on the right client"
+    },
+    "stripe_customer_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Every Stripe customer that pays for this client (a client can have more than one payer)"
+    },
+    "stripe_synced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
     "bundle": {
       "description": "Package name shared by clients billed together as one deal (e.g. 'Chase package'). Clients with the same bundle show as one card with a combined monthly total.",
       "type": "string"
@@ -55,6 +67,10 @@
     },
     "logo_url": {
       "type": "string"
+    },
+    "martian_color": {
+      "type": "string",
+      "description": "Comms avatar color override (hex). Empty = default by client name, then accent, then a hashed palette color."
     },
     "notes": {
       "items": {
