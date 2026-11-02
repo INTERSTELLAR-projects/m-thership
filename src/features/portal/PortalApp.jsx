@@ -285,18 +285,19 @@ function GoalsView({ d }) {
 
 function RequestsView({ d, call, refresh, previewId }) {
   const forms = useQuery({ queryKey: ["portal", previewId, "forms"], queryFn: () => call("forms"), retry: false });
-  const list = useMemo(() => {
-    const fs = forms.data?.forms || [];
-    return KIND_ORDER.flatMap((k) => fs.filter((f) => f.kind === k));
-  }, [forms.data]);
+  // Every client gets the standard request types; a custom form of the same kind replaces the standard one.
+  const list = useMemo(() => portalForms(forms.data?.forms || []), [forms.data]);
   const [form, setForm] = useState(null);
   const [vals, setVals] = useState({});
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [sent, setSent] = useState("");
   const change = (k, v) => setVals((s) => ({ ...s, [k]: v }));
+  const open = (f) => { setForm(f); setVals({ priority: "Normal" }); setErr(""); setSent(""); };
   const submit = async (e) => {
     e.preventDefault();
     if (!form || !isComplete(form, vals)) return;
-    setBusy(true);
+    setBusy(true); setErr("");
     try {
       await call("create_request", {
         kind: form.kind,
@@ -306,9 +307,12 @@ function RequestsView({ d, call, refresh, previewId }) {
         answers: toAnswers(form.fields, vals),
         attachments: attachmentsFor(form, vals),
         form_id: form.id, form_title: form.title,
-        priority: vals.urgent ? "urgent" : "normal",
+        priority: priorityFor(vals),
+        due_date: vals.due_date || null,
       });
-      setForm(null); setVals({}); refresh();
+      setSent(form.title); setForm(null); setVals({}); refresh();
+    } catch (e2) {
+      setErr(e2?.response?.data?.error || e2?.message || "Could not send. Try again or message us.");
     } finally { setBusy(false); }
   };
 
@@ -319,14 +323,19 @@ function RequestsView({ d, call, refresh, previewId }) {
         <h2 className="mt-2 text-[32px] font-semibold tracking-[-0.04em]">Tell us what you need</h2>
       </div>
 
+      {sent && !form && (
+        <div className="flex items-center gap-2 border border-green-200 bg-green-50 px-4 py-3 text-[13px] text-green-800">
+          <Check className="h-4 w-4" /> {sent} sent. We&apos;ll reply within 1 business day.
+          <button type="button" onClick={() => setSent("")} className="ml-auto text-green-800/60 hover:text-green-900"><X className="h-3.5 w-3.5" /></button>
+        </div>
+      )}
+
       {!form && (
-        forms.isLoading ? <p className="text-[13px] text-ink/50">Loading…</p> : list.length === 0 ? (
-          <Panel><Empty>Your request forms are being set up. Message us in the meantime.</Empty></Panel>
-        ) : (
+        forms.isLoading ? <p className="text-[13px] text-ink/50">Loading…</p> : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {list.map((f) => (
-              <button key={f.id} type="button" onClick={() => { setForm(f); setVals({}); }} className="card-hover flex flex-col items-start border border-hair bg-card p-5 text-left">
-                <span className="mono-label text-[9.5px] text-[#ff3c00]">{KIND_LABELS[f.kind] || f.kind}</span>
+              <button key={f.id} type="button" onClick={() => open(f)} className="card-hover flex flex-col items-start border border-hair bg-card p-5 text-left">
+                <span className="mono-label text-[9.5px] text-[#ff3c00]">{kindLabel(f.kind)}</span>
                 <span className="mt-2 text-[18px] font-semibold tracking-[-0.03em]">{f.title}</span>
                 {f.intro && <span className="mt-1.5 text-[12.5px] leading-relaxed text-ink/55">{f.intro}</span>}
                 <span className="mt-4 inline-flex items-center gap-1 text-[12.5px] font-medium text-[#ff3c00]">Start <ArrowUpRight className="h-3.5 w-3.5" /></span>
@@ -340,7 +349,7 @@ function RequestsView({ d, call, refresh, previewId }) {
         <form onSubmit={submit} className="rounded-md border border-hair bg-card">
           <div className="flex items-center justify-between border-b border-hair px-5 py-4">
             <div>
-              <p className="mono-label text-[9.5px] text-ink/50">{KIND_LABELS[form.kind] || form.kind}</p>
+              <p className="mono-label text-[9.5px] text-ink/50">{kindLabel(form.kind)}</p>
               <h3 className="text-[18px] font-semibold tracking-[-0.03em]">{form.title}</h3>
               {form.intro && <p className="mt-1 text-[12.5px] text-ink/55">{form.intro}</p>}
             </div>
@@ -350,7 +359,7 @@ function RequestsView({ d, call, refresh, previewId }) {
             <RequestFormRenderer form={form} vals={vals} onChange={change} />
           </div>
           <div className="flex items-center justify-between border-t border-hair px-5 py-4">
-            <p className="text-[11.5px] text-ink/45">We reply within 1 business day.</p>
+            <p className={`text-[11.5px] ${err ? "text-red-700" : "text-ink/45"}`}>{err || "We reply within 1 business day."}</p>
             <button type="submit" disabled={busy || !isComplete(form, vals)} className="h-10 bg-[#ff3c00] px-6 text-[13px] font-medium text-white hover:bg-ink disabled:opacity-40">{busy ? "Sending…" : "Send to Interstellar"}</button>
           </div>
         </form>
@@ -363,7 +372,9 @@ function RequestsView({ d, call, refresh, previewId }) {
               <li key={r.id} className="px-4 py-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <Tag tone={r.status === "complete" ? "green" : r.status === "in_progress" ? "flame" : r.status === "needs_info" ? "amber" : "muted"}>{r.status === "received" ? "Received" : r.status.replace("_", " ")}</Tag>
-                  <span className="mono-label text-[9px] text-ink/45">{KIND_LABELS[r.kind] || r.kind.replace("_", " ")}</span>
+                  <span className="mono-label text-[9px] text-ink/45">{kindLabel(r.kind)}</span>
+                  {(r.priority === "urgent" || r.priority === "high") && <Tag tone={r.priority === "urgent" ? "red" : "amber"}>{r.priority}</Tag>}
+                  {r.due_date && <span className="text-[11px] text-ink/50">Needed by {fmtDate(r.due_date)}</span>}
                   <span className="ml-auto font-mono text-[10.5px] text-ink/45">{fmtDate(r.created_date)}</span>
                 </div>
                 <p className="mt-1 text-[13.5px] font-medium">{r.title}</p>
@@ -374,6 +385,31 @@ function RequestsView({ d, call, refresh, previewId }) {
           </ul>
         )}
       </Panel>
+    </div>
+  );
+}
+
+function BrandKitView({ call, previewId, business }) {
+  const q = useQuery({ queryKey: ["portal", previewId, "brand_kit"], queryFn: () => call("brand_kit"), retry: false });
+  const k = q.data?.brand_kit;
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="label-cross">(Brand kit)</p>
+          <h2 className="mt-2 text-[32px] font-semibold tracking-[-0.04em]">How {business} looks and sounds</h2>
+          <p className="mt-1 max-w-2xl text-[14px] text-ink/60">Your logo rules, colors, fonts and voice in one place. Share it with anyone making something for your brand.</p>
+        </div>
+        {k?.version != null && <Tag tone="muted">Version {k.version}</Tag>}
+      </div>
+      {q.isLoading ? <p className="text-[13px] text-ink/50">Loading…</p> : !k ? (
+        <Panel><Empty>Your brand kit isn&apos;t published yet.</Empty></Panel>
+      ) : (
+        <div className="rounded-md border border-hair bg-card p-5 md:p-7">
+          {k.summary && <p className="mb-5 max-w-3xl text-[14.5px] leading-relaxed text-ink/75">{k.summary}</p>}
+          <KitView kit={k.kit} body={k.body_md} />
+        </div>
+      )}
     </div>
   );
 }
