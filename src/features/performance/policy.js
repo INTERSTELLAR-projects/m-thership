@@ -22,7 +22,7 @@ export function band(score) {
 export const SEVERITY = {
   critical: { label: "Critical", rank: 0, dot: "bg-[#ff3c00]", chip: "bg-[#ff3c00]/15 text-[#ff7a4d] border-[#ff3c00]/40" },
   high: { label: "High", rank: 1, dot: "bg-[#ff6a00]", chip: "bg-[#ff6a00]/15 text-[#ff9a55] border-[#ff6a00]/40" },
-  medium: { label: "Medium", rank: 2, dot: "bg-[#ffaa00]", chip: "bg-[#ffaa00]/12 text-[#ffc566] border-[#ffaa00]/35" },
+  medium: { label: "Medium", rank: 2, dot: "bg-[#ffaa00]", chip: "bg-[#ffaa00]/[0.12] text-[#ffc566] border-[#ffaa00]/35" },
   low: { label: "Low", rank: 3, dot: "bg-white/40", chip: "bg-white/[0.06] text-white/60 border-white/15" },
 };
 
