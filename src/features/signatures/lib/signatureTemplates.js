@@ -178,7 +178,7 @@ const logoH = (c, cap) => Math.min(Number(c.f.logo_height) || 24, cap);
 function brandLine(c, { center = false, mt = 8 } = {}) {
   const { f, t } = c;
   const withLogo = f.logo_url && f.logo_position === "brand";
-  if (!f.company_name && !withLogo) return "";
+  if (!f.company_name && !withLogo) return sloganLine(c, center);
   const name = f.company_name
     ? `<td style="vertical-align:middle;font-family:${fontOf(t)};font-size:10px;line-height:14px;font-weight:800;text-transform:uppercase;letter-spacing:0.16em;color:${esc(
         mutedOf(t)
