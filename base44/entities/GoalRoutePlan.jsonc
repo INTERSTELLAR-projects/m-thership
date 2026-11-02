@@ -1,0 +1,62 @@
+{
+  "name": "GoalRoutePlan",
+  "description": "One AI generation of routes to a RevenueGoal (flagship Hormozi route + 3-4 alternatives), with the financial snapshot it was generated from. Newest is shown; older ones are history.",
+  "type": "object",
+  "properties": {
+    "goal_id": {
+      "type": "string",
+      "description": "RevenueGoal id"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "flagship": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "routes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "headline": {
+      "type": "string"
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Real numbers the routes were generated from"
+    },
+    "model": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "goal_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
