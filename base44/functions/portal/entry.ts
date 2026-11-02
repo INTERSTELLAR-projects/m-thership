@@ -7,7 +7,40 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 const SAFE_CLIENT = ["id", "business", "contact", "domain", "websites", "plan", "services_managed", "industry", "location", "logoUrl", "logo_url", "started_on"];
 const pick = (o: Record<string, unknown>, keys: string[]) => Object.fromEntries(keys.filter((k) => o?.[k] !== undefined).map((k) => [k, o[k]]));
 const visible = (r: Record<string, unknown>) => r.portal_visible !== false;
-const REQ_KINDS = ["site_edit", "project_submission", "job", "new_page", "question", "app_edit", "other"];
+// Request types are configured once on the frontend (REQUEST_TYPES in src/features/requests/formSchema.js);
+// here any slug is accepted so adding a type needs no backend change.
+const reqKind = (k: unknown) => (/^[a-z][a-z0-9_]{1,39}$/.test(String(k || "")) ? String(k) : "other");
+const isUrl = (u: unknown) => /^https?:\/\/\S+$/i.test(String(u || ""));
+
+// ---- Site health: mirrors clientHealthSummary() in src/features/performance/policy.js exactly ----
+// Clients never see a score below the floor, and never see raw audits or issues.
+const CLIENT_SCORE_FLOOR = 70;
+const EDIT_WORK_KINDS = ["site_edit", "schema", "new_page", "project_page", "search_console", "bing"];
+const bandLabel = (score: number | null) => (score == null ? "No data" : score >= 90 ? "Excellent" : score >= 75 ? "Good" : score >= 50 ? "Needs work" : "Poor");
+type Row = Record<string, unknown>;
+function clientHealthSummary({ audits = [], fixes = [], work = [] }: { audits?: Row[]; fixes?: Row[]; work?: Row[] }) {
+  const done = audits.filter((a) => typeof a.health_score === "number" && a.strategy !== "desktop")
+    .sort((a, b) => String(a.run_at).localeCompare(String(b.run_at)));
+  const latest = done[done.length - 1] || null;
+  const score = (latest?.health_score as number | undefined) ?? null;
+  const show = score != null && score >= CLIENT_SCORE_FLOOR;
+  const fixesApplied = fixes.filter((f) => f.status === "applied" && f.portal_visible !== false).length;
+  const edits = work.filter((w) => EDIT_WORK_KINDS.includes(String(w.kind)) && w.status !== "failed" && w.portal_visible !== false).length;
+  return {
+    score: show ? score : null,
+    band: show ? bandLabel(score) : score != null ? "Improving" : null,
+    trend: show ? done.filter((a) => (a.health_score as number) >= CLIENT_SCORE_FLOOR).slice(-12).map((a) => ({ date: String(a.run_at).slice(0, 10), score: a.health_score })) : [],
+    fixes_applied: fixesApplied,
+    edits_made: edits,
+    last_checked: latest?.run_at || null,
+  };
+}
+
+// Latest approved, portal-visible brand kit (the newest approved kit wins; if it is hidden, nothing shows).
+const portalKit = (kits: Row[]) => {
+  const k = kits.filter((x) => x.status === "approved").sort((a, b) => (Number(b.version) || 0) - (Number(a.version) || 0))[0];
+  return k && k.portal_visible === true ? k : null;
+};
 
 Deno.serve(async (req) => {
   try {
@@ -48,9 +81,10 @@ Deno.serve(async (req) => {
     });
 
     if (action === "home") {
-      const [work, autos, reqs, goals, gaps, snaps, tasks, files] = await Promise.all([
+      const [work, autos, reqs, goals, gaps, snaps, tasks, files, audits, fixes, kits] = await Promise.all([
         by("WorkLog", "-date", 400), by("Automation"), by("ClientRequest"), by("ClientGoal", "sort"), by("ClientGap"),
         by("PerformanceSnapshot", "-period_end", 60), by("Task", "due_date", 200), by("ClientFile", "-delivered_on", 200),
+        by("SiteAudit", "-run_at", 60).catch(() => []), by("SeoFix", "-updated_date", 500).catch(() => []), by("BrandKit", "-version", 20).catch(() => []),
       ]);
       const msgs = await by("ConversationMessage", "-created_date", 200);
       const groupUnread = await myGroups().then((gs) => Promise.all(gs.map(async (g) => groupUnreadCount(await groupMsgs(g.id as string))))).then((n) => n.reduce((a, b) => a + b, 0)).catch(() => 0);
@@ -59,7 +93,9 @@ Deno.serve(async (req) => {
         user: { email: user.email, name: user.full_name, is_admin_preview: user.role === "admin" },
         work: work.filter(visible).filter((w: Record<string, unknown>) => w.status !== "failed").map((w: Record<string, unknown>) => pick(w, ["id", "kind", "title", "url", "date", "description", "status", "verified_live"])),
         automations: autos.filter(visible).filter((a: Record<string, unknown>) => a.status === "active").map((a: Record<string, unknown>) => pick(a, ["id", "name", "kind", "schedule", "last_run_at", "runs_count"])),
-        requests: reqs.map((r: Record<string, unknown>) => pick(r, ["id", "kind", "title", "details", "status", "client_note", "page_status", "page_url", "created_date", "completed_at", "attachments"])),
+        requests: reqs.map((r: Record<string, unknown>) => pick(r, ["id", "kind", "title", "details", "status", "priority", "due_date", "client_note", "page_status", "page_url", "created_date", "completed_at", "attachments"])),
+        site_health: clientHealthSummary({ audits, fixes, work }),
+        has_brand_kit: !!portalKit(kits),
         goals: goals.map((g: Record<string, unknown>) => pick(g, ["id", "year", "title", "metric", "baseline_value", "target_value", "current_value", "unit", "status", "plan_steps"])),
         gaps: gaps.filter(visible).map((g: Record<string, unknown>) => pick(g, ["id", "title", "area", "severity", "status", "recommendation", "impact"])),
         snapshots: snaps.map((s: Record<string, unknown>) => pick(s, ["id", "source", "period_start", "period_end", "metrics"])),
@@ -155,21 +191,41 @@ Deno.serve(async (req) => {
       return Response.json({ forms: forms.map((f: Record<string, unknown>) => pick(f, ["id", "kind", "title", "intro", "fields"])) });
     }
 
+    if (action === "brand_kit") {
+      const k = portalKit(await by("BrandKit", "-version", 20).catch(() => []));
+      return Response.json({ brand_kit: k ? pick(k, ["version", "kit", "body_md", "summary"]) : null });
+    }
+
     if (action === "create_request") {
-      const kind = REQ_KINDS.includes(String(args.kind)) ? String(args.kind) : "other";
+      let kind = reqKind(args.kind);
       const title = String(args.title || "").trim().slice(0, 200);
       if (!title) return Response.json({ error: "Add a title" }, { status: 400 });
+      // A custom form must belong to this client; standard forms ("std:<kind>") have no record.
+      let formId: string | null = null;
+      let formTitle = args.form_title ? String(args.form_title).slice(0, 120) : null;
+      let form: Record<string, unknown> | null = null;
+      if (args.form_id && !String(args.form_id).startsWith("std:")) {
+        form = await db.RequestForm.get(String(args.form_id)).catch(() => null);
+        if (!form || form.client_id !== cid || form.active === false) return Response.json({ error: "Form not found" }, { status: 404 });
+        formId = form.id as string; formTitle = String(form.title || formTitle || "").slice(0, 120); kind = reqKind(form.kind);
+      }
+      const fields = typeof args.fields === "object" && args.fields && !Array.isArray(args.fields) ? args.fields as Record<string, unknown> : {};
+      const answers = Array.isArray(args.answers) ? args.answers.slice(0, 60) : [];
+      if (JSON.stringify(fields).length > 60000 || JSON.stringify(answers).length > 60000) return Response.json({ error: "Request is too large" }, { status: 413 });
+      const pr = String(args.priority || "").toLowerCase();
+      const due = String(args.due_date || "");
       const r = await db.ClientRequest.create({
         client_id: cid, client_name: client.business, kind, title,
         details: String(args.details || "").slice(0, 8000),
-        attachments: Array.isArray(args.attachments) ? args.attachments.slice(0, 20).map(String) : [],
-        fields: typeof args.fields === "object" && args.fields ? args.fields : {},
-        answers: Array.isArray(args.answers) ? args.answers.slice(0, 60) : [],
-        form_id: args.form_id ? String(args.form_id) : null, form_title: args.form_title ? String(args.form_title).slice(0, 120) : null,
+        attachments: Array.isArray(args.attachments) ? args.attachments.filter(isUrl).slice(0, 30).map(String) : [],
+        fields, answers,
+        form_id: formId, form_title: formTitle,
         source: "portal", contact_email: user.email,
-        status: "received", priority: args.priority === "urgent" ? "urgent" : "normal",
+        status: "received", priority: ["low", "high", "urgent"].includes(pr) ? pr : "normal",
+        ...(/^\d{4}-\d{2}-\d{2}$/.test(due) ? { due_date: due } : {}),
         submitted_by: user.email, page_status: ["project_submission", "job"].includes(kind) ? "queued" : "none",
       });
+      if (form) await db.RequestForm.update(form.id as string, { submissions: (Number(form.submissions) || 0) + 1 }).catch(() => null);
       return Response.json({ request: pick(r, ["id", "kind", "title", "status", "created_date"]) });
     }
 
