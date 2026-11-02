@@ -45,7 +45,26 @@
     },
     "read_at": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "When Interstellar (admin) read it. For 1:1 admin messages, when the client read it."
+    },
+    "thread_id": {
+      "type": "string",
+      "description": "ChatThread id for group chats. Empty = the client's 1:1 thread with Interstellar (keyed by client_id)."
+    },
+    "sender_client_id": {
+      "type": "string",
+      "description": "CRMClient id of the client who sent it (group chats; client_id stays empty on group messages so they never land in a 1:1)."
+    },
+    "sender_name": {
+      "type": "string"
+    },
+    "read_by_client_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Group chats: CRMClient ids that have read this message."
     }
   },
   "required": [
