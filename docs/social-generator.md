@@ -43,7 +43,7 @@ and NEVER post, schedule or send anything to any social network or person.
      and only every other week (skip "offer" if one was created in the last 7 days).
    - Templates: 5 different template keys from templates.schema.json, each a good fit for its
      pillar (see best_for). Don't reuse a template that appeared in last week's batch on the
-     same weekday. Mix light and dark themes (at least 2 of each... or 3/2).
+     same weekday. Mix light and dark themes (a 3/2 split either way).
    - Hooks: every headline must be new. No headline, accent_word or pain point angle that
      repeats or closely paraphrases anything from the last 28 days.
    - At least 2 posts must be product showcases of the real UI templates (dashboard,
