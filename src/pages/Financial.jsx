@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Plus, DollarSign, TrendingUp, AlertCircle, Edit, Check, X, Trash2, Loader2, Settings, GripVertical } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import FinancialAnalytics from "../components/financial/FinancialAnalytics";
 import InvestmentsList from "../components/financial/InvestmentsList";
 import StripeRevenue from "../components/financial/StripeRevenue";
 import RevenueProjections from "../components/financial/RevenueProjections";
@@ -46,7 +45,7 @@ const FREQUENCIES = ["Monthly", "Quarterly", "Annually"];
 const FIN_CATS_KEY = "financial_categories";
 const FIN_TABS = [
   ["dashboard", "Dashboard"], ["goal", "Goal"], ["advisor", "Advisor"], ["overview", "Expenses"], ["categories", "Categories"],
-  ["analytics", "Analytics"], ["stripe", "Stripe"], ["projections", "Projections"], ["investments", "Investments"],
+  ["stripe", "Stripe"], ["projections", "Projections"], ["investments", "Investments"],
 ];
 const LIVE_TABS = new Set(["dashboard", "goal", "advisor"]);
 
@@ -204,8 +203,6 @@ export default function Financial() {
               ))}
             </div>
           </>
-        ) : subPage === "analytics" ? (
-          <FinancialAnalytics totalMonthlyExpenses={totalMonthly} />
         ) : subPage === "projections" ? (
           <>
             <RevenueProjections />
