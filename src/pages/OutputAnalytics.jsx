@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PageHeader from "../components/PageHeader";
-import { CheckCircle2, Clock, TrendingUp, Target, BarChart3, Loader2, Activity, AlertTriangle, FolderKanban, Timer } from "lucide-react";
+import { Clock, BarChart3, Loader2, Activity } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import { ChartTooltip, FlameDefs, KpiTile, axisProps, gridProps, cursorProps, barCursor } from "@/components/charts/ChartKit";
 import TimeIntelligence from "@/features/tasks/components/TimeIntelligence";
@@ -306,26 +306,26 @@ function ProjectsAnalytics({ data }) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <StatCard label="Active projects" value={m.active.length} sub={`${m.rows.length} total`} icon={FolderKanban} color="text-orange-600" />
-        <StatCard label="Launched / done" value={m.shipped.length} icon={CheckCircle2} color="text-green-600" />
-        <StatCard label="Avg progress (active)" value={`${m.avgProgress}%`} sub="done tasks ÷ all tasks" icon={TrendingUp} color="text-blue-600" />
-        <StatCard label="Hours clocked" value={fmtH(m.logged)} sub={m.est ? `of ${fmtH(m.est)} estimated` : "no estimates yet"} icon={Timer} color="text-purple-600" />
-        <StatCard label="Overdue" value={m.overdue} sub={`${m.onHold.length} on hold`} icon={AlertTriangle} color={m.overdue ? "text-red-600" : "text-ink/50"} />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        <KpiTile accent label="Active projects" value={m.active.length} sub={`${m.rows.length} total`} />
+        <KpiTile label="Launched / done" value={m.shipped.length} />
+        <KpiTile label="Avg progress (active)" value={m.avgProgress} format={(v) => `${v}%`} sub="done tasks ÷ all tasks" />
+        <KpiTile label="Hours clocked" value={m.logged} display={fmtH(m.logged)} sub={m.est ? `of ${fmtH(m.est)} estimated` : "no estimates yet"} />
+        <KpiTile label="Overdue" value={m.overdue} goodWhen="down" sub={`${m.onHold.length} on hold`} />
       </div>
 
       <div className="grid md:grid-cols-2 gap-5">
-        <div className="game-panel p-5">
+        <ChartPanel>
           <H3>Status</H3>
           {m.statusRows.length ? <Bars rows={m.statusRows} total={m.rows.length} /> : <p className="text-xs text-ink/50">No projects yet.</p>}
-        </div>
-        <div className="game-panel p-5">
+        </ChartPanel>
+        <ChartPanel>
           <H3>By package type</H3>
           {m.typeRows.length ? <Bars rows={m.typeRows} total={m.rows.length} /> : <p className="text-xs text-ink/50">No projects yet.</p>}
-        </div>
+        </ChartPanel>
       </div>
 
-      <div className="game-panel p-0 overflow-x-auto">
+      <div className="overflow-x-auto rounded-md border border-hair bg-card p-0">
         <div className="p-5 pb-3">
           <H3>Every project</H3>
           {m.noTasks > 0 && <p className="text-[11px] text-ink/55 -mt-2">{m.noTasks} active project(s) have no tasks yet, so their progress can&apos;t move. Add tasks or run an SOP on them.</p>}
