@@ -69,7 +69,7 @@ function CountdownCard({ d, onEdit }) {
 
 function Summary({ label, value, sub, tone }) {
   return (
-    <div className="min-w-0 border-hair px-4 py-3 md:px-5 [&:not(:first-child)]:border-l max-md:[&:nth-child(3)]:border-l-0 max-md:[&:nth-child(n+3)]:border-t">
+    <div className="min-w-0 bg-card px-4 py-3 md:px-5">
       <p className="mono-label text-[9.5px] text-ink/50">{label}</p>
       <p className={`mt-1 truncate text-2xl font-semibold tracking-[-0.03em] tabular-nums ${tone || "text-ink"}`}>{value}</p>
       {sub && <p className="mt-0.5 truncate font-mono text-[10.5px] text-ink/50">{sub}</p>}
@@ -97,7 +97,7 @@ export default function DeadlineHero({ dated, undated, onEdit, onAdd }) {
         </button>
       </div>
 
-      <div className="game-panel grid grid-cols-2 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius)] border border-hair bg-hair md:grid-cols-4">
         <Summary label="Overdue" value={overdue} tone={overdue ? "text-red-600" : "text-ink/40"} sub={overdue ? "needs action" : "all clear"} />
         <Summary label="Due ≤ 30 days" value={in30} tone={in30 ? "text-[#ff3c00]" : "text-ink/40"} />
         <Summary label="Due ≤ 90 days" value={in90} tone={in90 ? "text-amber-600" : "text-ink/40"} />
