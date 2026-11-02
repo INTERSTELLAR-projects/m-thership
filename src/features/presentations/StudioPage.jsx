@@ -227,6 +227,13 @@ export default function StudioPage() {
     };
   }, [deck.claude_job_id, deck.generation_status]);
 
+  // Approved from the Claude Queue page while this deck was open: pull the landed deck in.
+  useEffect(() => {
+    if (!job || job.status !== 'approved' || deck.generation_status !== 'waiting_claude') return;
+    const landed = deckFromJob(job);
+    if (landed) applyDeck(landed, { generation_status: 'ready' });
+  }, [job]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const generateVisualsFor = async (slides, themeId, brand) => {
     const targets = slides
       .filter((slide) => slide.needs_visual && slide.image_prompt && !slide.image_url)
