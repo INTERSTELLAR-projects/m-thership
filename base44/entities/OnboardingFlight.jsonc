@@ -1,0 +1,149 @@
+{
+  "name": "OnboardingFlight",
+  "description": "Flight plan walkthrough: one per client + package. Holds every onboarding answer collected once up front (contacts, deal, business info, brand assets, access records, goals), skip flags, the combined intake request, kickoff and launch checks. Never stores passwords.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "package_key": {
+      "type": "string",
+      "description": "Package page key (registry), e.g. custom-website, orbit-seo"
+    },
+    "sale_package": {
+      "type": "string",
+      "description": "start-service catalog key that was sold, e.g. mission_alpha, custom_website, orbit_local"
+    },
+    "include_onboarding": {
+      "type": "boolean",
+      "default": true,
+      "description": "New client: run the Client Onboarding SOP too"
+    },
+    "price": {
+      "type": "number",
+      "description": "Price agreed (one-time, or monthly for subscriptions)"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "care_plan": {
+      "type": "string",
+      "description": "Care plan start-service key (orbit_local, orbit_national, orbit_global, starship_care) or empty"
+    },
+    "care_value": {
+      "type": "number"
+    },
+    "care_start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "answers": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "fieldKey -> value. Access fields hold {status, by, on, note} records (who granted what, never a password)"
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "fieldKey -> where the value came from (justin, client_intake, crm, dossier, intake_audit)"
+    },
+    "skipped": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "fieldKey -> {reason, at}: skipped with a flag; becomes a follow-up task at kickoff"
+    },
+    "launch_checks": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "checkKey -> ISO date ticked"
+    },
+    "current_step": {
+      "type": "string",
+      "default": "client"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "collecting",
+        "ready",
+        "kicked_off",
+        "launched",
+        "archived"
+      ],
+      "default": "collecting"
+    },
+    "intake_form_id": {
+      "type": "string",
+      "description": "RequestForm sent to the client portal with every missing field"
+    },
+    "intake_sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "intake_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Field keys the intake asked for"
+    },
+    "intake_applied": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "ClientRequest ids already applied"
+    },
+    "project_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "followup_task_id": {
+      "type": "string"
+    },
+    "kicked_off_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "launched_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id",
+    "package_key"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
