@@ -13,7 +13,7 @@ import MicButton from "../components/MicButton";
 import BrandProfile from "../components/crm/BrandProfile";
 import { useRef } from "react";
 import StripeServicePicker from "@/features/clients/StripeServicePicker";
-import ClientAnalytics, { serviceKey } from "@/features/clients/ClientAnalytics";
+import ClientAnalytics, { serviceKey, serviceLabel } from "@/features/clients/ClientAnalytics";
 
 const statusFilters = ["Active", "Lead", "Inactive", "All"];
 
@@ -187,7 +187,7 @@ export default function CRM() {
           </div>
           {serviceFilter && (
             <button onClick={() => setServiceFilter(null)} className="inline-flex items-center gap-1.5 rounded-full border border-[#ff3c00]/40 bg-[#ff3c00]/[0.06] px-3 py-1.5 text-xs text-[#d83300]">
-              On {(() => { const sv = clients.flatMap((c) => c.services || []).find((s) => serviceKey(s) === serviceFilter); return sv ? (sv.short || serviceFilter) : serviceFilter; })()} <X className="w-3 h-3" />
+              On {serviceLabel(clients.flatMap((c) => c.services || []).find((s) => serviceKey(s) === serviceFilter) || { name: serviceFilter })} <X className="w-3 h-3" />
             </button>
           )}
           <Button onClick={() => setAddOpen(true)} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold h-9 gap-2"><Plus className="w-4 h-4" />Add Client</Button>
