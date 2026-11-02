@@ -71,8 +71,9 @@ function shine(ctx, x, y, w, h, t, alpha = 0.6) {
   // Sine-eased glide that is on screen for the whole sweep (no wasted off-canvas frames).
   const band = Math.max(w, h) * 0.55;
   const p = (1 - Math.cos(Math.PI * t)) / 2;
-  const cx = x - band * 0.45 + (w + band * 0.9) * p;
-  const g = ctx.createLinearGradient(cx - band / 2, 0, cx + band / 2, 0);
+  const cx = x - band * 0.5 + (w + band) * p;
+  // Gradient is built in the band's own (translated + rotated) space.
+  const g = ctx.createLinearGradient(-band / 2, 0, band / 2, 0);
   g.addColorStop(0, "rgba(255,255,255,0)");
   g.addColorStop(0.35, `rgba(255,255,255,${alpha * 0.35})`);
   g.addColorStop(0.5, `rgba(255,255,255,${alpha})`);
