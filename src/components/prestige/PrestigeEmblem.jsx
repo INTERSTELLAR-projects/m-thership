@@ -373,7 +373,7 @@ function Tier4({ u, hi }) {
 const ORBIT = "M-74 0 A74 21 0 1 0 74 0 A74 21 0 1 0 -74 0";
 const ORBIT_FRONT = "M-74 0 A74 21 0 0 0 74 0";
 
-function Comet({ u }) {
+function Comet() {
   return (
     <g>
       <path d={ORBIT} pathLength="100" fill="none" stroke="#ffaa00" strokeOpacity=".85" strokeWidth="2.6" strokeLinecap="round" strokeDasharray="13 87" strokeDashoffset="70" className="pe-comet" />
@@ -393,7 +393,7 @@ function Master({ u, hi, animated }) {
       {/* orbit, back half (body covers the middle) */}
       <g transform="translate(80 76) rotate(-14)">
         <path d={ORBIT} fill="none" stroke={u("o")} strokeWidth={hi ? 2 : 2.6} opacity=".85" />
-        {animated && <Comet u={u} />}
+        {animated && <Comet />}
       </g>
       <Wings feathers={FEATHERS5} spines={SPINES5} u={u} hi={hi} />
       <path d={bezel} fill={u("gm")} stroke="#ff6a00" strokeWidth=".9" strokeLinejoin="round" />
@@ -419,7 +419,7 @@ function Master({ u, hi, animated }) {
         {hi && <path d={ORBIT_FRONT} fill="none" stroke="rgba(255,255,255,.55)" strokeWidth=".6" transform="translate(0 -0.8)" />}
         {animated && (
           <g clipPath={u("front")}>
-            <Comet u={u} />
+            <Comet />
           </g>
         )}
         <circle cx="-52" cy="15" r={hi ? 4 : 5} fill={u("core")} stroke="rgba(40,10,0,.5)" strokeWidth=".5" />
