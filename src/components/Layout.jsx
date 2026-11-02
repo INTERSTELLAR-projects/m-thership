@@ -5,7 +5,7 @@ import Sidebar from "./Sidebar";
 import TimeZoneBar from "./TimeZoneBar";
 import CommandPalette from "./CommandPalette";
 import GridTrail from "./GridTrail";
-import { LOGO_URL } from "@/lib/nav";
+import BrandLockup from "@/components/brand/BrandLockup";
 
 export default function Layout() {
   const [cmdOpen, setCmdOpen] = useState(false);
@@ -34,10 +34,7 @@ export default function Layout() {
         <button onClick={() => setMobileOpen(true)} className="-ml-1 p-2 text-ink/70 hover:text-ink" aria-label="Open menu">
           <Menu className="h-5 w-5" />
         </button>
-        <div className="flex items-center gap-2">
-          <img src={LOGO_URL} alt="" className="h-6 w-8 object-contain" />
-          <span className="text-[13px] font-semibold tracking-[-0.02em]">MØTHERSHIP</span>
-        </div>
+        <BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={16} />
         <div className="w-9" />
       </header>
 
