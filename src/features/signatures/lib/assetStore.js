@@ -4,8 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { renderAsset, estimateSize } from "./assetRender";
 
+// Bump when the renderer's output changes so old cached files are re-rendered.
+const RENDER_VERSION = 2;
+
 export function assetKey(spec) {
-  const s = JSON.stringify(spec);
+  const s = JSON.stringify({ v: RENDER_VERSION, ...spec });
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
   return `${spec.kind}-${(h >>> 0).toString(36)}`;
