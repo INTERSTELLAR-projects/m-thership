@@ -18,11 +18,12 @@ import RequestFormRenderer, { isComplete } from "@/features/requests/RequestForm
 import { kindLabel, portalForms, priorityFor, toAnswers, titleFor, detailsFor, attachmentsFor } from "@/features/requests/formSchema";
 import { KitView } from "@/features/clients/BrandKitTab";
 import PortalPlaybook from "@/features/portal/PortalPlaybook";
+import { PortalGbp, ReviewLinkQuick } from "@/features/gbp/GbpPanel";
 
 // Free-for-life bonus tools: tagged in the nav and listed together on Home.
 const BONUS_TABS = ["signatures", "qr"];
 
-const TABS = [["home", "Home"], ["results", "Results"], ["goals", "Goals"], ["files", "Files"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["referrals", "Referrals"], ["messages", "Messages"]];
+const TABS = [["home", "Home"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["referrals", "Referrals"], ["messages", "Messages"]];
 
 function usePortal(previewId) {
   const call = async (action, args = {}) => (await base44.functions.invoke("portal", { action, client_id: previewId, ...args })).data;
@@ -34,6 +35,7 @@ export default function PortalApp({ previewId }) {
   const { call, home } = usePortal(previewId);
   const [tab, setTab] = useState("home");
   const [audit, setAudit] = useState(false);
+  const [qrOpen, setQrOpen] = useState(null); // a QR code to open on the QR tab (from Google Business)
   const qc = useQueryClient();
   const refresh = () => qc.invalidateQueries({ queryKey: ["portal", previewId] });
   const d = home.data;
@@ -56,13 +58,14 @@ export default function PortalApp({ previewId }) {
   }
 
   return (
-    <Shell client={d.client} tabs={tabs} tab={tab} setTab={setTab} unread={d.unread} preview={!!previewId}>
+    <Shell client={d.client} tabs={tabs} tab={tab} setTab={(k) => { setQrOpen(null); setTab(k); }} unread={d.unread} preview={!!previewId}>
       {audit ? (
         <IntakeView call={call} onClose={() => { setAudit(false); refresh(); }} />
       ) : (
         <div key={tab} className="page-enter">
-          {tab === "home" && <HomeView d={d} go={setTab} openAudit={() => setAudit(true)} />}
+          {tab === "home" && <HomeView d={d} go={setTab} call={call} previewId={previewId} openAudit={() => setAudit(true)} />}
           {tab === "results" && <ResultsView d={d} />}
+          {tab === "gbp" && <PortalGbp call={call} previewId={previewId} onOpenQr={(code) => { setQrOpen(code.id); setTab("qr"); }} />}
           {tab === "goals" && <GoalsView d={d} />}
           {tab === "files" && (d.files.length ? <FileGrid files={d.files} /> : <Panel><Empty>Your brand kit, SOPs, presentations and other deliverables will appear here.</Empty></Panel>)}
           {tab === "brand" && d.has_brand_kit && <BrandKitView call={call} previewId={previewId} business={d.client.business} />}
@@ -74,7 +77,7 @@ export default function PortalApp({ previewId }) {
               <PortalSignatures call={call} />
             </div>
           )}
-          {tab === "qr" && <PortalQr call={call} previewId={previewId} />}
+          {tab === "qr" && <PortalQr call={call} previewId={previewId} openId={qrOpen} />}
           {tab === "referrals" && <PortalPrestige call={call} previewId={previewId} />}
           {tab === "messages" && <MessagesView call={call} previewId={previewId} />}
         </div>
@@ -130,7 +133,7 @@ function Counter({ value, label, total }) {
   );
 }
 
-function HomeView({ d, go, openAudit }) {
+function HomeView({ d, go, call, previewId, openAudit }) {
   const ms = new Date(); ms.setDate(1);
   const monthStart = ms.toISOString().slice(0, 10);
   const month = d.work.filter((w) => (w.date || "") >= monthStart);
@@ -200,6 +203,7 @@ function HomeView({ d, go, openAudit }) {
               </ul>
             </Panel>
           )}
+          <ReviewLinkQuick call={call} previewId={previewId} go={go} />
           <BonusTools go={go} />
           <button onClick={openAudit} className="card-hover w-full rounded-md border border-hair bg-card p-4 text-left">
             <p className="mono-label text-[9.5px] text-ink/50">Business audit</p>
