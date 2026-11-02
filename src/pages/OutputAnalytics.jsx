@@ -120,6 +120,8 @@ function TasksAnalytics({ data }) {
     const doneAt = (t) => new Date(t.completed_at || t.updated_date || t.created_date);
     const weekStart = startOfWeek(new Date());
     const doneThisWeek = done.filter((t) => doneAt(t) >= weekStart).length;
+    const lastWeekStart = new Date(weekStart.getTime() - 7 * DAY);
+    const doneLastWeek = done.filter((t) => doneAt(t) >= lastWeekStart && doneAt(t) < weekStart).length;
     const done30 = done.filter((t) => now - doneAt(t).getTime() <= 30 * DAY).length;
     const overdue = open.filter((t) => t.due_date && new Date(t.due_date).getTime() < now - DAY).length;
 
@@ -142,6 +144,7 @@ function TasksAnalytics({ data }) {
     });
     weeks.forEach((w) => (w.hours = Math.round(w.hours * 10) / 10));
     const hours30 = entries.filter((e) => now - new Date(e.ended_at || e.created_date).getTime() <= 30 * DAY).reduce((s, e) => s + (Number(e.seconds) || 0) / 3600, 0);
+    const hoursPrev30 = entries.filter((e) => { const a = now - new Date(e.ended_at || e.created_date).getTime(); return a > 30 * DAY && a <= 60 * DAY; }).reduce((s, e) => s + (Number(e.seconds) || 0) / 3600, 0);
 
     const statusRows = TASK_STATUSES.map((s) => ({ label: s.label, color: s.color, count: tasks.filter((t) => (t.status || "inbox") === s.value).length }));
     const typeRows = TASK_TYPES.map((s) => ({ label: s.label, color: s.color, count: tasks.filter((t) => (t.task_type || "billable") === s.value).length })).filter((r) => r.count);
@@ -162,12 +165,14 @@ function TasksAnalytics({ data }) {
       open: open.length,
       done: done.length,
       doneThisWeek,
+      doneLastWeek,
       done30,
       overdue,
       rate: tasks.length ? Math.round((done.length / tasks.length) * 100) : 0,
       days,
       weeks,
       hours30,
+      hoursPrev30,
       statusRows,
       typeRows,
       clients,
@@ -177,60 +182,56 @@ function TasksAnalytics({ data }) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <StatCard label="Open tasks" value={m.open} sub={`${m.total} total`} icon={Target} color="text-ink/70" />
-        <StatCard label="Done this week" value={m.doneThisWeek} sub={`${m.done30} in the last 30 days`} icon={CheckCircle2} color="text-green-600" />
-        <StatCard label="Completion rate" value={`${m.rate}%`} sub={`${m.done} done all-time`} icon={TrendingUp} color="text-blue-600" />
-        <StatCard label="Hours clocked (30d)" value={fmtH(m.hours30)} sub={m.running ? `${m.running} clock running now` : "from the task clock"} icon={Clock} color="text-purple-600" />
-        <StatCard label="Overdue" value={m.overdue} sub="open with a past due date" icon={AlertTriangle} color={m.overdue ? "text-red-600" : "text-ink/50"} />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        <KpiTile label="Open tasks" value={m.open} sub={`${m.total} total`} />
+        <KpiTile accent label="Done this week" value={m.doneThisWeek} prev={m.doneLastWeek} sub="vs last week" />
+        <KpiTile label="Completion rate" value={m.rate} format={(v) => `${v}%`} sub={`${m.done} done all-time`} />
+        <KpiTile label="Hours clocked · 30d" value={m.hours30} display={fmtH(m.hours30)} prev={m.hoursPrev30 || undefined} sub={m.running ? `${m.running} clock running now` : "vs previous 30 days"} />
+        <KpiTile label="Overdue" value={m.overdue} goodWhen="down" sub="open with a past due date" />
       </div>
 
       <div className="grid md:grid-cols-2 gap-5">
-        <div className="game-panel p-5">
-          <H3>Tasks completed — last 30 days</H3>
-          <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={m.days}>
-              <defs>
-                <linearGradient id="gc1" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ff3c00" stopOpacity={0.6} />
-                  <stop offset="100%" stopColor="#ffaa00" stopOpacity={0.04} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
-              <XAxis dataKey="day" tick={{ fill: "rgba(0,0,0,0.35)", fontSize: 10 }} tickLine={false} interval={6} />
-              <YAxis allowDecimals={false} tick={{ fill: "rgba(0,0,0,0.35)", fontSize: 10 }} tickLine={false} axisLine={false} />
-              <Tooltip content={<GameChartTooltip />} cursor={{ stroke: "rgba(255,170,0,0.25)", strokeWidth: 1 }} />
-              <Area type="monotone" dataKey="completed" stroke="#ff3c00" fill="url(#gc1)" strokeWidth={2} dot={false} />
+        <ChartPanel>
+          <H3 right={<span className="font-mono text-[11px] text-ink/50">{m.done30} in 30 days</span>}>Tasks completed — last 30 days</H3>
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={m.days} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
+              <FlameDefs id="out-done" />
+              <CartesianGrid {...gridProps()} />
+              <XAxis dataKey="day" {...axisProps()} interval={6} />
+              <YAxis allowDecimals={false} {...axisProps()} width={40} />
+              <Tooltip content={<ChartTooltip />} cursor={cursorProps()} />
+              <Area type="monotone" dataKey="completed" name="Completed" stroke="url(#out-done-stroke)" fill="url(#out-done-area)" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: "#ff3c00", stroke: "#fff", strokeWidth: 1.5 }} />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
-        <div className="game-panel p-5">
-          <H3>Hours clocked — weekly</H3>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={m.weeks}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
-              <XAxis dataKey="week" tick={{ fill: "rgba(0,0,0,0.35)", fontSize: 10 }} tickLine={false} />
-              <YAxis tick={{ fill: "rgba(0,0,0,0.35)", fontSize: 10 }} tickLine={false} axisLine={false} />
-              <Tooltip content={<GameChartTooltip suffix="h" />} cursor={{ fill: "rgba(255,60,0,0.06)" }} />
-              <Bar dataKey="hours" fill="#ff3c00" radius={[6, 6, 0, 0]} />
+        </ChartPanel>
+        <ChartPanel>
+          <H3 right={<span className="font-mono text-[11px] text-ink/50">{fmtH(m.weeks.reduce((s, w) => s + w.hours, 0))} in 8 weeks</span>}>Hours clocked — weekly</H3>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={m.weeks} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
+              <FlameDefs id="out-hours" />
+              <CartesianGrid {...gridProps()} />
+              <XAxis dataKey="week" {...axisProps()} />
+              <YAxis {...axisProps()} width={40} />
+              <Tooltip content={<ChartTooltip format={(v) => `${v}h`} />} cursor={barCursor()} />
+              <Bar dataKey="hours" name="Hours" fill="url(#out-hours-bar)" radius={[5, 5, 0, 0]} maxBarSize={42} />
             </BarChart>
           </ResponsiveContainer>
           {!m.weeks.some((w) => w.hours) && (
             <p className="text-ink/[0.45] text-[11px] text-center mt-2">Start the clock on a task (Tasks or a project) and the hours show up here and in Time Intelligence.</p>
           )}
-        </div>
+        </ChartPanel>
       </div>
 
       <div className="grid md:grid-cols-3 gap-5">
-        <div className="game-panel p-5">
+        <ChartPanel>
           <H3>Status</H3>
           <Bars rows={m.statusRows} total={m.total} />
-        </div>
-        <div className="game-panel p-5">
+        </ChartPanel>
+        <ChartPanel>
           <H3>Billable vs internal</H3>
           {m.typeRows.length ? <Bars rows={m.typeRows} total={m.total} /> : <p className="text-xs text-ink/50">No tasks yet.</p>}
-        </div>
-        <div className="game-panel p-5">
+        </ChartPanel>
+        <ChartPanel>
           <H3>By client</H3>
           <div className="space-y-2">
             {m.clients.map((c) => (
