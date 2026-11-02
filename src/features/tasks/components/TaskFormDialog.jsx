@@ -39,7 +39,7 @@ const EMPTY = {
 
 const NONE = "__none__";
 
-export default function TaskFormDialog({ open, onOpenChange, projects = [], clients = [], onSaved, initial = null, lockProject = null }) {
+export default function TaskFormDialog({ open, onOpenChange, projects = [], clients = [], onSaved, initial = null, lockProject = null, defaults = null }) {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -60,7 +60,13 @@ export default function TaskFormDialog({ open, onOpenChange, projects = [], clie
       });
     } else {
       const project = projects.find((p) => p.id === lockProject);
-      setForm({ ...EMPTY, project_id: lockProject || "", client_id: (project && project.client_id) || "" });
+      // Optional `defaults` (e.g. the task board's selected client) pre-fill a brand-new task.
+      setForm({
+        ...EMPTY,
+        ...(defaults || {}),
+        project_id: lockProject || "",
+        client_id: (project && project.client_id) || (defaults && defaults.client_id) || ""
+      });
     }
     setError("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -83,7 +89,9 @@ export default function TaskFormDialog({ open, onOpenChange, projects = [], clie
       project_id: form.project_id || null,
       project_name: project ? project.title : null,
       client_id: clientId,
-      client_name: client ? client.name : (project && project.client_name) || null,
+      client_name: client
+        ? client.name
+        : (project && project.client_name) || (!clientId && !(initial && initial.id) && defaults && defaults.client_name) || null,
       category: form.category,
       task_type: form.task_type,
       status: form.status,
