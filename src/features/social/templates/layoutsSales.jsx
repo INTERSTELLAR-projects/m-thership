@@ -95,18 +95,20 @@ export function OfferStack({ spec, example }) {
   const dark = isDark(spec);
   const items = arr(m.items, example.mock.items).slice(0, 7);
   const line = dark ? "rgba(255,255,255,.1)" : HAIR;
+  const roomy = items.length <= 4;
   return (
     <PostFrame spec={spec}>
       <div style={{ marginTop: 30 }}>
         <Headline text={spec.headline} accent={spec.accent_word} size={fit(spec.headline, [[34, 76], [50, 66], [70, 58], [999, 50]])} />
+        {spec.subhead && <p style={{ margin: "18px 0 0", fontSize: 26, lineHeight: 1.3, color: subColor(dark), maxWidth: 840 }}>{spec.subhead}</p>}
       </div>
       <div style={{ marginTop: "auto", marginBottom: 32, display: "grid", gridTemplateColumns: "1.35fr 1fr", gap: 18, alignItems: "stretch" }}>
-        <div style={{ borderRadius: 12, border: `1.5px solid ${line}`, background: dark ? "rgba(255,255,255,.035)" : CARD, padding: "8px 24px" }}>
+        <div style={{ borderRadius: 12, border: `1.5px solid ${line}`, background: dark ? "rgba(255,255,255,.035)" : CARD, padding: "8px 24px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
           {items.map((it, i) => (
-            <div key={it.name + i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 0", borderTop: i ? `1.5px solid ${line}` : "none" }}>
-              <BadgeCheck size={22} color="#ff3c00" />
-              <span style={{ flex: 1, fontSize: 23, fontWeight: 500, letterSpacing: "-0.02em" }}>{it.name}</span>
-              <span style={{ fontFamily: MONO, fontSize: 17, color: /free/i.test(it.value) ? "#ff6a00" : dark ? "rgba(245,243,240,.5)" : "rgba(26,26,26,.5)" }}>{it.value}</span>
+            <div key={it.name + i} style={{ display: "flex", alignItems: "center", gap: 14, padding: roomy ? "26px 0" : "13px 0", borderTop: i ? `1.5px solid ${line}` : "none" }}>
+              <BadgeCheck size={roomy ? 28 : 22} color="#ff3c00" />
+              <span style={{ flex: 1, fontSize: roomy ? 30 : 23, fontWeight: 500, letterSpacing: "-0.02em" }}>{it.name}</span>
+              <span style={{ fontFamily: MONO, fontSize: roomy ? 20 : 17, color: /free/i.test(it.value) ? "#ff6a00" : dark ? "rgba(245,243,240,.5)" : "rgba(26,26,26,.5)" }}>{it.value}</span>
             </div>
           ))}
         </div>
@@ -115,7 +117,7 @@ export function OfferStack({ spec, example }) {
           <p style={{ margin: "16px 0 0", fontSize: 21, color: "rgba(255,255,255,.55)", textDecoration: "line-through", textDecorationColor: "rgba(255,60,0,.7)", textDecorationThickness: 2 }}>{m.total_label}</p>
           <p style={{ margin: "10px 0 0", fontSize: 96, fontWeight: 600, letterSpacing: "-0.06em", lineHeight: 0.95, ...flameTextStyle() }}>{m.price}</p>
           {m.price_note && <p style={{ margin: "14px 0 0", fontSize: 18, lineHeight: 1.35, color: "rgba(255,255,255,.65)" }}>{m.price_note}</p>}
-          <span style={{ marginTop: "auto", display: "inline-flex", alignItems: "center", gap: 10, fontFamily: MONO, fontSize: 13, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,.55)" }}>
+          <span style={{ marginTop: "auto", paddingTop: 16, display: "inline-flex", alignItems: "center", gap: 10, fontFamily: MONO, fontSize: 13, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,.55)" }}>
             Quoted on a free call <ArrowRight size={16} />
           </span>
         </DarkCard>
