@@ -8,11 +8,11 @@ import BriefPanel from "./BriefPanel";
 // clicking a screen turns to face it and opens that sector's brief.
 const R = 980; // wall radius
 const COLS = [
-  { ang: -52, ids: ["payload", "insignia"] },
-  { ang: -26, ids: ["signal", "beacon"] },
+  { ang: 52, ids: ["payload", "insignia"] },
+  { ang: 26, ids: ["signal", "beacon"] },
   { ang: 0, ids: ["command"] },
-  { ang: 26, ids: ["shield", "intercept"] },
-  { ang: 52, ids: ["engine", "orbit"] },
+  { ang: -26, ids: ["shield", "intercept"] },
+  { ang: -52, ids: ["engine", "orbit"] },
 ];
 const ANGLE_OF = Object.fromEntries(COLS.flatMap((c) => c.ids.map((id) => [id, c.ang])));
 
@@ -142,7 +142,7 @@ export default function CommandCenter({ client, con, onOpenDeck }) {
   const { by, health, constraint, moves } = con;
   const root = useRef(null);
   const cam = useRef(null);
-  const view = useRef({ yaw: 0, pitch: 0, z: 0, ty: 0, tx: 0, mx: 0, my: 0, zoom: 0 });
+  const view = useRef({ yaw: 0, pitch: 0, z: 0, ty: 0, tx: 0, mx: 0, my: 0, zoom: 140 });
   const [selected, setSelected] = useState(null);
   const [full, setFull] = useState(false);
   const selRef = useRef(null);
