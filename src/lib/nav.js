@@ -3,6 +3,7 @@ import {
   MessageSquare, TrendingUp, ClipboardList, Crown, Activity, Settings, FolderKanban, Star, PenLine, Presentation, Route, Sparkles, Target, QrCode,
 } from "lucide-react";
 import { Link2 as BacklinksIcon } from "lucide-react";
+import { CalendarRange as ContentPlansIcon } from "lucide-react";
 import { SUBSCRIPTIONS, DELIVERY_PACKAGES, packagePath } from "@/features/packages/registry";
 
 export const LOGO_URL =
@@ -38,6 +39,7 @@ export const NAV_GROUPS = [
     items: [
       { label: "Stärboard", icon: Star, path: "/reviews" },
       { label: "Performance", icon: TrendingUp, path: "/performance" },
+      { label: "Content Plans", icon: ContentPlansIcon, path: "/content-plans" },
       { label: "Comms", icon: MessageSquare, path: "/comms" },
       { label: "Backlinks & Citations", icon: BacklinksIcon, path: "/backlinks" },
     ],
