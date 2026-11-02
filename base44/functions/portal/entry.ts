@@ -415,7 +415,7 @@ Deno.serve(async (req) => {
     // ---- QR codes (bonus tool): the client's own codes + templates, scan stats. Scoped to cid on every action. ----
     // Dynamic codes print QR_REDIRECT?c=<short_code>; the public `qr` function resolves them. The short code is
     // minted here once and never changes (it is printed), and only http(s) destinations are ever stored.
-    if (action.startsWith("qr_")) {
+    if (String(action).startsWith("qr_")) {
       const QR_REDIRECT = "https://m-thership.base44.app/functions/qr";
       const QR_KEYS = ["id", "name", "folder", "mode", "content_type", "destination", "url", "text", "email_to", "email_subject", "email_body", "phone", "sms_body", "wifi_ssid", "wifi_password", "wifi_encryption", "wifi_hidden", "whatsapp_number", "whatsapp_message", "style", "short_code", "encoded_url", "scans", "last_scan_at", "active", "client_id", "client_name", "source", "created_date", "updated_date"];
       const QR_TPL_KEYS = ["id", "name", "description", "scope", "client_id", "client_name", "style", "updated_date"];
