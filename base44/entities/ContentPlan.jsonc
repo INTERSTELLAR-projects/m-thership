@@ -1,0 +1,125 @@
+{
+  "name": "ContentPlan",
+  "description": "A client's content plan of attack: the BLOG plan (cadence, category rotation, pillars, keyword map, geo rings, editorial queue, linking/format/cover rules), the GBP POSTING plan (cadence, post-type rotation, themes, compliance rules, sample posts) and the PROJECT SUBMISSION -> website page pipeline. Versioned like IndustryPlaybook: approving a Claude job (kind content_plan) or a quick draft archives the previous approved version and saves a new one. Admin-only.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved",
+        "archived"
+      ],
+      "default": "draft"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "blog": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ enabled, frequency, days[], cadence_notes, url_pattern, automation_status, category_rotation[], pillars[{name, description, categories[]}], keyword_targets[{keyword, intent, priority, target_page, city}], geo_plan[{ring, label, cities[], notes}], editorial_queue[{order, category, title, slug, primary_keyword, city, ring, status planned|written|published, published_url, published_at}], published_log[{slug, title, category, date, url}], internal_linking[], format_rules[], cover_image_rules[] }"
+    },
+    "gbp": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ enabled, frequency, days[], cadence_notes, derived_from_blog, post_types[] (update|offer|event|product, rotated in order), themes[], keyword_angles[], photo_rules[], compliance_rules[], sample_posts[{type, title, body, cta}] }"
+    },
+    "projects": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ enabled, source_app_id, source_entity, source_status, publish_url_pattern, cadence, automation_name, published_count, notes }"
+    },
+    "kpis": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "current": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "automation_name": {
+      "type": "string",
+      "description": "Which scheduled automation(s) run this plan, free text"
+    },
+    "automation_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "not_set_up"
+      ],
+      "default": "not_set_up"
+    },
+    "body_md": {
+      "type": "string"
+    },
+    "source_job_id": {
+      "type": "string",
+      "description": "ClaudeJob that produced it"
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "claude_queue | quick_draft | import"
+    },
+    "import_note": {
+      "type": "string"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
