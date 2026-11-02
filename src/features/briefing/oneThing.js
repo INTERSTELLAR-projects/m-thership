@@ -7,6 +7,7 @@ import { dayKey, loadBriefing, writeBriefingCache } from "./loadBriefing";
 const timeOf = (d) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const clientPart = (name) => (name ? ` (${name})` : "");
+const inDays = (d) => (d === 0 ? "today" : `in ${plural(d, "day")}`);
 
 // Ordered rules: the first that fires is today's one thing.
 export function pickOneThing(b) {
@@ -18,7 +19,7 @@ export function pickOneThing(b) {
 
   const legalLate = b.legal.overdue[0];
   if (legalLate) return { key: "legal", text: `Legal deadline passed: ${legalLate.item.task}. Handle it first.`, to: "/legal" };
-  if (b.legal.next && b.legal.next.days <= 7) return { key: "legal-soon", text: `${b.legal.next.item.task} is due in ${plural(b.legal.next.days, "day")}.`, to: "/legal" };
+  if (b.legal.next && b.legal.next.days <= 7) return { key: "legal-soon", text: `${b.legal.next.item.task} is due ${inDays(b.legal.next.days)}.`, to: "/legal" };
 
   const hot = b.tasks.overdue.find((t) => (t.priority || 3) <= 2);
   if (hot) return { key: "task-late", text: `Clear the overdue ${hot.title}${clientPart(hot.client_name)}.`, to: hot.client_id ? `/clients/${hot.client_id}?tab=tasks` : "/tasks" };
@@ -106,7 +107,7 @@ export function spokenBriefing(b, oneLine, firstName) {
   if (b.sites.length) lines.push(`${plural(b.sites.length, "site")} flagged in Performance.`);
   const newReviews = b.reviews.reduce((n, r) => n + r.fresh, 0);
   if (newReviews) lines.push(`${plural(newReviews, "new Google review")} this week.`);
-  if (b.legal.next) lines.push(`Next legal deadline: ${b.legal.next.item.task}, in ${plural(b.legal.next.days, "day")}.`);
+  if (b.legal.next) lines.push(`Next legal deadline: ${b.legal.next.item.task}, ${inDays(b.legal.next.days)}.`);
   if (b.outreach && b.outreach.waiting) lines.push(`${plural(b.outreach.waiting, "outreach draft")} to approve.`);
   lines.push("That's the brief.");
 
