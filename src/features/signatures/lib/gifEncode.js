@@ -23,7 +23,7 @@ export function encodeGif(frames, { width, height, delays }) {
     }
     const prev = merged[i - 1].data;
     const changed = changedOnly(f.data, prev);
-    const palette = quantize(changed, 255, { format: "rgb565", oneBitAlpha: true, clearAlpha: false });
+    const palette = quantize(changed, 255, { format: "rgb565" });
     const index = applyPalette(f.data, palette, "rgb565");
     const transparentIndex = palette.length;
     palette.push([0, 0, 0]);
