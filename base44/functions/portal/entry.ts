@@ -209,11 +209,10 @@ Deno.serve(async (req) => {
       const setRows = await db.AppSettings.filter({ key: "prestige_offer" }, "-created_date", 1).catch(() => []);
       const saved = ((setRows || [])[0]?.prestigeOffer || {}) as Record<string, any>;
       const offer = { ...DEF, ...saved, booked: { ...DEF.booked, ...(saved.booked || {}) }, signed: { ...DEF.signed, ...(saved.signed || {}) }, tiers: (Array.isArray(saved.tiers) && saved.tiers.length ? saved.tiers : DEF.tiers).slice().sort((a: any, b: any) => (a.threshold || 0) - (b.threshold || 0)) };
-      const email = String(user.email || "").toLowerCase();
       const emails = ((client.portal_emails as string[]) || []).map((e) => String(e).toLowerCase());
       const allMembers = await db.PrestigeMember.list("-created_date", 500).catch(() => []);
       let member = (allMembers || []).find((m: Record<string, unknown>) => m.client_id === cid)
-        || (allMembers || []).find((m: Record<string, unknown>) => (!m.client_id || m.client_id === cid) && m.email && (emails.includes(String(m.email).toLowerCase()) || String(m.email).toLowerCase() === email))
+        || (allMembers || []).find((m: Record<string, unknown>) => (!m.client_id || m.client_id === cid) && m.email && emails.includes(String(m.email).toLowerCase()))
         || null;
       const slug = (s: unknown) => String(s || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 32) || "friend";
 
