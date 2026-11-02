@@ -11,6 +11,7 @@ import { useJobs, useRefreshJobs, approveJob, requestChanges, cancelJob, chatPro
 import { gatherPlaybookInputs, inputChips, isPlaybookJob, normalizePlaybook, pillarLabel, pillarProgress, playbookBrief, playbookFromJob, queuePlaybook, quickDraftPlaybook } from "@/features/claude/playbook";
 import { playbookDeckBrief } from "@/features/presentations/lib/deckFromDocs";
 import DeckFromDocButton from "@/features/presentations/DeckFromDocButton";
+import DictationBox from "@/features/voice/DictationBox";
 
 const PRIORITY_TONE = { high: "bg-[#ff3c00] text-white", medium: "bg-[#ff6a00]/15 text-[#c24100]", low: "bg-ink/[0.07] text-ink/60" };
 const SEVERITY_TONE = { high: "text-red-700 border-red-200 bg-red-50/60", medium: "text-amber-800 border-amber-200 bg-amber-50/60", low: "text-ink/65 border-hair bg-ink/[0.02]" };
@@ -314,10 +315,13 @@ function Composer({ client, revising, onClose, onDone }) {
             {inputChips(inputs.data).map(([k, v]) => <span key={k} className="rounded-sm border border-hair px-1.5 py-0.5 text-ink/65"><span className="text-ink/40">{k}:</span> {v}</span>)}
           </div>
         )}
-        <label className="block">
-          <span className="mono-label text-[9.5px] text-ink/50">{revising ? "What should change from the current playbook?" : "Direction for Claude (optional)"}</span>
-          <textarea value={extra} onChange={(e) => setExtra(e.target.value)} rows={3} placeholder="e.g. Owner wants to hire a second crew by summer. Skip paid ads until reviews pass 50." className="mt-1.5 w-full rounded-sm border border-hair bg-card px-3 py-2 text-[13px] outline-none focus:border-[#ff3c00]" />
-        </label>
+        <DictationBox
+          label={revising ? "What should change from the current playbook?" : "Direction for Claude (optional) — type or dictate"}
+          value={extra}
+          onChange={setExtra}
+          rows={3}
+          placeholder="e.g. Owner wants to hire a second crew by summer. Skip paid ads until reviews pass 50."
+        />
         {brief && (
           <details>
             <summary className="mono-label cursor-pointer text-[9.5px] text-ink/50 hover:text-[#ff3c00]">Show full brief</summary>
