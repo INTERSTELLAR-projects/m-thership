@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, LogOut, Plus, X, ChevronDown, Check, Eye } from "lucide-react";
+import { ArrowUpRight, LogOut, Plus, X, ChevronDown, Check, Eye, Gift, PenLine, QrCode, Presentation } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { LOGO_URL } from "@/lib/nav";
 import { WORK_KINDS, SERVICE_LABELS, fmtDate, timeAgo } from "@/lib/useData";
@@ -10,13 +10,17 @@ import PortalChats from "@/features/portal/PortalChats";
 import { INTAKE_SECTIONS, intakeProgress } from "@/features/clients/intakeQuestions";
 import GridTrail from "@/components/GridTrail";
 import PortalSignatures from "@/features/signatures/PortalSignatures";
+import PortalQr from "@/features/qr/PortalQr";
 import PortalPrestige from "@/features/portal/PortalPrestige";
 import ClientHealthSummary from "@/features/performance/ClientHealthSummary";
 import RequestFormRenderer, { isComplete } from "@/features/requests/RequestFormRenderer";
 import { kindLabel, portalForms, priorityFor, toAnswers, titleFor, detailsFor, attachmentsFor } from "@/features/requests/formSchema";
 import { KitView } from "@/features/clients/BrandKitTab";
 
-const TABS = [["home", "Home"], ["results", "Results"], ["goals", "Goals"], ["files", "Files"], ["brand", "Brand kit"], ["requests", "Requests"], ["signatures", "Signatures"], ["referrals", "Referrals"], ["messages", "Messages"]];
+// Free-for-life bonus tools: tagged in the nav and listed together on Home.
+const BONUS_TABS = ["signatures", "qr"];
+
+const TABS = [["home", "Home"], ["results", "Results"], ["goals", "Goals"], ["files", "Files"], ["brand", "Brand kit"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["referrals", "Referrals"], ["messages", "Messages"]];
 
 function usePortal(previewId) {
   const call = async (action, args = {}) => (await base44.functions.invoke("portal", { action, client_id: previewId, ...args })).data;
@@ -61,7 +65,13 @@ export default function PortalApp({ previewId }) {
           {tab === "files" && (d.files.length ? <FileGrid files={d.files} /> : <Panel><Empty>Your brand kit, SOPs, presentations and other deliverables will appear here.</Empty></Panel>)}
           {tab === "brand" && d.has_brand_kit && <BrandKitView call={call} previewId={previewId} business={d.client.business} />}
           {tab === "requests" && <RequestsView d={d} call={call} refresh={refresh} previewId={previewId} />}
-          {tab === "signatures" && <PortalSignatures call={call} />}
+          {tab === "signatures" && (
+            <div className="space-y-4">
+              <span className="inline-flex items-center gap-1.5 flame-bg px-3 py-1.5 text-[12px] font-medium text-white"><Gift className="h-3.5 w-3.5" /> Bonus tool · Free for life with Interstellar</span>
+              <PortalSignatures call={call} />
+            </div>
+          )}
+          {tab === "qr" && <PortalQr call={call} previewId={previewId} />}
           {tab === "referrals" && <PortalPrestige call={call} previewId={previewId} />}
           {tab === "messages" && <MessagesView call={call} previewId={previewId} />}
         </div>
@@ -94,6 +104,7 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, children }) 
               {tabs.map(([k, l]) => (
                 <button key={k} onClick={() => setTab(k)} className={`relative whitespace-nowrap px-3 py-2 text-[13px] font-medium transition-colors ${tab === k ? "text-ink" : "text-ink/50 hover:text-ink"}`}>
                   {l}
+                  {BONUS_TABS.includes(k) && <span className="mono-label ml-1.5 inline-flex items-center bg-[#ff3c00]/10 px-1 py-[1px] align-middle text-[8px] text-[#ff3c00]">Bonus</span>}
                   {k === "messages" && unread > 0 && <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center bg-[#ff3c00] px-1 text-[10px] text-white">{unread}</span>}
                   {tab === k && <span className="absolute inset-x-3 -bottom-[13px] h-[2px] bg-[#ff3c00]" />}
                 </button>
@@ -188,6 +199,7 @@ function HomeView({ d, go, openAudit }) {
               </ul>
             </Panel>
           )}
+          <BonusTools go={go} />
           <button onClick={openAudit} className="card-hover w-full rounded-md border border-hair bg-card p-4 text-left">
             <p className="mono-label text-[9.5px] text-ink/50">Business audit</p>
             <p className="mt-1 text-[14.5px] font-semibold">Tell us about your business →</p>
@@ -196,6 +208,49 @@ function HomeView({ d, go, openAudit }) {
         </div>
       </div>
     </div>
+  );
+}
+
+// Bonus tools: free for life with Interstellar. The presentation creator is a placeholder (no functionality yet).
+function BonusTools({ go }) {
+  const tools = [
+    { k: "signatures", icon: PenLine, title: "Email signatures", text: "Animated, on-brand signatures for your whole team." },
+    { k: "qr", icon: QrCode, title: "QR codes", text: "Branded, trackable QR codes you can re-point after printing." },
+    { k: null, icon: Presentation, title: "AI Presentation Creator", text: "Decks in your brand, written with you.", soon: true },
+  ];
+  return (
+    <section className="rounded-md border border-hair bg-card">
+      <header className="flex items-center justify-between gap-3 border-b border-hair px-4 py-3">
+        <div>
+          <p className="mono-label text-[9.5px] text-ink/50">Bonus tools</p>
+          <h3 className="text-[15px] font-semibold tracking-[-0.02em]">Free for life with Interstellar</h3>
+        </div>
+        <Gift className="h-4 w-4 text-[#ff3c00]" />
+      </header>
+      <ul className="divide-y divide-hair">
+        {tools.map((t) => {
+          const Icon = t.icon;
+          return (
+            <li key={t.title}>
+              <button
+                type="button"
+                disabled={t.soon}
+                aria-disabled={t.soon}
+                onClick={() => t.k && go(t.k)}
+                className={`flex w-full items-center gap-3 px-4 py-3 text-left ${t.soon ? "cursor-not-allowed opacity-55" : "hover:bg-paper"}`}
+              >
+                <span className={`flex h-8 w-8 shrink-0 items-center justify-center ${t.soon ? "bg-ink/[0.07] text-ink/50" : "flame-bg text-white"}`}><Icon className="h-4 w-4" /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[13.5px] font-medium">{t.title}</span>
+                  <span className="block text-[11.5px] text-ink/55">{t.text}</span>
+                </span>
+                {t.soon ? <Tag tone="muted">Coming soon</Tag> : <ArrowUpRight className="h-4 w-4 text-ink/40" />}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 
