@@ -164,16 +164,7 @@
     },
     "lead_source": {
       "type": "string",
-      "enum": [
-        "website",
-        "funnel",
-        "referral",
-        "cold",
-        "ads",
-        "social",
-        "other"
-      ],
-      "description": "Where the lead came from"
+      "description": "Where the lead came from: a value from Settings > Lists & fields > Lead sources (defaults website, funnel, referral, cold, ads, social, other)"
     },
     "lead_funnel": {
       "type": "string",
