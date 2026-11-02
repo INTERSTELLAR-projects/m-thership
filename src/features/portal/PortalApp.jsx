@@ -19,11 +19,12 @@ import { kindLabel, portalForms, priorityFor, toAnswers, titleFor, detailsFor, a
 import { KitView } from "@/features/clients/BrandKitTab";
 import PortalPlaybook from "@/features/portal/PortalPlaybook";
 import { PortalGbp, ReviewLinkQuick } from "@/features/gbp/GbpPanel";
+import PortalAssistant, { AssistantLauncher } from "@/features/portal/assistant/PortalAssistant";
 
 // Free-for-life bonus tools: tagged in the nav and listed together on Home.
 const BONUS_TABS = ["signatures", "qr"];
 
-const TABS = [["home", "Home"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["referrals", "Referrals"], ["messages", "Messages"]];
+const TABS = [["home", "Home"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["referrals", "Referrals"], ["messages", "Messages"]];
 
 function usePortal(previewId) {
   const call = async (action, args = {}) => (await base44.functions.invoke("portal", { action, client_id: previewId, ...args })).data;
@@ -80,8 +81,10 @@ export default function PortalApp({ previewId }) {
           {tab === "qr" && <PortalQr call={call} previewId={previewId} openId={qrOpen} />}
           {tab === "referrals" && <PortalPrestige call={call} previewId={previewId} />}
           {tab === "messages" && <MessagesView call={call} previewId={previewId} />}
+          {tab === "assistant" && <PortalAssistant previewId={previewId} variant="page" />}
         </div>
       )}
+      {tab !== "assistant" && <AssistantLauncher previewId={previewId} onOpenFull={() => { setQrOpen(null); setTab("assistant"); }} />}
     </Shell>
   );
 }
