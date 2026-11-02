@@ -7,7 +7,7 @@ import { inputClass, textareaClass, labelClass, btnGhost, btnSmallFlame, btnDang
 import { cn } from "@/lib/utils";
 import { PACKAGES, packageByKey, packagePath } from "@/features/packages/registry";
 import { createFlight } from "@/features/flight/onboarding/store";
-import { SALES_FOR_PACKAGE, saleByKey, defaultPrice, needsCare } from "@/features/flight/onboarding/catalog";
+import { SALES_FOR_PACKAGE, saleByKey, defaultPrice } from "@/features/flight/onboarding/catalog";
 import {
   STAGES, STAGE_LABEL, SOURCE_BY_KEY, LOST_REASONS, stageOf, sourceOf, interestOf, detailsOf, bookedCallOf,
   daysInStage, suggestedSale, noteDate, money,
@@ -103,7 +103,6 @@ export function WonDialog({ lead, onClose, onWon }) {
         } else if (Number(lead.lead_value) > 0) {
           await base44.entities.OnboardingFlight.update(flight.id, { price: Number(lead.lead_value) }).catch(() => null);
         }
-        void needsCare;
       }
       onClose();
       navigate(packagePath(pkg.key) + "/" + lead.id);
