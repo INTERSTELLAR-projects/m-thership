@@ -234,7 +234,8 @@ function cover(ctx, img, x, y, w, h, zoom = 1, focusY = 0.32) {
 async function renderPhoto(spec) {
   const img = await loadImage(spec.src);
   const size = spec.size || 120;
-  const k = Math.min(2, 320 / size);
+  // Animated photos are the heaviest asset: 1.6× keeps them crisp on retina at a sane file size.
+  const k = !spec.anim || spec.anim === "none" ? Math.min(2, 340 / size) : Math.min(1.6, 260 / size);
   const px = Math.round(size * k);
   const accent = spec.accent || "#ff6a00";
   const accent2 = spec.accent2 || mix(accent, "#ffffff", 0.4);
@@ -297,7 +298,7 @@ async function renderPhoto(spec) {
       film(
         px,
         px,
-        34,
+        22,
         (ctx, f) => {
           fill(ctx);
           for (let i = 0; i < N; i++) {
@@ -315,14 +316,9 @@ async function renderPhoto(spec) {
             ctx.restore();
           }
           ctx.globalAlpha = 1;
-          ctx.save();
-          shapePath(ctx, shape, x0, x0, w, w);
-          ctx.clip();
-          shine(ctx, x0, x0, w, w, prog(f, 21, 12), 0.45);
-          ctx.restore();
           plainRing(ctx);
         },
-        holdLast(2800, 42)
+        holdLast(3000, 42)
       )
     );
   }
