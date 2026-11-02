@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { settleTimer } from "@/features/tasks/lib/timer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -8,7 +9,6 @@ import Field from "@/features/tasks/ui-kit/Field";
 import RollButton from "@/features/tasks/ui-kit/RollButton";
 import { CATEGORIES, PRIORITIES, TASK_STATUSES, TASK_TYPES } from "@/features/tasks/lib/constants";
 import {
-import { settleTimer } from "@/features/tasks/lib/timer";
   btnDanger,
   btnGhost,
   dialogClass,
