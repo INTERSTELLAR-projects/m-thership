@@ -39,6 +39,7 @@ export const DEFAULT_FIELDS = {
   full_name: "Alex Morgan",
   job_title: "Product Designer",
   company_name: "Nebula Labs",
+  slogan: "",
   phone: "+1 (415) 555-0142",
   phone_show: true,
   email: "alex@nebulalabs.com",
@@ -131,7 +132,8 @@ function makeCtx(fields, theme, assets, final, collected) {
   const A = (spec) => {
     const key = assetKey(spec);
     collected[key] = spec;
-    return assets ? assets.get(key, final) : null;
+    const slot = `${spec.kind}:${spec.platform || spec.name || ""}`;
+    return assets ? assets.get(key, final, slot) : null;
   };
   return { f, t, A, final };
 }
@@ -183,7 +185,16 @@ function brandLine(c, { center = false, mt = 8 } = {}) {
       )};">${esc(f.company_name)}</td>`
     : "";
   const logo = withLogo ? `<td style="vertical-align:middle;padding-right:${f.company_name ? 9 : 0}px;">${logoImg(c, logoH(c, 34))}</td>` : "";
-  return `<table ${TBL}${center ? ` align="center"` : ""} style="margin-top:${mt}px;"><tr>${logo}${name}</tr></table>`;
+  return `<table ${TBL}${center ? ` align="center"` : ""} style="margin-top:${mt}px;"><tr>${logo}${name}</tr></table>${sloganLine(c, center)}`;
+}
+
+// Slogan / tagline under the logo + company line, a step larger than the company caps.
+function sloganLine(c, center = false) {
+  const { f, t } = c;
+  if (!f.slogan) return "";
+  return `<div style="font-family:${fontOf(t)};font-size:13px;line-height:18px;font-weight:500;font-style:italic;letter-spacing:-0.1px;color:${esc(
+    mix(t.text_color, t.surface_color || "#ffffff", 0.25)
+  )};margin-top:5px;${center ? "text-align:center;" : ""}">${esc(f.slogan)}</div>`;
 }
 
 function topLogo(c, center = false) {
