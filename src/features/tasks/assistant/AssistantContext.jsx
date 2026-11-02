@@ -124,8 +124,8 @@ export function AssistantProvider({ children }) {
       if (data.speech) spoken = data.speech;
       else if (data.error) spoken = "The command core returned an error on that one.";
       if (data.filed || data.queued) emitTasksChanged();
-    } catch {
-      const status = error && error.response && error.response.status;
+    } catch (error) {
+      const status = (error && error.response && error.response.status) || (error && error.status);
       spoken = status === 403 ? "Only an admin can run the command core." : "I could not reach the command core just now.";
     }
 

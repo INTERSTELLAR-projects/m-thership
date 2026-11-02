@@ -131,7 +131,9 @@ function TaskBoardInner({ withDock = false }) {
 
   const buildQuery = useCallback(() => {
     const query = { ...clientQuery(filters.client) };
+    // Everything is the working view: finished work lives only in the Complete tab.
     if (filters.status !== ALL) query.status = filters.status;
+    else query.status = { $ne: "done" };
     if (filters.category !== ALL) query.category = filters.category;
     if (filters.priority !== ALL) query.priority = Number(filters.priority);
     if (filters.search.trim()) query.title = { $regex: filters.search.trim(), $options: "i" };
@@ -272,6 +274,8 @@ function TaskBoardInner({ withDock = false }) {
       patchLocal(task.id, task);
     }
     if ("is_focus" in patch || "status" in patch) loadRails().catch(() => {});
+    // A status change can move the task out of the tab being viewed (e.g. into Complete).
+    if ("status" in patch) load(null).catch(() => {});
   };
 
   const removeTask = async (task) => {
@@ -285,7 +289,12 @@ function TaskBoardInner({ withDock = false }) {
   const complete = async (task) => {
     const patch = statusPatch("done");
     setOpenTasks((prev) => prev.filter((row) => row.id !== task.id));
-    setTasks((prev) => prev.map((row) => (row.id === task.id ? { ...row, ...patch } : row)));
+    if (filters.status === "done") {
+      setTasks((prev) => prev.map((row) => (row.id === task.id ? { ...row, ...patch } : row)));
+    } else {
+      setTasks((prev) => prev.filter((row) => row.id !== task.id));
+      setTotal((prev) => Math.max(0, prev - 1));
+    }
     await settleTimer(task);
     await base44.entities.Task.update(task.id, patch);
   };
