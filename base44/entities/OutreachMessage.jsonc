@@ -1,0 +1,125 @@
+{
+  "name": "OutreachMessage",
+  "type": "object",
+  "description": "Backlinks & Citations: one outreach email to a target. Claude drafts (needs_approval), Justin approves in M\u00f8thership, and only then the SEND task sends it from Gmail. The browser never sends.",
+  "properties": {
+    "target_id": {
+      "type": "string",
+      "description": "OutreachTarget id"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "target_name": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string",
+      "description": "Plain-text body (what gets sent). Signature and opt-out line are appended by the SEND task from Outreach rules."
+    },
+    "body_html": {
+      "type": "string",
+      "description": "Optional HTML version"
+    },
+    "to_email": {
+      "type": "string"
+    },
+    "to_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "needs_approval",
+        "approved",
+        "sent",
+        "replied",
+        "bounced",
+        "rejected",
+        "rewrite_requested",
+        "failed"
+      ],
+      "default": "needs_approval"
+    },
+    "rewrite_note": {
+      "type": "string",
+      "description": "Justin's note when he asks for a rewrite; the next RESEARCH run rewrites and resets to needs_approval"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "gmail_message_id": {
+      "type": "string"
+    },
+    "thread_id": {
+      "type": "string"
+    },
+    "reply_snippet": {
+      "type": "string"
+    },
+    "replied_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "follow_up_of": {
+      "type": "string",
+      "description": "OutreachMessage id this follows up"
+    },
+    "follow_up_due": {
+      "type": "string",
+      "format": "date"
+    },
+    "error": {
+      "type": "string"
+    },
+    "drafted_by": {
+      "type": "string",
+      "enum": [
+        "claude",
+        "justin"
+      ],
+      "default": "claude"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
