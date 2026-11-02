@@ -47,7 +47,7 @@ export async function startRecorder({ onLevel, onAutoStop } = {}) {
       raf = requestAnimationFrame(tick);
     };
     tick();
-  } catch (error) {
+  } catch {
     /* level meter is optional */
   }
 

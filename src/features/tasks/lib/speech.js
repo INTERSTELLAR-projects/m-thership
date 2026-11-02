@@ -24,7 +24,7 @@ export function readVoiceSettings() {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
     return { ...DEFAULT_VOICE_SETTINGS, ...(raw ? JSON.parse(raw) : {}) };
-  } catch (error) {
+  } catch {
     return { ...DEFAULT_VOICE_SETTINGS };
   }
 }
@@ -32,7 +32,7 @@ export function readVoiceSettings() {
 export function writeVoiceSettings(next) {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
-  } catch (error) {
+  } catch {
     /* storage blocked */
   }
 }
@@ -220,7 +220,7 @@ export function stopSpeaking() {
   if (currentAudio) {
     try {
       currentAudio.pause();
-    } catch (error) {
+    } catch {
       /* already stopped */
     }
     currentAudio = null;
@@ -236,7 +236,7 @@ export async function requestMicAccess() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     stream.getTracks().forEach((track) => track.stop());
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }

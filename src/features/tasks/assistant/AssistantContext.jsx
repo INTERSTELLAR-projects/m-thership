@@ -66,7 +66,7 @@ export function AssistantProvider({ children }) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 }, audio: false });
       setWebcamStream(stream);
-    } catch (error) {
+    } catch {
       setNotice("Camera access was refused or is unavailable.");
     }
   }, [webcamStream]);
@@ -88,7 +88,7 @@ export function AssistantProvider({ children }) {
     if (recognition) {
       try {
         recognition.stop();
-      } catch (error) {
+      } catch {
         /* already stopped */
       }
     }
@@ -124,7 +124,7 @@ export function AssistantProvider({ children }) {
       if (data.speech) spoken = data.speech;
       else if (data.error) spoken = "The command core returned an error on that one.";
       if (data.filed || data.queued) emitTasksChanged();
-    } catch (error) {
+    } catch {
       const status = error && error.response && error.response.status;
       spoken = status === 403 ? "Only an admin can run the command core." : "I could not reach the command core just now.";
     }
@@ -201,7 +201,7 @@ export function AssistantProvider({ children }) {
     recRef.current = recognition;
     try {
       recognition.start();
-    } catch (error) {
+    } catch {
       recRef.current = null;
     }
   }, [recognitionSupported, runCommand]);
@@ -230,7 +230,7 @@ export function AssistantProvider({ children }) {
         try {
           const text = await transcribeAudio(blob);
           if (text) finalText = text;
-        } catch (error) {
+        } catch {
           setNotice("Server transcription failed, using the live captions instead.");
         }
       }
@@ -272,7 +272,7 @@ export function AssistantProvider({ children }) {
             finishDictation();
           }
         });
-      } catch (error) {
+      } catch {
         recorderRef.current = null;
         if (!recognitionSupported) {
           setNotice("Microphone permission was refused. Allow mic access in your browser to talk to the core.");
