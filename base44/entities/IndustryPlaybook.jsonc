@@ -1,0 +1,94 @@
+{
+  "name": "IndustryPlaybook",
+  "description": "A client's approved 2027 industry playbook tied to their goals: goal summary, industry snapshot, pillars (current state, target, what Interstellar does, owner actions, next services, KPIs, 30/60/90 milestones), quick wins, what to ignore and risks. Created only when Justin approves a playbook job (Claude Queue or in-app quick draft). Admin-only; the portal shows the newest approved playbook only when portal_visible = true.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "archived"
+      ],
+      "default": "approved"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
+    },
+    "summary": {
+      "type": "string"
+    },
+    "playbook": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Structured playbook (see PLAYBOOK_JSON_SCHEMA in src/features/claude/playbook.js)"
+    },
+    "body_md": {
+      "type": "string",
+      "description": "The playbook as markdown (Claude's result_body, or generated from the JSON)"
+    },
+    "source_job_id": {
+      "type": "string",
+      "description": "ClaudeJob that produced it"
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "claude_queue or quick_draft"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "portal_visible": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show in the client portal (only the newest approved playbook)"
+    },
+    "quick_wins_done": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "description": "Indexes of quick wins ticked off"
+    },
+    "presentation_id": {
+      "type": "string",
+      "description": "Latest Presentation generated from this playbook"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
