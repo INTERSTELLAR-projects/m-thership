@@ -41,7 +41,6 @@
   "required": [
     "qr_id"
   ],
-  "description": "One anonymous scan of a dynamic QR code. No IP address, no full user agent, no personal data.",
   "rls": {
     "create": {
       "user_condition": {
