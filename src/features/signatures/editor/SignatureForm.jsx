@@ -56,6 +56,16 @@ export default function SignatureForm({ fields, theme, onFields, onTheme }) {
           <Label className="text-xs">Company name</Label>
           <Input value={fields.company_name} onChange={(e) => setF({ company_name: e.target.value })} className="h-10 mt-1" />
         </div>
+        <div>
+          <Label className="text-xs">Slogan</Label>
+          <Input
+            value={fields.slogan || ""}
+            onChange={(e) => setF({ slogan: e.target.value })}
+            className="h-10 mt-1"
+            placeholder="The Future of Business"
+          />
+          <p className="text-[11px] text-muted-foreground mt-1">Shows under the logo and company name.</p>
+        </div>
       </Section>
 
       <Section title="Verified check">
