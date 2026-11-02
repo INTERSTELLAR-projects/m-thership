@@ -171,11 +171,11 @@ export default function FixDialog({ open, onOpenChange, client, audit, issue, ex
           {p && (
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.07] pt-4">
               <div className="flex flex-wrap gap-1.5">
+                {["proposed", "dismissed"].includes(fix.status) && (
+                  <DarkButton variant="subtle" onClick={generate} disabled={!!busy}>{busy === "gen" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Regenerate</DarkButton>
+                )}
                 {fix.status === "proposed" && (
-                  <>
-                    <DarkButton variant="subtle" onClick={generate} disabled={!!busy}>{busy === "gen" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Regenerate</DarkButton>
-                    <DarkButton variant="subtle" onClick={dismiss} disabled={!!busy}><X className="h-3.5 w-3.5" /> Dismiss</DarkButton>
-                  </>
+                  <DarkButton variant="subtle" onClick={dismiss} disabled={!!busy}><X className="h-3.5 w-3.5" /> Dismiss</DarkButton>
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-2">
