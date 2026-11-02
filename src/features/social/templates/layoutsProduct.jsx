@@ -29,22 +29,22 @@ export function PainFix({ spec, example }) {
     <PostFrame spec={spec}>
       <Head spec={spec} />
       <div style={{ marginTop: "auto", marginBottom: 40, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22, position: "relative" }}>
-        <div style={{ borderRadius: 12, border: `1.5px solid ${dark ? "rgba(255,255,255,.14)" : HAIR}`, background: dark ? "rgba(255,255,255,.04)" : CARD, padding: 30 }}>
+        <div style={{ borderRadius: 12, border: `1.5px solid ${dark ? "rgba(255,255,255,.14)" : HAIR}`, background: dark ? "rgba(255,255,255,.04)" : CARD, padding: 34 }}>
           <Mono size={15} color={dark ? "rgba(245,243,240,.5)" : "rgba(26,26,26,.5)"}>({m.before_label || "Before"})</Mono>
-          <ul style={{ listStyle: "none", margin: "20px 0 0", padding: 0, display: "grid", gap: 16 }}>
+          <ul style={{ listStyle: "none", margin: "24px 0 0", padding: 0, display: "grid", gap: 20 }}>
             {before.map((t) => (
-              <li key={t} style={{ display: "flex", gap: 14, alignItems: "flex-start", fontSize: 24, lineHeight: 1.25, letterSpacing: "-0.015em", color: dark ? "rgba(245,243,240,.7)" : "rgba(26,26,26,.7)" }}>
+              <li key={t} style={{ display: "flex", gap: 14, alignItems: "flex-start", fontSize: 28, lineHeight: 1.22, letterSpacing: "-0.02em", color: dark ? "rgba(245,243,240,.7)" : "rgba(26,26,26,.7)" }}>
                 <span style={{ marginTop: 3, flexShrink: 0, display: "inline-flex", width: 26, height: 26, borderRadius: 26, alignItems: "center", justifyContent: "center", background: "rgba(216,51,0,.12)", color: "#d83300" }}><X size={16} strokeWidth={2.6} /></span>
                 <span style={{ textDecoration: "line-through", textDecorationColor: "rgba(216,51,0,.35)", textDecorationThickness: 2 }}>{t}</span>
               </li>
             ))}
           </ul>
         </div>
-        <DarkCard padding={30}>
+        <DarkCard padding={34}>
           <Mono size={15} color="rgba(255,255,255,.55)">({m.after_label || "After"})</Mono>
-          <ul style={{ listStyle: "none", margin: "20px 0 0", padding: 0, display: "grid", gap: 16 }}>
+          <ul style={{ listStyle: "none", margin: "24px 0 0", padding: 0, display: "grid", gap: 20 }}>
             {after.map((t) => (
-              <li key={t} style={{ display: "flex", gap: 14, alignItems: "flex-start", fontSize: 24, lineHeight: 1.25, letterSpacing: "-0.015em", color: "#fff" }}>
+              <li key={t} style={{ display: "flex", gap: 14, alignItems: "flex-start", fontSize: 28, lineHeight: 1.22, letterSpacing: "-0.02em", color: "#fff" }}>
                 <span style={{ marginTop: 3, flexShrink: 0, display: "inline-flex", width: 26, height: 26, borderRadius: 26, alignItems: "center", justifyContent: "center", background: FLAME, color: "#fff" }}><Check size={16} strokeWidth={2.8} /></span>
                 {t}
               </li>
@@ -70,7 +70,7 @@ export function Dashboard({ spec, example }) {
   return (
     <PostFrame spec={spec}>
       <Head spec={spec} steps={[[34, 84], [50, 72], [70, 62], [999, 54]]} />
-      <MockWindow dark={dark} url={`${slug}.com/command/${String(m.screen || "financial").toLowerCase()}`} style={{ marginTop: "auto", marginBottom: 36, height: 470 }} bodyStyle={{ padding: 24, background: "#ebe8e4" }}>
+      <MockWindow dark={dark} url={`${slug}.com/command/${String(m.screen || "financial").toLowerCase()}`} style={{ marginTop: "auto", marginBottom: 36, height: 500 }} bodyStyle={{ padding: 24, background: "#ebe8e4" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
           <span style={{ display: "inline-flex", alignItems: "baseline", gap: 14 }}>
             <span style={{ fontSize: 26, fontWeight: 600, letterSpacing: "-0.04em", color: INK }}>{m.business}</span>
@@ -136,8 +136,8 @@ export function PortalPreview({ spec, example }) {
   const feed = arr(m.feed).slice(0, 3);
   return (
     <PostFrame spec={spec}>
-      <Head spec={spec} steps={[[34, 80], [52, 68], [72, 58], [999, 50]]} sub={String(spec.headline || "").length < 50} />
-      <MockWindow dark={dark} url="portal.interstellar-strategies.com" style={{ marginTop: "auto", marginBottom: 36, height: 540 }} bodyStyle={{ background: "#ebe8e4", color: INK }}>
+      <Head spec={spec} steps={[[34, 80], [52, 68], [72, 58], [999, 50]]} sub={String(spec.headline || "").length < 66} />
+      <MockWindow dark={dark} url="portal.interstellar-strategies.com" style={{ marginTop: "auto", marginBottom: 36, height: 520 }} bodyStyle={{ background: "#ebe8e4", color: INK }}>
         <div style={{ height: 66, display: "flex", alignItems: "center", gap: 18, padding: "0 26px", borderBottom: `1.5px solid ${HAIR}` }}>
           <span style={{ display: "inline-flex", fontSize: 0 }}><BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={20} /></span>
           <span style={{ width: 1.5, height: 30, background: HAIR }} />
@@ -196,15 +196,15 @@ export function StackCollapse({ spec, example }) {
         <div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {apps.map((a, i) => (
-              <div key={a.name + i} style={{ transform: `rotate(${tilt[i % tilt.length]}deg)`, display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 10, border: `1.5px solid ${dark ? "rgba(255,255,255,.14)" : HAIR}`, background: dark ? "#1e1e1e" : CARD, boxShadow: "0 10px 24px -16px rgba(0,0,0,.5)" }}>
+              <div key={a.name + i} style={{ transform: `rotate(${tilt[i % tilt.length]}deg)`, display: "flex", alignItems: "center", gap: 12, padding: "16px 16px", borderRadius: 10, border: `1.5px solid ${dark ? "rgba(255,255,255,.14)" : HAIR}`, background: dark ? "#1e1e1e" : CARD, boxShadow: "0 10px 24px -16px rgba(0,0,0,.5)" }}>
                 <span style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, background: dark ? "rgba(255,255,255,.1)" : "rgba(26,26,26,.08)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: MONO, fontSize: 13, fontWeight: 600, color: dark ? "rgba(255,255,255,.6)" : "rgba(26,26,26,.55)" }}>{String(a.name || "?").charAt(0)}</span>
-                <span style={{ flex: 1, minWidth: 0, fontSize: 18, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.name}</span>
+                <span style={{ flex: 1, minWidth: 0, fontSize: 21, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.name}</span>
                 <span style={{ fontFamily: MONO, fontSize: 13, color: dark ? "rgba(255,255,255,.5)" : "rgba(26,26,26,.5)" }}>${Number(a.cost) || 0}</span>
               </div>
             ))}
           </div>
           <div style={{ marginTop: 18, display: "flex", alignItems: "baseline", gap: 12 }}>
-            <span style={{ fontSize: 40, fontWeight: 600, letterSpacing: "-0.04em", color: "#d83300", textDecoration: "line-through", textDecorationThickness: 3 }}>${total.toLocaleString()}/mo</span>
+            <span style={{ fontSize: 48, fontWeight: 600, letterSpacing: "-0.04em", color: "#d83300", textDecoration: "line-through", textDecorationThickness: 3 }}>${total.toLocaleString()}/mo</span>
             <span style={{ fontSize: 18, color: dark ? "rgba(245,243,240,.55)" : "rgba(26,26,26,.55)" }}>{apps.length} logins</span>
           </div>
           <Mono size={12} color={dark ? "rgba(245,243,240,.45)" : "rgba(26,26,26,.45)"} style={{ display: "block", marginTop: 6 }}>{m.total_note || "Hypothetical stack"}</Mono>

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import qrcode from "qrcode-generator";
 import { ArrowRight, BadgeCheck, CalendarCheck, CircleDollarSign, ListTodo, MessageSquare, Star, UserPlus } from "lucide-react";
 import {
-  CARD, DarkCard, FLAME, HAIR, Headline, INK, MONO, Mono, PostFrame, SampleTag,
+  CARD, DarkCard, FLAME, HAIR, Headline, INK, MONO, Mono, PostFrame, SANS, SampleTag,
   arr, fit, flameTextStyle, isDark, mockOf,
 } from "./kit";
 
@@ -130,11 +130,15 @@ export function CarouselCover({ spec, example }) {
   const dark = isDark(spec);
   const total = Number(m.slides) || 6;
   return (
-    <PostFrame spec={spec} headerRight={<Mono size={18} color={dark ? "rgba(245,243,240,.55)" : "rgba(26,26,26,.55)"}>01 / {String(total).padStart(2, "0")}</Mono>}>
-      <div style={{ position: "absolute", left: -72, right: -72, bottom: -40, height: 380, pointerEvents: "none", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, background: dark ? "linear-gradient(180deg, rgba(18,18,18,0) 0%, rgba(120,40,10,.45) 60%, rgba(255,74,16,.55) 100%)" : "linear-gradient(180deg, rgba(235,232,228,0) 0%, rgba(255,106,0,.18) 70%, rgba(255,60,0,.3) 100%)" }} />
-        <div style={{ position: "absolute", left: 0, right: 0, bottom: 70, textAlign: "center", fontSize: 214, fontWeight: 600, letterSpacing: "-0.06em", lineHeight: 0.8, color: dark ? "rgba(255,255,255,.07)" : "rgba(26,26,26,.06)", whiteSpace: "nowrap" }}>INTERSTELLAR</div>
-      </div>
+    <PostFrame
+      spec={spec}
+      backdrop={(
+        <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 460, pointerEvents: "none", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, background: dark ? "linear-gradient(180deg, rgba(18,18,18,0) 0%, rgba(120,40,10,.5) 62%, rgba(255,74,16,.7) 100%)" : "linear-gradient(180deg, rgba(235,232,228,0) 0%, rgba(255,106,0,.16) 70%, rgba(255,60,0,.3) 100%)" }} />
+          <div style={{ position: "absolute", left: 0, right: 0, bottom: 150, textAlign: "center", fontFamily: SANS, fontSize: 150, fontWeight: 600, letterSpacing: "-0.06em", lineHeight: 0.8, color: dark ? "rgba(255,255,255,.08)" : "rgba(26,26,26,.06)", whiteSpace: "nowrap" }}>INTERSTELLAR</div>
+        </div>
+      )}
+      headerRight={<Mono size={18} color={dark ? "rgba(245,243,240,.55)" : "rgba(26,26,26,.55)"}>01 / {String(total).padStart(2, "0")}</Mono>}>
       <div style={{ marginTop: "auto", marginBottom: "auto", position: "relative" }}>
         <Headline text={spec.headline} accent={spec.accent_word} size={fit(spec.headline, [[24, 136], [36, 118], [50, 104], [70, 90], [999, 78]])} />
         {spec.subhead && <p style={{ margin: "30px 0 0", fontSize: 32, lineHeight: 1.3, letterSpacing: "-0.015em", color: subColor(dark), maxWidth: 820 }}>{spec.subhead}</p>}

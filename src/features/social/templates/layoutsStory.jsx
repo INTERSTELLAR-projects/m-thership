@@ -2,7 +2,7 @@ import { AlertTriangle, Check, Phone, Quote } from "lucide-react";
 import Martian from "@/components/comms/Martian";
 import { MARTIAN_PALETTES } from "@/components/comms/martianColors";
 import {
-  CARD, DarkCard, FLAME, HAIR, Headline, INK, MONO, MockWindow, Mono, PostFrame, SampleTag, ScoreRing,
+  CARD, FLAME, HAIR, Headline, INK, MONO, MockWindow, Mono, PostFrame, SampleTag, ScoreRing,
   arr, fit, flameTextStyle, isDark, mockOf,
 } from "./kit";
 
@@ -28,9 +28,9 @@ export function BeforeAfterSite({ spec, example }) {
             <div style={{ display: "flex", gap: 8, margin: "10px 0", fontSize: 12, color: "#3355aa", textDecoration: "underline" }}>
               {["Home", "About Us", "Services", "Gallery", "Links", "Contact"].map((t) => <span key={t}>{t}</span>)}
             </div>
-            <div style={{ height: 110, background: "repeating-linear-gradient(45deg,#cfcfcf 0 10px,#dadada 10px 20px)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "#888" }}>image.jpg</div>
-            {[92, 100, 78, 96, 64].map((w, i) => <div key={i} style={{ height: 8, width: `${w}%`, background: "#c9c9c9", marginTop: 9 }} />)}
-            <div style={{ marginTop: 18, display: "grid", gap: 8 }}>
+            <div style={{ height: 80, background: "repeating-linear-gradient(45deg,#cfcfcf 0 10px,#dadada 10px 20px)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "#888" }}>image.jpg</div>
+            {[92, 100, 70].map((w, i) => <div key={i} style={{ height: 8, width: `${w}%`, background: "#c9c9c9", marginTop: 9 }} />)}
+            <div style={{ marginTop: 16, display: "grid", gap: 8 }}>
               {arr(m.before_issues).slice(0, 3).map((t) => (
                 <div key={t} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "#fff", border: "1.5px solid #d83300", fontFamily: '"Geist", sans-serif', fontSize: 15, color: "#d83300", fontWeight: 500 }}>
                   <AlertTriangle size={16} />{t}
@@ -47,17 +47,17 @@ export function BeforeAfterSite({ spec, example }) {
               <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.03em" }}>{m.business}</span>
               <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", background: "#ff3c00", fontSize: 13, fontWeight: 600 }}><Phone size={13} />{m.after_cta || "Call now"}</span>
             </div>
-            <div className="grain" style={{ position: "relative", padding: "22px 18px", flex: 1, display: "flex", flexDirection: "column" }}>
+            <div className="grain" style={{ position: "relative", padding: "18px 18px 16px", flex: 1, minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
               <div style={{ position: "absolute", right: -80, top: -60, width: 260, height: 260, borderRadius: "50%", background: "radial-gradient(circle,rgba(255,60,0,.4),transparent 70%)" }} />
               <Mono size={11} color="rgba(255,255,255,.5)">({m.trade})</Mono>
-              <p style={{ position: "relative", margin: "10px 0 0", fontSize: 32, fontWeight: 600, letterSpacing: "-0.04em", lineHeight: 1.02 }}>{m.after_headline}</p>
+              <p style={{ position: "relative", margin: "10px 0 0", fontSize: 33, fontWeight: 600, letterSpacing: "-0.04em", lineHeight: 1.02 }}>{m.after_headline}</p>
               <span style={{ position: "relative", marginTop: 16, alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 16px", background: "#ff3c00", fontSize: 16, fontWeight: 600 }}><Phone size={16} />{m.after_cta || "Call now"}</span>
-              <div style={{ position: "relative", marginTop: 16, display: "grid", gap: 7 }}>
+              <div style={{ position: "relative", marginTop: 14, display: "grid", gap: 6 }}>
                 {arr(m.after_badges).slice(0, 3).map((t) => <span key={t} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, color: "rgba(255,255,255,.8)" }}><Check size={15} color="#ff6a00" strokeWidth={3} />{t}</span>)}
               </div>
               <div style={{ position: "relative", marginTop: "auto", display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
                 <SampleTag dark>Sample</SampleTag>
-                <ScoreRing score={m.score ?? 98} size={104} stroke={9} dark />
+                <ScoreRing score={m.score ?? 98} size={92} stroke={8} dark />
               </div>
             </div>
           </MockWindow>
@@ -191,4 +191,3 @@ export function PipelineBoard({ spec, example }) {
   );
 }
 
-export { DarkCard };

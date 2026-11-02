@@ -164,7 +164,7 @@ function Footer({ spec }) {
 }
 
 /** The 1080x1080 post frame every template renders into. */
-export function PostFrame({ spec, children, padding = 72, hideHeader = false, headerRight }) {
+export function PostFrame({ spec, children, padding = 72, hideHeader = false, headerRight, backdrop }) {
   const dark = isDark(spec);
   return (
     <div
@@ -183,6 +183,7 @@ export function PostFrame({ spec, children, padding = 72, hideHeader = false, he
     >
       <style>{FREEZE_CSS + ".social-lockup .is-sub{font-size:13px;margin-top:10px}"}</style>
       <Backdrop dark={dark} />
+      {backdrop}
       <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 8, background: FLAME }} />
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", padding, paddingTop: padding + 4 }}>
         {!hideHeader && (
