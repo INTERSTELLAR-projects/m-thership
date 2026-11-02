@@ -237,7 +237,7 @@ function cover(ctx, img, x, y, w, h, zoom = 1, focusY = 0.32) {
 async function renderPhoto(spec) {
   const img = await loadImage(spec.src);
   const size = spec.size || 120;
-  // Animated photos are the heaviest asset: 1.6× keeps them crisp on retina at a sane file size.
+  // Animated photos are the heaviest asset: 1.5× keeps them crisp on retina at a sane file size.
   const k = !spec.anim || spec.anim === "none" ? Math.min(2, 340 / size) : Math.min(1.5, 240 / size);
   const px = Math.round(size * k);
   const accent = spec.accent || "#ff6a00";
