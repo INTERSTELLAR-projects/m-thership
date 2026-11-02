@@ -162,7 +162,7 @@ function HomeView({ d, go, openAudit }) {
         <div className="space-y-5">
           <div className="band-dark grain rounded-md p-5">
             <p className="mono-label text-[10px] text-white/50">Need something?</p>
-            <p className="mt-2 text-[20px] font-semibold leading-tight tracking-[-0.03em]">Send a site edit, a new job for your website, or a message.</p>
+            <p className="mt-2 text-[20px] font-semibold leading-tight tracking-[-0.03em]">Website edits, content, Google posts, design, fixes: send a request or a message.</p>
             <div className="mt-4 flex flex-wrap gap-2">
               <button onClick={() => go("requests")} className="btn-roll is-flame"><span className="roll"><span>New request</span><span>New request</span></span><span className="box"><Plus className="h-3.5 w-3.5" /></span></button>
               <button onClick={() => go("messages")} className="h-10 border border-white/25 px-4 text-[13px] text-white hover:bg-white hover:text-ink">Message us</button>
