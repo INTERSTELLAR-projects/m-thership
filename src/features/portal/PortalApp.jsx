@@ -8,10 +8,11 @@ import { Panel, Empty, Tag, Btn, Field } from "@/features/clients/ui";
 import { PerformanceView, FileGrid, MessageThread } from "@/features/clients/tabsGrowth";
 import { INTAKE_SECTIONS, intakeProgress } from "@/features/clients/intakeQuestions";
 import GridTrail from "@/components/GridTrail";
+import PortalSignatures from "@/features/signatures/PortalSignatures";
 import RequestFormRenderer, { isComplete } from "@/features/requests/RequestFormRenderer";
 import { KIND_LABELS, KIND_ORDER, toAnswers, titleFor, detailsFor, attachmentsFor } from "@/features/requests/formSchema";
 
-const TABS = [["home", "Home"], ["results", "Results"], ["goals", "Goals"], ["files", "Files"], ["requests", "Requests"], ["messages", "Messages"]];
+const TABS = [["home", "Home"], ["results", "Results"], ["goals", "Goals"], ["files", "Files"], ["requests", "Requests"], ["signatures", "Signatures"], ["messages", "Messages"]];
 
 function usePortal(previewId) {
   const call = async (action, args = {}) => (await base44.functions.invoke("portal", { action, client_id: previewId, ...args })).data;
@@ -53,6 +54,7 @@ export default function PortalApp({ previewId }) {
           {tab === "goals" && <GoalsView d={d} />}
           {tab === "files" && (d.files.length ? <FileGrid files={d.files} /> : <Panel><Empty>Your brand kit, SOPs, presentations and other deliverables will appear here.</Empty></Panel>)}
           {tab === "requests" && <RequestsView d={d} call={call} refresh={refresh} previewId={previewId} />}
+          {tab === "signatures" && <PortalSignatures call={call} />}
           {tab === "messages" && <MessagesView call={call} previewId={previewId} />}
         </div>
       )}
