@@ -9,6 +9,7 @@ import { PerformanceView, FileGrid } from "@/features/clients/tabsGrowth";
 import PortalChats from "@/features/portal/PortalChats";
 import { INTAKE_SECTIONS, intakeProgress } from "@/features/clients/intakeQuestions";
 import GridTrail from "@/components/GridTrail";
+import BrandLockup from "@/components/brand/BrandLockup";
 import PortalSignatures from "@/features/signatures/PortalSignatures";
 import PortalQr from "@/features/qr/PortalQr";
 import PortalPrestige from "@/features/portal/PortalPrestige";
@@ -92,12 +93,10 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, children }) 
       )}
       <header className="sticky top-0 z-20 border-b border-hair bg-canvas/95 backdrop-blur">
         <div className="mx-auto flex h-[60px] max-w-[1280px] items-center gap-4 px-4 md:px-8">
-          <div className="flex items-center gap-2.5">
-            <img src={LOGO_URL} alt="" className="h-7 w-9 object-contain" />
-            <div className="leading-none">
-              <p className="text-[14px] font-semibold tracking-[-0.02em]">{client?.business || "Client Portal"}</p>
-              <p className="mono-label mt-1 text-[9px] text-ink/45">by Interstellar</p>
-            </div>
+          <div className="flex min-w-0 shrink-0 items-center gap-3">
+            <BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={18} />
+            <span className="hidden h-7 w-px bg-hair sm:block" aria-hidden="true" />
+            <p className="hidden max-w-[180px] truncate text-[13px] font-medium tracking-[-0.02em] text-ink/70 sm:block">{client?.business || "Client Portal"}</p>
           </div>
           {setTab && (
             <nav className="no-scrollbar ml-auto flex overflow-x-auto">
