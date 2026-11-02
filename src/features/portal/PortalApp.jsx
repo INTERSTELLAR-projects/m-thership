@@ -13,9 +13,10 @@ import PortalSignatures from "@/features/signatures/PortalSignatures";
 import PortalPrestige from "@/features/portal/PortalPrestige";
 import ClientHealthSummary from "@/features/performance/ClientHealthSummary";
 import RequestFormRenderer, { isComplete } from "@/features/requests/RequestFormRenderer";
-import { KIND_LABELS, KIND_ORDER, toAnswers, titleFor, detailsFor, attachmentsFor } from "@/features/requests/formSchema";
+import { kindLabel, portalForms, priorityFor, toAnswers, titleFor, detailsFor, attachmentsFor } from "@/features/requests/formSchema";
+import { KitView } from "@/features/clients/BrandKitTab";
 
-const TABS = [["home", "Home"], ["results", "Results"], ["goals", "Goals"], ["files", "Files"], ["requests", "Requests"], ["signatures", "Signatures"], ["referrals", "Referrals"], ["messages", "Messages"]];
+const TABS = [["home", "Home"], ["results", "Results"], ["goals", "Goals"], ["files", "Files"], ["brand", "Brand kit"], ["requests", "Requests"], ["signatures", "Signatures"], ["referrals", "Referrals"], ["messages", "Messages"]];
 
 function usePortal(previewId) {
   const call = async (action, args = {}) => (await base44.functions.invoke("portal", { action, client_id: previewId, ...args })).data;
@@ -30,6 +31,8 @@ export default function PortalApp({ previewId }) {
   const qc = useQueryClient();
   const refresh = () => qc.invalidateQueries({ queryKey: ["portal", previewId] });
   const d = home.data;
+  // The Brand kit tab only exists when an approved, portal-visible kit does.
+  const tabs = TABS.filter(([k]) => k !== "brand" || d?.has_brand_kit);
 
   if (home.isLoading) return <Shell><p className="py-24 text-center text-ink/50">Loading your portal…</p></Shell>;
   if (home.isError || !d?.client) {
@@ -47,7 +50,7 @@ export default function PortalApp({ previewId }) {
   }
 
   return (
-    <Shell client={d.client} tab={tab} setTab={setTab} unread={d.unread} preview={!!previewId}>
+    <Shell client={d.client} tabs={tabs} tab={tab} setTab={setTab} unread={d.unread} preview={!!previewId}>
       {audit ? (
         <IntakeView call={call} onClose={() => { setAudit(false); refresh(); }} />
       ) : (
@@ -56,6 +59,7 @@ export default function PortalApp({ previewId }) {
           {tab === "results" && <ResultsView d={d} />}
           {tab === "goals" && <GoalsView d={d} />}
           {tab === "files" && (d.files.length ? <FileGrid files={d.files} /> : <Panel><Empty>Your brand kit, SOPs, presentations and other deliverables will appear here.</Empty></Panel>)}
+          {tab === "brand" && d.has_brand_kit && <BrandKitView call={call} previewId={previewId} business={d.client.business} />}
           {tab === "requests" && <RequestsView d={d} call={call} refresh={refresh} previewId={previewId} />}
           {tab === "signatures" && <PortalSignatures call={call} />}
           {tab === "referrals" && <PortalPrestige call={call} previewId={previewId} />}
@@ -66,7 +70,7 @@ export default function PortalApp({ previewId }) {
   );
 }
 
-function Shell({ client, tab, setTab, unread, preview, children }) {
+function Shell({ client, tabs = TABS, tab, setTab, unread, preview, children }) {
   return (
     <div className="grid-canvas min-h-screen text-ink" data-trail>
       <GridTrail />
@@ -87,7 +91,7 @@ function Shell({ client, tab, setTab, unread, preview, children }) {
           </div>
           {setTab && (
             <nav className="no-scrollbar ml-auto flex overflow-x-auto">
-              {TABS.map(([k, l]) => (
+              {tabs.map(([k, l]) => (
                 <button key={k} onClick={() => setTab(k)} className={`relative whitespace-nowrap px-3 py-2 text-[13px] font-medium transition-colors ${tab === k ? "text-ink" : "text-ink/50 hover:text-ink"}`}>
                   {l}
                   {k === "messages" && unread > 0 && <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center bg-[#ff3c00] px-1 text-[10px] text-white">{unread}</span>}
