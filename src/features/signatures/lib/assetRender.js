@@ -303,11 +303,11 @@ async function renderPhoto(spec) {
       film(
         px,
         px,
-        46,
+        36,
         (ctx, f) => {
           fill(ctx);
           for (let i = 0; i < N; i++) {
-            const d = bump(prog(f, 2 + i * 2.5, 30));
+            const d = bump(prog(f, 2 + i * 2, 24));
             const dir = i % 2 ? 1 : -1;
             ctx.save();
             shapePath(ctx, shape, x0, x0, w, w);
@@ -321,7 +321,7 @@ async function renderPhoto(spec) {
           ctx.save();
           shapePath(ctx, shape, x0, x0, w, w);
           ctx.clip();
-          shine(ctx, x0, x0, w, w, prog(f, 10, 30), 0.32);
+          shine(ctx, x0, x0, w, w, prog(f, 8, 25), 0.3);
           ctx.restore();
           plainRing(ctx);
         },
