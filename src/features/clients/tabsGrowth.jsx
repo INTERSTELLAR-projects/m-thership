@@ -215,7 +215,7 @@ export function GoalsTab({ client }) {
 
 /* ---------------- Files & brand ---------------- */
 export const FILE_CATS = [
-  ["brand_kit", "Brand kit"], ["sop", "SOPs"], ["social", "Social content"], ["presentation", "Presentations"], ["email_signature", "Email signatures"],
+  ["brand_kit", "Brand kit"], ["sop", "SOPs"], ["guide", "Guides"], ["social", "Social content"], ["presentation", "Presentations"], ["email_signature", "Email signatures"],
   ["report", "Reports"], ["design", "Design"], ["video", "Video"], ["contract", "Contracts"], ["other", "Other"],
 ];
 export function FileGrid({ files, onEdit }) {
