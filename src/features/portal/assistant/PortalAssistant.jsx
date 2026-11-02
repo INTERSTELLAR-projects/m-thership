@@ -299,7 +299,7 @@ export default function PortalAssistant({ previewId, variant = "page", onClose, 
     if (!last || last.role !== "assistant" || !textOf(last.content) || spoken.current.has(last.id)) return undefined;
     const t = setTimeout(() => { spoken.current.add(last.id); speakMsg(last); }, 900);
     return () => clearTimeout(t);
-  }, [messages, thinking, autoRead]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [messages, thinking, autoRead]);
 
   useEffect(() => () => stopReading(), []);
 
