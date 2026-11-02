@@ -70,7 +70,8 @@ Deno.serve(async (req) => {
     const dest = safeDestination(qr.destination);
     if (!dest) return page("Almost ready", "This QR code doesn't have a destination yet.", 404);
 
-    const ua = req.headers.get("user-agent") || "";
+    // The platform proxy replaces user-agent with "Base44-Backend" and forwards the visitor's in x-base44-caller-user-agent.
+    const ua = req.headers.get("x-base44-caller-user-agent") || req.headers.get("user-agent") || "";
     const prefetch = /prefetch|prerender/i.test(`${req.headers.get("purpose") || ""} ${req.headers.get("sec-purpose") || ""}`);
     if (req.method === "GET" && !prefetch && !BOT_RE.test(ua)) {
       const { device, os } = classify(ua);
