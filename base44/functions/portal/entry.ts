@@ -108,6 +108,111 @@ Deno.serve(async (req) => {
       return Response.json({ intake: pick(upd, ["id", "status", "answers", "submitted_at"]) });
     }
 
+    // ---- Email signatures: the client's own signatures + templates, plus Interstellar's global templates ----
+    const SIG_KEYS = ["id", "name", "template_id", "fields", "theme", "generated_html", "folder", "client_id", "source_template_id", "updated_date", "created_by"];
+    const TPL_KEYS = ["id", "name", "description", "folder", "scope", "client_id", "is_default", "template_id", "fields", "theme", "preview_html", "updated_date"];
+    const obj = (v: unknown) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
+    const tooBig = (v: unknown) => JSON.stringify(v || {}).length > 400000;
+    const clean = (a: Record<string, unknown>) => {
+      const out: Record<string, unknown> = {};
+      if (a.name !== undefined) out.name = String(a.name || "Untitled").slice(0, 120);
+      if (a.folder !== undefined) out.folder = String(a.folder || "").slice(0, 80);
+      if (a.template_id !== undefined) out.template_id = String(a.template_id || "t5_rail").slice(0, 40);
+      if (a.fields !== undefined) out.fields = obj(a.fields);
+      if (a.theme !== undefined) out.theme = obj(a.theme);
+      return out;
+    };
+    const ownSig = async (id: unknown) => {
+      const s = id ? await db.Signature.get(String(id)).catch(() => null) : null;
+      return s && s.client_id === cid ? s : null;
+    };
+    const ownTpl = async (id: unknown) => {
+      const t = id ? await db.SignatureTemplate.get(String(id)).catch(() => null) : null;
+      return t && t.scope === "client" && t.client_id === cid ? t : null;
+    };
+
+    if (action === "sig_list") {
+      const [sigs, own, global, dossiers] = await Promise.all([
+        db.Signature.filter({ client_id: cid }, "-updated_date", 300),
+        db.SignatureTemplate.filter({ client_id: cid, scope: "client" }, "-updated_date", 200),
+        db.SignatureTemplate.filter({ scope: "global" }, "-updated_date", 200),
+        db.ClientDossier.filter({ client_id: cid }).catch(() => []),
+      ]);
+      const d = (dossiers || [])[0] || {};
+      const bi = (d.brand_identity || {}) as Record<string, unknown>;
+      return Response.json({
+        signatures: (sigs || []).map((s: Record<string, unknown>) => pick(s, SIG_KEYS)),
+        templates: [...(own || []), ...(global || []).filter((t: Record<string, unknown>) => t.portal_visible !== false)].map((t: Record<string, unknown>) => pick(t, TPL_KEYS)),
+        brand: { company: client.business, website: client.domain, logo_url: bi.logo_url || client.logo_url || "", slogan: d.tagline || "", colors: bi.colors || [] },
+      });
+    }
+
+    if (action === "sig_get") {
+      const s = await ownSig(args.id);
+      if (!s) return Response.json({ error: "Not found" }, { status: 404 });
+      return Response.json({ signature: pick(s, SIG_KEYS) });
+    }
+
+    if (action === "sig_save") {
+      const data = clean(args);
+      if (args.generated_html !== undefined) data.generated_html = String(args.generated_html || "").slice(0, 200000);
+      if (args.source_template_id) data.source_template_id = String(args.source_template_id);
+      if (tooBig(data.fields) || tooBig(data.theme)) return Response.json({ error: "Signature is too large" }, { status: 413 });
+      if (args.id) {
+        const s = await ownSig(args.id);
+        if (!s) return Response.json({ error: "Not found" }, { status: 404 });
+        const u = await db.Signature.update(s.id, data);
+        return Response.json({ signature: pick(u, SIG_KEYS) });
+      }
+      const c = await db.Signature.create({ name: "Untitled signature", template_id: "t5_rail", ...data, client_id: cid, client_name: client.business });
+      return Response.json({ signature: pick(c, SIG_KEYS) });
+    }
+
+    if (action === "sig_delete") {
+      const s = await ownSig(args.id);
+      if (!s) return Response.json({ error: "Not found" }, { status: 404 });
+      await db.Signature.delete(s.id);
+      return Response.json({ ok: true });
+    }
+
+    if (action === "tpl_get") {
+      const t = args.id ? await db.SignatureTemplate.get(String(args.id)).catch(() => null) : null;
+      const ok = t && ((t.scope === "client" && t.client_id === cid) || (t.scope === "global" && t.portal_visible !== false));
+      if (!ok) return Response.json({ error: "Not found" }, { status: 404 });
+      return Response.json({ template: pick(t, TPL_KEYS) });
+    }
+
+    if (action === "tpl_save") {
+      const data = clean(args);
+      if (args.preview_html !== undefined) data.preview_html = String(args.preview_html || "").slice(0, 200000);
+      if (args.is_default === false) data.is_default = false;
+      if (tooBig(data.fields) || tooBig(data.theme)) return Response.json({ error: "Template is too large" }, { status: 413 });
+      if (args.id) {
+        const t = await ownTpl(args.id);
+        if (!t) return Response.json({ error: "Only your own templates can be edited" }, { status: 403 });
+        const u = await db.SignatureTemplate.update(t.id, data);
+        return Response.json({ template: pick(u, TPL_KEYS) });
+      }
+      const c = await db.SignatureTemplate.create({ name: "Untitled template", template_id: "t5_rail", ...data, scope: "client", client_id: cid, client_name: client.business, is_default: false });
+      return Response.json({ template: pick(c, TPL_KEYS) });
+    }
+
+    if (action === "tpl_default") {
+      const t = await ownTpl(args.id);
+      if (!t) return Response.json({ error: "Only your own templates can be the default" }, { status: 403 });
+      const mine = await db.SignatureTemplate.filter({ client_id: cid, scope: "client", is_default: true });
+      await Promise.all((mine || []).filter((x: Record<string, unknown>) => x.id !== t.id).map((x: Record<string, unknown>) => db.SignatureTemplate.update(x.id as string, { is_default: false })));
+      const u = await db.SignatureTemplate.update(t.id, { is_default: true });
+      return Response.json({ template: pick(u, TPL_KEYS) });
+    }
+
+    if (action === "tpl_delete") {
+      const t = await ownTpl(args.id);
+      if (!t) return Response.json({ error: "Only your own templates can be deleted" }, { status: 403 });
+      await db.SignatureTemplate.delete(t.id);
+      return Response.json({ ok: true });
+    }
+
     return Response.json({ error: "Unknown action" }, { status: 400 });
   } catch (e) {
     return Response.json({ error: (e as Error).message || "Server error" }, { status: 500 });
