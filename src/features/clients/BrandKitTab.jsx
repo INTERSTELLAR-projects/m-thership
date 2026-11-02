@@ -10,6 +10,8 @@ import { timeAgo } from "@/lib/useData";
 import { cn } from "@/lib/utils";
 import { useJobs, useRefreshJobs, approveJob, requestChanges, chatPrompt, JOB_STATUS } from "@/features/claude/jobs";
 import { KIT_SECTIONS, brandKitBrief, gatherBrandInputs, isBrandKitJob, kitFromJob, queueBrandKit } from "@/features/claude/brandKit";
+import { brandKitDeckBrief } from "@/features/presentations/lib/deckFromDocs";
+import DeckFromDocButton from "@/features/presentations/DeckFromDocButton";
 
 const asList = (v) => (Array.isArray(v) ? v : v ? [v] : []);
 const text = (v) => (typeof v === "string" || typeof v === "number" ? String(v) : "");
@@ -455,6 +457,8 @@ export default function BrandKitTab({ client }) {
                 <p className="text-[11.5px] text-ink/50">Approved {timeAgo(current.approved_at || current.created_date)}{current.approved_by ? ` by ${current.approved_by}` : ""}</p>
               </div>
             </div>
+            <div className="flex flex-wrap items-center gap-2">
+            <DeckFromDocButton client={client} source="brand_kit" label="Generate presentation" makeBrief={() => brandKitDeckBrief(client, current)} />
             <button
               type="button"
               onClick={togglePortal}
@@ -465,6 +469,7 @@ export default function BrandKitTab({ client }) {
               {current.portal_visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
               {current.portal_visible ? "Visible in portal" : "Hidden from portal"}
             </button>
+            </div>
           </header>
           <div className="p-4">
             {current.summary && <p className="mb-4 text-[13px] text-ink/70">{current.summary}</p>}
