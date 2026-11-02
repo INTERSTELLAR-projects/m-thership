@@ -293,7 +293,8 @@ export const fmtMinutes = (m) => (m == null ? "—" : m >= 60 ? `${Math.floor(m 
 
 /* ---------------- markdown ---------------- */
 
-export function socialPlanToMarkdown(p, business = "") {
+export function socialPlanToMarkdown(raw, business = "") {
+  const p = normalizeSocialPlan(raw);
   if (!p) return "";
   const out = [];
   const g = p.goals_audience || {};
