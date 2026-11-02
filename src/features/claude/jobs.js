@@ -7,6 +7,7 @@ import { settleTimer } from "@/features/tasks/lib/timer";
 import { isBrandKitJob, saveApprovedKit } from "./brandKit";
 import { isDeckJob, saveApprovedDeck } from "@/features/presentations/lib/deckSchema";
 import { isPlaybookJob, saveApprovedPlaybook } from "./playbook";
+import { isContentPlanJob, saveApprovedContentPlan } from "./contentPlan";
 
 export const JOB_STATUS = {
   queued: { label: "Queued", tone: "bg-ink/[0.07] text-ink/70" },
@@ -22,7 +23,7 @@ export const ACTIVE = ["queued", "running", "needs_approval", "changes_requested
 
 export const KIND_LABELS = {
   task: "Task", audit: "Business audit", build_website: "Website build", build_app: "App build", blog: "Blog",
-  gbp_post: "GBP post", report: "Report", brand: "Brand", email: "Email draft", research: "Research", presentation: "Presentation", playbook: "Industry playbook", other: "Other",
+  gbp_post: "GBP post", report: "Report", brand: "Brand", email: "Email draft", research: "Research", presentation: "Presentation", playbook: "Industry playbook", content_plan: "Content plan", other: "Other",
 };
 
 export function guessKind(text = "") {
@@ -176,6 +177,8 @@ export async function approveJob(job) {
   if (isDeckJob(job)) await saveApprovedDeck(job).catch(() => null);
   // Industry playbook: approval archives the previous version and saves a new one on the profile.
   if (isPlaybookJob(job)) await saveApprovedPlaybook(job);
+  // Content plan: same versioning; keeps written/published queue rows from the previous version.
+  if (isContentPlanJob(job)) await saveApprovedContentPlan(job);
   await base44.entities.ClaudeJob.update(job.id, { status: "approved", approved_at: now });
   // Intel audit: findings become visible in the client portal, and the briefing is logged as work.
   if (job.kind === "audit" && job.client_id) {
