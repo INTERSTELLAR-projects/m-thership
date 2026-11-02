@@ -13,6 +13,7 @@ import MicButton from "../components/MicButton";
 import BrandProfile from "../components/crm/BrandProfile";
 import { useRef } from "react";
 import StripeServicePicker from "@/features/clients/StripeServicePicker";
+import ClientAnalytics, { serviceKey } from "@/features/clients/ClientAnalytics";
 
 const statusFilters = ["Active", "Lead", "Inactive", "All"];
 
@@ -29,6 +30,7 @@ export default function CRM() {
   const [bundleWith, setBundleWith] = useState("");
   const [bundleName, setBundleName] = useState("");
   const [bundleSaving, setBundleSaving] = useState(false);
+  const [serviceFilter, setServiceFilter] = useState(null); // service key picked in the analytics charts
 
   useEffect(() => {
     loadClients();
@@ -118,7 +120,8 @@ export default function CRM() {
     const matchSearch = c.business?.toLowerCase().includes(search.toLowerCase()) ||
       c.contact?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "All" || c.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchService = !serviceFilter || (c.services || []).some((sv) => !sv.discontinued && serviceKey(sv) === serviceFilter);
+    return matchSearch && matchStatus && matchService;
   }).sort((a, b) => (a.business || "").localeCompare(b.business || "", undefined, { sensitivity: "base" }));
 
   const selectedClient = clients.find((c) => c.id === selectedId);
@@ -171,6 +174,7 @@ export default function CRM() {
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Command / Clients" rightText="Customer Management" />
       <div className="px-8 py-6 space-y-5">
+        {!loading && <ClientAnalytics clients={clients} serviceFilter={serviceFilter} onServiceFilter={setServiceFilter} />}
         <div className="flex items-center gap-4 flex-wrap">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/[0.38]" />
@@ -181,6 +185,11 @@ export default function CRM() {
               <button key={f} onClick={() => setStatusFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${statusFilter === f ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-600 border border-orange-500/30" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{f}</button>
             ))}
           </div>
+          {serviceFilter && (
+            <button onClick={() => setServiceFilter(null)} className="inline-flex items-center gap-1.5 rounded-full border border-[#ff3c00]/40 bg-[#ff3c00]/[0.06] px-3 py-1.5 text-xs text-[#d83300]">
+              On {(() => { const sv = clients.flatMap((c) => c.services || []).find((s) => serviceKey(s) === serviceFilter); return sv ? (sv.short || serviceFilter) : serviceFilter; })()} <X className="w-3 h-3" />
+            </button>
+          )}
           <Button onClick={() => setAddOpen(true)} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold h-9 gap-2"><Plus className="w-4 h-4" />Add Client</Button>
         </div>
 
