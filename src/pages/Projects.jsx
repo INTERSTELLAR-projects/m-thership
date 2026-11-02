@@ -13,6 +13,7 @@ import { fetchClients, itemsOf } from "@/features/tasks/lib/clients";
 import { inputClass, selectContentClass, selectItemClass, selectTriggerClass } from "@/features/tasks/lib/ui";
 import { money } from "@/features/tasks/lib/format";
 import { cn } from "@/lib/utils";
+import ProjectsHero from "@/features/projects/ProjectsHero";
 
 const ALL = "__all__";
 
@@ -27,6 +28,7 @@ export default function Projects() {
   const [clients, setClients] = useState([]);
   const [counts, setCounts] = useState({});
   const [doneCounts, setDoneCounts] = useState({});
+  const [taskTime, setTaskTime] = useState({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [type, setType] = useState(ALL);
@@ -36,12 +38,21 @@ export default function Projects() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [projectPage, clientRows, taskAgg, doneAgg] = await Promise.all([
+      const [projectPage, clientRows, taskAgg, doneAgg, taskRows] = await Promise.all([
         base44.entities.Project.list({ sort: "-updated_date", limit: 200 }),
         fetchClients(),
         base44.entities.Task.aggregate({ query: {}, groupBy: "project_id" }).catch(() => null),
-        base44.entities.Task.aggregate({ query: { status: "done" }, groupBy: "project_id" }).catch(() => null)
+        base44.entities.Task.aggregate({ query: { status: "done" }, groupBy: "project_id" }).catch(() => null),
+        base44.entities.Task.list("-updated_date", 2000).catch(() => [])
       ]);
+      const timeMap = {};
+      itemsOf(taskRows).forEach((task) => {
+        if (!task.project_id) return;
+        const slot = timeMap[task.project_id] || (timeMap[task.project_id] = { seconds: 0, estMinutes: 0 });
+        slot.seconds += Number(task.logged_seconds) || (Number(task.logged_hours) || 0) * 3600;
+        slot.estMinutes += Number(task.estimated_minutes) || (Number(task.estimated_hours) || 0) * 60;
+      });
+      setTaskTime(timeMap);
       setProjects(itemsOf(projectPage));
       setClients(clientRows);
       setCounts(toMap(taskAgg && taskAgg.rows));
@@ -78,6 +89,20 @@ export default function Projects() {
       <TasksNav />
 
       <div className="space-y-5 px-5 py-6 md:px-8">
+        {loading && !projects.length ? null : (
+          <ProjectsHero
+            projects={projects}
+            taskTime={taskTime}
+            counts={counts}
+            doneCounts={doneCounts}
+            type={type}
+            status={status}
+            onType={setType}
+            onStatus={setStatus}
+            all={ALL}
+          />
+        )}
+
         <div className="flex flex-wrap items-center gap-2 rounded-md border border-hair bg-card p-3">
           <div className="relative min-w-[190px] flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink/35" />
