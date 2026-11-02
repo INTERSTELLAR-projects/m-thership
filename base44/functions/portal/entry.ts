@@ -412,6 +412,173 @@ Deno.serve(async (req) => {
       return Response.json({ ok: true });
     }
 
+    // ---- QR codes (bonus tool): the client's own codes + templates, scan stats. Scoped to cid on every action. ----
+    // Dynamic codes print QR_REDIRECT?c=<short_code>; the public `qr` function resolves them. The short code is
+    // minted here once and never changes (it is printed), and only http(s) destinations are ever stored.
+    if (action.startsWith("qr_")) {
+      const QR_REDIRECT = "https://m-thership.base44.app/functions/qr";
+      const QR_KEYS = ["id", "name", "folder", "mode", "content_type", "destination", "url", "text", "email_to", "email_subject", "email_body", "phone", "sms_body", "wifi_ssid", "wifi_password", "wifi_encryption", "wifi_hidden", "whatsapp_number", "whatsapp_message", "style", "short_code", "encoded_url", "scans", "last_scan_at", "active", "client_id", "client_name", "source", "created_date", "updated_date"];
+      const QR_TPL_KEYS = ["id", "name", "description", "scope", "client_id", "client_name", "style", "updated_date"];
+      const QR_TYPES = ["link", "text", "email", "phone", "sms", "wifi", "whatsapp"];
+      const str = (v: unknown, n: number) => String(v ?? "").slice(0, n);
+      const httpUrl = (u: unknown) => {
+        let s = String(u || "").trim();
+        if (!s || s.length > 2000) return null;
+        if (!/^[a-z][a-z0-9+.-]*:/i.test(s)) s = "https://" + s;
+        try {
+          const x = new URL(s);
+          if ((x.protocol !== "https:" && x.protocol !== "http:") || x.username || x.password || !x.hostname.includes(".")) return null;
+          return x.toString();
+        } catch { return null; }
+      };
+      const styleOf = (v: unknown) => {
+        const s = { ...(obj(v) as Record<string, unknown>) };
+        if (s.logo_url !== undefined) {
+          const l = String(s.logo_url || "");
+          // Logos: uploaded https files or small inline SVG/PNG data URLs only.
+          s.logo_url = /^https:\/\//i.test(l) || /^data:image\/(svg\+xml|png|jpeg|webp|gif)[;,]/i.test(l) ? l.slice(0, 200000) : "";
+        }
+        return s;
+      };
+      const ownQr = async (id: unknown) => {
+        const q = id ? await db.QrCode.get(String(id)).catch(() => null) : null;
+        return q && q.client_id === cid ? q as Record<string, unknown> : null;
+      };
+      const ownQrTpl = async (id: unknown) => {
+        const t = id ? await db.QrTemplate.get(String(id)).catch(() => null) : null;
+        return t && t.scope === "client" && t.client_id === cid ? t as Record<string, unknown> : null;
+      };
+      const ALPHA = "23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+      const mint = async () => {
+        for (let i = 0; i < 8; i++) {
+          const code = Array.from(crypto.getRandomValues(new Uint8Array(7)), (b) => ALPHA[b % ALPHA.length]).join("");
+          const taken = await db.QrCode.filter({ short_code: code }, "-created_date", 1).catch(() => []);
+          if (!(taken || []).length) return { short_code: code, encoded_url: `${QR_REDIRECT}?c=${code}` };
+        }
+        throw new Error("Couldn't mint a short link. Try again.");
+      };
+      const summarize = (scans: Row[]) => {
+        const counts: Record<string, number> = {};
+        const devices: Record<string, number> = {};
+        const os: Record<string, number> = {};
+        let last: string | null = null;
+        for (const s of scans) {
+          const at = String(s.at || s.created_date || "");
+          if (!at) continue;
+          counts[at.slice(0, 10)] = (counts[at.slice(0, 10)] || 0) + 1;
+          const dv = String(s.device || "other"); devices[dv] = (devices[dv] || 0) + 1;
+          const o = String(s.os || "Other"); os[o] = (os[o] || 0) + 1;
+          if (!last || at > last) last = at;
+        }
+        const series = Array.from({ length: 30 }, (_, i) => {
+          const d = new Date(Date.now() - (29 - i) * 86400000).toISOString().slice(0, 10);
+          return { date: d, scans: counts[d] || 0 };
+        });
+        const sumLast = (n: number) => series.slice(-n).reduce((a, b) => a + b.scans, 0);
+        return { total: scans.length, today: sumLast(1), last7: sumLast(7), last30: sumLast(30), series, devices, os, last_scan_at: last };
+      };
+
+      if (action === "qr_list") {
+        const [codes, own, global, dossiers] = await Promise.all([
+          db.QrCode.filter({ client_id: cid }, "-updated_date", 500),
+          db.QrTemplate.filter({ client_id: cid, scope: "client" }, "-updated_date", 200).catch(() => []),
+          db.QrTemplate.filter({ scope: "global" }, "-updated_date", 200).catch(() => []),
+          db.ClientDossier.filter({ client_id: cid }).catch(() => []),
+        ]);
+        const d = (dossiers || [])[0] || {};
+        const bi = (d.brand_identity || {}) as Record<string, unknown>;
+        return Response.json({
+          codes: (codes || []).map((q: Row) => pick(q, QR_KEYS)),
+          templates: [...(own || []), ...(global || []).filter((t: Row) => t.portal_visible !== false)].map((t: Row) => pick(t, QR_TPL_KEYS)),
+          brand: { company: client.business, website: client.domain || ((client.websites as string[]) || [])[0] || "", logo_url: client.logo_url || bi.logo_url || "", accent: client.accent || "", martian_color: client.martian_color || "", colors: bi.colors || [] },
+          redirect_base: QR_REDIRECT,
+        });
+      }
+
+      if (action === "qr_get") {
+        const q = await ownQr(args.id);
+        if (!q) return Response.json({ error: "Not found" }, { status: 404 });
+        return Response.json({ code: pick(q, QR_KEYS) });
+      }
+
+      if (action === "qr_save") {
+        const existing = args.id ? await ownQr(args.id) : null;
+        if (args.id && !existing) return Response.json({ error: "Not found" }, { status: 404 });
+        const mode = args.mode === "static" ? "static" : "dynamic";
+        const data: Record<string, unknown> = {
+          name: str(args.name, 120).trim() || "Untitled QR code",
+          folder: str(args.folder, 80),
+          mode,
+          content_type: mode === "dynamic" ? "link" : (QR_TYPES.includes(String(args.content_type)) ? String(args.content_type) : "link"),
+          text: str(args.text, 1200), email_to: str(args.email_to, 200), email_subject: str(args.email_subject, 200), email_body: str(args.email_body, 2000),
+          phone: str(args.phone, 40), sms_body: str(args.sms_body, 600),
+          wifi_ssid: str(args.wifi_ssid, 64), wifi_password: str(args.wifi_password, 128),
+          wifi_encryption: ["WPA", "WEP", "nopass"].includes(String(args.wifi_encryption)) ? String(args.wifi_encryption) : "WPA",
+          wifi_hidden: args.wifi_hidden === true,
+          whatsapp_number: str(args.whatsapp_number, 30), whatsapp_message: str(args.whatsapp_message, 1000),
+          style: styleOf(args.style),
+        };
+        if (tooBig(data.style)) return Response.json({ error: "Design is too large (try a smaller logo)" }, { status: 413 });
+        if (args.active !== undefined) data.active = args.active !== false;
+        // Destinations: http(s) only, validated server-side.
+        if (mode === "dynamic") {
+          const dest = httpUrl(args.destination);
+          if (!dest) return Response.json({ error: "Add a valid destination link (http or https)." }, { status: 400 });
+          data.destination = dest;
+        } else if (data.content_type === "link") {
+          const u = args.url ? httpUrl(args.url) : "";
+          if (u === null) return Response.json({ error: "That link isn't a valid web address." }, { status: 400 });
+          data.url = u;
+        }
+        if (existing) {
+          if (mode === "dynamic" && !existing.short_code) Object.assign(data, await mint());
+          const u = await db.QrCode.update(existing.id as string, data);
+          return Response.json({ code: pick(u, QR_KEYS) });
+        }
+        if (mode === "dynamic") Object.assign(data, await mint());
+        const c = await db.QrCode.create({ ...data, client_id: cid, client_name: client.business, source: "portal", created_by_email: user.email, scans: 0, active: true });
+        return Response.json({ code: pick(c, QR_KEYS) });
+      }
+
+      if (action === "qr_delete") {
+        const q = await ownQr(args.id);
+        if (!q) return Response.json({ error: "Not found" }, { status: 404 });
+        await db.QrCode.delete(q.id as string);
+        return Response.json({ ok: true });
+      }
+
+      if (action === "qr_stats") {
+        if (args.id) {
+          const q = await ownQr(args.id);
+          if (!q) return Response.json({ error: "Not found" }, { status: 404 });
+          const scans = await db.QrScan.filter({ qr_id: q.id }, "-at", 5000).catch(() => []);
+          return Response.json({ stats: summarize((scans || []).filter((s: Row) => s.client_id === cid || !s.client_id)) });
+        }
+        const scans = await db.QrScan.filter({ client_id: cid }, "-at", 5000).catch(() => []);
+        return Response.json({ stats: summarize(scans || []) });
+      }
+
+      if (action === "qr_tpl_save") {
+        const data = { name: str(args.name, 80).trim() || "Untitled template", description: str(args.description, 300), style: styleOf(args.style) };
+        if (tooBig(data.style)) return Response.json({ error: "Template is too large" }, { status: 413 });
+        if (args.id) {
+          const t = await ownQrTpl(args.id);
+          if (!t) return Response.json({ error: "Only your own templates can be edited" }, { status: 403 });
+          const u = await db.QrTemplate.update(t.id as string, data);
+          return Response.json({ template: pick(u, QR_TPL_KEYS) });
+        }
+        const c = await db.QrTemplate.create({ ...data, scope: "client", client_id: cid, client_name: client.business, portal_visible: true });
+        return Response.json({ template: pick(c, QR_TPL_KEYS) });
+      }
+
+      if (action === "qr_tpl_delete") {
+        const t = await ownQrTpl(args.id);
+        if (!t) return Response.json({ error: "Only your own templates can be deleted" }, { status: 403 });
+        await db.QrTemplate.delete(t.id as string);
+        return Response.json({ ok: true });
+      }
+    }
+
     return Response.json({ error: "Unknown action" }, { status: 400 });
   } catch (e) {
     return Response.json({ error: (e as Error).message || "Server error" }, { status: 500 });
