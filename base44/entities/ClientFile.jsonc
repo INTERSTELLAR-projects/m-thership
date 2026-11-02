@@ -14,6 +14,7 @@
       "enum": [
         "brand_kit",
         "sop",
+        "guide",
         "social",
         "presentation",
         "report",
