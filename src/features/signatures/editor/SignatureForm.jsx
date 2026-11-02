@@ -122,7 +122,80 @@ export default function SignatureForm({ fields, theme, onFields, onTheme }) {
         {fields.address_show && (
           <Input value={fields.address || ""} onChange={(e) => setF({ address: e.target.value })} className="h-9" placeholder="Molalla, OR" />
         )}
+        <p className="text-[11px] text-muted-foreground">Each line is a tap-to-call, tap-to-email or open-the-site link.</p>
       </Section>
+
+      {(theme.contact_style || "auto") === "auto" || theme.contact_style === "icons" ? (
+        <Section title="Contact icons">
+          <div>
+            <span className="text-xs text-muted-foreground">Style</span>
+            <div className="mt-1">
+              <ChoiceGrid
+                value={theme.contact_icon_style || "soft"}
+                options={[
+                  { id: "soft", label: "Soft disc" },
+                  { id: "solid", label: "Solid" },
+                  { id: "gradient", label: "Gradient" },
+                  { id: "ring", label: "Ring" },
+                  { id: "bare", label: "Icon only" },
+                ]}
+                onChange={(id) => setT({ contact_icon_style: id })}
+              />
+            </div>
+          </div>
+          <div>
+            <span className="text-xs text-muted-foreground">Icon set</span>
+            <div className="mt-1">
+              <ChoiceGrid
+                value={theme.contact_icon_set || "line"}
+                options={[
+                  { id: "line", label: "Line" },
+                  { id: "solid", label: "Filled" },
+                ]}
+                onChange={(id) => setT({ contact_icon_set: id })}
+                cols={2}
+              />
+            </div>
+          </div>
+          <RangeField
+            label="Size"
+            value={Number(theme.contact_icon_size) || 20}
+            min={14}
+            max={28}
+            suffix="px"
+            onChange={(v) => setT({ contact_icon_size: v })}
+          />
+          <div>
+            <span className="text-xs text-muted-foreground">Color</span>
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              {[
+                { id: "", label: "Accent", sw: theme.accent_color },
+                { id: theme.accent_color_2 || theme.accent_color, label: "Accent 2", sw: theme.accent_color_2 || theme.accent_color },
+                { id: theme.text_color, label: "Text", sw: theme.text_color },
+              ].map((o) => (
+                <button
+                  key={o.label}
+                  type="button"
+                  onClick={() => setT({ contact_icon_color: o.id })}
+                  className={`h-8 px-2.5 rounded-sm border text-xs inline-flex items-center gap-1.5 ${
+                    (theme.contact_icon_color || "") === o.id ? "border-[#ff3c00] bg-[#fff1ea]" : "border-border"
+                  }`}
+                >
+                  <span className="w-3.5 h-3.5 rounded-full" style={{ background: o.sw }} />
+                  {o.label}
+                </button>
+              ))}
+              <input
+                type="color"
+                value={theme.contact_icon_color || theme.accent_color}
+                onChange={(e) => setT({ contact_icon_color: e.target.value })}
+                className="w-8 h-8 rounded border border-border cursor-pointer bg-transparent"
+                title="Custom color"
+              />
+            </div>
+          </div>
+        </Section>
+      ) : null}
 
       <Section title="Profile photo" hint="Upload a regular photo. The animation is generated for you.">
         <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e, "photo")} />
