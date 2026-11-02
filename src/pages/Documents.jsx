@@ -7,21 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
+import { useOptionList } from "@/hooks/useOptionList";
 import FormsHub from "@/features/forms/FormsHub";
 
-const CATEGORIES = [
-  "Internal Processes",
-  "Service Documents",
-  "Contracts & Agreements",
-  "Presentations",
-  "Legal Documents",
-  "Financial Documents",
-];
+// Categories: Settings > Lists & fields > Document categories (defaults in src/lib/optionLists.js).
+// Archived categories that documents still use keep showing so nothing disappears.
+function useDocCategories(docs) {
+  const { values } = useOptionList("document_categories");
+  return useMemo(() => [...new Set([...values, ...(docs || []).map((d) => d.category).filter(Boolean)])], [values, docs]);
+}
 
 const SHORT = { "Internal Processes": "Processes", "Service Documents": "Service", "Contracts & Agreements": "Contracts", "Presentations": "Decks", "Legal Documents": "Legal", "Financial Documents": "Financial" };
 
 // Read-only overview of the library: counts by category, uploads per month, forms status.
 function LibraryStats({ docs, forms }) {
+  const CATEGORIES = useDocCategories(docs);
   const s = useMemo(() => {
     const now = new Date();
     const months = Array.from({ length: 6 }, (_, i) => {
@@ -36,7 +36,7 @@ function LibraryStats({ docs, forms }) {
     const byCat = CATEGORIES.map((c) => ({ label: SHORT[c] || c, full: c, Documents: docs.filter((d) => d.category === c).length }));
     const published = forms.filter((f) => f.published).length;
     return { months, byCat, thisMonth: months[5].Added, lastMonth: months[4].Added, pinned: docs.filter((d) => d.pinned).length, published, drafts: forms.length - published };
-  }, [docs, forms]);
+  }, [docs, forms, CATEGORIES]);
 
   return (
     <div className="space-y-4">
@@ -88,7 +88,8 @@ export default function Documents() {
   const [uploading, setUploading] = useState(false);
   const [renamingId, setRenamingId] = useState(null);
   const [renameValue, setRenameValue] = useState("");
-  const [uploadCategory, setUploadCategory] = useState(CATEGORIES[0]);
+  const CATEGORIES = useDocCategories(docs);
+  const [uploadCategory, setUploadCategory] = useState("Internal Processes");
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [pendingFiles, setPendingFiles] = useState([]);
   const fileRef = useRef();
