@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
       await Promise.race([log, new Promise((r) => setTimeout(r, 1500))]);
     }
 
-    return new Response(null, { status: 302, headers: { Location: dest, "Cache-Control": "no-store, max-age=0", "Referrer-Policy": "no-referrer", "X-Robots-Tag": "noindex" } });
+    return new Response(null, { status: 302, headers: { Location: dest, "Cache-Control": "no-store, max-age=0", "Referrer-Policy": "no-referrer", "X-Robots-Tag": "noindex", "X-Qr-Redirect": "2" } });
   } catch {
     return page("Lost in space", "Something went wrong opening this QR code. Please try again.", 500);
   }
