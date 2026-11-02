@@ -9,9 +9,11 @@ import { PACKAGES, packageByKey, packagePath } from "@/features/packages/registr
 import { createFlight } from "@/features/flight/onboarding/store";
 import { SALES_FOR_PACKAGE, saleByKey, defaultPrice } from "@/features/flight/onboarding/catalog";
 import {
-  STAGES, STAGE_LABEL, SOURCE_BY_KEY, LOST_REASONS, stageOf, sourceOf, interestOf, detailsOf, bookedCallOf,
+  STAGES, STAGE_LABEL, SOURCE_BY_KEY, stageOf, sourceOf, interestOf, detailsOf, bookedCallOf,
   daysInStage, suggestedSale, noteDate, money,
 } from "./pipeline";
+import { useLeadSources } from "./useLeadSources";
+import { useOptionList } from "@/hooks/useOptionList";
 
 const wide = "max-h-[92vh] overflow-y-auto rounded-md border border-hair bg-canvas text-ink sm:max-w-2xl";
 const narrow = "max-h-[92vh] overflow-y-auto rounded-md border border-hair bg-canvas text-ink sm:max-w-lg";
@@ -34,7 +36,9 @@ export function ContactLinks({ c, size = "sm" }) {
 }
 
 export function SourceBadge({ c }) {
-  const s = SOURCE_BY_KEY[sourceOf(c)] || SOURCE_BY_KEY.other;
+  const { byKey } = useLeadSources();
+  const key = sourceOf(c);
+  const s = byKey[key] || SOURCE_BY_KEY[key] || { label: key || "Other", tone: SOURCE_BY_KEY.other.tone };
   return <span className={cn("mono-label inline-flex items-center rounded-sm px-1.5 py-0.5 text-[8.5px]", s.tone)}>{s.label}{c.lead_funnel ? " · " + c.lead_funnel : ""}</span>;
 }
 
@@ -43,6 +47,7 @@ export function LostDialog({ lead, onClose, onSave }) {
   const [reason, setReason] = useState("");
   const [detail, setDetail] = useState("");
   const [busy, setBusy] = useState(false);
+  const lostReasons = useOptionList("lost_reasons").options;
   useEffect(() => { setReason(""); setDetail(""); }, [lead]);
   if (!lead) return null;
   const save = async () => {
@@ -62,8 +67,8 @@ export function LostDialog({ lead, onClose, onSave }) {
           <DialogDescription>Why it didn&apos;t move forward. Feeds the close rate and keeps the reason on their record.</DialogDescription>
         </DialogHeader>
         <div className="flex flex-wrap gap-1.5">
-          {LOST_REASONS.map((r) => (
-            <button key={r} type="button" onClick={() => setReason(r)} className={cn("rounded-sm border px-2.5 py-1.5 text-[12px]", reason === r ? "border-ink bg-ink text-white" : "border-hair bg-card hover:border-ink/40")}>{r}</button>
+          {lostReasons.map((r) => (
+            <button key={r.value} type="button" onClick={() => setReason(r.value)} className={cn("rounded-sm border px-2.5 py-1.5 text-[12px]", reason === r.value ? "border-ink bg-ink text-white" : "border-hair bg-card hover:border-ink/40")}>{r.label}</button>
           ))}
         </div>
         <textarea value={detail} onChange={(e) => setDetail(e.target.value)} placeholder="Details (optional)" className={textareaClass} />
