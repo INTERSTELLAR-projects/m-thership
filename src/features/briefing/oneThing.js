@@ -2,7 +2,7 @@
 // and the short spoken script Core reads aloud. Facts only: every word comes from loadBriefing().
 import { base44 } from "@/api/base44Client";
 import { compactMoney, money } from "@/components/financial/finance/metrics";
-import { dayKey, writeBriefingCache } from "./loadBriefing";
+import { dayKey, loadBriefing, writeBriefingCache } from "./loadBriefing";
 
 const timeOf = (d) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
@@ -118,7 +118,6 @@ export function spokenBriefing(b, oneLine, firstName) {
 
 // Core voice entry point: load, pick, use today's cached polish if any, return the script.
 export async function briefingScript(firstName) {
-  const { loadBriefing } = await import("./loadBriefing");
   const b = await loadBriefing();
   const one = pickOneThing(b);
   const c = b.cache.data || {};
