@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { LOGO_URL } from "@/lib/nav";
+import BrandLockup from "@/components/brand/BrandLockup";
 import RequestFormRenderer, { isComplete } from "@/features/requests/RequestFormRenderer";
 import { KIND_LABELS } from "@/features/requests/formSchema";
 
