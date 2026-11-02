@@ -1,15 +1,14 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Trash2, Search, Bot, Zap, Trophy, Crown, Award, Shield, Sparkles } from "lucide-react";
+import { Plus, Trash2, Search, Bot, Zap, Trophy, Shield, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { TIERS, getProgress, earnedTier } from "@/lib/prestige";
+import { STATUSES, STATUS_LABEL, isSigned, progressFor, tierLabel, enumTier, slugify } from "@/lib/prestige";
 import ServiceLineItems from "./ServiceLineItems";
+import PrestigeEmblem from "./PrestigeEmblem";
 
-const ICONS = { "Prestige I": Shield, "Prestige II": Award, "Prestige III": Trophy, "Prestige Master": Crown };
-const LADDER = TIERS.map((t) => ({ tier: t.tier, threshold: t.lifetime, perTier: t.perTier, icon: ICONS[t.tier] }));
-
+const today = () => new Date().toISOString().slice(0, 10);
 const EMPTY_REF = { referredClientName: "", lineItems: [{ service: "", subscription: false, amount: "" }], date: "", status: "Confirmed", notes: "" };
 
 function ClientAutocomplete({ value, onChange, onSelectClient, clients, placeholder, exclude }) {
@@ -53,8 +52,9 @@ function ClientAutocomplete({ value, onChange, onSelectClient, clients, placehol
   );
 }
 
-export default function AddMemberModal({ open, onOpenChange, onSave, clients }) {
+export default function AddMemberModal({ open, onOpenChange, onSave, clients, offer }) {
   const [name, setName] = useState("");
+  const [clientId, setClientId] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [joinDate, setJoinDate] = useState(new Date().toISOString().slice(0, 10));
@@ -62,30 +62,31 @@ export default function AddMemberModal({ open, onOpenChange, onSave, clients }) 
 
   useEffect(() => {
     if (open) {
-      setName(""); setEmail(""); setPhone("");
-      setJoinDate(new Date().toISOString().slice(0, 10));
-      setReferrals([{ ...EMPTY_REF }]);
+      setName(""); setEmail(""); setPhone(""); setClientId("");
+      setJoinDate(today());
+      setReferrals([{ ...EMPTY_REF, date: today() }]);
     }
   }, [open]);
 
   const validReferrals = referrals.filter((r) => r.referredClientName.trim());
-  const confirmed = validReferrals.filter((r) => r.status !== "Pending").length;
-  const progress = getProgress(confirmed);
-  const projectedTier = earnedTier(confirmed);
+  const confirmed = validReferrals.filter(isSigned).length;
+  const progress = progressFor(confirmed, offer);
+  const projectedTier = tierLabel(progress.idx, offer);
 
   const selectMember = (c) => {
-    setEmail(c.emails?.[0] || "");
+    setClientId(c.id);
+    setEmail(c.emails?.[0] || (c.portal_emails || [])[0] || "");
     setPhone(c.phones?.[0] || "");
   };
 
   const updateRef = (i, patch) => setReferrals(referrals.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  const addRef = () => setReferrals([...referrals, { ...EMPTY_REF }]);
+  const addRef = () => setReferrals([...referrals, { ...EMPTY_REF, date: today() }]);
   const removeRef = (i) => setReferrals(referrals.filter((_, idx) => idx !== i));
 
   const handleSave = () => {
     if (!name.trim()) return;
     onSave(
-      { name: name.trim(), email, phone, prestige: projectedTier, joinDate, active: true, notes: "" },
+      { name: name.trim(), email, phone, prestige: enumTier(progress.idx), joinDate, active: true, notes: "", client_id: clientId || undefined, referral_code: slugify(name) },
       validReferrals.map((r) => {
         const lineItems = (r.lineItems || [])
           .map((li) => ({ service: li.service, subscription: !!li.subscription, amount: parseFloat(li.amount) || 0 }))
@@ -95,7 +96,7 @@ export default function AddMemberModal({ open, onOpenChange, onSave, clients }) 
           lineItems,
           package: lineItems.map((li) => li.service).join(", "),
           amount: lineItems.reduce((s, li) => s + li.amount, 0),
-          date: r.date || "",
+          date: r.date || today(),
           status: r.status,
           notes: r.notes || "",
         };
@@ -125,7 +126,7 @@ export default function AddMemberModal({ open, onOpenChange, onSave, clients }) 
               <div className="mt-1">
                 <ClientAutocomplete
                   value={name}
-                  onChange={setName}
+                  onChange={(v) => { setName(v); setClientId(""); }}
                   onSelectClient={selectMember}
                   clients={clients}
                   placeholder="Search CRM clients…"
@@ -146,7 +147,7 @@ export default function AddMemberModal({ open, onOpenChange, onSave, clients }) 
                 <Zap className="w-3.5 h-3.5 text-orange-600" />
                 <span className="text-ink/50 text-[11px] font-bold tracking-[0.15em] uppercase">Referrals Submitted</span>
               </div>
-              <span className="text-[10px] text-ink/[0.48]">{confirmed} confirmed · {validReferrals.length} total</span>
+              <span className="text-[10px] text-ink/[0.48]">{confirmed} signed · {validReferrals.length} total</span>
             </div>
 
             {referrals.map((r, i) => (
@@ -175,7 +176,7 @@ export default function AddMemberModal({ open, onOpenChange, onSave, clients }) 
                   <div>
                     <Label className="text-ink/[0.58] text-[11px]">Status</Label>
                     <select value={r.status} onChange={(e) => updateRef(i, { status: e.target.value })} className="mt-1 w-full bg-ink/[0.03] border border-ink/[0.13] rounded-md px-2 py-1.5 text-xs text-ink outline-none">
-                      {["Pending", "Confirmed", "Paid Out"].map((s) => <option key={s} value={s}>{s}</option>)}
+                      {STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
                     </select>
                   </div>
                 </div>
@@ -193,26 +194,16 @@ export default function AddMemberModal({ open, onOpenChange, onSave, clients }) 
               <span className="flex items-center gap-2 text-ink/60 text-[11px] font-bold tracking-[0.15em] uppercase">
                 <Trophy className="w-3.5 h-3.5 text-orange-600" /> Live Progression
               </span>
-              <span className="text-[10px] text-orange-600 font-semibold tracking-wider">{progress.label}</span>
+              <span className="text-[10px] text-orange-600 font-semibold tracking-wider">{progress.maxed ? "Top of the ladder" : `Next: ${progress.next?.name}`}</span>
             </div>
 
-            <div className="flex items-center justify-between mb-3">
-              {LADDER.map((t, i) => {
+            <div className="flex items-center justify-between mb-3 gap-1">
+              {offer.tiers.map((t, i) => {
                 const reached = confirmed >= t.threshold;
-                const Icon = t.icon;
                 return (
-                  <div key={t.tier} className="flex items-center gap-1 flex-1">
-                    <div className={`flex flex-col items-center gap-1 ${reached ? "" : "opacity-30"}`}>
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center border transition-all ${reached ? "bg-orange-500/15 border-orange-500/40" : "bg-ink/[0.03] border-ink/[0.13]"}`}>
-                        <Icon className={`w-4 h-4 ${reached ? "text-orange-600" : "text-ink/[0.58]"}`} />
-                      </div>
-                      <span className="text-[8px] tracking-wider uppercase text-ink/[0.58] text-center leading-tight">{t.tier.replace("Prestige ", "")}</span>
-                    </div>
-                    {i < LADDER.length - 1 && (
-                      <div className="flex-1 h-px mx-1 bg-ink/[0.06] relative">
-                        <div className="absolute inset-y-0 left-0 bg-orange-500/60" style={{ width: `${confirmed >= t.threshold && confirmed >= LADDER[i + 1].threshold ? 100 : confirmed >= t.threshold ? ((confirmed - t.threshold) / (LADDER[i + 1].threshold - t.threshold)) * 100 : 0}%` }} />
-                      </div>
-                    )}
+                  <div key={i} className="flex flex-1 flex-col items-center gap-1">
+                    <PrestigeEmblem tier={i + 1} size={34} locked={!reached} showNumeral={false} />
+                    <span className={`text-[8px] tracking-wider uppercase text-center leading-tight ${reached ? "text-orange-600" : "text-ink/[0.45]"}`}>{t.name.replace(/^Prestige\s+/i, "")} · {t.threshold}</span>
                   </div>
                 );
               })}
@@ -220,9 +211,9 @@ export default function AddMemberModal({ open, onOpenChange, onSave, clients }) 
 
             <div>
               <div className="flex items-center justify-between text-[10px] mb-1">
-                <span className="text-ink/[0.58]">{confirmed} confirmed referrals</span>
+                <span className="text-ink/[0.58]">{confirmed} signed referrals</span>
                 <span className="text-orange-600 font-semibold">
-                  {progress.maxed ? "MAXED" : `${progress.remaining} to ${progress.nextTier ?? ""}`}
+                  {progress.maxed ? "MAXED" : `${progress.remaining} to ${progress.next?.name ?? ""}`}
                 </span>
               </div>
               <div className="h-2 w-full bg-ink/[0.04] rounded-full overflow-hidden">
