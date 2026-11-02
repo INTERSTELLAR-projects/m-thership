@@ -220,7 +220,7 @@ Deno.serve(async (req) => {
     // TaskTemplates whose portal_client_ids include this client (never time estimates or other clients).
     const RES_FILE_CATS = ["sop", "guide"];
     const sharedSop = (t: Row) => ({
-      id: t.id, title: t.name, code: t.sop_code || "", summary: String(t.portal_summary || t.description || "").slice(0, 2000),
+      id: t.id, title: t.name, code: t.sop_code || "", summary: String(t.portal_summary || "").slice(0, 2000), // never fall back to the internal description (it holds prices)
       phases: (() => {
         const out: { phase: string; steps: { title: string; notes: string }[] }[] = [];
         for (const it of ((t.items as Row[]) || []).slice(0, 200)) {
