@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useCategoryList } from "@/hooks/useOptionList";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Pencil, Trash2, Check, X, Lightbulb, Search, Settings, GripVertical, Loader2, Sparkles, ChevronDown, ChevronUp, ArrowLeft, Zap, Rocket } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -10,18 +11,11 @@ import MicButton from "../components/MicButton";
 import ActionPlan, { Micro } from "@/features/ideas/ActionPlan";
 import { generatePlan, createProjectFromPlan } from "@/features/ideas/planGen";
 
-const DEFAULT_CATEGORIES = ["Marketing", "Product", "Operations", "Tech", "Content", "Other"];
+// Categories are shared: Settings > Lists & fields > Idea categories (old per-browser list seeds it once).
 const IDEA_CATS_KEY = "idea_vault_categories";
 
-function loadIdeaCategories() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(IDEA_CATS_KEY));
-    if (Array.isArray(saved) && saved.length > 0) return saved;
-  } catch { /* ignore */ }
-  return DEFAULT_CATEGORIES;
-}
-function persistCats(next) {
-  try { localStorage.setItem(IDEA_CATS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+function persistCats() {
+  // kept as a no-op so older call sites stay harmless; categories now live in AppSettings.
 }
 const STATUS_OPTIONS = ["New", "In Review", "Planned", "Implemented", "Shelved"];
 const fieldCls = "bg-ink/[0.03] border border-ink/[0.13] rounded-md px-2 py-1.5 text-xs text-ink outline-none focus:border-[#ff6a00]/60";
@@ -33,7 +27,9 @@ export default function IdeaVault() {
   const openId = params.get("idea");
   const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState(loadIdeaCategories);
+  const [categories, saveCats] = useCategoryList("idea_categories", IDEA_CATS_KEY);
+  const catsRef = useRef(categories);
+  catsRef.current = categories;
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -51,10 +47,10 @@ export default function IdeaVault() {
   useEffect(() => {
     base44.entities.Idea.list("-created_date", 200).then((data) => {
       setIdeas(data);
-      const saved = loadIdeaCategories();
+      const saved = catsRef.current;
       const existingCats = [...new Set(data.map((i) => i.category).filter(Boolean))];
       const merged = [...new Set([...saved, ...existingCats])];
-      if (merged.length !== saved.length) { setCategories(merged); persistCats(merged); }
+      if (merged.length !== saved.length) { saveCats(merged).catch(() => null); persistCats(); }
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
@@ -145,7 +141,6 @@ Category: ${idea.category}`;
     }
   };
 
-  const saveCats = (next) => { setCategories(next); persistCats(next); };
   const addCat = () => {
     const t = newCatName.trim();
     if (!t || categories.includes(t)) return;
