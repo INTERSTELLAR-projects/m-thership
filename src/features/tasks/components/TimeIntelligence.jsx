@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Check, Clock, Gauge, Loader2, RefreshCw, Target, Timer, Wand2 } from "lucide-react";
+import { Check, Loader2, RefreshCw, Wand2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import Panel from "@/features/tasks/ui-kit/Panel";
-import StatCard from "@/features/tasks/ui-kit/StatCard";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ChartTooltip, FlameDefs, KpiTile, axisProps, gridProps, barCursor } from "@/components/charts/ChartKit";
 import CategoryChip from "@/features/tasks/ui-kit/CategoryChip";
 import { CATEGORIES, PROJECT_TYPES } from "@/features/tasks/lib/constants";
 import { itemsOf } from "@/features/tasks/lib/clients";
@@ -226,17 +227,25 @@ export default function TimeIntelligence() {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard icon={Timer} label="Clocked, all time" value={fmtMinutes(m.totalActual)} hint={m.timed.length + " tasks timed"} accent="#1a1a1a" />
-        <StatCard icon={Target} label="Estimated for those" value={fmtMinutes(m.totalEst)} hint={m.withEst.length + " of them carried an estimate"} accent="#57534e" />
-        <StatCard
-          icon={Gauge}
-          label="Actual vs estimate"
-          value={m.accuracy === null ? "—" : m.accuracy + "%"}
-          hint={m.accuracy === null ? "time a task that has an estimate" : m.accuracy > 110 ? "running over — estimates are light" : m.accuracy < 90 ? "running under — estimates are heavy" : "estimates are honest"}
-          accent={m.accuracy === null ? "#8a8580" : m.accuracy > 110 ? "#ff3c00" : "#15803d"}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        <KpiTile
+          accent
+          label="Clocked this week"
+          value={m.weeks[7].minutes}
+          display={fmtMinutes(m.weeks[7].minutes)}
+          prev={m.weeks[6].minutes || undefined}
+          sub="vs last week"
         />
-        <StatCard icon={Clock} label="Typical task" value={m.medianRatio ? Math.round(m.medianRatio * 100) + "% of est" : "—"} hint="median across timed tasks" accent="#b45309" />
+        <KpiTile label="Clocked, all time" value={m.totalActual} display={fmtMinutes(m.totalActual)} sub={m.timed.length + " tasks timed"} />
+        <KpiTile label="Estimated for those" value={m.totalEst} display={fmtMinutes(m.totalEst)} sub={m.withEst.length + " of them carried an estimate"} />
+        <KpiTile
+          label="Actual vs estimate"
+          value={m.accuracy}
+          display={m.accuracy === null ? "—" : undefined}
+          format={(v) => v + "%"}
+          sub={m.accuracy === null ? "time a task that has an estimate" : m.accuracy > 110 ? "running over — estimates are light" : m.accuracy < 90 ? "running under — estimates are heavy" : "estimates are honest"}
+        />
+        <KpiTile label="Typical task" value={m.medianRatio ? Math.round(m.medianRatio * 100) : null} display={m.medianRatio ? undefined : "—"} format={(v) => v + "% of est"} sub="median across timed tasks" />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
@@ -250,14 +259,17 @@ export default function TimeIntelligence() {
         </Panel>
 
         <Panel kicker="Last 8 weeks" title="Clocked time per week">
-          <div className="flex h-40 items-end gap-2">
-            {m.weeks.map((w) => (
-              <div key={w.label} className="flex flex-1 flex-col items-center gap-1.5">
-                <span className="font-mono text-[9.5px] tabular-nums text-ink/60">{w.minutes ? fmtMinutes(w.minutes) : ""}</span>
-                <div className="w-full rounded-sm bg-[#ff3c00]" style={{ height: Math.max(2, (w.minutes / m.weekMax) * 120) + "px", opacity: w.minutes ? 1 : 0.15 }} />
-                <span className="mono-label text-[8px] text-ink/40">{w.label}</span>
-              </div>
-            ))}
+          <div className="h-44">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={m.weeks.map((w) => ({ label: w.label, hours: Math.round((w.minutes / 60) * 10) / 10, minutes: w.minutes }))} margin={{ top: 6, right: 4, left: -22, bottom: 0 }}>
+                <FlameDefs id="ti-weeks" />
+                <CartesianGrid {...gridProps()} />
+                <XAxis dataKey="label" {...axisProps()} />
+                <YAxis {...axisProps()} width={40} tickFormatter={(v) => v + "h"} allowDecimals={false} />
+                <Tooltip content={<ChartTooltip format={(v, n, p) => fmtMinutes(p.payload.minutes)} />} cursor={barCursor()} />
+                <Bar dataKey="hours" name="Clocked" fill="url(#ti-weeks-bar)" radius={[5, 5, 0, 0]} maxBarSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </Panel>
       </div>
