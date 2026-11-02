@@ -6,7 +6,7 @@ import ClientContentSchedule from "../components/dashboard/ClientContentSchedule
 import ActiveSubscriptions from "../components/dashboard/ActiveSubscriptions";
 import FinancialPanel from "../components/dashboard/FinancialPanel";
 import PriorityTasks from "../components/dashboard/PriorityTasks";
-import DailyBriefing from "../components/dashboard/DailyBriefing";
+import CommandBriefing from "../components/dashboard/CommandBriefing";
 import ProjectProgressDashboard from "../components/ProjectProgressDashboard";
 import MinusculeProjects from "../components/dashboard/MinusculeProjects";
 import ProjectionWidget from "../components/dashboard/ProjectionWidget";
@@ -127,7 +127,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <PageHeader breadcrumb="Command / Mission Control" rightText="Everything, live">
-        <DailyBriefing />
         <button
           onClick={() => setEditing(!editing)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
@@ -230,6 +229,7 @@ export default function Dashboard() {
         </div>
       ) : (
         <div className="pb-8">
+          <CommandBriefing />
           {layoutRuns(order).map((run) =>
             run.tiles ? (
               <div key={run.ids.join("|")} className="grid gap-4 px-5 pt-6 md:grid-cols-2 md:px-8 xl:grid-cols-3">
