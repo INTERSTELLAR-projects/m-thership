@@ -50,6 +50,7 @@
         "brand",
         "email",
         "research",
+        "presentation",
         "other"
       ],
       "type": "string"
