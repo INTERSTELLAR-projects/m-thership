@@ -13,12 +13,13 @@ import ClientClaudeTab from "@/features/claude/ClientClaudeTab";
 import ConstellationsTab from "@/features/constellations/ConstellationsTab";
 import BrandKitTab from "@/features/clients/BrandKitTab";
 import PlaybookTab from "@/features/clients/PlaybookTab";
+import ContentPlanTab from "@/features/clients/ContentPlanTab";
 import { ClientGbpTab } from "@/features/gbp/GbpPanel";
 import ClientOutreachTab from "@/features/outreach/ClientOutreachTab";
 
 const TABS = [
   ["overview", "Overview"], ["constellations", "✧ Constellations"], ["claude", "✦ Claude"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
-  ["performance", "Performance"], ["gbp", "Google Business"], ["citations", "Citations & PR"], ["goals", "Goals & Gaps"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["files", "Files & Brand"], ["audit", "Intake Audit"], ["messages", "Messages"], ["billing", "Billing & Notes"],
+  ["performance", "Performance"], ["gbp", "Google Business"], ["citations", "Citations & PR"], ["goals", "Goals & Gaps"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["content", "Content plan"], ["files", "Files & Brand"], ["audit", "Intake Audit"], ["messages", "Messages"], ["billing", "Billing & Notes"],
 ];
 
 const PROFILE_FIELDS = [
@@ -131,6 +132,7 @@ export default function ClientCockpit() {
         {tab === "goals" && <GoalsTab client={client} />}
         {tab === "brand" && <BrandKitTab client={client} />}
         {tab === "playbook" && <PlaybookTab client={client} />}
+        {tab === "content" && <ContentPlanTab client={client} onEdit={() => setEditing(true)} />}
         {tab === "files" && <FilesTab client={client} />}
         {tab === "audit" && <AuditTab client={client} />}
         {tab === "messages" && <MessagesTab client={client} />}
