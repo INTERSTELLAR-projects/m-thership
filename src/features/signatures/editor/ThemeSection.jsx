@@ -1,12 +1,13 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Section, ToggleRow, ChoiceGrid, ColorField } from "./Controls";
+import { Section, ToggleRow, ChoiceGrid, ColorField, RangeField } from "./Controls";
 
 const FONTS = ["Inter", "Arial", "Helvetica", "Georgia"];
 const BORDERS = [
-  { id: "box", label: "Framed" },
-  { id: "none", label: "Borderless" },
+  { id: "gradient", label: "Gradient" },
+  { id: "box", label: "Hairline" },
+  { id: "none", label: "None" },
 ];
 const CONTACT = [
   { id: "auto", label: "Icons (default)" },
@@ -37,9 +38,28 @@ export default function ThemeSection({ theme, onTheme }) {
       <div>
         <span className="text-xs text-muted-foreground">Border treatment</span>
         <div className="mt-1">
-          <ChoiceGrid value={theme.border_style} options={BORDERS} onChange={(id) => set({ border_style: id })} cols={2} />
+          <ChoiceGrid value={theme.border_style} options={BORDERS} onChange={(id) => set({ border_style: id })} />
         </div>
       </div>
+
+      {theme.border_style === "gradient" && (
+        <RangeField
+          label="Border thickness"
+          value={Number(theme.border_width) || 1.5}
+          min={1}
+          max={3}
+          step={0.5}
+          suffix="px"
+          onChange={(v) => set({ border_width: v })}
+        />
+      )}
+
+      <ToggleRow
+        label="Animated divider"
+        hint="A soft light glides along the gradient divider every few seconds."
+        checked={theme.divider_anim !== "none"}
+        onChange={(v) => set({ divider_anim: v ? "sweep" : "none" })}
+      />
 
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -62,7 +82,7 @@ export default function ThemeSection({ theme, onTheme }) {
         </div>
       </div>
 
-      {theme.border_style === "box" && (
+      {theme.border_style !== "none" && (
         <ToggleRow label="Accent bar" hint="Gradient rule across the top of the panel." checked={theme.accent_bar} onChange={(v) => set({ accent_bar: v })} />
       )}
     </Section>
