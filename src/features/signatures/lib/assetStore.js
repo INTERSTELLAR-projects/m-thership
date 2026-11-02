@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { renderAsset, estimateSize } from "./assetRender";
 
 // Bump when the renderer's output changes so old cached files are re-rendered.
-const RENDER_VERSION = 9;
+const RENDER_VERSION = 10;
 
 export function assetKey(spec) {
   const s = JSON.stringify({ v: RENDER_VERSION, ...spec });

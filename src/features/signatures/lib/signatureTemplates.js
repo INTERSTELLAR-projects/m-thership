@@ -18,9 +18,11 @@ export const DEFAULT_THEME = {
   border_color: "#ebe7e2",
   surface_color: "#ffffff",
   font: "Inter",
-  border_style: "box", // box | none
+  border_style: "gradient", // gradient | box (hairline) | none
+  border_width: 1.5,
   border_radius: "18px",
-  accent_bar: true,
+  accent_bar: false,
+  divider_anim: "sweep", // sweep | none — a soft light gliding along the divider
   badge_style: "shine", // shine | pulse | none
   badge_color: "#0a95ff",
   badge_size: 18,
@@ -31,6 +33,10 @@ export const DEFAULT_THEME = {
   icon_layout: "row", // row | column | grid
   icon_anim: "shine", // none | shine | pop
   contact_style: "auto", // auto | icons | caps | bold
+  contact_icon_style: "soft", // soft | solid | gradient | ring | bare
+  contact_icon_set: "line", // line | solid
+  contact_icon_size: 20,
+  contact_icon_color: "", // "" = accent
 };
 
 const SOCIAL_DEFAULTS = Object.fromEntries(PLATFORMS.map((p) => [p.id, { show: false, url: "" }]));
@@ -115,7 +121,7 @@ const href = (u) => {
 };
 const fontOf = (t) => FONT_STACK[t.font] || FONT_STACK.Inter;
 const mutedOf = (t) => mix(t.text_color, t.surface_color || "#ffffff", 0.5);
-const matteOf = (t) => (t.border_style === "box" ? t.surface_color : "#ffffff");
+const matteOf = (t) => (t.border_style === "none" ? "#ffffff" : t.surface_color);
 const TBL = `cellpadding="0" cellspacing="0" border="0" role="presentation"`;
 
 function img(a, alt, extra = "") {
@@ -207,10 +213,18 @@ function footerLogo(c, center = false) {
   return `<div style="margin-top:14px;${center ? "text-align:center;" : ""}">${logoImg(c, logoH(c, 40), center)}</div>`;
 }
 
-function hairline(t, margin = "14px 0 12px 0") {
-  return `<div style="height:1px;line-height:1px;font-size:0;background-color:${esc(t.border_color)};background-image:linear-gradient(90deg,${esc(
-    t.accent_color
-  )} 0%,${esc(t.accent_color_2 || t.accent_color)} 28%,${esc(t.border_color)} 62%);margin:${margin};">&nbsp;</div>`;
+function hairline(c, margin = "14px 0 12px 0") {
+  const { t, A } = c;
+  const tail = t.border_color;
+  if (t.divider_anim === "sweep") {
+    const a = A({ kind: "divider", accent: t.accent_color, accent2: t.accent_color_2 || t.accent_color, tail, bg: matteOf(t) });
+    if (a && !a.failed) {
+      return `<div style="margin:${margin};line-height:0;font-size:0;"><img src="${esc(a.url)}" width="100%" height="3" alt="" style="display:block;width:100%;height:3px;border:0;" /></div>`;
+    }
+  }
+  return `<div style="height:2px;line-height:2px;font-size:0;background-color:${esc(tail)};background-image:linear-gradient(90deg,${esc(t.accent_color)} 0%,${esc(
+    t.accent_color_2 || t.accent_color
+  )} 30%,${esc(tail)} 68%);margin:${margin};">&nbsp;</div>`;
 }
 
 function contactList(f) {
@@ -225,7 +239,16 @@ function contactList(f) {
 
 function glyph(c, name) {
   const { t, A } = c;
-  const a = A({ kind: "glyph", name, color: t.accent_color, size: 20, bg: matteOf(t) });
+  const a = A({
+    kind: "glyph",
+    name,
+    set: t.contact_icon_set || "line",
+    style: t.contact_icon_style || "soft",
+    color: t.contact_icon_color || t.accent_color,
+    color2: t.accent_color_2 || t.accent_color,
+    size: Number(t.contact_icon_size) || 20,
+    bg: matteOf(t),
+  });
   return a && !a.failed ? a : null;
 }
 
@@ -263,10 +286,14 @@ function contacts(c, { mode = "chips", center = false } = {}) {
       .join("")}</div>`;
   }
 
+  // Icon + text are one link, so tapping either opens the call / email / site.
   const chip = (i) => {
     const g = glyph(c, i.g);
     const icon = g ? img(g, i.bold, "display:inline-block;vertical-align:middle;margin-right:8px;") : "";
-    return `${icon}<a href="${esc(i.h)}" style="${linkCss}vertical-align:middle;font-family:${font};font-size:12.5px;line-height:20px;">${esc(i.v)}</a>`;
+    const blank = i.g === "globe" || i.g === "pin" ? ` target="_blank"` : "";
+    return `<a href="${esc(i.h)}"${blank} style="${linkCss}display:inline-block;white-space:nowrap;font-family:${font};font-size:12.5px;line-height:20px;">${icon}<span style="vertical-align:middle;">${esc(
+      i.v
+    )}</span></a>`;
   };
   if (mode === "rows") return items.map((i) => `<div style="margin:0 0 7px 0;white-space:nowrap;">${chip(i)}</div>`).join("");
   return `<div style="${center ? "text-align:center;" : ""}">${items
@@ -411,9 +438,9 @@ function actionRow(c, { center = false, mt = 14 } = {}) {
   return `<div style="margin-top:${mt}px;">${parts.join("")}</div>`;
 }
 
-function accentBar(t) {
+function accentBar(t, radius) {
   if (!t.accent_bar) return "";
-  const r = esc(t.border_radius);
+  const r = `${radius}px`;
   return `<tr><td bgcolor="${esc(t.accent_color)}" style="height:4px;line-height:4px;font-size:0;background-color:${esc(
     t.accent_color
   )};background-image:linear-gradient(90deg,${esc(t.accent_color)},${esc(t.accent_color_2 || t.accent_color)});border-radius:${r} ${r} 0 0;">&nbsp;</td></tr>`;
@@ -421,10 +448,23 @@ function accentBar(t) {
 
 function frame(c, inner, pad = "20px 22px", { center = false, maxWidth = 500 } = {}) {
   const { t } = c;
-  if (t.border_style !== "box") return `<div style="max-width:${maxWidth}px;">${inner}</div>`;
-  return `<table ${TBL}${center ? ` align="center"` : ""} bgcolor="${esc(t.surface_color)}" style="border-collapse:separate;max-width:${maxWidth}px;border:1px solid ${esc(
-    t.border_color
-  )};border-radius:${esc(t.border_radius)};background-color:${esc(t.surface_color)};">${accentBar(t)}<tr><td style="padding:${pad};">${inner}</td></tr></table>`;
+  const al = center ? ` align="center"` : "";
+  if (t.border_style === "none") return `<div style="max-width:${maxWidth}px;">${inner}</div>`;
+  const R = parseFloat(t.border_radius) || 0;
+  const card = (radius, extra = "") =>
+    `<table ${TBL} width="100%" bgcolor="${esc(t.surface_color)}" style="border-collapse:separate;border-radius:${radius}px;background-color:${esc(
+      t.surface_color
+    )};${extra}">${accentBar(t, radius)}<tr><td style="padding:${pad};">${inner}</td></tr></table>`;
+  if (t.border_style === "gradient") {
+    // Thin gradient border: a gradient cell with a hair of padding around the white card.
+    const bw = Number(t.border_width) || 1.5;
+    const a1 = esc(t.accent_color);
+    const a2 = esc(t.accent_color_2 || t.accent_color);
+    return `<table ${TBL}${al} bgcolor="${a1}" style="border-collapse:separate;max-width:${maxWidth}px;border-radius:${R}px;background-color:${a1};background-image:linear-gradient(135deg,${a1} 0%,${a2} 45%,${esc(
+      mix(t.accent_color, "#ffffff", 0.55)
+    )} 70%,${a1} 100%);"><tr><td style="padding:${bw}px;border-radius:${R}px;">${card(Math.max(0, R - bw))}</td></tr></table>`;
+  }
+  return `<table ${TBL}${al} style="max-width:${maxWidth}px;"><tr><td>${card(R, `border:1px solid ${esc(t.border_color)};`)}</td></tr></table>`;
 }
 
 // Header: photo + identity, as two inline-block columns (stack on phones).
@@ -445,14 +485,14 @@ function header(c, identity, { gap = 16, size } = {}) {
 function tHalo(c) {
   const { t } = c;
   const identity = `${topLogo(c)}${nameRow(c, 19)}${titleLine(c)}${brandLine(c)}`;
-  const body = `${header(c, identity)}${hairline(t)}${contacts(c, { mode: "chips" })}${actionRow(c, { mt: 6 })}${footerLogo(c)}`;
+  const body = `${header(c, identity)}${hairline(c)}${contacts(c, { mode: "chips" })}${actionRow(c, { mt: 6 })}${footerLogo(c)}`;
   return frame(c, `<div style="font-family:${fontOf(t)};">${body}</div>`);
 }
 
 // Split: tall portrait column beside a details column (stacks on phones).
 function tSplit(c) {
   const { f, t } = c;
-  const details = `${topLogo(c)}${nameRow(c, 19)}${titleLine(c)}${brandLine(c)}${hairline(t, "12px 0 11px 0")}${contacts(c, {
+  const details = `${topLogo(c)}${nameRow(c, 19)}${titleLine(c)}${brandLine(c)}${hairline(c, "12px 0 11px 0")}${contacts(c, {
     mode: "rows",
   })}${actionRow(c, { mt: 8 })}${footerLogo(c)}`;
   const size = Number(f.photo_px) || 96;
