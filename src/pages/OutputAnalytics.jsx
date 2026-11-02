@@ -233,18 +233,32 @@ function TasksAnalytics({ data }) {
         </ChartPanel>
         <ChartPanel>
           <H3>By client</H3>
-          <div className="space-y-2">
-            {m.clients.map((c) => (
-              <div key={c.name} className="flex items-center justify-between text-xs">
-                <span className="text-ink/70 truncate pr-2">{c.name}</span>
-                <span className="text-ink/50 whitespace-nowrap">
-                  <b className="text-ink/80">{c.open}</b> open · {c.done} done{c.hours >= 0.1 ? ` · ${fmtH(c.hours)}` : ""}
-                </span>
-              </div>
-            ))}
-            {!m.clients.length && <p className="text-xs text-ink/50">No tasks yet.</p>}
-          </div>
-        </div>
+          {m.clients.length ? (
+            <div style={{ height: Math.max(90, m.clients.length * 30) }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={m.clients.map((c) => ({ ...c, label: c.name.length > 18 ? `${c.name.slice(0, 17)}…` : c.name, hoursLabel: fmtH(c.hours) }))} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }} barCategoryGap={7}>
+                  <FlameDefs id="out-client" vertical={false} />
+                  <XAxis type="number" hide allowDecimals={false} />
+                  <YAxis type="category" dataKey="label" width={110} {...axisProps()} tick={{ ...axisProps().tick, fontFamily: "inherit", fontSize: 11 }} />
+                  <Tooltip
+                    content={<ChartTooltip labelFormat={(l, p) => `${p?.[0]?.payload?.name || l}${p?.[0]?.payload?.hours >= 0.1 ? ` · ${p[0].payload.hoursLabel}` : ""}`} />}
+                    cursor={barCursor()}
+                  />
+                  <Bar dataKey="done" name="Done" stackId="c" fill="url(#out-client-bar)" />
+                  <Bar dataKey="open" name="Open" stackId="c" fill="rgba(26,26,26,0.18)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <p className="text-xs text-ink/50">No tasks yet.</p>
+          )}
+          {m.clients.length > 0 && (
+            <p className="mt-2 flex items-center gap-3 text-[10.5px] text-ink/50">
+              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm flame-bg" />Done</span>
+              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-ink/20" />Open</span>
+            </p>
+          )}
+        </ChartPanel>
       </div>
     </div>
   );
