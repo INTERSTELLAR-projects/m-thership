@@ -10,6 +10,47 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SLIDE_LAYOUTS } from '@/features/presentations/lib/slideThemes';
 
 const labelCls = 'text-[11px] uppercase tracking-wider text-muted-foreground';
+
+// Pricing / offer cards: name, price, period, description, features (one per line), recommended.
+function OffersEditor({ offers, onChange }) {
+  const list = Array.isArray(offers) ? offers : [];
+  const set = (i, patch) => onChange(list.map((o, j) => (j === i ? { ...o, ...patch } : o)));
+  return (
+    <div className="space-y-2.5">
+      {list.map((o, i) => (
+        <div key={i} className="space-y-2 rounded-none border border-border/80 bg-secondary/40 p-2.5">
+          <div className="grid grid-cols-2 gap-2">
+            <Input value={o.name || ''} onChange={(e) => set(i, { name: e.target.value })} placeholder="Name" className="h-9 bg-card text-sm" />
+            <Input value={o.price || ''} onChange={(e) => set(i, { price: e.target.value })} placeholder="$4,997" className="h-9 bg-card text-sm" />
+          </div>
+          <Input value={o.period || ''} onChange={(e) => set(i, { period: e.target.value })} placeholder="one-time / per month" className="h-9 bg-card text-sm" />
+          <Textarea value={o.description || ''} onChange={(e) => set(i, { description: e.target.value })} placeholder="One line on who it is for" rows={2} className="resize-none bg-card text-sm" />
+          <Textarea
+            value={Array.isArray(o.features) ? o.features.join('\n') : o.features || ''}
+            onChange={(e) => set(i, { features: e.target.value.split('\n') })}
+            placeholder="Features, one per line"
+            rows={4}
+            className="resize-none bg-card text-sm"
+          />
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 text-xs">
+              <input type="checkbox" checked={Boolean(o.highlighted)} onChange={(e) => set(i, { highlighted: e.target.checked })} className="accent-[#ff3c00]" />
+              Recommended
+            </label>
+            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-[11px] text-muted-foreground" onClick={() => onChange(list.filter((_, j) => j !== i))}>
+              <Trash2 className="h-3.5 w-3.5" /> Remove
+            </Button>
+          </div>
+        </div>
+      ))}
+      {list.length < 3 ? (
+        <Button variant="outline" size="sm" className="w-full border-dashed text-xs" onClick={() => onChange([...list, { name: '', price: '', period: '', description: '', features: [], highlighted: false }])}>
+          Add offer
+        </Button>
+      ) : null}
+    </div>
+  );
+}
 const VISUAL_LAYOUTS = ['cover', 'split', 'image'];
 
 export default function SlideInspector({
@@ -162,6 +203,29 @@ export default function SlideInspector({
           </div>
         ) : null}
 
+        {slide.layout === 'pricing' ? (
+          <div className="space-y-2">
+            <Label className={labelCls}>Offers</Label>
+            <OffersEditor offers={slide.offers} onChange={(offers) => onChange({ offers })} />
+          </div>
+        ) : null}
+
+        {slide.layout === 'bigstat' ? (
+          <div className="space-y-2">
+            <Label className={labelCls}>The figure</Label>
+            <RowListEditor
+              fields={[
+                { key: 'value', label: 'Value', placeholder: '3.4x' },
+                { key: 'label', label: 'Label', type: 'textarea', placeholder: 'What the figure means' }
+              ]}
+              items={slide.stats}
+              onChange={(stats) => onChange({ stats })}
+              max={1}
+              addLabel="Add figure"
+            />
+          </div>
+        ) : null}
+
         {slide.layout === 'stats' ? (
           <div className="space-y-2">
             <Label className={labelCls}>Key figures</Label>
@@ -227,6 +291,12 @@ export default function SlideInspector({
             <div className="overflow-hidden rounded-none">
               <VisualBlock theme={theme} src={slide.image_url} style={{ height: 116 }} />
             </div>
+            <Input
+              value={slide.image_url || ''}
+              onChange={(event) => onChange({ image_url: event.target.value.trim(), needs_visual: Boolean(event.target.value.trim()) || slide.needs_visual })}
+              placeholder="Image URL (paste one), or generate below"
+              className="h-9 bg-card text-sm"
+            />
             <Textarea
               value={slide.image_prompt}
               onChange={(event) => onChange({ image_prompt: event.target.value })}
