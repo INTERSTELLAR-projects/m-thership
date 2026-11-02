@@ -235,6 +235,42 @@ export function claudeDeckInstructions(brief, presentationId) {
   ].join("\n");
 }
 
+/* ---------------- Claude Queue landing ---------------- */
+
+export const isDeckJob = (job) => Boolean(job && job.context && job.context.target === "presentation" && job.context.presentation_id);
+export const deckFromJob = (job) => {
+  const rd = job && job.result_data;
+  if (!rd) return null;
+  try {
+    return normalizeDeck(rd.deck || rd);
+  } catch {
+    return null;
+  }
+};
+
+// Approving a deck job (from the queue or the deck page) lands it on its Presentation. A deck Justin
+// already edited is never overwritten: the draft is only written while the deck is still waiting.
+export async function saveApprovedDeck(job) {
+  const deck = deckFromJob(job);
+  if (!deck) return false;
+  const id = job.context.presentation_id;
+  const current = await base44.entities.Presentation.get(id).catch(() => null);
+  if (!current) return false;
+  const waiting = !(current.slides || []).length || current.generation_status === "waiting_claude";
+  if (!waiting) return false;
+  await base44.entities.Presentation.update(id, {
+    title: deck.title,
+    subtitle: deck.subtitle,
+    summary: deck.summary,
+    theme: deck.theme,
+    brand: deck.brand,
+    slides: deck.slides,
+    generation_status: "ready",
+    generated_by: "claude_queue"
+  });
+  return true;
+}
+
 // In-app quick draft through Core.InvokeLLM with the same schema.
 export async function quickDraft(brief) {
   const out = await base44.integrations.Core.InvokeLLM({ prompt: generationPrompt(brief), response_json_schema: DECK_JSON_SCHEMA });
