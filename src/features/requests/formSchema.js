@@ -171,7 +171,12 @@ export const KIND_ORDER = [
   ...REQUEST_TYPES.filter((t) => t.portal === false).map((t) => t.kind),
   ...REQUEST_TYPES.filter((t) => t.portal !== false).map((t) => t.kind),
 ];
-export const kindLabel = (k) => KIND_LABELS[k] || String(k || "other").replace(/_/g, " ");
+// Live overrides from Settings > Lists & fields > Request types ([{ value: kind, label, archived }]).
+// Set by useOptionLists (admin) and passed explicitly by the portal (from the portal function).
+let TYPE_OVERRIDES = null;
+export function setRequestTypeOverrides(items) { TYPE_OVERRIDES = Array.isArray(items) && items.length ? items : null; }
+const overrideFor = (k, list = TYPE_OVERRIDES) => (list || []).find((t) => t && t.value === k) || null;
+export const kindLabel = (k) => (overrideFor(k)?.label) || KIND_LABELS[k] || String(k || "other").replace(/_/g, " ");
 
 // Append the common fields a form doesn't already cover.
 export function withCommonFields(form) {
@@ -192,12 +197,20 @@ export const STANDARD_FORMS = REQUEST_TYPES.filter((t) => t.portal !== false).ma
 }));
 
 // What a client sees in their portal: custom forms replace the standard form of the same kind.
-export function portalForms(customForms = []) {
+// overrides: request-type list from Settings (archived = standard form hidden, label = renamed, order = list order).
+export function portalForms(customForms = [], overrides = TYPE_OVERRIDES) {
+  const list = Array.isArray(overrides) && overrides.length ? overrides : null;
   const custom = (customForms || []).filter((x) => x.active !== false);
   const kinds = new Set(custom.map((x) => x.kind));
-  const all = [...custom, ...STANDARD_FORMS.filter((s) => !kinds.has(s.kind))];
-  return KIND_ORDER.flatMap((k) => all.filter((x) => x.kind === k))
-    .concat(all.filter((x) => !KIND_ORDER.includes(x.kind)))
+  const standard = STANDARD_FORMS.filter((s) => !kinds.has(s.kind)).filter((s) => !(overrideFor(s.kind, list)?.archived))
+    .map((s) => {
+      const o = overrideFor(s.kind, list);
+      return o?.label && o.label !== KIND_LABELS[s.kind] ? { ...s, title: o.label } : s;
+    });
+  const all = [...custom, ...standard];
+  const order = list ? [...list.map((t) => t.value), ...KIND_ORDER.filter((k) => !list.some((t) => t.value === k))] : KIND_ORDER;
+  return order.flatMap((k) => all.filter((x) => x.kind === k))
+    .concat(all.filter((x) => !order.includes(x.kind)))
     .map(withCommonFields);
 }
 
