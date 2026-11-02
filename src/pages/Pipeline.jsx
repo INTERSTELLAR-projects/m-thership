@@ -13,9 +13,10 @@ import { cn } from "@/lib/utils";
 import NewLeadDialog from "@/features/pipeline/NewLeadDialog";
 import { ContactLinks, LeadDialog, LostDialog, SourceBadge, WonDialog } from "@/features/pipeline/LeadDialogs";
 import {
-  STAGES, OPEN_STAGES, SOURCES, isLeadish, stageOf, sourceOf, interestOf, bookedCallOf, reachedCall,
+  STAGES, OPEN_STAGES, isLeadish, stageOf, sourceOf, interestOf, bookedCallOf, reachedCall,
   daysInStage, isOverdue, noteDate, money,
 } from "@/features/pipeline/pipeline";
+import { useLeadSources } from "@/features/pipeline/useLeadSources";
 
 const RECENT_DAYS = 90;
 const recent = (c) => Date.now() - new Date(c.stage_changed_at || c.updated_date || c.created_date || 0).getTime() < RECENT_DAYS * 86400000;
@@ -85,6 +86,9 @@ export default function Pipeline() {
   const [wonLead, setWonLead] = useState(null);
   const [lostLead, setLostLead] = useState(null);
   const [newOpen, setNewOpen] = useState(params.get("new") === "1");
+  const leadSources = useLeadSources();
+  // Chips: visible sources plus any archived source that still has leads on the board.
+  const SOURCES = leadSources.all;
 
   useEffect(() => {
     if (params.get("new") === "1") setNewOpen(true);
@@ -121,7 +125,7 @@ export default function Pipeline() {
     const unvalued = open.filter((c) => !(Number(c.lead_value) > 0)).length;
     const overdue = open.filter(isOverdue).length;
     return { thisMonth: thisMonth.length, bySource, booked, total: statBase.length, won, lost, value, unvalued, open: open.length, overdue };
-  }, [statBase]);
+  }, [statBase, SOURCES]);
 
   const pct = (a, b) => (b ? Math.round((a / b) * 100) + "%" : "—");
   const lead = openId ? all.find((c) => c.id === openId) || null : null;
@@ -196,7 +200,7 @@ export default function Pipeline() {
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="mono-label mr-1 text-[9.5px] text-ink/50">Source</span>
           <button type="button" onClick={() => setSource("all")} className={cn("rounded-sm border px-2.5 py-1 text-[12px]", source === "all" ? "border-ink bg-ink text-white" : "border-hair bg-card hover:border-ink/40")}>All <span className="font-mono text-[10px] opacity-60">{board.length}</span></button>
-          {SOURCES.map((s) => (
+          {SOURCES.filter((s) => !s.archived || sourceCounts[s.key] || source === s.key).map((s) => (
             <button key={s.key} type="button" onClick={() => setSource(s.key)} className={cn("rounded-sm border px-2.5 py-1 text-[12px]", source === s.key ? "border-ink bg-ink text-white" : "border-hair bg-card hover:border-ink/40", !sourceCounts[s.key] && source !== s.key && "opacity-50")}>
               {s.label} <span className="font-mono text-[10px] opacity-60">{sourceCounts[s.key]}</span>
             </button>
