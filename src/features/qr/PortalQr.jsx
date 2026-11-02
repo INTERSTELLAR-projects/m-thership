@@ -7,11 +7,12 @@ import { portalStore } from "./lib/qrStore";
 
 // Client portal: the client's own QR codes. Everything goes through the `portal` function (qr_* actions),
 // which scopes every read and write to this client.
-export default function PortalQr({ call, previewId }) {
+// openId: open this code's editor straight away (e.g. a review QR just made on the Google Business tab).
+export default function PortalQr({ call, previewId, openId = null }) {
   const store = useMemo(() => portalStore(call), [call]);
   const qc = useQueryClient();
   const scopeKey = `portal:${previewId || "me"}`;
-  const [editing, setEditing] = useState(null); // { id, start }
+  const [editing, setEditing] = useState(() => (openId ? { id: openId } : null)); // { id, start }
 
   const close = () => {
     setEditing(null);
