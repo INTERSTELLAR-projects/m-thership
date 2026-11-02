@@ -8,7 +8,7 @@ import { useClientRecords } from "@/features/clients/hooks";
 import { timeAgo } from "@/lib/useData";
 import { cn } from "@/lib/utils";
 import { useJobs, useRefreshJobs, approveJob, requestChanges, cancelJob, chatPrompt, JOB_STATUS } from "@/features/claude/jobs";
-import { gatherPlaybookInputs, inputChips, isPlaybookJob, pillarLabel, pillarProgress, playbookBrief, playbookFromJob, queuePlaybook, quickDraftPlaybook } from "@/features/claude/playbook";
+import { gatherPlaybookInputs, inputChips, isPlaybookJob, normalizePlaybook, pillarLabel, pillarProgress, playbookBrief, playbookFromJob, queuePlaybook, quickDraftPlaybook } from "@/features/claude/playbook";
 import { playbookDeckBrief } from "@/features/presentations/lib/deckFromDocs";
 import DeckFromDocButton from "@/features/presentations/DeckFromDocButton";
 
@@ -138,7 +138,7 @@ function Milestones({ pillars }) {
 
 // Read-only (portal, review) or interactive (onToggleWin) playbook view.
 export function PlaybookView({ playbook, body, done = [], onToggleWin, togglingWin = null }) {
-  const p = playbook;
+  const p = normalizePlaybook(playbook);
   if (!p) {
     return body ? <div className="prose prose-sm max-w-none text-ink/80"><ReactMarkdown>{body}</ReactMarkdown></div> : <p className="text-[13px] text-ink/50">Nothing came back yet.</p>;
   }
