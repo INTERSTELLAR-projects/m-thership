@@ -1,0 +1,75 @@
+{
+  "name": "AssistantBriefing",
+  "description": "Daily cached briefing card for the client-portal Interstellar Assistant (one per client per day). Written only by the portal-assistant function.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "UTC day this briefing is for"
+    },
+    "headline": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "highlights": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "next_up": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "waiting_on_you": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Client-safe numbers shown on the card"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "client_id",
+    "date"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
