@@ -22,7 +22,7 @@ export function pickOneThing(b) {
   if (b.legal.next && b.legal.next.days <= 7) return { key: "legal-soon", text: `${b.legal.next.item.task} is due ${inDays(b.legal.next.days)}.`, to: "/legal" };
 
   const hot = b.tasks.overdue.find((t) => (t.priority || 3) <= 2);
-  if (hot) return { key: "task-late", text: `Clear the overdue ${hot.title}${clientPart(hot.client_name)}.`, to: hot.client_id ? `/clients/${hot.client_id}?tab=tasks` : "/tasks" };
+  if (hot) return { key: "task-late", text: `Overdue: ${hot.title}${clientPart(hot.client_name)}. Clear it first.`, to: hot.client_id ? `/clients/${hot.client_id}?tab=tasks` : "/tasks" };
 
   if (b.claude.waiting.length) return { key: "claude", text: `Approve ${plural(b.claude.waiting.length, "Claude job")} waiting on your OK.`, to: "/claude" };
 
@@ -34,7 +34,7 @@ export function pickOneThing(b) {
   if (b.pipeline.newLeads.length) return { key: "leads", text: `Reach out to ${plural(b.pipeline.newLeads.length, "new lead")}.`, to: "/pipeline" };
 
   const late = b.tasks.overdue[0];
-  if (late) return { key: "task-late2", text: `Clear the overdue ${late.title}${clientPart(late.client_name)}.`, to: late.client_id ? `/clients/${late.client_id}?tab=tasks` : "/tasks" };
+  if (late) return { key: "task-late2", text: `Overdue: ${late.title}${clientPart(late.client_name)}. Clear it first.`, to: late.client_id ? `/clients/${late.client_id}?tab=tasks` : "/tasks" };
 
   const focus = b.tasks.focus[0];
   if (focus) return { key: "focus", text: `Ship your focus task: ${focus.title}${clientPart(focus.client_name)}.`, to: "/tasks" };
