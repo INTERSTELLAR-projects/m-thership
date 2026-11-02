@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { OPTION_LISTS_KEY, LIST_BY_KEY, mergeList, toStored, slugify } from "@/lib/optionLists";
@@ -28,8 +28,9 @@ export function useOptionLists() {
   const q = useQuery({ queryKey: QK, queryFn: fetchRecord, staleTime: 60_000 });
   const stored = q.data?.optionLists || {};
   const reqTypes = stored.request_types;
-  // Keep kindLabel()/portalForms() in step with Settings everywhere in the admin app.
-  useEffect(() => { setRequestTypeOverrides(Array.isArray(reqTypes) ? reqTypes : null); }, [reqTypes]);
+  // Keep kindLabel()/portalForms() in step with Settings everywhere in the admin app. Runs during render
+  // (idempotent module setter) so the same render already shows the new labels.
+  useMemo(() => setRequestTypeOverrides(Array.isArray(reqTypes) ? reqTypes : null), [reqTypes]);
   return { ...q, stored };
 }
 
