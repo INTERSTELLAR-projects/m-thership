@@ -89,6 +89,7 @@ export function AssistantProvider({ children }) {
     if (!text || busyRef.current) return;
     busyRef.current = true;
     setInterim("");
+    resetDictation();
     setMode("processing");
     setNotice("Processing command...");
     pushTurn("you", text);
@@ -137,6 +138,20 @@ export function AssistantProvider({ children }) {
     runRef.current = runCommand;
   }, [runCommand]);
 
+  // Sends everything dictated so far as one command.
+  const flush = useCallback(() => {
+    clearSilence();
+    const text = pendingRef.current.trim();
+    pendingRef.current = "";
+    setBuffer("");
+    setInterim("");
+    if (text.length > 1 && runRef.current) runRef.current(text);
+  }, []);
+
+  useEffect(() => {
+    flushRef.current = flush;
+  }, [flush]);
+
   const beginRecognition = useCallback(() => {
     if (!supported) {
       setNotice("Voice capture runs in Chrome. Use the typed command line for now.");
@@ -144,20 +159,30 @@ export function AssistantProvider({ children }) {
     }
     if (busyRef.current || recRef.current) return;
     const recognition = createRecognizer({
-      onInterim: (text) => setInterim(text),
+      onInterim: (text) => {
+        setInterim(text);
+        // Still talking — keep waiting.
+        if (text) armSilence(SILENCE_MS);
+      },
       onFinal: (text) => {
         if (alwaysRef.current) {
           const match = text.match(WAKE);
           if (!match) return;
-          const command = text.replace(WAKE, "").trim();
+          pendingRef.current = text.replace(WAKE, "").trim();
+          setBuffer(pendingRef.current);
           setInterim("");
-          if (command.length > 2 && runRef.current) runRef.current(command);
+          if (pendingRef.current.length > 2 && flushRef.current) flushRef.current();
           return;
         }
-        if (runRef.current) runRef.current(text);
+        // Keep the whole thought together: a pause no longer sends it.
+        pendingRef.current = (pendingRef.current ? pendingRef.current + " " : "") + text;
+        setBuffer(pendingRef.current);
+        setInterim("");
+        armSilence(SILENCE_MS);
       },
       onEnd: () => {
         recRef.current = null;
+        if (pendingRef.current) armSilence(1200);
         if (listenRef.current && !busyRef.current && beginRef.current) {
           window.setTimeout(() => {
             if (listenRef.current && !busyRef.current) beginRef.current();
@@ -208,6 +233,7 @@ export function AssistantProvider({ children }) {
     listenRef.current = false;
     alwaysRef.current = false;
     setAlwaysOn(false);
+    resetDictation();
     const recognition = recRef.current;
     recRef.current = null;
     if (recognition) {

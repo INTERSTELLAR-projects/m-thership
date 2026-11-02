@@ -134,7 +134,7 @@ export default function DossierEditor({ client, con }) {
         </div>
 
         {sec === "identity" && (
-          <Panel label="(Who they are)" bodyClass="grid gap-4 md:grid-cols-2">
+          <Panel label="(Who they are)" bodyClass="p-4 grid gap-4 md:grid-cols-2">
             <Text d={d} setD={setD} path="tagline" label="Tagline" />
             <Text d={d} setD={setD} path="founded" label="Founded" hint="year" />
             <div className="md:col-span-2"><Text d={d} setD={setD} path="elevator_pitch" label="Elevator pitch" hint="who they help, with what, and the result" area /></div>
@@ -146,7 +146,7 @@ export default function DossierEditor({ client, con }) {
         )}
 
         {sec === "audience" && (
-          <Panel label="(Who they sell to)" bodyClass="grid gap-4">
+          <Panel label="(Who they sell to)" bodyClass="p-4 grid gap-4">
             <Text d={d} setD={setD} path="audience.ideal_customer" label="Ideal customer" area />
             <Text d={d} setD={setD} path="audience.demographics" label="Demographics" />
             <Chips d={d} setD={setD} path="audience.pains" label="Pains" hint="what keeps them up at night" />
@@ -157,7 +157,7 @@ export default function DossierEditor({ client, con }) {
         )}
 
         {sec === "offer" && (
-          <Panel label="(The offer · Hormozi value equation)" bodyClass="grid gap-4">
+          <Panel label="(The offer · Hormozi value equation)" bodyClass="p-4 grid gap-4">
             <Text d={d} setD={setD} path="dream_outcome" label="Dream outcome" hint="the result the customer actually wants, in their words" area />
             <Rows d={d} setD={setD} path="offers" label="Offers / money model" hint="attraction → core → upsell / downsell → continuity" empty="No offers on file yet."
               cols={[{ k: "name", l: "Name", w: 160 }, { k: "kind", l: "Type", opts: ["attraction", "core", "upsell", "downsell", "continuity"] }, { k: "price", l: "Price" }, { k: "promise", l: "Promise", w: 200 }, { k: "guarantee", l: "Guarantee", w: 160 }, { k: "bonuses", l: "Bonuses", w: 160 }]} />
@@ -166,7 +166,7 @@ export default function DossierEditor({ client, con }) {
         )}
 
         {sec === "brand" && (
-          <Panel label="(Voice & identity)" bodyClass="grid gap-4 md:grid-cols-2">
+          <Panel label="(Voice & identity)" bodyClass="p-4 grid gap-4 md:grid-cols-2">
             <div className="md:col-span-2"><Chips d={d} setD={setD} path="brand_voice.tone" label="Tone words" hint="e.g. confident, local, no-nonsense" /></div>
             <div className="md:col-span-2"><Text d={d} setD={setD} path="brand_voice.personality" label="Personality" area /></div>
             <Chips d={d} setD={setD} path="brand_voice.say" label="Always say" />
@@ -181,7 +181,7 @@ export default function DossierEditor({ client, con }) {
         )}
 
         {sec === "area" && (
-          <Panel label="(Where they work)" bodyClass="grid gap-4 md:grid-cols-3">
+          <Panel label="(Where they work)" bodyClass="p-4 grid gap-4 md:grid-cols-3">
             <label className="block"><Label>Business model</Label>
               <select className={input} value={d.service_area?.model || ""} onChange={(e) => setD(set(d, "service_area.model", e.target.value))}>
                 <option value="">—</option>{["storefront", "service_area", "hybrid", "national", "online"].map((o) => <option key={o}>{o}</option>)}
@@ -197,7 +197,7 @@ export default function DossierEditor({ client, con }) {
         )}
 
         {sec === "keywords" && (
-          <Panel label="(Keywords · managed by Claude)" action={<button onClick={refreshKeywords} className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[#ff3c00]"><Sparkles className="h-3.5 w-3.5" /> Refresh now</button>} bodyClass="grid gap-4">
+          <Panel label="(Keywords · managed by Claude)" action={<button onClick={refreshKeywords} className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[#ff3c00]"><Sparkles className="h-3.5 w-3.5" /> Refresh now</button>} bodyClass="p-4 grid gap-4">
             <div className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink/55">
               <Tag tone="ink">Auto-managed</Tag>
               Claude reviews these every month: adds what's worth chasing, retires what isn't, maps each one to a page, and logs why.
@@ -217,7 +217,7 @@ export default function DossierEditor({ client, con }) {
         )}
 
         {sec === "market" && (
-          <Panel label="(Market & operations)" bodyClass="grid gap-4">
+          <Panel label="(Market & operations)" bodyClass="p-4 grid gap-4">
             <Rows d={d} setD={setD} path="competitors" label="Competitors" cols={[{ k: "name", l: "Name", w: 160 }, { k: "url", l: "Website", w: 180 }, { k: "strength", l: "Strength", w: 180 }, { k: "weakness", l: "Weakness", w: 180 }]} />
             <Chips d={d} setD={setD} path="lead_sources" label="Lead sources" hint="where customers come from today" />
             <Chips d={d} setD={setD} path="tools" label="Software they use" />
