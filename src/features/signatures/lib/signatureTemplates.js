@@ -431,11 +431,15 @@ function actionRow(c, { center = false, mt = 14 } = {}) {
   const social = socialBlock(c, { layout: "row", center });
   const cta = ctaBlock(c, center);
   if (!social && !cta) return "";
+  // Both blocks carry the same top margin, so side by side (desktop) they stay aligned;
+  // when they wrap (phones) the icons' bottom margin + the button's top margin open a
+  // comfortable 18px gap, and the button settles lower in the card.
   const parts = [];
-  if (social) parts.push(`<div style="display:inline-block;vertical-align:middle;margin:0 ${center ? 0 : 18}px 8px 0;">${social}</div>`);
-  if (cta) parts.push(`<div style="display:inline-block;vertical-align:middle;margin:0 0 8px 0;">${cta}</div>`);
-  if (center) return `<div style="text-align:center;margin-top:${mt}px;">${parts.join("<br />")}</div>`;
-  return `<div style="margin-top:${mt}px;">${parts.join("")}</div>`;
+  if (social) parts.push(`<div style="display:inline-block;vertical-align:middle;margin:10px ${center ? 0 : 18}px 8px 0;">${social}</div>`);
+  if (cta) parts.push(`<div style="display:inline-block;vertical-align:middle;margin:10px 0 2px 0;">${cta}</div>`);
+  const top = Math.max(0, mt - 10);
+  if (center) return `<div style="text-align:center;margin-top:${top}px;">${parts.join("<br />")}</div>`;
+  return `<div style="margin-top:${top}px;">${parts.join("")}</div>`;
 }
 
 function accentBar(t, radius) {
