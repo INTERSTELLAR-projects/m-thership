@@ -148,6 +148,75 @@
         "type": "string"
       },
       "type": "array"
+    },
+    "pipeline_stage": {
+      "type": "string",
+      "enum": [
+        "new",
+        "contacted",
+        "call_booked",
+        "call_held",
+        "proposal_sent",
+        "won",
+        "lost"
+      ],
+      "description": "Sales pipeline stage for leads (Pipeline page). Missing on older leads: derived from notes."
+    },
+    "lead_source": {
+      "type": "string",
+      "enum": [
+        "website",
+        "funnel",
+        "referral",
+        "cold",
+        "ads",
+        "social",
+        "other"
+      ],
+      "description": "Where the lead came from"
+    },
+    "lead_funnel": {
+      "type": "string",
+      "description": "Funnel name when lead_source is funnel (Interstellar Booking)"
+    },
+    "lead_referrer": {
+      "type": "string",
+      "description": "Who referred this lead (free text)"
+    },
+    "lead_referrer_member_id": {
+      "type": "string",
+      "description": "PrestigeMember id when the referrer is a Prestige member"
+    },
+    "lead_interest": {
+      "type": "string",
+      "description": "What the lead is most interested in (Mission ALPHA, BRAVO, HyperCare+, ...)"
+    },
+    "lead_details": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Qualifying answers: annual_revenue, team_size, timeline, biggest_problem, utm_*"
+    },
+    "lead_value": {
+      "type": "number",
+      "description": "Estimated deal value ($)"
+    },
+    "next_step": {
+      "type": "string"
+    },
+    "next_step_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "lost_reason": {
+      "type": "string"
+    },
+    "stage_changed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "booked_call_at": {
+      "type": "string",
+      "description": "Booked strategy call (ISO date-time when parseable, else date)"
     }
   },
   "required": [
