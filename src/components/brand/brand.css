@@ -60,7 +60,6 @@
 /* ---------- footer: giant faded wordmark over the dark -> orange glow ---------- */
 .is-glow-band {
   position: relative;
-  isolation: isolate;
   height: clamp(7rem, 17vw, 15rem);
   overflow: hidden;
   pointer-events: none;
