@@ -95,6 +95,11 @@
         "type": "string"
       }
     },
+    "prestigeOffer": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Prestige referral offer config (key = prestige_offer): instant rewards, tier thresholds, unlocks, referral link base"
+    },
     "crmCustomFields": {
       "type": "array",
       "items": {
