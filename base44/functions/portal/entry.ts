@@ -420,6 +420,57 @@ Deno.serve(async (req) => {
       return Response.json({ ok: true });
     }
 
+    // ---- Google Business Profile: this client's ReviewClient rows (one per location), served from the Stärboard cache. ----
+    // Never returns another client's rows: ReviewClient is matched on crm_client_id === cid only.
+    if (action === "gbp") {
+      const REVIEWS_URL = "https://m-thership.base44.app/functions/reviews";
+      const STALE_MS = 26 * 60 * 60 * 1000;
+      const rows = ((await db.ReviewClient.filter({ crm_client_id: cid }).catch(() => [])) || []).filter((r: Row) => r.active !== false && r.slug) as Row[];
+      if (!rows.length) return Response.json({ connected: false, locations: [] });
+      const norm = (u: unknown) => { try { return new URL(String(u || "")).toString(); } catch { return ""; } };
+      const shortName = (n: unknown) => {
+        const parts = String(n || "").trim().split(/\s+/).filter(Boolean);
+        if (!parts.length) return "Google reviewer";
+        return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0].toUpperCase()}.` : parts[0];
+      };
+      const codes = ((await db.QrCode.filter({ client_id: cid }, "-updated_date", 500).catch(() => [])) || []) as Row[];
+      const locations = await Promise.all(rows.map(async (r) => {
+        let cache = (r.cache || null) as Row | null;
+        let cachedAt = (r.cached_at as string) || null;
+        // Stale or never fetched: ask the public reviews endpoint, which refreshes at most once a day.
+        if (!cache || !cachedAt || Date.now() - Date.parse(cachedAt) > STALE_MS) {
+          try {
+            const res = await fetch(`${REVIEWS_URL}?client=${encodeURIComponent(String(r.slug))}`, { signal: AbortSignal.timeout(8000) });
+            const j = await res.json().catch(() => null);
+            if (res.ok && j && !j.error) { cache = j; cachedAt = j.cachedAt || cachedAt; }
+          } catch { /* serve what we have */ }
+        }
+        const c = (cache || {}) as Row;
+        const placeId = String(r.place_id || "");
+        const reviewUrl = String(c.reviewUrl || (placeId ? `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}` : ""));
+        const name = String(r.name || c.businessName || client.business || "");
+        const dest = norm(reviewUrl);
+        const qr = dest ? codes.find((q) => q.mode === "dynamic" && norm(q.destination) === dest) : null;
+        return {
+          id: r.id,
+          slug: r.slug,
+          label: name.includes(" — ") ? name.split(" — ").slice(1).join(" — ") : name,
+          name,
+          business_name: c.businessName || name,
+          rating: typeof c.rating === "number" ? c.rating : null,
+          total: typeof c.total === "number" ? c.total : null,
+          maps_url: c.mapsUrl || (placeId ? `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(placeId)}` : ""),
+          review_url: reviewUrl,
+          cached_at: cachedAt,
+          reviews: ((c.reviews as Row[]) || []).slice(0, 8).map((v) => ({
+            author: shortName(v.author), rating: v.rating, relative: v.relative || "", time: v.time || null, text: String(v.text || "").slice(0, 1200),
+          })),
+          qr: qr ? pick(qr, ["id", "name", "short_code", "scans", "last_scan_at"]) : null,
+        };
+      }));
+      return Response.json({ connected: true, business: client.business, locations });
+    }
+
     // ---- QR codes (bonus tool): the client's own codes + templates, scan stats. Scoped to cid on every action. ----
     // Dynamic codes print QR_REDIRECT?c=<short_code>; the public `qr` function resolves them. The short code is
     // minted here once and never changes (it is printed), and only http(s) destinations are ever stored.
