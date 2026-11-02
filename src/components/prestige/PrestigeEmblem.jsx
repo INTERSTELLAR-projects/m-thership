@@ -45,10 +45,10 @@ function starPts(cx, cy, R, r, n = 5, rot = -90) {
   return pts;
 }
 
-function raysPath(cx, cy, n, r0, rLong, rShort, half) {
+function raysPath(cx, cy, n, r0, rLong, rShort, half, rot = -90) {
   let d = "";
   for (let i = 0; i < n; i++) {
-    const a = -90 + (i * 360) / n;
+    const a = rot + (i * 360) / n;
     const R = i % 2 ? rShort : rLong;
     d += poly([
       [cx + r0 * Math.cos(rad(a - half)), cy + r0 * Math.sin(rad(a - half))],
@@ -240,10 +240,10 @@ const CLIPS = {
   1: <path d={SHIELD1} />,
   2: <path d={SHIELD2} />,
   3: <circle cx="80" cy="70" r="44" />,
-  4: <path d={SHIELD4} />,
+  4: <path d={SHIELD4} transform={inset(0.86, 80, 66)} />,
   5: (
     <>
-      <path d={poly(starPts(80, 72, 47, 40.5, 8, -90))} />
+      <path d={poly(starPts(80, 72, 49, 38.5, 8, -90))} />
       <path d={CROWN} />
     </>
   ),
@@ -335,9 +335,9 @@ function Tier3({ u, hi }) {
 function Blade({ rot, u, hi }) {
   return (
     <g transform={`translate(80 72) rotate(${rot})`}>
-      <path d="M0 -72 L5.5 -58 L5 40 L-5 40 L-5.5 -58 Z" fill={u("st")} stroke="rgba(0,0,0,.55)" strokeWidth=".7" strokeLinejoin="round" />
-      <path d="M0 -72 L5.5 -58 L5 40 L0 40 Z" fill="rgba(0,0,0,.28)" />
-      {hi && <path d="M0 -66 L0 38" stroke="rgba(255,255,255,.7)" strokeWidth=".6" />}
+      <path d="M0 -88 L5.5 -72 L5 40 L-5 40 L-5.5 -72 Z" fill={u("st")} stroke="rgba(0,0,0,.55)" strokeWidth=".7" strokeLinejoin="round" />
+      <path d="M0 -88 L5.5 -72 L5 40 L0 40 Z" fill="rgba(0,0,0,.28)" />
+      {hi && <path d="M0 -82 L0 38" stroke="rgba(255,255,255,.7)" strokeWidth=".6" />}
       <path d="M-13 40 L13 40 L11 45 L-11 45 Z" fill={u("o")} stroke="rgba(40,10,0,.6)" strokeWidth=".7" />
       <rect x="-2.6" y="45" width="5.2" height="14" fill={u("gm")} />
       <circle cx="0" cy="62" r="3.6" fill={u("o")} stroke="rgba(40,10,0,.6)" strokeWidth=".7" />
@@ -348,10 +348,12 @@ function Blade({ rot, u, hi }) {
 function Tier4({ u, hi }) {
   return (
     <g>
-      <path d={raysPath(80, 68, 16, 26, 66, 50, 6)} fill={u("gm")} stroke="#ff6a00" strokeOpacity=".75" strokeWidth=".8" strokeLinejoin="round" />
-      {hi && <path d={raysPath(80, 68, 8, 24, 62, 62, 2.6)} fill={u("ray")} />}
-      <Blade rot={-40} u={u} hi={hi} />
-      <Blade rot={40} u={u} hi={hi} />
+      <path d={raysPath(80, 70, 8, 24, 62, 62, 8, -67.5)} fill={u("gm")} stroke="#ff6a00" strokeOpacity=".8" strokeWidth=".8" strokeLinejoin="round" />
+      <path d={raysPath(80, 70, 8, 24, 70, 70, 6)} fill={u("od")} stroke="rgba(40,10,0,.6)" strokeWidth=".7" strokeLinejoin="round" />
+      {hi && <path d={raysPath(80, 70, 8, 24, 66, 66, 1.4)} fill="#ffe3c8" opacity=".7" />}
+      <Blade rot={-46} u={u} hi={hi} />
+      <Blade rot={46} u={u} hi={hi} />
+      <g transform={inset(0.86, 80, 66)}>
       <path d={SHIELD4} fill={u("gm")} stroke="rgba(0,0,0,.7)" strokeWidth={hi ? 0.8 : 1.2} strokeLinejoin="round" />
       <path d={SHIELD4} fill="none" stroke={u("hl")} strokeWidth="1.2" />
       <path d={SHIELD4} fill={u("o")} transform={inset(0.9, 80, 70)} stroke="rgba(30,8,0,.7)" strokeWidth=".8" />
@@ -365,6 +367,7 @@ function Tier4({ u, hi }) {
       <g fill="none" stroke={u("o")} strokeWidth={hi ? 3.6 : 4.4} strokeLinejoin="round" strokeLinecap="round">
         <polyline points="62,86 80,96 98,86" />
         {hi && <polyline points="68,95 80,102 92,95" />}
+      </g>
       </g>
     </g>
   );
@@ -383,7 +386,7 @@ function Comet() {
 }
 
 function Master({ u, hi, animated }) {
-  const bezel = poly(starPts(80, 72, 47, 40.5, 8, -90));
+  const bezel = poly(starPts(80, 72, 49, 38.5, 8, -90));
   return (
     <g>
       <g className="pe-spin">
