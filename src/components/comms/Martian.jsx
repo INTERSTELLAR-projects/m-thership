@@ -138,8 +138,8 @@ export default function Martian({ palette = MARTIAN_PALETTES.orange, size = "md"
       <g className="mtn-body" style={anim}>
         {king && (
           <g className="mtn-cape" style={anim}>
-            <path d="M22 46 Q8 78 12 104 L88 104 Q92 78 78 46 Z" fill={`url(#kp-${uid})`} />
-            <path d="M22 46 Q12 78 16 101 L84 101 Q88 78 78 46" fill="none" stroke={`url(#kl-${uid})`} strokeWidth="2.4" />
+            <path d="M24 46 Q8 80 10 102 Q30 96 50 104 Q70 96 90 102 Q92 80 76 46 Z" fill={`url(#kp-${uid})`} />
+            <path d="M10 102 Q30 96 50 104 Q70 96 90 102" fill="none" stroke={`url(#kl-${uid})`} strokeWidth="2.6" strokeLinecap="round" />
             <path d="M28 44 L50 54 L72 44" fill="none" stroke="#ffaa00" strokeWidth="3" strokeLinecap="round" />
           </g>
         )}
