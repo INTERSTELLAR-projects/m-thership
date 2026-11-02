@@ -14,9 +14,12 @@
     "prestige": {
       "type": "string",
       "enum": [
+        "Recruit",
         "Prestige I",
         "Prestige II",
         "Prestige III",
+        "Prestige IV",
+        "Prestige V",
         "Prestige Master"
       ],
       "default": "Prestige I"
@@ -34,6 +37,22 @@
     "active": {
       "type": "boolean",
       "default": true
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient this referrer is (lets the client see their referral progress in the portal)"
+    },
+    "referral_code": {
+      "type": "string",
+      "description": "Short code appended to the referral link (?ref=code)"
+    },
+    "last_celebrated_tier": {
+      "type": "number",
+      "description": "Highest tier index (1-based) whose unlock animation has played in M\u00f8thership"
+    },
+    "client_celebrated_tier": {
+      "type": "number",
+      "description": "Highest tier index (1-based) whose unlock animation the client has seen in the portal"
     }
   },
   "required": [
