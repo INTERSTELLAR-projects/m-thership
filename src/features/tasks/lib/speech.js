@@ -3,29 +3,40 @@ export const speechSupported = () =>
 
 export const synthesisSupported = () => typeof window !== "undefined" && !!window.speechSynthesis;
 
-const NARRATOR_HINTS = [
-  "google uk english male",
-  "microsoft guy",
-  "microsoft david",
-  "daniel",
-  "arthur",
-  "oliver",
-  "alex",
-  "google us english"
+// The core speaks with a warm, feminine voice.
+const VOICE_HINTS = [
+  "google us english",
+  "microsoft aria",
+  "microsoft jenny",
+  "microsoft zira",
+  "microsoft michelle",
+  "microsoft emma",
+  "samantha",
+  "ava",
+  "allison",
+  "serena",
+  "karen",
+  "moira",
+  "tessa",
+  "victoria",
+  "susan"
 ];
+
+const MALE = /male|guy|david|mark|james|george|daniel|arthur|oliver|alex|fred|ralph/i;
 
 function pickNarratorVoice() {
   if (!synthesisSupported()) return null;
   const voices = window.speechSynthesis.getVoices() || [];
   if (!voices.length) return null;
   const english = voices.filter((v) => /^en/i.test(v.lang || ""));
-  const pool = english.length ? english : voices;
-  for (const hint of NARRATOR_HINTS) {
+  const pool = (english.length ? english : voices).filter((v) => !MALE.test(v.name || ""));
+  if (!pool.length) return null;
+  for (const hint of VOICE_HINTS) {
     const hit = pool.find((v) => (v.name || "").toLowerCase().includes(hint));
     if (hit) return hit;
   }
-  const deep = pool.find((v) => /male|guy|david|mark|james|george/i.test(v.name || ""));
-  return deep || pool[0];
+  const us = pool.find((v) => /^en[-_]us/i.test(v.lang || ""));
+  return us || pool[0];
 }
 
 export function warmVoices(callback) {
@@ -42,8 +53,8 @@ export function speak(text, handlers = {}) {
   }
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(String(text).slice(0, 700));
-  utterance.pitch = 0.62;
-  utterance.rate = 0.93;
+  utterance.pitch = 1.12;
+  utterance.rate = 1;
   utterance.volume = 1;
   const voice = pickNarratorVoice();
   if (voice) utterance.voice = voice;

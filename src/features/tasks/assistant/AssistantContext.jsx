@@ -10,6 +10,9 @@ export const useAssistant = () => useContext(AssistantContext);
 
 const WAKE = /^(hey |ok |okay |yo )?(interstellar|command|computer|mothership)\b[,:.\s]*/i;
 
+// How long a silence has to last before dictation is sent. Long enough to think mid-sentence.
+const SILENCE_MS = 2800;
+
 export function AssistantProvider({ children }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState("idle");
@@ -47,6 +50,31 @@ export function AssistantProvider({ children }) {
   const busyRef = useRef(false);
   const runRef = useRef(null);
   const beginRef = useRef(null);
+  const pendingRef = useRef("");
+  const silenceRef = useRef(null);
+  const flushRef = useRef(null);
+  const [buffer, setBuffer] = useState("");
+
+  const clearSilence = () => {
+    if (silenceRef.current) {
+      clearTimeout(silenceRef.current);
+      silenceRef.current = null;
+    }
+  };
+
+  const armSilence = (ms) => {
+    clearSilence();
+    silenceRef.current = window.setTimeout(() => {
+      silenceRef.current = null;
+      if (flushRef.current) flushRef.current();
+    }, ms);
+  };
+
+  const resetDictation = () => {
+    clearSilence();
+    pendingRef.current = "";
+    setBuffer("");
+  };
 
   useEffect(() => {
     warmVoices(() => {});
