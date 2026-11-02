@@ -6,7 +6,7 @@ import BriefPanel from "./BriefPanel";
 
 // First-person command room: the mouse turns your head, the wheel walks you in and out,
 // clicking a screen turns to face it and opens that sector's brief.
-const R = 980; // wall radius
+const R = 1020; // wall radius
 const COLS = [
   { ang: 52, ids: ["payload", "insignia"] },
   { ang: 26, ids: ["signal", "beacon"] },
@@ -112,7 +112,7 @@ function PillarScreen({ p, r, w, h, ty, ang, selected, onSelect }) {
 
 function CoreScreen({ client, health, constraint, by, moves, selected, onSelect }) {
   const dc = defcon(health);
-  const w = 380, h = 380;
+  const w = 420, h = 410;
   return (
     <div className={`cc-screen ${selected ? (selected === "command" ? "is-on" : "is-dim") : ""}`} style={{ width: w, height: h, marginLeft: -w / 2, marginTop: -h / 2, transform: `translateZ(${-R}px)`, "--c": dc.color }} onClick={(e) => { e.stopPropagation(); onSelect("command"); }}>
       <div className="cc-face flex flex-col items-center p-5 text-center">
@@ -161,7 +161,7 @@ export default function CommandCenter({ client, con, onOpenDeck }) {
       const narrow = (root.current?.offsetWidth || 1200) < 900;
       const tTx = sel && !narrow ? -(root.current?.offsetWidth || 1200) * 0.12 : 0;
       const col = COLS.find((c) => c.ids.includes(sel));
-      const tTy = sel && col && col.ids.length > 1 ? (col.ids.indexOf(sel) === 0 ? 92 : -92) : 0;
+      const tTy = sel && col && col.ids.length > 1 ? (col.ids.indexOf(sel) === 0 ? 104 : -104) : 0;
       v.yaw += (tYaw - v.yaw) * 0.07;
       v.pitch += (tPitch - v.pitch) * 0.07;
       v.z += (tZ - v.z) * 0.07;
@@ -211,12 +211,12 @@ export default function CommandCenter({ client, con, onOpenDeck }) {
           <div className="absolute" style={{ width: 3200, height: 3200, left: -1600, top: -1600, transform: "translateY(-360px) rotateX(-90deg)", background: "repeating-linear-gradient(90deg,transparent 0 260px,rgba(159,243,255,.10) 260px 270px)", WebkitMaskImage: "radial-gradient(circle,#000,transparent 55%)", maskImage: "radial-gradient(circle,#000,transparent 55%)" }} />
           {/* wall glow behind screens */}
           {COLS.map((c) => (
-            <div key={`wall${c.ang}`} className="absolute" style={{ width: 300, height: 640, left: -150, top: -320, transform: `rotateY(${c.ang}deg) translateZ(${-R - 40}px)`, background: "linear-gradient(180deg,rgba(61,245,200,.05),rgba(10,40,46,.35) 50%,rgba(61,245,200,.04))", borderLeft: "1px solid rgba(159,243,255,.08)", borderRight: "1px solid rgba(159,243,255,.08)" }} />
+            <div key={`wall${c.ang}`} className="absolute" style={{ width: 360, height: 700, left: -180, top: -350, transform: `rotateY(${c.ang}deg) translateZ(${-R - 40}px)`, background: "linear-gradient(180deg,rgba(61,245,200,.05),rgba(10,40,46,.35) 50%,rgba(61,245,200,.04))", borderLeft: "1px solid rgba(159,243,255,.08)", borderRight: "1px solid rgba(159,243,255,.08)" }} />
           ))}
           {COLS.map((c) => c.ids.length === 1
             ? <CoreScreen key="core" client={client} health={health} constraint={constraint} by={by} moves={moves} selected={selected} onSelect={setSelected} />
             : c.ids.map((id, i) => (
-              <PillarScreen key={id} p={PILLAR_BY_ID[id]} r={by[id]} w={290} h={168} ty={i === 0 ? -98 : 98} ang={c.ang} selected={selected} onSelect={setSelected} />
+              <PillarScreen key={id} p={PILLAR_BY_ID[id]} r={by[id]} w={330} h={190} ty={i === 0 ? -110 : 110} ang={c.ang} selected={selected} onSelect={setSelected} />
             )))}
         </div>
       </div>
