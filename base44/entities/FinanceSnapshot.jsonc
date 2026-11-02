@@ -1,0 +1,64 @@
+{
+  "name": "FinanceSnapshot",
+  "description": "Daily record of MRR, per-client MRR and expenses, written when the Financial page opens (and by the weekly advisor refresh). Builds MRR history and movement when Stripe history is unavailable.",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "mrr": {
+      "type": "number"
+    },
+    "paying_clients": {
+      "type": "number"
+    },
+    "active_clients": {
+      "type": "number"
+    },
+    "per_client": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "CRMClient id -> { name, mrr }"
+    },
+    "expenses_monthly": {
+      "type": "number"
+    },
+    "collected_month": {
+      "type": "number"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "page",
+        "scheduled"
+      ],
+      "default": "page"
+    }
+  },
+  "required": [
+    "date"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
