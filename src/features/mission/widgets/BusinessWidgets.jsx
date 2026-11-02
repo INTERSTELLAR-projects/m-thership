@@ -41,8 +41,8 @@ export function GoalWidget() {
   return (
     <Tile kicker={started ? `${GOAL_YEAR} collected · live from Stripe` : `${GOAL_YEAR} starts in ${daysToStart} days`} title="$1M in 2027" icon={Target} to="/financial" linkLabel="Financial">
       {q.isLoading ? <TileLoading /> : notConnected ? (
-        <TileEmpty action={<Link to="/settings" className="mono-label inline-flex items-center gap-1 border border-hair px-2.5 py-1.5 text-[9.5px] hover:border-[#ff3c00] hover:text-[#ff3c00]"><PlugZap className="h-3 w-3" />Connect Stripe</Link>}>
-          Connect Stripe (STRIPE_SECRET_KEY) and this tracks every dollar collected against the $1M goal.
+        <TileEmpty action={<span className="mono-label inline-flex items-center gap-1 border border-hair px-2.5 py-1.5 text-[9.5px] text-ink/60"><PlugZap className="h-3 w-3 text-[#ff3c00]" />Connect Stripe</span>}>
+          Add STRIPE_SECRET_KEY in the app&apos;s Secrets and this tracks every dollar collected against the $1M goal. No numbers until then.
         </TileEmpty>
       ) : error ? <TileError>{error}</TileError> : (
         <div className="flex h-full flex-col gap-4 px-4 py-4">
