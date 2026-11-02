@@ -232,7 +232,7 @@ export default function StudioPage() {
     if (!job || job.status !== 'approved' || deck.generation_status !== 'waiting_claude') return;
     const landed = deckFromJob(job);
     if (landed) applyDeck(landed, { generation_status: 'ready' });
-  }, [job]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [job]);
 
   const generateVisualsFor = async (slides, themeId, brand) => {
     const targets = slides

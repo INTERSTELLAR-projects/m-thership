@@ -27,7 +27,7 @@ export default function GenerateDeckDialog({ open, onOpenChange, hasSlides, defa
     if (!open) return;
     setError('');
     setForm((f) => ({ ...f, audience: f.audience || defaults.audience || '', tone: defaults.tone || f.tone, slideCount: defaults.slideCount || f.slideCount, target: hasSlides ? 'new' : 'replace' }));
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open]);
 
   useEffect(() => {
     let live = true;

@@ -47,7 +47,7 @@ export default function PresentMode({ slides, theme, deckTitle, startIndex = 0, 
       document.removeEventListener('fullscreenchange', onChange);
       if (document.fullscreenElement) document.exitFullscreen().catch(() => null);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const go = useCallback((delta) => setIndex((i) => Math.min(Math.max(i + delta, 0), slides.length - 1)), [slides.length]);
 
