@@ -32,6 +32,8 @@ export function clientsOf(pkg, data) {
   const { clients } = data;
   const projs = pkg.kind === "recurring" ? [] : projectsOf(pkg, data);
   const projClientIds = new Set(projs.map((p) => p.client_id).filter(Boolean));
+  // A client being onboarded through the flight plan shows on the page before anything is billed.
+  (data.flights || []).filter((f) => f.package_key === pkg.key && f.status !== "archived").forEach((f) => projClientIds.add(f.client_id));
   return clients
     .filter((c) => c.status !== "Inactive")
     .filter((c) => {
