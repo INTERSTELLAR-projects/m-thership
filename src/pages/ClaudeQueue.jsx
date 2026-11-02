@@ -5,8 +5,10 @@ import { Sparkles, Check, RotateCcw, X, Copy, ArrowUpRight, Loader2, Plus, Alert
 import { useList, timeAgo } from "@/lib/useData";
 import { cn } from "@/lib/utils";
 import {
-  useJobs, useRefreshJobs, JOB_STATUS, KIND_LABELS, approveJob, requestChanges, cancelJob, retryJob, chatPrompt, queueCustom,
+  useJobs, useRefreshJobs, JOB_STATUS, KIND_LABELS, approveJob, requestChanges, cancelJob, retryJob, chatPrompt, queueCustom, STANDING_RULES,
 } from "@/features/claude/jobs";
+import SimpleQueue from "@/features/claude/SimpleQueue";
+import { useViewMode } from "@/features/claude/simple";
 
 const TABS = [
   { key: "review", label: "Needs your OK", match: ["needs_approval"] },
@@ -159,7 +161,10 @@ function NewJob({ onClose }) {
   const clients = useList("CRMClient", { sort: "business", limit: 200 });
   const [form, setForm] = useState({ title: "", kind: "other", client_id: "", instructions: "" });
   const [busy, setBusy] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  const [showBrief, setShowBrief] = useState(false);
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const target = (clients.data || []).find((c) => c.id === form.client_id);
   const submit = async () => {
     setBusy(true);
     try {
@@ -172,7 +177,10 @@ function NewJob({ onClose }) {
   const input = "w-full rounded-sm border border-hair bg-card px-3 py-2 text-[13px] outline-none focus:border-[#ff3c00]";
   return (
     <div className="space-y-3 border-b border-hair bg-ink/[0.02] p-4">
-      <input value={form.title} onChange={set("title")} placeholder="What should Claude do?" className={input} />
+      <label className="block">
+        <span className="mono-label text-[9.5px] text-ink/50">What should Claude do?</span>
+        <input autoFocus value={form.title} onChange={set("title")} placeholder="e.g. Draft this week's GBP post" className={cn(input, "mt-1")} />
+      </label>
       <div className="grid grid-cols-2 gap-2">
         <select value={form.client_id} onChange={set("client_id")} className={input}>
           <option value="">No client</option>
@@ -182,7 +190,22 @@ function NewJob({ onClose }) {
           {Object.entries(KIND_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
       </div>
-      <textarea value={form.instructions} onChange={set("instructions")} rows={4} placeholder="Details, links, what done looks like" className={input} />
+      <p className="text-[11.5px] text-ink/50">For: {target ? target.business : "No client"} · {KIND_LABELS[form.kind] || form.kind}</p>
+      {showMore || form.instructions ? (
+        <textarea value={form.instructions} onChange={set("instructions")} rows={3} placeholder="Details, links, what done looks like" className={input} />
+      ) : (
+        <button type="button" onClick={() => setShowMore(true)} className="mono-label text-[9.5px] text-ink/50 hover:text-[#ff3c00]">+ Add details</button>
+      )}
+      <div>
+        <button type="button" onClick={() => setShowBrief((v) => !v)} className="mono-label text-[9.5px] text-ink/50 hover:text-[#ff3c00]">
+          {showBrief ? "Hide" : "Show"} full brief
+        </button>
+        {showBrief && (
+          <pre className="mt-2 max-h-56 overflow-y-auto whitespace-pre-wrap rounded-sm bg-ink/[0.04] p-3 text-[11.5px] text-ink/70">
+            {`# ${form.title.trim() || "(title)"}\n\n${form.instructions.trim()}\n\n## Rules\n${STANDING_RULES.map((r) => `- ${r}`).join("\n")}`}
+          </pre>
+        )}
+      </div>
       <div className="flex justify-end gap-2">
         <button type="button" onClick={onClose} className="px-3 py-2 text-[12.5px] text-ink/55">Cancel</button>
         <button type="button" disabled={busy || !form.title.trim()} onClick={submit}
@@ -199,6 +222,7 @@ export default function ClaudeQueue() {
   const [params, setParams] = useSearchParams();
   const [tab, setTab] = useState("review");
   const [adding, setAdding] = useState(false);
+  const [view, setView] = useViewMode();
   const selectedId = params.get("job");
 
   const counts = useMemo(() => Object.fromEntries(TABS.map((t) => [t.key, data.filter((j) => t.match.includes(j.status)).length])), [data]);
@@ -221,10 +245,28 @@ export default function ClaudeQueue() {
             Every step you authorize lands here. Claude&apos;s scheduled run picks up queued jobs, does the work, and sends it back for your OK.
           </p>
         </div>
-        <button type="button" onClick={() => setAdding((v) => !v)} className="inline-flex items-center gap-1.5 rounded-sm border border-hair px-3 py-2 text-[12.5px] hover:border-[#ff3c00]">
-          <Plus className="h-3.5 w-3.5" /> New job
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <div role="group" aria-label="View" className="inline-flex rounded-sm border border-hair p-0.5">
+            {[["simple", "Simple"], ["detailed", "Detailed"]].map(([k, l]) => (
+              <button key={k} type="button" aria-pressed={view === k} onClick={() => setView(k)}
+                className={cn("rounded-[3px] px-3 py-1.5 text-[12px]", view === k ? "bg-ink text-canvas" : "text-ink/60 hover:text-ink")}>
+                {l}
+              </button>
+            ))}
+          </div>
+          <button type="button" onClick={() => setAdding((v) => !v)} className="inline-flex items-center gap-1.5 rounded-sm border border-hair px-3 py-2 text-[12.5px] hover:border-[#ff3c00]">
+            <Plus className="h-3.5 w-3.5" /> New job
+          </button>
+        </div>
       </div>
+
+      {view === "simple" ? (
+        <>
+          {adding && <div className="mb-5 overflow-hidden rounded-md border border-hair bg-card"><NewJob onClose={() => setAdding(false)} /></div>}
+          <SimpleQueue jobs={data} isLoading={isLoading} selectedId={selectedId} renderDetail={(j) => <JobDetail key={j.id} job={j} />} />
+        </>
+      ) : (
+      <>
 
       <div className="mb-4 flex flex-wrap gap-1.5">
         {TABS.map((t) => (
@@ -268,6 +310,8 @@ export default function ClaudeQueue() {
           )}
         </section>
       </div>
+      </>
+      )}
     </div>
   );
 }
