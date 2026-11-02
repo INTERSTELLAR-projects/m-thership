@@ -263,7 +263,18 @@ const GENERIC_STEPS = [
   "Publish, then re-run the audit to confirm it cleared.",
 ];
 
+const GAP_FIX = { seo: "content", website: "generic", gbp: "content", reviews: "content", brand: "content" };
+
 export function guideFor(issue) {
+  // Findings from an Intel audit (ClientGap): their own impact + recommendation are the guidance.
+  if (issue.source === "intel") {
+    const rec = String(issue.recommendation || "").split(/(?<=[.!?])\s+|\n+/).map((s) => s.trim()).filter(Boolean);
+    return {
+      fix: GAP_FIX[issue.area] || "generic",
+      why: issue.description || issue.title,
+      steps: [...(rec.length ? rec : ["Review the evidence below and decide the change."]), "Make the change, then set this finding to fixed on the client's page so it shows as done in their portal."],
+    };
+  }
   let g = G[issue.key];
   if (g?.alias) g = G[g.alias];
   if (g) return { ...g, why: g.why, steps: g.steps };
