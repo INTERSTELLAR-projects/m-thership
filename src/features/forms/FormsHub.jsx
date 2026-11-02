@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Tag, SmallBtn, Btn } from "@/features/clients/ui";
 import { FormEditor } from "@/features/requests/FormBuilder";
 import RequestFormRenderer from "@/features/requests/RequestFormRenderer";
-import { REQUEST_TYPES, STANDARD_FORMS, KIND_LABELS, KIND_ORDER, INDUSTRY_LABELS, buildDefaultForms, portalForms } from "@/features/requests/formSchema";
+import { REQUEST_TYPES, STANDARD_FORMS, KIND_LABELS, INDUSTRY_LABELS, buildDefaultForms, portalForms } from "@/features/requests/formSchema";
 import { INTAKE_SECTIONS, ALL_QUESTIONS } from "@/features/clients/intakeQuestions";
 import { STEPS } from "@/features/flight/onboarding/catalog";
 import { packageByKey, packagePath } from "@/features/packages/registry";
@@ -418,4 +418,3 @@ export default function FormsHub({ templates, setTemplates }) {
   );
 }
 
-export { KIND_ORDER };

@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { ChartTooltip, FlameDefs, KpiTile, axisProps, gridProps, cursorProps, barCursor } from "@/components/charts/ChartKit";
-import { Search, Upload, Pin, FileText, Folder, Trash2, ExternalLink, X, Pencil, Check, Loader2, Plus, Eye, ArrowLeft } from "lucide-react";
+import { Search, Upload, Pin, FileText, Folder, Trash2, ExternalLink, X, Pencil, Check, Loader2 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
-import FormEditor from "../components/FormEditor";
-import FormPreview from "../components/FormPreview";
+import FormsHub from "@/features/forms/FormsHub";
 
 const CATEGORIES = [
   "Internal Processes",
@@ -235,7 +234,7 @@ export default function Documents() {
             )}
             </TabsContent>
             <TabsContent value="forms">
-            <FormsList forms={forms} setForms={setForms} />
+            <FormsHub templates={forms} setTemplates={setForms} />
             </TabsContent>
             </Tabs>
             </div>
@@ -260,169 +259,6 @@ export default function Documents() {
           </div>
         </div>
       )}
-      </div>
-      );
-      }
-
-      function FormsList({ forms, setForms }) {
-      const [showFormBuilder, setShowFormBuilder] = useState(false);
-      const [editingForm, setEditingForm] = useState(null);
-      const [previewForm, setPreviewForm] = useState(null);
-      const [selectedType, setSelectedType] = useState("intake");
-
-      const handleDeleteForm = async (id) => {
-      await base44.entities.FormTemplate.delete(id);
-      setForms((prev) => prev.filter((f) => f.id !== id));
-      };
-
-      const handlePublish = async (form) => {
-      const updated = { ...form, published: true, publishedDate: new Date().toISOString() };
-      await base44.entities.FormTemplate.update(form.id, { published: true, publishedDate: updated.publishedDate });
-      setForms((prev) => prev.map((f) => f.id === form.id ? updated : f));
-      };
-
-      return (
-      <div className="space-y-6">
-      <div className="flex gap-2 mb-6">
-        <button onClick={() => setSelectedType("intake")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedType === "intake" ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-ink/[0.58] hover:text-ink/60 border border-transparent"}`}>Intake Forms</button>
-        <button onClick={() => setSelectedType("request")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedType === "request" ? "bg-orange-500/15 text-orange-500 border border-orange-500/20" : "text-ink/[0.58] hover:text-ink/60 border border-transparent"}`}>Request Forms</button>
-      </div>
-
-      <div className="flex items-center justify-between">
-       <h3 className="text-ink font-bold text-sm">{selectedType === "request" ? "Request" : "Intake"} Forms</h3>
-       <Button onClick={() => { setEditingForm(null); setShowFormBuilder(true); }} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold h-9 gap-2"><Plus className="w-4 h-4" />New Form</Button>
-      </div>
-
-      {forms.filter(f => (f.formType || "request") === selectedType).length === 0 ? (
-       <div className="bg-card rounded-md border border-ink/[0.13] p-10 text-center">
-         <FileText className="w-8 h-8 text-ink/[0.28] mx-auto mb-3" />
-         <p className="text-ink/[0.48] text-sm">No request forms yet. Create one to get started.</p>
-       </div>
-      ) : (
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-         {forms.filter(f => (f.formType || "request") === selectedType).map((form) => (
-           <div key={form.id} className="card-hover relative overflow-hidden bg-card rounded-md border border-ink/[0.13] p-5 space-y-3">
-           <div>
-             <h4 className="text-ink font-bold text-sm">{form.title}</h4>
-             <p className="text-ink/[0.58] text-xs mt-1">{form.subtitle}</p>
-             <span className={`inline-block mt-2 text-[10px] font-semibold px-2 py-1 rounded ${ form.published ? "bg-green-500/10 text-green-600" : "bg-yellow-500/10 text-yellow-600"}`}>
-               {form.published ? "Published" : "Draft"}
-             </span>
-           </div>
-           <div className="flex items-center gap-2">
-             <button onClick={() => { setEditingForm(form); setShowFormBuilder(true); }} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-ink/[0.04] text-ink/60 hover:bg-ink/[0.08] transition-all flex items-center justify-center gap-1.5"><Pencil className="w-3 h-3" />Edit</button>
-             {form.published && <button onClick={() => setPreviewForm(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 transition-all flex items-center justify-center gap-1.5"><Eye className="w-3 h-3" />Preview</button>}
-             {!form.published && <button onClick={() => handlePublish(form)} className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 transition-all flex items-center justify-center gap-1.5"><Eye className="w-3 h-3" />Publish</button>}
-             <button onClick={() => handleDeleteForm(form.id)} className="px-3 py-1.5 text-xs font-medium rounded-lg text-ink/[0.38] hover:text-red-600 transition-all"><Trash2 className="w-3 h-3" /></button>
-           </div>
-           </div>
-         ))}
-       </div>
-      )}
-
-      {showFormBuilder && (
-       <FormBuilder form={editingForm} formType={selectedType} onClose={() => setShowFormBuilder(false)} onSave={(form) => {
-          if (editingForm) {
-            setForms((prev) => prev.map((f) => f.id === form.id ? form : f));
-          } else {
-            setForms((prev) => [...prev, form]);
-          }
-          setShowFormBuilder(false);
-          setEditingForm(null);
-        }} />
-      )}
-
-      {previewForm && (
-       <FormPreview form={previewForm} onClose={() => setPreviewForm(null)} />
-      )}
-      </div>
-      );
-      }
-
-      function FormBuilder({ form, formType, onClose, onSave }) {
-      const [step, setStep] = useState(form?.id ? "builder" : "basic"); // 'basic' or 'builder'
-      const [title, setTitle] = useState(form?.title || "");
-      const [subtitle, setSubtitle] = useState(form?.subtitle || "");
-      const [category, setCategory] = useState(form?.category || "Web Øps");
-      const [fields, setFields] = useState(form?.fields || []);
-      const [saving, setSaving] = useState(false);
-
-      const handleSave = async () => {
-      if (!title.trim() || fields.length === 0) return;
-      setSaving(true);
-      const formData = {
-      title: title.trim(),
-      subtitle: subtitle.trim(),
-      category,
-      formType: formType || "request",
-      fields: fields.map(f => ({
-        ...f,
-        acceptedTypes: f.type === "file_upload" ? ["images", "videos", "documents", "pdf"] : undefined,
-        multiple: f.type === "file_upload" ? true : undefined,
-      })),
-      published: form?.published || false,
-      };
-      if (form?.id) {
-      await base44.entities.FormTemplate.update(form.id, { ...formData, published: form.published, publishedDate: form.publishedDate });
-      onSave({ ...form, ...formData, published: form.published, publishedDate: form.publishedDate });
-      } else {
-      const created = await base44.entities.FormTemplate.create(formData);
-      onSave(created);
-      }
-      setSaving(false);
-      };
-
-      if (step === "builder") {
-      return (
-      <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center">
-      <div className="bg-card border border-ink/[0.13] rounded-md p-6 w-full max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-       <div className="flex items-center justify-between">
-         <div className="flex items-center gap-2">
-           <button onClick={() => setStep("basic")} className="text-ink/[0.58] hover:text-ink/70 transition-colors">
-             <ArrowLeft className="w-4 h-4" />
-           </button>
-           <h3 className="text-ink font-bold text-sm">Form Builder</h3>
-         </div>
-         <button onClick={onClose} className="text-ink/[0.48] hover:text-ink/60"><X className="w-4 h-4" /></button>
-       </div>
-       <FormEditor fields={fields} setFields={setFields} />
-       <div className="flex gap-2 pt-2">
-         <Button onClick={() => setStep("basic")} variant="outline" className="flex-1">Back</Button>
-         <Button onClick={handleSave} disabled={!title.trim() || fields.length === 0 || saving} className="flex-1 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold">{saving ? "Saving..." : "Save Form"}</Button>
-       </div>
-      </div>
-      </div>
-      );
-      }
-
-      return (
-      <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center">
-      <div className="bg-card border border-ink/[0.13] rounded-md p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto">
-       <div className="flex items-center justify-between">
-         <h3 className="text-ink font-bold text-sm">{form ? "Edit Form" : "Create Form"}</h3>
-         <button onClick={onClose} className="text-ink/[0.48] hover:text-ink/60"><X className="w-4 h-4" /></button>
-       </div>
-       <div className="space-y-3">
-         <div>
-           <label className="text-ink/[0.58] text-xs font-medium block mb-1.5">Form Title *</label>
-           <Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-ink/[0.03] border-ink/[0.13] text-ink" placeholder="e.g. Web Øps Website Update Request" />
-         </div>
-         <div>
-           <label className="text-ink/[0.58] text-xs font-medium block mb-1.5">Subtitle (optional)</label>
-           <Input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="bg-ink/[0.03] border-ink/[0.13] text-ink" placeholder="Brief description" />
-         </div>
-         <div>
-           <label className="text-ink/[0.58] text-xs font-medium block mb-1.5">Category *</label>
-           <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-ink/[0.03] border border-ink/[0.13] rounded px-3 py-2 text-ink text-sm outline-none">
-             {["Web Øps", "Førge", "HyperCare+", "Performance", "Other"].map((cat) => <option key={cat} value={cat}>{cat}</option>)}
-           </select>
-         </div>
-       </div>
-       <div className="flex gap-2 pt-2">
-         <Button onClick={onClose} variant="outline" className="flex-1">Cancel</Button>
-         <Button onClick={() => setStep("builder")} disabled={!title.trim()} className="flex-1 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold">Continue to Builder</Button>
-       </div>
-      </div>
       </div>
       );
       }
