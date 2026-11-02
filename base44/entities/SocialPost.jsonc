@@ -1,0 +1,152 @@
+{
+  "name": "SocialPost",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Internal name for the post (not shown on the image)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "idea",
+        "draft",
+        "ready",
+        "scheduled",
+        "posted",
+        "skipped"
+      ],
+      "default": "draft"
+    },
+    "folder": {
+      "type": "string",
+      "description": "Free-text folder, e.g. 'Week of 2026-11-09'. The folder list is the union of folders used by posts and AppSettings key social_studio.pageSettings.folders"
+    },
+    "pillar": {
+      "type": "string",
+      "enum": [
+        "pain_point",
+        "product_showcase",
+        "proof_of_process",
+        "education",
+        "offer",
+        "founder_story"
+      ]
+    },
+    "platforms": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "instagram",
+          "facebook",
+          "linkedin",
+          "x",
+          "tiktok"
+        ]
+      },
+      "description": "Platform targets"
+    },
+    "template": {
+      "type": "string",
+      "description": "Template key from src/features/social/templates.schema.json"
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Structured post spec rendered by the template: eyebrow, headline, accent_word, subhead, body, cta, theme (light|dark), lockup (interstellar|mothership|none), mock {template-specific}"
+    },
+    "caption": {
+      "type": "string",
+      "description": "Platform-ready caption with 3-6 hashtags (Instagram/Facebook/X/TikTok)"
+    },
+    "caption_linkedin": {
+      "type": "string",
+      "description": "LinkedIn variant of the caption"
+    },
+    "alt_text": {
+      "type": "string"
+    },
+    "generation_batch": {
+      "type": "string",
+      "description": "Batch id, e.g. 'wk-2026-11-09'"
+    },
+    "generated_by": {
+      "type": "string",
+      "enum": [
+        "claude",
+        "justin"
+      ],
+      "default": "justin"
+    },
+    "planned_for": {
+      "type": "string",
+      "format": "date",
+      "description": "Suggested posting day from the generator (Monday-Friday)"
+    },
+    "revision_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string"
+          },
+          "instruction": {
+            "type": "string"
+          },
+          "before_spec": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "before_template": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "scheduled_for": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "posted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "posted_url": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Optional uploaded PNG export"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
