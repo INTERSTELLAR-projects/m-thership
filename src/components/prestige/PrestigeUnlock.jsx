@@ -453,7 +453,7 @@ const CSS = `
 .pu-root .pu-emblem{position:relative;opacity:0;transform:scale(2.6);filter:blur(10px)}
 .pu-root .pu-emblem.is-in{animation:pu-slam .62s cubic-bezier(.2,1.4,.35,1) forwards}
 .pu-root .pu-glow{position:absolute;inset:-30%;border-radius:9999px;background:radial-gradient(circle,rgba(255,106,0,.35),rgba(255,170,0,.12) 45%,transparent 70%);animation:pu-pulse 2.4s ease-in-out infinite}
-.pu-root .pu-text{opacity:0;transform:scale(1.35);letter-spacing:.2em}
+.pu-root .pu-text{opacity:0;transform:scale(1.35)}
 .pu-root .pu-text.is-in{animation:pu-text .55s .12s cubic-bezier(.2,1.2,.35,1) forwards}
 .pu-root .pu-title{background:linear-gradient(90deg,#ff3c00,#ff6a00 55%,#ffaa00);-webkit-background-clip:text;background-clip:text;color:transparent}
 .pu-root .pu-bar{opacity:0;transform:translateY(10px);transition:opacity .4s ease,transform .4s ease}
@@ -469,7 +469,7 @@ const CSS = `
 @keyframes pu-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes pu-pulse{0%,100%{opacity:.75;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
 @keyframes pu-shake{0%,100%{transform:none}15%{transform:translate(-7px,4px)}30%{transform:translate(6px,-5px)}45%{transform:translate(-4px,-3px)}60%{transform:translate(4px,3px)}80%{transform:translate(-2px,1px)}}
-.pu-reduced .pu-emblem,.pu-reduced .pu-text,.pu-reduced .pu-bar,.pu-reduced .pu-reward{animation:pu-fade .6s ease forwards!important;transform:none!important;filter:none!important;letter-spacing:normal}
+.pu-reduced .pu-emblem,.pu-reduced .pu-text,.pu-reduced .pu-bar,.pu-reduced .pu-reward{animation:pu-fade .6s ease forwards!important;transform:none!important;filter:none!important}
 .pu-reduced .pu-glow{animation:none}
 @keyframes pu-fade{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion: reduce){.pu-shake{animation:none}}
