@@ -434,7 +434,8 @@ export default function FlightPlan() {
           </div>
         </div>
 
-        {/* Loose ends */}
+        {/* Loose ends (hidden once every one is fixed) */}
+        {LOOSE_ENDS.length > 0 && (
         <section className="border border-hair bg-paper">
           <header className="flex flex-wrap items-baseline justify-between gap-2 border-b border-hair px-4 py-3">
             <p className="text-[15px] font-semibold tracking-[-0.02em]">Loose <span className="text-[#ff3c00]">/ends</span></p>
@@ -449,6 +450,7 @@ export default function FlightPlan() {
             ))}
           </ul>
         </section>
+        )}
       </div>
 
       <Drawer open={drawer} onClose={() => setDrawer(null)} />
