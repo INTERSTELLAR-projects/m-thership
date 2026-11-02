@@ -311,7 +311,7 @@ async function renderPhoto(spec) {
             ctx.translate(0, dir * w * (1 - t));
             stripPath(ctx, i);
             ctx.clip();
-            cover(ctx, img, x0, x0 - dir * w * (1 - t), w, w);
+            cover(ctx, img, x0, x0, w, w);
             ctx.restore();
           }
           ctx.globalAlpha = 1;
