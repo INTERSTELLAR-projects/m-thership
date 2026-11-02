@@ -98,7 +98,7 @@ export default function Prestige() {
   const active = members.filter((m) => m.active !== false);
   const board = useMemo(() => active
     .map((m) => ({ m, ...statsFor(m.id) }))
-    .sort((a, b) => b.signed - a.signed || b.booked - a.booked || a.m.name.localeCompare(b.m.name)), [members, referrals]); // eslint-disable-line react-hooks/exhaustive-deps
+    .sort((a, b) => b.signed - a.signed || b.booked - a.booked || a.m.name.localeCompare(b.m.name)), [members, referrals]);
   const totalSigned = referrals.filter(isSigned).length;
   const totalBooked = referrals.filter(isBooked).length;
   const owed = rewards.filter((r) => r.status === "owed");
