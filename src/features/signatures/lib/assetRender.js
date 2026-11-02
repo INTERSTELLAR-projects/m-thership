@@ -420,8 +420,8 @@ async function renderPhoto(spec) {
 
 // Static icon art (container + glyph) on a transparent layer, cached per spec.
 const layerCache = new Map();
-function iconLayer(spec, px) {
-  const key = JSON.stringify([spec.platform, spec.style, spec.shape, spec.accent, px]);
+function iconLayer(spec, px, part = "all") {
+  const key = JSON.stringify([spec.platform, spec.style, spec.shape, spec.accent, px, part]);
   if (layerCache.has(key)) return layerCache.get(key);
   const { c, ctx } = makeCanvas(px, px);
   const platform = PLATFORM_BY_ID[spec.platform];
@@ -432,7 +432,7 @@ function iconLayer(spec, px) {
   const m = px / 2;
   if (style === "logo") {
     const g = px * 0.92;
-    drawGlyph(ctx, platform, m, m, g, brandOf(m - g / 2, m - g / 2, g, g));
+    if (part !== "container") drawGlyph(ctx, platform, m, m, g, brandOf(m - g / 2, m - g / 2, g, g));
   } else {
     const container = {
       brand: { fill: brandOf(0, 0, px, px), glyph: "#ffffff" },
@@ -444,45 +444,52 @@ function iconLayer(spec, px) {
     }[style] || { fill: brandOf(0, 0, px, px), glyph: "#ffffff" };
     const lw = px * (style === "outline" ? 0.065 : 0.035);
     const inset = container.stroke ? lw / 2 : 0;
-    shapePath(ctx, shape, inset, inset, px - inset * 2, px - inset * 2);
-    if (container.fill) {
-      ctx.fillStyle = container.fill;
-      ctx.fill();
+    if (part !== "glyph") {
+      shapePath(ctx, shape, inset, inset, px - inset * 2, px - inset * 2);
+      if (container.fill) {
+        ctx.fillStyle = container.fill;
+        ctx.fill();
+      }
+      if (container.stroke) {
+        ctx.strokeStyle = container.stroke;
+        ctx.lineWidth = lw;
+        ctx.stroke();
+      }
     }
-    if (container.stroke) {
-      ctx.strokeStyle = container.stroke;
-      ctx.lineWidth = lw;
-      ctx.stroke();
-    }
-    drawGlyph(ctx, platform, m, m, px * (platform.id === "website" ? 0.5 : 0.52), container.glyph);
+    if (part !== "container") drawGlyph(ctx, platform, m, m, px * (platform.id === "website" ? 0.5 : 0.52), container.glyph);
   }
   layerCache.set(key, c);
   return c;
 }
 
-// Light styles get a brand-tinted sheen (a white one would vanish on a white chip);
-// either way the sheen only lands on the icon's own pixels (source-atop), never the background.
+// Dark styles: a white sheen sweeps the whole chip. Light styles (white / soft / outline):
+// the chip stays clean and the sheen sweeps only the logo mark. source-atop keeps the
+// sheen on the icon's own pixels, never the background.
 function drawIcon(ctx, spec, px, { squash = 1, gleam = 0 } = {}) {
   ctx.fillStyle = spec.bg || "#ffffff";
   ctx.fillRect(0, 0, px, px);
-  const layer = iconLayer(spec, px);
-  let art = layer;
-  if (gleam > 0 && gleam < 1) {
+  const lit = (layer, alpha) => {
     const tmp = makeCanvas(px, px);
     tmp.ctx.drawImage(layer, 0, 0);
     tmp.ctx.globalCompositeOperation = "source-atop";
-    const light = ["white", "soft", "outline"].includes(spec.style);
-    const platform = PLATFORM_BY_ID[spec.platform];
-    const tint = platform.id === "website" || !platform.brand || platform.brand === "#000000" ? spec.accent || "#ff6a00" : platform.brand;
-    shine(tmp.ctx, 0, 0, px, px, gleam, light ? 0.42 : 0.6, light ? hex2rgb(tint) : null);
-    art = tmp.c;
-  }
+    shine(tmp.ctx, 0, 0, px, px, gleam, alpha);
+    return tmp.c;
+  };
   const m = px / 2;
   ctx.save();
   ctx.translate(m, m);
   ctx.scale(squash, squash);
   ctx.translate(-m, -m);
-  ctx.drawImage(art, 0, 0);
+  if (gleam > 0 && gleam < 1) {
+    if (["white", "soft", "outline"].includes(spec.style)) {
+      ctx.drawImage(iconLayer(spec, px, "container"), 0, 0);
+      ctx.drawImage(lit(iconLayer(spec, px, "glyph"), 0.7), 0, 0);
+    } else {
+      ctx.drawImage(lit(iconLayer(spec, px), 0.6), 0, 0);
+    }
+  } else {
+    ctx.drawImage(iconLayer(spec, px), 0, 0);
+  }
   ctx.restore();
 }
 

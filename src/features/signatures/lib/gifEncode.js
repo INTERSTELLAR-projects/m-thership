@@ -8,7 +8,7 @@ import { GIFEncoder, quantize } from "gifenc";
 // - Pixels that did not change since the previous frame are written as transparent
 //   (dispose = keep): files stay small and only the moving part is redrawn.
 // - Consecutive identical frames are merged into one longer frame.
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v / 16 - 0.47) * 7);
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v / 16 - 0.47) * 4);
 
 export function encodeGif(frames, { width, height, delays }) {
   const merged = [];
