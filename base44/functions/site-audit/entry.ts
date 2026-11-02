@@ -10,7 +10,7 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 // Optional secret PAGESPEED_API_KEY raises Google's quota; without it PageSpeed still works at a low rate.
 // Clients whose site is still on Framer (PowerLift) never get automatic audits.
 
-const AUTO_BLOCKED = [/power\s*lift/i];
+const AUTO_BLOCKED = [/boba\s*blastic/i, /bulba\s*bros/i];
 const isAutoBlocked = (c: Record<string, unknown>) => AUTO_BLOCKED.some((re) => re.test(String(c.business || "")));
 const WEIGHTS: Record<string, number> = { seo: 40, performance: 30, accessibility: 15, best_practices: 15 };
 const CATS: Record<string, string> = { performance: "performance", seo: "seo", accessibility: "accessibility", "best-practices": "best_practices" };
@@ -225,7 +225,7 @@ Deno.serve(async (req) => {
       if (!client) return Response.json({ error: "Client not found" }, { status: 404 });
       const mode = body.mode === "auto" ? "auto" : "manual";
       if (isAutoBlocked(client) && (mode === "auto" || !body.force)) {
-        return Response.json({ skipped: true, reason: `${client.business} is excluded from audits until the site moves off Framer.${mode === "manual" ? " Pass force to run one by hand." : ""}` });
+        return Response.json({ skipped: true, reason: `${client.business} is excluded from audits until its new site is live.${mode === "manual" ? " Pass force to run one by hand." : ""}` });
       }
       const audit = await runOne(db, client, strategy, mode);
       return Response.json({ audit });
