@@ -84,6 +84,10 @@ export async function brandFor(client) {
 
 export const adminStore = {
   kind: "admin",
+  async listAll() {
+    const [codes, templates] = await Promise.all([adminStore.listCodes(), adminStore.listTemplates().catch(() => [])]);
+    return { codes: codes || [], templates: templates || [] };
+  },
   listCodes: () => E().QrCode.list("-updated_date", 500),
   listTemplates: () => E().QrTemplate.list("-updated_date", 300),
   listClients: () => E().CRMClient.list("business", 300).then((l) => (l || []).filter((c) => c.business)),
@@ -121,6 +125,10 @@ export function portalStore(call) {
   };
   return {
     kind: "portal",
+    async listAll() {
+      const r = await list();
+      return { codes: r.codes || [], templates: r.templates || [] };
+    },
     listCodes: async () => (await list()).codes || [],
     listTemplates: async () => (await list()).templates || [],
     listClients: async () => [],
