@@ -52,6 +52,7 @@
         "research",
         "presentation",
         "playbook",
+        "content_plan",
         "other"
       ],
       "type": "string"
