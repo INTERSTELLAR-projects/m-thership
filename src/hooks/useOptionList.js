@@ -26,7 +26,7 @@ export async function saveOptionList(key, items) {
 
 export function useOptionLists() {
   const q = useQuery({ queryKey: QK, queryFn: fetchRecord, staleTime: 60_000 });
-  const stored = q.data?.optionLists || {};
+  const stored = useMemo(() => q.data?.optionLists || {}, [q.data]);
   const reqTypes = stored.request_types;
   // Keep kindLabel()/portalForms() in step with Settings everywhere in the admin app. Runs during render
   // (idempotent module setter) so the same render already shows the new labels.
