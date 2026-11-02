@@ -1,0 +1,67 @@
+{
+  "name": "QrScan",
+  "type": "object",
+  "properties": {
+    "qr_id": {
+      "type": "string"
+    },
+    "short_code": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "device": {
+      "type": "string",
+      "enum": [
+        "mobile",
+        "tablet",
+        "desktop",
+        "other"
+      ],
+      "default": "other"
+    },
+    "os": {
+      "type": "string",
+      "description": "Coarse OS family only (iOS, Android, Windows, macOS, Linux, Other)"
+    },
+    "referrer_host": {
+      "type": "string",
+      "description": "Referrer hostname only, usually empty for camera scans"
+    },
+    "country": {
+      "type": "string",
+      "description": "2-letter country from the edge header when present"
+    }
+  },
+  "required": [
+    "qr_id"
+  ],
+  "description": "One anonymous scan of a dynamic QR code. No IP address, no full user agent, no personal data.",
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
