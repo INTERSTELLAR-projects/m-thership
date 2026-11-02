@@ -106,6 +106,7 @@ const AuthenticatedApp = () => {
         <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
         <Route path="/reviews" element={<ProtectedRoute><Reviews /></ProtectedRoute>} />
         <Route path="/signatures" element={<ProtectedRoute><SignaturesPage /></ProtectedRoute>} />
+        <Route path="/signatures/templates/:id" element={<ProtectedRoute><SignatureEditor mode="template" /></ProtectedRoute>} />
         <Route path="/signatures/new" element={<ProtectedRoute><SignatureEditor /></ProtectedRoute>} />
         <Route path="/signatures/:id" element={<ProtectedRoute><SignatureEditor /></ProtectedRoute>} />
         <Route path="/presentations" element={<ProtectedRoute><PresentationStudio /></ProtectedRoute>} />
