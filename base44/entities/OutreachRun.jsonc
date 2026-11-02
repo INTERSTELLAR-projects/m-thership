@@ -1,0 +1,89 @@
+{
+  "name": "OutreachRun",
+  "type": "object",
+  "description": "Backlinks & Citations: one run of a Claude scheduled task (research / send / check_replies / verify_links), for the activity feed.",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "research",
+        "send",
+        "check_replies",
+        "verify_links"
+      ],
+      "default": "research"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id, empty for all-client runs"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finished_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "ok",
+        "partial",
+        "skipped",
+        "error"
+      ],
+      "default": "running"
+    },
+    "found_count": {
+      "type": "number",
+      "default": 0
+    },
+    "drafted_count": {
+      "type": "number",
+      "default": 0
+    },
+    "sent_count": {
+      "type": "number",
+      "default": 0
+    },
+    "replied_count": {
+      "type": "number",
+      "default": 0
+    },
+    "won_count": {
+      "type": "number",
+      "default": 0
+    },
+    "message": {
+      "type": "string",
+      "description": "Short human summary of what the run did or why it stopped"
+    }
+  },
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
