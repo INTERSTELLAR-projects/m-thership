@@ -25,7 +25,8 @@ export function derive(a) {
     ctr: a.impressions ? (a.clicks / a.impressions) * 100 : null,
     cpc: a.clicks ? a.spend / a.clicks : null,
     cpa: a.conversions ? a.spend / a.conversions : null,
-    roas: a.spend && a.revenue ? a.revenue / a.spend : a.spend ? 0 : null,
+    // No revenue tracked reads as "—", not 0x: a 0 would look like a real result.
+    roas: a.spend && a.revenue ? a.revenue / a.spend : null,
     frequency: a.impressions ? a.freqW / a.impressions : null,
   };
 }
