@@ -144,7 +144,7 @@ function TriggerPanel({ d }) {
       <div className="px-4 py-4">
         <p className="mono-label text-[9px] text-ink/45">Mission ALPHA + care plan signings</p>
         <p className="mt-1 text-[44px] font-semibold leading-none tracking-[-0.05em] tabular-nums">
-          {cur.count}<span className="text-[18px] text-ink/35"> of {s.target_per_month}</span>
+          {cur.count}<span className="ml-2 text-[18px] tracking-normal text-ink/35">of {s.target_per_month}</span>
         </p>
         <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-ink/[0.07]">
           <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "linear-gradient(90deg,#ff3c00,#ff6a00,#ffaa00)" }} />
