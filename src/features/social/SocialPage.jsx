@@ -329,9 +329,9 @@ function AnalyticsStrip({ posts, status, tz, onOpen }) {
     { label: "Instagram", value: ig?.connected ? (ig.followers_count ?? "—").toLocaleString("en-US") : "—", sub: ig?.connected ? `followers · @${ig.username}` : status.isLoading ? "checking…" : "not connected" },
   ];
   return (
-    <div className="grid grid-cols-2 border border-hair bg-card md:grid-cols-3 xl:grid-cols-6">
-      {cells.map((c, i) => (
-        <button key={c.label} type="button" onClick={() => c.tab && onOpen(c.tab === "draft" ? "" : c.tab)} className={`min-w-0 border-hair px-4 py-3 text-left transition-colors hover:bg-paper ${i % 2 ? "border-l" : ""} ${i >= 2 ? "border-t" : ""} md:border-t-0 md:border-l ${i % 3 === 0 ? "md:border-l-0" : ""} ${i >= 3 ? "md:border-t" : ""} xl:border-t-0 ${i === 0 ? "xl:border-l-0" : "xl:border-l"}`}>
+    <div className="grid grid-cols-2 gap-px border border-hair bg-hair md:grid-cols-3 xl:grid-cols-6">
+      {cells.map((c) => (
+        <button key={c.label} type="button" onClick={() => c.tab && onOpen(c.tab === "draft" ? "" : c.tab)} className="min-w-0 bg-card px-4 py-3 text-left transition-colors hover:bg-paper">
           <p className="mono-label flex items-center gap-1.5 text-[8.5px] text-ink/45">{c.hot && <span className="h-1.5 w-1.5 bg-[#ff3c00]" />}{c.label}</p>
           <p className={`mt-1 truncate font-semibold tabular-nums tracking-[-0.04em] ${c.small ? "text-[16px] leading-[26px]" : "text-[24px] leading-[26px]"}`}>{c.value}</p>
           <p className="truncate text-[11px] text-ink/45">{c.sub}</p>
