@@ -26,7 +26,15 @@ export default function PostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const postQ = useQuery({ queryKey: ["SocialPost", id], queryFn: () => getPost(id) });
+  const postQ = useQuery({
+    queryKey: ["SocialPost", id],
+    queryFn: () => getPost(id),
+    // Watch the status flip while it is publishing or due within the hour.
+    refetchInterval: (q) => {
+      const p = q.state.data;
+      return p && (p.status === "publishing" || (p.status === "approved" && Date.parse(p.scheduled_at || 0) < Date.now() + 3600000)) ? 20000 : false;
+    },
+  });
   const allQ = useQuery({ queryKey: POSTS_KEY, queryFn: listPosts });
   const foldersQ = useQuery({ queryKey: FOLDERS_KEY, queryFn: listSavedFolders });
   const folders = folderNames(allQ.data || [], foldersQ.data);
