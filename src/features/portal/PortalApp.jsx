@@ -661,7 +661,9 @@ function IntakeView({ call, onClose }) {
   const [open, setOpen] = useState(INTAKE_SECTIONS[0].id);
   const [saving, setSaving] = useState(false);
   const timer = useRef(null);
-  useEffect(() => { call("intake").then((r) => { setAnswers(r?.intake?.answers || {}); setStatus(r?.intake?.status || "in_progress"); }); }, []);  
+  const [saveErr, setSaveErr] = useState("");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { call("intake").then((r) => { setAnswers(r?.intake?.answers || {}); setStatus(r?.intake?.status || "in_progress"); }).catch(() => { setAnswers({}); setSaveErr("We couldn't load your saved answers. Anything you type now still saves."); }); }, []);
   const prog = useMemo(() => intakeProgress(answers || {}), [answers]);
   if (!answers) return <p className="py-20 text-center text-ink/50">Loading…</p>;
   const locked = status === "reviewed";
@@ -670,9 +672,14 @@ function IntakeView({ call, onClose }) {
     const next = { ...answers, [k]: v };
     setAnswers(next); setSaving(true);
     clearTimeout(timer.current);
-    timer.current = setTimeout(async () => { await call("save_intake", { answers: next }); setSaving(false); }, 800);
+    timer.current = setTimeout(async () => {
+      try { await call("save_intake", { answers: next }); setSaveErr(""); } catch { setSaveErr("Couldn't save that last change. Check your connection and try again."); } finally { setSaving(false); }
+    }, 800);
   };
-  const submit = async () => { clearTimeout(timer.current); await call("save_intake", { answers, submit: true }); onClose(); };
+  const submit = async () => {
+    clearTimeout(timer.current);
+    try { await call("save_intake", { answers, submit: true }); onClose(); } catch { setSaveErr("Couldn't submit right now. Your answers are saved; try again in a moment."); }
+  };
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -684,6 +691,7 @@ function IntakeView({ call, onClose }) {
         <div className="h-1.5 flex-1 bg-ink/[0.08]"><div className="h-full flame-bg" style={{ width: `${prog.pct}%` }} /></div>
         <span className="font-mono text-[11px] tabular-nums text-ink/55">{prog.answered}/{prog.total} {saving ? "· saving" : ""}</span>
       </div>
+      {saveErr && <p role="alert" className="border border-red-200 bg-red-50 px-3 py-2 text-[12.5px] text-red-800">{saveErr}</p>}
       {INTAKE_SECTIONS.map((s) => (
         <section key={s.id} className="rounded-md border border-hair bg-card">
           <button onClick={() => setOpen(open === s.id ? null : s.id)} className="flex w-full items-center justify-between px-4 py-3 text-left">
