@@ -1,0 +1,64 @@
+{
+  "name": "AgencyKnowledge",
+  "description": "Interstellar Strategies' own knowledge (offers and prices, rules, voice, operations), one record per section. The single source the generators, Settings > Agency knowledge and Claude tasks (agency-knowledge function) read. Admin only.",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Stable section key: about, offers, pricing_rules, delivery_rules, voice, bonuses, operations (or any new key)"
+    },
+    "title": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string",
+      "description": "Markdown body of the section"
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Structured data where useful. offers section: { offers: [{ key, name, price, billing, terms, architecture, includes, notes }] } where key matches the start-service catalog key (mission_alpha, custom_website, orbit_local ...)"
+    },
+    "sort": {
+      "type": "number",
+      "default": 100
+    },
+    "source": {
+      "type": "string",
+      "description": "Where the section's facts came from (e.g. Claude Project memory, in-app catalog)"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "key",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
