@@ -23,6 +23,13 @@ const FIX = {
     { id: "c1", business: "Summit Roofing Co", contact: "Dana Reyes", emails: ["dana@summit.test"], phones: ["(503) 555-0101"], websites: ["summitroofing.test"], status: "Active", services: [{ id: 1, name: "HyperCare+", price: 750 }, { id: 2, name: "GravïtyCare", price: 197 }], services_managed: ["website", "system", "orbit_seo"], plan: "ALPHA + HyperCare+ Local", domain: "summitroofing.test", notes: [], documents: [], completedTasks: [] },
     { id: "c2", business: "Harbor Coffee", contact: "Lee Park", emails: ["lee@harbor.test"], phones: [], websites: ["harborcoffee.test"], status: "Active", services: [{ id: 1, name: "HyperCare+", price: 500 }], services_managed: ["website", "orbit_seo"], plan: "BRAVO + HyperCare+ Local", domain: "harborcoffee.test", notes: [], documents: [], completedTasks: [] },
     { id: "c3", business: "Peak Fitness Lab", contact: "Sam Ortiz", emails: ["sam@peak.test"], phones: [], websites: ["peakfit.test"], status: "Lead", services: [], services_managed: [], domain: "peakfit.test", notes: [], documents: [], completedTasks: [] },
+    // Extra pipeline leads (fictional) so the board reads like a working week in demo footage.
+    { id: "c4", business: "Cascade Plumbing", contact: "Jordan Hale", emails: ["jordan@cascade.test"], phones: [], websites: [], status: "Lead", pipeline_stage: "new", lead_source: "website", lead_interest: "Command System (app)", next_step: "Intro call", next_step_at: daysAhead(1), stage_changed_at: daysAgo(0), services: [], notes: [], documents: [], completedTasks: [] },
+    { id: "c5", business: "Ridgeline HVAC", contact: "Morgan Lee", emails: ["morgan@ridgeline.test"], phones: [], websites: [], status: "Lead", pipeline_stage: "new", lead_source: "referral", lead_interest: "Mission ALPHA", next_step: "Send audit", next_step_at: daysAhead(2), stage_changed_at: daysAgo(1), services: [], notes: [], documents: [], completedTasks: [] },
+    { id: "c6", business: "Evergreen Landscaping", contact: "Casey Ward", emails: ["casey@evergreen.test"], phones: [], websites: [], status: "Lead", pipeline_stage: "contacted", lead_source: "funnel", lead_interest: "Custom Website", next_step: "Follow up", next_step_at: daysAhead(1), stage_changed_at: daysAgo(2), services: [], notes: [], documents: [], completedTasks: [] },
+    { id: "c7", business: "Northside Electric", contact: "Riley Shaw", emails: ["riley@northside.test"], phones: [], websites: [], status: "Lead", pipeline_stage: "call_booked", lead_source: "website", lead_interest: "Command System (app)", booked_call_at: daysAhead(2) + "T10:30:00", stage_changed_at: daysAgo(1), services: [], notes: [], documents: [], completedTasks: [] },
+    { id: "c8", business: "Bridgetown Painting", contact: "Avery Cole", emails: ["avery@bridgetown.test"], phones: [], websites: [], status: "Lead", pipeline_stage: "call_held", lead_source: "ads", lead_interest: "Ops Command", next_step: "Send proposal", next_step_at: daysAhead(1), stage_changed_at: daysAgo(3), services: [], notes: [], documents: [], completedTasks: [] },
+    { id: "c9", business: "Timberline Fencing", contact: "Quinn Brooks", emails: ["quinn@timberline.test"], phones: [], websites: [], status: "Lead", pipeline_stage: "proposal_sent", lead_source: "referral", lead_interest: "Mission BRAVO", next_step: "Check in", next_step_at: daysAhead(3), stage_changed_at: daysAgo(4), services: [], notes: [], documents: [], completedTasks: [] },
   ],
   OrbitSEOClient: [
     { id: "o1", clientId: "c1", businessName: "Summit Roofing Co", website: "summitroofing.test", serviceType: "Local", status: "Active", blogFrequency: "2x weekly", lastBlogPosted: daysAgo(2), nextBlogDue: daysAhead(1), gbpStatus: "Active", gbpLastPost: daysAgo(3), gbpNextDue: daysAhead(2), blogsPublishedCount: 24, gbpPostsDoneCount: 18, blogs: [], gbpPosts: [], tasks: [] },
@@ -38,11 +45,18 @@ const FIX = {
     { id: "k1", title: "Build Summit service-area pages", client_id: "c1", client_name: "Summit Roofing Co", category: "development", status: "doing", priority: 1, due_date: daysAhead(1), is_focus: true, source: "manual" },
     { id: "k2", title: "Write Harbor Coffee holiday menu post", client_id: "c2", client_name: "Harbor Coffee", category: "content", status: "next", priority: 2, due_date: daysAhead(3), source: "ai" },
     { id: "k3", title: "Send Peak Fitness intake audit", client_id: "c3", client_name: "Peak Fitness Lab", category: "sales", status: "next", priority: 1, due_date: daysAgo(1), source: "manual" },
+    { id: "k4", title: "Publish Summit storm-damage blog", client_id: "c1", client_name: "Summit Roofing Co", category: "content", status: "next", priority: 2, due_date: daysAhead(2), source: "ai", portal_visible: true },
+    { id: "k5", title: "Add crew calendar to Summit system", client_id: "c1", client_name: "Summit Roofing Co", category: "development", status: "doing", priority: 1, due_date: daysAhead(4), source: "manual", portal_visible: true },
+    { id: "k6", title: "Reply to Cascade Plumbing inquiry", client_id: "c4", client_name: "Cascade Plumbing", category: "sales", status: "next", priority: 1, due_date: daysAhead(0), source: "manual" },
+    { id: "k7", title: "Harbor Coffee GBP holiday hours", client_id: "c2", client_name: "Harbor Coffee", category: "seo", status: "next", priority: 3, due_date: daysAhead(5), source: "ai" },
   ],
   WorkLog: [
     { id: "w1", client_id: "c1", client_name: "Summit Roofing Co", kind: "blog", title: "Roof repair vs replacement: what Portland homeowners should know", date: daysAgo(2), status: "live", source: "automation", verified_live: true, url: "https://summitroofing.test/blog/repair-vs-replace" },
     { id: "w2", client_id: "c1", client_name: "Summit Roofing Co", kind: "gbp_post", title: "Storm season inspection offer", date: daysAgo(3), status: "live", source: "automation", verified_live: true },
     { id: "w3", client_id: "c2", client_name: "Harbor Coffee", kind: "site_edit", title: "Updated fall hours on contact page", date: daysAgo(4), status: "live", source: "manual" },
+    { id: "w4", client_id: "c1", client_name: "Summit Roofing Co", kind: "blog", title: "How to spot hail damage before it becomes a leak", date: daysAgo(0), status: "live", source: "automation", verified_live: true },
+    { id: "w5", client_id: "c1", client_name: "Summit Roofing Co", kind: "gbp_post", title: "Free roof check after the windstorm", date: daysAgo(0), status: "live", source: "automation", verified_live: true },
+    { id: "w6", client_id: "c1", client_name: "Summit Roofing Co", kind: "site_edit", title: "Added Lake Oswego service-area page", date: daysAgo(1), status: "live", source: "manual" },
   ],
   Automation: [
     { id: "a1", client_id: "c1", client_name: "Summit Roofing Co", name: "Blog drop (Tue/Thu)", kind: "blog", runner: "claude_scheduled", schedule: "Tue + Thu 9am PT", status: "active", last_result: "success", last_run_at: new Date(today.getTime() - 2 * 864e5).toISOString(), runs_count: 24 },
@@ -62,7 +76,11 @@ const FIX = {
   ],
   ClientFile: [{ id: "f1", client_id: "c1", title: "Summit brand kit", category: "brand_kit", file_url: "https://example.com/kit.pdf", delivered_on: daysAgo(20) }, { id: "f2", client_id: "c1", title: "Onboarding SOP", category: "sop", link_url: "https://docs.example.com", delivered_on: daysAgo(10) }],
   ConversationMessage: [{ id: "m1", client_id: "c1", content: "Your new service-area pages are live!", sender_role: "admin", created_date: new Date().toISOString() }],
-  Project: [{ id: "pj1", client_id: "c1", title: "Customer rewards program", type: "app", status: "proposed", description: "Points for referrals and repeat jobs", portal_visible: true }],
+  Project: [
+    { id: "pj1", client_id: "c1", title: "Customer rewards program", type: "app", status: "proposed", description: "Points for referrals and repeat jobs", portal_visible: true },
+    { id: "pj2", client_id: "c1", title: "Summit Command System", type: "app", status: "in_progress", description: "Leads, quotes, jobs and invoices in one place", portal_visible: true },
+    { id: "pj3", client_id: "c2", title: "Harbor Coffee website", type: "website", status: "launched", description: "New site with online menu" },
+  ],
   Goal: [],
 };
 
