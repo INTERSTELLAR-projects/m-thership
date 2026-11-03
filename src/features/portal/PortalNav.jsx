@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   Home, LineChart, MapPin, Target, Compass, ClipboardList, MessageSquare, FolderOpen, Palette, BookOpen,
@@ -123,11 +123,12 @@ export function DesktopNav({ nav, tab, setTab, unread }) {
     else if (e.key === "Home") to(0);
     else if (e.key === "End") to(list.length - 1);
     else if (e.key === "Escape") { e.preventDefault(); setOpen(null); triggers.current[g.id]?.focus(); }
-    else if (e.key === "ArrowRight" || e.key === "ArrowLeft") { triggers.current[g.id] && moveTop({ ...e, currentTarget: triggers.current[g.id], preventDefault: () => e.preventDefault() }); }
+    else if ((e.key === "ArrowRight" || e.key === "ArrowLeft") && triggers.current[g.id]) moveTop({ key: e.key, currentTarget: triggers.current[g.id], preventDefault: () => e.preventDefault() });
   };
 
   return (
     <nav ref={rootRef} aria-label="Portal sections" data-portal-nav className="flex items-center gap-0.5">
+      <NavMotion />
       {nav.map((g) => {
         if (!g.items) {
           const active = tab === g.tab;
@@ -478,6 +479,7 @@ export function ScheduleCallModal({ open, onClose, previewId, preview }) {
 
   return createPortal(
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6" data-schedule-modal>
+      <NavMotion />
       <div className="absolute inset-0 bg-ink/55 motion-safe:animate-[portalFade_.18s_ease-out]" onClick={onClose} />
       <div
         ref={panelRef}
@@ -606,4 +608,7 @@ export function ScheduleCallModal({ open, onClose, previewId, preview }) {
   );
 }
 
-export { Fragment };
+// Keyframes for the dropdown / modal entrance (kept here so the nav owns its own motion).
+function NavMotion() {
+  return <style>{"@keyframes portalMenuIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}@keyframes portalFade{from{opacity:0}to{opacity:1}}"}</style>;
+}
