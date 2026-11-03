@@ -54,7 +54,7 @@ import LoginPage from '@/features/auth/LoginPage';
 // Branded sign-in routes. They render without a session. While the platform's hosted login owns /login for this
 // private app (custom auth not enrolled), the server answers these paths itself; the page takes over as soon as
 // the app is switched to its own login.
-const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/zz-login-shot'];
+const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password'];
 
 function PortalPreview() {
   const { clientId } = useParams();
