@@ -106,6 +106,14 @@ async function status(base44: Any, db: Any) {
     } catch (e) {
       out.instagram.quota_error = errText(e);
     }
+    // Account-level last 30 days (needs instagram_business_manage_insights). impressions is deprecated; views replaces it.
+    try {
+      const until = Math.floor(Date.now() / 1000);
+      const r = await graph(IG_GRAPH, `${me.ig_id}/insights`, token, { params: { metric: "reach,views,accounts_engaged,total_interactions", period: "day", metric_type: "total_value", since: until - 29 * 86400, until } });
+      out.instagram.insights_30d = Object.fromEntries((r?.data || []).map((row: Any) => [row.name, row.total_value?.value ?? 0]));
+    } catch (e) {
+      out.instagram.insights_error = errText(e);
+    }
   } catch (e) {
     out.instagram.error = errText(e);
   }
