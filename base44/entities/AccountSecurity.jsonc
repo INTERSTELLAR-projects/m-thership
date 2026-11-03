@@ -1,0 +1,115 @@
+{
+  "name": "AccountSecurity",
+  "type": "object",
+  "description": "Opt-in two-step verification for portal logins. Written only by the account-security backend function (service role). The authenticator secret is AES-GCM encrypted with the MFA_ENCRYPTION_KEY secret; one-time codes and recovery codes are stored only as keyed hashes.",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Platform user id"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "totp_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "totp_secret_enc": {
+      "type": "string",
+      "description": "Encrypted authenticator secret (never returned to any client)"
+    },
+    "totp_pending_enc": {
+      "type": "string",
+      "description": "Encrypted secret during setup, until the first code is confirmed"
+    },
+    "totp_pending_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "totp_last_step": {
+      "type": "number",
+      "description": "Last accepted 30s time step (blocks code replay)"
+    },
+    "email_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "email_code_hash": {
+      "type": "string",
+      "description": "Keyed hash of the current emailed code"
+    },
+    "email_code_purpose": {
+      "type": "string",
+      "description": "verify | enable"
+    },
+    "email_code_expires": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "email_sends": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Recent send times (rate limit)"
+    },
+    "recovery_hashes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Keyed hashes of unused recovery codes"
+    },
+    "failed_attempts": {
+      "type": "number",
+      "default": 0
+    },
+    "locked_until": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "enabled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reset_by": {
+      "type": "string",
+      "description": "Admin email that last reset this login's 2-step verification"
+    },
+    "reset_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id",
+    "email"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
