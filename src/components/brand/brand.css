@@ -1,7 +1,7 @@
 /* Interstellar brand lockup + footer glow band.
    Copied from interstellar-strategies.com (app 6ae18dc255e0da91f0ee6f1b):
    - Wordmark.jsx / .giant-mark  -> .is-wordmark (Geist 600, -0.06em, line-height 0.8, ink #1a1a1a)
-   - orange ® (align-super, 0.46em, #ff3c00) -> .is-reg
+   - orange ™ (align-super, 0.46em, #ff3c00) -> .is-reg
    - .mono-label (JetBrains Mono 500, 0.14em, uppercase) -> .is-sub
    - Footer "giant wordmark over an orange glow" + .grain -> .is-glow-band
    Fonts: Geist + JetBrains Mono from Google Fonts (linked in index.html / index.css). */
