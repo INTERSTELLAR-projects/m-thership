@@ -41,7 +41,7 @@ export function TextArea({ value, onChange, rows = 3, className = "", ...props }
 
 export function Select({ value, onChange, options, placeholder, className = "" }) {
   return (
-    <select value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={`${inputCls} h-9 py-0 ${className}`}>
+    <select value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={`${inputCls.replace("w-full ", "")} h-9 py-0 ${/\bw-/.test(className) ? "shrink-0" : "w-full"} ${className}`}>
       {placeholder !== undefined && <option value="">{placeholder}</option>}
       {options.map((o) => (typeof o === "string" ? <option key={o} value={o}>{o}</option> : <option key={o.value} value={o.value}>{o.label}</option>))}
     </select>
