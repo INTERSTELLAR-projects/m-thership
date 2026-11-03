@@ -199,7 +199,7 @@ function HomeView({ d, go, call, previewId, openAudit }) {
         )}
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr] [&>*]:min-w-0">
         <Panel label="Latest" title="Work feed">
           {d.work.length === 0 ? <Empty>Your work feed fills up as we publish for you.</Empty> : (
             <ul className="divide-y divide-hair">
