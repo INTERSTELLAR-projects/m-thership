@@ -7,6 +7,7 @@ import { CalendarRange as ContentPlansIcon } from "lucide-react";
 import { SUBSCRIPTIONS, DELIVERY_PACKAGES, packagePath } from "@/features/packages/registry";
 import { Zap as AutomationsIcon } from "lucide-react";
 import { Megaphone as SocialIcon } from "lucide-react";
+import { Mail as EmailStudioIcon } from "lucide-react";
 
 export const LOGO_URL =
   "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/536102fbf_interstellar-mark-v2.webp";
@@ -53,6 +54,7 @@ export const NAV_GROUPS = [
       { label: "Signatures", icon: PenLine, path: "/signatures" },
       { label: "QR Codes", icon: QrCode, path: "/qr" },
       { label: "Social Studio", icon: SocialIcon, path: "/social" },
+      { label: "Email Studio", icon: EmailStudioIcon, path: "/email" },
     ],
   },
   {
