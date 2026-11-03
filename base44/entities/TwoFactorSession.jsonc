@@ -1,0 +1,18 @@
+{
+  "name": "TwoFactorSession",
+  "type": "object",
+  "description": "A login session that passed two-step verification. Bound to a SHA-256 hash of that session's access token (the token itself is never stored), so a password alone cannot reuse it. Written only by the account-security backend function.",
+  "properties": {
+    "user_id": { "type": "string" },
+    "token_hash": { "type": "string", "description": "SHA-256 of the verified session's bearer token" },
+    "method": { "type": "string", "enum": ["totp", "email", "recovery", "setup"] },
+    "expires_at": { "type": "string", "format": "date-time" }
+  },
+  "required": ["user_id", "token_hash", "expires_at"],
+  "rls": {
+    "read": { "user_condition": { "role": "__service_only__" } },
+    "create": { "user_condition": { "role": "__service_only__" } },
+    "update": { "user_condition": { "role": "__service_only__" } },
+    "delete": { "user_condition": { "role": "__service_only__" } }
+  }
+}
