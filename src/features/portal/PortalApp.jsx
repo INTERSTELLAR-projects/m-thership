@@ -280,6 +280,9 @@ function HomeView({ d, go, call, previewId, openAudit }) {
   const t = (...k) => d.work.filter((w) => k.includes(w.kind) && w.status === "live").length;
   const monthName = new Date().toLocaleDateString("en-US", { month: "long" });
   const allTime = d.work.length;
+  // Only the four counted kinds decide between the counters and the getting-started card (a lone audit report shouldn't produce four zeros).
+  const COUNTED = ["blog", "gbp_post", "site_edit", "new_page", "project_page", "deliverable", "citation", "press", "mention", "backlink"];
+  const counted = d.work.filter((w) => COUNTED.includes(w.kind)).length;
   const openReq = d.requests.filter((r) => !["complete", "declined"].includes(r.status));
 
   return (
@@ -287,10 +290,10 @@ function HomeView({ d, go, call, previewId, openAudit }) {
       <section>
         <p className="label-cross">(Your {monthName})</p>
         <h1 className="mt-3 text-[36px] font-semibold leading-[0.98] tracking-[-0.045em] md:text-[56px]">
-          {allTime === 0 ? <>Welcome aboard, <span className="text-[#ff3c00]">{d.client.business}</span>.</> : <>Here&apos;s what we did for <span className="text-[#ff3c00]">{d.client.business}</span>.</>}
+          {counted === 0 ? <>Welcome aboard, <span className="text-[#ff3c00]">{d.client.business}</span>.</> : <>Here&apos;s what we did for <span className="text-[#ff3c00]">{d.client.business}</span>.</>}
         </h1>
-        <p className="mt-3 max-w-2xl text-[15px] text-ink/60">Every blog, Google post, site update and listing we publish for you shows up here as it happens. {allTime ? `${allTime} pieces of work logged so far.` : ""}</p>
-        {allTime === 0 ? (
+        <p className="mt-3 max-w-2xl text-[15px] text-ink/60">Every blog, Google post, site update and listing we publish for you shows up here as it happens. {allTime ? `${allTime} ${allTime === 1 ? "piece" : "pieces"} of work logged so far.` : ""}</p>
+        {counted === 0 ? (
           <FirstMonth go={go} />
         ) : (
           <div className="mt-6 grid grid-cols-2 overflow-hidden rounded-md border border-hair bg-card lg:grid-cols-4">
@@ -437,7 +440,7 @@ function ResultsView({ d }) {
   return (
     <div className="space-y-4">
       <p className="label-cross">(Results)</p>
-      <h2 className="text-[32px] font-semibold tracking-[-0.04em]">How people are finding you</h2>
+      <h2 className="text-[32px] font-semibold leading-[1.05] tracking-[-0.04em]">How people are finding you</h2>
       {/* site_health comes from the portal function (already filtered: no score under 70). Hidden until it's returned. */}
       {d.site_health && <ClientHealthSummary health={d.site_health} businessName={d.client.business} />}
       <PerformanceView snapshots={d.snapshots} compact />
