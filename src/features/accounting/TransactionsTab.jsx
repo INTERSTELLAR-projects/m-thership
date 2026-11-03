@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
 import { occurrencesBetween } from "@/components/financial/finance/expenses";
 import { Btn, Card, ConfirmBtn, Disclaimer, Empty, Field, Heading, inputCls, Modal, NumberInput, Pill, Select } from "./ui";
-import { CAT, CATEGORIES, EXPENSE_CATEGORY_MAP, findRule, money2, normalize, payeePattern } from "./ledger";
+import { applyRulesTo, CAT, CATEGORIES, EXPENSE_CATEGORY_MAP, findRule, money2, normalize, payeePattern } from "./ledger";
 import { invokeAccounting } from "./useAccounting";
 import CsvImport from "./CsvImport";
 
@@ -23,17 +23,6 @@ export async function openReceipt(url) {
 export async function uploadReceipt(file) {
   const { file_uri } = await base44.integrations.Core.UploadPrivateFile({ file });
   return `private:${file_uri}`;
-}
-
-// Rule application: learned rules and high-priority system rules (≤10) categorize and approve;
-// other default rules only suggest (the row stays in the inbox for Justin).
-export function applyRulesTo(row, rules, catPatch) {
-  const rule = findRule(rules, row);
-  if (!rule || !CAT[rule.category]) return { patch: {}, rule: null };
-  if (rule.learned || (rule.priority ?? 50) <= 10) {
-    return { patch: { ...catPatch(rule.category), rule_id: rule.id, review_status: "approved" }, rule };
-  }
-  return { patch: { rule_id: rule.id, ai_suggestion: { category: rule.category, confidence: 0.85, reason: `Rule: "${rule.pattern}"`, by: "rule", at: new Date().toISOString() } }, rule };
 }
 
 function TxEditor({ tx, onClose, acct }) {

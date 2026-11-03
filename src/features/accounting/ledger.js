@@ -161,6 +161,17 @@ export function findRule(rules, tx) {
   return hits[0] || null;
 }
 
+// Rule application: learned rules and high-priority system rules (≤10) categorize and approve;
+// other default rules only suggest (the row stays in the inbox for Justin).
+export function applyRulesTo(row, rules, catPatch) {
+  const rule = findRule(rules, row);
+  if (!rule || !CAT[rule.category]) return { patch: {}, rule: null };
+  if (rule.learned || (rule.priority ?? 50) <= 10) {
+    return { patch: { ...catPatch(rule.category), rule_id: rule.id, review_status: "approved" }, rule };
+  }
+  return { patch: { rule_id: rule.id, ai_suggestion: { category: rule.category, confidence: 0.85, reason: `Rule: "${rule.pattern}"`, by: "rule", at: new Date().toISOString() } }, rule };
+}
+
 // ---------- CSV ----------
 export function parseCsv(text) {
   const rows = [];
