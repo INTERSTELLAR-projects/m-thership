@@ -12,7 +12,7 @@ import { Any, IG_GRAPH, errText, graph, graphRetry, publishSettings } from "../.
 // Admins populate SocialAccount rows by hand in Social Studio > Connections when a client hasn't connected.
 
 const pick = (o: Any, keys: string[]) => Object.fromEntries(keys.filter((k) => o?.[k] !== undefined).map((k) => [k, o[k]]));
-const PUBLIC = ["handle", "profile_picture_url", "followers_count", "follows_count", "media_count", "recent_media", "totals", "synced_at", "source"];
+const PUBLIC = ["handle", "profile_picture_url", "followers_count", "follows_count", "media_count", "recent_media", "totals", "insights_30d", "synced_at", "source"];
 
 Deno.serve(async (req) => {
   try {
