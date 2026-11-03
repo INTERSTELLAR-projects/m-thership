@@ -48,6 +48,7 @@ Hard rules (an ad that breaks one is rejected before it reaches Meta):
 - No credit/financing, hiring or housing wording.
 - No ALL-CAPS words, no repeated punctuation, no emoji strings. Banned words: ${VOICE.banned_words.join(", ")}.
 - Name the business (Interstellar Strategies) at least once in primary text.
+- Interstellar and Møthership are not registered trademarks: never use ® (use ™ only if a mark is needed at all).
 - Headline ≤ 40 characters${platform === "google" ? " (≤ 30 for Google)" : ""}; primary text ideally ≤ 125 characters before "See more", max 300; description ≤ 30 characters.
 Give each variant a genuinely different angle (pain → fix, process proof, offer clarity, founder voice…).`;
   const out = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: SCHEMA });
