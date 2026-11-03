@@ -109,7 +109,7 @@ export function CommandBriefing({ spec, example }) {
       <div style={{ marginTop: "auto", marginBottom: 36 }}>
         <DarkCard padding={34}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Mono size={14} color="rgba(255,255,255,.5)">(Command briefing) · MØTHERSHIP®</Mono>
+            <Mono size={14} color="rgba(255,255,255,.5)">(Command briefing) · MØTHERSHIP™</Mono>
             <SampleTag dark />
           </div>
           <p style={{ margin: "14px 0 0", fontSize: 52, fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.05, color: "#fff" }}>{m.greeting || "Good morning"}, {m.name}.</p>
