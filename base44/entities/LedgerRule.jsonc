@@ -1,0 +1,21 @@
+{
+  "name": "LedgerRule",
+  "description": "Accounting auto-categorization rule: payee/description pattern -> category. Learned from Justin's approvals or added by hand.",
+  "type": "object",
+  "properties": {
+    "business_id": { "type": "string", "default": "interstellar" },
+    "client_id": { "type": "string" },
+    "pattern": { "type": "string", "description": "Lower-case text to look for" },
+    "match_field": { "type": "string", "enum": ["payee", "description", "any"], "default": "any" },
+    "match_type": { "type": "string", "enum": ["contains", "equals", "starts_with"], "default": "contains" },
+    "direction": { "type": "string", "enum": ["in", "out", "any"], "default": "any" },
+    "category": { "type": "string" },
+    "priority": { "type": "number", "default": 50 },
+    "learned": { "type": "boolean", "default": false },
+    "active": { "type": "boolean", "default": true },
+    "hits": { "type": "number", "default": 0 },
+    "notes": { "type": "string" }
+  },
+  "required": ["pattern", "category"],
+  "rls": {"create": {"user_condition": {"role": "admin"}}, "read": {"user_condition": {"role": "admin"}}, "update": {"user_condition": {"role": "admin"}}, "delete": {"user_condition": {"role": "admin"}}}
+}

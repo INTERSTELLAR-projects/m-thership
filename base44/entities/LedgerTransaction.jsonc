@@ -1,0 +1,32 @@
+{
+  "name": "LedgerTransaction",
+  "description": "Accounting & Tax center ledger row (admin only). One money movement from Stripe, QuickBooks, a bank CSV, the Expense schedule or manual entry. business_id/client_id scope it so the center can later run per client.",
+  "type": "object",
+  "properties": {
+    "business_id": { "type": "string", "default": "interstellar", "description": "Business scope. 'interstellar' = Interstellar Strategies LLC" },
+    "client_id": { "type": "string", "description": "CRMClient id when the books belong to a client (future portal use). Empty for the agency" },
+    "tax_year": { "type": "number" },
+    "date": { "type": "string", "format": "date" },
+    "amount": { "type": "number", "description": "Always positive; direction says which way" },
+    "direction": { "type": "string", "enum": ["in", "out"] },
+    "account": { "type": "string", "description": "Bank/card/processor account name" },
+    "payee": { "type": "string" },
+    "description": { "type": "string" },
+    "category": { "type": "string", "description": "Category key from src/features/accounting/ledger.js" },
+    "tax_category": { "type": "string", "description": "income | deductible | partial | non_deductible | transfer | equity | tax_payment | personal" },
+    "form_line": { "type": "string", "description": "Form line the category maps to for the business entity type, e.g. 'Sch C L18'" },
+    "receipt_url": { "type": "string" },
+    "source": { "type": "string", "enum": ["stripe", "quickbooks", "csv", "expense_schedule", "manual"] },
+    "source_ref": { "type": "string", "description": "Id in the source system (Stripe txn id, QBO txn id, CSV batch row)" },
+    "dedupe_key": { "type": "string" },
+    "import_batch": { "type": "string" },
+    "reconciled": { "type": "boolean", "default": false },
+    "review_status": { "type": "string", "enum": ["needs_review", "approved", "excluded"], "default": "needs_review" },
+    "rule_id": { "type": "string" },
+    "ai_suggestion": { "type": "object", "additionalProperties": true, "description": "{ category, confidence, reason, at }" },
+    "matched_id": { "type": "string", "description": "Ledger row this one duplicates or reconciles" },
+    "notes": { "type": "string" }
+  },
+  "required": ["date", "amount", "direction"],
+  "rls": {"create": {"user_condition": {"role": "admin"}}, "read": {"user_condition": {"role": "admin"}}, "update": {"user_condition": {"role": "admin"}}, "delete": {"user_condition": {"role": "admin"}}}
+}

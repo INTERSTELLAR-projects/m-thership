@@ -1,0 +1,19 @@
+{
+  "name": "AccountingAsset",
+  "description": "Business asset for the depreciation list (computers, cameras, furniture, vehicles).",
+  "type": "object",
+  "properties": {
+    "business_id": { "type": "string", "default": "interstellar" },
+    "client_id": { "type": "string" },
+    "name": { "type": "string" },
+    "placed_in_service": { "type": "string", "format": "date" },
+    "cost": { "type": "number" },
+    "business_use_pct": { "type": "number", "default": 100 },
+    "asset_class": { "type": "string", "enum": ["computer", "office_equipment", "furniture", "vehicle", "software", "other"], "default": "computer" },
+    "treatment": { "type": "string", "enum": ["de_minimis", "section_179", "bonus", "macrs", "undecided"], "default": "undecided" },
+    "receipt_url": { "type": "string" },
+    "notes": { "type": "string" }
+  },
+  "required": ["name", "cost"],
+  "rls": {"create": {"user_condition": {"role": "admin"}}, "read": {"user_condition": {"role": "admin"}}, "update": {"user_condition": {"role": "admin"}}, "delete": {"user_condition": {"role": "admin"}}}
+}

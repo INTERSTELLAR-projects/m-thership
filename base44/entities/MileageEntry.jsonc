@@ -1,0 +1,15 @@
+{
+  "name": "MileageEntry",
+  "description": "Business mileage log (date, miles, purpose) for the standard mileage deduction.",
+  "type": "object",
+  "properties": {
+    "business_id": { "type": "string", "default": "interstellar" },
+    "client_id": { "type": "string" },
+    "date": { "type": "string", "format": "date" },
+    "miles": { "type": "number" },
+    "purpose": { "type": "string" },
+    "from_to": { "type": "string" }
+  },
+  "required": ["date", "miles"],
+  "rls": {"create": {"user_condition": {"role": "admin"}}, "read": {"user_condition": {"role": "admin"}}, "update": {"user_condition": {"role": "admin"}}, "delete": {"user_condition": {"role": "admin"}}}
+}
