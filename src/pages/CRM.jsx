@@ -14,6 +14,8 @@ import BrandProfile from "../components/crm/BrandProfile";
 import { useRef } from "react";
 import StripeServicePicker from "@/features/clients/StripeServicePicker";
 import ClientAnalytics, { serviceKey, serviceLabel } from "@/features/clients/ClientAnalytics";
+import { useCompletenessMap } from "@/features/clients/hooks";
+import CompletenessBadge from "@/features/clients/CompletenessBadge";
 
 const statusFilters = ["Active", "Lead", "Inactive", "All"];
 
@@ -125,6 +127,7 @@ export default function CRM() {
   }).sort((a, b) => (a.business || "").localeCompare(b.business || "", undefined, { sensitivity: "base" }));
 
   const selectedClient = clients.find((c) => c.id === selectedId);
+  const completeness = useCompletenessMap(clients).data || {};
 
   // Package deals: clients sharing a bundle name collapse into one card with a combined total.
   const rows = [];
@@ -220,6 +223,7 @@ export default function CRM() {
                                   <span className="text-ink/90 text-sm font-medium">{client.business}</span>
                                   <span className="text-green-600/60 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-green-400/10 border border-green-500/20 rounded">{client.status}</span>
                                   <span className="text-[#ff3c00] text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-[#ff3c00]/10 border border-[#ff3c00]/25 rounded">Package</span>
+                                  <CompletenessBadge pct={completeness[client.id]} />
                                 </div>
                                 <p className="text-ink/[0.48] text-xs">{client.contact} · {(client.emails || [])[0]}</p>
                               </div>
@@ -247,6 +251,7 @@ export default function CRM() {
                       <div className="flex items-center gap-3 mb-1">
                         <span className="text-ink/90 text-sm font-medium">{client.business}</span>
                         <span className="text-green-600/60 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-green-400/10 border border-green-500/20 rounded">{client.status}</span>
+                        <CompletenessBadge pct={completeness[client.id]} />
                       </div>
                       <p className="text-ink/[0.48] text-xs">{client.contact} · {(client.emails || [])[0]}</p>
                     </div>
