@@ -10,6 +10,7 @@ import { isPlaybookJob, saveApprovedPlaybook } from "./playbook";
 import { isContentPlanJob, saveApprovedContentPlan } from "./contentPlan";
 import { isSocialPlanJob, saveApprovedSocialPlan } from "./socialPlan";
 import { isEnrichJob, applyEnrichment } from "@/features/clients/enrich";
+import { isMapPackJob, saveApprovedMapPack } from "./mapPack";
 
 export const JOB_STATUS = {
   queued: { label: "Queued", tone: "bg-ink/[0.07] text-ink/70" },
@@ -25,7 +26,7 @@ export const ACTIVE = ["queued", "running", "needs_approval", "changes_requested
 
 export const KIND_LABELS = {
   task: "Task", audit: "Business audit", build_website: "Website build", build_app: "App build", blog: "Blog",
-  gbp_post: "GBP post", report: "Report", brand: "Brand", email: "Email draft", research: "Research", presentation: "Presentation", playbook: "Industry playbook", content_plan: "Content plan", social_plan: "Social plan", enrich_profile: "Profile enrichment", other: "Other",
+  gbp_post: "GBP post", report: "Report", brand: "Brand", email: "Email draft", research: "Research", presentation: "Presentation", playbook: "Industry playbook", content_plan: "Content plan", social_plan: "Social plan", enrich_profile: "Profile enrichment", map_pack_plan: "Map pack plan", other: "Other",
 };
 
 export function guessKind(text = "") {
@@ -188,6 +189,8 @@ export async function approveJob(job, opts = {}) {
   if (isContentPlanJob(job)) await saveApprovedContentPlan(job);
   // Social plan: same versioning as the playbook; saved hidden from the portal.
   if (isSocialPlanJob(job)) await saveApprovedSocialPlan(job);
+  // Map pack plan: the approved draft becomes the client's plan on the Map pack tab.
+  if (isMapPackJob(job)) await saveApprovedMapPack(job);
   await base44.entities.ClaudeJob.update(job.id, { status: "approved", approved_at: now });
   // Intel audit: findings become visible in the client portal, and the briefing is logged as work.
   if (job.kind === "audit" && job.client_id) {
