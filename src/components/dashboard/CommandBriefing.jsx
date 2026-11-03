@@ -69,7 +69,7 @@ export default function CommandBriefing() {
         <div className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full opacity-25 blur-3xl" style={{ background: "radial-gradient(circle,#ff3c00,transparent 70%)" }} />
         <div className="relative p-4 md:p-6">
           <div className="flex items-start justify-between gap-3">
-            <p className="mono-label text-[9.5px] text-white/50">(Command briefing) · MØTHERSHIP®</p>
+            <p className="mono-label text-[9.5px] text-white/50">(Command briefing) · MØTHERSHIP™</p>
             <div className="flex shrink-0 items-center gap-1.5">
               <HeroButton onClick={readAloud} disabled={!b} title={talking ? "Stop" : "Read it aloud (Core voice)"}>
                 {talking ? <Square className="h-3 w-3" /> : <Volume2 className="h-3.5 w-3.5" />}
