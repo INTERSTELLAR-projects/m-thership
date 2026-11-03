@@ -12,6 +12,20 @@ export function mailLink(addr: string, color = "#ff6a00") {
   const a = String(addr ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string));
   return `<a href="mailto:${a}" style="color:${color};text-decoration:underline;font-weight:700;"><span style="color:${color};text-decoration:underline;">${a}</span></a>`;
 }
+// Shared header for every Møthership email: gradient top bar, then the lockup (orbit icon + INTERSTELLAR + orange ®,
+// nothing under it), then the eyebrow row "+ EYEBROW" (orange +, grey uppercase). Rows for a dark (#0f0f0f) table
+// that uses the .px padding class. `eyebrow` is trusted HTML (escape any data before passing it).
+export function emailHeaderRows(eyebrow: string) {
+  const F = "font-family:Helvetica,Arial,sans-serif;";
+  return `<tr><td height="6" bgcolor="#ff3c00" style="height:6px;line-height:6px;font-size:0;background-color:#ff3c00;background-image:linear-gradient(90deg,#ff3c00,#ff6a00 55%,#ffaa00);">&nbsp;</td></tr>
+      <tr><td class="px" style="padding:26px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td valign="middle" width="48" style="width:48px;"><img src="${LOGO}" width="40" height="31" alt="Interstellar" style="display:block;border:0;"></td>
+          <td valign="middle" style="${F}font-size:15px;font-weight:700;letter-spacing:2px;color:#ffffff;">INTERSTELLAR${REG}</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="px" style="padding:44px 40px 0;${F}font-size:13px;font-weight:700;letter-spacing:1.5px;color:#9a9893;text-transform:uppercase;"><span style="color:#ff3c00;">+</span>&nbsp; ${eyebrow}</td></tr>`;
+}
 const esc = (s: unknown) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string));
 
 export function onboardingEmail({ business, contact, portalUrl, email }: { business: string; contact?: string; portalUrl: string; email: string }) {
@@ -59,17 +73,7 @@ export function onboardingEmail({ business, contact, portalUrl, email }: { busin
 
   <tr><td bgcolor="#0f0f0f" style="background-color:#0f0f0f;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr><td height="6" bgcolor="#ff3c00" style="height:6px;line-height:6px;font-size:0;background-color:#ff3c00;background-image:linear-gradient(90deg,#ff3c00,#ff6a00 55%,#ffaa00);">&nbsp;</td></tr>
-      <tr><td class="px" style="padding:26px 40px 0;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-          <td valign="middle" width="48" style="width:48px;"><img src="${LOGO}" width="40" height="31" alt="Interstellar" style="display:block;border:0;"></td>
-          <td valign="middle" style="${F}font-size:15px;font-weight:700;letter-spacing:2px;color:#ffffff;">INTERSTELLAR${REG}</td>
-        </tr></table>
-      </td></tr>
-      <tr><td class="px" style="padding:44px 40px 0;${F}font-size:13px;font-weight:700;letter-spacing:1.5px;color:#9a9893;text-transform:uppercase;">
-        <span style="color:#ff6a00;">${esc(business)}</span><br>
-        <span style="display:inline-block;padding-top:6px;"><span style="color:#ff3c00;">+</span>&nbsp; Portal access &nbsp;&middot;&nbsp; ${esc(date)}</span>
-      </td></tr>
+${emailHeaderRows(`Portal access &nbsp;&middot;&nbsp; ${esc(date)}`)}
       <tr><td class="px h1" style="padding:14px 40px 0;${F}font-size:48px;line-height:50px;font-weight:700;letter-spacing:-1.5px;color:#ffffff;">
         Your portal <span style="color:#ff3c00;">/is ready</span>
       </td></tr>

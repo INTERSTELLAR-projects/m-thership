@@ -4,7 +4,7 @@ import {
   recordFailure, clearFailures, encryptBytes, decryptBytes, base32, verifyTotp, newRecoveryCodes, hashRecovery,
   keyedHash, sixDigits, safeEqual, maskEmail, EMAIL_TTL_MS, bearerOf,
 } from "../../shared/twoFactor.ts";
-import { SENDER_NAME, REG, LINK_RESET_CSS, mailLink } from "../../shared/onboardingEmail.ts";
+import { SENDER_NAME, LINK_RESET_CSS, mailLink, emailHeaderRows } from "../../shared/onboardingEmail.ts";
 
 // Account > Security for portal logins (see base44/shared/twoFactor.ts for the security model).
 //   status                      -> what is on, whether this session has passed, recovery codes left
@@ -25,17 +25,17 @@ const PENDING_TTL_MS = 15 * 60 * 1000;
 function codeEmail(code: string, purpose: string) {
   const F = "font-family:Helvetica,Arial,sans-serif;";
   const what = purpose === "enable" ? "turn on email codes for your portal" : "finish signing in to your portal";
-  const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your Interstellar sign-in code</title><style>${LINK_RESET_CSS}</style></head>
+  const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your Interstellar sign-in code</title><style>${LINK_RESET_CSS}@media (max-width:620px){.px{padding-left:22px!important;padding-right:22px!important}}</style></head>
 <body id="body" style="margin:0;padding:0;background:#ebe8e4;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ebe8e4"><tr><td align="center" style="padding:24px 10px 40px;">
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:560px;">
-<tr><td height="6" bgcolor="#ff3c00" style="height:6px;line-height:6px;font-size:0;background-image:linear-gradient(90deg,#ff3c00,#ff6a00 55%,#ffaa00);">&nbsp;</td></tr>
-<tr><td bgcolor="#0f0f0f" style="background-color:#0f0f0f;padding:30px 36px 34px;${F}">
-<div style="font-size:13px;font-weight:700;letter-spacing:2px;color:#ffffff;">INTERSTELLAR${REG}</div>
-<div style="padding-top:26px;font-size:13px;font-weight:700;letter-spacing:1.5px;color:#9a9893;text-transform:uppercase;"><span style="color:#ff3c00;">+</span>&nbsp; Two-step verification</div>
-<div style="padding-top:12px;font-size:34px;line-height:38px;font-weight:700;letter-spacing:-1px;color:#ffffff;">Your code <span style="color:#ff3c00;">/${code}</span></div>
-<div style="padding-top:16px;font-size:15px;line-height:23px;color:#d6d4cf;">Enter it to ${what}. It works once and expires in 10 minutes.</div>
-<div style="padding-top:16px;font-size:13px;line-height:20px;color:#9a9893;">Didn't try to sign in? Someone may have your password. Change it, and email ${mailLink("justin@interstellar-strategies.com", "#ff6a00")}.</div>
+<tr><td bgcolor="#0f0f0f" style="background-color:#0f0f0f;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+${emailHeaderRows("Two-step verification")}
+<tr><td class="px" style="padding:14px 40px 0;${F}font-size:34px;line-height:38px;font-weight:700;letter-spacing:-1px;color:#ffffff;">Your code <span style="color:#ff3c00;">/${code}</span></td></tr>
+<tr><td class="px" style="padding:16px 40px 0;${F}font-size:15px;line-height:23px;color:#d6d4cf;">Enter it to ${what}. It works once and expires in 10 minutes.</td></tr>
+<tr><td class="px" style="padding:16px 40px 34px;${F}font-size:13px;line-height:20px;color:#9a9893;">Didn't try to sign in? Someone may have your password. Change it, and email ${mailLink("justin@interstellar-strategies.com", "#ff6a00")}.</td></tr>
+</table>
 </td></tr>
 <tr><td height="6" bgcolor="#ffaa00" style="height:6px;line-height:6px;font-size:0;background-image:linear-gradient(90deg,#ffaa00,#ff6a00,#ff3c00);">&nbsp;</td></tr>
 </table></td></tr></table></body></html>`;
