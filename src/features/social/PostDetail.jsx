@@ -207,7 +207,7 @@ export default function PostDetail() {
                 </div>
               </Field>
               <Field label="Logo lockup">
-                <Select value={spec.lockup || "interstellar"} onChange={(v) => setSpec({ lockup: v })} options={[{ value: "interstellar", label: "INTERSTELLAR®" }, { value: "mothership", label: "MØTHERSHIP®" }, { value: "none", label: "None" }]} />
+                <Select value={spec.lockup || "interstellar"} onChange={(v) => setSpec({ lockup: v })} options={[{ value: "interstellar", label: "INTERSTELLAR™" }, { value: "mothership", label: "MØTHERSHIP™" }, { value: "none", label: "None" }]} />
               </Field>
             </div>
           </Panel>
