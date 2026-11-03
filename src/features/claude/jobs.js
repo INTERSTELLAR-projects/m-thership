@@ -9,6 +9,7 @@ import { isDeckJob, saveApprovedDeck } from "@/features/presentations/lib/deckSc
 import { isPlaybookJob, saveApprovedPlaybook } from "./playbook";
 import { isContentPlanJob, saveApprovedContentPlan } from "./contentPlan";
 import { isSocialPlanJob, saveApprovedSocialPlan } from "./socialPlan";
+import { isEnrichJob, applyEnrichment } from "@/features/clients/enrich";
 
 export const JOB_STATUS = {
   queued: { label: "Queued", tone: "bg-ink/[0.07] text-ink/70" },
@@ -24,7 +25,7 @@ export const ACTIVE = ["queued", "running", "needs_approval", "changes_requested
 
 export const KIND_LABELS = {
   task: "Task", audit: "Business audit", build_website: "Website build", build_app: "App build", blog: "Blog",
-  gbp_post: "GBP post", report: "Report", brand: "Brand", email: "Email draft", research: "Research", presentation: "Presentation", playbook: "Industry playbook", content_plan: "Content plan", social_plan: "Social plan", other: "Other",
+  gbp_post: "GBP post", report: "Report", brand: "Brand", email: "Email draft", research: "Research", presentation: "Presentation", playbook: "Industry playbook", content_plan: "Content plan", social_plan: "Social plan", enrich_profile: "Profile enrichment", other: "Other",
 };
 
 export function guessKind(text = "") {
@@ -170,8 +171,13 @@ export async function queueBuild(client, type, { refs = [], extra = "" } = {}) {
 }
 
 // Approve: the job is final, its task is done, and it lands in Live Ops + the client's page.
-export async function approveJob(job) {
+export async function approveJob(job, opts = {}) {
   const now = new Date().toISOString();
+  // Profile enrichment: only the fields Justin ticked in the review table are written.
+  if (isEnrichJob(job)) {
+    if (!Array.isArray(opts.accepted)) throw new Error("Review the proposed fields first: tick the ones to keep in the review table, then approve.");
+    await applyEnrichment(job, opts.accepted);
+  }
   // Brand kit: only an approved result is saved onto the client profile.
   if (isBrandKitJob(job)) await saveApprovedKit(job);
   // Deck: an approved deck lands on its Presentation (only while that deck is still waiting for it).
