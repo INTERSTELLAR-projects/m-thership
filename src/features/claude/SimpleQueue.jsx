@@ -4,6 +4,8 @@ import { timeAgo } from "@/lib/useData";
 import { cn } from "@/lib/utils";
 import { JOB_STATUS, approveJob, requestChanges, retryJob, useRefreshJobs } from "./jobs";
 import { oneLine, needsList, SIMPLE_GROUPS } from "./simple";
+import { Link } from "react-router-dom";
+import { isEnrichJob } from "@/features/clients/enrich";
 
 function Pill({ status }) {
   const s = JOB_STATUS[status] || JOB_STATUS.queued;
@@ -59,7 +61,12 @@ function SimpleCard({ job, open, onToggle, renderDetail }) {
           )}
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
-          {job.status === "needs_approval" && (
+          {job.status === "needs_approval" && isEnrichJob(job) && job.client_id && (
+            <Link to={`/clients/${job.client_id}`} className="inline-flex items-center gap-1.5 rounded-sm bg-gradient-to-r from-[#ff3c00] to-[#ff6a00] px-4 py-2 text-[13px] font-medium text-white">
+              <Check className="h-3.5 w-3.5" /> Review fields
+            </Link>
+          )}
+          {job.status === "needs_approval" && !isEnrichJob(job) && (
             <button type="button" disabled={!!busy} onClick={() => run("ok", () => approveJob(job))}
               className="inline-flex items-center gap-1.5 rounded-sm bg-gradient-to-r from-[#ff3c00] to-[#ff6a00] px-4 py-2 text-[13px] font-medium text-white disabled:opacity-60">
               {busy === "ok" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />} Approve
