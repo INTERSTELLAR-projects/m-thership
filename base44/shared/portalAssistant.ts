@@ -164,6 +164,42 @@ async function qrSummary(ctx: Ctx) {
   };
 }
 
+// ---- Prestige referrals: program rules + the client's own credit balance (mirrors src/lib/prestige.js) ----
+export const REFERRAL_RULES = {
+  book_a_call: "Priority Pass: when someone they send books a call, their next request jumps to the front of the build queue. No dollar value.",
+  signed: "$500 in Interstellar credit added to their account when someone they send pays their first invoice. It is not a discount on their subscription.",
+  stack_for_builds: "No cap, credits stack: an automation, an upgrade or new feature for their app (Command System), an interactive feature for their website, or toward an add-on package (Ops Command, Brand Arsenal, Launch Grid, Transmission and more).",
+  capped_spends: "Up to $500 per redemption: custom merch, marketing materials (print, signage, cards, flyers), social media posts, reels or long-form videos, ad spend.",
+  how_to_spend: "Referrals tab > Use my credits. Justin approves every redemption; nothing comes off the balance until it's approved.",
+  fine_print: "A referral counts as signed once their first invoice is paid. Credits stack with no expiry unless stated, apply to Interstellar work only, have no cash value and are non-transferable. Merch, marketing materials, social posts, videos and ad spend are redeemed through Interstellar.",
+};
+async function referralSummary(ctx: Ctx) {
+  const emails = ((ctx.client.portal_emails as string[]) || []).map((e) => String(e).toLowerCase());
+  const members = ((await ctx.db.PrestigeMember.list("-created_date", 500).catch(() => [])) || []) as Row[];
+  const m = members.find((x) => x.client_id === ctx.cid) || members.find((x) => (!x.client_id || x.client_id === ctx.cid) && x.email && emails.includes(String(x.email).toLowerCase()));
+  if (!m) return { enrolled: false, rules: REFERRAL_RULES, where: "Referrals tab (Get my referral link)" };
+  const [refs, rewards, reds] = await Promise.all([
+    ctx.db.PrestigeReferral.filter({ memberId: m.id }, "-date", 500).catch(() => []),
+    ctx.db.PrestigeReward.filter({ memberId: m.id }, "-created_date", 500).catch(() => []),
+    ctx.db.PrestigeRedemption.filter({ memberId: m.id }, "-created_date", 500).catch(() => []),
+  ]);
+  const isCredit = (r: Row) => r.reward_type === "credit_500" || (!r.reward_type && r.kind === "signed");
+  const earned = (rewards || []).filter((r: Row) => isCredit(r) && r.status !== "void").reduce((s: number, r: Row) => s + (Number(r.value) || 0), 0);
+  const redeemed = (reds || []).filter((x: Row) => x.status === "approved" || x.status === "fulfilled").reduce((s: number, x: Row) => s + (Number(x.amount) || 0), 0);
+  const pending = (reds || []).filter((x: Row) => x.status === "requested").reduce((s: number, x: Row) => s + (Number(x.amount) || 0), 0);
+  return {
+    enrolled: true,
+    signed: (refs || []).filter((r: Row) => r.status === "Confirmed" || r.status === "Paid Out").length,
+    sent: (refs || []).length,
+    priority_passes_ready: (rewards || []).filter((r: Row) => (r.reward_type === "priority_pass" || (!r.reward_type && r.kind === "booked")) && r.status === "owed").length,
+    credit_balance: earned - redeemed,
+    credit_pending_approval: pending,
+    credit_available: Math.max(0, earned - redeemed - pending),
+    rules: REFERRAL_RULES,
+    where: "Referrals tab",
+  };
+}
+
 const projectOut = (p: Row) => pick(p, ["title", "type", "status", "progress", "due_date", "description"]);
 const milestoneOut = (t: Row) => pick(t, ["title", "due_date", "status", "project_name"]);
 
@@ -238,6 +274,7 @@ export async function quickFacts(ctx: Ctx, topic: string) {
     out.playbook = p ? { version: p.version, summary: p.summary || null, details: str(p.body_md, 3000) || null, where: "Playbook tab" } : "No playbook is published to the portal yet.";
   }
   if (want("qr_codes")) out.qr_codes = await qrSummary(ctx);
+  if (want("referrals")) out.referrals = await referralSummary(ctx);
   if (want("signatures")) {
     const sigs = await ctx.db.Signature.filter({ client_id: ctx.cid }, "-updated_date", 100).catch(() => []);
     out.signatures = { count: (sigs || []).length, list: (sigs || []).slice(0, 25).map((s: Row) => ({ name: s.name, updated: s.updated_date || null })), where: "Signatures tab (free bonus tool)" };
