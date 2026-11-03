@@ -48,7 +48,13 @@ import OutreachPage from '@/features/outreach/OutreachPage';
 import LegacyImportBanner from '@/features/tasks/LegacyImportBanner';
 import PackagePage from '@/features/packages/PackagePage';
 import { Navigate } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
+import LoginPage from '@/features/auth/LoginPage';
+
+// Branded sign-in routes. They render without a session. While the platform's hosted login owns /login for this
+// private app (custom auth not enrolled), the server answers these paths itself; the page takes over as soon as
+// the app is switched to its own login.
+const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password'];
 
 function PortalPreview() {
   const { clientId } = useParams();
@@ -57,6 +63,11 @@ function PortalPreview() {
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
+  const location = useLocation();
+
+  if (AUTH_PATHS.includes(location.pathname.replace(/\/+$/, ''))) {
+    return <Routes>{AUTH_PATHS.map((p) => <Route key={p} path={p} element={<LoginPage />} />)}</Routes>;
+  }
 
   // Public request forms (/r/<id>?k=...) need no login: client sites link straight to them.
   if (window.location.pathname.startsWith('/r/')) {
