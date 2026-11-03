@@ -23,6 +23,15 @@
         "tier"
       ]
     },
+    "reward_type": {
+      "type": "string",
+      "enum": [
+        "priority_pass",
+        "credit_500",
+        "tier_unlock"
+      ],
+      "description": "What was earned: priority_pass (referral booked a call: next request jumps the build queue, no cash value), credit_500 ($500 Interstellar credit added to the balance when the referral pays their first invoice), tier_unlock (ladder unlock)"
+    },
     "tier_index": {
       "type": "number",
       "description": "1-based tier index for tier unlock rewards"
@@ -32,7 +41,8 @@
     },
     "value": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "Dollar value. For credit_500 this is the credit added to the member's balance (500); priority_pass is 0"
     },
     "status": {
       "type": "string",
