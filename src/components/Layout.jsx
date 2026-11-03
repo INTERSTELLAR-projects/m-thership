@@ -6,6 +6,7 @@ import TimeZoneBar from "./TimeZoneBar";
 import CommandPalette from "./CommandPalette";
 import GridTrail from "./GridTrail";
 import BrandLockup from "@/components/brand/BrandLockup";
+import AccountingNotices from "@/features/accounting/AccountingNotices";
 
 export default function Layout() {
   const [cmdOpen, setCmdOpen] = useState(false);
@@ -48,6 +49,7 @@ export default function Layout() {
         </div>
       </main>
       <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} />
+      <AccountingNotices />
     </div>
   );
 }
