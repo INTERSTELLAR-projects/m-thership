@@ -76,7 +76,10 @@ export default function PortalInstagram({ previewId }) {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-px bg-hair sm:grid-cols-4">
-            {[["Followers", a.followers_count], ["Posts", a.media_count], [`Likes · last ${a.totals?.posts || (a.recent_media || []).length || 12}`, a.totals?.likes], ["Comments", a.totals?.comments]].map(([l, v]) => (
+            {(a.insights_30d?.reach != null
+              ? [["Followers", a.followers_count], ["Reached · 30 days", a.insights_30d.reach], ["Views · 30 days", a.insights_30d.views], ["Engaged · 30 days", a.insights_30d.accounts_engaged]]
+              : [["Followers", a.followers_count], ["Posts", a.media_count], [`Likes · last ${a.totals?.posts || (a.recent_media || []).length || 12}`, a.totals?.likes], ["Comments", a.totals?.comments]]
+            ).map(([l, v]) => (
               <div key={l} className="bg-card px-4 py-3">
                 <p className="mono-label text-[8.5px] text-ink/45">{l}</p>
                 <p className="mt-0.5 text-[24px] font-semibold tabular-nums tracking-[-0.04em]">{n(v)}</p>
