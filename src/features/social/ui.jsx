@@ -8,12 +8,12 @@ export const STATUS_LABEL = Object.fromEntries(STATUSES.map((s) => [s.key, s.lab
 export const PILLAR_LABEL = Object.fromEntries(PILLARS.map((p) => [p.key, p.label]));
 
 const STATUS_TONE = {
-  idea: "border-hair text-ink/55",
   draft: "border-ink/25 text-ink/75",
-  ready: "border-[#ff6a00]/60 bg-[#ff6a00]/10 text-[#c44a00]",
-  scheduled: "border-[#ff3c00]/50 bg-[#ff3c00]/10 text-[#d83300]",
+  approved: "border-[#ff3c00]/50 bg-[#ff3c00]/10 text-[#d83300]",
+  publishing: "border-[#ff6a00]/60 bg-[#ff6a00]/10 text-[#c44a00] animate-pulse",
   posted: "border-ink bg-ink text-white",
-  skipped: "border-hair text-ink/35 line-through",
+  failed: "border-[#b42318]/50 bg-[#b42318]/10 text-[#b42318]",
+  declined: "border-hair text-ink/35 line-through",
 };
 
 export function StatusBadge({ status }) {
