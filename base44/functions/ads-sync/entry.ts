@@ -137,7 +137,7 @@ async function syncAll(base44: any, db: any, settings: any, onlyRef?: string, da
   return { ok: results.every((r) => !r.error), results };
 }
 
-export default async function (req: Request) {
+Deno.serve(async (req: Request) => {
   try {
     const base44 = createClientFromRequest(req);
     const db = base44.asServiceRole.entities;
@@ -193,4 +193,4 @@ export default async function (req: Request) {
   } catch (e) {
     return json({ error: String((e as Error)?.message || e) }, 500);
   }
-}
+});
