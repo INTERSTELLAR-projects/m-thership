@@ -228,22 +228,9 @@ export default function PostDetail() {
                 })}
               </div>
             </Field>
-            <Field label="Scheduled for" hint="reminder only, nothing auto-posts">
-              <input type="datetime-local" value={(draft.scheduled_for || "").slice(0, 16)} onChange={(e) => set({ scheduled_for: e.target.value ? new Date(e.target.value).toISOString() : "" })} className={inputCls} />
-            </Field>
-            <Field label="Posted URL">
-              <div className="flex gap-2">
-                <TextInput value={draft.posted_url} onChange={(v) => set({ posted_url: v })} placeholder="https://www.instagram.com/p/…" />
-                {draft.posted_url && <a href={draft.posted_url} target="_blank" rel="noreferrer" className="inline-flex items-center border border-hair px-2 text-ink/50 hover:text-[#ff3c00]"><ExternalLink className="h-3.5 w-3.5" /></a>}
-              </div>
-            </Field>
-            <Btn variant="ink" className="w-full" onClick={() => set({ status: "posted", posted_at: draft.posted_at || new Date().toISOString() })} disabled={draft.status === "posted"}>
-              <Send className="h-3.5 w-3.5" />{draft.status === "posted" ? `Posted ${draft.posted_at ? new Date(draft.posted_at).toLocaleDateString() : ""}` : "Mark posted"}
-            </Btn>
             <Field label="Notes"><TextArea rows={2} value={draft.notes} onChange={(v) => set({ notes: v })} /></Field>
             <div className="flex flex-wrap items-center gap-2 border-t border-hair pt-3">
-              <Btn onClick={attachPng}><ImageUp className="h-3.5 w-3.5" />Attach PNG to post</Btn>
-              {draft.image_url && <a href={draft.image_url} target="_blank" rel="noreferrer" className="text-[12px] text-[#ff3c00] hover:underline">View attached PNG</a>}
+              {server.image_url && <a href={server.image_url} target="_blank" rel="noreferrer" className="text-[12px] text-[#ff3c00] hover:underline">View publishing image (JPEG)</a>}
               <Btn variant="ghost" className="ml-auto" onClick={() => setConfirmDelete(true)}><Trash2 className="h-3.5 w-3.5" />Delete</Btn>
             </div>
             {postQ.data.generation_batch && <p className="mono-label text-[9px] text-ink/40">Batch {postQ.data.generation_batch} · by {postQ.data.generated_by || "justin"}{postQ.data.planned_for ? ` · planned ${postQ.data.planned_for}` : ""}</p>}
