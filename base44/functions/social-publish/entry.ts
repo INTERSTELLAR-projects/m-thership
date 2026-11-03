@@ -377,9 +377,11 @@ async function refreshInsights(base44: Any, db: Any, onlyId: string | null) {
         for (const row of r?.data || []) ins[row.name] = row.values?.[0]?.value ?? row.total_value?.value ?? ins[row.name];
         delete ins.note;
       } catch (e) {
-        scopeNote = /permission|scope|\(#10\)|\(#200\)/i.test(errText(e))
-          ? "Reach and views need the instagram_business_manage_insights scope on the Instagram connector."
-          : errText(e);
+        scopeNote = /Application does not have permission/i.test(errText(e))
+          ? "Instagram refused insights for the connector's Meta app (reach/views). Likes and comments still update."
+          : /permission|scope|\(#10\)|\(#200\)/i.test(errText(e))
+            ? "Reach and views need the instagram_business_manage_insights scope on the Instagram connector."
+            : errText(e);
         ins.note = scopeNote;
       }
     }
