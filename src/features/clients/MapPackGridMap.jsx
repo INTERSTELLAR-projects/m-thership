@@ -10,7 +10,7 @@ function FitTo({ bounds }) {
   const map = useMap();
   useEffect(() => {
     if (bounds) map.fitBounds(bounds, { padding: [18, 18] });
-  }, [map, bounds && bounds.flat().join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [map, bounds && bounds.flat().join(",")]);
   return null;
 }
 
