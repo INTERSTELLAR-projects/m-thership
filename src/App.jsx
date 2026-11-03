@@ -29,6 +29,7 @@ import SignaturesPage from '@/features/signatures/SignaturesPage';
 import SignatureEditor from '@/features/signatures/EditorPage';
 import QrPage, { QrEditorPage } from '@/features/qr/QrPage';
 import SocialPage from '@/features/social/SocialPage';
+import EmailStudioPage from '@/features/email/EmailStudioPage';
 import SocialPostDetail from '@/features/social/PostDetail';
 import PresentationStudio from '@/features/presentations/StudioPage';
 import PresentationProjects from '@/features/presentations/ProjectsPage';
@@ -133,6 +134,7 @@ const AuthenticatedApp = () => {
         <Route path="/qr" element={<ProtectedRoute><QrPage /></ProtectedRoute>} />
         <Route path="/qr/:id" element={<ProtectedRoute><QrEditorPage /></ProtectedRoute>} />
         <Route path="/social" element={<ProtectedRoute><SocialPage /></ProtectedRoute>} />
+        <Route path="/email" element={<ProtectedRoute><EmailStudioPage /></ProtectedRoute>} />
         <Route path="/social/:id" element={<ProtectedRoute><SocialPostDetail /></ProtectedRoute>} />
         <Route path="/presentations" element={<ProtectedRoute><PresentationStudio /></ProtectedRoute>} />
         <Route path="/presentations/deck/:id" element={<ProtectedRoute><PresentationStudio /></ProtectedRoute>} />
