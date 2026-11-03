@@ -206,7 +206,7 @@ Deno.serve(async (req) => {
       }).catch((e: Error) => console.error("request log failed", e.message));
       await db.Task.create({
         title: `Client call — ${business} (${label(min)} PT)`,
-        category: "client", priority: 1, status: "next", source: "automation", task_type: "client",
+        category: "strategy", priority: 1, status: "next", source: "request", task_type: "internal",
         due_date: date, client_id: cid, client_name: business, estimated_minutes: CALL_MIN,
         labels: ["Booking", "Portal"],
         notes: [desc, meetLink && `Meet: ${meetLink}`, !confirmed && "Calendar invite was NOT sent automatically — confirm the time and send the invite."].filter(Boolean).join("\n"),
