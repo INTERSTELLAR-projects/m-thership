@@ -7,7 +7,8 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 
 const REFRESH_MS = 24 * 60 * 60 * 1000;
 const RETRY_MS = 6 * 60 * 60 * 1000;
-const FIELD_MASK = "displayName,rating,userRatingCount,reviews,googleMapsUri";
+// nationalPhoneNumber/formattedAddress are the GBP's NAP (source of truth for client phones); same Places SKU as reviews.
+const FIELD_MASK = "displayName,rating,userRatingCount,reviews,googleMapsUri,nationalPhoneNumber,internationalPhoneNumber,formattedAddress";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -38,6 +39,9 @@ async function fetchFromGoogle(placeId: string) {
     total: typeof data.userRatingCount === "number" ? data.userRatingCount : null,
     businessName: data.displayName?.text || null,
     mapsUrl: data.googleMapsUri || null,
+    phone: data.nationalPhoneNumber || null,
+    phoneIntl: data.internationalPhoneNumber || null,
+    address: data.formattedAddress || null,
     reviewUrl: "https://search.google.com/local/writereview?placeid=" + encodeURIComponent(placeId),
     reviews,
   };
@@ -72,7 +76,9 @@ Deno.serve(async (req) => {
     const attemptAt = client.last_attempt_at ? Date.parse(client.last_attempt_at) : 0;
     const fresh = client.cache && now - cachedAt < REFRESH_MS;
     const coolingDown = now - attemptAt < (client.last_error ? RETRY_MS : REFRESH_MS);
-    if (!force && (fresh || coolingDown)) {
+    // One-time backfill: caches written before the GBP phone/address were requested refresh once.
+    const missingNap = client.cache && !("phone" in client.cache) && !client.last_error;
+    if (!force && !missingNap && (fresh || coolingDown)) {
       return reply({ ...(client.cache || { configured: true, reviews: [] }), cachedAt: client.cached_at || null });
     }
 
