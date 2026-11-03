@@ -7,7 +7,7 @@
 
 // Public redirect endpoint (same host the Stärboard reviews endpoint uses). Each code stores the exact
 // URL it was minted with in `encoded_url`, so changing this constant later never alters a printed code.
-export const REDIRECT_BASE = "https://m-thership.base44.app/functions/qr";
+export const REDIRECT_BASE = "https://interstellar-mothership.com/functions/qr";
 export const redirectUrl = (code) => `${REDIRECT_BASE}?c=${encodeURIComponent(code)}`;
 
 export const CONTENT_TYPES = [

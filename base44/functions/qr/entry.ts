@@ -1,7 +1,7 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 
 // Public redirect for dynamic QR codes (Møthership Studio / QR Codes).
-//   GET https://m-thership.base44.app/functions/qr?c=<short_code>
+//   GET https://interstellar-mothership.com/functions/qr?c=<short_code>
 // Looks the code up, logs one anonymous scan (time, device class, OS family, referrer host, country header;
 // never the IP or full user agent) and 302s to the code's destination. Only http(s) destinations are ever
 // redirected to; anything else, unknown codes and paused codes get a small branded page instead.

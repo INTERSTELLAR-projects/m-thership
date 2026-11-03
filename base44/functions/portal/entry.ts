@@ -545,7 +545,7 @@ Deno.serve(async (req) => {
     // ---- Google Business Profile: this client's ReviewClient rows (one per location), served from the Stärboard cache. ----
     // Never returns another client's rows: ReviewClient is matched on crm_client_id === cid only.
     if (action === "gbp") {
-      const REVIEWS_URL = "https://m-thership.base44.app/functions/reviews";
+      const REVIEWS_URL = "https://interstellar-mothership.com/functions/reviews";
       const STALE_MS = 26 * 60 * 60 * 1000;
       const rows = ((await db.ReviewClient.filter({ crm_client_id: cid }).catch(() => [])) || []).filter((r: Row) => r.active !== false && r.slug) as Row[];
       if (!rows.length) return Response.json({ connected: false, locations: [] });
@@ -597,7 +597,7 @@ Deno.serve(async (req) => {
     // Dynamic codes print QR_REDIRECT?c=<short_code>; the public `qr` function resolves them. The short code is
     // minted here once and never changes (it is printed), and only http(s) destinations are ever stored.
     if (String(action).startsWith("qr_")) {
-      const QR_REDIRECT = "https://m-thership.base44.app/functions/qr";
+      const QR_REDIRECT = "https://interstellar-mothership.com/functions/qr";
       const QR_KEYS = ["id", "name", "folder", "mode", "content_type", "destination", "url", "text", "email_to", "email_subject", "email_body", "phone", "sms_body", "wifi_ssid", "wifi_password", "wifi_encryption", "wifi_hidden", "whatsapp_number", "whatsapp_message", "style", "short_code", "encoded_url", "scans", "last_scan_at", "active", "client_id", "client_name", "source", "created_date", "updated_date"];
       const QR_TPL_KEYS = ["id", "name", "description", "scope", "client_id", "client_name", "style", "updated_date"];
       const QR_TYPES = ["link", "text", "email", "phone", "sms", "wifi", "whatsapp"];

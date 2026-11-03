@@ -6,7 +6,7 @@ import { useList, useInvalidate, timeAgo } from "@/lib/useData";
 import { Btn, SmallBtn, Panel, Empty, Tag, Stat, FormDialog } from "@/features/clients/ui";
 
 // Stärboard: Google reviews for every client site, served from one cached endpoint.
-const PUBLIC_ENDPOINT = "https://m-thership.base44.app/functions/reviews?client=";
+const PUBLIC_ENDPOINT = "https://interstellar-mothership.com/functions/reviews?client=";
 
 const FIELDS = [
   { name: "name", label: "Business name", required: true, placeholder: "MowMasters of Ascension" },
