@@ -13,6 +13,8 @@ export const METRICS = {
   gsc: { label: "Search Console", keys: [["clicks", "Clicks"], ["impressions", "Impressions"], ["ctr", "CTR %"], ["avg_position", "Avg. position"]] },
   ga4: { label: "Google Analytics", keys: [["users", "Users"], ["sessions", "Sessions"], ["conversions", "Conversions"], ["engagement_rate", "Engagement %"]] },
   bing: { label: "Bing", keys: [["clicks", "Clicks"], ["impressions", "Impressions"]] },
+  // Synced daily by social-clients (month to date) once the client's Instagram is linked in Social Studio.
+  instagram: { label: "Instagram", keys: [["followers", "Followers"], ["reach", "Accounts reached"], ["views", "Views"], ["accounts_engaged", "Accounts engaged"], ["total_interactions", "Interactions"], ["posts", "Posts"]] },
 };
 
 export function PerformanceView({ snapshots, onAdd, compact }) {
