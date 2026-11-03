@@ -1,6 +1,7 @@
 import { base44 } from "@/api/base44Client";
 import { dataUrlToBlob, postToJpeg, slugify } from "./exportPng";
 import { updatePost } from "./socialStore";
+import { specHash, stableStringify } from "./specHash";
 
 // Approve / schedule / publish helpers for the Social Studio. The backend publisher
 // (base44/functions/social-publish) posts only status "approved" posts with approved_at set,
@@ -21,8 +22,7 @@ export const DEFAULT_PUBLISH = {
 
 export const SOCIAL_STATUS_KEY = ["social-publish", "status"];
 
-/* ─── Spec hash (keep in sync with base44/shared/social.ts) ─────────── */
-import { specHash, stableStringify } from "./specHash";
+/* ─── Spec hash (lib/specHash.js; keep in sync with base44/shared/social.ts) ── */
 export { specHash, stableStringify };
 export const imageIsStale = (p) => !!p?.image_url && !!p?.image_spec_hash && p.image_spec_hash !== specHash(p.template, p.spec);
 
