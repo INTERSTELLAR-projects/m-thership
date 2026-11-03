@@ -287,11 +287,11 @@ function HomeView({ d, go, call, previewId, openAudit }) {
       <section>
         <p className="label-cross">(Your {monthName})</p>
         <h1 className="mt-3 text-[36px] font-semibold leading-[0.98] tracking-[-0.045em] md:text-[56px]">
-          Here&apos;s what we did for <span className="text-[#ff3c00]">{d.client.business}</span>.
+          {allTime === 0 ? <>Welcome aboard, <span className="text-[#ff3c00]">{d.client.business}</span>.</> : <>Here&apos;s what we did for <span className="text-[#ff3c00]">{d.client.business}</span>.</>}
         </h1>
         <p className="mt-3 max-w-2xl text-[15px] text-ink/60">Every blog, Google post, site update and listing we publish for you shows up here as it happens. {allTime ? `${allTime} pieces of work logged so far.` : ""}</p>
         {allTime === 0 ? (
-          <FirstMonth business={d.client.business} go={go} />
+          <FirstMonth go={go} />
         ) : (
           <div className="mt-6 grid grid-cols-2 overflow-hidden rounded-md border border-hair bg-card lg:grid-cols-4">
             <Counter value={c("blog")} total={t("blog")} label={`Blogs published in ${monthName}`} />
