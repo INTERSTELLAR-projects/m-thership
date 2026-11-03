@@ -51,10 +51,12 @@
     "source": {
       "type": "string",
       "enum": [
+        "facebook_partner",
         "app_user_connector",
         "manual"
       ],
-      "default": "manual"
+      "default": "manual",
+      "description": "facebook_partner = read through Interstellar's Facebook Pages connection after the client gave Page/partner access"
     },
     "connected_by_email": {
       "type": "string"
@@ -77,6 +79,25 @@
     },
     "notes": {
       "type": "string"
+    },
+    "fb_page_id": {
+      "type": "string",
+      "description": "Client Facebook Page the Instagram account is linked to"
+    },
+    "fb_page_name": {
+      "type": "string"
+    },
+    "insights_30d": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ reach, views, accounts_engaged, total_interactions, profile_views, likes, comments, saves, shares, since, until }"
+    },
+    "linked_by": {
+      "type": "string"
+    },
+    "linked_at": {
+      "type": "string",
+      "format": "date-time"
     }
   },
   "required": [

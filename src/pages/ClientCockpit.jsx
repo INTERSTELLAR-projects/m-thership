@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, ExternalLink, Eye, Rocket } from "lucide-react";
+import { ArrowLeft, ExternalLink, Eye, Mail, Rocket } from "lucide-react";
 import StartServiceDialog from "@/features/tasks/StartServiceDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -23,6 +23,7 @@ import { useOptionList } from "@/hooks/useOptionList";
 import ClientOutreachTab from "@/features/outreach/ClientOutreachTab";
 import ProfileMeter from "@/features/clients/ProfileMeter";
 import PortalInviteDialog from "@/features/clients/PortalInviteDialog";
+import { ClientRecentEmails, emailClientPath } from "@/features/email/ClientEmails";
 
 const TABS = [
   ["overview", "Overview"], ["constellations", "✧ Constellations"], ["claude", "✦ Claude"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
@@ -99,6 +100,7 @@ export default function ClientCockpit() {
             <button onClick={() => setStarting(true)} className="btn-roll is-flame" title="Client bought a service: create its project and SOP to-do list">
               <span className="roll"><span>Start a service</span><span>Start a service</span></span><span className="box"><Rocket className="h-3.5 w-3.5" /></span>
             </button>
+            <Link to={emailClientPath(client.id)} className="btn-roll is-outline" title="Open Email Studio with this client as the recipient"><span className="roll"><span>Email client</span><span>Email client</span></span><span className="box"><Mail className="h-3.5 w-3.5" /></span></Link>
             <Link to={`/portal/${client.id}`} className="btn-roll is-ink"><span className="roll"><span>View their portal</span><span>View their portal</span></span><span className="box"><Eye className="h-3.5 w-3.5" /></span></Link>
             <button onClick={invite} className="btn-roll is-outline" title="Send a portal login its secure invite and turn the portal on">
               <span className="roll"><span>Invite to portal</span><span>Invite to portal</span></span>
@@ -117,7 +119,7 @@ export default function ClientCockpit() {
       </div>
 
       <div key={tab} className="page-enter px-5 pt-6 md:px-8">
-        {tab === "overview" && <OverviewTab client={client} onEdit={() => setEditing(true)} go={go} />}
+        {tab === "overview" && <><OverviewTab client={client} onEdit={() => setEditing(true)} go={go} /><ClientRecentEmails client={client} /></>}
         {tab === "constellations" && <ConstellationsTab client={client} />}
         {tab === "claude" && <ClientClaudeTab client={client} />}
         {tab === "work" && <WorkTab client={client} />}
