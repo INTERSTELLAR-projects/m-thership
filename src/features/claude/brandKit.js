@@ -3,6 +3,8 @@
 // only then is a BrandKit record written for the client.
 import { base44 } from "@/api/base44Client";
 import { STANDING_RULES } from "./jobs";
+import { loadClientContext, contextToBrief } from "@/features/clients/clientContext";
+import { loadAgencyKnowledge, agencyBlock } from "@/features/agency/knowledge";
 
 export const BRAND_KIT_CONTEXT = "brand_kit";
 
@@ -108,19 +110,13 @@ function filesBlock(files) {
   return brand.map((f) => `- ${f.title}${f.file_url ? ` — ${f.file_url}` : ""}${f.link_url ? ` — ${f.link_url}` : ""}${f.description ? ` (${f.description})` : ""}`).join("\n");
 }
 
+// Inputs come from the shared client context (src/features/clients/clientContext.js).
 export async function gatherBrandInputs(client) {
-  const safe = (p) => p.catch(() => []);
-  const [intakes, requests, dossiers, files, kits] = await Promise.all([
-    safe(base44.entities.IntakeAudit.filter({ client_id: client.id }, "-created_date", 1)),
-    safe(base44.entities.ClientRequest.filter({ client_id: client.id }, "-created_date", 20)),
-    safe(base44.entities.ClientDossier.filter({ client_id: client.id }, "-updated_date", 1)),
-    safe(base44.entities.ClientFile.filter({ client_id: client.id }, "-created_date", 100)),
-    safe(base44.entities.BrandKit.filter({ client_id: client.id, status: "approved" }, "-approved_at", 1)),
-  ]);
-  return { intake: intakes?.[0] || null, requests: requests || [], dossier: dossiers?.[0] || null, files: files || [], current: kits?.[0] || null };
+  const [ctx, agency] = await Promise.all([loadClientContext(client.id), loadAgencyKnowledge()]);
+  return { intake: ctx.intake, requests: ctx.requests, dossier: ctx.dossier, files: ctx.files, current: ctx.brandKit, ctx, agency };
 }
 
-export function brandKitBrief(client, { intake, requests, dossier, files, current, extra = "" } = {}) {
+export function brandKitBrief(client, { intake, requests, dossier, files, current, ctx, agency, extra = "" } = {}) {
   return `# Generate brand kit: ${client.business}
 
 Build a complete, client-ready brand kit for ${client.business}: brand overview, logo usage, color palette with hex codes, typography, voice & tone, taglines & messaging, imagery, applications, and do / don't rules. It must be specific to this business — no generic filler.
@@ -139,6 +135,7 @@ ${requestsBlock(requests)}
 ### Client dossier (Constellations)
 ${dossierBlock(dossier)}
 
+${ctx ? `\n${contextToBrief(ctx, { sections: ["profile", "services"], level: 3 })}\n` : ""}
 ### Brand files already on file
 ${filesBlock(files)}
 Look at every logo/image above before choosing colors: if they already have a logo, the palette must be built from it (sample the exact hex values) and the kit documents how to use that logo — do not redesign it.
@@ -155,6 +152,7 @@ ${KIT_JSON_SHAPE}
 3. result_summary = two sentences on the direction (the feel, the main colors, the type pairing).
 4. needs_from_justin = anything missing (vector logo files, an existing style guide, owner preferences you could not confirm).
 
+${agencyBlock(agency, ["delivery"])}
 ## Rules for this job
 - Do NOT create or update a BrandKit record and do not touch the CRMClient. Approval in Møthership saves the kit to the client profile.
 - Facts (story, claims, awards, numbers) only from the inputs above or the client's own site. Never invent reviews or credentials.
