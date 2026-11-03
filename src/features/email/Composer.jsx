@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BookmarkPlus, FlaskConical, Loader2, Save, Send, Sparkles, Undo2, Wand2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import DictationBox from "@/features/voice/DictationBox";
@@ -14,14 +14,21 @@ import { Btn, Field, Panel, Pill, PromptDialog, TextInput } from "./ui";
 
 // The composer: dictate or type a direction -> AI writes typed blocks -> edit / reorder / revise -> live preview
 // per recipient -> test to me -> confirm -> send (one email per recipient).
-export default function Composer({ email, setEmail, data, onSaved }) {
+export default function Composer({ email, setEmail, data, onSaved, focusPrompt = false }) {
   const { clients, subscribers, lists, portalUrl } = data;
   const [direction, setDirection] = useState(email.prompt || "");
   const [revision, setRevision] = useState("");
   const [busy, setBusy] = useState("");
   const [notes, setNotes] = useState([]);
   const [undo, setUndo] = useState(null);
-  const [previewKey, setPreviewKey] = useState("template");
+  const one = email.audience && email.audience.mode === "clients" && (email.audience.client_ids || []).length === 1 ? email.audience.client_ids[0] : "";
+  const [previewKey, setPreviewKey] = useState(one ? `c:${one}` : "template");
+  const promptBox = useRef(null);
+  useEffect(() => {
+    if (!focusPrompt) return;
+    const t = setTimeout(() => { const el = promptBox.current && promptBox.current.querySelector("textarea"); if (el) { el.focus(); el.scrollIntoView({ block: "center" }); } }, 150);
+    return () => clearTimeout(t);
+  }, [focusPrompt]);
   const [sendOpen, setSendOpen] = useState(false);
   const [tplOpen, setTplOpen] = useState(false);
 
@@ -94,6 +101,7 @@ export default function Composer({ email, setEmail, data, onSaved }) {
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
       <div className="min-w-0 space-y-4">
         <Panel label="Step 1" title="Tell it what to write" right={undo && <Btn variant="ghost" className="h-7" onClick={() => { patch(undo); setUndo(null); }}><Undo2 className="h-3.5 w-3.5" /> Undo AI</Btn>} bodyClass="p-3.5 space-y-3">
+          <div ref={promptBox}>
           <DictationBox
             label="Direction (dictate or type)"
             value={direction}
@@ -101,6 +109,7 @@ export default function Composer({ email, setEmail, data, onSaved }) {
             rows={4}
             placeholder="e.g. Create an email using my company's template for Chasing Gains Coaching: the new site is live, we're starting the blog schedule next week, and we need their logo files."
           />
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <Btn variant="flame" disabled={!direction.trim() || !!busy} onClick={() => runAi("compose")}>
               {busy === "compose" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} {email.blocks.length > 4 ? "Rewrite email" : "Write email"}
