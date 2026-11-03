@@ -2,7 +2,7 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import {
   json, isConfigured, securityRow, isEnabled, isLocked, sessionVerified, markSessionVerified, clearSessions,
   recordFailure, clearFailures, encryptBytes, decryptBytes, base32, verifyTotp, newRecoveryCodes, hashRecovery,
-  keyedHash, sixDigits, safeEqual, maskEmail, EMAIL_TTL_MS,
+  keyedHash, sixDigits, safeEqual, maskEmail, EMAIL_TTL_MS, bearerOf,
 } from "../../shared/twoFactor.ts";
 import { SENDER_NAME } from "../../shared/onboardingEmail.ts";
 
@@ -106,6 +106,12 @@ Deno.serve(async (req) => {
     };
 
     if (action === "status") return json(status());
+
+    // Turning anything on binds this session; without a session credential on the request that binding can't
+    // happen, and the login would lock itself out. Refuse up front.
+    if (["totp_begin", "totp_confirm", "email_confirm"].includes(action) || (action === "send_email_code" && body?.purpose === "enable")) {
+      if (!bearerOf(req)) return json({ error: "This browser session can't turn on 2-step verification. Sign out, sign in again and retry." }, 400);
+    }
 
     if (action === "send_email_code") {
       const purpose = body?.purpose === "enable" ? "enable" : "verify";
