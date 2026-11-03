@@ -17,9 +17,18 @@ export const METRICS = {
 
 export function PerformanceView({ snapshots, onAdd, compact }) {
   const latest = (src) => snapshots.filter((s) => s.source === src).sort((a, b) => String(b.period_end).localeCompare(String(a.period_end)));
+  // Client portal (compact): only show sources that have numbers, and one friendly note when none do yet.
+  const sources = Object.entries(METRICS).filter(([src]) => !compact || latest(src).length);
+  if (compact && !sources.length) {
+    return (
+      <Panel label="Monthly numbers" title="Your first report is on its way">
+        <Empty>Google Business, Search Console and Analytics numbers appear here once your first full month is in. You&apos;ll see calls, website clicks, searches and how each one moved month over month.</Empty>
+      </Panel>
+    );
+  }
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      {Object.entries(METRICS).map(([src, def]) => {
+      {sources.map(([src, def]) => {
         const list = latest(src);
         const cur = list[0];
         const prev = list[1];
