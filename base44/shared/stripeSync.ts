@@ -8,7 +8,7 @@ import { loadPicture, PLAN_OF } from "./stripe.ts";
  * Returns a report; never deletes a client.
  */
 const LABEL = (plan: string, name: string) =>
-  plan === "hypercare" ? "HyperCare+" : plan === "gravitycare" ? "GravïtyCare" : plan === "appcare" ? "AppCare" : plan === "manage" ? "Manage+" : plan === "mission" ? name.replace(/^Interstellar®?\s*/i, "") + " (financed)" : name.replace(/^Interstellar®?\s*/i, "");
+  plan === "hypercare" ? "HyperCare+" : plan === "gravitycare" ? "GravïtyCare" : plan === "appcare" ? "AppCare" : plan === "manage" ? "Manage+" : plan === "mission" ? name.replace(/^Interstellar[®™]?\s*/i, "") + " (financed)" : name.replace(/^Interstellar[®™]?\s*/i, "");
 const DISCONTINUED = /badge|reviews|app management/i;
 
 export async function syncFromStripe(base44: any, key: string) {
