@@ -164,6 +164,9 @@ export const REQUEST_TYPES = [
   // Not offered as standard portal forms; they come from a client's custom (industry) RequestForm.
   { kind: "project_submission", label: "New project", title: "New project", portal: false, fields: [] },
   { kind: "job", label: "Job completed", title: "Job completed", portal: false, fields: [] },
+  // Created only by "Use my credits" on the portal Referrals tab (validated by the portal function's
+  // prestige_redeem action). Justin approves it on the Prestige page; nothing is deducted automatically.
+  { kind: "credit_redemption", label: "Credit redemption", title: "Credit redemption", portal: false, noDue: true, fields: [] },
 ];
 
 export const KIND_LABELS = Object.fromEntries(REQUEST_TYPES.map((t) => [t.kind, t.label]));
