@@ -2,6 +2,8 @@
 // Never active on the live app. Real data stays protected by entity access rules either way.
 // Remove this file (and its two imports) before launch.
 
+import { QA_ACCOUNTING } from "@/features/accounting/qaFixtures";
+
 const host = typeof window !== "undefined" ? window.location.hostname : "";
 const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
 if (host.startsWith("preview-sandbox--") && params.get("qa") === "1") {
@@ -82,6 +84,7 @@ const FIX = {
     { id: "pj3", client_id: "c2", title: "Harbor Coffee website", type: "website", status: "launched", description: "New site with online menu" },
   ],
   Goal: [],
+  ...QA_ACCOUNTING,
 };
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
