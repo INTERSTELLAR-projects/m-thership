@@ -1,0 +1,102 @@
+{
+  "name": "EmailDraft",
+  "type": "object",
+  "description": "Email Studio emails: drafts and the sent history. blocks are typed email blocks (see base44/shared/emailBlocks.ts), never raw HTML.",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Internal name (defaults to the subject)"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "prompt": {
+      "type": "string",
+      "description": "The last AI direction used"
+    },
+    "audience": {
+      "type": "object",
+      "description": "{ mode: clients | list | subscribers | manual, client_ids, list_id, tag, emails }"
+    },
+    "recipients": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "[{ email, name, client_id, subscriber_id, vars }] as resolved at send time"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "direct",
+        "mass"
+      ],
+      "default": "direct",
+      "description": "direct = 1:1 client emails (no unsubscribe link); mass = list / subscriber sends (unsubscribe link added)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sending",
+        "sent",
+        "failed"
+      ],
+      "default": "draft"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sent_by": {
+      "type": "string"
+    },
+    "sent_count": {
+      "type": "number"
+    },
+    "failed_count": {
+      "type": "number"
+    },
+    "skipped_count": {
+      "type": "number"
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "[{ email, name, status: sent | failed | skipped, error, at }]"
+    },
+    "template_id": {
+      "type": "string"
+    }
+  },
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
