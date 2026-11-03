@@ -239,7 +239,7 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, children }) 
     ro.observe(wrap);
     check();
     return () => ro.disconnect();
-  }, [tabs.length, unread, !!setTab]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tabs.length, unread, setTab]);
   return (
     <div className="grid-canvas min-h-screen text-ink" data-trail>
       <GridTrail />
@@ -681,7 +681,6 @@ function IntakeView({ call, onClose }) {
   const [saving, setSaving] = useState(false);
   const timer = useRef(null);
   const [saveErr, setSaveErr] = useState("");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { call("intake").then((r) => { setAnswers(r?.intake?.answers || {}); setStatus(r?.intake?.status || "in_progress"); }).catch(() => { setAnswers({}); setSaveErr("We couldn't load your saved answers. Anything you type now still saves."); }); }, []);
   const prog = useMemo(() => intakeProgress(answers || {}), [answers]);
   if (!answers) return <p className="py-20 text-center text-ink/50">Loading…</p>;
