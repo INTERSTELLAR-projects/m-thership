@@ -12,15 +12,16 @@ export const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"
 export const DEFAULT_OFFER = {
   referral_base_url: "https://interstellar-strategies.com/contact",
   share_message: "I've been working with Interstellar Strategies on my website and marketing. If you want the same for your business, book a free call here: {link}",
-  // Instant rewards: paid every single time the behavior happens.
+  // Instant rewards: earned every single time the behavior happens.
+  // booked = Priority Pass (non-cash, any plan benefits). signed = $500 Interstellar credit (fixed).
   booked: {
-    title: "Bonus Google post pack",
-    detail: "4 extra Google Business Profile posts written and published for your business.",
-    value: 200,
+    title: "Priority Pass",
+    detail: "When they book a call, your next request jumps to the front of the build queue.",
+    value: 0,
   },
   signed: {
-    title: "$500 account credit",
-    detail: "Applied to your next invoice, or swapped for a free month of care. Your pick.",
+    title: "$500 Interstellar credit",
+    detail: "Added to your account when they pay their first invoice. Spend it on builds — automations, app upgrades, interactive website features, add-ons — and stack credits for something bigger. Or use up to $500 at a time on merch, marketing materials, social posts, videos or ad spend.",
     value: 500,
   },
   // Tier unlocks by number of SIGNED referrals (lifetime).
@@ -31,8 +32,59 @@ export const DEFAULT_OFFER = {
     { name: "Prestige IV", threshold: 10, unlock: "Full custom app", detail: "A full custom application with backend, database and integrations, built around how you run.", value: 10000 },
     { name: "Prestige Master", threshold: 25, unlock: "VIP partner status", detail: "Partner status: priority build queue, first access to every new system, and your name on the Prestige wall.", value: 0 },
   ],
-  terms: "Rewards are earned per referral: one when they book a call, one when they sign. Tier unlocks are counted on signed referrals and stack. A referral counts as signed once their first invoice is paid. Credits apply to Interstellar work, have no cash value and are non-transferable.",
+  terms: "Every booked call earns a Priority Pass and every signed referral earns $500 in Interstellar credit. Tier unlocks are counted on signed referrals and stack. A referral counts as signed once their first invoice is paid. Credits are added to your Interstellar account, stack with no expiry unless stated, apply to Interstellar work only, have no cash value and are non-transferable. Merch, marketing materials, social posts, videos and ad spend are redeemed through Interstellar and capped at $500 per redemption.",
 };
+
+// ---- Credits: where they go ----
+// Build categories have no cap (save up and stack credits for something bigger).
+// Capped categories: one redemption can't exceed CREDIT_CAP. Mirrored in base44/functions/portal/entry.ts.
+export const CREDIT_PER_SIGNED = 500;
+export const CREDIT_CAP = 500;
+export const CREDIT_GROUPS = [
+  { key: "build", label: "Stack for builds", detail: "No cap. Save up and stack credits for something bigger." },
+  { key: "capped", label: "Up to $500 each", detail: "Up to $500 per redemption." },
+];
+export const CREDIT_CATEGORIES = [
+  { key: "automation", group: "build", label: "Automation", detail: "An automation that takes a task off your plate." },
+  { key: "app_upgrade", group: "build", label: "App upgrade", detail: "An upgrade or new feature for your app (Command System)." },
+  { key: "website_feature", group: "build", label: "Website feature", detail: "An interactive feature for your website." },
+  { key: "addon_package", group: "build", label: "Add-on package", detail: "Toward Ops Command, Brand Arsenal, Launch Grid, Transmission and more." },
+  { key: "merch", group: "capped", label: "Custom merch", detail: "Merch for your business." },
+  { key: "marketing_materials", group: "capped", label: "Marketing materials", detail: "Print, signage, cards, flyers." },
+  { key: "social_posts", group: "capped", label: "Social posts", detail: "Social media posts." },
+  { key: "video", group: "capped", label: "Videos", detail: "Reels or long-form videos." },
+  { key: "ad_spend", group: "capped", label: "Ad spend", detail: "Budget for your ads." },
+];
+export const creditCategory = (key) => CREDIT_CATEGORIES.find((c) => c.key === key) || null;
+export const REDEMPTION_STATUS_LABEL = { requested: "Waiting on approval", approved: "Approved", fulfilled: "Done", declined: "Declined" };
+
+// A reward that put credit in the member's balance (new credit_500, or a pre-migration "signed" row).
+export const isCreditReward = (r) => r?.reward_type === "credit_500" || (!r?.reward_type && r?.kind === "signed");
+const DEDUCTED = ["approved", "fulfilled"];
+// balance = earned credits − redeemed (approved / fulfilled). Pending requests are not deducted, but they
+// are reserved so the same credit can't be requested twice (available = balance − pending).
+export function creditSummary(rewards = [], redemptions = []) {
+  const earned = rewards.filter((r) => isCreditReward(r) && r.status !== "void").reduce((s, r) => s + (Number(r.value) || 0), 0);
+  const redeemed = redemptions.filter((x) => DEDUCTED.includes(x.status)).reduce((s, x) => s + (Number(x.amount) || 0), 0);
+  const pending = redemptions.filter((x) => x.status === "requested").reduce((s, x) => s + (Number(x.amount) || 0), 0);
+  const balance = earned - redeemed;
+  return { earned, redeemed, pending, balance, available: Math.max(0, balance - pending) };
+}
+// Returns an error message, or "" when the redemption is allowed.
+export function redemptionError({ category, amount, available }) {
+  const c = creditCategory(category);
+  const amt = Number(amount);
+  if (!c) return "Pick where the credit should go.";
+  if (!Number.isFinite(amt) || amt <= 0) return "Enter an amount.";
+  if (Math.round(amt) !== amt) return "Use whole dollars.";
+  if (c.group === "capped" && amt > CREDIT_CAP) return `${c.label} is capped at $${CREDIT_CAP} per redemption.`;
+  if (amt > (Number(available) || 0)) return `That's more than the $${Math.max(0, Number(available) || 0).toLocaleString()} available.`;
+  return "";
+}
+
+// Old offers saved before the Nov 2026 rewrite (post pack, invoice credit, free month) fall back to the new defaults.
+const LEGACY_REWARD = /post pack|next invoice|free month|account credit/i;
+const legacy = (r) => !!r && LEGACY_REWARD.test(`${r.title || ""} ${r.detail || ""}`);
 
 const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
 const str = (v, d = "") => (typeof v === "string" ? v : d);
@@ -40,11 +92,16 @@ const str = (v, d = "") => (typeof v === "string" ? v : d);
 // Merge a saved offer over the defaults and normalise it (tiers sorted by threshold).
 export function mergeOffer(saved) {
   const s = saved && typeof saved === "object" ? saved : {};
-  const reward = (k) => ({
-    title: str(s[k]?.title, DEFAULT_OFFER[k].title),
-    detail: str(s[k]?.detail, DEFAULT_OFFER[k].detail),
-    value: num(s[k]?.value, DEFAULT_OFFER[k].value),
-  });
+  const reward = (k) => {
+    const r = legacy(s[k]) ? {} : s[k] || {};
+    return {
+      title: str(r.title, DEFAULT_OFFER[k].title),
+      detail: str(r.detail, DEFAULT_OFFER[k].detail),
+      // Fixed by the program rules: Priority Pass has no dollar value; each signed referral is $500 credit.
+      value: k === "signed" ? CREDIT_PER_SIGNED : 0,
+    };
+  };
+  const savedTerms = str(s.terms, "");
   const rawTiers = Array.isArray(s.tiers) && s.tiers.length ? s.tiers : DEFAULT_OFFER.tiers;
   const tiers = rawTiers
     .map((t, i) => ({
@@ -62,7 +119,7 @@ export function mergeOffer(saved) {
     booked: reward("booked"),
     signed: reward("signed"),
     tiers,
-    terms: str(s.terms, DEFAULT_OFFER.terms),
+    terms: savedTerms && !/next invoice|free month|Credits apply to Interstellar work,/i.test(savedTerms) ? savedTerms : DEFAULT_OFFER.terms,
     is_default: !saved,
   };
 }
@@ -132,8 +189,8 @@ export function unlockProps(idx, offer, memberName = "") {
   const next = offer.tiers[idx];
   const rewards = [];
   if (t) rewards.push({ title: t.unlock || `${t.name} unlock`, detail: t.detail, value: t.value ? `${money(t.value)} value` : "" });
-  rewards.push({ title: `Every booked call: ${offer.booked.title}`, detail: offer.booked.detail, value: offer.booked.value ? `${money(offer.booked.value)} value` : "" });
-  rewards.push({ title: `Every signed referral: ${offer.signed.title}`, detail: offer.signed.detail, value: offer.signed.value ? `${money(offer.signed.value)} value` : "" });
+  rewards.push({ title: `Every booked call: ${offer.booked.title}`, detail: offer.booked.detail, value: "" });
+  rewards.push({ title: `Every signed referral: ${offer.signed.title}`, detail: offer.signed.detail, value: "" });
   if (next) rewards.push({ title: `Next: ${next.name} at ${next.threshold} signed`, detail: next.unlock ? `Unlocks ${next.unlock}.` : "", value: "" });
   return { tierIndex: idx, title: head.title, subtitle: head.subtitle, memberName, rewards };
 }
@@ -149,10 +206,12 @@ export function rewardsForTransition({ member, referral, prevStatus, nextStatus,
   if (referral) {
     const ref = { referralId: referral.id, referredClientName: referral.referredClientName };
     if (!isBooked({ status: prevStatus }) && isBooked({ status: nextStatus }) && !has("booked", referral.id)) {
-      out.push({ ...base, ...ref, kind: "booked", title: offer.booked.title, value: offer.booked.value, notes: offer.booked.detail });
+      // Priority Pass: owed until Justin uses it (marks it delivered when their request is moved up).
+      out.push({ ...base, ...ref, kind: "booked", reward_type: "priority_pass", title: offer.booked.title, value: 0, notes: offer.booked.detail });
     }
     if (!isSigned({ status: prevStatus }) && isSigned({ status: nextStatus }) && !has("signed", referral.id)) {
-      out.push({ ...base, ...ref, kind: "signed", title: offer.signed.title, value: offer.signed.value, notes: offer.signed.detail });
+      // Signed = first invoice paid, so the credit lands in their balance straight away.
+      out.push({ ...base, ...ref, kind: "signed", reward_type: "credit_500", title: offer.signed.title, value: CREDIT_PER_SIGNED, notes: "Added to the Interstellar credit balance.", status: "delivered", delivered_at: now });
     }
   }
   const from = tierIndex(prevSigned, offer);
@@ -160,7 +219,7 @@ export function rewardsForTransition({ member, referral, prevStatus, nextStatus,
   for (let i = from + 1; i <= to; i++) {
     if (has("tier", i)) continue;
     const t = offer.tiers[i - 1];
-    out.push({ ...base, kind: "tier", tier_index: i, title: `${t.name}: ${t.unlock || "Tier unlock"}`, value: t.value, notes: t.detail });
+    out.push({ ...base, kind: "tier", reward_type: "tier_unlock", tier_index: i, title: `${t.name}: ${t.unlock || "Tier unlock"}`, value: t.value, notes: t.detail });
   }
   return out;
 }
