@@ -39,7 +39,7 @@ export const QA_ACCOUNTING = {
     { id: "qa_r2", business_id: "interstellar", pattern: "anthropic", category: "ai_tools", direction: "out", priority: 50, active: true, learned: false },
     { id: "qa_r3", business_id: "interstellar", pattern: "freelance dev co", category: "contract_labor", direction: "out", priority: 30, active: true, learned: true },
   ],
-  BusinessTaxProfile: [],
+  BusinessTaxProfile: [{ id: "qa_p1", business_id: "interstellar", entity_type: "smllc_schedule_c", planned_scorp_year: Y + 1, completed: false }],
   AccountingAsset: [{ id: "qa_a1", business_id: "interstellar", name: "MacBook Pro 16\"", cost: 2899, placed_in_service: d(Math.max(0, m - 6), 10), business_use_pct: 90, asset_class: "computer", treatment: "bonus" }],
   MileageEntry: [{ id: "qa_m1", business_id: "interstellar", date: d(Math.max(0, m - 1), 12), miles: 46, purpose: "Client meeting — Summit Roofing" }, { id: "qa_m2", business_id: "interstellar", date: d(m, 2), miles: 22, purpose: "Bank + post office" }],
   AccountingAlert: [{ id: "qa_al1", business_id: "interstellar", key: `est-${Y}-Q4`, kind: "estimated_tax", status: "new", title: `Pay Q4 ${Y} estimated taxes (IRS 1040-ES + Oregon OR-40-V), due Jan 15, ${Y + 1}`, body: "Planned (safe-harbor track): IRS $4,120 · Oregon $1,260.", due_date: `${Y + 1}-01-15`, link: "/financial?tab=accounting&sub=plan" }],
