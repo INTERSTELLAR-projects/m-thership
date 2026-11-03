@@ -1,0 +1,107 @@
+{
+  "name": "SocialAccount",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id this social account belongs to"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "instagram"
+      ],
+      "default": "instagram"
+    },
+    "handle": {
+      "type": "string",
+      "description": "Username without @"
+    },
+    "ig_user_id": {
+      "type": "string"
+    },
+    "profile_picture_url": {
+      "type": "string"
+    },
+    "followers_count": {
+      "type": "number"
+    },
+    "follows_count": {
+      "type": "number"
+    },
+    "media_count": {
+      "type": "number"
+    },
+    "recent_media": {
+      "type": "array",
+      "description": "Newest first: { id, caption, permalink, image_url, timestamp, media_type, like_count, comments_count, reach }",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "totals": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ likes, comments, reach, posts } over recent_media"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "app_user_connector",
+        "manual"
+      ],
+      "default": "manual"
+    },
+    "connected_by_email": {
+      "type": "string"
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sync_error": {
+      "type": "string"
+    },
+    "invite_connect": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show the client a Connect your Instagram card in the portal Results tab"
+    },
+    "portal_visible": {
+      "type": "boolean",
+      "default": true
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
