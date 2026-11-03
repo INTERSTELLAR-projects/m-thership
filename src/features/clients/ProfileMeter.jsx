@@ -61,7 +61,7 @@ function InlineEdit({ item, onSave, onCancel, go }) {
 
 export default function ProfileMeter({ client, go }) {
   const qc = useQueryClient();
-  const ctxQ = useQuery({ queryKey: ["clientContext", client.id], queryFn: () => loadClientContext(client), staleTime: 30_000 });
+  const ctxQ = useQuery({ queryKey: ["clientContext", client.id], queryFn: () => loadClientContext(client.id), staleTime: 30_000 });
   const pendingQ = useQuery({ queryKey: ["clientContext", client.id, "pendingIntake"], queryFn: () => pendingProfileAnswers(client.id), staleTime: 30_000 });
   const { data: jobs = [] } = useJobs();
   const ctx = ctxQ.data;
