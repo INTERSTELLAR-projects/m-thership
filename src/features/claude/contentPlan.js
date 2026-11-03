@@ -3,6 +3,8 @@
 // draft (Core.InvokeLLM with the same schema) → Justin approves → a versioned ContentPlan.
 import { base44 } from "@/api/base44Client";
 import { STANDING_RULES } from "./jobs";
+import { loadClientContext, contextToBrief } from "@/features/clients/clientContext";
+import { loadAgencyKnowledge, agencyBlock } from "@/features/agency/knowledge";
 
 export const CONTENT_PLAN_CONTEXT = "content_plan";
 
@@ -255,31 +257,22 @@ export function nextPostDue(plan) {
 const show = (v) => (Array.isArray(v) ? v.map((x) => (typeof x === "object" && x ? x.name || x.term || x.city || x.title || JSON.stringify(x) : x)).join(", ") : typeof v === "object" && v ? JSON.stringify(v) : String(v ?? ""));
 const has = (v) => (Array.isArray(v) ? v.length > 0 : v !== undefined && v !== null && String(v).trim() !== "");
 
+// Inputs come from the shared client context (src/features/clients/clientContext.js).
 export async function gatherContentPlanInputs(client) {
-  const safe = (p) => Promise.resolve(p).then((r) => (Array.isArray(r) ? r : [])).catch(() => []);
-  const f = (entity, sort, limit, q = { client_id: client.id }) => safe(base44.entities[entity].filter(q, sort, limit));
-  const [dossiers, intakes, flights, goals, books, kits, autos, work, plans] = await Promise.all([
-    f("ClientDossier", "-updated_date", 1),
-    f("IntakeAudit", "-created_date", 1),
-    f("OnboardingFlight", "-created_date", 3),
-    f("ClientGoal", "sort", 50),
-    f("IndustryPlaybook", "-version", 5),
-    f("BrandKit", "-version", 5),
-    f("Automation", "-created_date", 50),
-    f("WorkLog", "-date", 60),
-    f("ContentPlan", "-version", 10),
-  ]);
+  const [ctx, agency] = await Promise.all([loadClientContext(client.id), loadAgencyKnowledge()]);
   return {
-    dossier: dossiers[0] || null,
-    intake: intakes[0] || null,
-    flight: flights.find((x) => x.status !== "archived") || flights[0] || null,
-    goals,
-    playbook: books.find((x) => x.status === "approved") || null,
-    kit: kits.find((k) => k.status === "approved") || null,
-    automations: autos,
-    posts: work.filter((w) => w.kind === "blog"),
-    gbpPosts: work.filter((w) => w.kind === "gbp_post"),
-    current: plans.find((x) => x.status === "approved") || null,
+    dossier: ctx.dossier,
+    intake: ctx.intake,
+    flight: ctx.flight,
+    goals: ctx.goals,
+    playbook: ctx.playbook,
+    kit: ctx.brandKit,
+    automations: ctx.automations,
+    posts: ctx.work.filter((w) => w.kind === "blog"),
+    gbpPosts: ctx.work.filter((w) => w.kind === "gbp_post"),
+    current: ctx.contentPlan,
+    ctx,
+    agency,
   };
 }
 
@@ -398,6 +391,9 @@ ${kitBlock(d.kit)}
 
 ## Existing content and automations
 ${existingBlock(d, client)}
+
+${d.ctx ? contextToBrief(d.ctx, { sections: ["profile", "services"] }) : ""}
+${agencyBlock(d.agency, ["offers", "delivery"])}
 ${d.current ? "\nThis is a revision. Keep queue rows already written or published and their order; change what Justin asks." : ""}
 ${extra ? `\n## Justin added\n${extra}` : ""}
 
