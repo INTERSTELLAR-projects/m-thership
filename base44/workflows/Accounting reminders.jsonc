@@ -1,0 +1,43 @@
+{
+  "name": "Accounting reminders",
+  "description": "Daily: Accounting & Tax center reminders. Creates a Task + in-app alert 14 days before each federal 1040-ES / Oregon OR-40-V estimated-tax due date, and a monthly books-close task on the 1st. Never moves money or files anything.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "43 7 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "then": "end",
+          "with": {
+            "args": {
+              "action": "run_reminders"
+            },
+            "function_name": "accounting"
+          }
+        }
+      }
+    ],
+    "document": {
+      "dsl": "1.0.0",
+      "name": "accounting_reminders",
+      "namespace": "base44",
+      "version": "1.0"
+    }
+  }
+}
