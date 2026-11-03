@@ -3,12 +3,12 @@ import "./brand.css";
 // Interstellar 3D mark (frosted orange swoosh) — same asset as interstellar-strategies.com.
 const MARK_URL = "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/536102fbf_interstellar-mark-v2.webp";
 
-/* Wordmark: ink headline type with the ignition-orange ® mark (matches the website header). */
+/* Wordmark: ink headline type with the ignition-orange ™ mark (matches the website header). */
 export function BrandWordmark({ word = "INTERSTELLAR", tone = "light", size, className = "" }) {
   return (
     <span className={`is-wordmark${tone === "dark" ? " is-wordmark--dark" : ""} ${className}`} style={size ? { fontSize: size } : undefined}>
       {word}
-      <span className="is-reg">®</span>
+      <span className="is-reg">™</span>
     </span>
   );
 }
