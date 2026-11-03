@@ -129,7 +129,7 @@ export function installQa(base44) {
   base44.integrations = { Core: { InvokeLLM: async () => ({}), UploadFile: async () => ({ file_url: "" }) } };
   base44.functions = {
     invoke: async (name, args = {}) => {
-      if (name === "social-publish" || name === "social-instagram") return { data: qaSocialInvoke(name, args) };
+      if (String(name).startsWith("social-")) return { data: qaSocialInvoke(name, args) };
       if (name !== "portal") return { data: {} };
       const cid = args.client_id || "c1";
       const of = (e) => rows(e).filter((r) => r.client_id === cid);
