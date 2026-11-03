@@ -325,7 +325,9 @@ function AnalyticsStrip({ posts, status, tz, onOpen }) {
     { label: "Next post", value: next ? fmtWhen(next.scheduled_at, tz, { short: true }) : "—", sub: next ? next.title : "nothing scheduled", tab: "scheduled", small: true },
     { label: "Posted · 30d", value: posted.length, sub: "via Møthership", tab: "posted" },
     { label: "Likes · 30d", value: sum("likes").toLocaleString("en-US"), sub: `${sum("comments").toLocaleString("en-US")} comments`, tab: "posted" },
-    { label: "Reach · 30d", value: hasReach ? sum("reach").toLocaleString("en-US") : "—", sub: hasReach ? "accounts reached" : "needs insights scope", tab: "posted" },
+    ig?.insights_30d
+      ? { label: "Reach · 30d", value: Number(ig.insights_30d.reach || 0).toLocaleString("en-US"), sub: `${Number(ig.insights_30d.views || 0).toLocaleString("en-US")} views · ${Number(ig.insights_30d.accounts_engaged || 0).toLocaleString("en-US")} engaged`, tab: "posted" }
+      : { label: "Reach · 30d", value: hasReach ? sum("reach").toLocaleString("en-US") : "—", sub: hasReach ? "accounts reached" : "needs insights scope", tab: "posted" },
     { label: "Instagram", value: ig?.connected ? (ig.followers_count ?? "—").toLocaleString("en-US") : "—", sub: ig?.connected ? `followers · @${ig.username}` : status.isLoading ? "checking…" : "not connected" },
   ];
   return (
