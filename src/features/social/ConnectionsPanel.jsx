@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Check, CircleDashed, Facebook, Instagram, Loader2, Plus, RefreshCw, Trash2, Users } from "lucide-react";
+import { AlertTriangle, Check, CircleDashed, Instagram, Loader2, Plus, RefreshCw, Trash2, Users } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/components/ui/use-toast";
