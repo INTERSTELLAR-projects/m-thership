@@ -112,7 +112,7 @@ export function pickInviteEmail(client: any, wanted?: string, opts: { fromStripe
 }
 
 export async function sentInviteFor(db: any, clientId: string) {
-  const rows = (await db.PortalInvite.filter({ client_id: clientId }, "-created_date", 50).catch(() => [])) || [];
+  const rows = ((await db.PortalInvite.filter({ client_id: clientId }, "-created_date", 50).catch(() => [])) || []).filter((r: any) => r.source !== "test");
   return { sent: rows.find((r: any) => r.status === "sent") || null, queued: rows.find((r: any) => r.status === "queued") || null, rows };
 }
 
