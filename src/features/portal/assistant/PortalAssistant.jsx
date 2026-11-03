@@ -157,9 +157,10 @@ function BriefingCard({ previewId, onAsk }) {
               <h3 className="text-[17px] font-semibold leading-snug tracking-[-0.03em]">{c.headline}</h3>
               {c.summary && <p className="mt-1.5 text-[13px] leading-relaxed text-ink/70">{c.summary}</p>}
               {stats.length > 0 && (
-                <div className="mt-3 grid grid-cols-2 gap-px overflow-hidden border border-hair bg-hair sm:grid-cols-4">
-                  {stats.map(([v, l]) => (
-                    <div key={l} className="bg-card px-3 py-2.5">
+                <div className={`mt-3 grid grid-cols-2 gap-px overflow-hidden border border-hair bg-hair ${["", "sm:grid-cols-1", "sm:grid-cols-2", "sm:grid-cols-3"][stats.length] || "sm:grid-cols-4"}`}>
+                  {stats.map(([v, l], i) => (
+                    // An odd last tile spans the row on phones so no empty grey cell shows.
+                    <div key={l} className={`bg-card px-3 py-2.5 ${i === stats.length - 1 && stats.length % 2 === 1 ? "col-span-2 sm:col-span-1" : ""}`}>
                       <p className="text-[20px] font-semibold leading-none tabular-nums tracking-[-0.04em]">{v}</p>
                       <p className="mt-1.5 text-[10.5px] leading-tight text-ink/50">{l}</p>
                     </div>
