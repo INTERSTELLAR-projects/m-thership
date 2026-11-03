@@ -79,7 +79,7 @@ export default function CsvImport({ acct, onClose }) {
       {result ? (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[["Imported", result.imported], ["Duplicates skipped", result.duplicates], ["Matched to bills / QuickBooks", result.matched], ["Need review", result.review]].map(([l, v]) => (
+            {[["Imported", result.imported], ["Duplicates skipped", result.duplicates], ["Matched to scheduled bills", result.matched], ["Need review", result.review]].map(([l, v]) => (
               <div key={l} className="rounded-md border border-hair bg-card p-3"><p className="mono-label !text-[9px] text-ink/45">{l}</p><p className="mt-1 text-2xl font-semibold tabular-nums">{v}</p></div>
             ))}
           </div>
@@ -89,7 +89,7 @@ export default function CsvImport({ acct, onClose }) {
       ) : !rows ? (
         <div className="space-y-4">
           <p className="text-[12.5px] leading-relaxed text-ink/65">
-            No bank subscription needed. In Mercury: Transactions → filter the dates → Export → CSV. Any bank works: the importer reads a signed Amount column or separate Debit/Credit columns. Stripe payouts are recognized as transfers, so revenue is never counted twice.
+            Møthership never connects to your bank. Log in to your bank's website, export the statement as CSV (Mercury: Transactions → filter the dates → Export → CSV), and upload it here. Any bank works: the importer reads a signed Amount column or separate Debit/Credit columns. Stripe payouts are recognized as transfers, so revenue is never counted twice.
           </p>
           <label className="flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-hair bg-card px-6 py-12 text-center hover:border-[#ff3c00]/50">
             <span className="text-sm font-medium text-ink/75">Choose a .csv file</span>

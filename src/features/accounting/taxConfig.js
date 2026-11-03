@@ -22,6 +22,10 @@ const OED_RATES = "https://www.oregon.gov/employ/Businesses/Pages/Current-Tax-Ra
 
 export const TAX_YEAR = 2026;
 
+// Justin's decision (2026-11-03): no QuickBooks and no bank connection of any kind; bank data comes only from CSV
+// statement uploads. The QuickBooks code (backend actions qbo_status/qbo_sync, Settings panel) stays dormant behind this flag.
+export const QBO_ENABLED = false;
+
 export const TAX_CONFIG = {
   // ---------------- Federal income tax ----------------
   fed_brackets_single: {
@@ -172,6 +176,12 @@ export const TAX_CONFIG = {
     label: "Keep receipts for travel/gift/meal expenses of", value: 75, year: 2026, status: NC, url: "https://www.irs.gov/publications/p463", source: "IRS Pub. 463 (not re-read this session)",
   },
   meals_deductible_pct: { label: "Business meals deductible share", value: 0.5, year: 2026, status: NC, url: "https://www.irs.gov/publications/p463", source: "IRC §274(n) (not re-read this session)" },
+  form_2553_timing: {
+    label: "Form 2553 (S-corp election) deadline: any time in the prior tax year, or no more than 2 months 15 days after the year starts",
+    value: { months: 2, days: 15, calendar_2027_last_day: "2027-03-15" }, year: 2026, status: V, url: "https://www.irs.gov/instructions/i2553",
+    source: "Instructions for Form 2553 (Rev. Dec 2020)",
+    note: "For a calendar-year 2027 election: file during 2026 or by Mar 15, 2027 (the 2027 date is computed from the rule). An LLC that files 2553 doesn't also need Form 8832. Late-election relief exists but needs reasonable cause",
+  },
   // ---------------- S-corp what-if (payroll) ----------------
   fica_employee_rate: { label: "FICA (each side): 6.2% SS + 1.45% Medicare", value: { ss: 0.062, medicare: 0.0145 }, year: 2026, status: ST, url: PUB_505, source: "IRC §3101/§3111" },
   futa: { label: "FUTA net rate on first $7,000 (after 5.4% state credit)", value: { rate: 0.006, base: 7000 }, year: 2026, status: NC, url: "https://www.irs.gov/taxtopics/tc759", source: "IRC §3301; Oregon assumed not a credit-reduction state" },

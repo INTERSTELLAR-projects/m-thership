@@ -4,7 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Btn, Card, ConfirmBtn, Disclaimer, Field, Heading, inputCls, NumberInput, Pill, Select, StatusTag } from "./ui";
 import { CATEGORIES, ENTITY_LABEL, money0 } from "./ledger";
 import { invokeAccounting } from "./useAccounting";
-import { TAX_CONFIG } from "./taxConfig";
+import { QBO_ENABLED, TAX_CONFIG } from "./taxConfig";
 
 const fmtVal = (v) => (typeof v === "number" ? (v < 1 && v > 0 ? `${+(v * 100).toFixed(4)}%` : v.toLocaleString("en-US")) : typeof v === "boolean" ? (v ? "yes" : "no") : typeof v === "string" ? v : JSON.stringify(v));
 
@@ -16,7 +16,7 @@ function ProfileForm({ acct }) {
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
   const save = async () => {
     setBusy(true);
-    const keys = ["business_name", "entity_type", "state", "city", "county", "filing_status", "qualifying_children", "other_wages", "other_income", "withholding_federal", "withholding_oregon", "itemized_deductions", "se_health_insurance", "retirement_contributions", "is_sstb", "prior_year_federal_tax", "prior_year_oregon_tax", "prior_year_agi", "in_sctd_district", "in_metro_district", "cash_balance_manual", "reserve_account_name", "scorp_payroll_service_cost", "scorp_extra_prep_cost", "s_corp_salary"];
+    const keys = ["business_name", "entity_type", "state", "city", "county", "filing_status", "qualifying_children", "other_wages", "other_income", "withholding_federal", "withholding_oregon", "itemized_deductions", "se_health_insurance", "retirement_contributions", "is_sstb", "prior_year_federal_tax", "prior_year_oregon_tax", "prior_year_agi", "planned_scorp_year", "in_sctd_district", "in_metro_district", "cash_balance_manual", "reserve_account_name", "scorp_payroll_service_cost", "scorp_extra_prep_cost", "s_corp_salary"];
     const patch = Object.fromEntries(keys.map((k) => [k, f[k] === "" ? null : f[k]]));
     await saveProfile({ ...patch, completed: true });
     setBusy(false);
@@ -40,13 +40,16 @@ function ProfileForm({ acct }) {
         <Field label="Itemized deductions (if more than standard)"><NumberInput value={f.itemized_deductions} onChange={(v) => set("itemized_deductions", v || 0)} /></Field>
         <Field label="Self-employed health insurance premiums"><NumberInput value={f.se_health_insurance} onChange={(v) => set("se_health_insurance", v || 0)} /></Field>
         <Field label="SEP / Solo 401(k) contributions"><NumberInput value={f.retirement_contributions} onChange={(v) => set("retirement_contributions", v || 0)} /></Field>
+        <Field label="Planned entity change" hint="Surfaces the S-corp what-if on the Tax plan and adds a 2553 / payroll checklist to the Filing pack." className="lg:col-span-1">
+          <Select value={f.planned_scorp_year ? String(f.planned_scorp_year) : ""} onChange={(v) => set("planned_scorp_year", v ? Number(v) : null)} options={[["", "None"], ...[acct.taxYear + 1, acct.taxYear + 2].map((y) => [String(y), `Planned: S-corp election for ${y}`])]} />
+        </Field>
         <Field label="Specified service business (SSTB)?" hint="Web design/dev is generally not an SSTB; pure consulting can be. Matters only above the QBI threshold."><Select value={String(!!f.is_sstb)} onChange={(v) => set("is_sstb", v === "true")} options={yes} /></Field>
         <Field label={`Prior-year total federal tax (${acct.taxYear - 1})`} hint="Form 1040 'total tax' line. Unlocks the 100%/110% safe harbor."><NumberInput value={f.prior_year_federal_tax} onChange={(v) => set("prior_year_federal_tax", v)} /></Field>
         <Field label={`Prior-year Oregon tax (${acct.taxYear - 1})`} hint="OR-40 tax after credits."><NumberInput value={f.prior_year_oregon_tax} onChange={(v) => set("prior_year_oregon_tax", v)} /></Field>
         <Field label={`Prior-year AGI (${acct.taxYear - 1})`} hint="Over $150,000 → 110% federal safe harbor."><NumberInput value={f.prior_year_agi} onChange={(v) => set("prior_year_agi", v)} /></Field>
         <Field label="Business inside the South Clackamas Transportation District?" hint="Molalla is SCTD's home; confirm your address with SCTD."><Select value={String(!!f.in_sctd_district)} onChange={(v) => set("in_sctd_district", v === "true")} options={yes} /></Field>
         <Field label="Live inside the Metro district?" hint="Molalla is outside Metro. Yes only if you moved."><Select value={String(!!f.in_metro_district)} onChange={(v) => set("in_metro_district", v === "true")} options={yes} /></Field>
-        <Field label="Cash on hand (if QuickBooks not connected)"><NumberInput value={f.cash_balance_manual} onChange={(v) => set("cash_balance_manual", v)} /></Field>
+        <Field label="Cash on hand (from your latest bank statement)"><NumberInput value={f.cash_balance_manual} onChange={(v) => set("cash_balance_manual", v)} /></Field>
         <Field label="S-corp what-if: payroll service $/yr" hint="Your assumption."><NumberInput value={f.scorp_payroll_service_cost} onChange={(v) => set("scorp_payroll_service_cost", v || 0)} /></Field>
         <Field label="S-corp what-if: extra return prep $/yr" hint="Your assumption (Form 1120-S)."><NumberInput value={f.scorp_extra_prep_cost} onChange={(v) => set("scorp_extra_prep_cost", v || 0)} /></Field>
       </div>
@@ -82,7 +85,7 @@ function Connections({ acct }) {
   };
 
   return (
-    <Card title="Connections" sub="Read-only. Nothing here can move money or change your bank, Stripe or QuickBooks.">
+    <Card title="Connections" sub="Read-only. Møthership never connects to your bank: no bank login, no Plaid, no QuickBooks feed. Bank data arrives only as CSV files you download and upload yourself. Stripe is read with the app's existing key; nothing here can move money.">
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="rounded-md border border-hair p-4">
           <div className="flex items-center gap-2">{profile.stripe_synced_at ? <CheckCircle2 className="h-4 w-4 text-[#ff3c00]" /> : <CircleDashed className="h-4 w-4 text-ink/30" />}<p className="text-[13px] font-semibold">Stripe (revenue)</p></div>
@@ -91,6 +94,18 @@ function Connections({ acct }) {
           <div className="mt-3"><Btn busy={busy === "stripe"} onClick={async () => { setBusy("stripe"); const r = await invokeAccounting("sync_stripe", { tax_year: acct.taxYear }); setBusy(""); if (r.error) toast({ title: "Stripe sync failed", description: r.error, variant: "destructive" }); else { toast({ title: `Stripe: ${r.created || 0} new rows` }); acct.reload(); } }}>Sync now</Btn></div>
         </div>
 
+        <div className="rounded-md border-2 border-ink p-4 lg:col-span-2">
+          <div className="flex items-center gap-2">{profile.last_csv_import_at ? <CheckCircle2 className="h-4 w-4 text-[#ff3c00]" /> : <CircleDashed className="h-4 w-4 text-ink/30" />}<p className="text-[13px] font-semibold">Bank statements: CSV upload (the only bank path)</p></div>
+          <ol className="mt-2 list-decimal space-y-1 pl-4 text-[12px] text-ink/70">
+            <li>Log in to your bank's website yourself (Mercury: Transactions; most banks: Statements or Activity).</li>
+            <li>Pick the date range (last month, or the whole quarter) and export / download it as <b>CSV</b>.</li>
+            <li>Here: Transactions → <b>Import bank CSV</b> → choose the file → check the column mapping → Import.</li>
+            <li>Clear the review inbox. Overlapping date ranges are safe to re-upload: duplicates are skipped.</li>
+          </ol>
+          <p className="mt-2 text-[11.5px] text-ink/55">Do this for every business checking, savings and credit-card account, once a month (the monthly-close task reminds you).</p>
+          {profile.last_csv_import_at && <p className="mt-1 text-[11px] text-ink/45">Last import {new Date(profile.last_csv_import_at).toLocaleString()}</p>}
+        </div>
+        {QBO_ENABLED && (
         <div className="rounded-md border-2 border-ink p-4">
           <div className="flex items-center gap-2">{snap ? <CheckCircle2 className="h-4 w-4 text-[#ff3c00]" /> : <CircleDashed className="h-4 w-4 text-ink/30" />}<p className="text-[13px] font-semibold">Connect QuickBooks (bank feed)</p></div>
           <p className="mt-2 text-[12px] leading-relaxed text-ink/60">QuickBooks Online links to your business bank and cards and pulls transactions daily. Møthership then reads accounts, the P&L, the balance sheet and every transaction.</p>
@@ -112,11 +127,7 @@ function Connections({ acct }) {
           )}
         </div>
 
-        <div className="rounded-md border border-hair p-4">
-          <div className="flex items-center gap-2">{profile.last_csv_import_at ? <CheckCircle2 className="h-4 w-4 text-[#ff3c00]" /> : <CircleDashed className="h-4 w-4 text-ink/30" />}<p className="text-[13px] font-semibold">Bank CSV (no subscription)</p></div>
-          <p className="mt-2 text-[12px] leading-relaxed text-ink/60">The free fallback. Export a CSV from Mercury (Transactions → Export) or any bank and import it on the Transactions tab. Re-importing overlapping dates is safe: duplicates are skipped, scheduled bills are matched and replaced, rules and AI categorize the rest.</p>
-          <p className="mt-2 text-[11px] text-ink/45">Direct bank links (Plaid) aren't available as a Base44 connector, which is why QuickBooks or CSV is the bank path.</p>
-        </div>
+        )}
       </div>
     </Card>
   );

@@ -6,6 +6,7 @@ import { occurrencesBetween } from "@/components/financial/finance/expenses";
 import { Btn, Card, ConfirmBtn, Disclaimer, Empty, Field, Heading, inputCls, Modal, NumberInput, Pill, Select } from "./ui";
 import { applyRulesTo, CAT, CATEGORIES, EXPENSE_CATEGORY_MAP, findRule, money2, normalize, payeePattern } from "./ledger";
 import { invokeAccounting } from "./useAccounting";
+import { QBO_ENABLED } from "./taxConfig";
 import CsvImport from "./CsvImport";
 
 const FILTERS = [["inbox", "Review inbox"], ["all", "All"], ["approved", "Approved"], ["excluded", "Excluded"]];
@@ -237,7 +238,7 @@ export default function TransactionsTab({ acct }) {
       <div className="flex flex-wrap gap-2">
         <Btn kind="flame" onClick={() => setImporting(true)}><FileUp className="h-3.5 w-3.5" />Import bank CSV</Btn>
         <Btn busy={busy === "stripe"} onClick={syncStripe}><RefreshCw className="h-3.5 w-3.5" />Sync Stripe</Btn>
-        <Btn busy={busy === "qbo"} onClick={syncQbo}><RefreshCw className="h-3.5 w-3.5" />Sync QuickBooks</Btn>
+        {QBO_ENABLED && <Btn busy={busy === "qbo"} onClick={syncQbo}><RefreshCw className="h-3.5 w-3.5" />Sync QuickBooks</Btn>}
         <Btn busy={busy === "exp"} onClick={importSchedule}>Add expense schedule</Btn>
         <Btn onClick={() => setEditing({ date: new Date().toISOString().slice(0, 10), direction: "out", amount: null })}><Plus className="h-3.5 w-3.5" />Add</Btn>
         <span className="mx-1 hidden w-px bg-hair sm:block" />
@@ -282,7 +283,7 @@ export default function TransactionsTab({ acct }) {
 
         {shown.length === 0 ? (
           <div className="p-4">
-            <Empty title={filter === "inbox" ? "Inbox zero" : "No transactions here"} body={acct.ledger.length ? "Change the filters to see more." : "Start with Sync Stripe for revenue, then import a bank CSV (Mercury: Transactions → Export CSV) or connect QuickBooks for the bank feed."} />
+            <Empty title={filter === "inbox" ? "Inbox zero" : "No transactions here"} body={acct.ledger.length ? "Change the filters to see more." : "Start with Sync Stripe for revenue, then upload a bank statement CSV: log in to your bank's website, export the month as CSV, and click Import bank CSV. Møthership never connects to your bank."} />
           </div>
         ) : (
           <div className="overflow-x-auto">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FilePlus2 } from "lucide-react";
@@ -48,6 +48,24 @@ export default function EmailStudioPage() {
 
   const load = (next) => { setEmail(next); setComposerKey((k) => k + 1); setTab("compose"); };
 
+  // Deep links from a client profile: /email?client=<id> (new email, that client preselected, prompt focused)
+  // and /email?draft=<id> (open a draft, or reuse a sent email as a new draft).
+  const [focusPrompt, setFocusPrompt] = useState(false);
+  const clientParam = params.get("client");
+  const draftParam = params.get("draft");
+  useEffect(() => {
+    if (!clientParam) return;
+    load(fresh(BLANK_DOC, { audience: { mode: "clients", client_ids: [clientParam] } }));
+    setFocusPrompt(true);
+    const n = new URLSearchParams(params); n.delete("client"); n.delete("tab"); setParams(n, { replace: true });
+  }, [clientParam]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!draftParam || !draftsQ.data) return;
+    const d = draftsQ.data.find((x) => x.id === draftParam);
+    if (d) load(d.status === "sent" ? fresh(d, { prompt: d.prompt || "" }) : fresh(d, { id: d.id, prompt: d.prompt || "" }));
+    const n = new URLSearchParams(params); n.delete("draft"); n.delete("tab"); if (d && d.status === "sent") n.set("tab", "history"); setParams(n, { replace: true });
+  }, [draftParam, draftsQ.data]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="min-h-full">
       <PageHeader breadcrumb="Studio / Email Studio" rightText="Admin only">
@@ -64,7 +82,7 @@ export default function EmailStudioPage() {
           ))}
         </div>
 
-        {tab === "compose" && <Composer key={composerKey} email={email} setEmail={setEmail} data={data} onSaved={refresh} />}
+        {tab === "compose" && <Composer key={composerKey} email={email} setEmail={setEmail} data={data} onSaved={refresh} focusPrompt={focusPrompt} />}
         {tab === "history" && (
           <HistoryTab
             drafts={draftsQ.data || []}

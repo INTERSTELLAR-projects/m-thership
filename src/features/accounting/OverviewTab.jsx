@@ -41,7 +41,6 @@ export default function OverviewTab({ acct, go }) {
     const count = (s) => ledger.filter((t) => t.source === s).length;
     return [
       { k: "Stripe revenue", ok: !!profile.stripe_synced_at, detail: profile.stripe_synced_at ? `${count("stripe")} rows · synced ${ago(profile.stripe_synced_at)}` : "Not synced yet" },
-      { k: "QuickBooks (bank feed)", ok: !!qbo, detail: qbo ? `${count("quickbooks")} rows · ${ago(qbo.at)}` : "Not connected" },
       { k: "Bank CSV imports", ok: count("csv") > 0, detail: count("csv") ? `${count("csv")} rows · last ${ago(profile.last_csv_import_at) || "—"}` : "None yet" },
       { k: "Expense schedule", ok: count("expense_schedule") > 0, detail: count("expense_schedule") ? `${count("expense_schedule")} scheduled bills` : "Not imported" },
     ];
@@ -53,10 +52,10 @@ export default function OverviewTab({ acct, go }) {
 
   return (
     <div className="space-y-5">
-      <Heading title="Accounting" accent="taxes" sub={`Tax year ${taxYear}. Books from Stripe, QuickBooks, bank CSVs and your expense schedule; the tax plan projects the full year from them.`} />
+      <Heading title="Accounting" accent="taxes" sub={`Tax year ${taxYear}. Books from Stripe, uploaded bank-statement CSVs and your expense schedule; the tax plan projects the full year from them.`} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <Stat label="Cash" value={cash ? money0(cash.v) : "—"} sub={cash ? cash.sub : "Connect QuickBooks or enter it in Settings"} />
+        <Stat label="Cash" value={cash ? money0(cash.v) : "—"} sub={cash ? cash.sub : "Enter it in Settings (from your latest bank statement)"} />
         <Stat label="Profit YTD" value={money0(plan.proj.ytdNet)} sub={`${money0(plan.proj.ytdGross)} in · ${money0(plan.proj.ytdExp)} out`} />
         <Stat hero label={`Tax owed ${taxYear} (est.)`} value={money0(plan.tax.total)} sub={`${pct(plan.effectiveRate)} effective on ${money0(plan.proj.fullNet)} projected profit`} />
         <Stat label="Set aside" value={`${money0(plan.reserve)}`} tone={plan.reserveFunded < 1 ? "warn" : undefined} sub={<div><Bar value={plan.reserveFunded} className="mb-1.5" />{money0(plan.neededInReserve)} needed now · {Math.round(plan.reserveFunded * 100)}% funded</div>} />

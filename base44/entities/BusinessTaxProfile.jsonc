@@ -27,6 +27,7 @@
     "prior_year_agi": { "type": "number" },
     "estimated_payments": { "type": "array", "items": { "type": "object", "additionalProperties": true }, "description": "[{ date, jurisdiction: federal|oregon, amount, tax_year, quarter, note }]" },
     "s_corp_salary": { "type": "number" },
+    "planned_scorp_year": { "type": "number", "description": "Tax year Justin plans to elect S-corp status (e.g. 2027); null = no plan" },
     "home_office_method": { "type": "string", "enum": ["none", "simplified", "regular"], "default": "none" },
     "home_office_sqft": { "type": "number", "default": 0 },
     "home_total_sqft": { "type": "number", "default": 0 },
