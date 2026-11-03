@@ -52,7 +52,7 @@ export default function AuthShell({ eyebrow, children, footer }) {
             {VALUES.map(([n, t]) => (
               <li key={n} className="flex items-start gap-4">
                 <span className="mt-[3px] font-mono text-[11px] font-medium tracking-[0.14em] text-[#ff6a00]">{n}</span>
-                <span className="text-[15px] leading-[1.5] text-white/72">{t}</span>
+                <span className="text-[15px] leading-[1.5] text-white/70">{t}</span>
               </li>
             ))}
           </ul>
