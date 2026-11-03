@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Loader2, ChevronDown, ChevronRight, Copy, MessageSquare, Mail, Settings2, Check, Undo2, Ban, Sparkles, Trophy, Gift, Users, PhoneCall, Crown } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, ChevronDown, ChevronRight, Copy, MessageSquare, Mail, Settings2, Check, Undo2, Ban, Sparkles, Trophy, Gift, Users, Zap, Crown, Coins } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,7 +11,9 @@ import { useToast } from "@/components/ui/use-toast";
 import {
   OFFER_KEY, mergeOffer, STATUSES, STATUS_LABEL, STATUS_TONE, isSigned, isBooked, tierIndex, tierLabel, enumTier, progressFor,
   referralLink, referralCode, shareText, smsHref, mailHref, money, slugify, unlockProps, rewardsForTransition, missingRewards,
+  creditSummary, redemptionError, creditCategory, CREDIT_CATEGORIES, CREDIT_GROUPS, CREDIT_CAP, REDEMPTION_STATUS_LABEL,
 } from "@/lib/prestige";
+import CreditTiles from "../components/prestige/CreditTiles";
 import AddMemberModal from "../components/prestige/AddMemberModal";
 import TierLadderCard from "../components/prestige/TierLadderCard";
 import ServiceLineItems from "../components/prestige/ServiceLineItems";
@@ -27,7 +29,7 @@ const fieldCls = "mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink";
 const selectCls = "mt-1 w-full rounded-md border border-ink/[0.13] bg-ink/[0.03] px-3 py-2 text-sm text-ink outline-none";
 
 const PLAYBOOK = [
-  ["Reward the behavior, every time", "A reward lands the moment a referral books a call, and a bigger one when they sign. Never make people wait for a tier to feel it."],
+  ["Reward the behavior, every time", "A Priority Pass the moment a referral books a call, and $500 in credit when they sign. Never make people wait for a tier to feel it."],
   ["Make it stupidly easy", "One link per referrer and a pre-written text they can send in one tap. No forms, no explaining."],
   ["Recognize them in public", "Leaderboard, ranks and the unlock moment. Status is a reward that costs nothing."],
   ["Always show the next step", "A progress bar toward the next tier turns one referral into a reason for the next."],
@@ -39,6 +41,8 @@ export default function Prestige() {
   const [members, setMembers] = useState([]);
   const [referrals, setReferrals] = useState([]);
   const [rewards, setRewards] = useState([]);
+  const [redemptions, setRedemptions] = useState([]);
+  const [redeemFor, setRedeemFor] = useState(null); // member id, or "" to pick one
   const [clients, setClients] = useState([]);
   const [offerRec, setOfferRec] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -67,7 +71,8 @@ export default function Prestige() {
       base44.entities.PrestigeReward.list("-created_date", 1000).catch(() => []),
       base44.entities.CRMClient.list("business", 500).catch(() => []),
       base44.entities.AppSettings.filter({ key: OFFER_KEY }, "-created_date", 1).catch(() => []),
-    ]).then(async ([m, r, rw, c, s]) => {
+      base44.entities.PrestigeRedemption.list("-created_date", 1000).catch(() => []),
+    ]).then(async ([m, r, rw, c, s, rd]) => {
       if (!alive) return;
       const rec = (s || [])[0] || null;
       const off = mergeOffer(rec?.prestigeOffer);
@@ -81,7 +86,7 @@ export default function Prestige() {
       const map = Object.fromEntries(patched);
       if (!alive) return;
       setMembers(m.map((x) => (x.id in map ? { ...x, last_celebrated_tier: map[x.id] } : x)));
-      setReferrals(r); setRewards(rw || []); setClients(c || []); setOfferRec(rec); setLoading(false);
+      setReferrals(r); setRewards(rw || []); setRedemptions(rd || []); setClients(c || []); setOfferRec(rec); setLoading(false);
     }).catch((e) => {
       if (!alive) return;
       setLoading(false);
@@ -103,6 +108,8 @@ export default function Prestige() {
   const totalBooked = referrals.filter(isBooked).length;
   const owed = rewards.filter((r) => r.status === "owed");
   const owedValue = owed.reduce((s, r) => s + (Number(r.value) || 0), 0);
+  const creditsFor = (memberId, reds = redemptions) => creditSummary(rewards.filter((r) => r.memberId === memberId), reds.filter((x) => x.memberId === memberId));
+  const pendingRedemptions = redemptions.filter((x) => x.status === "requested");
 
   // ---------- core: settle a member after their referrals change ----------
   const settle = async (member, refsBefore, refsAfter, change = {}) => {
@@ -181,12 +188,13 @@ export default function Prestige() {
 
   const deleteMember = (m) => setConfirm({
     title: `Remove ${m.name}?`,
-    body: "This deletes the member, their referral log and their reward history. It can't be undone.",
+    body: "This deletes the member, their referral log, their reward history and their credit redemptions. It can't be undone.",
     label: "Delete member",
     action: async () => {
       await Promise.all([
         base44.entities.PrestigeReferral.deleteMany({ memberId: m.id }).catch(() => null),
         base44.entities.PrestigeReward.deleteMany({ memberId: m.id }).catch(() => null),
+        base44.entities.PrestigeRedemption.deleteMany({ memberId: m.id }).catch(() => null),
       ]);
       await base44.entities.PrestigeMember.delete(m.id);
       setMembers((ms) => ms.filter((x) => x.id !== m.id));
@@ -289,6 +297,48 @@ export default function Prestige() {
     }
   };
 
+  // ---------- credit redemptions (never auto-deducted: only approved / fulfilled rows count) ----------
+  const syncRequest = async (x, patch) => {
+    if (!x.request_id) return;
+    await base44.entities.ClientRequest.update(x.request_id, patch).catch(() => null);
+  };
+  const setRedemption = async (x, status) => {
+    const label = creditCategory(x.category)?.label || x.category;
+    if (status === "approved" || status === "fulfilled") {
+      // Re-check the rules at approval time against the balance without this row.
+      const others = redemptions.filter((y) => y.id !== x.id);
+      const c = creditsFor(x.memberId, others);
+      const err = x.status === "approved" && status === "fulfilled" ? "" : redemptionError({ category: x.category, amount: Number(x.amount), available: c.balance });
+      if (err) { toast({ title: "Can't approve this one", description: err, variant: "destructive" }); return; }
+    }
+    const now = new Date().toISOString();
+    const patch = { status, ...(status === "fulfilled" ? { fulfilled_at: now } : {}), ...(status !== "requested" && x.status === "requested" ? { decided_at: now } : {}) };
+    try {
+      await base44.entities.PrestigeRedemption.update(x.id, patch);
+      setRedemptions((rs) => rs.map((y) => (y.id === x.id ? { ...y, ...patch } : y)));
+      if (status === "approved") await syncRequest(x, { status: "in_progress", client_note: `Approved: ${money(x.amount)} of your Interstellar credit is going to ${label.toLowerCase()}.` });
+      if (status === "fulfilled") await syncRequest(x, { status: "complete", completed_at: now });
+      if (status === "declined") await syncRequest(x, { status: "declined", client_note: "This credit redemption wasn't approved, so nothing came off your balance. Message Justin with any questions." });
+      toast({ title: `${REDEMPTION_STATUS_LABEL[status] || status}`, description: `${x.memberName} · ${label} · ${money(x.amount)}` });
+    } catch (e) {
+      toast({ title: "Could not update the redemption", description: e.message, variant: "destructive" });
+    }
+  };
+  const logRedemption = async ({ memberId, category, amount, details }) => {
+    const m = members.find((x) => x.id === memberId);
+    const cat = creditCategory(category);
+    const err = !m ? "Pick a referrer." : redemptionError({ category, amount, available: creditsFor(memberId).available });
+    if (err) throw new Error(err);
+    const now = new Date().toISOString();
+    const created = await base44.entities.PrestigeRedemption.create({
+      memberId: m.id, memberName: m.name, client_id: m.client_id || undefined, client_name: clients.find((c) => c.id === m.client_id)?.business || undefined,
+      category, category_group: cat.group, amount, status: "approved", details: details || "", source: "admin", requested_at: now, decided_at: now,
+    });
+    setRedemptions((rs) => [created, ...rs]);
+    setRedeemFor(null);
+    toast({ title: "Redemption logged", description: `${m.name} · ${cat.label} · ${money(amount)} deducted from their balance` });
+  };
+
   const backfill = () => {
     const payloads = members.flatMap((m) => missingRewards({ member: m, referrals, offer, existing: rewards }));
     if (!payloads.length) { toast({ title: "Reward history is complete", description: "Every booked call, signed referral and tier already has a reward logged." }); return; }
@@ -360,7 +410,7 @@ export default function Prestige() {
               <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-md bg-white/10 sm:grid-cols-4">
                 {[
                   [active.length, "Referrers", Users],
-                  [totalBooked, "Calls booked", PhoneCall],
+                  [totalBooked, "Calls booked", Zap],
                   [totalSigned, "Signed", Trophy],
                   [owed.length, owedValue ? `Owed · ${money(owedValue)}` : "Rewards owed", Gift],
                 ].map(([v, l, Icon]) => (
@@ -436,17 +486,17 @@ export default function Prestige() {
         {/* ---------- OFFER + PLAYBOOK ---------- */}
         <section className="grid gap-4 lg:grid-cols-[1fr_1.25fr]">
           <div className="rounded-md border border-hair bg-card p-5">
-            <p className="label-cross">(Paid instantly)</p>
+            <p className="label-cross">(Earned instantly)</p>
             <h3 className="mt-2 text-[20px] font-semibold tracking-[-0.03em]">Every referral earns something</h3>
             <div className="mt-4 space-y-3">
-              {[["Books a call", offer.booked, PhoneCall], ["Signs", offer.signed, Trophy]].map(([when, r, Icon]) => (
+              {[["Books a call", offer.booked, Zap], ["Signs (first invoice paid)", offer.signed, Trophy]].map(([when, r, Icon]) => (
                 <div key={when} className="flex gap-3 rounded-md border border-hair bg-ink/[0.02] p-3.5">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center flame-bg text-white"><Icon className="h-4 w-4" /></span>
                   <div className="min-w-0">
                     <p className="mono-label text-[9.5px] text-ink/50">{when}</p>
                     <p className="text-[15px] font-semibold tracking-[-0.02em]">{r.title}</p>
                     <p className="text-[12.5px] leading-snug text-ink/55">{r.detail}</p>
-                    {r.value ? <p className="mt-1 font-mono text-[11px] text-[#ff3c00]">{money(r.value)} value{offer.is_default ? " (default)" : ""}</p> : null}
+                    {r.value ? <p className="mt-1 font-mono text-[11px] text-[#ff3c00]">{money(r.value)} credit to their balance</p> : null}
                   </div>
                 </div>
               ))}
@@ -472,7 +522,7 @@ export default function Prestige() {
         {/* ---------- TABS ---------- */}
         <section>
           <div className="no-scrollbar flex gap-1 overflow-x-auto border-b border-hair">
-            {[["referrers", `Referrers (${members.length})`], ["rewards", `Rewards${owed.length ? ` · ${owed.length} owed` : ""}`], ["referrals", `All referrals (${referrals.length})`]].map(([k, l]) => (
+            {[["referrers", `Referrers (${members.length})`], ["rewards", `Rewards${owed.length ? ` · ${owed.length} owed` : ""}`], ["credits", `Credits${pendingRedemptions.length ? ` · ${pendingRedemptions.length} to approve` : ""}`], ["referrals", `All referrals (${referrals.length})`]].map(([k, l]) => (
               <button key={k} type="button" onClick={() => setTab(k)} className={`-mb-px whitespace-nowrap border-b-2 px-4 py-2 text-[13px] font-medium transition-colors ${tab === k ? "border-[#ff3c00] text-ink" : "border-transparent text-ink/50 hover:text-ink"}`}>{l}</button>
             ))}
           </div>
@@ -507,6 +557,8 @@ export default function Prestige() {
               </div>
             ) : tab === "rewards" ? (
               <RewardsPanel rewards={rewards} filter={rewardFilter} setFilter={setRewardFilter} onStatus={setRewardStatus} onBackfill={backfill} />
+            ) : tab === "credits" ? (
+              <CreditsPanel members={members} redemptions={redemptions} creditsFor={creditsFor} onStatus={setRedemption} onLog={(id) => setRedeemFor(id || "")} />
             ) : (
               <ReferralsList referrals={referrals} members={members} offer={offer} statsFor={statsFor} onEdit={openEditReferral} onDelete={deleteReferral} onStatus={updateReferralStatus} />
             )}
@@ -517,6 +569,7 @@ export default function Prestige() {
       {/* ---------- modals ---------- */}
       <AddMemberModal open={addModal} onOpenChange={setAddModal} onSave={enrollMember} clients={clients} offer={offer} />
       <OfferEditor open={offerOpen} onOpenChange={setOfferOpen} offer={offer} onSave={saveOffer} />
+      <LogRedemptionDialog memberId={redeemFor} members={members} creditsFor={creditsFor} onClose={() => setRedeemFor(null)} onSave={logRedemption} />
 
       <Dialog open={memberModal} onOpenChange={setMemberModal}>
         <DialogContent className="max-w-md border-ink/[0.13] bg-card text-ink">
@@ -565,7 +618,7 @@ export default function Prestige() {
               </div>
             </div>
             <div><Label className="text-xs text-ink/[0.58]">Notes</Label><textarea value={referralForm.notes} onChange={(e) => setReferralForm({ ...referralForm, notes: e.target.value })} className="mt-1 min-h-[60px] w-full resize-none rounded-md border border-ink/[0.13] bg-ink/[0.03] px-3 py-2 text-sm text-ink outline-none" /></div>
-            <p className="text-[11.5px] text-ink/45">Call booked earns &ldquo;{offer.booked.title}&rdquo;. Signed earns &ldquo;{offer.signed.title}&rdquo;. Both are logged as owed automatically.</p>
+            <p className="text-[11.5px] text-ink/45">Call booked earns a &ldquo;{offer.booked.title}&rdquo; (logged as owed until you use it). Signed (first invoice paid) adds &ldquo;{offer.signed.title}&rdquo; to their credit balance automatically.</p>
             <Button onClick={saveReferral} className="w-full bg-[#ff3c00] font-semibold text-white hover:bg-ink">{editingReferral ? "Save changes" : "Add referral"}</Button>
           </div>
         </DialogContent>
@@ -701,7 +754,8 @@ function MemberCard({ m, offer, stats, refs, memberRewards, client, expanded, on
 
 function RewardsPanel({ rewards, filter, setFilter, onStatus, onBackfill }) {
   const list = rewards.filter((r) => (filter === "all" ? true : r.status === filter));
-  const KIND = { booked: "Call booked", signed: "Signed", tier: "Tier unlock" };
+  const KIND = { priority_pass: "Priority Pass", credit_500: "$500 credit", tier_unlock: "Tier unlock" };
+  const typeOf = (r) => r.reward_type || (r.kind === "booked" ? "priority_pass" : r.kind === "signed" ? "credit_500" : "tier_unlock");
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -721,19 +775,19 @@ function RewardsPanel({ rewards, filter, setFilter, onStatus, onBackfill }) {
               <li key={r.id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`mono-label rounded px-1.5 py-0.5 text-[9px] ${r.kind === "tier" ? "bg-[#ff3c00] text-white" : "bg-ink/[0.06] text-ink/60"}`}>{KIND[r.kind] || r.kind}</span>
+                    <span className={`mono-label rounded px-1.5 py-0.5 text-[9px] ${typeOf(r) === "tier_unlock" ? "bg-[#ff3c00] text-white" : "bg-ink/[0.06] text-ink/60"}`}>{KIND[typeOf(r)]}</span>
                     <span className={`text-[13.5px] font-semibold ${r.status === "void" ? "text-ink/40 line-through" : ""}`}>{r.title}</span>
                     {r.value ? <span className="font-mono text-[11px] text-[#ff3c00]">{money(r.value)}</span> : null}
                   </div>
                   <p className="mt-0.5 text-[11.5px] text-ink/50">
                     {r.memberName}{r.referredClientName ? ` · for ${r.referredClientName}` : ""} · earned {fmtDay(r.earned_at || r.created_date)}
-                    {r.status === "delivered" && r.delivered_at ? ` · delivered ${fmtDay(r.delivered_at)}` : ""}
+                    {r.status === "delivered" && r.delivered_at ? ` · ${typeOf(r) === "credit_500" ? "in balance since" : typeOf(r) === "priority_pass" ? "used" : "delivered"} ${fmtDay(r.delivered_at)}` : ""}
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5">
                   {r.status === "owed" && (
                     <>
-                      <button type="button" onClick={() => onStatus(r, "delivered")} className="inline-flex h-8 items-center gap-1.5 bg-ink px-3 text-[12px] font-medium text-white hover:bg-[#ff3c00]"><Check className="h-3.5 w-3.5" />Mark delivered</button>
+                      <button type="button" onClick={() => onStatus(r, "delivered")} className="inline-flex h-8 items-center gap-1.5 bg-ink px-3 text-[12px] font-medium text-white hover:bg-[#ff3c00]"><Check className="h-3.5 w-3.5" />{typeOf(r) === "priority_pass" ? "Mark used" : typeOf(r) === "credit_500" ? "Add to balance" : "Mark delivered"}</button>
                       <button type="button" onClick={() => onStatus(r, "void")} className="p-2 text-ink/35 hover:text-red-600" title="Void"><Ban className="h-3.5 w-3.5" /></button>
                     </>
                   )}
@@ -747,6 +801,125 @@ function RewardsPanel({ rewards, filter, setFilter, onStatus, onBackfill }) {
         </div>
       )}
     </div>
+  );
+}
+
+function CreditsPanel({ members, redemptions, creditsFor, onStatus, onLog }) {
+  const rows = members.map((m) => ({ m, c: creditsFor(m.id) })).filter((x) => x.c.earned || x.c.redeemed || x.c.pending);
+  const btn = "inline-flex h-8 items-center gap-1.5 px-3 text-[12px] font-medium";
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="max-w-xl text-[12px] text-ink/55">Each signed referral adds ${"500"} credit. Balance = earned − approved spends. Client requests wait here for you and are never deducted until you approve. Builds stack with no cap; merch, marketing materials, social posts, videos and ad spend are capped at ${CREDIT_CAP} per redemption.</p>
+        <button type="button" onClick={() => onLog("")} className={`${btn} bg-[#ff3c00] text-white hover:bg-ink`}><Plus className="h-3.5 w-3.5" />Log redemption</button>
+      </div>
+
+      {rows.length === 0 ? <Empty icon={Coins}>No credit earned yet. Credit lands when a referral signs (first invoice paid).</Empty> : (
+        <div className="overflow-x-auto rounded-md border border-hair bg-card">
+          <table className="w-full min-w-[560px] text-[12.5px]">
+            <thead><tr className="border-b border-hair text-left">{["Referrer", "Earned", "Redeemed", "Pending", "Balance", ""].map((h) => <th key={h} className="mono-label px-4 py-2 text-[9.5px] font-normal text-ink/50">{h}</th>)}</tr></thead>
+            <tbody className="divide-y divide-hair">
+              {rows.map(({ m, c }) => (
+                <tr key={m.id}>
+                  <td className="px-4 py-2.5 font-medium">{m.name}</td>
+                  <td className="px-4 py-2.5 font-mono">{money(c.earned) || "$0"}</td>
+                  <td className="px-4 py-2.5 font-mono">{money(c.redeemed) || "$0"}</td>
+                  <td className="px-4 py-2.5 font-mono text-ink/55">{money(c.pending) || "$0"}</td>
+                  <td className="px-4 py-2.5 font-mono font-semibold text-[#ff3c00]">{money(c.balance) || "$0"}</td>
+                  <td className="px-4 py-2.5 text-right"><button type="button" disabled={c.available <= 0} onClick={() => onLog(m.id)} className="text-[12px] text-ink/55 hover:text-[#ff3c00] disabled:opacity-30">Log spend</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div>
+        <p className="mono-label mb-2 text-[9.5px] text-ink/50">Redemptions ({redemptions.length})</p>
+        {redemptions.length === 0 ? <Empty icon={Coins}>No redemptions yet. Client requests from the portal (Referrals &gt; Use my credits) show up here.</Empty> : (
+          <div className="overflow-hidden rounded-md border border-hair bg-card">
+            <ul className="divide-y divide-hair">
+              {redemptions.map((x) => {
+                const cat = creditCategory(x.category);
+                return (
+                  <li key={x.id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`mono-label rounded px-1.5 py-0.5 text-[9px] ${x.category_group === "build" ? "bg-[#ff3c00] text-white" : "bg-ink/[0.06] text-ink/60"}`}>{x.category_group === "build" ? "Build" : `Capped $${CREDIT_CAP}`}</span>
+                        <span className={`text-[13.5px] font-semibold ${x.status === "declined" ? "text-ink/40 line-through" : ""}`}>{cat?.label || x.category}</span>
+                        <span className="font-mono text-[11px] text-[#ff3c00]">{money(x.amount)}</span>
+                        <span className="rounded bg-ink/[0.05] px-1.5 py-0.5 text-[10px] text-ink/60">{REDEMPTION_STATUS_LABEL[x.status] || x.status}</span>
+                      </div>
+                      <p className="mt-0.5 text-[11.5px] text-ink/50">{x.memberName} · {x.source === "admin" ? "logged by you" : "from the portal"} · {fmtDay(x.requested_at || x.created_date)}{x.details ? ` · ${x.details}` : ""}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {x.status === "requested" && (
+                        <>
+                          <button type="button" onClick={() => onStatus(x, "approved")} className={`${btn} bg-ink text-white hover:bg-[#ff3c00]`}><Check className="h-3.5 w-3.5" />Approve</button>
+                          <button type="button" onClick={() => onStatus(x, "declined")} className="p-2 text-ink/35 hover:text-red-600" title="Decline"><Ban className="h-3.5 w-3.5" /></button>
+                        </>
+                      )}
+                      {x.status === "approved" && <button type="button" onClick={() => onStatus(x, "fulfilled")} className={`${btn} border border-hair text-ink/70 hover:text-ink`}><Check className="h-3.5 w-3.5" />Mark done</button>}
+                      {x.status === "declined" && <button type="button" onClick={() => onStatus(x, "requested")} className={`${btn} border border-hair text-ink/60 hover:text-ink`}><Undo2 className="h-3.5 w-3.5" />Reopen</button>}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <p className="mono-label mb-2 text-[9.5px] text-ink/50">What clients see: where credits go</p>
+        <CreditTiles />
+      </div>
+    </div>
+  );
+}
+
+function LogRedemptionDialog({ memberId, members, creditsFor, onClose, onSave }) {
+  const open = memberId !== null && memberId !== undefined;
+  const [form, setForm] = useState({ memberId: "", category: "", amount: "", details: "" });
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (open) { setForm({ memberId: memberId || "", category: "", amount: "", details: "" }); setErr(""); } }, [open, memberId]);
+  const c = form.memberId ? creditsFor(form.memberId) : null;
+  const save = async () => {
+    setBusy(true); setErr("");
+    try { await onSave({ ...form, amount: Number(form.amount) }); } catch (e) { setErr(e.message); } finally { setBusy(false); }
+  };
+  return (
+    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-md border-ink/[0.13] bg-card text-ink">
+        <DialogHeader><DialogTitle className="text-ink">Log a credit redemption</DialogTitle></DialogHeader>
+        <div className="space-y-3 pt-2">
+          <div>
+            <Label className="text-xs text-ink/[0.58]">Referrer</Label>
+            <select value={form.memberId} onChange={(e) => setForm({ ...form, memberId: e.target.value })} className={selectCls}>
+              <option value="">Pick a referrer</option>
+              {members.map((m) => { const s = creditsFor(m.id); return <option key={m.id} value={m.id}>{m.name} · {money(s.available) || "$0"} available</option>; })}
+            </select>
+          </div>
+          <div>
+            <Label className="text-xs text-ink/[0.58]">Where it goes</Label>
+            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={selectCls}>
+              <option value="">Pick a category</option>
+              {CREDIT_GROUPS.map((g) => (
+                <optgroup key={g.key} label={g.label}>
+                  {CREDIT_CATEGORIES.filter((x) => x.group === g.key).map((x) => <option key={x.key} value={x.key}>{x.label}</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+          <div><Label className="text-xs text-ink/[0.58]">Amount ($)</Label><Input type="number" min="1" step="1" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className={fieldCls} /></div>
+          <div><Label className="text-xs text-ink/[0.58]">Notes</Label><textarea value={form.details} onChange={(e) => setForm({ ...form, details: e.target.value })} className="mt-1 min-h-[60px] w-full resize-none rounded-md border border-ink/[0.13] bg-ink/[0.03] px-3 py-2 text-sm text-ink outline-none" /></div>
+          <p className="text-[11.5px] text-ink/45">{c ? `Balance ${money(c.balance) || "$0"} · ${money(c.pending) || "$0"} pending · ${money(c.available) || "$0"} available. ` : ""}Logged as approved, so it comes off the balance now. Capped categories max ${CREDIT_CAP} per redemption.</p>
+          {err && <p className="text-[12px] text-red-600">{err}</p>}
+          <Button onClick={save} disabled={busy} className="w-full bg-[#ff3c00] font-semibold text-white hover:bg-ink">{busy ? "Saving…" : "Log redemption"}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
