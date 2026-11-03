@@ -74,7 +74,7 @@ export default function AuthShell({ eyebrow, children, footer }) {
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 text-[11.5px] text-ink/45">
           <span>© {new Date().getFullYear()} Interstellar Strategies</span>
-          {footer || <span className="font-mono tracking-[0.08em]">MØTHERSHIP®</span>}
+          {footer || <span className="font-mono tracking-[0.08em]">MØTHERSHIP™</span>}
         </div>
       </main>
     </div>
