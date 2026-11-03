@@ -399,7 +399,7 @@ export function runRules(ctx: any): Finding[] {
         else if (creatives.some((c: any) => /before_after/.test(String(c?.template || "")))) add(r, `${r.message} (Template: before/after site.)`, "template");
         break;
       case "caps": {
-        const caps = (text.match(/\b[A-Z]{4,}\b/g) || []).filter((w) => !/^(SEO|HTML|CSS|AEO|GEO|AIO|USA|LLC|ROAS|ROI|CRM|ERP|GBP|API|FAQ|PDF|PNG|URL|CEO)$/.test(w));
+        const caps = (text.match(/\b[A-Z]{4,}\b/g) || [] as string[]).filter((w: string) => !/^(SEO|HTML|CSS|AEO|GEO|AIO|USA|LLC|ROAS|ROI|CRM|ERP|GBP|API|FAQ|PDF|PNG|URL|CEO)$/.test(w));
         if (caps.length >= 2) add(r, undefined, caps.slice(0, 4).join(" "));
         break;
       }
