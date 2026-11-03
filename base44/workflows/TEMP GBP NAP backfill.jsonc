@@ -1,0 +1,79 @@
+{
+  "name": "TEMP GBP NAP backfill",
+  "description": "One-off: refresh St\u00e4rboard caches so they include the GBP phone/address. Archive after run.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 3 1 1 *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "do": [
+      {
+        "velocity": {
+          "call": "invoke_backend_function",
+          "then": "mowmasters",
+          "with": {
+            "args": {
+              "client": "velocity"
+            },
+            "function_name": "reviews"
+          }
+        }
+      },
+      {
+        "mowmasters": {
+          "call": "invoke_backend_function",
+          "then": "arcaneink",
+          "with": {
+            "args": {
+              "client": "mowmasters"
+            },
+            "function_name": "reviews"
+          }
+        }
+      },
+      {
+        "arcaneink": {
+          "call": "invoke_backend_function",
+          "then": "palmshore",
+          "with": {
+            "args": {
+              "client": "arcaneink"
+            },
+            "function_name": "reviews"
+          }
+        }
+      },
+      {
+        "palmshore": {
+          "call": "invoke_backend_function",
+          "then": "end",
+          "with": {
+            "args": {
+              "client": "palmshore"
+            },
+            "function_name": "reviews"
+          }
+        }
+      }
+    ],
+    "document": {
+      "dsl": "1.0.0",
+      "name": "temp_gbp_nap_backfill",
+      "namespace": "base44",
+      "version": "1.0"
+    }
+  }
+}
