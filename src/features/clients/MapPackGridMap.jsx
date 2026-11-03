@@ -23,7 +23,8 @@ export default function MapPackGridMap({ grid, office }) {
   const hasOffice = office && Number.isFinite(office.lat) && Number.isFinite(office.lng);
   return (
     <MapContainer bounds={bounds} scrollWheelZoom={false} className="h-[360px] w-full rounded-sm border border-hair" style={{ zIndex: 0 }}>
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
+      {/* CARTO light basemap: OSM's own tile servers block app traffic (403 "Access blocked"). */}
+      <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" subdomains="abcd" maxZoom={20} attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>' />
       <FitTo bounds={bounds} />
       <Rectangle bounds={bounds} pathOptions={{ color: "#ff3c00", weight: 1, fillOpacity: 0.04, dashArray: "4 4" }} />
       {pts.map((p) => (
