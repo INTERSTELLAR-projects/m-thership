@@ -46,7 +46,7 @@ export async function createFlight(client, pkg) {
   };
   if (needsCare(draft, client)) {
     draft.care_plan = "orbit_local";
-    draft.care_value = 750;
+    draft.care_value = defaultPrice("orbit_local");
     draft.care_start_date = plusDays(start, (sale && sale.careDelay) || 30);
   }
   return base44.entities.OnboardingFlight.create(draft);
