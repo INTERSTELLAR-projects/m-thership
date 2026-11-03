@@ -232,6 +232,7 @@ export default function CRM() {
                               </div>
                               <Arrow />
                             </button>
+                            <button onClick={() => navigate(`/email?client=${client.id}`)} title="Email client (Email Studio)" className="p-1.5 text-ink/[0.28] hover:text-[#ff3c00] opacity-0 group-hover:opacity-100 transition-all shrink-0"><Mail className="w-3.5 h-3.5" /></button>
                             <button onClick={() => unbundle(client)} title="Remove from package" className="p-1.5 text-ink/[0.28] hover:text-[#ff3c00] opacity-0 group-hover:opacity-100 transition-all shrink-0"><Unlink2 className="w-3.5 h-3.5" /></button>
                             <button onClick={() => deleteClient(client.id)} className="p-1.5 text-ink/[0.28] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
                           </div>
@@ -258,6 +259,7 @@ export default function CRM() {
                     <Money total={total} sub={`${(client.services || []).length} ${(client.services || []).length === 1 ? "service" : "services"}`} />
                     <Arrow />
                   </button>
+                  <button onClick={() => navigate(`/email?client=${client.id}`)} title="Email client (Email Studio)" className="p-1.5 text-ink/[0.28] hover:text-[#ff3c00] opacity-0 group-hover:opacity-100 transition-all shrink-0"><Mail className="w-3.5 h-3.5" /></button>
                   <button onClick={() => { setBundleFor(client); setBundleWith(""); setBundleName(""); }} title="Group into a package deal" className="p-1.5 text-ink/[0.28] hover:text-[#ff3c00] opacity-0 group-hover:opacity-100 transition-all shrink-0"><Link2 className="w-3.5 h-3.5" /></button>
                   <button onClick={() => deleteClient(client.id)} className="p-1.5 text-ink/[0.28] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
