@@ -70,7 +70,15 @@ export default function PortalApp({ previewId }) {
           {tab === "results" && <ResultsView d={d} />}
           {tab === "gbp" && <PortalGbp call={call} previewId={previewId} onOpenQr={(code) => { setQrOpen(code.id); setTab("qr"); }} />}
           {tab === "goals" && <GoalsView d={d} />}
-          {tab === "files" && (d.files.length ? <FileGrid files={d.files} /> : <Panel><Empty>Your brand kit, SOPs, presentations and other deliverables will appear here.</Empty></Panel>)}
+          {tab === "files" && (
+            <div className="space-y-4">
+              <div>
+                <p className="label-cross">(Files)</p>
+                <h2 className="mt-2 text-[32px] font-semibold tracking-[-0.04em]">Your deliverables</h2>
+              </div>
+              {d.files.length ? <FileGrid files={d.files} /> : <Panel><Empty>Nothing delivered yet. Your brand kit, SOPs, presentations and other finished work will appear here as we hand it over.</Empty></Panel>}
+            </div>
+          )}
           {tab === "brand" && d.has_brand_kit && <BrandKitView call={call} previewId={previewId} business={d.client.business} />}
           {tab === "playbook" && d.has_playbook && <PortalPlaybook call={call} previewId={previewId} business={d.client.business} />}
           {tab === "resources" && <PortalResources call={call} previewId={previewId} business={d.client.business} go={setTab} />}
@@ -256,10 +264,10 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, children }) 
 
 function Counter({ value, label, total }) {
   return (
-    <div className="border-r border-hair px-5 py-6 last:border-r-0">
-      <p className="text-[44px] font-semibold leading-none tracking-[-0.05em] tabular-nums">{value}</p>
+    <div className="border-b border-r border-hair px-4 py-5 sm:px-5 sm:py-6 lg:border-b-0 lg:last:border-r-0">
+      <p className="text-[34px] font-semibold leading-none tracking-[-0.05em] tabular-nums sm:text-[44px]">{value}</p>
       <p className="mono-label mt-3 text-[10px] text-ink/55">{label}</p>
-      {total != null && <p className="mt-1 text-[12px] text-ink/45">{total} all time</p>}
+      {total > 0 && <p className="mt-1 text-[12px] text-ink/45">{total} all time</p>}
     </div>
   );
 }
@@ -282,12 +290,16 @@ function HomeView({ d, go, call, previewId, openAudit }) {
           Here&apos;s what we did for <span className="text-[#ff3c00]">{d.client.business}</span>.
         </h1>
         <p className="mt-3 max-w-2xl text-[15px] text-ink/60">Every blog, Google post, site update and listing we publish for you shows up here as it happens. {allTime ? `${allTime} pieces of work logged so far.` : ""}</p>
-        <div className="mt-6 grid overflow-hidden rounded-md border border-hair bg-card sm:grid-cols-2 lg:grid-cols-4">
-          <Counter value={c("blog")} total={t("blog")} label={`Blogs published in ${monthName}`} />
-          <Counter value={c("gbp_post")} total={t("gbp_post")} label={`Google posts in ${monthName}`} />
-          <Counter value={c("site_edit", "new_page", "project_page")} total={t("site_edit", "new_page", "project_page", "deliverable")} label={`Website updates in ${monthName}`} />
-          <Counter value={c("citation", "press", "mention", "backlink")} total={t("citation", "press", "mention", "backlink")} label={`Listings & press in ${monthName}`} />
-        </div>
+        {allTime === 0 ? (
+          <FirstMonth business={d.client.business} go={go} />
+        ) : (
+          <div className="mt-6 grid grid-cols-2 overflow-hidden rounded-md border border-hair bg-card lg:grid-cols-4">
+            <Counter value={c("blog")} total={t("blog")} label={`Blogs published in ${monthName}`} />
+            <Counter value={c("gbp_post")} total={t("gbp_post")} label={`Google posts in ${monthName}`} />
+            <Counter value={c("site_edit", "new_page", "project_page")} total={t("site_edit", "new_page", "project_page", "deliverable")} label={`Website updates in ${monthName}`} />
+            <Counter value={c("citation", "press", "mention", "backlink")} total={t("citation", "press", "mention", "backlink")} label={`Listings & press in ${monthName}`} />
+          </div>
+        )}
       </section>
 
       <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
@@ -342,6 +354,37 @@ function HomeView({ d, go, call, previewId, openAudit }) {
             <p className="text-[12px] text-ink/55">The more we know, the more we can automate for you.</p>
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Brand-new clients have no logged work yet: explain what will show up instead of a wall of zeros.
+function FirstMonth({ go }) {
+  const items = [
+    ["Blogs", "Every article we publish on your site, with a link to read it live."],
+    ["Google posts", "Updates and offers we post to your Google Business Profile."],
+    ["Website updates", "Edits, new pages and fixes as they go live."],
+    ["Listings & press", "Directory listings, mentions and links we earn for you."],
+  ];
+  return (
+    <div className="mt-6 overflow-hidden rounded-md border border-hair bg-card">
+      <div className="h-[3px] bg-[linear-gradient(90deg,#ff3c00,#ff6a00,#ffaa00)]" aria-hidden="true" />
+      <div className="px-5 py-5 md:px-6">
+        <p className="mono-label text-[10px] text-[#ff3c00]">Getting started</p>
+        <p className="mt-2 max-w-2xl text-[16px] font-semibold leading-snug tracking-[-0.02em] md:text-[18px]">Your first results land here as we publish them. Nothing to do on your end, but the business audit below helps us move faster.</p>
+      </div>
+      <ul className="grid border-t border-hair sm:grid-cols-2 lg:grid-cols-4">
+        {items.map(([t, s]) => (
+          <li key={t} className="border-b border-hair px-5 py-4 sm:border-r lg:border-b-0 lg:last:border-r-0">
+            <p className="text-[14px] font-semibold">{t}</p>
+            <p className="mt-1 text-[12.5px] leading-relaxed text-ink/55">{s}</p>
+          </li>
+        ))}
+      </ul>
+      <div className="flex flex-wrap gap-2 border-t border-hair px-5 py-4">
+        <button type="button" onClick={() => go("requests")} className="h-10 bg-[#ff3c00] px-4 text-[13px] font-medium text-white hover:bg-ink">Send your first request</button>
+        <button type="button" onClick={() => go("messages")} className="h-10 border border-hair px-4 text-[13px] font-medium hover:border-ink/30">Message us</button>
       </div>
     </div>
   );
