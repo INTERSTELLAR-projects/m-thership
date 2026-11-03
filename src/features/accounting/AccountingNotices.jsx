@@ -1,7 +1,7 @@
 // In-app notification for Accounting & Tax reminders (estimated-tax due soon, monthly close).
 // Mounted once in the admin Layout; renders nothing for non-admins or when there is no new alert.
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Bell, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
@@ -11,6 +11,7 @@ const SESSION_KEY = "acct_notice_hidden";
 export default function AccountingNotices() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [alert, setAlert] = useState(null);
 
   useEffect(() => {
@@ -24,7 +25,8 @@ export default function AccountingNotices() {
     return () => { alive = false; };
   }, [user]);
 
-  if (!alert) return null;
+  // The Accounting tab shows the same alert inline, so the floating card stays out of the way there.
+  if (!alert || (location.pathname === "/financial" && /tab=accounting/.test(location.search))) return null;
   const hide = () => {
     try {
       const prev = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "[]");
