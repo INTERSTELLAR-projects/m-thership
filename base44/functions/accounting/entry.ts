@@ -346,7 +346,7 @@ async function runReminders(db: any) {
       const label = prev.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
       const due = `${y}-${String(m).padStart(2, "0")}-05`;
       const title = `Monthly books close: ${label}`;
-      const notes = `Accounting > Transactions:\n1. Sync Stripe and QuickBooks (or import last month's bank CSV).\n2. Clear the review inbox (bulk-approve AI suggestions).\n3. Attach receipts for anything over $75.\n4. Log business miles.\n5. Update the tax reserve balance.\n6. Check the Tax plan set-aside %.`;
+      const notes = `Accounting > Transactions:\n1. Sync Stripe, then download last month's statement CSV from each bank/card website and upload it (Import bank CSV).\n2. Clear the review inbox (bulk-approve AI suggestions).\n3. Attach receipts for anything over $75.\n4. Log business miles.\n5. Update the tax reserve balance.\n6. Check the Tax plan set-aside %.`;
       const task = await db.Task.create({ title, category: "finance", priority: 2, status: "next", source: "automation", task_type: "internal", due_date: today > due ? today : due, notes }).catch(() => null);
       await db.AccountingAlert.create({ business_id: BUSINESS_ID, key, kind: "monthly_close", title, body: `Close ${label}: categorize, reconcile, receipts, mileage, reserve.`, due_date: due, link: "/financial?tab=accounting&sub=transactions", task_id: task?.id, status: "new" });
       made.push(key);

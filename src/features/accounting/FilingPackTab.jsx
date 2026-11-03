@@ -7,7 +7,7 @@ import { buildGuide, download, form1099s, ledgerCsv, packPdf, scheduleC, SCHED_C
 import { depreciationForYear, homeOfficeDeduction, mileageDeduction, mileageRateOn } from "./extras";
 
 const QUARTER_ITEMS = [
-  ["sync", "Sync Stripe and QuickBooks, or import every bank/card CSV for the quarter"],
+  ["sync", "Sync Stripe and upload every bank/card statement CSV for the quarter"],
   ["inbox", "Review inbox at zero (bulk-approve suggestions, fix the rest)"],
   ["reconcile", "Ending balances match the bank statements (mark rows reconciled)"],
   ["receipts", "Receipts attached for anything $75+ and all meals/travel"],
