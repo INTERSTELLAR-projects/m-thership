@@ -55,6 +55,7 @@
         "content_plan",
         "social_plan",
         "enrich_profile",
+        "map_pack_plan",
         "other"
       ],
       "type": "string"
