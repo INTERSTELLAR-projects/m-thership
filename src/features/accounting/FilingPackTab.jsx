@@ -19,6 +19,19 @@ const QUARTER_ITEMS = [
   ["backup", "Filing pack exported (PDF + CSV) as a backup"],
 ];
 
+const SCORP_ITEMS = (y) => [
+  ["cpa", `Confirm with a CPA that the ${y} S-corp election still makes sense at projected profit (see Tax plan what-if)`],
+  ["f2553", `File Form 2553 during ${y - 1} or no later than Mar 15, ${y} (2 months 15 days rule — IRS Form 2553 instructions; ${y} date computed). An LLC filing 2553 doesn't also need Form 8832`],
+  ["shareholder", "All members sign the 2553 consent; keep the IRS acceptance letter (CP261) with the books"],
+  ["oregon", "Oregon follows the federal election — confirm any Oregon registration/notice needed (needs confirmation)"],
+  ["salary", "Set a reasonable salary (what you'd pay someone else for the role); document how you chose it"],
+  ["payroll", `Pick a payroll provider; register with Oregon (Combined Payroll / BIN, UI, Paid Leave) and IRS Form 941 deposits before the first ${y} paycheck`],
+  ["sctd", "Ask SCTD how its transit tax applies to S-corp payroll instead of self-employment income (needs confirmation)"],
+  ["bank", "Run payroll and owner distributions from the business account only; stop using owner draws"],
+  ["estimates", `Adjust ${y} estimated payments: withholding now covers salary, estimates cover K-1 income`],
+  ["prep", `Budget for the Form 1120-S + Oregon OR-20-S return (due Mar 15, ${y + 1})`],
+];
+
 function quarterKey(d = new Date()) { return `${d.getFullYear()}-Q${Math.floor(d.getMonth() / 3) + 1}`; }
 
 export default function FilingPackTab({ acct }) {
@@ -158,6 +171,26 @@ export default function FilingPackTab({ acct }) {
           ))}
         </div>
       </Card>
+
+      {profile.planned_scorp_year && (() => {
+        const y = profile.planned_scorp_year;
+        const key = `plan-scorp-${y}`;
+        const done = (profile.checklists || {})[key] || {};
+        const items = SCORP_ITEMS(y);
+        return (
+          <Card title={`Planned: S-corp election for ${y}`} sub="Planning checklist. Items marked needs confirmation weren't verified on an official page.">
+            <div className="grid gap-1.5 md:grid-cols-2">
+              {items.map(([k, label]) => (
+                <label key={k} className="flex cursor-pointer items-start gap-2 rounded px-2 py-1.5 text-[12.5px] hover:bg-ink/[0.03]">
+                  <input type="checkbox" className="mt-0.5 accent-[#ff3c00]" checked={!!done[k]} onChange={(e) => saveProfile({ checklists: { ...(profile.checklists || {}), [key]: { ...done, [k]: e.target.checked } } })} />
+                  <span className={done[k] ? "text-ink/40 line-through" : "text-ink/75"}>{label}</span>
+                </label>
+              ))}
+            </div>
+            <p className="mt-2 text-[11px] text-ink/45">{items.filter(([k]) => done[k]).length}/{items.length} done.</p>
+          </Card>
+        );
+      })()}
 
       <Card title="Quarter-close checklist" sub="Run this at the end of every quarter, before the estimated-tax due date."
         right={<select value={qKey} onChange={(e) => setQKey(e.target.value)} className="rounded-md border border-hair bg-card px-2 py-1 text-[12px]">{[taxYear, taxYear - 1].flatMap((y) => [4, 3, 2, 1].map((q) => `${y}-Q${q}`)).map((k) => <option key={k}>{k}</option>)}</select>}>

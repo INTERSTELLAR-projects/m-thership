@@ -73,6 +73,49 @@ export default function TaxPlanTab({ acct, go }) {
     await saveProfile({ estimated_payments: list });
   };
 
+  const planned = profile.planned_scorp_year || null;
+  const scorpCard = (
+      <Card className={planned ? "border-2 !border-[#ff3c00]" : ""} title={planned ? `Planned: S-corp election for ${planned} — what-if` : "S-corp election — what-if"} sub={`ESTIMATE ONLY. Compares staying a Schedule C LLC with electing S-corp status at the salary you choose${planned ? `, using this year's projected profit as a stand-in for ${planned}` : ""}.`}
+        right={<Pill tone={sc.savings > 0 ? "flame" : "ink"}>{sc.savings > 0 ? `saves ≈ ${money0(sc.savings)}/yr` : `costs ≈ ${money0(-sc.savings)}/yr`}</Pill>}>
+        <div className="grid gap-5 lg:grid-cols-5">
+          <div className="lg:col-span-2">
+            <Field label={`Owner salary: ${money0(salary)} (${salaryPct}% of ${money0(np)} profit)`}>
+              <input type="range" min={10} max={100} value={salaryPct} onChange={(e) => setSalaryPct(Number(e.target.value))} className="w-full accent-[#ff3c00]" />
+            </Field>
+            <p className="mt-3 text-[11.5px] leading-relaxed text-ink/55">
+              The IRS requires a <b>reasonable salary</b> for the work you do before any distributions; a low salary is the most-audited part of an S-corp. Common practice puts it near what you'd pay someone else to do the job. The rest comes out as distributions free of SE tax. Elections are made on Form 2553 (and Oregon follows the federal election).
+            </p>
+            <div className="mt-3 flex items-end gap-2">
+              <Btn onClick={() => saveProfile({ s_corp_salary: salary })}>Save this salary</Btn>
+            </div>
+          </div>
+          <div className="lg:col-span-3">
+            <table className="w-full text-[12px]">
+              <thead><tr className="text-left text-ink/45"><th className="mono-label py-1.5 !text-[9px]" /><th className="mono-label py-1.5 text-right !text-[9px]">Schedule C</th><th className="mono-label py-1.5 text-right !text-[9px]">S-corp</th></tr></thead>
+              <tbody className="tabular-nums">
+                {[
+                  ["Self-employment tax", sc.sole.seTax, 0],
+                  ["Payroll FICA (employer + employee)", 0, sc.sc.payroll ? sc.sc.payroll.employer.fica + sc.sc.payroll.employee.fica : 0],
+                  ["FUTA + Oregon UI + Paid Leave + transit", 0, sc.sc.payroll ? sc.sc.payroll.employer.futa + sc.sc.payroll.employer.or_ui + sc.sc.payroll.employer.paid_leave + sc.sc.payroll.employee.paid_leave + sc.sc.payroll.employee.transit : 0],
+                  ["Federal income tax", sc.sole.fedIncomeTax + sc.sole.addlMedicare, sc.sc.fedIncomeTax + sc.sc.addlMedicare],
+                  ["Oregon income tax", sc.sole.oregonTotal, sc.sc.oregonTotal],
+                  ["SCTD (SE tax vs payroll tax)", sc.sole.sctd, sc.sc.sctd],
+                  ["Oregon S-corp minimum tax", 0, sc.sc.payroll ? sc.sc.payroll.costs.or_minimum : 0],
+                  ["Payroll service + extra return prep", 0, sc.sc.extraCosts],
+                ].map(([l, a, b]) => (
+                  <tr key={l} className="border-t border-hair/60"><td className="py-1.5 text-ink/65">{l}</td><td className="py-1.5 text-right">{money0(a)}</td><td className="py-1.5 text-right">{money0(b)}</td></tr>
+                ))}
+                <tr className="border-t-2 border-ink font-semibold"><td className="py-2">All-in</td><td className="py-2 text-right">{money0(sc.sole.allIn)}</td><td className="py-2 text-right">{money0(sc.sc.allIn)}</td></tr>
+              </tbody>
+            </table>
+            <p className="mt-2 text-[10.5px] leading-relaxed text-ink/45">
+              K-1 income {money0(sc.sc.payroll ? sc.sc.payroll.k1 : 0)}; QBI limited by W-2 wages above the threshold. Payroll service ({money0(profile.scorp_payroll_service_cost)}) and extra prep ({money0(profile.scorp_extra_prep_cost)}) are your assumptions (Settings). Oregon UI, Paid Leave split, statewide transit, FUTA and the $150 minimum are marked "needs confirmation".
+            </p>
+          </div>
+        </div>
+      </Card>
+  );
+
   return (
     <div className="space-y-5">
       <Heading title="Tax" accent="plan" sub="Full-year projection, what you owe, when, and how much to set aside. Change the projection method any time."
@@ -83,6 +126,13 @@ export default function TaxPlanTab({ acct, go }) {
             ))}
           </div>
         } />
+      {planned && (
+        <div className="rounded-md border border-ink bg-ink px-4 py-3 text-white">
+          <p className="text-[13px] font-semibold">Planned: S-corp election for {planned}. {acct.taxYear} stays Schedule C.</p>
+          <p className="mt-0.5 text-[11.5px] text-white/60">Form 2553 for a calendar-year {planned} election: file any time during {planned - 1}, or by Mar 15, {planned} (2 months 15 days rule, IRS 2553 instructions; the date is computed). Checklist in Filing pack. Confirm salary and timing with a CPA.</p>
+        </div>
+      )}
+      {planned && scorpCard}
       <p className="-mt-2 text-[11.5px] text-ink/50">
         Run-rate = actual year-to-date + the average of the last 3 complete months for the rest of the year. Annualized = year-to-date ÷ share of the year elapsed ({pct(plan.proj.frac, 0)}).
         {plan.proj.used === "annualized" && profile.projection_method === "run_rate" ? " Not enough complete months yet, so annualized is used." : ""}
@@ -174,45 +224,7 @@ export default function TaxPlanTab({ acct, go }) {
         Safe harbor: pay the smaller of 90% of this year's tax or 100% of last year's (110% if last year's AGI was over $150,000) — {profile.prior_year_federal_tax == null ? <button className="text-[#ff3c00] hover:underline" onClick={() => go("settings")}>enter last year's tax to use the prior-year rule</button> : "prior-year figures entered"}. <SourceLink entry={cfg.safe_harbor_high_income_pct} />
       </p>
 
-      <Card title="S-corp election — what-if" sub="ESTIMATE ONLY. Compares staying a Schedule C LLC with electing S-corp status at the salary you choose."
-        right={<Pill tone={sc.savings > 0 ? "flame" : "ink"}>{sc.savings > 0 ? `saves ≈ ${money0(sc.savings)}/yr` : `costs ≈ ${money0(-sc.savings)}/yr`}</Pill>}>
-        <div className="grid gap-5 lg:grid-cols-5">
-          <div className="lg:col-span-2">
-            <Field label={`Owner salary: ${money0(salary)} (${salaryPct}% of ${money0(np)} profit)`}>
-              <input type="range" min={10} max={100} value={salaryPct} onChange={(e) => setSalaryPct(Number(e.target.value))} className="w-full accent-[#ff3c00]" />
-            </Field>
-            <p className="mt-3 text-[11.5px] leading-relaxed text-ink/55">
-              The IRS requires a <b>reasonable salary</b> for the work you do before any distributions; a low salary is the most-audited part of an S-corp. Common practice puts it near what you'd pay someone else to do the job. The rest comes out as distributions free of SE tax. Elections are made on Form 2553 (and Oregon follows the federal election).
-            </p>
-            <div className="mt-3 flex items-end gap-2">
-              <Btn onClick={() => saveProfile({ s_corp_salary: salary })}>Save this salary</Btn>
-            </div>
-          </div>
-          <div className="lg:col-span-3">
-            <table className="w-full text-[12px]">
-              <thead><tr className="text-left text-ink/45"><th className="mono-label py-1.5 !text-[9px]" /><th className="mono-label py-1.5 text-right !text-[9px]">Schedule C</th><th className="mono-label py-1.5 text-right !text-[9px]">S-corp</th></tr></thead>
-              <tbody className="tabular-nums">
-                {[
-                  ["Self-employment tax", sc.sole.seTax, 0],
-                  ["Payroll FICA (employer + employee)", 0, sc.sc.payroll ? sc.sc.payroll.employer.fica + sc.sc.payroll.employee.fica : 0],
-                  ["FUTA + Oregon UI + Paid Leave + transit", 0, sc.sc.payroll ? sc.sc.payroll.employer.futa + sc.sc.payroll.employer.or_ui + sc.sc.payroll.employer.paid_leave + sc.sc.payroll.employee.paid_leave + sc.sc.payroll.employee.transit : 0],
-                  ["Federal income tax", sc.sole.fedIncomeTax + sc.sole.addlMedicare, sc.sc.fedIncomeTax + sc.sc.addlMedicare],
-                  ["Oregon income tax", sc.sole.oregonTotal, sc.sc.oregonTotal],
-                  ["SCTD (SE tax vs payroll tax)", sc.sole.sctd, sc.sc.sctd],
-                  ["Oregon S-corp minimum tax", 0, sc.sc.payroll ? sc.sc.payroll.costs.or_minimum : 0],
-                  ["Payroll service + extra return prep", 0, sc.sc.extraCosts],
-                ].map(([l, a, b]) => (
-                  <tr key={l} className="border-t border-hair/60"><td className="py-1.5 text-ink/65">{l}</td><td className="py-1.5 text-right">{money0(a)}</td><td className="py-1.5 text-right">{money0(b)}</td></tr>
-                ))}
-                <tr className="border-t-2 border-ink font-semibold"><td className="py-2">All-in</td><td className="py-2 text-right">{money0(sc.sole.allIn)}</td><td className="py-2 text-right">{money0(sc.sc.allIn)}</td></tr>
-              </tbody>
-            </table>
-            <p className="mt-2 text-[10.5px] leading-relaxed text-ink/45">
-              K-1 income {money0(sc.sc.payroll ? sc.sc.payroll.k1 : 0)}; QBI limited by W-2 wages above the threshold. Payroll service ({money0(profile.scorp_payroll_service_cost)}) and extra prep ({money0(profile.scorp_extra_prep_cost)}) are your assumptions (Settings). Oregon UI, Paid Leave split, statewide transit, FUTA and the $150 minimum are marked "needs confirmation".
-            </p>
-          </div>
-        </div>
-      </Card>
+      {!planned && scorpCard}
 
       <Card title="Oregon & local items" sub="What applies to a Molalla (Clackamas County) business, and what doesn't.">
         <div className="grid gap-3 md:grid-cols-2">

@@ -8,9 +8,9 @@ import { Btn, ConfirmDialog, Field, Panel, Pill, Select, TextArea, TextInput, fm
 
 /* ---------------- Drafts & Sent history ---------------- */
 
-export function HistoryTab({ drafts, onOpen, onDuplicate, refresh }) {
+export function HistoryTab({ drafts, onOpen, onDuplicate, refresh, initialOpen = null }) {
   const [filter, setFilter] = useState("");
-  const [open, setOpen] = useState(null);
+  const [open, setOpen] = useState(initialOpen);
   const [confirm, setConfirm] = useState(null);
   const rows = drafts.filter((d) => !filter || (filter === "sent" ? d.status === "sent" : d.status !== "sent"));
   return (

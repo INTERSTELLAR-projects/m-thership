@@ -13,6 +13,8 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { secrets } from "base44:runtime";
 
 const BUSINESS_ID = "interstellar";
+// Justin's decision (2026-11-03): no QuickBooks / bank connections. qbo_* actions stay dormant until this is flipped.
+const QBO_ENABLED = false;
 const STRIPE_API = "https://api.stripe.com/v1";
 const QBO_API = "https://quickbooks.api.intuit.com/v3/company";
 const MODEL = "claude_sonnet_4_6";
@@ -365,6 +367,7 @@ export default async function (req: Request) {
     const taxYear = Number(body.tax_year) || new Date().getFullYear();
 
     if (action === "sync_stripe") return Response.json(await syncStripe(db, taxYear));
+    if (!QBO_ENABLED && (action === "qbo_status" || action === "qbo_sync")) return Response.json({ connected: false, disabled: true, reason: "QuickBooks is disabled: bank data comes only from CSV uploads." });
     if (action === "qbo_status") {
       const profile = await getProfile(db);
       const c: any = await qboConnection(base44, profile, body.realm_id);
