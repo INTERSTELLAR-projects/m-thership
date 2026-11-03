@@ -36,7 +36,8 @@ Deno.serve(async (req) => {
       const business = client?.business || "Your Business";
       const { subject, html } = onboardingEmail({ business, contact: client?.contact || user.full_name || "", portalUrl: settings.portal_url, email: to });
       await base44.asServiceRole.integrations.Core.SendEmail({ to, subject: `[TEST] ${subject}`, body: html, from_name: "Interstellar Strategies" });
-      await db.PortalInvite.create({ client_id: client?.id || "test", client_name: client?.business || "Test", email: to, source: "test", status: "sent", sent_at: new Date().toISOString(), invited_by: user.email, message: "Test of the onboarding email sent to the admin only. No portal access was granted." });
+      // Logged under client_id "test" so it never counts as the client's real invite.
+      await db.PortalInvite.create({ client_id: "test", client_name: "Test", email: to, source: "test", status: "sent", sent_at: new Date().toISOString(), invited_by: user.email, message: `Test of the onboarding email (sample business: ${business}) sent to the admin only. No portal access was granted.` });
       return Response.json({ ok: true, to });
     }
 
@@ -49,7 +50,7 @@ Deno.serve(async (req) => {
     if (action === "status") {
       const pick = pickInviteEmail(client, "");
       return Response.json({
-        settings,
+        settings: { auto_send: settings.auto_send, portal_url: settings.portal_url },
         portal_emails: client.portal_emails || [],
         portal_enabled: client.portal_enabled === true,
         default_email: "email" in pick ? pick.email : null,
