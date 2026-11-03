@@ -105,8 +105,14 @@ and NEVER post, schedule or send anything to any social network or person.
 3. **Variations** gives 3 alternative hooks; **Write with AI** rewrites captions and alt text.
 4. **Download PNG** (exactly 1080×1080, brand fonts embedded) or, on the list, select posts /
    filter a batch and **Download (.zip)** for all PNGs plus a caption .txt per post.
-5. Post manually, paste the post URL and click **Mark posted** (or drag the card to Posted).
-   "Scheduled" is only a reminder status; nothing auto-posts.
+5. **Approve & schedule** (or **Post now**, or **Decline** with a reason). Approving renders the
+   design to a public 1080x1080 JPEG and sets `scheduled_at` (default: the planned day at 9:00 or
+   12:00 Pacific, or the next open slot). Bulk: select drafts -> "Approve N on planned days".
+   The Calendar view supports drag-to-reschedule and dragging a draft onto a day to approve it.
+6. Every 15 minutes the `social-publish` function (workflow "Social Studio — publish approved posts")
+   publishes approved posts that are due to Instagram, and to the Facebook Page when that target is
+   on, then marks them Posted with the permalink. Failures land in **Failed** with the reason.
+   Only posts Justin approved ever publish; the generator must only create `status: "draft"`.
 
 ## Later (not built yet)
 
