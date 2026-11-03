@@ -26,9 +26,8 @@ import SecurityPanel from "@/features/security/SecurityPanel";
 import TwoFactorChallenge from "@/features/security/TwoFactorChallenge";
 import { needsSecondFactor } from "@/features/security/api";
 
-// Free-for-life bonus tools: tagged in the nav and listed together on Home.
-const BONUS_TABS = ["signatures", "qr"];
-
+// Tabs this portal can show. Grouping, labels and icons for the header nav live in PortalNav.jsx (NAV);
+// free-for-life bonus tools (Signatures, QR Codes) are tagged there and listed together on Home.
 const TABS = [["home", "Home"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["resources", "Resources"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["referrals", "Referrals"], ["messages", "Messages"], ["account", "Account"]];
 
 function usePortal(previewId) {
