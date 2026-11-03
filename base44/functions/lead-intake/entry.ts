@@ -49,6 +49,28 @@ Deno.serve(async (req) => {
     const email = clip(b.email, 200).toLowerCase();
     if (!email || !/\S+@\S+\.\S+/.test(email)) return Response.json({ error: "Valid email required" }, { status: 400 });
 
+    // Newsletter signups (website footer "Stay informed") are email subscribers, not leads: they go to
+    // EmailSubscriber (Email Studio > Subscribers). action "subscribe" is the current call; the older website
+    // build sent action "start" with full_name "Newsletter subscriber" / utm_source "footer-newsletter".
+    const isNewsletter = action === "subscribe" || clip(b.source, 20).toLowerCase() === "newsletter" ||
+      (action === "start" && (clip(b.full_name, 120) === "Newsletter subscriber" || clip(b.utm_source, 120) === "footer-newsletter"));
+    if (isNewsletter) {
+      const db = createClientFromRequest(req).asServiceRole.entities;
+      const rows = (await db.EmailSubscriber.filter({ email }, "-created_date", 5).catch(() => [])) || [];
+      const name = clip(b.full_name, 120) === "Newsletter subscriber" ? "" : clip(b.full_name || b.name, 120);
+      if (rows.length) {
+        // Signing up again is a fresh opt-in.
+        const r = rows[0];
+        await db.EmailSubscriber.update(r.id, { status: "subscribed", ...(name && !r.name ? { name } : {}), tags: [...new Set([...(r.tags || []), "newsletter"])] });
+        return Response.json({ ok: true, subscriber_id: r.id, existing: true });
+      }
+      const row = await db.EmailSubscriber.create({
+        email, name, status: "subscribed", source: clip(b.signup_source, 40) || "website_footer", created_at: new Date().toISOString(),
+        tags: ["newsletter"], lang: clip(b.lang, 8), referrer: clip(b.referrer, 300),
+      });
+      return Response.json({ ok: true, subscriber_id: row.id });
+    }
+
     const rawSource = clip(b.source, 20).toLowerCase();
     const source = SOURCES.includes(rawSource) ? rawSource : "website";
     const funnel = clip(b.funnel, 120);
