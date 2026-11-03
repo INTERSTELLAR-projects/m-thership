@@ -98,20 +98,23 @@ export default function QrLibrary({ store, scopeKey = "admin", clients = [], onO
 
   return (
     <div className="space-y-6">
-      <div className="grid overflow-hidden border border-hair bg-card sm:grid-cols-3">
-        <div className="border-b border-hair px-5 py-4 sm:border-b-0 sm:border-r">
-          <p className="text-[34px] font-semibold leading-none tracking-[-0.05em]"><TickingNumber value={codes.length} /></p>
-          <p className="mono-label mt-2 text-[9.5px] text-ink/50">QR codes</p>
+      {/* Stats only once there is something to count; the empty library below explains what to do first. */}
+      {codes.length > 0 && (
+        <div className="grid grid-cols-3 overflow-hidden border border-hair bg-card">
+          <div className="border-r border-hair px-3 py-4 sm:px-5">
+            <p className="text-[26px] font-semibold leading-none tracking-[-0.05em] sm:text-[34px]"><TickingNumber value={codes.length} /></p>
+            <p className="mono-label mt-2 text-[9px] text-ink/50 sm:text-[9.5px]">QR codes</p>
+          </div>
+          <div className="border-r border-hair px-3 py-4 sm:px-5">
+            <p className="text-[26px] font-semibold leading-none tracking-[-0.05em] sm:text-[34px]"><TickingNumber value={dynCount} /></p>
+            <p className="mono-label mt-2 text-[9px] text-ink/50 sm:text-[9.5px]">Dynamic &amp; trackable</p>
+          </div>
+          <div className="px-3 py-4 sm:px-5">
+            <p className="text-[26px] font-semibold leading-none tracking-[-0.05em] text-[#ff3c00] sm:text-[34px]"><TickingNumber value={totalScans} /></p>
+            <p className="mono-label mt-2 text-[9px] text-ink/50 sm:text-[9.5px]">Total scans</p>
+          </div>
         </div>
-        <div className="border-b border-hair px-5 py-4 sm:border-b-0 sm:border-r">
-          <p className="text-[34px] font-semibold leading-none tracking-[-0.05em]"><TickingNumber value={dynCount} /></p>
-          <p className="mono-label mt-2 text-[9.5px] text-ink/50">Dynamic &amp; trackable</p>
-        </div>
-        <div className="px-5 py-4">
-          <p className="text-[34px] font-semibold leading-none tracking-[-0.05em] text-[#ff3c00]"><TickingNumber value={totalScans} /></p>
-          <p className="mono-label mt-2 text-[9.5px] text-ink/50">Total scans</p>
-        </div>
-      </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[200px] flex-1">
