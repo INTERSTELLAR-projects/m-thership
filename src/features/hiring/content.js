@@ -230,7 +230,7 @@ const WHERE = `# Where to post (marketing plan for the job)
 
 ## 1. LinkedIn
 - LinkedIn Jobs post with the screening questions attached.
-- A post from Justin's own profile and the Interstellar page (the LinkedIn ad copy works as the post). Personal posts from the founder usually travel further than the company page.
+- A post from Justin's own profile and the Interstellar page (the LinkedIn ad copy works as the post).
 - Optional: promote the job post or run LinkedIn ads once the post is live. Budget: [AD BUDGET — $___/week].
 
 ## 2. Indeed
@@ -368,7 +368,7 @@ export const SEED_DECISIONS = [
   {
     key: "test_pay",
     question: "Work-sample test pay and deadline",
-    detail: "The test is about 3 hours. Paying for it is fair and gets better candidates. Set the amount and the deadline.",
+    detail: "The test is about 3 hours. Paying for it is fair to candidates. Set the amount and the deadline.",
     options: [], answer: "", decided: false,
   },
   {
