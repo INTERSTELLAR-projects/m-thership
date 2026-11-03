@@ -167,7 +167,7 @@ function TemplateFormBuilder({ form, formType, onClose, onSave }) {
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink/[0.58]">Category *</label>
             <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded border border-ink/[0.13] bg-ink/[0.03] px-3 py-2 text-sm text-ink outline-none">
-              {["Web Øps", "Førge", "Ørbit SEO", "Performance", "Other"].map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+              {["Web Øps", "Førge", "HyperCare+", "GravïtyCare", "Performance", "Other"].map((cat) => <option key={cat} value={cat}>{cat}</option>)}
             </select>
           </div>
         </div>
