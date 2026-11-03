@@ -13,6 +13,7 @@ export const DEFAULT_PUBLISH = {
   timezone: "America/Los_Angeles",
   default_times: ["09:00", "12:00"],
   post_weekends: false,
+  max_per_day: 1,
   auto_facebook: false,
   facebook_page_id: "",
   facebook_page_name: "",
@@ -49,6 +50,9 @@ export async function savePublishSettings(db: Any, patch: Record<string, unknown
   const row = await settingsRow(db);
   const allowed = Object.keys(DEFAULT_PUBLISH);
   const clean = Object.fromEntries(Object.entries(patch || {}).filter(([k]) => allowed.includes(k)));
+  if (clean.max_per_day !== undefined) clean.max_per_day = Math.max(1, Math.min(4, Number(clean.max_per_day) || 1));
+  for (const k of ["post_weekends", "auto_facebook", "paused"]) if (clean[k] !== undefined) clean[k] = clean[k] === true;
+  for (const k of ["timezone", "facebook_page_id", "facebook_page_name", "ig_app_user_connector_id"]) if (clean[k] !== undefined) clean[k] = String(clean[k] || "").trim().slice(0, 120);
   if (Array.isArray(clean.default_times)) clean.default_times = (clean.default_times as unknown[]).map(String).filter((t) => /^\d{2}:\d{2}$/.test(t)).slice(0, 6);
   const next = { ...DEFAULT_PUBLISH, ...((row?.pageSettings || {}).publish || {}), ...clean };
   if (row) await db.AppSettings.update(row.id, { pageSettings: { ...(row.pageSettings || {}), publish: next } });
