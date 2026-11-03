@@ -1,15 +1,17 @@
 import { useSearchParams } from "react-router-dom";
-import { Building2, Globe, ListChecks, Plug, Users, Zap } from "lucide-react";
+import { BookOpen, Building2, Globe, ListChecks, Plug, Users, Zap } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { FinanceStyles } from "@/components/financial/finance/ui";
 import { GeneralTab, TeamTab, PortalTab, IntegrationsTab } from "@/features/settings/tabs";
 import ListsTab from "@/features/settings/ListsTab";
+import AgencyKnowledgeTab from "@/features/settings/AgencyKnowledgeTab";
 import AutomationsHub from "@/features/automations/AutomationsHub";
 
 // Settings = only things the app actually reads. Feature-owned settings stay on their feature page
 // (General lists where). Tabs are addressable: /settings?tab=lists, /settings?tab=automations …
 const TABS = [
   { id: "general", label: "General", icon: Building2, blurb: "Agency profile, brand and where each setting lives" },
+  { id: "knowledge", label: "Agency knowledge", icon: BookOpen, blurb: "Offers, prices, rules and voice: the one source every generator and Claude task reads" },
   { id: "team", label: "Team & access", icon: Users, blurb: "Admins, client portal logins, invites" },
   { id: "portal", label: "Portal", icon: Globe, blurb: "Which clients have a portal and what it shows" },
   { id: "integrations", label: "Integrations", icon: Plug, blurb: "Secrets and connectors (configured or not)" },
@@ -43,6 +45,7 @@ export default function SettingsPage() {
       <div key={tab} className="page-enter space-y-5 px-4 pt-6 md:px-8">
         <p className="text-[12.5px] text-ink/55">{current.blurb}</p>
         {tab === "general" && <GeneralTab />}
+        {tab === "knowledge" && <AgencyKnowledgeTab />}
         {tab === "team" && <TeamTab />}
         {tab === "portal" && <PortalTab />}
         {tab === "integrations" && <IntegrationsTab />}
