@@ -1,0 +1,175 @@
+{
+  "name": "AdRecommendation",
+  "type": "object",
+  "properties": {
+    "account_ref": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "description": "Ad platform",
+      "enum": [
+        "meta",
+        "google",
+        "tiktok",
+        "linkedin"
+      ]
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Optimizer run id"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "budget_increase",
+        "budget_decrease",
+        "budget_shift",
+        "pause",
+        "unpause",
+        "creative_refresh",
+        "new_variant",
+        "audience",
+        "push_draft",
+        "launch",
+        "other"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "rationale": {
+      "type": "string"
+    },
+    "expected_impact": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "target_level": {
+      "type": "string",
+      "enum": [
+        "account",
+        "campaign",
+        "adset",
+        "ad",
+        "creative"
+      ]
+    },
+    "target_ref": {
+      "type": "string"
+    },
+    "target_external_id": {
+      "type": "string"
+    },
+    "target_name": {
+      "type": "string"
+    },
+    "secondary_external_id": {
+      "type": "string",
+      "description": "budget_shift: the ad set receiving budget"
+    },
+    "secondary_name": {
+      "type": "string"
+    },
+    "proposed_change": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ field, from, to, amount } as proposed by the agent (already clamped to caps)"
+    },
+    "metrics_snapshot": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "The real numbers the recommendation was based on"
+    },
+    "executable": {
+      "type": "boolean",
+      "default": false,
+      "description": "True when approving makes an API call"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "proposed",
+        "approved",
+        "rejected",
+        "executed",
+        "failed",
+        "expired"
+      ],
+      "default": "proposed"
+    },
+    "before": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "after": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "error": {
+      "type": "string"
+    },
+    "decided_by": {
+      "type": "string"
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "executed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "agent",
+        "rule",
+        "manual"
+      ],
+      "default": "agent"
+    },
+    "outcome_note": {
+      "type": "string",
+      "description": "What happened afterwards (feeds learnings)"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when this belongs to a client (future paid portal add-on). Empty = Interstellar's own ads."
+    }
+  },
+  "required": [
+    "type",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

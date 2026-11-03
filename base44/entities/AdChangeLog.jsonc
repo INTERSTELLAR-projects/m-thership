@@ -1,0 +1,92 @@
+{
+  "name": "AdChangeLog",
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "budget_change",
+        "pause",
+        "unpause",
+        "launch",
+        "push_draft",
+        "auto_pause",
+        "sync",
+        "policy_override",
+        "settings"
+      ]
+    },
+    "platform": {
+      "type": "string"
+    },
+    "account_ref": {
+      "type": "string"
+    },
+    "target_level": {
+      "type": "string"
+    },
+    "target_external_id": {
+      "type": "string"
+    },
+    "target_name": {
+      "type": "string"
+    },
+    "before": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "after": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "actor": {
+      "type": "string",
+      "description": "Email of the approver, or 'rule:auto_pause'"
+    },
+    "recommendation_id": {
+      "type": "string"
+    },
+    "result": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "error",
+        "blocked",
+        "dry_run"
+      ]
+    },
+    "message": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when this belongs to a client (future paid portal add-on). Empty = Interstellar's own ads."
+    }
+  },
+  "required": [
+    "action",
+    "result"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

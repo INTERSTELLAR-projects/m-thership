@@ -1,0 +1,137 @@
+{
+  "name": "AdMetricDaily",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Unique upsert key: platform|level|external_id|date"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "account",
+        "campaign",
+        "adset",
+        "ad"
+      ]
+    },
+    "platform": {
+      "type": "string",
+      "description": "Ad platform",
+      "enum": [
+        "meta",
+        "google",
+        "tiktok",
+        "linkedin"
+      ]
+    },
+    "account_ref": {
+      "type": "string"
+    },
+    "external_id": {
+      "type": "string",
+      "description": "Platform id of the object at this level"
+    },
+    "ref_id": {
+      "type": "string",
+      "description": "Our AdCampaign/AdSet/Ad id when known"
+    },
+    "campaign_external_id": {
+      "type": "string"
+    },
+    "adset_external_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "description": "Object name at sync time"
+    },
+    "spend": {
+      "type": "number"
+    },
+    "impressions": {
+      "type": "number"
+    },
+    "reach": {
+      "type": "number"
+    },
+    "frequency": {
+      "type": "number"
+    },
+    "clicks": {
+      "type": "number"
+    },
+    "link_clicks": {
+      "type": "number"
+    },
+    "ctr": {
+      "type": "number",
+      "description": "Percent"
+    },
+    "cpc": {
+      "type": "number"
+    },
+    "cpm": {
+      "type": "number"
+    },
+    "conversions": {
+      "type": "number"
+    },
+    "cpa": {
+      "type": "number"
+    },
+    "revenue": {
+      "type": "number"
+    },
+    "roas": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "meta_api",
+        "csv_import",
+        "google_api"
+      ]
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when this belongs to a client (future paid portal add-on). Empty = Interstellar's own ads."
+    }
+  },
+  "required": [
+    "key",
+    "date",
+    "level",
+    "platform"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

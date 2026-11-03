@@ -1,0 +1,86 @@
+{
+  "name": "AdPolicyCheck",
+  "type": "object",
+  "properties": {
+    "subject_type": {
+      "type": "string",
+      "enum": [
+        "creative",
+        "campaign"
+      ]
+    },
+    "subject_id": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "meta",
+        "google"
+      ]
+    },
+    "result": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "warn",
+        "fail"
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "[{rule_key, severity: hard|soft|info, title, message, matched, source_url, verified}]"
+    },
+    "landing": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{url, status, ok, matched_terms, missing_terms}"
+    },
+    "ai_review": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "rules_version": {
+      "type": "string"
+    },
+    "checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when this belongs to a client (future paid portal add-on). Empty = Interstellar's own ads."
+    }
+  },
+  "required": [
+    "subject_type",
+    "subject_id",
+    "result"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

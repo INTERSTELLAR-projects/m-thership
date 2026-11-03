@@ -9,14 +9,15 @@
     "status": {
       "type": "string",
       "enum": [
-        "idea",
         "draft",
-        "ready",
-        "scheduled",
+        "approved",
+        "publishing",
         "posted",
-        "skipped"
+        "failed",
+        "declined"
       ],
-      "default": "draft"
+      "default": "draft",
+      "description": "draft -> approved (scheduled, Justin approved) -> publishing (publisher lock) -> posted | failed. declined = Justin said no. Nothing publishes unless Justin approved it."
     },
     "folder": {
       "type": "string",
@@ -107,7 +108,8 @@
     },
     "scheduled_for": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "Legacy reminder field; use scheduled_at"
     },
     "posted_at": {
       "type": "string",
@@ -121,7 +123,94 @@
     },
     "image_url": {
       "type": "string",
-      "description": "Optional uploaded PNG export"
+      "description": "Public JPEG rendered from the spec at approval (Instagram needs a public URL)"
+    },
+    "scheduled_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the publisher posts it (UTC). Set when Justin approves."
+    },
+    "publish_targets": {
+      "type": "object",
+      "properties": {
+        "instagram": {
+          "type": "boolean",
+          "default": true
+        },
+        "facebook": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "description": "Where the publisher posts it. facebook defaults to the global Auto cross-post setting."
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "declined_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "declined_reason": {
+      "type": "string"
+    },
+    "image_spec_hash": {
+      "type": "string",
+      "description": "Hash of template+spec the uploaded image_url was rendered from; the publisher refuses a stale image"
+    },
+    "image_rendered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "publish_lock": {
+      "type": "string",
+      "description": "Publisher run lock token (idempotency)"
+    },
+    "publishing_started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "publish_attempts": {
+      "type": "integer",
+      "default": 0
+    },
+    "ig_container_id": {
+      "type": "string"
+    },
+    "ig_media_id": {
+      "type": "string"
+    },
+    "ig_permalink": {
+      "type": "string"
+    },
+    "fb_page_id": {
+      "type": "string"
+    },
+    "fb_post_id": {
+      "type": "string"
+    },
+    "fb_permalink": {
+      "type": "string"
+    },
+    "fb_error": {
+      "type": "string",
+      "description": "Facebook cross-post problem (Instagram may still be posted)"
+    },
+    "publish_error": {
+      "type": "string"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "insights": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ likes, comments, reach, views, saved, shares, fb_reactions, fb_comments, updated_at, note }"
     }
   },
   "required": [

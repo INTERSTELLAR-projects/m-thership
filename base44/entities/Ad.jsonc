@@ -1,0 +1,93 @@
+{
+  "name": "Ad",
+  "type": "object",
+  "properties": {
+    "account_ref": {
+      "type": "string"
+    },
+    "campaign_ref": {
+      "type": "string"
+    },
+    "adset_ref": {
+      "type": "string",
+      "description": "AdSet id"
+    },
+    "platform": {
+      "type": "string",
+      "description": "Ad platform",
+      "enum": [
+        "meta",
+        "google",
+        "tiktok",
+        "linkedin"
+      ]
+    },
+    "external_id": {
+      "type": "string"
+    },
+    "external_adset_id": {
+      "type": "string"
+    },
+    "external_campaign_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "effective_status": {
+      "type": "string"
+    },
+    "creative_ref": {
+      "type": "string",
+      "description": "AdCreative id when built in-app"
+    },
+    "external_creative_id": {
+      "type": "string"
+    },
+    "thumbnail_url": {
+      "type": "string"
+    },
+    "headline": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when this belongs to a client (future paid portal add-on). Empty = Interstellar's own ads."
+    },
+    "last_synced_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

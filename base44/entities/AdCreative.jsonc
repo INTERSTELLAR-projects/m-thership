@@ -1,0 +1,161 @@
+{
+  "name": "AdCreative",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "account_ref": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "meta",
+        "google"
+      ],
+      "default": "meta"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "social_post",
+        "template",
+        "upload"
+      ],
+      "default": "template"
+    },
+    "social_post_id": {
+      "type": "string",
+      "description": "SocialPost id it was built from"
+    },
+    "template": {
+      "type": "string",
+      "description": "Social Studio template key"
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Social Studio spec (template copy)"
+    },
+    "image_urls": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ '1:1': url, '4:5': url, '9:16': url } uploaded PNGs"
+    },
+    "headline": {
+      "type": "string"
+    },
+    "primary_text": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "cta": {
+      "type": "string",
+      "description": "Meta call_to_action type",
+      "enum": [
+        "LEARN_MORE",
+        "BOOK_TRAVEL",
+        "CONTACT_US",
+        "GET_QUOTE",
+        "SIGN_UP",
+        "APPLY_NOW",
+        "SUBSCRIBE",
+        "GET_OFFER",
+        "SCHEDULE",
+        "BOOK_NOW",
+        "MESSAGE_PAGE",
+        "DOWNLOAD",
+        "SHOP_NOW"
+      ],
+      "default": "LEARN_MORE"
+    },
+    "destination_url": {
+      "type": "string",
+      "description": "Landing page without UTM"
+    },
+    "utm": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{source,medium,campaign,content,term}"
+    },
+    "final_url": {
+      "type": "string",
+      "description": "destination_url + UTM"
+    },
+    "offer_key": {
+      "type": "string",
+      "description": "AgencyKnowledge offer key the copy is about (prices come only from there)"
+    },
+    "variants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "AI copy variants"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready",
+        "approved",
+        "pushed",
+        "archived"
+      ],
+      "default": "draft"
+    },
+    "policy_status": {
+      "type": "string",
+      "enum": [
+        "unchecked",
+        "pass",
+        "warn",
+        "fail"
+      ],
+      "default": "unchecked"
+    },
+    "policy_check_id": {
+      "type": "string"
+    },
+    "ai_generated": {
+      "type": "boolean",
+      "default": false
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when this belongs to a client (future paid portal add-on). Empty = Interstellar's own ads."
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

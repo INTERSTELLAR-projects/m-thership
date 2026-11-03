@@ -1,0 +1,104 @@
+{
+  "name": "AdSettings",
+  "type": "object",
+  "properties": {
+    "scope": {
+      "type": "string",
+      "description": "'agency' for Interstellar, or client:<id> later",
+      "default": "agency"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when this belongs to a client (future paid portal add-on). Empty = Interstellar's own ads."
+    },
+    "target_roas": {
+      "type": "number"
+    },
+    "target_cpa": {
+      "type": "number"
+    },
+    "monthly_budget_cap": {
+      "type": "number",
+      "description": "Hard cap in account currency; increases and launches are blocked at or above it"
+    },
+    "max_budget_change_pct": {
+      "type": "number",
+      "description": "Largest single budget change allowed per object per 24h (default 20)"
+    },
+    "auto_pause": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ enabled, roas_below, min_spend, lookback_days, max_per_day } \u2014 off unless Justin turns it on"
+    },
+    "pause_at_cap": {
+      "type": "boolean",
+      "default": false,
+      "description": "Pause all active Meta campaigns when month-to-date spend reaches the cap (off by default)"
+    },
+    "conversion_action_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Meta action types counted as conversions"
+    },
+    "graph_version": {
+      "type": "string",
+      "description": "Meta Graph API version, e.g. v23.0"
+    },
+    "default_utm": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "policy_overrides": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ rule_key: { enabled, severity } }"
+    },
+    "custom_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "Extra rules"
+    },
+    "optimizer_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_optimizer_run": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_sync_run": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "scope"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

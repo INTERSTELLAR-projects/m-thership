@@ -1,0 +1,79 @@
+{
+  "name": "AdLearning",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "hook",
+        "format",
+        "audience",
+        "offer",
+        "placement",
+        "budget",
+        "creative",
+        "other"
+      ]
+    },
+    "insight": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "string",
+      "description": "Real numbers behind it"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "low"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "agent",
+        "justin"
+      ],
+      "default": "agent"
+    },
+    "account_ref": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when this belongs to a client (future paid portal add-on). Empty = Interstellar's own ads."
+    }
+  },
+  "required": [
+    "insight"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "name": "AdAccount",
+  "type": "object",
+  "properties": {
+    "platform": {
+      "type": "string",
+      "description": "Ad platform",
+      "enum": [
+        "meta",
+        "google",
+        "tiktok",
+        "linkedin"
+      ]
+    },
+    "account_id": {
+      "type": "string",
+      "description": "Platform account id, e.g. act_123 for Meta or 123-456-7890 for Google"
+    },
+    "name": {
+      "type": "string"
+    },
+    "currency": {
+      "type": "string",
+      "description": "ISO currency, e.g. USD"
+    },
+    "timezone": {
+      "type": "string"
+    },
+    "connected": {
+      "type": "boolean",
+      "default": false,
+      "description": "True once the connector can read this account"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "disabled",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "source": {
+      "type": "string",
+      "description": "How data arrives",
+      "enum": [
+        "connector",
+        "csv",
+        "developer_token"
+      ],
+      "default": "connector"
+    },
+    "is_primary": {
+      "type": "boolean",
+      "default": false,
+      "description": "Default account for new drafts"
+    },
+    "page_id": {
+      "type": "string",
+      "description": "Meta: Facebook Page id ads run as (needed to push creatives)"
+    },
+    "instagram_user_id": {
+      "type": "string",
+      "description": "Meta: Instagram account id for IG placements (optional)"
+    },
+    "pixel_id": {
+      "type": "string",
+      "description": "Meta: pixel / dataset id for conversion campaigns (optional)"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when this belongs to a client (future paid portal add-on). Empty = Interstellar's own ads."
+    },
+    "last_synced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_sync_error": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "platform",
+    "account_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
