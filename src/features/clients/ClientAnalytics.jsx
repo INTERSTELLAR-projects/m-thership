@@ -19,7 +19,7 @@ const isLive = (sv) => {
 };
 
 export function serviceLabel(sv) {
-  const raw = sv?.short || String(sv?.name || "").replace(/interstellar\s*®?/i, "").replace(/\([^)]*included[^)]*\)/i, "");
+  const raw = sv?.short || String(sv?.name || "").replace(/interstellar\s*[®™]?/i, "").replace(/\([^)]*included[^)]*\)/i, "");
   return raw.replace(/\s+/g, " ").trim() || "Unnamed service";
 }
 export const serviceKey = (sv) => serviceLabel(sv).toLowerCase();
