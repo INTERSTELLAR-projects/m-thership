@@ -115,7 +115,7 @@ export default function Composer({ email, setEmail, data, onSaved }) {
               <ul className="list-disc space-y-0.5 pl-4">{notes.map((n) => <li key={n}>{n}</li>)}</ul>
             </div>
           )}
-          {email.blocks.length > 1 && (
+          {(email.subject.trim() || email.prompt) && (
             <div className="border-t border-hair pt-3">
               <DictationBox label="Revise (follow-up change)" value={revision} onChange={setRevision} rows={2} placeholder="e.g. Make it shorter, add a billing card with their plan, change the button to Book a call." />
               <Btn className="mt-2" disabled={!revision.trim() || !!busy} onClick={() => runAi("revise")}>
