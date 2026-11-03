@@ -319,13 +319,27 @@ Deno.serve(async (req) => {
       return Response.json({ intake: pick(upd, ["id", "status", "answers", "submitted_at"]) });
     }
 
-    // ---- Prestige referral program: the client's own referrer record, read-only (plus join + "seen") ----
-    if (action === "prestige" || action === "prestige_seen" || action === "prestige_join") {
+    // ---- Prestige referral program: the client's own referrer record, read-only (plus join, "seen" and
+    // credit redemption requests). Mirrors DEFAULT_OFFER / CREDIT_CATEGORIES in src/lib/prestige.js. ----
+    if (action === "prestige" || action === "prestige_seen" || action === "prestige_join" || action === "prestige_redeem") {
+      const CREDIT_PER_SIGNED = 500;
+      const CREDIT_CAP = 500;
+      const CATS: Record<string, { group: "build" | "capped"; label: string }> = {
+        automation: { group: "build", label: "Automation" },
+        app_upgrade: { group: "build", label: "App upgrade" },
+        website_feature: { group: "build", label: "Website feature" },
+        addon_package: { group: "build", label: "Add-on package" },
+        merch: { group: "capped", label: "Custom merch" },
+        marketing_materials: { group: "capped", label: "Marketing materials" },
+        social_posts: { group: "capped", label: "Social posts" },
+        video: { group: "capped", label: "Videos" },
+        ad_spend: { group: "capped", label: "Ad spend" },
+      };
       const DEF = {
         referral_base_url: "https://interstellar-strategies.com/contact",
         share_message: "I've been working with Interstellar Strategies on my website and marketing. If you want the same for your business, book a free call here: {link}",
-        booked: { title: "Bonus Google post pack", detail: "4 extra Google Business Profile posts written and published for your business.", value: 200 },
-        signed: { title: "$500 account credit", detail: "Applied to your next invoice, or swapped for a free month of care. Your pick.", value: 500 },
+        booked: { title: "Priority Pass", detail: "When they book a call, your next request jumps to the front of the build queue.", value: 0 },
+        signed: { title: "$500 Interstellar credit", detail: "Added to your account when they pay their first invoice. Spend it on builds — automations, app upgrades, interactive website features, add-ons — and stack credits for something bigger. Or use up to $500 at a time on merch, marketing materials, social posts, videos or ad spend.", value: CREDIT_PER_SIGNED },
         tiers: [
           { name: "Prestige I", threshold: 1, unlock: "Custom landing page", detail: "A conversion-built landing page for an offer, a service or a campaign.", value: 1500 },
           { name: "Prestige II", threshold: 3, unlock: "Automation build", detail: "An automation that takes a recurring task off your plate: lead capture, follow-up, review requests or intake.", value: 3000 },
@@ -333,11 +347,14 @@ Deno.serve(async (req) => {
           { name: "Prestige IV", threshold: 10, unlock: "Full custom app", detail: "A full custom application with backend, database and integrations, built around how you run.", value: 10000 },
           { name: "Prestige Master", threshold: 25, unlock: "VIP partner status", detail: "Partner status: priority build queue, first access to every new system, and your name on the Prestige wall.", value: 0 },
         ],
-        terms: "Rewards are earned per referral: one when they book a call, one when they sign. Tier unlocks are counted on signed referrals and stack. A referral counts as signed once their first invoice is paid. Credits apply to Interstellar work, have no cash value and are non-transferable.",
+        terms: "Every booked call earns a Priority Pass and every signed referral earns $500 in Interstellar credit. Tier unlocks are counted on signed referrals and stack. A referral counts as signed once their first invoice is paid. Credits are added to your Interstellar account, stack with no expiry unless stated, apply to Interstellar work only, have no cash value and are non-transferable. Merch, marketing materials, social posts, videos and ad spend are redeemed through Interstellar and capped at $500 per redemption.",
       };
       const setRows = await db.AppSettings.filter({ key: "prestige_offer" }, "-created_date", 1).catch(() => []);
       const saved = ((setRows || [])[0]?.prestigeOffer || {}) as Record<string, any>;
-      const offer = { ...DEF, ...saved, booked: { ...DEF.booked, ...(saved.booked || {}) }, signed: { ...DEF.signed, ...(saved.signed || {}) }, tiers: (Array.isArray(saved.tiers) && saved.tiers.length ? saved.tiers : DEF.tiers).slice().sort((a: any, b: any) => (a.threshold || 0) - (b.threshold || 0)) };
+      // Offers saved under the old rules (post pack / next invoice / free month) fall back to the new defaults.
+      const legacy = (r: any) => !!r && /post pack|next invoice|free month|account credit/i.test(`${r.title || ""} ${r.detail || ""}`);
+      const savedTerms = typeof saved.terms === "string" && saved.terms && !/next invoice|free month|Credits apply to Interstellar work,/i.test(saved.terms) ? saved.terms : DEF.terms;
+      const offer = { ...DEF, ...saved, terms: savedTerms, booked: { ...DEF.booked, ...(legacy(saved.booked) ? {} : saved.booked || {}), value: 0 }, signed: { ...DEF.signed, ...(legacy(saved.signed) ? {} : saved.signed || {}), value: CREDIT_PER_SIGNED }, tiers: (Array.isArray(saved.tiers) && saved.tiers.length ? saved.tiers : DEF.tiers).slice().sort((a: any, b: any) => (a.threshold || 0) - (b.threshold || 0)) };
       const emails = ((client.portal_emails as string[]) || []).map((e) => String(e).toLowerCase());
       const allMembers = await db.PrestigeMember.list("-created_date", 500).catch(() => []);
       let member = (allMembers || []).find((m: Record<string, unknown>) => m.client_id === cid)
@@ -367,6 +384,43 @@ Deno.serve(async (req) => {
       }
 
       const rewards = await db.PrestigeReward.filter({ memberId: member.id }, "-created_date", 500).catch(() => []);
+      const redemptions = await db.PrestigeRedemption.filter({ memberId: member.id }, "-created_date", 500).catch(() => []);
+      // balance = earned credits − approved/fulfilled redemptions. Pending requests are never deducted,
+      // only reserved (available) so the same credit can't be requested twice.
+      const isCredit = (r: Record<string, unknown>) => r.reward_type === "credit_500" || (!r.reward_type && r.kind === "signed");
+      const earned = (rewards || []).filter((r: Record<string, unknown>) => isCredit(r) && r.status !== "void").reduce((s: number, r: Record<string, unknown>) => s + (Number(r.value) || 0), 0);
+      const redeemed = (redemptions || []).filter((x: Record<string, unknown>) => x.status === "approved" || x.status === "fulfilled").reduce((s: number, x: Record<string, unknown>) => s + (Number(x.amount) || 0), 0);
+      const pending = (redemptions || []).filter((x: Record<string, unknown>) => x.status === "requested").reduce((s: number, x: Record<string, unknown>) => s + (Number(x.amount) || 0), 0);
+      const credits = { earned, redeemed, pending, balance: earned - redeemed, available: Math.max(0, earned - redeemed - pending) };
+
+      if (action === "prestige_redeem") {
+        if (user.role === "admin" && asClient) return Response.json({ error: "Preview only: clients send this from their own portal. Log redemptions on the Prestige page." }, { status: 400 });
+        const category = String(args.category || "");
+        const cat = CATS[category];
+        const amount = Number(args.amount);
+        if (!cat) return Response.json({ error: "Pick where the credit should go." }, { status: 400 });
+        if (!Number.isFinite(amount) || amount <= 0 || Math.round(amount) !== amount) return Response.json({ error: "Enter a whole-dollar amount." }, { status: 400 });
+        if (cat.group === "capped" && amount > CREDIT_CAP) return Response.json({ error: `${cat.label} is capped at $${CREDIT_CAP} per redemption.` }, { status: 400 });
+        if (amount > credits.available) return Response.json({ error: `That's more than the $${credits.available.toLocaleString()} available.` }, { status: 400 });
+        const details = String(args.details || "").trim().slice(0, 4000);
+        const nowIso = new Date().toISOString();
+        const request = await db.ClientRequest.create({
+          client_id: cid, client_name: client.business, kind: "credit_redemption",
+          title: `Credit redemption: ${cat.label} · $${amount.toLocaleString()}`,
+          details: [`Category: ${cat.label} (${cat.group === "build" ? "build, stackable" : `capped at $${CREDIT_CAP}`})`, `Amount: $${amount.toLocaleString()}`, `Balance when requested: $${credits.balance.toLocaleString()}`, details ? `Notes: ${details}` : ""].filter(Boolean).join("\n"),
+          fields: { topic: "Credit redemption", category, category_group: cat.group, amount },
+          answers: [], attachments: [], form_id: null, form_title: "Credit redemption",
+          source: "portal", contact_email: user.email, status: "received", priority: "normal",
+          submitted_by: user.email, page_status: "none",
+        });
+        const red = await db.PrestigeRedemption.create({
+          memberId: member.id, memberName: member.name, client_id: cid, client_name: client.business,
+          category, category_group: cat.group, amount, status: "requested", details, request_id: request.id,
+          source: "portal", requested_by: user.email, requested_at: nowIso,
+        });
+        return Response.json({ ok: true, request: pick(request, ["id", "title", "status"]), redemption: pick(red, ["id", "category", "amount", "status"]) });
+      }
+
       const code = (member.referral_code as string) || slug(member.name);
       const base = String(offer.referral_base_url || DEF.referral_base_url);
       const link = `${base}${base.includes("?") ? "&" : "?"}ref=${encodeURIComponent(code)}`;
@@ -376,7 +430,9 @@ Deno.serve(async (req) => {
         share_text: String(offer.share_message || "").replace(/\{link\}/g, link).replace(/\{name\}/g, String(member.name || "")),
         member: { id: member.id, name: member.name, signed, booked, sent: (refs || []).length, tier, celebrated: Number(member.client_celebrated_tier || 0) },
         referrals: (refs || []).map((r: Record<string, unknown>) => pick(r, ["id", "referredClientName", "status", "date"])),
-        rewards: (rewards || []).filter((r: Record<string, unknown>) => r.status !== "void").map((r: Record<string, unknown>) => pick(r, ["id", "kind", "title", "value", "status", "earned_at", "delivered_at", "referredClientName", "tier_index"])),
+        rewards: (rewards || []).filter((r: Record<string, unknown>) => r.status !== "void").map((r: Record<string, unknown>) => pick(r, ["id", "kind", "reward_type", "title", "value", "status", "earned_at", "delivered_at", "referredClientName", "tier_index"])),
+        credits,
+        redemptions: (redemptions || []).map((x: Record<string, unknown>) => pick(x, ["id", "category", "category_group", "amount", "status", "requested_at", "created_date"])),
       });
     }
 
