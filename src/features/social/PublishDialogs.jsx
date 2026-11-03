@@ -5,11 +5,10 @@ import { CalendarClock, Check, Instagram, Facebook, Loader2, Send, X, Zap } from
 import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
-import { PostRender } from "./PostCanvas";
-import ScaledPost from "./PostCanvas";
+import ScaledPost, { PostRender } from "./PostCanvas";
 import { POSTS_KEY } from "./lib/socialStore";
 import {
-  DEFAULT_PUBLISH, SOCIAL_STATUS_KEY, approvePost, declinePost, fetchSocialStatus, fmtTime, fmtWhen, isoToZoned, nextOpenSlot,
+  DEFAULT_PUBLISH, SOCIAL_STATUS_KEY, approvePost, declinePost, fetchSocialStatus, fmtTime, fmtWhen, nextOpenSlot,
   publishNow, renderAndUpload, slotIsOpen, suggestSlot, todayIn, tzAbbr, zonedToIso,
 } from "./lib/publish";
 import { Btn, Field, inputCls } from "./ui";
@@ -32,7 +31,6 @@ export function useMe() {
 export function usePostImage() {
   const [post, setPost] = useState(null);
   const ref = useRef(null);
-  const resolver = useRef(null);
   const render = useCallback(async (p) => {
     setPost(p);
     await nextFrame();
@@ -43,7 +41,6 @@ export function usePostImage() {
       setPost(null);
     }
   }, []);
-  useEffect(() => () => { resolver.current = null; }, []);
   const node = post
     ? createPortal(
       <div aria-hidden="true" style={{ position: "fixed", left: -20000, top: 0, pointerEvents: "none" }}>
@@ -160,7 +157,7 @@ export function ApproveDialog({ post, posts, open, onClose, mode: initialMode = 
                   ))}
                   {!planned && s.default_times.map((t) => <Chip key={t} onClick={() => setTime(t)}>{fmtTime(t)}</Chip>)}
                 </div>
-                {iso && <p className="mono-label text-[9.5px] text-ink/55">Publishes {fmtWhen(iso, tz)}{isoToZoned(iso, tz).date !== date ? "" : ""}</p>}
+                {iso && <p className="mono-label text-[9.5px] text-ink/55">Publishes {fmtWhen(iso, tz)}</p>}
                 {past && <p className="text-[11.5px] text-[#b42318]">That time has passed. Pick a later time or use Post now.</p>}
                 {clash && !past && <p className="text-[11.5px] text-[#c44a00]">Another post is already scheduled that day. That's allowed, but it breaks the one-a-day rhythm.</p>}
               </div>
