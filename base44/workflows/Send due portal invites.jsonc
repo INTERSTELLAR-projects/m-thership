@@ -1,0 +1,43 @@
+{
+  "name": "Send due portal invites",
+  "description": "Daily: sends client-portal onboarding invites queued by a new Stripe subscription payment (the day after payment). Does nothing while 'Invite automatically after payment' is off (client cockpit > Invite to portal).",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "17 9 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "then": "end",
+          "with": {
+            "args": {
+              "action": "run_due"
+            },
+            "function_name": "portal-invite"
+          }
+        }
+      }
+    ],
+    "document": {
+      "dsl": "1.0.0",
+      "name": "send_due_portal_invites",
+      "namespace": "base44",
+      "version": "1.0"
+    }
+  }
+}
