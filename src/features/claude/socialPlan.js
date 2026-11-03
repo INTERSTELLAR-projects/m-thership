@@ -4,6 +4,8 @@
 // in-app quick draft (Core.InvokeLLM with the same schema) → Justin approves → a versioned SocialPlan.
 import { base44 } from "@/api/base44Client";
 import { STANDING_RULES } from "./jobs";
+import { loadClientContext, contextToBrief } from "@/features/clients/clientContext";
+import { loadAgencyKnowledge, agencyBlock } from "@/features/agency/knowledge";
 
 export const SOCIAL_PLAN_CONTEXT = "social_plan";
 
@@ -380,34 +382,23 @@ const rows = (list) => list.filter(([, v]) => v !== undefined && v !== null && v
 const INTAKE_SOCIAL_KEYS = ["socials", "lead_sources", "listings", "ideal_customer", "why_choose", "goal_12mo", "goal_3yr", "success_with_us", "capacity", "seasons", "competitors", "keywords", "bottleneck", "reviews", "review_process", "brand_words", "photos", "team_size"];
 const FLIGHT_SOCIAL_KEYS = ["goals", "primary_cta", "competitors", "keywords", "socials", "brand", "timeline"];
 
+// Inputs come from the shared client context (src/features/clients/clientContext.js).
 export async function gatherSocialPlanInputs(client) {
-  const safe = (p) => Promise.resolve(p).then((r) => (Array.isArray(r) ? r : [])).catch(() => []);
-  const f = (entity, sort, limit, q = { client_id: client.id }) => safe(base44.entities[entity].filter(q, sort, limit));
-  const [dossiers, intakes, flights, goals, kits, books, contentPlans, files, work, review, current] = await Promise.all([
-    f("ClientDossier", "-updated_date", 1),
-    f("IntakeAudit", "-created_date", 1),
-    f("OnboardingFlight", "-created_date", 3),
-    f("ClientGoal", "sort", 50),
-    f("BrandKit", "-version", 5),
-    f("IndustryPlaybook", "-version", 5),
-    f("ContentPlan", "-version", 5),
-    f("ClientFile", "-delivered_on", 200),
-    f("WorkLog", "-date", 60),
-    f("ReviewClient", "-updated_date", 1, { crm_client_id: client.id }),
-    f("SocialPlan", "-version", 5),
-  ]);
+  const [ctx, agency] = await Promise.all([loadClientContext(client.id), loadAgencyKnowledge()]);
   return {
-    dossier: dossiers[0] || null,
-    intake: intakes[0] || null,
-    flight: flights.find((x) => x.status !== "archived") || flights[0] || null,
-    goals,
-    kit: kits.find((k) => k.status === "approved") || null,
-    playbook: books.find((x) => x.status === "approved") || null,
-    contentPlan: contentPlans.find((x) => x.status === "approved") || null,
-    socialFiles: files.filter((x) => x.category === "social"),
-    work: work.filter((w) => ["blog", "gbp_post", "social_post", "social"].includes(w.kind)),
-    review: review[0] || null,
-    current: current.find((x) => x.status === "approved") || null,
+    dossier: ctx.dossier,
+    intake: ctx.intake,
+    flight: ctx.flight,
+    goals: ctx.goals,
+    kit: ctx.brandKit,
+    playbook: ctx.playbook,
+    contentPlan: ctx.contentPlan,
+    socialFiles: ctx.files.filter((x) => x.category === "social"),
+    work: ctx.work.filter((w) => ["blog", "gbp_post", "social_post", "social"].includes(w.kind)),
+    review: ctx.review,
+    current: ctx.socialPlan,
+    ctx,
+    agency,
   };
 }
 
@@ -537,6 +528,9 @@ ${contentPlanBlock(d.contentPlan)}
 
 ## Recent content work and reputation
 ${workBlock(d)}
+
+${d.ctx ? contextToBrief(d.ctx, { sections: ["profile", "services"] }) : ""}
+${agencyBlock(d.agency, ["offers", "delivery"])}
 ${d.current ? `\n## Current approved social plan (v${d.current.version || 1})\nThis is a revision. Keep what still holds; change what Justin asks.\n${d.current.summary || ""}` : ""}
 
 ## Platforms (use these ids; include ONLY the ones that fit this business, list the rest in skipped_platforms with why)
