@@ -1,0 +1,58 @@
+{
+  "name": "EmailTemplate",
+  "type": "object",
+  "description": "Reusable Email Studio layouts (typed blocks + subject). Seeded with the house templates; any email can be saved as one.",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "description": "client | marketing | newsletter | other"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "seed_key": {
+      "type": "string",
+      "description": "Set on the built-in templates so they are seeded once"
+    },
+    "sort": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
