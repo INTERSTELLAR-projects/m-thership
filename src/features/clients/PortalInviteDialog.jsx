@@ -18,16 +18,18 @@ export default function PortalInviteDialog({ open, client, onClose, onEditClient
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState(null); // { tone, text }
   const panel = useRef(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
 
   useEffect(() => { if (open) { setMsg(null); setBusy(""); } }, [open]);
   useEffect(() => { if (s?.default_email) setEmail((e) => e || s.default_email); }, [s?.default_email]);
   useEffect(() => {
     if (!open) return undefined;
-    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    const onKey = (e) => { if (e.key === "Escape") closeRef.current(); };
     document.addEventListener("keydown", onKey);
-    setTimeout(() => panel.current?.querySelector("select, button")?.focus(), 30);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+    const t = setTimeout(() => panel.current?.querySelector("button")?.focus(), 30);
+    return () => { clearTimeout(t); document.removeEventListener("keydown", onKey); };
+  }, [open]);
 
   if (!open || !client) return null;
   const emails = s?.portal_emails || [];
