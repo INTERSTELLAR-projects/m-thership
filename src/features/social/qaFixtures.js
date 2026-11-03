@@ -37,5 +37,12 @@ export function qaSocialInvoke(name, args = {}) {
   if (name === "social-publish" && (args.action || "status") === "status") return QA_STATUS;
   if (name === "social-publish") return { ok: true, results: [], note: "QA mode: nothing was published" };
   if (name === "social-instagram") return { visible: false };
+  if (name === "social-clients") {
+    return {
+      connected: true, missing_scopes: ["instagram_basic", "instagram_manage_insights"],
+      pages: [{ id: "p1", name: "Interstellar Strategies", via: "page_access", has_instagram: false }],
+      accounts: [],
+    };
+  }
   return {};
 }
