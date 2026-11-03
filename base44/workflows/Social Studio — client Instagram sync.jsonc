@@ -1,0 +1,34 @@
+{
+  "name": "Social Studio — client Instagram sync",
+  "description": "Daily, read-only: for each client whose Instagram is linked in Social Studio > Connections (partner access through Interstellar's Facebook Pages connection), pulls followers, 30-day reach/views/accounts engaged, recent posts with likes and comments, and updates this month's Instagram numbers for the client's reports and portal Results tab. Never posts.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "53 5 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": { "dsl": "1.0.0", "name": "social_client_instagram_sync", "version": "1.0", "namespace": "base44" },
+    "do": [
+      {
+        "sync_clients": {
+          "call": "invoke_backend_function",
+          "with": { "function_name": "social-clients", "args": { "action": "sync" } },
+          "then": "end",
+          "x-base44": { "title": "Sync client Instagram", "description": "Followers, reach, posts" }
+        }
+      }
+    ]
+  }
+}
