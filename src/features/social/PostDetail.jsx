@@ -2,20 +2,23 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowLeft, Check, Copy, Download, ExternalLink, History, ImageUp, Loader2, Send, Shuffle, Sparkles, Trash2, Undo2, Wand2,
+  ArrowLeft, Check, Copy, Download, History, Loader2, Shuffle, Sparkles, Trash2, Undo2, Wand2,
 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
 import { toast } from "@/components/ui/use-toast";
-import { PILLARS, PLATFORMS, STATUSES } from "./brand";
+import { PILLARS, PLATFORMS } from "./brand";
+import PublishPanel from "./PublishPanel";
+import { renderAndUpload, specHash } from "./lib/publish";
 import ScaledPost, { PostRender } from "./PostCanvas";
 import MockEditor from "./MockEditor";
 import { getTemplate, switchTemplate, TEMPLATES } from "./templates";
 import { POSTS_KEY, deletePost, folderNames, getPost, listPosts, listSavedFolders, FOLDERS_KEY, updatePost } from "./lib/socialStore";
-import { dataUrlToBlob, downloadDataUrl, postToPng, slugify } from "./lib/exportPng";
+import { downloadDataUrl, postToPng, slugify } from "./lib/exportPng";
 import { editSpecWithAi, generateVariations, specDiff, writeCaptions } from "./lib/aiEdit";
 import { Btn, ConfirmDialog, Field, Panel, Select, StatusBadge, TextArea, TextInput, copyText, inputCls } from "./ui";
 
-const EDITABLE = ["title", "status", "folder", "pillar", "platforms", "template", "spec", "caption", "caption_linkedin", "alt_text", "scheduled_for", "posted_at", "posted_url", "notes", "revision_history", "image_url"];
+// Autosave only ever writes these content fields. Status, schedule, image and publish results are
+// changed by explicit actions (PublishPanel) and the publisher, never by a stale autosave.
+const EDITABLE = ["title", "folder", "pillar", "platforms", "template", "spec", "caption", "caption_linkedin", "alt_text", "notes", "revision_history"];
 const pick = (p) => Object.fromEntries(EDITABLE.map((k) => [k, p?.[k]]));
 const MAX_HISTORY = 30;
 
@@ -38,6 +41,31 @@ export default function PostDetail() {
   useEffect(() => {
     if (postQ.data && !draft) setDraft(pick(postQ.data));
   }, [postQ.data, draft]);
+
+  // Approved post whose design changed: re-render the JPEG and re-upload so the publisher posts
+  // exactly what is on screen (the publisher refuses an image whose hash doesn't match the spec).
+  const [rerender, setRerender] = useState(null); // null | "pending" | "working" | "error"
+  const server = postQ.data;
+  const draftHash = draft ? specHash(draft.template, draft.spec) : null;
+  const needsRender = server?.status === "approved" && !!draftHash && server.image_spec_hash !== draftHash;
+  useEffect(() => {
+    if (!needsRender || saveState !== "saved") return undefined;
+    setRerender("pending");
+    const t = setTimeout(async () => {
+      setRerender("working");
+      try {
+        const fields = await renderAndUpload(exportRef.current, { ...server, ...latest.current, template: draft.template, spec: draft.spec });
+        await updatePost(id, fields);
+        await qc.invalidateQueries({ queryKey: ["SocialPost", id] });
+        qc.invalidateQueries({ queryKey: POSTS_KEY });
+        setRerender(null);
+      } catch {
+        setRerender("error");
+      }
+    }, 1800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsRender, draftHash, saveState]);
 
   // Debounced autosave.
   useEffect(() => {
@@ -103,18 +131,6 @@ export default function PostDetail() {
     }
   };
 
-  const attachPng = async () => {
-    try {
-      const url = await postToPng(exportRef.current);
-      const file = new File([dataUrlToBlob(url)], `${slugify(draft.title || spec.headline)}.png`, { type: "image/png" });
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      set({ image_url: file_url });
-      toast({ title: "PNG attached to the post" });
-    } catch (e) {
-      toast({ title: "Upload failed", description: String(e?.message || e), variant: "destructive" });
-    }
-  };
-
   return (
     <div className="min-h-full">
       <div style={{ position: "fixed", left: -20000, top: 0, pointerEvents: "none" }} aria-hidden="true">
@@ -125,7 +141,7 @@ export default function PostDetail() {
       <div className="flex flex-wrap items-center gap-3 border-b border-hair px-5 py-4 md:px-8">
         <Link to="/social" className="mono-label inline-flex items-center gap-1 text-[10px] text-ink/50 hover:text-[#ff3c00]"><ArrowLeft className="h-3 w-3" />Social Studio</Link>
         <input value={draft.title || ""} onChange={(e) => set({ title: e.target.value })} className="min-w-[200px] flex-1 border-b border-transparent bg-transparent text-[22px] font-semibold tracking-[-0.03em] outline-none focus:border-[#ff3c00]" />
-        <StatusBadge status={draft.status} />
+        <StatusBadge status={server.status} />
         <span className="mono-label text-[9px] text-ink/45">
           {saveState === "saving" ? "Saving…" : saveState === "dirty" ? "Unsaved" : saveState === "error" ? <span className="text-[#d83300]">Save failed</span> : "Saved"}
         </span>
@@ -148,6 +164,7 @@ export default function PostDetail() {
 
         {/* Right: editors */}
         <div className="min-w-0 space-y-4">
+          <PublishPanel post={{ ...server, ...draft }} saving={saveState !== "saved"} rerender={rerender} stale={needsRender} />
           <Panel label="Template" bodyClass="p-3.5 space-y-3">
             <div className="grid grid-cols-2 gap-1.5">
               {TEMPLATES.map((t) => (
@@ -195,10 +212,7 @@ export default function PostDetail() {
           <CaptionPanel draft={draft} set={set} />
 
           <Panel label="Workflow" bodyClass="p-3.5 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Status"><Select value={draft.status || "draft"} onChange={(v) => set({ status: v, ...(v === "posted" && !draft.posted_at ? { posted_at: new Date().toISOString() } : {}) })} options={STATUSES.map((s) => ({ value: s.key, label: s.label }))} /></Field>
-              <Field label="Pillar"><Select value={draft.pillar || ""} onChange={(v) => set({ pillar: v })} placeholder="—" options={PILLARS.map((p) => ({ value: p.key, label: p.label }))} /></Field>
-            </div>
+            <Field label="Pillar"><Select value={draft.pillar || ""} onChange={(v) => set({ pillar: v })} placeholder="—" options={PILLARS.map((p) => ({ value: p.key, label: p.label }))} /></Field>
             <Field label="Folder">
               <input list="social-folders" value={draft.folder || ""} onChange={(e) => set({ folder: e.target.value })} className={inputCls} placeholder="e.g. Week of 2026-11-09" />
               <datalist id="social-folders">{folders.map((f) => <option key={f} value={f} />)}</datalist>
