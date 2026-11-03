@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DEFAULT_OFFER, ROMAN } from "@/lib/prestige";
+import { DEFAULT_OFFER, ROMAN, CREDIT_PER_SIGNED, CREDIT_CAP } from "@/lib/prestige";
 
 const inputCls = "mt-1 bg-ink/[0.03] border-ink/[0.13] text-ink";
 const areaCls = "mt-1 w-full resize-none rounded-md border border-ink/[0.13] bg-ink/[0.03] px-3 py-2 text-sm text-ink outline-none min-h-[56px]";
@@ -34,8 +34,9 @@ export default function OfferEditor({ open, onOpenChange, offer, onSave }) {
       const clean = {
         referral_base_url: String(form.referral_base_url || "").trim(),
         share_message: form.share_message || "",
-        booked: { title: form.booked.title, detail: form.booked.detail, value: Number(form.booked.value) || 0 },
-        signed: { title: form.signed.title, detail: form.signed.detail, value: Number(form.signed.value) || 0 },
+        // Values are fixed by the program rules: Priority Pass has no dollar value, each signed referral is $500 credit.
+        booked: { title: form.booked.title, detail: form.booked.detail, value: 0 },
+        signed: { title: form.signed.title, detail: form.signed.detail, value: CREDIT_PER_SIGNED },
         tiers: form.tiers
           .filter((t) => String(t.name || "").trim())
           .map((t) => ({ name: t.name.trim(), threshold: Math.max(1, Math.round(Number(t.threshold) || 1)), unlock: t.unlock || "", detail: t.detail || "", value: Number(t.value) || 0 }))
@@ -61,13 +62,13 @@ export default function OfferEditor({ open, onOpenChange, offer, onSave }) {
 
         <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-1 pt-1">
           <section className="space-y-3">
-            <p className="mono-label text-[10px] text-ink/50">Instant rewards (paid every time)</p>
-            {[["booked", "When a referral books a call"], ["signed", "When a referral signs"]].map(([k, label]) => (
+            <p className="mono-label text-[10px] text-ink/50">Instant rewards (earned every time)</p>
+            {[["booked", "When a referral books a call", "Priority Pass · no dollar value"], ["signed", "When a referral signs (first invoice paid)", `$${CREDIT_PER_SIGNED} credit to their balance · builds stack, other spends capped at $${CREDIT_CAP} each`]].map(([k, label, fixed]) => (
               <div key={k} className="rounded-md border border-ink/[0.13] bg-ink/[0.02] p-3">
                 <p className="text-[12.5px] font-semibold">{label}</p>
-                <div className="mt-2 grid gap-3 sm:grid-cols-[1fr_140px]">
+                <div className="mt-2 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                   <div><Label className="text-xs text-ink/[0.58]">Reward</Label><Input value={form[k].title} onChange={(e) => setReward(k, { title: e.target.value })} className={inputCls} /></div>
-                  <div><Label className="text-xs text-ink/[0.58]">Value ($)</Label><Input type="number" min="0" value={form[k].value} onChange={(e) => setReward(k, { value: e.target.value })} className={inputCls} /></div>
+                  <p className="pb-2 font-mono text-[10.5px] text-ink/50">{fixed}</p>
                 </div>
                 <div className="mt-2"><Label className="text-xs text-ink/[0.58]">Details</Label><textarea value={form[k].detail} onChange={(e) => setReward(k, { detail: e.target.value })} className={areaCls} /></div>
               </div>
