@@ -51,19 +51,23 @@ export default function EmailStudioPage() {
   // Deep links from a client profile: /email?client=<id> (new email, that client preselected, prompt focused)
   // and /email?draft=<id> (open a draft, or reuse a sent email as a new draft).
   const [focusPrompt, setFocusPrompt] = useState(false);
+  const [openSent, setOpenSent] = useState(null);
   const clientParam = params.get("client");
   const draftParam = params.get("draft");
   useEffect(() => {
     if (!clientParam) return;
-    load(fresh(BLANK_DOC, { audience: { mode: "clients", client_ids: [clientParam] } }));
+    setEmail(fresh(BLANK_DOC, { audience: { mode: "clients", client_ids: [clientParam] } }));
+    setComposerKey((k) => k + 1);
     setFocusPrompt(true);
     const n = new URLSearchParams(params); n.delete("client"); n.delete("tab"); setParams(n, { replace: true });
   }, [clientParam]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!draftParam || !draftsQ.data) return;
     const d = draftsQ.data.find((x) => x.id === draftParam);
-    if (d) load(d.status === "sent" ? fresh(d, { prompt: d.prompt || "" }) : fresh(d, { id: d.id, prompt: d.prompt || "" }));
-    const n = new URLSearchParams(params); n.delete("draft"); n.delete("tab"); if (d && d.status === "sent") n.set("tab", "history"); setParams(n, { replace: true });
+    const n = new URLSearchParams(params); n.delete("draft"); n.delete("tab");
+    if (d && d.status === "sent") { setOpenSent(d.id); n.set("tab", "history"); }
+    else if (d) { setEmail(fresh(d, { id: d.id, prompt: d.prompt || "" })); setComposerKey((k) => k + 1); }
+    setParams(n, { replace: true });
   }, [draftParam, draftsQ.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -86,6 +90,7 @@ export default function EmailStudioPage() {
         {tab === "history" && (
           <HistoryTab
             drafts={draftsQ.data || []}
+            initialOpen={openSent}
             refresh={refresh}
             onOpen={(d) => load(fresh(d, { id: d.id, prompt: d.prompt || "" }))}
             onDuplicate={(d) => load(fresh(d, { prompt: d.prompt || "" }))}
