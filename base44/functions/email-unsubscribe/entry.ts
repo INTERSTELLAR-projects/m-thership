@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
     const rows = (await db.EmailSubscriber.filter({ email }, "-created_date", 5).catch(() => [])) || [];
     const now = new Date().toISOString();
     if (op === "resubscribe") {
-      if (rows.length) for (const r of rows) await db.EmailSubscriber.update(r.id, { status: "subscribed", unsubscribed_at: null });
+      if (rows.length) for (const r of rows) await db.EmailSubscriber.update(r.id, { status: "subscribed" });
       else await db.EmailSubscriber.create({ email, status: "subscribed", source: "unsubscribe_link", created_at: now, tags: [] });
       return html(page({ title: "You're back", accent: "on the list", text: `Welcome back. <a href="mailto:${esc(email)}">${esc(email)}</a> will get our updates again.` }));
     }
