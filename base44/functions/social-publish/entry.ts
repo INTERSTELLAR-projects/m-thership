@@ -199,7 +199,7 @@ async function finish(db: Any, started: string, results: Any[], note: string | n
   return { ok: !failed, note, results };
 }
 
-async function publishOne(base44: Any, db: Any, post: Any, ctx: { token: string | null; me: Any; settings: Any; actor: string }) {
+async function publishOne(base44: Any, db: Any, post: Any, ctx: { token: string | null; me: Any; settings: Any; actor: string }): Promise<Any> {
   const id = post.id;
   const targets = { instagram: post.publish_targets?.instagram !== false, facebook: post.publish_targets?.facebook === true };
   const fail = async (msg: string, extra: Any = {}) => {
