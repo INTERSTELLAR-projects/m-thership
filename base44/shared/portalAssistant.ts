@@ -208,7 +208,8 @@ export async function gatherBriefing(ctx: Ctx, days = 30) {
       qr_scans_all_time: qr.scans_all_time,
     },
     running_for_you: {
-      services: (ctx.client.services_managed || []).map((s: string) => String(s).replace(/_/g, " ")),
+      // Client-facing plan names only (internal keys like orbit_seo must never leak: the only plans are HyperCare+ and GravïtyCare).
+      services: (ctx.client.services_managed || []).map((s: string) => (({ website: "Custom Website", system: "Command System", orbit_seo: "HyperCare+", brand: "Brand Arsenal", starship_care: "GravïtyCare" } as Record<string, string>)[s] || String(s).replace(/_/g, " "))),
       automations: autos.filter(visible).filter((a: Row) => a.status === "active").map((a: Row) => a.name),
     },
     waiting_on_you: [
