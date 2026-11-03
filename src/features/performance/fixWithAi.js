@@ -4,6 +4,8 @@
 import { base44 } from "@/api/base44Client";
 import { STANDING_RULES } from "@/features/claude/jobs";
 import { guideFor, FIX_LABELS } from "./issueGuide";
+import { loadClientContext, contextToBrief } from "@/features/clients/clientContext";
+import { loadAgencyKnowledge, agencyBlock } from "@/features/agency/knowledge";
 
 const SCHEMA = {
   type: "object",
@@ -44,13 +46,15 @@ function pageFacts(p = {}) {
 export async function generateFix({ client, audit, issue }) {
   const guide = guideFor(issue);
   const items = (issue.items || []).map((i) => [i.label, i.url, i.snippet].filter(Boolean).join(" — ")).filter(Boolean).slice(0, 10);
+  // The shared client profile (NAP, hours, services, areas) so fixes use the facts on file.
+  const [ctx, agency] = await Promise.all([client && client.id ? loadClientContext(client.id).catch(() => null) : null, loadAgencyKnowledge()]);
   const prompt = `You are the technical SEO lead at Interstellar Strategies, preparing ONE concrete fix for a client website.
 The site is moving to (or already on) Base44 (React + Vite + Tailwind; head tags set in the page component or index.html).
 Produce the actual change, ready to paste — not advice.
 
 ## Client
 ${clientFacts(client)}
-
+${ctx ? `\n${contextToBrief(ctx, { sections: ["profile"], level: 3 })}\nUse NAP / hours / services from this profile only when they are on file; anything "NOT ON FILE" stays a [[CONFIRM]] placeholder.\n` : ""}
 ## Page facts (fetched from the live site by our audit on ${String(audit?.run_at || "").slice(0, 10)})
 ${pageFacts(audit?.page)}
 
@@ -69,7 +73,8 @@ ${items.length ? `- Affected elements:\n  ${items.join("\n  ")}` : ""}
 - Alt text: literal and under 125 characters; mention the service or place only if it is genuinely what the image shows (infer from the file name; mark guesses with [[CONFIRM]]).
 - JSON-LD must be valid JSON in a <script type="application/ld+json"> tag, using the most specific schema.org LocalBusiness subtype that fits.
 - No keyword stuffing. Plain, confident, answer-first copy.
-- "before" must quote the current value from the page facts (empty if absent).`;
+- "before" must quote the current value from the page facts (empty if absent).
+${agencyBlock(agency, ["delivery"], { maxChars: 1500 })}`;
   const res = await base44.integrations.Core.InvokeLLM({ prompt, model: "claude_sonnet_4_6", response_json_schema: SCHEMA });
   const proposal = typeof res === "string" ? { summary: "", after: res, steps: [] } : res || {};
   return { ...proposal, fix_type: guide.fix, generated_at: new Date().toISOString() };
