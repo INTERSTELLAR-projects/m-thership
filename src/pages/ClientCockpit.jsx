@@ -16,6 +16,7 @@ import PlaybookTab from "@/features/clients/PlaybookTab";
 import SocialPlanTab from "@/features/clients/SocialPlanTab";
 import ResourcesTab from "@/features/clients/ResourcesTab";
 import ContentPlanTab from "@/features/clients/ContentPlanTab";
+import MapPackTab from "@/features/clients/MapPackTab";
 import { ClientGbpTab } from "@/features/gbp/GbpPanel";
 import ClientAutomationsCard from "@/features/automations/ClientAutomationsCard";
 import { useOptionList } from "@/hooks/useOptionList";
@@ -25,7 +26,7 @@ import PortalInviteDialog from "@/features/clients/PortalInviteDialog";
 
 const TABS = [
   ["overview", "Overview"], ["constellations", "✧ Constellations"], ["claude", "✦ Claude"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
-  ["performance", "Performance"], ["gbp", "Google Business"], ["citations", "Citations & PR"], ["goals", "Goals & Gaps"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["social", "Social plan"], ["content", "Content plan"], ["resources", "Portal resources"], ["files", "Files & Brand"], ["audit", "Intake Audit"], ["messages", "Messages"], ["billing", "Billing & Notes"],
+  ["performance", "Performance"], ["gbp", "Google Business"], ["mappack", "Map pack"], ["citations", "Citations & PR"], ["goals", "Goals & Gaps"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["social", "Social plan"], ["content", "Content plan"], ["resources", "Portal resources"], ["files", "Files & Brand"], ["audit", "Intake Audit"], ["messages", "Messages"], ["billing", "Billing & Notes"],
 ];
 
 const PROFILE_FIELDS = [
@@ -125,6 +126,7 @@ export default function ClientCockpit() {
         {tab === "automations" && <><ClientAutomationsCard client={client} /><AutomationsTab client={client} /></>}
         {tab === "performance" && <PerformanceTab client={client} />}
         {tab === "gbp" && <ClientGbpTab client={client} />}
+        {tab === "mappack" && <MapPackTab client={client} />}
         {tab === "citations" && <ClientOutreachTab client={client} />}
         {tab === "goals" && <GoalsTab client={client} />}
         {tab === "brand" && <BrandKitTab client={client} />}
