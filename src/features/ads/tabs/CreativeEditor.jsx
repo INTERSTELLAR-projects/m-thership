@@ -66,7 +66,7 @@ export default function CreativeEditor({ creative, onBack, readOnly = false }) {
     qc.invalidateQueries({ queryKey: KEYS.creatives });
   });
 
-  const useVariant = (v) => setD((x) => ({ ...x, headline: v.headline, primary_text: v.primary_text, description: v.description || x.description, cta: v.cta || x.cta }));
+  const applyVariant = (v) => setD((x) => ({ ...x, headline: v.headline, primary_text: v.primary_text, description: v.description || x.description, cta: v.cta || x.cta }));
 
   const check = () => run("Policy check", async () => {
     await save();
@@ -192,7 +192,7 @@ export default function CreativeEditor({ creative, onBack, readOnly = false }) {
                     <p className="mt-1.5 text-[13px] font-semibold">{v.headline}</p>
                     <p className="mt-0.5 whitespace-pre-line text-[12px] text-ink/70">{v.primary_text}</p>
                     {v.why && <p className="mt-1 text-[11px] italic text-ink/45">{v.why}</p>}
-                    {!readOnly && <Btn className="mt-2 h-7" onClick={() => useVariant(v)}>Use this</Btn>}
+                    {!readOnly && <Btn className="mt-2 h-7" onClick={() => applyVariant(v)}>Use this</Btn>}
                   </div>
                 ))}
               </div>
