@@ -4,6 +4,8 @@
 import { base44 } from "@/api/base44Client";
 import { STANDING_RULES } from "./jobs";
 import { PACKAGES } from "@/features/packages/registry";
+import { loadClientContext, contextToBrief } from "@/features/clients/clientContext";
+import { loadAgencyKnowledge, agencyBlock } from "@/features/agency/knowledge";
 
 export const PLAYBOOK_CONTEXT = "playbook";
 
@@ -256,46 +258,27 @@ const rows = (list) => list.filter(([, v]) => v !== undefined && v !== null && v
 const INTAKE_GOAL_KEYS = ["goal_12mo", "goal_3yr", "success_with_us", "timeline", "revenue_now", "revenue_goal", "capacity", "avg_ticket", "top_earners", "close_rate", "response_time", "lead_sources", "reviews", "review_process", "keywords", "competitors", "bottleneck", "seasons", "ideal_customer", "why_choose", "past_seo"];
 const FLIGHT_GOAL_KEYS = ["goals", "primary_cta", "competitors", "keywords", "timeline", "processes", "software"];
 
+// Inputs come from the shared client context (src/features/clients/clientContext.js).
 export async function gatherPlaybookInputs(client) {
-  const safe = (p) => Promise.resolve(p).then((r) => (Array.isArray(r) ? r : [])).catch(() => []);
-  const f = (entity, sort, limit, q = { client_id: client.id }) => safe(base44.entities[entity].filter(q, sort, limit));
-  const [goals, intakes, flights, dossiers, audits, reviews, projects, tasks, gaps, snaps, work, autos, kits, requests, current] = await Promise.all([
-    f("ClientGoal", "sort", 50),
-    f("IntakeAudit", "-created_date", 1),
-    f("OnboardingFlight", "-created_date", 3),
-    f("ClientDossier", "-updated_date", 1),
-    f("SiteAudit", "-run_at", 10),
-    f("ReviewClient", "-updated_date", 1, { crm_client_id: client.id }),
-    f("Project", "-created_date", 50),
-    f("Task", "due_date", 300),
-    f("ClientGap", "-created_date", 100),
-    f("PerformanceSnapshot", "-period_end", 12),
-    f("WorkLog", "-date", 20),
-    f("Automation", "-created_date", 50),
-    f("BrandKit", "-version", 5),
-    f("ClientRequest", "-created_date", 15),
-    f("IndustryPlaybook", "-version", 5),
-  ]);
-  const audit = audits.filter((a) => typeof a.health_score === "number" && a.strategy !== "desktop")[0] || audits.find((a) => typeof a.health_score === "number") || null;
-  const latestSnaps = [];
-  const seen = new Set();
-  snaps.forEach((s) => { if (!seen.has(s.source)) { seen.add(s.source); latestSnaps.push(s); } });
+  const [ctx, agency] = await Promise.all([loadClientContext(client.id), loadAgencyKnowledge()]);
   return {
-    goals,
-    intake: intakes[0] || null,
-    flight: flights.find((x) => x.status !== "archived") || flights[0] || null,
-    dossier: dossiers[0] || null,
-    audit,
-    review: reviews[0] || null,
-    projects: projects.filter((p) => !["done"].includes(p.status)),
-    tasks: tasks.filter((x) => x.status !== "done"),
-    gaps: gaps.filter((g) => g.status !== "fixed"),
-    snapshots: latestSnaps,
-    work,
-    automations: autos.filter((a) => a.status === "active"),
-    kit: kits.find((k) => k.status === "approved") || null,
-    requests,
-    current: current.find((x) => x.status === "approved") || null,
+    goals: ctx.goals,
+    intake: ctx.intake,
+    flight: ctx.flight,
+    dossier: ctx.dossier,
+    audit: ctx.siteAudit,
+    review: ctx.review,
+    projects: ctx.projects.filter((p) => !["done"].includes(p.status)),
+    tasks: ctx.tasks.filter((x) => x.status !== "done"),
+    gaps: ctx.gaps.filter((g) => g.status !== "fixed"),
+    snapshots: ctx.snapshots,
+    work: ctx.work.slice(0, 20),
+    automations: ctx.automations.filter((a) => a.status === "active"),
+    kit: ctx.brandKit,
+    requests: ctx.requests.slice(0, 15),
+    current: ctx.playbook,
+    ctx,
+    agency,
   };
 }
 
@@ -437,8 +420,10 @@ ${workBlock(d)}
 ${kitBlock(d.kit)}
 ${d.current ? `\n## Current approved playbook (v${d.current.version || 1})\nThis is a revision. Keep what still holds, update with the inputs above and what Justin asks.\n${d.current.summary || ""}` : ""}
 
+${d.ctx ? `${contextToBrief(d.ctx, { sections: ["profile"] })}\n` : ""}
 ## Interstellar service catalog (next_services must come from this list, only ones they do not already have)
 ${catalogBlock()}
+${agencyBlock(d.agency, ["offers", "rules"])}
 ${extra ? `\n## Justin added\n${extra}` : ""}
 
 ## Pillars (use these ids; include paid_ads only if it genuinely fits their goals, capacity and budget)
