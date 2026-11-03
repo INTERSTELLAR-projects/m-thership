@@ -3,6 +3,15 @@
 // band, light body with numbered cards and steps, dark footer with the CTA. No preheader. Never mentions the
 // platform the app runs on.
 const LOGO = "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/9226df076_interstellar-email-logo.png";
+// Links are always bright orange, never client-default blue: every address/URL in text is an explicit anchor with
+// the color on the <a> AND an inner <span> (some clients override anchor color). #ff6a00 on dark, #ff3c00 on light,
+// white bold underlined on the orange band. REG = the orange registered mark after the INTERSTELLAR wordmark.
+export const REG = `<sup style="color:#ff3c00;font-size:9px;line-height:0;vertical-align:super;">&reg;</sup>`;
+export const LINK_RESET_CSS = "a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important;font-size:inherit!important;font-family:inherit!important;font-weight:inherit!important;line-height:inherit!important}u + #body a{color:inherit}#MessageViewBody a{color:inherit}";
+export function mailLink(addr: string, color = "#ff6a00") {
+  const a = String(addr ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string));
+  return `<a href="mailto:${a}" style="color:${color};text-decoration:underline;font-weight:700;"><span style="color:${color};text-decoration:underline;">${a}</span></a>`;
+}
 const esc = (s: unknown) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string));
 
 export function onboardingEmail({ business, contact, portalUrl, email }: { business: string; contact?: string; portalUrl: string; email: string }) {
@@ -42,8 +51,8 @@ export function onboardingEmail({ business, contact, portalUrl, email }: { busin
       </td></tr>`;
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(subject)}</title>
-<style>@media (max-width:620px){.wrap{width:100%!important}.px{padding-left:22px!important;padding-right:22px!important}.h1{font-size:36px!important;line-height:40px!important}}</style></head>
-<body style="margin:0;padding:0;background:#ebe8e4;">
+<style>${LINK_RESET_CSS}@media (max-width:620px){.wrap{width:100%!important}.px{padding-left:22px!important;padding-right:22px!important}.h1{font-size:36px!important;line-height:40px!important}}</style></head>
+<body id="body" style="margin:0;padding:0;background:#ebe8e4;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ebe8e4" style="background-color:#ebe8e4;">
 <tr><td align="center" style="padding:24px 10px 40px;">
 <table role="presentation" class="wrap" width="640" cellpadding="0" cellspacing="0" border="0" style="width:640px;max-width:640px;">
@@ -54,7 +63,7 @@ export function onboardingEmail({ business, contact, portalUrl, email }: { busin
       <tr><td class="px" style="padding:26px 40px 0;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
           <td valign="middle" width="48" style="width:48px;"><img src="${LOGO}" width="40" height="31" alt="Interstellar" style="display:block;border:0;"></td>
-          <td valign="middle" style="${F}font-size:15px;font-weight:700;letter-spacing:2px;color:#ffffff;">INTERSTELLAR</td>
+          <td valign="middle" style="${F}font-size:15px;font-weight:700;letter-spacing:2px;color:#ffffff;">INTERSTELLAR${REG}</td>
         </tr></table>
       </td></tr>
       <tr><td class="px" style="padding:44px 40px 0;${F}font-size:13px;font-weight:700;letter-spacing:1.5px;color:#9a9893;text-transform:uppercase;">
@@ -76,7 +85,7 @@ export function onboardingEmail({ business, contact, portalUrl, email }: { busin
 
   <tr><td bgcolor="#ff3c00" class="px" style="background-color:#ff3c00;background-image:linear-gradient(110deg,#ff3c00,#ff5a00 60%,#ff7a00);padding:30px 40px 32px;${F}">
     <div style="font-size:12px;font-weight:700;letter-spacing:1.8px;color:#ffffff;text-transform:uppercase;opacity:0.9;">&#9733;&nbsp; The short version</div>
-    <div style="padding-top:10px;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.4px;color:#ffffff;">Sign in with ${esc(email)}. Continue with Google, or choose Sign up the first time to set your own password.</div>
+    <div style="padding-top:10px;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.4px;color:#ffffff;">Sign in with ${mailLink(email, "#ffffff")}. Continue with Google, or choose Sign up the first time to set your own password.</div>
   </td></tr>
 
   <tr><td bgcolor="#f5f3f0" style="background-color:#f5f3f0;">
@@ -89,7 +98,7 @@ export function onboardingEmail({ business, contact, portalUrl, email }: { busin
       ${card("05", "Bonus", "Tools that are yours for life", "Email signatures, QR codes with scan tracking, and Prestige referral rewards.")}
       <tr><td class="px" style="padding:26px 40px 14px;">${eyebrow("What we need from you")}
         <div style="padding-top:8px;${F}font-size:15px;line-height:23px;color:#4a4744;">Three quick things when you log in:</div></td></tr>
-      ${step("01", "Log in", `Use the button below and sign in with <strong>${esc(email)}</strong>: Google, or Sign up once to set a password.`, "Takes a minute")}
+      ${step("01", "Log in", `Use the button below and sign in with ${mailLink(email, "#ff3c00")}: Google, or Sign up once to set a password.`, "Takes a minute")}
       ${step("02", "Tell us about your business", "Fill in the short business audit on your Home page. It saves as you go.", "On your Home page")}
       ${step("03", "Send your first request", "Pick a form under Requests, or just message us.", "Whenever you're ready")}
       <tr><td style="padding:0 0 28px;font-size:0;line-height:0;">&nbsp;</td></tr>
@@ -102,7 +111,7 @@ export function onboardingEmail({ business, contact, portalUrl, email }: { busin
         <a href="${esc(loginUrl)}" target="_blank" style="display:inline-block;padding:16px 28px;${F}font-size:14px;font-weight:700;letter-spacing:1.5px;color:#ffffff;text-decoration:none;text-transform:uppercase;">Log in to your portal &nbsp;&rarr;</a>
       </td>
     </tr></table>
-    <div style="padding-top:22px;font-size:14px;line-height:22px;color:#bdbab5;">This invite is only for ${esc(email)}. We will never ask for a password by email. Questions? Email <a href="mailto:justin@interstellar-strategies.com" style="color:#ff6a00;text-decoration:underline;">justin@interstellar-strategies.com</a>.</div>
+    <div style="padding-top:22px;font-size:14px;line-height:22px;color:#bdbab5;">This invite is only for ${mailLink(email, "#ff6a00")}. We will never ask for a password by email. Questions? Email ${mailLink("justin@interstellar-strategies.com", "#ff6a00")}.</div>
     <div style="padding-top:16px;font-size:14px;line-height:22px;color:#bdbab5;">Welcome to the future of business, ${esc(first)}.<br>&mdash; Justin Cowell, Interstellar Strategies</div>
     <div style="padding-top:22px;font-size:11px;font-weight:700;letter-spacing:1.6px;color:#6f6c68;text-transform:uppercase;">Interstellar Strategies &nbsp;&middot;&nbsp; The Future of Business</div>
   </td></tr>

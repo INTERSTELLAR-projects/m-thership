@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Application invitation</title>
     <style>
+        a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important;font-size:inherit!important;font-family:inherit!important;font-weight:inherit!important;line-height:inherit!important}
+        u + #body a{color:inherit}
+        #MessageViewBody a{color:inherit}
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; }
         .brand-logo {
@@ -26,7 +29,7 @@
         }
     </style>
 <!--[if !mso]><!--><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet" type="text/css"><!--<![endif]--></head>
-<body style="margin:0;padding:0;background-color:#ebe8e6;font-family:Geist, Helvetica, Arial, sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+<body id="body" style="margin:0;padding:0;background-color:#ebe8e6;font-family:Geist, Helvetica, Arial, sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
     <span style="display:none;font-size:1px;color:#ebe8e6;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
         You have been invited to join Møthership
     </span>
@@ -71,7 +74,7 @@
 
                                         
                                         <p class="mobile-text" style="color:#1a1a1a;font-size:16px;margin:0 0 20px;line-height:22px;">
-                                            {{inviting_user}} invited you to join Møthership as {{user_role}}.
+                                            <a href="mailto:{{inviting_user}}" style="color:#ff3c00;text-decoration:underline;font-weight:700;"><span style="color:#ff3c00;text-decoration:underline;">{{inviting_user}}</span></a> invited you to join Møthership as {{user_role}}.
                                         </p>
 
                                         
