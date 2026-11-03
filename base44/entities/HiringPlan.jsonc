@@ -1,0 +1,76 @@
+{
+  "name": "HiringPlan",
+  "description": "Growth > Hiring plan (admin only). One record (key 'primary'): the hiring trigger settings, manual monthly Mission ALPHA + care-plan signing counts, the editable hiring content blocks (job description, ads, interview process, ramp, tests), Justin's open decisions and the launch checklist. Never shown in the client portal.",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Always 'primary' (one plan)"
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "target_per_month, justin_per_month, per_hire_per_month, hire_monthly_cost, streak_months, streak_min, any_month_min, ready_min"
+    },
+    "manual_counts": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "YYYY-MM -> number. Overrides the derived count of Mission ALPHA + care-plan signings for that month."
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "{key, group, title, body, sort, edited_at} hiring content blocks (role, recruiting)"
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "{key, question, detail, options[], source_url, source_label, answer, decided} items that need Justin's decision"
+    },
+    "checklist": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "{key, label, done, done_at} launch checklist"
+    },
+    "seed_version": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "key"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
