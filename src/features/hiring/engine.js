@@ -85,7 +85,7 @@ export function deriveSignings({ flights = [], projects = [], clients = [] }) {
     client_id: p.client_id, client_name: p.client_name, date: p.start_date || p.created_date, source: "start-service project",
   }));
 
-  const careProjects = new Set(projects.filter((p) => CARE_KEYS.includes(p.service_key) && p.status !== "cancelled").map((p) => p.client_id));
+  const careProjects = new Set(projects.filter((p) => CARE_KEYS.includes(p.service_key)).map((p) => p.client_id));
   const list = [...sales.values()].map((s) => {
     const c = byClient.get(s.client_id);
     const line = c && (c.services || []).find((l) => CARE_RE.test(String(l.name || l.short || "")) && l.status !== "canceled");
