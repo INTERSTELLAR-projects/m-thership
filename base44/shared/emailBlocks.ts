@@ -5,14 +5,14 @@
 //   src/features/email/emailBlocks.js   (preview; the dev preview cannot import from base44/)
 //   base44/shared/emailBlocks.ts        (the email-studio function renders every send with it)
 // Edit one, copy it over the other. House rules baked in: no preheader; header is only the orbit icon +
-// INTERSTELLAR + orange (R), then "+ EYEBROW · date"; every link and email address is an explicit orange link
+// INTERSTELLAR + orange ™ (REG), then "+ EYEBROW · date"; every link and email address is an explicit orange link
 // (#ff3c00 on light, #ff6a00 on dark, white bold on the orange band), never blue; brand gradient is
 // #ff3c00 -> #ff6a00 -> #ffaa00 (never gold); the model only ever fills block text, never raw HTML.
 
 export const SENDER_NAME = "Justin | Interstellar Strategies";
 export const TEST_EMAIL = "justin@interstellar-strategies.com";
 export const LOGO = "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/9226df076_interstellar-email-logo.png";
-export const REG = `<sup style="color:#ff3c00;font-size:9px;line-height:0;vertical-align:super;">&reg;</sup>`;
+export const REG = `<sup style="color:#ff3c00;font-size:9px;line-height:0;vertical-align:super;">&trade;</sup>`;
 export const LINK_RESET_CSS = "a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important;font-size:inherit!important;font-family:inherit!important;font-weight:inherit!important;line-height:inherit!important}u + #body a{color:inherit}#MessageViewBody a{color:inherit}";
 
 const F = "font-family:Helvetica,Arial,sans-serif;";

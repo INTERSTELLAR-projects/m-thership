@@ -27,7 +27,7 @@ button{margin-top:28px;border:0;cursor:pointer;padding:16px 28px;font:700 14px H
 button.ghost{background:transparent;border:1px solid #2a2a2a;color:#bdbab5;margin-left:0}
 footer{padding:0 24px 28px;max-width:640px;margin:0 auto;width:100%;font-size:11px;font-weight:700;letter-spacing:1.6px;color:#6f6c68;text-transform:uppercase}
 </style></head><body><div class="bar"></div><main>
-<div class="lock"><img src="${LOGO}" width="40" height="31" alt="Interstellar">INTERSTELLAR<sup>&reg;</sup></div>
+<div class="lock"><img src="${LOGO}" width="40" height="31" alt="Interstellar">INTERSTELLAR<sup>&trade;</sup></div>
 <div class="eyebrow"><span>+</span>&nbsp; Email preferences</div>
 <h1>${esc(title)} <span>/${esc(accent)}</span></h1>
 <p>${text}</p>${form}

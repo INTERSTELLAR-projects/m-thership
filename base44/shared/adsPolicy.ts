@@ -195,6 +195,19 @@ export const DEFAULT_RULES: Rule[] = [
     verified: true,
   },
   {
+    key: "registered_mark",
+    platforms: ["meta", "google"],
+    applies_to: ["creative"],
+    severity: "hard",
+    title: "® on an unregistered mark",
+    message:
+      "Interstellar and Møthership are NOT registered trademarks: use ™, never ®. Claiming a registration that doesn't exist is misleading (and illegal in the US). Any other ® needs a real registration behind it.",
+    patterns: ["(interstellar|m[øo]thership|orbit|ørbit|ørigin|origin|hypercare|gravitycare|gravïtycare)[^\\n]{0,24}®", "®|\\(r\\)"],
+    source_url: SOURCES.google_misrep,
+    verified: false,
+    verified_note: "Internal brand rule from Justin (2026-11-03): no registrations exist. Google Misrepresentation page listed, not fetched.",
+  },
+  {
     key: "editorial_caps",
     platforms: ["google", "meta"],
     applies_to: ["creative"],
@@ -375,7 +388,7 @@ export async function landingProbe(url: string, terms: string[]) {
 export function runRules(ctx: any): Finding[] {
   const rules = mergedRules(ctx.settings).filter((r) => r.enabled !== false && r.platforms.includes(ctx.platform) && r.applies_to.includes(ctx.kind));
   const creatives = ctx.kind === "creative" ? [ctx.creative] : ctx.creatives || [];
-  const text = creatives.map(creativeText).join("\n");
+  const text = creatives.map((c: any) => [creativeText(c), c?.spec?.lockup ? JSON.stringify(c.spec.lockup) : ""].join("\n")).join("\n");
   const findings: Finding[] = [];
   const add = (r: Rule, message?: string, matched?: string, severity?: string) =>
     findings.push({ rule_key: r.key, severity: severity || r.severity, title: r.title, message: message || r.message, matched, source_url: r.source_url, verified: r.verified, verified_note: r.verified_note });
