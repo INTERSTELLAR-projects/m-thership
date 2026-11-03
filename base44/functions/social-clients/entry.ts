@@ -142,7 +142,7 @@ async function readIg(userToken: string, pageToken: string | null, igId: string)
       try {
         const r = await call(`${igId}/insights`, { metric, period: "day", metric_type: "total_value", since, until });
         for (const row of r?.data || []) out[row.name] = row.total_value?.value ?? 0;
-      } catch (e) { notes.push(`${metric.split(",")[0]}: ${errText(e)}`); }
+      } catch (e) { if (metric !== "profile_views") notes.push(errText(e)); }
     }
     return { out, notes };
   };
