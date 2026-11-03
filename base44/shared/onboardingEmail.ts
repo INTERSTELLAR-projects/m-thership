@@ -5,14 +5,14 @@
 const LOGO = "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/9226df076_interstellar-email-logo.png";
 // Links are always bright orange, never client-default blue: every address/URL in text is an explicit anchor with
 // the color on the <a> AND an inner <span> (some clients override anchor color). #ff6a00 on dark, #ff3c00 on light,
-// white bold underlined on the orange band. REG = the orange registered mark after the INTERSTELLAR wordmark.
-export const REG = `<sup style="color:#ff3c00;font-size:9px;line-height:0;vertical-align:super;">&reg;</sup>`;
+// white bold underlined on the orange band. REG = the orange trademark (™) after the INTERSTELLAR wordmark.
+export const REG = `<sup style="color:#ff3c00;font-size:9px;line-height:0;vertical-align:super;">&trade;</sup>`;
 export const LINK_RESET_CSS = "a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important;font-size:inherit!important;font-family:inherit!important;font-weight:inherit!important;line-height:inherit!important}u + #body a{color:inherit}#MessageViewBody a{color:inherit}";
 export function mailLink(addr: string, color = "#ff6a00") {
   const a = String(addr ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string));
   return `<a href="mailto:${a}" style="color:${color};text-decoration:underline;font-weight:700;"><span style="color:${color};text-decoration:underline;">${a}</span></a>`;
 }
-// Shared header for every Møthership email: gradient top bar, then the lockup (orbit icon + INTERSTELLAR + orange ®,
+// Shared header for every Møthership email: gradient top bar, then the lockup (orbit icon + INTERSTELLAR + orange ™,
 // nothing under it), then the eyebrow row "+ EYEBROW" (orange +, grey uppercase). Rows for a dark (#0f0f0f) table
 // that uses the .px padding class. `eyebrow` is trusted HTML (escape any data before passing it).
 export function emailHeaderRows(eyebrow: string) {
