@@ -59,7 +59,7 @@ export default function OverviewTab({ acct, go }) {
         <Stat label="Cash" value={cash ? money0(cash.v) : "—"} sub={cash ? cash.sub : "Connect QuickBooks or enter it in Settings"} />
         <Stat label="Profit YTD" value={money0(plan.proj.ytdNet)} sub={`${money0(plan.proj.ytdGross)} in · ${money0(plan.proj.ytdExp)} out`} />
         <Stat hero label={`Tax owed ${taxYear} (est.)`} value={money0(plan.tax.total)} sub={`${pct(plan.effectiveRate)} effective on ${money0(plan.proj.fullNet)} projected profit`} />
-        <Stat label="Set aside" value={`${money0(plan.reserve)}`} tone={plan.reserveFunded < 1 ? "warn" : undefined} sub={<span className="block"><Bar value={plan.reserveFunded} className="mb-1.5" />{money0(plan.neededInReserve)} needed now · {Math.round(plan.reserveFunded * 100)}% funded</span>} />
+        <Stat label="Set aside" value={`${money0(plan.reserve)}`} tone={plan.reserveFunded < 1 ? "warn" : undefined} sub={<div><Bar value={plan.reserveFunded} className="mb-1.5" />{money0(plan.neededInReserve)} needed now · {Math.round(plan.reserveFunded * 100)}% funded</div>} />
         <Stat label="Next due" value={nd ? `${days}d` : "—"} sub={nd ? `${fmt(nd.date)} · Q${nd.q} · ${money0(plan.nextDueAmount)} (safe harbor)` : "No upcoming due date in this tax year"} />
       </div>
 

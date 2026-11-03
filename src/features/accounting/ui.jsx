@@ -40,7 +40,7 @@ export function Stat({ label, value, sub, hero, tone }) {
     <div className={`relative flex min-h-[118px] flex-col overflow-hidden rounded-md border p-4 ${hero ? "band-dark grain border-ink" : "border-hair bg-card"}`}>
       <span className={`mono-label ${hero ? "text-white/55" : "text-ink/50"}`}>{label}</span>
       <p className={`mt-2 text-[26px] font-semibold leading-none tracking-[-0.03em] tabular-nums ${hero ? "flame-text" : tone === "warn" ? "text-[#c23000]" : "text-ink"}`}>{value}</p>
-      {sub && <p className={`mt-auto pt-2 text-[11px] leading-snug ${hero ? "text-white/55" : "text-ink/50"}`}>{sub}</p>}
+      {sub && <div className={`mt-auto pt-2 text-[11px] leading-snug ${hero ? "text-white/55" : "text-ink/50"}`}>{sub}</div>}
     </div>
   );
 }

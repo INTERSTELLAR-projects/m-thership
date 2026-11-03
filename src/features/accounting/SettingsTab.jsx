@@ -221,7 +221,7 @@ function Reminders({ acct }) {
         {acct.alerts.slice(0, 8).map((a) => (
           <div key={a.id} className="flex items-center justify-between gap-2 border-b border-hair/60 py-1 text-[11.5px]">
             <span className="truncate text-ink/70">{a.title}</span>
-            <span className="flex items-center gap-2"><Pill>{a.status}</Pill><ConfirmBtn className="!px-1.5 !py-0.5" confirmText="Delete?" onConfirm={() => acct.dismissAlert(a.id)}>Dismiss</ConfirmBtn></span>
+            <span className="flex items-center gap-2"><Pill>{a.status}</Pill><ConfirmBtn className="!px-1.5 !py-0.5" confirmText="Sure?" onConfirm={() => acct.dismissAlert(a.id)}>Dismiss</ConfirmBtn></span>
           </div>
         ))}
       </div>
