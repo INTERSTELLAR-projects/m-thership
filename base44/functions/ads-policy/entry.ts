@@ -107,6 +107,17 @@ Deno.serve(async (req: Request) => {
     }
 
     const findings: any[] = runRules({ platform, kind, creative, campaign, creatives, sections, settings, landing });
+    if (kind === "campaign") {
+      // A campaign passes only if every creative in it passes too (checked with the campaign's declared categories).
+      if (!creatives.length) findings.push({ rule_key: "no_creatives", severity: "hard", title: "No creatives", message: "Add at least one creative to the draft.", source_url: SOURCES.meta_standards, verified: true });
+      const seen = new Set(findings.map((f) => `${f.rule_key}|${f.matched || ""}`));
+      for (const c of creatives) {
+        for (const f of runRules({ platform, kind: "creative", creative: c, campaign, sections, settings, landing: c === first ? landing : null })) {
+          const k = `${f.rule_key}|${f.matched || ""}`;
+          if (!seen.has(k)) { seen.add(k); findings.push({ ...f, title: `${c.name || "Creative"}: ${f.title}` }); }
+        }
+      }
+    }
     let ai: any = null;
     if (body.ai && creatives.length) {
       ai = await aiReview(base44, platform, creatives.map(creativeText).join("\n---\n"));
