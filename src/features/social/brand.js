@@ -1,6 +1,10 @@
 // Social Studio brand rules: the single source the weekly Claude generator (docs/social-generator.md)
-// and the in-app "Edit with AI" / "Generate variations" prompts read. Plain data only, so a
+// and the in-app "Edit with AI" / "Generate variations" prompts read. Plain data, so a
 // scheduled task can read this file as text and the app can import it.
+// PRICES: the source of truth is Settings > Agency knowledge (AgencyKnowledge offers). BRAND.offers
+// below is the fallback; liveOffers() and brandBrief() read the in-app prices first, and the Settings
+// tab flags any mismatch.
+import { offerPrice, offerByKey } from "@/features/agency/knowledge";
 
 export const BRAND = {
   company: "Interstellar Strategies",
@@ -16,8 +20,8 @@ export const BRAND = {
     "Local and AI search visibility: Google Business Profile, map pack, citations, reviews, and showing up in AI answers (AIO / GEO / AEO), managed under HyperCare+.",
   ],
   offers: {
-    // Mirrors PRICE_OF in src/features/flight/onboarding/catalog.js. Prices must be identical
-    // everywhere; if they change there, change them here.
+    // Fallback copy of the AgencyKnowledge offer prices (same keys as the start-service catalog,
+    // except hypercare_plus = orbit_local and gravitycare = starship_care).
     mission_alpha: { label: "Mission ALPHA", price: 8997, includes: ["Custom Website", "Command System", "Ops Command", "Brand Arsenal", "Launch Grid", "Transmission", "Intel Briefing (free)"] },
     mission_bravo: { label: "Mission BRAVO", price: 6497, includes: ["Custom Website", "Command System", "Intel Briefing (free)"] },
     custom_website: { label: "Custom Website", price: 4997 },
@@ -106,9 +110,27 @@ export const PLATFORMS = [
   { key: "tiktok", label: "TikTok" },
 ];
 
+// Offer key here -> AgencyKnowledge offer key.
+export const OFFER_KEY_MAP = { hypercare_plus: "orbit_local", gravitycare: "starship_care" };
+
+// BRAND.offers with prices from Agency knowledge (fallback: the values above).
+export function liveOffers() {
+  return Object.fromEntries(Object.entries(BRAND.offers).map(([k, o]) => {
+    const ak = OFFER_KEY_MAP[k] || k;
+    const fallback = o.price ?? o.price_from_monthly ?? o.price_monthly ?? 0;
+    const price = offerPrice(ak, fallback);
+    const field = o.price != null ? "price" : o.price_from_monthly != null ? "price_from_monthly" : "price_monthly";
+    const live = offerByKey(ak);
+    return [k, { ...o, [field]: price, ...(live && Array.isArray(live.includes) && live.includes.length ? { includes: live.includes } : {}) }];
+  }));
+}
+
+const offersText = () => Object.values(liveOffers()).map((o) => `${o.label}: $${Number(o.price ?? o.price_from_monthly ?? o.price_monthly).toLocaleString("en-US")}${o.price_from_monthly != null ? "/mo and up" : o.price_monthly != null ? "/mo" : ""}`).join("; ");
+
 // Compact text the AI prompts embed.
 export function brandBrief() {
   return [
+    `Real offer prices (use only these, exactly): ${offersText()}`,
     `Company: ${BRAND.company}. Slogan: "${BRAND.slogan}". Audience: ${BRAND.audience}`,
     `What we sell:\n- ${BRAND.what_we_sell.join("\n- ")}`,
     `Pain points we speak to:\n- ${PAIN_POINTS.map((p) => `${p.pain} -> ${p.fix}`).join("\n- ")}`,
