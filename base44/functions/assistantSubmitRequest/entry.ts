@@ -1,4 +1,4 @@
-// Interstellar Assistant tool: submit a request for the signed-in client (same record shape as the
+// Gorgon tool: submit a request for the signed-in client (same record shape as the
 // portal's create_request). Refuses unless the client confirmed the summary (confirmed: true).
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import { resolvePortalClient, buildRequest, requestOut, kindLabel, json } from "../../shared/portalAssistant.ts";
@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     const created = await ctx.db.ClientRequest.create({
       client_id: ctx.cid, client_name: ctx.client.business, kind: r.kind, title: r.title, details: r.details,
       attachments: [], fields: r.fields, answers: r.answers,
-      form_id: null, form_title: `${kindLabel(r.kind)} (via Interstellar Assistant)`,
+      form_id: null, form_title: `${kindLabel(r.kind)} (via Gorgon)`,
       source: "portal", contact_email: ctx.user.email, submitted_by: ctx.user.email,
       status: "received", priority: r.priority, ...(r.due_date ? { due_date: r.due_date } : {}),
       page_status: "none",

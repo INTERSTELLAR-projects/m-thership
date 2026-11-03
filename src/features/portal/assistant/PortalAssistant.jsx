@@ -7,7 +7,7 @@ import Martian from "@/components/comms/Martian";
 import { KING } from "@/components/comms/martianColors";
 import { useDictation, voiceInputSupported, readAloud, stopReading } from "./portalVoice";
 
-// Interstellar Assistant: the client-facing Base44 agent (base44/agents/interstellar_assistant.jsonc)
+// Gorgon: the client-facing Base44 agent (base44/agents/interstellar_assistant.jsonc)
 // embedded in the client portal. The agent only reaches data through the assistant* backend functions,
 // which resolve the client from the signed-in login. In admin preview the conversation carries
 // metadata.preview_client_id so those functions know which client Justin is previewing.
@@ -77,7 +77,7 @@ function useConversation(previewId) {
       if (!c) {
         c = await base44.agents.createConversation({
           agent_name: AGENT,
-          metadata: { name: "Interstellar Assistant", source: "client_portal", ...(previewId ? { preview_client_id: previewId } : {}) },
+          metadata: { name: "Gorgon", source: "client_portal", ...(previewId ? { preview_client_id: previewId } : {}) },
         });
         setConv(c);
       }
@@ -231,7 +231,7 @@ function Bubble({ m, speakingId, onSpeak }) {
   if (!text && !tools.length) return null;
   return (
     <div className="flex items-start gap-2.5">
-      <div className="mt-0.5 shrink-0"><Martian palette={KING.palette} king size={26} title="Interstellar Assistant" /></div>
+      <div className="mt-0.5 shrink-0"><Martian palette={KING.palette} king size={26} title="Gorgon" /></div>
       <div className="min-w-0 max-w-[88%]">
         {tools.length > 0 && <div className="mb-1.5 flex flex-wrap gap-1.5">{tools.map((t, i) => <ToolPill key={t.id || i} t={t} />)}</div>}
         {text && (
@@ -315,9 +315,9 @@ export default function PortalAssistant({ previewId, variant = "page", onClose, 
     <div className={`flex min-h-0 flex-col bg-canvas ${page ? "h-[calc(100dvh-140px)] min-h-[520px] overflow-hidden rounded-md border border-hair" : "h-full"}`}>
       {/* Header */}
       <header className="flex items-center gap-3 border-b border-hair bg-card px-4 py-3">
-        <Martian palette={KING.palette} king size={34} active={thinking} title="Interstellar Assistant" />
+        <Martian palette={KING.palette} king size={34} active={thinking} title="Gorgon" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[14.5px] font-semibold tracking-[-0.02em]">Interstellar Assistant</p>
+          <p className="truncate text-[14.5px] font-semibold tracking-[-0.02em]">Gorgon</p>
           <p className="truncate text-[11px] text-ink/50">{previewId ? "Admin preview · acting as this client" : "The Future of Business · replies in seconds"}</p>
         </div>
         <button type="button" onClick={toggleRead} title={autoRead ? "Read replies aloud: on" : "Read replies aloud: off"} aria-pressed={autoRead} className={`p-1.5 ${autoRead ? "text-[#ff3c00]" : "text-ink/40 hover:text-ink"}`}>
@@ -337,7 +337,7 @@ export default function PortalAssistant({ previewId, variant = "page", onClose, 
           <div className="flex items-start gap-2.5">
             <div className="mt-0.5 shrink-0"><Martian palette={KING.palette} king size={26} /></div>
             <div className="border border-hair bg-card px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink/85">
-              Hi{ctxQ.data?.first_name && !previewId ? ` ${ctxQ.data.first_name}` : ""}, I&apos;m your Interstellar Assistant. I can recap what we&apos;ve done for {ctxQ.data?.business || "you"}, send a request to the team, check on your requests, or get Justin for you.
+              Hi{ctxQ.data?.first_name && !previewId ? ` ${ctxQ.data.first_name}` : ""}, I&apos;m Gorgon, your Interstellar assistant. I can recap what we&apos;ve done for {ctxQ.data?.business || "you"}, send a request to the team, check on your requests, or get Justin for you.
             </div>
           </div>
         ) : (
@@ -380,7 +380,7 @@ export default function PortalAssistant({ previewId, variant = "page", onClose, 
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
             placeholder={recording ? "Recording… press stop when you're done" : "Ask anything or tell me what you need…"}
-            aria-label="Message the Interstellar Assistant"
+            aria-label="Message Gorgon"
             className="min-h-[42px] flex-1 resize-none border border-hair bg-canvas px-3 py-2.5 text-[13.5px] leading-snug outline-none focus:border-[#ff3c00]"
           />
           {voiceInputSupported() && (
@@ -420,7 +420,7 @@ export function AssistantLauncher({ previewId, onOpenFull }) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Open the Interstellar Assistant"
+          aria-label="Open Gorgon"
           className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-ink py-1.5 pl-1.5 pr-4 text-white shadow-[0_10px_30px_-8px_rgba(255,60,0,.55)] transition-transform hover:-translate-y-0.5"
         >
           <span className="flex h-10 w-10 items-center justify-center rounded-full flame-bg"><Martian palette={KING.palette} king size={26} /></span>
@@ -430,7 +430,7 @@ export function AssistantLauncher({ previewId, onOpenFull }) {
       {open && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <button type="button" aria-label="Close assistant" className="absolute inset-0 bg-ink/30 backdrop-blur-[1px]" onClick={() => setOpen(false)} />
-          <div role="dialog" aria-modal="true" aria-label="Interstellar Assistant" className="page-enter relative flex h-full w-full max-w-[440px] flex-col border-l border-hair bg-canvas shadow-2xl">
+          <div role="dialog" aria-modal="true" aria-label="Gorgon" className="page-enter relative flex h-full w-full max-w-[440px] flex-col border-l border-hair bg-canvas shadow-2xl">
             <PortalAssistant previewId={previewId} variant="drawer" onClose={() => setOpen(false)} onExpand={onOpenFull ? () => { setOpen(false); onOpenFull(); } : undefined} />
           </div>
         </div>

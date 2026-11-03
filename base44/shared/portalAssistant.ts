@@ -1,4 +1,4 @@
-// Interstellar Assistant (client portal agent): shared scoping + data helpers.
+// Gorgon (client portal agent): shared scoping + data helpers.
 //
 // SECURITY MODEL
 // - Every client table is admin-only RLS. The assistant never gets entity tools; it only calls the

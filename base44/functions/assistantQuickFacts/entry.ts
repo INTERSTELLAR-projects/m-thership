@@ -1,4 +1,4 @@
-// Interstellar Assistant tool: quick facts for the signed-in client only
+// Gorgon tool: quick facts for the signed-in client only
 // (review link, brand kit, playbook, QR codes, signatures, project milestones).
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import { resolvePortalClient, quickFacts, json } from "../../shared/portalAssistant.ts";

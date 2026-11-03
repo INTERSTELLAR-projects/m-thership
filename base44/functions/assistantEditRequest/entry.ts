@@ -1,4 +1,4 @@
-// Interstellar Assistant tool: update one of the signed-in client's own requests.
+// Gorgon tool: update one of the signed-in client's own requests.
 // Only title, details (replace or append), priority and due date; only while status is received or needs_info.
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import { resolvePortalClient, requestOut, CLIENT_EDITABLE, REQUEST_KINDS, today, json } from "../../shared/portalAssistant.ts";

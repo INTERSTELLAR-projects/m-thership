@@ -1,6 +1,6 @@
 {
   "name": "AssistantBriefing",
-  "description": "Daily cached briefing card for the client-portal Interstellar Assistant (one per client per day). Written only by the portal-assistant function.",
+  "description": "Daily cached briefing card for the client-portal Gorgon (one per client per day). Written only by the portal-assistant function.",
   "type": "object",
   "properties": {
     "client_id": {
