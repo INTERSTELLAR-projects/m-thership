@@ -29,11 +29,11 @@ export async function uploadReceipt(file) {
 // other default rules only suggest (the row stays in the inbox for Justin).
 export function applyRulesTo(row, rules, catPatch) {
   const rule = findRule(rules, row);
-  if (!rule || !CAT[rule.category]) return { row, rule: null };
+  if (!rule || !CAT[rule.category]) return { patch: {}, rule: null };
   if (rule.learned || (rule.priority ?? 50) <= 10) {
-    return { row: { ...row, ...catPatch(rule.category), rule_id: rule.id, review_status: "approved" }, rule };
+    return { patch: { ...catPatch(rule.category), rule_id: rule.id, review_status: "approved" }, rule };
   }
-  return { row: { ...row, rule_id: rule.id, ai_suggestion: { category: rule.category, confidence: 0.85, reason: `Rule: "${rule.pattern}"`, by: "rule", at: new Date().toISOString() } }, rule };
+  return { patch: { rule_id: rule.id, ai_suggestion: { category: rule.category, confidence: 0.85, reason: `Rule: "${rule.pattern}"`, by: "rule", at: new Date().toISOString() } }, rule };
 }
 
 function TxEditor({ tx, onClose, acct }) {
@@ -179,8 +179,8 @@ export default function TransactionsTab({ acct }) {
     let n = 0;
     setBusy("rules");
     for (const t of targets) {
-      const { row, rule } = applyRulesTo(t, acct.rules, acct.categoryPatch);
-      if (rule) { n++; const { id: _id, ...patch } = row; await acct.patchRows([t.id], patch); }
+      const { patch, rule } = applyRulesTo(t, acct.rules, acct.categoryPatch);
+      if (rule) { n++; await acct.patchRows([t.id], patch); }
     }
     setBusy("");
     toast({ title: n ? `Rules matched ${n} transaction${n === 1 ? "" : "s"}` : "No rule matched the inbox" });
