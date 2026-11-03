@@ -37,16 +37,13 @@ export function writeVoiceSettings(next) {
   }
 }
 
-// Best natural-sounding female voices first (Edge "Online (Natural)", Google, Apple premium).
+// Best natural-sounding American female voices first (Edge "Online (Natural)", Google, Apple premium).
 const VOICE_PREFERENCE = [
   "microsoft aria online",
   "microsoft jenny online",
   "microsoft ava online",
   "microsoft emma online",
   "microsoft michelle online",
-  "microsoft sonia online",
-  "microsoft libby online",
-  "google uk english female",
   "samantha (premium)",
   "ava (premium)",
   "zoe (premium)",
@@ -58,10 +55,6 @@ const VOICE_PREFERENCE = [
   "ava",
   "zoe",
   "allison",
-  "serena",
-  "karen",
-  "moira",
-  "tessa",
   "microsoft aria",
   "microsoft jenny",
   "microsoft zira",
@@ -81,7 +74,9 @@ function voiceScore(voice) {
 export function femaleVoices() {
   if (!synthesisSupported()) return [];
   const voices = window.speechSynthesis.getVoices() || [];
-  const english = voices.filter((v) => /^en/i.test(v.lang || ""));
+  // American English only when the browser has it (no British / Australian / Irish fallback voices).
+  const american = voices.filter((v) => /^en[-_]us/i.test(v.lang || ""));
+  const english = american.length ? american : voices.filter((v) => /^en/i.test(v.lang || ""));
   const pool = (english.length ? english : voices).filter((v) => !MALE.test(v.name || "") || /female/i.test(v.name || ""));
   return [...pool].sort((a, b) => voiceScore(a) - voiceScore(b));
 }
