@@ -46,7 +46,7 @@ export default function AuthShell({ eyebrow, children, footer }) {
         <div className="ms-layer mt-8 max-w-[560px] lg:mt-0">
           <p className="mono-label text-[10.5px] text-white/55"><span className="text-[#ff3c00]">+</span>&nbsp; The Future of Business</p>
           <h1 className="mt-4 text-[32px] font-semibold leading-[1.02] tracking-[-0.05em] text-[#f2f2f0] sm:text-[40px] lg:text-[64px]">
-            Your business, <span className="ms-flame-text">/in orbit</span>
+            Your business, <span className="ms-flame-text whitespace-nowrap">/in orbit</span>
           </h1>
           <ul className="mt-8 hidden space-y-4 lg:block">
             {VALUES.map(([n, t]) => (
