@@ -16,17 +16,21 @@
 // Requirements are derived from the SOP streams a sale runs (TaskTemplate.service_key): a field is
 // BLOCKING when a step in one of those SOPs cannot be done without it, OPTIONAL when it helps.
 import { SERVICE_GROUPS } from "@/features/tasks/StartServiceDialog";
+import { offerPrice } from "@/features/agency/knowledge";
 
 export const SALES = SERVICE_GROUPS.flatMap((g) => g.items.map((i) => ({ ...i, group: g.label })));
 export const saleByKey = (k) => SALES.find((s) => s.key === k) || null;
+// Prices come from Settings > Agency knowledge (AgencyKnowledge offers). The numbers below are the
+// fallback used until it loads, and Settings flags any mismatch between the two.
+export const PRICE_OF = { mission_alpha: 8997, mission_bravo: 6497, custom_website: 4997, command_system: 5997, ops_command: 3000, brand_arsenal: 2500, launch_grid: 1400, transmission: 1500, orbit_local: 750, orbit_multi: 350, orbit_national: 1750, orbit_global: 3000, starship_care: 197 };
+export const defaultPrice = (k) => offerPrice(k, PRICE_OF[k] || 0);
+const carePlan = (key, label) => ({ key, label, get base() { return defaultPrice(key); } });
 export const CARE_PLANS = [
-  { key: "orbit_local", label: "HyperCare+ Local", base: 750 },
-  { key: "orbit_national", label: "HyperCare+ National", base: 1750 },
-  { key: "orbit_global", label: "HyperCare+ Global", base: 3000 },
-  { key: "starship_care", label: "GravïtyCare", base: 197 }
+  carePlan("orbit_local", "HyperCare+ Local"),
+  carePlan("orbit_national", "HyperCare+ National"),
+  carePlan("orbit_global", "HyperCare+ Global"),
+  carePlan("starship_care", "GravïtyCare")
 ];
-const PRICE_OF = { mission_alpha: 8997, mission_bravo: 6497, custom_website: 4997, command_system: 5997, ops_command: 3000, brand_arsenal: 2500, launch_grid: 1400, transmission: 1500, orbit_local: 750, orbit_multi: 350, orbit_national: 1750, orbit_global: 3000, starship_care: 197 };
-export const defaultPrice = (k) => PRICE_OF[k] || 0;
 
 // Which sales can put a client on each package page (first = default).
 export const SALES_FOR_PACKAGE = {
