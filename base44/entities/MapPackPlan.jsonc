@@ -1,0 +1,206 @@
+{
+  "name": "MapPackPlan",
+  "description": "A client's Google map pack (local pack) plan: footprint, primary location, service areas, GBP categories, map pack keywords and the rank-tracking grids. One per client (newest wins). Drafts come from the enrich run, a map_pack_plan ClaudeJob or manual edits on the client's Map pack tab; Justin approves it there. Admin-only. Never holds rank results (those come from rank tracking once connected).",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "footprint": {
+      "type": "string",
+      "enum": [
+        "local",
+        "regional",
+        "national",
+        "global"
+      ],
+      "default": "local",
+      "description": "local = one city / storefront radius; regional = several cities or counties; national = whole country, map pack only around the office; global = several countries"
+    },
+    "primary_location": {
+      "type": "object",
+      "description": "The GBP address the map pack ranks from",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "lat": {
+          "type": "number"
+        },
+        "lng": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": true
+    },
+    "service_areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "city",
+              "county",
+              "state",
+              "country"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "description": "core | growth | later"
+          },
+          "source": {
+            "type": "string",
+            "description": "URL or where it came from"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "gbp_categories": {
+      "type": "object",
+      "properties": {
+        "primary": {
+          "type": "string"
+        },
+        "secondary": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "term": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "intent": {
+            "type": "string",
+            "description": "local | near_me | service | brand"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "rank_grids": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "center": {
+            "type": "object",
+            "properties": {
+              "lat": {
+                "type": "number"
+              },
+              "lng": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": true
+          },
+          "radius_miles": {
+            "type": "number"
+          },
+          "grid_size": {
+            "type": "number",
+            "description": "Points per side (7 = 7x7)"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved"
+      ],
+      "default": "draft"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "source_job_id": {
+      "type": "string",
+      "description": "ClaudeJob the draft came from"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
