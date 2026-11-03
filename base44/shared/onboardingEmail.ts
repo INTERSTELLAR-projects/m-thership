@@ -68,7 +68,7 @@ export function onboardingEmail({ business, contact, portalUrl, email }: { busin
         ${esc(first)}, welcome aboard. Everything we do for ${esc(business)} now lives in one place, built just for you: your work, your results, your requests and a direct line to our team.
       </td></tr>
       <tr><td class="px" style="padding:0 40px 36px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #2a2a2a;"><tr>${stat("1", "Login for everything")}${stat("0", "Passwords to remember", true)}${stat("24/7", "Access, any device", false, true)}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #2a2a2a;"><tr>${stat("1", "Login for everything")}${stat("2", "Ways to sign in", true)}${stat("24/7", "Access, any device", false, true)}
         </tr></table>
       </td></tr>
     </table>
@@ -76,7 +76,7 @@ export function onboardingEmail({ business, contact, portalUrl, email }: { busin
 
   <tr><td bgcolor="#ff3c00" class="px" style="background-color:#ff3c00;background-image:linear-gradient(110deg,#ff3c00,#ff5a00 60%,#ff7a00);padding:30px 40px 32px;${F}">
     <div style="font-size:12px;font-weight:700;letter-spacing:1.8px;color:#ffffff;text-transform:uppercase;opacity:0.9;">&#9733;&nbsp; The short version</div>
-    <div style="padding-top:10px;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.4px;color:#ffffff;">Sign in with ${esc(email)}. Use Google, or get a one-time code by email. No password, ever.</div>
+    <div style="padding-top:10px;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.4px;color:#ffffff;">Sign in with ${esc(email)}. Continue with Google, or choose Sign up the first time to set your own password.</div>
   </td></tr>
 
   <tr><td bgcolor="#f5f3f0" style="background-color:#f5f3f0;">
@@ -89,7 +89,7 @@ export function onboardingEmail({ business, contact, portalUrl, email }: { busin
       ${card("05", "Bonus", "Tools that are yours for life", "Email signatures, QR codes with scan tracking, and Prestige referral rewards.")}
       <tr><td class="px" style="padding:26px 40px 14px;">${eyebrow("What we need from you")}
         <div style="padding-top:8px;${F}font-size:15px;line-height:23px;color:#4a4744;">Three quick things when you log in:</div></td></tr>
-      ${step("01", "Log in", `Use the button below and sign in with <strong>${esc(email)}</strong>.`, "Takes a minute")}
+      ${step("01", "Log in", `Use the button below and sign in with <strong>${esc(email)}</strong>: Google, or Sign up once to set a password.`, "Takes a minute")}
       ${step("02", "Tell us about your business", "Fill in the short business audit on your Home page. It saves as you go.", "On your Home page")}
       ${step("03", "Send your first request", "Pick a form under Requests, or just message us.", "Whenever you're ready")}
       <tr><td style="padding:0 0 28px;font-size:0;line-height:0;">&nbsp;</td></tr>
@@ -102,7 +102,7 @@ export function onboardingEmail({ business, contact, portalUrl, email }: { busin
         <a href="${esc(loginUrl)}" target="_blank" style="display:inline-block;padding:16px 28px;${F}font-size:14px;font-weight:700;letter-spacing:1.5px;color:#ffffff;text-decoration:none;text-transform:uppercase;">Log in to your portal &nbsp;&rarr;</a>
       </td>
     </tr></table>
-    <div style="padding-top:22px;font-size:14px;line-height:22px;color:#bdbab5;">This invite is only for ${esc(email)}. We will never ask for a password by email. Questions? Just reply to this email.</div>
+    <div style="padding-top:22px;font-size:14px;line-height:22px;color:#bdbab5;">This invite is only for ${esc(email)}. We will never ask for a password by email. Questions? Email <a href="mailto:justin@interstellar-strategies.com" style="color:#ff6a00;text-decoration:underline;">justin@interstellar-strategies.com</a>.</div>
     <div style="padding-top:16px;font-size:14px;line-height:22px;color:#bdbab5;">Welcome to the future of business, ${esc(first)}.<br>&mdash; Justin Cowell, Interstellar Strategies</div>
     <div style="padding-top:22px;font-size:11px;font-weight:700;letter-spacing:1.6px;color:#6f6c68;text-transform:uppercase;">Interstellar Strategies &nbsp;&middot;&nbsp; The Future of Business</div>
   </td></tr>
@@ -115,30 +115,11 @@ export function onboardingEmail({ business, contact, portalUrl, email }: { busin
   return { subject, html };
 }
 
-// Sends from Justin's own Gmail when the Gmail connector is connected (so the sender, reply-to and links never
-// show the hosting platform); otherwise falls back to the built-in mailer.
+// Sent through the app's own mail domain (no-reply@interstellar-mothership.com, set up in the app's email
+// settings), shown as "Justin | Interstellar Strategies". SendEmail has no reply-to, so the footer gives
+// Justin's address as a mailto link instead of "just reply".
+export const SENDER_NAME = "Justin | Interstellar Strategies";
 export async function sendBrandedEmail(base44: any, { to, subject, html }: { to: string; subject: string; html: string }) {
-  try {
-    const token = await base44.asServiceRole.connectors.getAccessToken("gmail");
-    if (token) {
-      const b64 = (s: string) => btoa(unescape(encodeURIComponent(s)));
-      const mime = [
-        `To: ${to}`,
-        `Subject: =?UTF-8?B?${b64(subject)}?=`,
-        `From: =?UTF-8?B?${b64("Justin Cowell | Interstellar Strategies")}?= <justin@interstellar-strategies.com>`,
-        "MIME-Version: 1.0",
-        'Content-Type: text/html; charset="UTF-8"',
-        "Content-Transfer-Encoding: base64",
-        "",
-        b64(html).replace(/.{76}/g, "$&\r\n"),
-      ].join("\r\n");
-      const raw = b64(mime).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-      const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
-        method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ raw }),
-      });
-      if (res.ok) return { via: "gmail" };
-    }
-  } catch { /* connector not connected: fall back */ }
-  await base44.asServiceRole.integrations.Core.SendEmail({ to, subject, body: html, from_name: "Interstellar Strategies" });
-  return { via: "builtin" };
+  await base44.asServiceRole.integrations.Core.SendEmail({ to, subject, body: html, from_name: SENDER_NAME });
+  return { via: "app_mail_domain" };
 }
