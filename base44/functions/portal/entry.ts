@@ -1,4 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
+import { requireSecondFactor } from "../../shared/twoFactor.ts";
 
 // Client portal API. Every table is admin-only, so portal users never touch entities directly:
 // this function finds the client their login belongs to and returns only that client's
@@ -47,6 +48,9 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me().catch(() => null);
     if (!user) return Response.json({ error: "Not signed in" }, { status: 401 });
+    // Two-step verification: a portal login that turned it on gets nothing until this session passed it.
+    const gate = await requireSecondFactor(base44, req, user);
+    if (gate) return gate;
     const body = await req.json().catch(() => ({}));
     const { action = "home", client_id: asClient, ...args } = body || {};
     const db = base44.asServiceRole.entities;

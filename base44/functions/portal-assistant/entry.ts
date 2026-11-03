@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
-    const ctx = await resolvePortalClient(base44, body);
+    const ctx = await resolvePortalClient(base44, body, req);
     if ("error" in ctx) return ctx.error;
     const action = String(body?.action || "context");
     const key = Deno.env.get("OPENAI_API_KEY") || "";

@@ -6,7 +6,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
-    const ctx = await resolvePortalClient(base44, body);
+    const ctx = await resolvePortalClient(base44, body, req);
     if ("error" in ctx) return ctx.error;
     const briefing = await gatherBriefing(ctx, Number(body?.days) || 30);
     return json({ ok: true, briefing, rules: "Only state facts present here. If site_health.score is null, never give a number." });

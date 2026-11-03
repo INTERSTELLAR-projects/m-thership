@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
-    const ctx = await resolvePortalClient(base44, body);
+    const ctx = await resolvePortalClient(base44, body, req);
     if ("error" in ctx) return ctx.error;
     const message = String(body?.message || "").trim().slice(0, 4000);
     if (!message) return json({ ok: false, error: "Write the message for Justin first." }, 400);

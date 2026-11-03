@@ -10,8 +10,12 @@
 // - Admins (Justin) previewing a client's portal: client_id from the call, else the preview_client_id
 //   stored on the admin's latest assistant conversation (set by the portal UI in preview mode).
 // - No signed-in user (e.g. if a call ever arrived without auth) => 401. It fails closed.
+// - Two-step verification (shared/twoFactor.ts): when a portal login has it on, every call must come from a
+//   session that passed the second step, or it gets 428 { code: "2fa_required" }. No request => fails closed.
 // - Everything returned is filtered with the same rules as the portal: portal_visible, no internal
 //   notes, no admin_notes, no prices/contract values, site score only when >= 70.
+
+import { requireSecondFactor } from "./twoFactor.ts";
 
 type Row = Record<string, any>;
 
@@ -32,9 +36,14 @@ export type Ctx = {
   by: (entity: string, sort?: string, limit?: number) => Promise<Row[]>;
 };
 
-export async function resolvePortalClient(base44: any, body: Row = {}): Promise<{ error: Response } | Ctx> {
+export async function resolvePortalClient(base44: any, body: Row = {}, req?: Request): Promise<{ error: Response } | Ctx> {
   const user = await base44.auth.me().catch(() => null);
   if (!user) return { error: json({ error: "Not signed in" }, 401) };
+  if (user.role !== "admin") {
+    // Without the request the session can't be checked, so a protected login is refused (fails closed).
+    const gate = req ? await requireSecondFactor(base44, req, user) : await requireSecondFactor(base44, new Request("https://invalid.local"), user);
+    if (gate) return { error: gate };
+  }
   const db = base44.asServiceRole.entities;
   let client: Row | null = null;
   let preview = false;

@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
-    const ctx = await resolvePortalClient(base44, body);
+    const ctx = await resolvePortalClient(base44, body, req);
     if ("error" in ctx) return ctx.error;
     if (body?.confirmed !== true) {
       return json({ ok: false, error: "Not submitted: show the client the full summary and get a clear yes first, then call again with confirmed: true." }, 400);

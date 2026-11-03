@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
-    const ctx = await resolvePortalClient(base44, body);
+    const ctx = await resolvePortalClient(base44, body, req);
     if ("error" in ctx) return ctx.error;
     const topic = TOPICS.includes(String(body?.topic)) ? String(body.topic) : "all";
     return json({ ok: true, topic, facts: await quickFacts(ctx, topic) });

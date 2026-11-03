@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
-    const ctx = await resolvePortalClient(base44, body);
+    const ctx = await resolvePortalClient(base44, body, req);
     if ("error" in ctx) return ctx.error;
     const r = body?.request_id ? await ctx.db.ClientRequest.get(String(body.request_id)).catch(() => null) : null;
     if (!r || r.client_id !== ctx.cid) return json({ ok: false, error: "Request not found" }, 404);
