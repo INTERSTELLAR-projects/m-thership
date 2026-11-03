@@ -182,7 +182,7 @@ Deno.serve(async (req: Request) => {
           created.ads.push(ad.id);
           await db.AdCreative.update(cr.id, { status: "pushed" });
         }
-        await db.AdCampaign.update(camp.id, { external_id: c.id, objective: obj.objective, status: "pushed_paused", pushed_at: new Date().toISOString(), daily_budget: null, draft: { ...d, pushed: created } });
+        await db.AdCampaign.update(camp.id, { external_id: c.id, objective: obj.objective, status: "pushed_paused", pushed_at: new Date().toISOString(), draft: { ...d, pushed: created } });
         await logChange(db, { action: "push_draft", platform: "meta", account_ref: account.id, target_level: "campaign", target_external_id: c.id, target_name: camp.name, before: {}, after: { status: "PAUSED", ...created, daily_budget: daily }, actor, result: "ok" });
         return json({ ok: true, created });
       } catch (e) {

@@ -1,0 +1,43 @@
+{
+  "name": "Ads \u2014 daily Meta sync",
+  "description": "Daily, read-only: pulls Meta campaigns, ad sets, ads and daily insights into Ads Studio. Does nothing until Meta Ads is connected and an ad account is picked. Never changes anything on Meta.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "23 5 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "then": "end",
+          "with": {
+            "args": {
+              "action": "scheduled"
+            },
+            "function_name": "ads-sync"
+          }
+        }
+      }
+    ],
+    "document": {
+      "dsl": "1.0.0",
+      "name": "ads_daily_meta_sync",
+      "namespace": "base44",
+      "version": "1.0"
+    }
+  }
+}

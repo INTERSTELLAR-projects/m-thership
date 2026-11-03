@@ -1,0 +1,43 @@
+{
+  "name": "Ads \u2014 daily optimizer",
+  "description": "Daily: the Ads Studio agent reads real performance and proposes recommendations for Justin's approval inbox. It never spends, launches or raises budgets; it only pauses if Justin switched on an auto-pause rule.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "7 6 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "then": "end",
+          "with": {
+            "args": {
+              "action": "scheduled"
+            },
+            "function_name": "ads-optimizer"
+          }
+        }
+      }
+    ],
+    "document": {
+      "dsl": "1.0.0",
+      "name": "ads_daily_optimizer",
+      "namespace": "base44",
+      "version": "1.0"
+    }
+  }
+}
