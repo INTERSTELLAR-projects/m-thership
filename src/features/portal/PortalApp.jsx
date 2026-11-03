@@ -20,6 +20,7 @@ import { kindLabel, portalForms, priorityFor, toAnswers, titleFor, detailsFor, a
 import { KitView } from "@/features/clients/BrandKitTab";
 import PortalPlaybook from "@/features/portal/PortalPlaybook";
 import PortalResources from "@/features/portal/PortalResources";
+import PortalInstagram from "@/features/social/portal/PortalInstagram";
 import { PortalGbp, ReviewLinkQuick } from "@/features/gbp/GbpPanel";
 import PortalAssistant, { AssistantLauncher } from "@/features/portal/assistant/PortalAssistant";
 import SecurityPanel from "@/features/security/SecurityPanel";
@@ -74,7 +75,7 @@ export default function PortalApp({ previewId }) {
       ) : (
         <div key={tab} className="page-enter">
           {tab === "home" && <HomeView d={d} go={setTab} call={call} previewId={previewId} openAudit={() => setAudit(true)} />}
-          {tab === "results" && <ResultsView d={d} />}
+          {tab === "results" && <ResultsView d={d} previewId={previewId} />}
           {tab === "gbp" && <PortalGbp call={call} previewId={previewId} onOpenQr={(code) => { setQrOpen(code.id); setTab("qr"); }} />}
           {tab === "goals" && <GoalsView d={d} />}
           {tab === "files" && (
@@ -330,7 +331,7 @@ function BonusTools({ go }) {
   );
 }
 
-function ResultsView({ d }) {
+function ResultsView({ d, previewId }) {
   return (
     <div className="space-y-4">
       <p className="label-cross">(Results)</p>
@@ -338,6 +339,8 @@ function ResultsView({ d }) {
       {/* site_health comes from the portal function (already filtered: no score under 70). Hidden until it's returned. */}
       {d.site_health && <ClientHealthSummary health={d.site_health} businessName={d.client.business} />}
       <PerformanceView snapshots={d.snapshots} compact />
+      {/* Instagram: renders nothing until the client has data or was invited to connect. */}
+      <PortalInstagram previewId={previewId} />
     </div>
   );
 }
