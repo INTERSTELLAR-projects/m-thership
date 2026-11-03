@@ -94,7 +94,7 @@ function JobDetail({ job, onDone }) {
             <EnrichReview job={job} />
           </div>
         )}
-        {job.result_body && !isEnrichJob(job) && (
+        {job.result_body && !(isEnrichJob(job) && job.status === "needs_approval") && (
           <article className="prose prose-sm max-w-none rounded-sm border border-hair bg-card px-4 py-3 text-[13px] [&_pre]:overflow-x-auto [&_pre]:bg-ink/[0.05] [&_pre]:p-3">
             <ReactMarkdown>{job.result_body}</ReactMarkdown>
           </article>
