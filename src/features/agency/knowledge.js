@@ -65,12 +65,9 @@ export function sectionMarkdown(s) {
 export function compileMarkdown(sections = cachedSections(), { stamp = true } = {}) {
   const rows = sortSections(sections || []);
   const latest = rows.reduce((m, s) => (String(s.updated_at || s.updated_date || "") > m ? String(s.updated_at || s.updated_date || "") : m), "");
-  return [
-    "# Interstellar Strategies — Agency knowledge",
-    stamp ? `_Exported from Møthership (Settings > Agency knowledge). ${rows.length} sections${latest ? `, last edited ${latest.slice(0, 10)}` : ""}. The in-app version is the source of truth._` : "",
-    "",
-    ...rows.map(sectionMarkdown).flatMap((m) => [m, ""]),
-  ].filter((l, i) => l !== "" || i > 1).join("\n").trim();
+  const head = ["# Interstellar Strategies — Agency knowledge"];
+  if (stamp) head.push("", `_Exported from Møthership (Settings > Agency knowledge). ${rows.length} sections${latest ? `, last edited ${latest.slice(0, 10)}` : ""}. The in-app version is the source of truth._`);
+  return [...head, "", rows.map(sectionMarkdown).join("\n\n")].join("\n").trim();
 }
 
 // Short excerpt for a generator brief. topics: offers | rules | voice | about | bonuses | operations
