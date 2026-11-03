@@ -1,0 +1,86 @@
+{
+  "name": "EmailSubscriber",
+  "type": "object",
+  "description": "Email list subscribers (Interstellar website footer \"Stay informed\" signup, CSV imports, manual adds). Mass sends from Email Studio go to status=subscribed only and always carry a one-click unsubscribe link.",
+  "properties": {
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Lowercased, unique per subscriber"
+    },
+    "name": {
+      "type": "string"
+    },
+    "business": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "description": "website_footer | import | manual | unsubscribe_link | other"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "subscribed",
+        "unsubscribed"
+      ],
+      "default": "subscribed"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "unsubscribed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lang": {
+      "type": "string"
+    },
+    "referrer": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when the subscriber is also a client"
+    },
+    "last_sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "email"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
