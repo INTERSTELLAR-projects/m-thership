@@ -239,4 +239,3 @@ function AccountRow({ a, onChange }) {
   );
 }
 
-export { Facebook };
