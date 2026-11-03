@@ -1,5 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
-import { inviteSettings, saveInviteSettings, pickInviteEmail, sentInviteFor, deliverInvite, sendDueInvites, onboardingEmail, normEmail } from "../../shared/portalInvite.ts";
+import { inviteSettings, saveInviteSettings, pickInviteEmail, sentInviteFor, deliverInvite, sendDueInvites, onboardingEmail, sendBrandedEmail, normEmail } from "../../shared/portalInvite.ts";
 
 // Client-portal onboarding invites (see base44/shared/portalInvite.ts for the security model).
 //   status    (admin)  -> settings + this client's invite log
