@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, LogOut, Plus, X, ChevronDown, Check, Eye, Gift, PenLine, QrCode, Presentation, Menu, ArrowLeft } from "lucide-react";
+import { ArrowUpRight, LogOut, Plus, X, ChevronDown, Check, Eye, Gift, PenLine, QrCode, Presentation, UserRound } from "lucide-react";
+import { navFor, DesktopNav, MobileNav, ScheduleCallButton, ScheduleCallModal } from "@/features/portal/PortalNav";
 import { base44 } from "@/api/base44Client";
 import { LOGO_URL } from "@/lib/nav";
 import { WORK_KINDS, SERVICE_LABELS, fmtDate, timeAgo } from "@/lib/useData";
@@ -69,7 +69,7 @@ export default function PortalApp({ previewId }) {
   }
 
   return (
-    <Shell client={d.client} tabs={tabs} tab={tab} setTab={(k) => { setQrOpen(null); setTab(k); }} unread={d.unread} preview={!!previewId}>
+    <Shell client={d.client} tabs={tabs} tab={tab} setTab={(k) => { setQrOpen(null); setTab(k); }} unread={d.unread} preview={!!previewId} previewId={previewId}>
       {audit ? (
         <IntakeView call={call} onClose={() => { setAudit(false); refresh(); }} />
       ) : (
@@ -109,147 +109,11 @@ export default function PortalApp({ previewId }) {
   );
 }
 
-function TabBadges({ k, unread }) {
-  return (
-    <>
-      {BONUS_TABS.includes(k) && <span className="mono-label ml-1.5 inline-flex items-center bg-[#ff3c00]/10 px-1 py-[1px] align-middle text-[8px] text-[#ff3c00]">Bonus</span>}
-      {k === "messages" && unread > 0 && <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center bg-[#ff3c00] px-1 text-[10px] text-white" aria-label={`${unread} unread`}>{unread}</span>}
-    </>
-  );
-}
-
-// Phones and tablets (< 1024px), and any wider screen where the tab row would not fit (`force`):
-// a hamburger opens a full-height slide-in menu. Focus is trapped inside while open, Escape / backdrop /
-// picking a tab closes it, and the page behind stops scrolling.
-function MobileNav({ client, tabs, tab, setTab, unread, preview, force = false }) {
-  const [open, setOpen] = useState(false);
-  const btnRef = useRef(null);
-  const panelRef = useRef(null);
-  const wasOpen = useRef(false);
-  const forceRef = useRef(force);
-  forceRef.current = force;
-
-  useEffect(() => {
-    if (!open) {
-      if (wasOpen.current) btnRef.current?.focus();
-      wasOpen.current = false;
-      return undefined;
-    }
-    wasOpen.current = true;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const focusables = () => [...(panelRef.current?.querySelectorAll("button:not([disabled]), a[href]") || [])];
-    const t = setTimeout(() => (panelRef.current?.querySelector("[aria-current='page']") || focusables()[0])?.focus(), 30);
-    const onKey = (e) => {
-      if (e.key === "Escape") { e.preventDefault(); setOpen(false); return; }
-      if (e.key !== "Tab") return;
-      const f = focusables();
-      if (!f.length) return;
-      const first = f[0], last = f[f.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      else if (!panelRef.current?.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
-    };
-    document.addEventListener("keydown", onKey);
-    const onResize = () => { if (window.innerWidth >= 1024 && !forceRef.current) setOpen(false); };
-    window.addEventListener("resize", onResize);
-    return () => { clearTimeout(t); document.body.style.overflow = prevOverflow; document.removeEventListener("keydown", onKey); window.removeEventListener("resize", onResize); };
-  }, [open]);
-
-  const current = tabs.find(([k]) => k === tab)?.[1];
-  return (
-    <div className={`ml-auto flex items-center ${force ? "" : "lg:hidden"}`}>
-      <button
-        ref={btnRef}
-        type="button"
-        data-portal-menu-button
-        onClick={() => setOpen(true)}
-        aria-expanded={open}
-        aria-controls="portal-menu"
-        aria-label={`Open menu${current ? `, current page ${current}` : ""}`}
-        className="relative flex h-10 items-center gap-2 border border-hair bg-card px-3 text-[13px] font-medium text-ink hover:border-ink/30"
-      >
-        <span className="max-w-[96px] truncate sm:max-w-[160px]">{current || "Menu"}</span>
-        <Menu className="h-4 w-4" aria-hidden="true" />
-        {unread > 0 && tab !== "messages" && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#ff3c00]" aria-hidden="true" />}
-      </button>
-
-      {/* Portaled to <body>: the sticky header's backdrop-blur would otherwise trap this fixed layer inside the header. */}
-      {createPortal(
-      <div className={`fixed inset-0 z-50 ${force ? "" : "lg:hidden"} ${open ? "visible" : "invisible"}`} aria-hidden={!open}>
-        <div onClick={() => setOpen(false)} className={`absolute inset-0 bg-ink/45 transition-opacity duration-200 ${open ? "opacity-100" : "opacity-0"}`} />
-        <div
-          ref={panelRef}
-          id="portal-menu"
-          data-portal-drawer
-          role="dialog"
-          aria-modal="true"
-          aria-label="Portal menu"
-          className={`absolute inset-y-0 right-0 flex h-full w-[min(360px,88vw)] flex-col border-l border-hair bg-canvas shadow-2xl transition-transform duration-300 ease-out motion-reduce:transition-none ${open ? "translate-x-0" : "translate-x-full"}`}
-        >
-          <div className="h-[3px] shrink-0 bg-[linear-gradient(90deg,#ff3c00,#ff6a00,#ffaa00)]" aria-hidden="true" />
-          <div className="flex shrink-0 items-start justify-between gap-3 border-b border-hair px-5 pb-4 pt-5">
-            <div className="min-w-0">
-              <BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={18} />
-              <p className="mono-label mt-4 text-[9.5px] text-ink/45">Client portal</p>
-              <p className="truncate text-[16px] font-semibold tracking-[-0.02em]">{client?.business || "Your business"}</p>
-            </div>
-            <button type="button" onClick={() => setOpen(false)} className="-mr-2 -mt-1 flex h-10 w-10 items-center justify-center text-ink/55 hover:text-ink" aria-label="Close menu">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <nav aria-label="Portal sections" className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-2">
-            <ul>
-              {tabs.map(([k, l]) => (
-                <li key={k}>
-                  <button
-                    type="button"
-                    data-tab={k}
-                    aria-current={tab === k ? "page" : undefined}
-                    onClick={() => { setTab(k); setOpen(false); window.scrollTo({ top: 0 }); }}
-                    className={`relative flex w-full items-center px-5 py-3 text-left text-[15px] font-medium transition-colors ${tab === k ? "bg-card text-ink" : "text-ink/65 hover:bg-card/60 hover:text-ink"}`}
-                  >
-                    {tab === k && <span className="absolute inset-y-2 left-0 w-[3px] bg-[#ff3c00]" aria-hidden="true" />}
-                    <span className="flex-1">{l}</span>
-                    <TabBadges k={k} unread={unread} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <div className="shrink-0 border-t border-hair px-5 py-4">
-            {preview ? (
-              <a href={client ? `/clients/${client.id}` : "/"} className="flex h-11 items-center justify-center gap-2 border border-hair bg-card text-[13.5px] font-medium hover:border-ink/30">
-                <ArrowLeft className="h-4 w-4" /> Back to Møthership
-              </a>
-            ) : (
-              <button type="button" onClick={() => base44.auth.logout()} className="flex h-11 w-full items-center justify-center gap-2 border border-hair bg-card text-[13.5px] font-medium hover:border-[#ff3c00] hover:text-[#ff3c00]">
-                <LogOut className="h-4 w-4" /> Sign out
-              </button>
-            )}
-          </div>
-        </div>
-      </div>,
-      document.body)}
-    </div>
-  );
-}
-
-function Shell({ client, tabs = TABS, tab, setTab, unread, preview, children }) {
-  // Desktop tab row: shown only while every tab fits; otherwise the hamburger takes over so no tab is ever hidden off-screen.
-  const wrapRef = useRef(null);
-  const navRef = useRef(null);
-  const [fits, setFits] = useState(true);
-  const hasTabs = !!setTab;
-  useEffect(() => {
-    const wrap = wrapRef.current, nav = navRef.current;
-    if (!wrap || !nav || typeof ResizeObserver === "undefined") return undefined;
-    const check = () => { if (wrap.clientWidth > 0) setFits(nav.scrollWidth <= wrap.clientWidth + 1); };
-    const ro = new ResizeObserver(check);
-    ro.observe(wrap);
-    check();
-    return () => ro.disconnect();
-  }, [tabs.length, unread, hasTabs]);
+// Header: brand on the left, grouped nav (desktop dropdowns / mobile drawer) and the
+// "Schedule a call" button on the right. Nav config and components live in PortalNav.jsx.
+function Shell({ client, tabs = TABS, tab, setTab, unread, preview, previewId, children }) {
+  const [schedOpen, setSchedOpen] = useState(false);
+  const nav = useMemo(() => navFor(tabs.map(([k]) => k)), [tabs]);
   return (
     <div className="grid-canvas min-h-screen text-ink" data-trail>
       <GridTrail />
@@ -260,30 +124,32 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, children }) 
         </div>
       )}
       <header className="sticky top-0 z-20 border-b border-hair bg-canvas/95 backdrop-blur">
-        <div className="mx-auto flex h-[60px] max-w-[1280px] items-center gap-4 px-4 md:px-8">
+        <div className="mx-auto flex h-[60px] max-w-[1280px] items-center gap-3 px-4 md:px-8">
           <div className="flex min-w-0 shrink-0 items-center gap-3">
             <BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={18} />
-            <span className="hidden h-7 w-px bg-hair sm:block lg:hidden" aria-hidden="true" />
-            {/* From 1024px up the tab row needs the room (the header is capped at 1280px); the name is in the page heading and the menu. */}
-            <p className="hidden max-w-[180px] truncate text-[13px] font-medium tracking-[-0.02em] text-ink/70 sm:block lg:hidden">{client?.business || "Client Portal"}</p>
+            <span className="hidden h-7 w-px bg-hair md:block lg:hidden xl:block" aria-hidden="true" />
+            <p className="hidden max-w-[180px] truncate text-[13px] font-medium tracking-[-0.02em] text-ink/70 md:block lg:hidden xl:block">{client?.business || "Client Portal"}</p>
           </div>
-          {setTab && (
+          {setTab ? (
             <>
-              <div ref={wrapRef} className="relative ml-auto hidden min-w-0 flex-1 justify-end lg:flex">
-                <nav ref={navRef} data-portal-tabs={fits ? "" : undefined} aria-label="Portal sections" aria-hidden={!fits} className={`no-scrollbar flex overflow-x-auto ${fits ? "" : "pointer-events-none invisible absolute inset-0"}`}>
-                  {tabs.map(([k, l]) => (
-                    <button key={k} data-tab={k} tabIndex={fits ? undefined : -1} aria-current={tab === k ? "page" : undefined} onClick={() => setTab(k)} className={`relative shrink-0 whitespace-nowrap px-2.5 py-2 text-[13px] font-medium transition-colors ${tab === k ? "text-ink" : "text-ink/50 hover:text-ink"}`}>
-                      {l}
-                      <TabBadges k={k} unread={unread} />
-                      {tab === k && <span className="absolute inset-x-2.5 -bottom-[13px] h-[2px] bg-[#ff3c00]" />}
-                    </button>
-                  ))}
-                </nav>
+              <div className="ml-auto hidden lg:block">
+                <DesktopNav nav={nav} tab={tab} setTab={setTab} unread={unread} />
               </div>
-              <MobileNav client={client} tabs={tabs} tab={tab} setTab={setTab} unread={unread} preview={preview} force={!fits} />
+              <div className="ml-auto flex items-center gap-2 lg:ml-3">
+                <ScheduleCallButton onClick={() => setSchedOpen(true)} />
+                <MobileNav nav={nav} client={client} tab={tab} setTab={setTab} unread={unread} preview={preview} onSchedule={() => setSchedOpen(true)} />
+                <div className="hidden items-center lg:flex">
+                  <button type="button" data-tab="account" onClick={() => setTab("account")} aria-current={tab === "account" ? "page" : undefined} className={`flex h-10 w-9 items-center justify-center ${tab === "account" ? "text-[#ff3c00]" : "text-ink/45 hover:text-ink"}`} title="Account & security" aria-label="Account and security">
+                    <UserRound className="h-4 w-4" />
+                  </button>
+                  {!preview && <button type="button" onClick={() => base44.auth.logout()} className="flex h-10 w-8 items-center justify-center text-ink/45 hover:text-[#ff3c00]" title="Log out" aria-label="Log out"><LogOut className="h-4 w-4" /></button>}
+                </div>
+              </div>
+              <ScheduleCallModal open={schedOpen} onClose={() => setSchedOpen(false)} previewId={previewId} preview={preview} />
             </>
+          ) : (
+            !preview && <button onClick={() => base44.auth.logout()} className="ml-auto p-2 text-ink/45 hover:text-[#ff3c00]" title="Log out" aria-label="Log out"><LogOut className="h-4 w-4" /></button>
           )}
-          {!preview && <button onClick={() => base44.auth.logout()} className={`p-2 text-ink/45 hover:text-[#ff3c00] ${setTab ? "hidden lg:block" : "ml-auto"}`} title="Log out" aria-label="Log out"><LogOut className="h-4 w-4" /></button>}
         </div>
       </header>
       <main className="relative z-10 mx-auto max-w-[1280px] px-4 pb-20 pt-8 md:px-8">{children}</main>
