@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, LogOut, Plus, X, ChevronDown, Check, Eye, Gift, PenLine, QrCode, Presentation, Menu, ArrowLeft } from "lucide-react";
 import { base44 } from "@/api/base44Client";
@@ -153,7 +154,9 @@ function MobileNav({ client, tabs, tab, setTab, unread, preview }) {
         {unread > 0 && tab !== "messages" && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#ff3c00]" aria-hidden="true" />}
       </button>
 
-      <div className={`fixed inset-0 z-50 ${open ? "visible" : "invisible"}`} aria-hidden={!open}>
+      {/* Portaled to <body>: the sticky header's backdrop-blur would otherwise trap this fixed layer inside the header. */}
+      {createPortal(
+      <div className={`fixed inset-0 z-50 lg:hidden ${open ? "visible" : "invisible"}`} aria-hidden={!open}>
         <div onClick={() => setOpen(false)} className={`absolute inset-0 bg-ink/45 transition-opacity duration-200 ${open ? "opacity-100" : "opacity-0"}`} />
         <div
           ref={panelRef}
@@ -206,7 +209,8 @@ function MobileNav({ client, tabs, tab, setTab, unread, preview }) {
             )}
           </div>
         </div>
-      </div>
+      </div>,
+      document.body)}
     </div>
   );
 }
