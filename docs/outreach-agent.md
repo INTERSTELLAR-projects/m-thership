@@ -36,6 +36,17 @@ Required fields: industry, services, city, NAP name, NAP address, NAP phone, web
 Service area is optional. The page shows what's missing for each client, and research skips any client
 that isn't ready.
 
+**One client profile.** These fields are part of the shared Client Criteria
+(`src/features/clients/criteria.js`, "Citations & PR" output): public name, address, phone, hours,
+website, industry, services, service areas, description. The client page's profile meter shows exactly
+which of them block citations, and fills them inline or through one portal intake. Where an
+`OutreachProfile` value is empty, the research brief may also use the client's latest `IntakeAudit`
+answers (`hours`, `contact` for the public address) and the active `OnboardingFlight` answers
+(`address`, `public_phone`, `hours`) — never a guess.
+
+**Agency knowledge.** Interstellar's own facts (who we are, offers, rules) live in the `AgencyKnowledge`
+entity, edited in Settings > Agency knowledge. Read them before drafting (see Prompt A step 0).
+
 **What the browser does:** Approve, Approve all, Reject, Request rewrite, edit, add, import. It changes
 records only. **It never sends email.**
 
@@ -73,6 +84,9 @@ Never send email in this task.
    and keep its id.
    Load rules: AppSettings where key = "outreach_rules", using the automationSettings object. If it is
    missing, use these defaults: research_per_run 15, blocked_domains [].
+   Load agency knowledge: query_entities AgencyKnowledge (sort "sort") and read the "about" and
+   "delivery_rules" sections (or call the admin-only backend function `agency-knowledge`, which returns
+   them compiled as markdown). Pitches describe Interstellar only with those facts.
 
 1. Pick clients: OutreachProfile where enabled = true. For each one, load its CRMClient (by client_id) and
    its ClientDossier (client_id). Build the brief: OutreachProfile values first, then CRMClient (business,
@@ -137,6 +151,8 @@ Never send email in this task.
      take submissions).
    - Give the client's facts exactly as the NAP / brief has them. Pitch angles come from the profile's
      pitch_angles and the dossier. Never invent awards, numbers, years, reviews or quotes.
+   - Anything said about Interstellar Strategies (who we are, what we do) comes only from AgencyKnowledge.
+     Never quote Interstellar prices in a pitch.
    - The subject line must be honest and specific. No "Re:", no fake urgency, no clickbait.
    - Don't add a signature or opt-out line. The SEND task adds them from the rules.
    - One clear ask (list us / consider this story / have the owner as a guest / add us to your resource list).
