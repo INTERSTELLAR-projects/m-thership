@@ -10,6 +10,7 @@ import ExpensesTab from "../components/financial/ExpensesTab";
 import { getCurrentDueDate, getCycleKey, getStatus as expenseStatus, formatDueDate } from "../components/financial/finance/expenses";
 import GoalTab from "../components/financial/GoalTab";
 import InvestmentAdvisor from "../components/financial/InvestmentAdvisor";
+import AccountingCenter from "@/features/accounting/AccountingCenter";
 import { useCategoryList } from "@/hooks/useOptionList";
 import useFinanceData from "../components/financial/finance/useFinanceData";
 import { Input } from "@/components/ui/input";
@@ -44,7 +45,7 @@ const DEFAULT_CATEGORIES = ["AI Tools", "Design", "Finance", "Hosting", "Marketi
 const FREQUENCIES = ["Monthly", "Quarterly", "Annually"];
 const FIN_CATS_KEY = "financial_categories";
 const FIN_TABS = [
-  ["dashboard", "Dashboard"], ["goal", "Goal"], ["advisor", "Advisor"], ["overview", "Expenses"], ["categories", "Categories"],
+  ["dashboard", "Dashboard"], ["goal", "Goal"], ["advisor", "Advisor"], ["overview", "Expenses"], ["accounting", "Accounting & Taxes"], ["categories", "Categories"],
   ["stripe", "Stripe"], ["projections", "Projections"], ["investments", "Investments"],
 ];
 const LIVE_TABS = new Set(["dashboard", "goal", "advisor", "overview"]);
@@ -139,6 +140,8 @@ export default function Financial() {
           <GoalTab data={financeData} />
         ) : subPage === "advisor" ? (
           <InvestmentAdvisor data={financeData} />
+        ) : subPage === "accounting" ? (
+          <AccountingCenter />
         ) : subPage === "overview" ? (
           <ExpensesTab expenses={expenses} categories={categories} now={now} finance={financeData}
             onAdd={addExpense} onUpdate={updateExpense} onDelete={deleteExpense} onMarkPaid={markPaid} />
