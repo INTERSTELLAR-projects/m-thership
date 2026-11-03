@@ -54,6 +54,7 @@
         "playbook",
         "content_plan",
         "social_plan",
+        "enrich_profile",
         "other"
       ],
       "type": "string"
