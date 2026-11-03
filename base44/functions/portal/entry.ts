@@ -99,7 +99,8 @@ Deno.serve(async (req) => {
         has_brand_kit: !!portalKit(kits),
         has_playbook: !!portalKit(playbooks),
         goals: goals.map((g: Record<string, unknown>) => pick(g, ["id", "year", "title", "metric", "baseline_value", "target_value", "current_value", "unit", "status", "plan_steps"])),
-        gaps: gaps.filter(visible).map((g: Record<string, unknown>) => pick(g, ["id", "title", "area", "severity", "status", "recommendation", "impact"])),
+        // Gaps titled "Internal: ..." are notes for the team and never reach the client, even if marked visible.
+        gaps: gaps.filter(visible).filter((g: Record<string, unknown>) => !/^\s*internal\s*[:\-–]/i.test(String(g.title || ""))).map((g: Record<string, unknown>) => pick(g, ["id", "title", "area", "severity", "status", "recommendation", "impact"])),
         snapshots: snaps.map((s: Record<string, unknown>) => pick(s, ["id", "source", "period_start", "period_end", "metrics"])),
         upcoming: tasks.filter((t: Record<string, unknown>) => t.portal_visible === true && t.status !== "done").map((t: Record<string, unknown>) => pick(t, ["id", "title", "due_date", "status"])),
         files: files.filter(visible).map((f: Record<string, unknown>) => pick(f, ["id", "title", "category", "file_url", "link_url", "description", "delivered_on"])),
