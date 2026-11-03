@@ -47,9 +47,9 @@ export default function Goals({ readOnly = false }) {
     <div className="grid gap-3 xl:grid-cols-2">
       <Panel label="Goals" title="What good looks like" bodyClass="space-y-3 p-3.5">
         <div className="grid gap-3 sm:grid-cols-3">
-          <Field label="Target ROAS" hint="e.g. 3 = $3 per $1"><TextInput type="number" step="0.1" value={s.target_roas ?? ""} onChange={(v) => set("target_roas", v)} disabled={readOnly} /></Field>
-          <Field label="Target CPA" hint="$ per conversion"><TextInput type="number" value={s.target_cpa ?? ""} onChange={(v) => set("target_cpa", v)} disabled={readOnly} /></Field>
-          <Field label="Monthly budget cap" hint="all platforms"><TextInput type="number" value={s.monthly_budget_cap ?? ""} onChange={(v) => set("monthly_budget_cap", v)} disabled={readOnly} /></Field>
+          <Field label="Target ROAS" hint="e.g. 3"><TextInput type="number" step="0.1" value={s.target_roas ?? ""} onChange={(v) => set("target_roas", v)} disabled={readOnly} /></Field>
+          <Field label="Target CPA" hint="$"><TextInput type="number" value={s.target_cpa ?? ""} onChange={(v) => set("target_cpa", v)} disabled={readOnly} /></Field>
+          <Field label="Monthly cap" hint="$"><TextInput type="number" value={s.monthly_budget_cap ?? ""} onChange={(v) => set("monthly_budget_cap", v)} disabled={readOnly} /></Field>
         </div>
         <p className="text-[12px] text-ink/55">The agent judges ad sets against these targets. With no targets set it only flags creative fatigue. At or over the cap, budget increases and launches are refused and the dashboard shows a hard-stop warning; at 80% it warns.</p>
         <Field label="Meta conversion action types" hint="comma separated"><TextInput value={Array.isArray(s.conversion_action_types) ? s.conversion_action_types.join(", ") : s.conversion_action_types} onChange={(v) => set("conversion_action_types", v)} disabled={readOnly} /></Field>
