@@ -96,7 +96,6 @@ Deno.serve(async (req: Request) => {
     ]);
     const setByExt = new Map((adsets || []).map((s: any) => [s.external_id, s]));
     const adByExt = new Map((ads || []).map((a: any) => [a.external_id, a]));
-    const campByExt = new Map((campaigns || []).filter((c: any) => c.external_id).map((c: any) => [c.external_id, c]));
 
     // Aggregate last 7 days vs the 7 before, per object.
     const d7 = daysAgo(7), d14 = daysAgo(14);
@@ -232,7 +231,9 @@ Return:
     const token = (settings.auto_pause?.enabled || (settings.pause_at_cap && atCap)) ? await metaToken(base44) : null;
     if (token) {
       const g = graph(token, settings.graph_version);
-      if (settings.auto_pause?.enabled) {
+      // ROAS-based pausing needs revenue tracking: with no revenue on file every ROAS reads 0, so the rule stays idle.
+      const tracksRevenue = table.some((o) => o.a.revenue > 0);
+      if (settings.auto_pause?.enabled && tracksRevenue) {
         const ap = settings.auto_pause;
         const since = daysAgo(num(ap.lookback_days) || 7);
         const todays = ((await db.AdChangeLog.filter({ action: "auto_pause", result: "ok" }, "-created_date", 50).catch(() => [])) || []).filter((r: any) => String(r.created_date || "") >= daysAgo(0)).length;
