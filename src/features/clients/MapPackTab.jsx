@@ -90,7 +90,7 @@ export default function MapPackTab({ client }) {
 
   useEffect(() => {
     if (!dirty) setPlan(record ? normalizeMapPack(record) : blank());
-  }, [record && record.id, record && record.updated_date]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [record && record.id, record && record.updated_date]);
 
   const set = (patch) => { setPlan((p) => ({ ...p, ...patch })); setDirty(true); };
   const setIn = (key, i, patch) => set({ [key]: plan[key].map((x, j) => (j === i ? { ...x, ...patch } : x)) });
