@@ -254,9 +254,9 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, children }) 
         <div className="mx-auto flex h-[60px] max-w-[1280px] items-center gap-4 px-4 md:px-8">
           <div className="flex min-w-0 shrink-0 items-center gap-3">
             <BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={18} />
-            <span className="hidden h-7 w-px bg-hair sm:block" aria-hidden="true" />
-            {/* On laptop widths the tab row needs the room; the name is in the page heading and the menu. */}
-            <p className="hidden max-w-[180px] truncate text-[13px] font-medium tracking-[-0.02em] text-ink/70 sm:block lg:hidden 2xl:block">{client?.business || "Client Portal"}</p>
+            <span className="hidden h-7 w-px bg-hair sm:block lg:hidden" aria-hidden="true" />
+            {/* From 1024px up the tab row needs the room (the header is capped at 1280px); the name is in the page heading and the menu. */}
+            <p className="hidden max-w-[180px] truncate text-[13px] font-medium tracking-[-0.02em] text-ink/70 sm:block lg:hidden">{client?.business || "Client Portal"}</p>
           </div>
           {setTab && (
             <>
