@@ -191,9 +191,9 @@ export default function SocialPage() {
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink/35" />
             <input value={f.q} onChange={(e) => setFilter("q", e.target.value)} placeholder="Search posts" className={`${inputCls} h-8 py-0 pl-8`} />
           </div>
-          <Select className="h-8 w-auto" value={f.folder} onChange={(v) => setFilter("folder", v)} placeholder="All folders" options={folders} />
-          <Select className="h-8 w-auto" value={f.pillar} onChange={(v) => setFilter("pillar", v)} placeholder="All pillars" options={PILLARS.map((p) => ({ value: p.key, label: p.label }))} />
-          <Select className="h-8 w-auto" value={f.batch} onChange={(v) => setFilter("batch", v)} placeholder="All batches" options={batches} />
+          <Select className="h-8 !w-auto min-w-[140px]" value={f.folder} onChange={(v) => setFilter("folder", v)} placeholder="All folders" options={folders} />
+          <Select className="h-8 !w-auto min-w-[140px]" value={f.pillar} onChange={(v) => setFilter("pillar", v)} placeholder="All pillars" options={PILLARS.map((p) => ({ value: p.key, label: p.label }))} />
+          <Select className="h-8 !w-auto min-w-[140px]" value={f.batch} onChange={(v) => setFilter("batch", v)} placeholder="All batches" options={batches} />
           <div className="ml-auto flex items-center gap-1">
             <Btn variant="ghost" onClick={() => setDialog({ kind: "newFolder" })} title="New folder"><FolderPlus className="h-3.5 w-3.5" />Folder</Btn>
             {f.folder && <Btn variant="ghost" onClick={() => setDialog({ kind: "renameFolder" })} title="Rename this folder"><Pencil className="h-3.5 w-3.5" />Rename</Btn>}
