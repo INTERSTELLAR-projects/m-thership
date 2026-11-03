@@ -22,11 +22,14 @@ import PortalPlaybook from "@/features/portal/PortalPlaybook";
 import PortalResources from "@/features/portal/PortalResources";
 import { PortalGbp, ReviewLinkQuick } from "@/features/gbp/GbpPanel";
 import PortalAssistant, { AssistantLauncher } from "@/features/portal/assistant/PortalAssistant";
+import SecurityPanel from "@/features/security/SecurityPanel";
+import TwoFactorChallenge from "@/features/security/TwoFactorChallenge";
+import { needsSecondFactor } from "@/features/security/api";
 
 // Free-for-life bonus tools: tagged in the nav and listed together on Home.
 const BONUS_TABS = ["signatures", "qr"];
 
-const TABS = [["home", "Home"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["resources", "Resources"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["referrals", "Referrals"], ["messages", "Messages"]];
+const TABS = [["home", "Home"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["resources", "Resources"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["referrals", "Referrals"], ["messages", "Messages"], ["account", "Account"]];
 
 function usePortal(previewId) {
   const call = async (action, args = {}) => (await base44.functions.invoke("portal", { action, client_id: previewId, ...args })).data;
@@ -46,6 +49,11 @@ export default function PortalApp({ previewId }) {
   const tabs = TABS.filter(([k]) => (k !== "brand" || d?.has_brand_kit) && (k !== "playbook" || d?.has_playbook));
 
   if (home.isLoading) return <Shell><p className="py-24 text-center text-ink/50">Loading your portal…</p></Shell>;
+  // This login has 2-step verification on and this session hasn't passed it yet: nothing loads until it does.
+  if (home.isError && needsSecondFactor(home.error)) {
+    const info = home.error.response.data || {};
+    return <TwoFactorChallenge methods={info.methods} emailHint={info.email_hint} onDone={() => qc.resetQueries({ queryKey: ["portal", previewId] })} />;
+  }
   if (home.isError || !d?.client) {
     const msg = home.error?.response?.data?.error || "Your portal isn't set up yet.";
     return (
@@ -93,6 +101,7 @@ export default function PortalApp({ previewId }) {
           {tab === "referrals" && <PortalPrestige call={call} previewId={previewId} />}
           {tab === "messages" && <MessagesView call={call} previewId={previewId} />}
           {tab === "assistant" && <PortalAssistant previewId={previewId} variant="page" />}
+          {tab === "account" && <SecurityPanel preview={!!previewId} />}
         </div>
       )}
       {tab !== "assistant" && <AssistantLauncher previewId={previewId} onOpenFull={() => { setQrOpen(null); setTab("assistant"); }} />}
