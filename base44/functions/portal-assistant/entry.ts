@@ -1,4 +1,4 @@
-// Portal UI support for Gorgon: the daily briefing card (cached per client per day)
+// Portal UI support for Nøva: the daily briefing card (cached per client per day)
 // and voice (dictation + read-aloud) for portal users. Scoped exactly like the `portal` function:
 // the client comes from the caller's login; admins preview with client_id.
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
       try {
         const out: any = await base44.asServiceRole.integrations.Core.InvokeLLM({
           prompt: [
-            "You are Gorgon, Interstellar's assistant for Interstellar Strategies (tagline: The Future of Business), writing a short daily briefing card for a client in their portal.",
+            "You are Nøva, Interstellar's assistant for Interstellar Strategies (tagline: The Future of Business), writing a short daily briefing card for a client in their portal.",
             "Voice: friendly, confident, concise, upbeat, plain English. No emoji, no hype words, no exclamation marks.",
             "STRICT RULES: use ONLY the facts in the JSON. Never invent work, numbers, dates or results. Never mention a site health number when site_health.score is null.",
             "Never mention prices, billing, internal notes or other clients. Never promise dates.",

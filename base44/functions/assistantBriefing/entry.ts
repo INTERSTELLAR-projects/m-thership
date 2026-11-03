@@ -1,4 +1,4 @@
-// Gorgon tool: the signed-in portal client's briefing facts (their client only).
+// Nøva tool: the signed-in portal client's briefing facts (their client only).
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import { resolvePortalClient, gatherBriefing, json } from "../../shared/portalAssistant.ts";
 

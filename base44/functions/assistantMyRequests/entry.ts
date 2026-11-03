@@ -1,4 +1,4 @@
-// Gorgon tool: list the signed-in client's own requests (or one by id).
+// Nøva tool: list the signed-in client's own requests (or one by id).
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import { resolvePortalClient, requestOut, OPEN_STATUSES, json } from "../../shared/portalAssistant.ts";
 
