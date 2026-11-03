@@ -1,8 +1,9 @@
 // Client-portal onboarding invites.
 //
 // Security model:
-// - No passwords, codes or tokens are ever put in an email or stored. Access is granted with Base44's own
-//   user invite (users.inviteUser), and the person signs in through Base44's login (Google or emailed one-time code).
+// - No passwords, codes or tokens are ever put in an email or stored. Access is granted with the platform's own
+//   user invite (users.inviteUser), and the person signs in on the app's login page at the custom domain
+//   (Google, or email + a password they set themselves on first sign-up).
 // - Only ONE email per invite, and it must be one of the client's portal_emails. A Stripe payment can only add the
 //   paying customer's own email, and only when the client has no portal login yet; anything else waits for review.
 // - The portal function itself only ever shows a login the client whose portal_emails contains that email.
@@ -12,7 +13,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { onboardingEmail, sendBrandedEmail } from "./onboardingEmail.ts";
 export { onboardingEmail, sendBrandedEmail };
-export const DEFAULT_PORTAL_URL = "https://m-thership.base44.app";
+export const DEFAULT_PORTAL_URL = "https://interstellar-mothership.com";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const normEmail = (e: unknown) => String(e || "").trim().toLowerCase();
