@@ -13,10 +13,7 @@ export const invokeAccounting = (action, payload = {}) =>
   base44.functions.invoke("accounting", { action, ...payload }).then((r) => r.data).catch((e) => ({ error: (e && e.response && e.response.data && e.response.data.error) || (e && e.message) || "Request failed" }));
 
 export default function useAccounting({ businessId = BUSINESS_ID, clientId = null } = {}) {
-  const [taxYear, setTaxYear] = useState(() => {
-    const now = new Date();
-    return now.getMonth() === 0 && now.getDate() <= 31 ? now.getFullYear() - (now.getMonth() === 0 ? 1 : 0) : now.getFullYear();
-  });
+  const [taxYear, setTaxYear] = useState(() => new Date().getFullYear());
   const [profile, setProfile] = useState(null);
   const [ledger, setLedger] = useState([]);
   const [rules, setRules] = useState([]);
