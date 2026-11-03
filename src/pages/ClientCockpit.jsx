@@ -20,6 +20,7 @@ import { ClientGbpTab } from "@/features/gbp/GbpPanel";
 import ClientAutomationsCard from "@/features/automations/ClientAutomationsCard";
 import { useOptionList } from "@/hooks/useOptionList";
 import ClientOutreachTab from "@/features/outreach/ClientOutreachTab";
+import ProfileMeter from "@/features/clients/ProfileMeter";
 
 const TABS = [
   ["overview", "Overview"], ["constellations", "✧ Constellations"], ["claude", "✦ Claude"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
@@ -116,6 +117,7 @@ export default function ClientCockpit() {
             </button>
           </div>
         </div>
+        <ProfileMeter client={client} go={go} />
         <nav className="no-scrollbar -mb-px mt-6 flex overflow-x-auto">
           {TABS.map(([k, l]) => (
             <button key={k} onClick={() => go(k)} className={`whitespace-nowrap border-b-2 px-3.5 py-2.5 text-[13px] font-medium transition-colors ${tab === k ? "border-[#ff3c00] text-ink" : "border-transparent text-ink/50 hover:text-ink"}`}>{l}</button>
