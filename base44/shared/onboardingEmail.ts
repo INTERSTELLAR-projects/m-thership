@@ -115,7 +115,7 @@ ${emailHeaderRows(`Portal access &nbsp;&middot;&nbsp; ${esc(date)}`)}
         <a href="${esc(loginUrl)}" target="_blank" style="display:inline-block;padding:16px 28px;${F}font-size:14px;font-weight:700;letter-spacing:1.5px;color:#ffffff;text-decoration:none;text-transform:uppercase;">Log in to your portal &nbsp;&rarr;</a>
       </td>
     </tr></table>
-    <div style="padding-top:22px;font-size:14px;line-height:22px;color:#bdbab5;">This invite is only for ${mailLink(email, "#ff6a00")}. We will never ask for a password by email. Questions? Email ${mailLink("justin@interstellar-strategies.com", "#ff6a00")}.</div>
+    <div style="padding-top:22px;font-size:14px;line-height:22px;color:#bdbab5;">This invite is only for ${mailLink(email, "#ff6a00")}. We will never ask for a password by email. Questions? Just reply to this email and it comes straight to me.</div>
     <div style="padding-top:16px;font-size:14px;line-height:22px;color:#bdbab5;">Welcome to the future of business, ${esc(first)}.<br>&mdash; Justin Cowell, Interstellar Strategies</div>
     <div style="padding-top:22px;font-size:11px;font-weight:700;letter-spacing:1.6px;color:#6f6c68;text-transform:uppercase;">Interstellar Strategies &nbsp;&middot;&nbsp; The Future of Business</div>
   </td></tr>
