@@ -1,6 +1,6 @@
 // QA-mode fixtures for the Social Studio (only used by src/lib/qa.js on the preview sandbox with ?qa=1).
 // Copies of the first weekly batch, put into every publishing state so the UI can be reviewed.
-import { specHash } from "./lib/publish";
+import { specHash } from "./lib/specHash";
 
 const BASE = [
   { id: "6aea2fa76a9f7c6ca398d943", title: "Untitled post", status: "draft", pillar: "pain_point", template: "pain_fix", spec: { eyebrow: "The app pile", headline: "Your business runs on 9 logins and a spreadsheet.", accent_word: "9 logins", subhead: "Every new tool fixed one problem and created two more.", cta: "See the Command System", theme: "light", lockup: "interstellar", mock: { before_label: "Today", before_items: ["Leads in one app, jobs in another", "Invoices typed in twice", "Follow-ups living in your head", "A spreadsheet holding it together"], after_label: "One system", after_items: ["Every lead lands in one pipeline", "Quote to invoice in one click", "Follow-ups that send themselves", "One login for the whole team"] } }, caption: "Nine logins and a spreadsheet is not a system.", generated_by: "justin", created_date: "2026-11-03T19:01:59.486Z" },
