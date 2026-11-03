@@ -595,15 +595,15 @@ function RequestsView({ d, call, refresh, previewId }) {
           <div className="px-5 py-5">
             <RequestFormRenderer form={form} vals={vals} onChange={change} />
           </div>
-          <div className="flex items-center justify-between border-t border-hair px-5 py-4">
+          <div className="flex flex-col-reverse gap-3 border-t border-hair px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <p className={`text-[11.5px] ${err ? "text-red-700" : "text-ink/45"}`}>{err || "We reply within 1 business day."}</p>
-            <button type="submit" disabled={busy || !isComplete(form, vals)} className="h-10 bg-[#ff3c00] px-6 text-[13px] font-medium text-white hover:bg-ink disabled:opacity-40">{busy ? "Sending…" : "Send to Interstellar"}</button>
+            <button type="submit" disabled={busy || !isComplete(form, vals)} className="h-10 whitespace-nowrap bg-[#ff3c00] px-6 text-[13px] font-medium text-white hover:bg-ink disabled:opacity-40">{busy ? "Sending…" : "Send to Interstellar"}</button>
           </div>
         </form>
       )}
 
-      <Panel label="History" title={`${d.requests.length} request${d.requests.length === 1 ? "" : "s"}`}>
-        {d.requests.length === 0 ? <Empty>Nothing submitted yet.</Empty> : (
+      <Panel label="History" title={d.requests.length ? `${d.requests.length} request${d.requests.length === 1 ? "" : "s"}` : "Your requests"}>
+        {d.requests.length === 0 ? <Empty>Nothing sent yet. Pick a request type above and it shows up here with its status, from received to live.</Empty> : (
           <ul className="divide-y divide-hair">
             {d.requests.map((r) => (
               <li key={r.id} className="px-4 py-3">
@@ -676,9 +676,9 @@ function IntakeView({ call, onClose }) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
-      <button onClick={onClose} className="mono-label text-[10px] text-ink/50 hover:text-[#ff3c00]">← Back</button>
+      <button onClick={onClose} className="mono-label block text-[10px] text-ink/50 hover:text-[#ff3c00]">← Back</button>
       <p className="label-cross">(Business audit)</p>
-      <h2 className="text-[32px] font-semibold tracking-[-0.04em]">Tell us how your business runs</h2>
+      <h2 className="text-[32px] font-semibold leading-[1.05] tracking-[-0.04em]">Tell us how your business runs</h2>
       <p className="text-[14px] text-ink/60">Answer what you can — it saves as you go. This is how we find what to fix, what to automate and what to build next.</p>
       <div className="flex items-center gap-3">
         <div className="h-1.5 flex-1 bg-ink/[0.08]"><div className="h-full flame-bg" style={{ width: `${prog.pct}%` }} /></div>
