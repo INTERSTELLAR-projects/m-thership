@@ -9,6 +9,7 @@ import { Zap as AutomationsIcon } from "lucide-react";
 import { Megaphone as SocialIcon } from "lucide-react";
 import { BadgeDollarSign as AdsIcon } from "lucide-react";
 import { Mail as EmailStudioIcon } from "lucide-react";
+import { UserPlus as HiringIcon } from "lucide-react";
 
 export const LOGO_URL =
   "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/536102fbf_interstellar-mark-v2.webp";
@@ -63,6 +64,7 @@ export const NAV_GROUPS = [
     label: "Agency",
     items: [
       { label: "Financial", icon: DollarSign, path: "/financial" },
+      { label: "Hiring plan", icon: HiringIcon, path: "/growth/hiring" },
       { label: "Output", icon: Activity, path: "/output-analytics" },
       { label: "Prestige", icon: Crown, path: "/prestige" },
       { label: "Automations", icon: AutomationsIcon, path: "/automations" },
