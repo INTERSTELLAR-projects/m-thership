@@ -21,6 +21,7 @@ import ClientAutomationsCard from "@/features/automations/ClientAutomationsCard"
 import { useOptionList } from "@/hooks/useOptionList";
 import ClientOutreachTab from "@/features/outreach/ClientOutreachTab";
 import ProfileMeter from "@/features/clients/ProfileMeter";
+import PortalInviteDialog from "@/features/clients/PortalInviteDialog";
 
 const TABS = [
   ["overview", "Overview"], ["constellations", "✧ Constellations"], ["claude", "✦ Claude"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
@@ -64,19 +65,8 @@ export default function ClientCockpit() {
     await base44.entities.CRMClient.update(client.id, v);
     qc.invalidateQueries({ queryKey: ["CRMClient"] });
   };
-  const invite = async () => {
-    const emails = (client.portal_emails || []).length ? client.portal_emails : (client.emails || []).slice(0, 1);
-    if (!emails.length) { setEditing(true); return; }
-    if (!window.confirm(`Send a portal invite to ${emails.join(", ")}?`)) return;
-    setInviting(true);
-    try {
-      for (const e of emails) await base44.users.inviteUser(e, "user");
-      await save({ portal_enabled: true, portal_emails: emails });
-      window.alert("Invites sent. They'll only ever see their own portal.");
-    } catch (err) {
-      window.alert(`Invite failed: ${err?.message || err}`);
-    } finally { setInviting(false); }
-  };
+  // Opens the in-app invite dialog; the portal-invite function does the inviting and logging.
+  const invite = () => setInviting(true);
   // The original CRM tabs pass the whole client object back.
   const legacyUpdate = async (updated) => {
     const { id: _id, created_date, updated_date, created_by, created_by_id, is_sample, ...fields } = updated; // eslint-disable-line no-unused-vars
@@ -109,8 +99,8 @@ export default function ClientCockpit() {
               <span className="roll"><span>Start a service</span><span>Start a service</span></span><span className="box"><Rocket className="h-3.5 w-3.5" /></span>
             </button>
             <Link to={`/portal/${client.id}`} className="btn-roll is-ink"><span className="roll"><span>View their portal</span><span>View their portal</span></span><span className="box"><Eye className="h-3.5 w-3.5" /></span></Link>
-            <button onClick={invite} disabled={inviting} className="btn-roll is-outline" title="Email each portal login an invite and turn the portal on">
-              <span className="roll"><span>{inviting ? "Inviting…" : "Invite to portal"}</span><span>{inviting ? "Inviting…" : "Invite to portal"}</span></span>
+            <button onClick={invite} className="btn-roll is-outline" title="Send a portal login its secure invite and turn the portal on">
+              <span className="roll"><span>Invite to portal</span><span>Invite to portal</span></span>
             </button>
             <button onClick={() => setEditing(true)} className="btn-roll is-outline">
               <span className="roll"><span>Edit client</span><span>Edit client</span></span>
@@ -157,6 +147,7 @@ export default function ClientCockpit() {
       </div>
 
       <StartServiceDialog open={starting} client={client} onClose={() => setStarting(false)} />
+      <PortalInviteDialog open={inviting} client={client} onClose={() => setInviting(false)} onEditClient={() => setEditing(true)} />
       <FormDialog open={editing} title="Edit client" fields={PROFILE_FIELDS.map((f) => (f.name === "industry" ? { ...f, suggestions: industries, placeholder: "Category · detail" } : f))} initial={client} onClose={() => setEditing(false)} onSubmit={save} />
     </div>
   );
