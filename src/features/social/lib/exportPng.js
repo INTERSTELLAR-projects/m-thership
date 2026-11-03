@@ -1,4 +1,4 @@
-import { toPng } from "html-to-image";
+import { toJpeg, toPng } from "html-to-image";
 import JSZip from "jszip";
 import { SIZE } from "../templates/kit";
 
@@ -78,6 +78,29 @@ export async function postToPng(node) {
   await toPng(node, opts).catch(() => null);
   await pause(30);
   return toPng(node, opts);
+}
+
+/** Same render as postToPng but JPEG: Instagram's publishing API only accepts JPEG image_url. */
+export async function postToJpeg(node, quality = 0.93) {
+  if (!node) throw new Error("Nothing to render");
+  if (document.fonts?.ready) await document.fonts.ready.catch(() => {});
+  await waitForImages(node);
+  const fontEmbedCSS = await getFontEmbedCss();
+  const opts = {
+    width: SIZE,
+    height: SIZE,
+    canvasWidth: SIZE,
+    canvasHeight: SIZE,
+    pixelRatio: 1,
+    quality,
+    backgroundColor: "#ebe8e4",
+    cacheBust: false,
+    fontEmbedCSS: fontEmbedCSS || undefined,
+    style: { transform: "none", margin: "0" },
+  };
+  await toJpeg(node, opts).catch(() => null);
+  await pause(30);
+  return toJpeg(node, opts);
 }
 
 export function slugify(s) {
