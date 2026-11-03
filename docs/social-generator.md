@@ -32,6 +32,9 @@ and NEVER post, schedule or send anything to any social network or person.
 2. Read the rules. read_file these and follow them exactly:
    - src/features/social/brand.js            (voice, hard rules, pain points, pillars, offers)
    - src/features/social/templates.schema.json (template keys, spec_common limits, mock shapes, examples)
+   Then query_entities AgencyKnowledge (sort "sort"): the "offers" section's data.offers is the ONE
+   source for prices, and "voice" / "delivery_rules" add to brand.js. If a price there differs from
+   brand.js BRAND.offers, use AgencyKnowledge and mention the mismatch in your final report.
 
 3. Avoid repeats. query_entities SocialPost, sort "-created_date", limit 60. Keep the ones
    created in the last 28 days. Note their spec.headline, template, pillar and the pain point
@@ -60,7 +63,7 @@ and NEVER post, schedule or send anything to any social network or person.
    - Never invent client results, statistics, testimonials or reviews. big_stat: hypothetical
      must be true unless note cites a real, verifiable source. Mock numbers are fine because the
      templates label them "Sample data".
-   - offer_stack prices come ONLY from brand.js BRAND.offers (identical figures, no discounts,
+   - offer_stack prices come ONLY from AgencyKnowledge offers (brand.js BRAND.offers is the fallback; identical figures, no discounts,
      no deadlines, no scarcity).
    - Slogan is exactly "The Future of Business". No emoji anywhere. Avoid brand.js banned_words.
 
