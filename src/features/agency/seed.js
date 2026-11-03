@@ -23,7 +23,7 @@ export const SEED_OFFERS = [
 ];
 
 const money = (n) => `$${Number(n).toLocaleString("en-US")}`;
-const offerLine = (o) => `- **${o.name}** — ${o.billing === "included" ? "free with every build" : `${money(o.price)}${o.billing === "monthly" ? "/mo" : ""}`}${o.architecture ? ` · architecture ${o.architecture}` : ""}${o.includes && o.includes.length ? ` · includes ${o.includes.join(", ")}` : ""}. ${o.terms}`;
+export const offerLine = (o) => `- **${o.name}** — ${o.billing === "included" ? "free with every build" : `${money(o.price)}${o.billing === "monthly" ? "/mo" : ""}`}${o.architecture ? ` · architecture ${o.architecture}` : ""}${o.includes && o.includes.length ? ` · includes ${o.includes.join(", ")}` : ""}. ${o.terms}`;
 
 export const SEED_SECTIONS = [
   {
