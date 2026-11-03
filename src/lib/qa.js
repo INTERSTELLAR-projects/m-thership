@@ -11,7 +11,7 @@ let flag = false;
 try { flag = host.startsWith("preview-sandbox--") && sessionStorage.getItem("ms_qa") === "1"; } catch { flag = false; }
 export const IS_QA = flag;
 
-export const QA_USER = { id: "qa-admin", email: "qa@interstellar.test", full_name: "QA Admin", role: "admin" };
+export const QA_USER = { id: "qa-admin", email: "qa@interstellar.test", full_name: "Commander", role: "admin" };
 
 const today = new Date();
 const iso = (d) => d.toISOString().slice(0, 10);
