@@ -109,13 +109,16 @@ function TabBadges({ k, unread }) {
   );
 }
 
-// Phones and tablets (< 1024px): a hamburger opens a full-height slide-in menu.
-// Focus is trapped inside while open, Escape / backdrop / picking a tab closes it, and the page behind stops scrolling.
-function MobileNav({ client, tabs, tab, setTab, unread, preview }) {
+// Phones and tablets (< 1024px), and any wider screen where the tab row would not fit (`force`):
+// a hamburger opens a full-height slide-in menu. Focus is trapped inside while open, Escape / backdrop /
+// picking a tab closes it, and the page behind stops scrolling.
+function MobileNav({ client, tabs, tab, setTab, unread, preview, force = false }) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef(null);
   const panelRef = useRef(null);
   const wasOpen = useRef(false);
+  const forceRef = useRef(force);
+  forceRef.current = force;
 
   useEffect(() => {
     if (!open) {
@@ -139,14 +142,14 @@ function MobileNav({ client, tabs, tab, setTab, unread, preview }) {
       else if (!panelRef.current?.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
     };
     document.addEventListener("keydown", onKey);
-    const onResize = () => { if (window.innerWidth >= 1024) setOpen(false); };
+    const onResize = () => { if (window.innerWidth >= 1024 && !forceRef.current) setOpen(false); };
     window.addEventListener("resize", onResize);
     return () => { clearTimeout(t); document.body.style.overflow = prevOverflow; document.removeEventListener("keydown", onKey); window.removeEventListener("resize", onResize); };
   }, [open]);
 
   const current = tabs.find(([k]) => k === tab)?.[1];
   return (
-    <div className="ml-auto flex items-center lg:hidden">
+    <div className={`ml-auto flex items-center ${force ? "" : "lg:hidden"}`}>
       <button
         ref={btnRef}
         type="button"
@@ -164,7 +167,7 @@ function MobileNav({ client, tabs, tab, setTab, unread, preview }) {
 
       {/* Portaled to <body>: the sticky header's backdrop-blur would otherwise trap this fixed layer inside the header. */}
       {createPortal(
-      <div className={`fixed inset-0 z-50 lg:hidden ${open ? "visible" : "invisible"}`} aria-hidden={!open}>
+      <div className={`fixed inset-0 z-50 ${force ? "" : "lg:hidden"} ${open ? "visible" : "invisible"}`} aria-hidden={!open}>
         <div onClick={() => setOpen(false)} className={`absolute inset-0 bg-ink/45 transition-opacity duration-200 ${open ? "opacity-100" : "opacity-0"}`} />
         <div
           ref={panelRef}
@@ -224,6 +227,19 @@ function MobileNav({ client, tabs, tab, setTab, unread, preview }) {
 }
 
 function Shell({ client, tabs = TABS, tab, setTab, unread, preview, children }) {
+  // Desktop tab row: shown only while every tab fits; otherwise the hamburger takes over so no tab is ever hidden off-screen.
+  const wrapRef = useRef(null);
+  const navRef = useRef(null);
+  const [fits, setFits] = useState(true);
+  useEffect(() => {
+    const wrap = wrapRef.current, nav = navRef.current;
+    if (!wrap || !nav || typeof ResizeObserver === "undefined") return undefined;
+    const check = () => { if (wrap.clientWidth > 0) setFits(nav.scrollWidth <= wrap.clientWidth + 1); };
+    const ro = new ResizeObserver(check);
+    ro.observe(wrap);
+    check();
+    return () => ro.disconnect();
+  }, [tabs.length, unread, !!setTab]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="grid-canvas min-h-screen text-ink" data-trail>
       <GridTrail />
@@ -238,20 +254,23 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, children }) 
           <div className="flex min-w-0 shrink-0 items-center gap-3">
             <BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={18} />
             <span className="hidden h-7 w-px bg-hair sm:block" aria-hidden="true" />
-            <p className="hidden max-w-[180px] truncate text-[13px] font-medium tracking-[-0.02em] text-ink/70 sm:block">{client?.business || "Client Portal"}</p>
+            {/* On laptop widths the tab row needs the room; the name is in the page heading and the menu. */}
+            <p className="hidden max-w-[180px] truncate text-[13px] font-medium tracking-[-0.02em] text-ink/70 sm:block lg:hidden 2xl:block">{client?.business || "Client Portal"}</p>
           </div>
           {setTab && (
             <>
-              <nav data-portal-tabs aria-label="Portal sections" className="no-scrollbar ml-auto hidden overflow-x-auto lg:flex">
-                {tabs.map(([k, l]) => (
-                  <button key={k} data-tab={k} aria-current={tab === k ? "page" : undefined} onClick={() => setTab(k)} className={`relative whitespace-nowrap px-3 py-2 text-[13px] font-medium transition-colors ${tab === k ? "text-ink" : "text-ink/50 hover:text-ink"}`}>
-                    {l}
-                    <TabBadges k={k} unread={unread} />
-                    {tab === k && <span className="absolute inset-x-3 -bottom-[13px] h-[2px] bg-[#ff3c00]" />}
-                  </button>
-                ))}
-              </nav>
-              <MobileNav client={client} tabs={tabs} tab={tab} setTab={setTab} unread={unread} preview={preview} />
+              <div ref={wrapRef} className="relative ml-auto hidden min-w-0 flex-1 justify-end lg:flex">
+                <nav ref={navRef} data-portal-tabs={fits ? "" : undefined} aria-label="Portal sections" aria-hidden={!fits} className={`no-scrollbar flex overflow-x-auto ${fits ? "" : "pointer-events-none invisible absolute inset-0"}`}>
+                  {tabs.map(([k, l]) => (
+                    <button key={k} data-tab={k} tabIndex={fits ? undefined : -1} aria-current={tab === k ? "page" : undefined} onClick={() => setTab(k)} className={`relative shrink-0 whitespace-nowrap px-2.5 py-2 text-[13px] font-medium transition-colors ${tab === k ? "text-ink" : "text-ink/50 hover:text-ink"}`}>
+                      {l}
+                      <TabBadges k={k} unread={unread} />
+                      {tab === k && <span className="absolute inset-x-2.5 -bottom-[13px] h-[2px] bg-[#ff3c00]" />}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+              <MobileNav client={client} tabs={tabs} tab={tab} setTab={setTab} unread={unread} preview={preview} force={!fits} />
             </>
           )}
           {!preview && <button onClick={() => base44.auth.logout()} className={`p-2 text-ink/45 hover:text-[#ff3c00] ${setTab ? "hidden lg:block" : "ml-auto"}`} title="Log out" aria-label="Log out"><LogOut className="h-4 w-4" /></button>}
