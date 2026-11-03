@@ -2,12 +2,14 @@
 // Each value carries its tax year, where it came from and whether it was verified against the
 // primary source (irs.gov / oregon.gov) when this file was written (2026-11-03).
 //   status "verified"            -> read on the cited official page
+//   status "statutory"           -> fixed by statute (not indexed); not re-read this session
 //   status "needs_confirmation"  -> could not be read on an official page; treat as a placeholder
 // Justin can override any value from Accounting > Settings > Tax figures (stored on BusinessTaxProfile.config_overrides).
 // The reminder function (base44/functions/accounting/entry.ts) keeps its own copy of DUE_DATES: keep both in sync.
 
 const V = "verified";
 const NC = "needs_confirmation";
+const ST = "statutory"; // fixed in the Internal Revenue Code, not inflation-indexed; not re-read on irs.gov this session
 
 const RP_25_32 = "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf";
 const OR_EST_2026 = "https://www.oregon.gov/dor/forms/FormsPubs/publication-or-estimate_101-026_2026.pdf";
@@ -63,10 +65,10 @@ export const TAX_CONFIG = {
     source: "OBBBA set $2,200 for 2025, indexed after; 2026 amount not read on irs.gov this session", note: "Phase-out $50 per $1,000 over $200k / $400k MAGI assumed",
   },
   // ---------------- Self-employment tax ----------------
-  se_net_factor: { label: "Net earnings factor (92.35%)", value: 0.9235, year: 2026, status: V, url: IRS_SE, source: "IRC §1402(a)(12); Schedule SE line 4a" },
-  se_ss_rate: { label: "SE Social Security rate", value: 0.124, year: 2026, status: V, url: IRS_SE, source: "IRC §1401(a)" },
-  se_medicare_rate: { label: "SE Medicare rate", value: 0.029, year: 2026, status: V, url: IRS_SE, source: "IRC §1401(b)" },
-  se_min_earnings: { label: "No SE tax below net earnings of", value: 400, year: 2026, status: V, url: IRS_SE, source: "IRC §6017" },
+  se_net_factor: { label: "Net earnings factor (92.35%)", value: 0.9235, year: 2026, status: ST, url: IRS_SE, source: "IRC §1402(a)(12); Schedule SE line 4a" },
+  se_ss_rate: { label: "SE Social Security rate", value: 0.124, year: 2026, status: ST, url: IRS_SE, source: "IRC §1401(a)" },
+  se_medicare_rate: { label: "SE Medicare rate", value: 0.029, year: 2026, status: ST, url: IRS_SE, source: "IRC §1401(b)" },
+  se_min_earnings: { label: "No SE tax below net earnings of", value: 400, year: 2026, status: ST, url: IRS_SE, source: "IRC §6017" },
   ss_wage_base: { label: "Social Security wage base", value: 184500, year: 2026, status: V, url: PUB_505, source: "IRS Pub. 505 (2026) reminders; SSA" },
   addl_medicare_rate: { label: "Additional Medicare tax rate", value: 0.009, year: 2026, status: V, url: PUB_505, source: "IRS Pub. 505 (2026)" },
   addl_medicare_threshold: {
@@ -171,7 +173,7 @@ export const TAX_CONFIG = {
   },
   meals_deductible_pct: { label: "Business meals deductible share", value: 0.5, year: 2026, status: NC, url: "https://www.irs.gov/publications/p463", source: "IRC §274(n) (not re-read this session)" },
   // ---------------- S-corp what-if (payroll) ----------------
-  fica_employee_rate: { label: "FICA (each side): 6.2% SS + 1.45% Medicare", value: { ss: 0.062, medicare: 0.0145 }, year: 2026, status: V, url: PUB_505, source: "IRC §3101/§3111" },
+  fica_employee_rate: { label: "FICA (each side): 6.2% SS + 1.45% Medicare", value: { ss: 0.062, medicare: 0.0145 }, year: 2026, status: ST, url: PUB_505, source: "IRC §3101/§3111" },
   futa: { label: "FUTA net rate on first $7,000 (after 5.4% state credit)", value: { rate: 0.006, base: 7000 }, year: 2026, status: NC, url: "https://www.irs.gov/taxtopics/tc759", source: "IRC §3301; Oregon assumed not a credit-reduction state" },
   or_ui: {
     label: "Oregon UI: new-employer rate / taxable wage base", value: { rate: 0.024, base: 56700 }, year: 2026, status: V, url: OED_RATES,
