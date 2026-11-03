@@ -10,8 +10,9 @@
 // - Nothing goes out automatically unless auto_send is switched on (AppSettings key "portal_invites").
 
 // deno-lint-ignore-file no-explicit-any
+import { onboardingEmail, sendBrandedEmail } from "./onboardingEmail.ts";
+export { onboardingEmail, sendBrandedEmail };
 export const DEFAULT_PORTAL_URL = "https://m-thership.base44.app";
-const LOGO = "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/536102fbf_interstellar-mark-v2.webp";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const normEmail = (e: unknown) => String(e || "").trim().toLowerCase();
@@ -34,66 +35,6 @@ export async function saveInviteSettings(db: any, patch: { auto_send?: boolean; 
   if (cur.row) await db.AppSettings.update(cur.row.id, { portalSettings: next });
   else await db.AppSettings.create({ key: "portal_invites", portalSettings: next });
   return { auto_send: next.auto_send === true, portal_url: String(next.portal_url) };
-}
-
-export function onboardingEmail({ business, contact, portalUrl, email }: { business: string; contact?: string; portalUrl: string; email: string }) {
-  const first = String(contact || "").split(/[\s&,]+/)[0] || "there";
-  const loginUrl = `${portalUrl}/login`;
-  const subject = `Your ${business} portal is ready`;
-  const step = (n: number, title: string, text: string) => `
-              <tr><td style="padding:0 0 14px 0;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
-                  <td width="34" valign="top" style="font:600 13px/26px Arial,Helvetica,sans-serif;color:#ffffff;"><div style="width:26px;height:26px;background:#ff3c00;background-image:linear-gradient(135deg,#ff3c00,#ff6a00);text-align:center;border-radius:2px;">${n}</div></td>
-                  <td valign="top" style="font:15px/22px Arial,Helvetica,sans-serif;color:#141414;"><strong>${title}</strong><br><span style="color:#5b5753;font-size:14px;">${text}</span></td>
-                </tr></table>
-              </td></tr>`;
-  const html = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(subject)}</title></head>
-<body style="margin:0;padding:0;background:#ebe8e4;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ebe8e4;">
-  <tr><td align="center" style="padding:32px 12px;">
-    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #dcd7d1;">
-      <tr><td height="6" style="height:6px;line-height:6px;font-size:0;background:#ff3c00;background-image:linear-gradient(90deg,#ff3c00,#ff6a00,#ffaa00);">&nbsp;</td></tr>
-      <tr><td style="padding:28px 36px 8px 36px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-          <td valign="middle" style="padding-right:12px;"><img src="${LOGO}" width="40" height="40" alt="Interstellar Strategies" style="display:block;border:0;width:40px;height:40px;"></td>
-          <td valign="middle" style="font:700 15px/18px Arial,Helvetica,sans-serif;letter-spacing:2px;color:#141414;">M&Oslash;THERSHIP<br><span style="font:400 10px/14px 'Courier New',monospace;letter-spacing:2px;color:#8a847e;">BY INTERSTELLAR</span></td>
-        </tr></table>
-      </td></tr>
-      <tr><td style="padding:20px 36px 0 36px;font:700 28px/32px Arial,Helvetica,sans-serif;color:#141414;letter-spacing:-0.5px;">
-        Your client portal is <span style="color:#ff3c00;">ready</span>, ${esc(first)}.
-      </td></tr>
-      <tr><td style="padding:14px 36px 0 36px;font:15px/24px Arial,Helvetica,sans-serif;color:#3b3835;">
-        Thanks for choosing Interstellar Strategies. Everything we do for <strong>${esc(business)}</strong> now lives in one place: every blog, Google post and website update as it goes live, your results, your Google reviews, requests, files and a direct line to our team.
-      </td></tr>
-      <tr><td style="padding:22px 36px 0 36px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td height="2" style="height:2px;line-height:2px;font-size:0;background:#ff3c00;background-image:linear-gradient(90deg,#ff3c00,#ff6a00);">&nbsp;</td></tr></table>
-      </td></tr>
-      <tr><td style="padding:24px 36px 6px 36px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${step(1, "Log in", `Use the button below and sign in with <strong>${esc(email)}</strong>. Use Google if that address is a Google account, or ask for a one-time code by email. There is no password to remember.`)}${step(2, "Tell us about your business", "Fill in the short business audit on your Home page. It saves as you go.")}${step(3, "Send your first request", "Website edits, content, Google posts, design: pick a form under Requests and we reply within 1 business day.")}
-        </table>
-      </td></tr>
-      <tr><td align="left" style="padding:8px 36px 8px 36px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-          <td style="background:#ff3c00;background-image:linear-gradient(90deg,#ff3c00,#ff6a00);">
-            <a href="${esc(loginUrl)}" target="_blank" style="display:inline-block;padding:15px 30px;font:600 15px/18px Arial,Helvetica,sans-serif;color:#ffffff;text-decoration:none;">Log in to your portal &rarr;</a>
-          </td>
-        </tr></table>
-      </td></tr>
-      <tr><td style="padding:10px 36px 0 36px;font:12px/18px Arial,Helvetica,sans-serif;color:#8a847e;">
-        Or paste this into your browser: <a href="${esc(loginUrl)}" style="color:#ff3c00;text-decoration:underline;">${esc(loginUrl)}</a>
-      </td></tr>
-      <tr><td style="padding:22px 36px 28px 36px;font:13px/20px Arial,Helvetica,sans-serif;color:#5b5753;">
-        This invite is only for ${esc(email)}. We will never ask for your password by email. If you weren't expecting this, just reply and let us know.<br><br>
-        Talk soon,<br><strong style="color:#141414;">Justin Cowell</strong><br>Interstellar Strategies
-      </td></tr>
-      <tr><td height="6" style="height:6px;line-height:6px;font-size:0;background:#ffaa00;background-image:linear-gradient(90deg,#ffaa00,#ff6a00,#ff3c00);">&nbsp;</td></tr>
-    </table>
-    <p style="margin:16px 0 0 0;font:11px/16px Arial,Helvetica,sans-serif;color:#8a847e;">Interstellar Strategies &middot; Molalla, Oregon</p>
-  </td></tr>
-</table>
-</body></html>`;
-  return { subject, html };
 }
 
 // Which single email this client's invite goes to. Returns { email, addToPortal } or { error }.
@@ -140,7 +81,7 @@ export async function deliverInvite(base44: any, invite: any, settings: { portal
     }
     if (client.portal_enabled !== true) await db.CRMClient.update(client.id, { portal_enabled: true });
     const { subject, html } = onboardingEmail({ business: client.business, contact: client.contact, portalUrl: settings.portal_url, email });
-    await base44.asServiceRole.integrations.Core.SendEmail({ to: email, subject, body: html, from_name: "Interstellar Strategies" });
+    await sendBrandedEmail(base44, { to: email, subject, html });
     const now = new Date().toISOString();
     await db.PortalInvite.update(invite.id, { status: "sent", sent_at: now, message: `Portal access granted and welcome email sent to ${email}.` });
     return { ok: true, email, sent_at: now };
