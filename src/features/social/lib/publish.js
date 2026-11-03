@@ -22,20 +22,8 @@ export const DEFAULT_PUBLISH = {
 export const SOCIAL_STATUS_KEY = ["social-publish", "status"];
 
 /* ─── Spec hash (keep in sync with base44/shared/social.ts) ─────────── */
-export function stableStringify(v) {
-  if (v === null || typeof v !== "object") return JSON.stringify(v ?? null);
-  if (Array.isArray(v)) return `[${v.map(stableStringify).join(",")}]`;
-  return `{${Object.keys(v).filter((k) => v[k] !== undefined).sort().map((k) => `${JSON.stringify(k)}:${stableStringify(v[k])}`).join(",")}}`;
-}
-export function specHash(template, spec) {
-  const s = stableStringify({ template: template || "", spec: spec || {} });
-  let h = 0x811c9dc5;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 0x01000193) >>> 0;
-  }
-  return h.toString(16).padStart(8, "0");
-}
+import { specHash, stableStringify } from "./specHash";
+export { specHash, stableStringify };
 export const imageIsStale = (p) => !!p?.image_url && !!p?.image_spec_hash && p.image_spec_hash !== specHash(p.template, p.spec);
 
 /* ─── Time zone helpers (everything is scheduled in the settings zone, Pacific by default) ── */
