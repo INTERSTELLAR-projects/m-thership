@@ -68,6 +68,7 @@ Deno.serve(async (req) => {
             "Voice: friendly, confident, concise, upbeat, plain English. No emoji, no hype words, no exclamation marks.",
             "STRICT RULES: use ONLY the facts in the JSON. Never invent work, numbers, dates or results. Never mention a site health number when site_health.score is null.",
             "Never mention prices, billing, internal notes or other clients. Never promise dates.",
+            "Plan names: the only Interstellar plans are HyperCare+ and GravïtyCare. Never say Orbit, Ørbit, Orbit SEO, Starship Care, Manage+ or AppCare.",
             "headline: max 12 words. summary: 2 sentences on what Interstellar did for them in the last 30 days and how things look.",
             "highlights: 2-4 short bullets of concrete work or results (with counts where given). next_up: 0-3 short bullets from projects/milestones/open requests.",
             "If there is little data, say the work feed fills up as work is published and keep it short.",
