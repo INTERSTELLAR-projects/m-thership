@@ -8,6 +8,8 @@ import {
   useJobs, useRefreshJobs, JOB_STATUS, KIND_LABELS, approveJob, requestChanges, cancelJob, retryJob, chatPrompt, queueCustom, STANDING_RULES,
 } from "@/features/claude/jobs";
 import SimpleQueue from "@/features/claude/SimpleQueue";
+import EnrichReview from "@/features/clients/EnrichReview";
+import { isEnrichJob } from "@/features/clients/enrich";
 import { useViewMode } from "@/features/claude/simple";
 
 const TABS = [
@@ -86,7 +88,13 @@ function JobDetail({ job, onDone }) {
             ))}
           </div>
         )}
-        {job.result_body && (
+        {isEnrichJob(job) && job.status === "needs_approval" && (
+          <div>
+            <p className="mono-label mb-1.5 text-[9.5px] text-ink/45">Proposed profile fields: tick the ones to keep</p>
+            <EnrichReview job={job} />
+          </div>
+        )}
+        {job.result_body && !isEnrichJob(job) && (
           <article className="prose prose-sm max-w-none rounded-sm border border-hair bg-card px-4 py-3 text-[13px] [&_pre]:overflow-x-auto [&_pre]:bg-ink/[0.05] [&_pre]:p-3">
             <ReactMarkdown>{job.result_body}</ReactMarkdown>
           </article>
@@ -122,7 +130,7 @@ function JobDetail({ job, onDone }) {
           />
         )}
         <div className="flex flex-wrap items-center gap-2">
-          {job.status === "needs_approval" && (
+          {job.status === "needs_approval" && !isEnrichJob(job) && (
             <button type="button" disabled={!!busy} onClick={() => run("ok", () => approveJob(job))}
               className="inline-flex items-center gap-1.5 rounded-sm bg-gradient-to-r from-[#ff3c00] to-[#ff6a00] px-4 py-2 text-[13px] font-medium text-white disabled:opacity-60">
               {busy === "ok" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
