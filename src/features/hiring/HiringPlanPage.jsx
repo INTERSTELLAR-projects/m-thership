@@ -59,10 +59,10 @@ export default function HiringPlanPage() {
   return (
     <div className="min-h-screen bg-background pb-16">
       <PageHeader breadcrumb="Agency / Growth / Hiring plan" title="Hiring plan" rightText="Admin only · never in the portal" />
-      {q.isLoading || (!plan && !seeded) ? (
-        <p className="flex items-center gap-2 px-5 py-10 text-sm text-ink/55 md:px-8"><Loader2 className="h-4 w-4 animate-spin" />Loading the hiring plan…</p>
-      ) : q.isError ? (
+      {q.isError ? (
         <p className="px-5 py-10 text-sm text-[#d83300] md:px-8">Couldn&apos;t load the hiring plan. Refresh the page.</p>
+      ) : q.isLoading || !plan ? (
+        <p className="flex items-center gap-2 px-5 py-10 text-sm text-ink/55 md:px-8"><Loader2 className="h-4 w-4 animate-spin" />{seeded ? "Loading the hiring plan…" : "Setting up the hiring plan…"}</p>
       ) : (
         <div className="space-y-6 px-5 pt-6 md:px-8">
           <Intro />
@@ -96,7 +96,7 @@ function Card({ icon: Icon, kicker, title, right, children, className = "", tone
           {Icon && <Icon className="h-4 w-4 shrink-0 text-[#ff3c00]" strokeWidth={1.75} />}
           <div className="min-w-0">
             {kicker && <p className="mono-label text-[9px] text-ink/50">{kicker}</p>}
-            <h2 className="text-[15px] font-semibold tracking-[-0.02em]">{title}</h2>
+            <h2 className="text-[15px] font-semibold tracking-[-0.02em]"><Accent text={title} /></h2>
           </div>
         </div>
         {right}
@@ -104,6 +104,14 @@ function Card({ icon: Icon, kicker, title, right, children, className = "", tone
       {children}
     </section>
   );
+}
+
+// "Title /accent": the part after " /" renders in flame orange.
+function Accent({ text }) {
+  const s = String(text || "");
+  const i = s.lastIndexOf(" /");
+  if (i < 0) return s;
+  return <>{s.slice(0, i)} <span className="text-[#ff3c00]">/{s.slice(i + 2)}</span></>;
 }
 
 function Btn({ children, onClick, primary, disabled, title }) {
