@@ -76,7 +76,7 @@ export const VOICE = {
     "Prices only from BRAVO/ALPHA offers in this file; no invented discounts, deadlines or scarcity.",
     "Captions are short and punchy: a hook line, two to four short lines, a clear call to action, then 3 to 6 relevant hashtags.",
     "LinkedIn caption: same idea, slightly longer and more reflective, 3 to 5 hashtags, no hashtag walls.",
-    "Never post to social media or schedule anything. Generated posts are drafts for Justin to review.",
+    "Never post to social media, approve or schedule anything. Generated posts are drafts (status draft); only Justin approves and schedules them in Møthership.",
   ],
   cta_examples: [
     "Book a free strategy call",
@@ -93,13 +93,14 @@ export const VOICE = {
   banned_words: ["synergy", "game-changer", "revolutionary", "unlock", "skyrocket", "guaranteed results", "10x"],
 };
 
+// draft -> approved (scheduled) -> publishing -> posted | failed; declined. Only Justin approves.
 export const STATUSES = [
-  { key: "idea", label: "Idea" },
   { key: "draft", label: "Draft" },
-  { key: "ready", label: "Ready" },
-  { key: "scheduled", label: "Scheduled" },
+  { key: "approved", label: "Scheduled" },
+  { key: "publishing", label: "Publishing" },
   { key: "posted", label: "Posted" },
-  { key: "skipped", label: "Skipped" },
+  { key: "failed", label: "Failed" },
+  { key: "declined", label: "Declined" },
 ];
 
 export const PLATFORMS = [
