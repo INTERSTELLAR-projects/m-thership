@@ -126,10 +126,12 @@ Deno.serve(async (req) => {
       let busy: number[][] = [];
       let fallback = !token;
       if (token) { try { busy = await busyBetween(token, from, to); } catch (e) { fallback = true; console.error("calendar read failed", (e as Error).message); } }
-      const days: { date: string; label: string; slots: string[] }[] = [];
+      // Each slot carries its exact start time so the portal can also show it in the viewer's own time zone.
+      const days: { date: string; label: string; slots: { t: string; at: string }[] }[] = [];
       for (let i = 0; i <= DAYS_AHEAD; i++) {
         const date = addDays(from, i);
-        const slots = openSlots(date, busy);
+        const off = offsetFor(date);
+        const slots = openSlots(date, busy).map((t) => ({ t, at: new Date(iso(date, toMin(t), off)).toISOString() }));
         if (slots.length) days.push({ date, label: prettyDate(date), slots });
       }
       return Response.json({
@@ -145,8 +147,7 @@ Deno.serve(async (req) => {
       const topic = clean(body.topic, 1500);
       const phone = clean(body.phone, 40);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || min < 0) return Response.json({ error: "Pick a day and time." }, { status: 400 });
-      const last = date > addDays(pacificToday(), DAYS_AHEAD + 1);
-      if (last) return Response.json({ error: "Pick a time in the next two weeks." }, { status: 400 });
+      if (date > addDays(pacificToday(), DAYS_AHEAD + 1)) return Response.json({ error: "Pick a time in the next two weeks." }, { status: 400 });
       // Guard against double clicks / repeat submits.
       const recent = ((await db.ClientRequest.filter({ client_id: cid, kind: "call" }, "-created_date", 5).catch(() => [])) || []) as Record<string, unknown>[];
       if (recent.some((r) => Date.now() - Date.parse(String(r.created_date || 0)) < 60 * 1000)) {
