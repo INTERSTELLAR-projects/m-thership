@@ -1,0 +1,114 @@
+{
+  "name": "PrestigeRedemption",
+  "type": "object",
+  "properties": {
+    "memberId": {
+      "type": "string",
+      "description": "PrestigeMember spending the credit"
+    },
+    "memberName": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient of the member (when linked)"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "automation",
+        "app_upgrade",
+        "website_feature",
+        "addon_package",
+        "merch",
+        "marketing_materials",
+        "social_posts",
+        "video",
+        "ad_spend"
+      ],
+      "description": "Where the credit goes. Build categories (automation, app_upgrade, website_feature, addon_package) have no cap; the rest are capped at $500 per redemption. List lives in CREDIT_CATEGORIES in src/lib/prestige.js"
+    },
+    "category_group": {
+      "type": "string",
+      "enum": [
+        "build",
+        "capped"
+      ]
+    },
+    "amount": {
+      "type": "number",
+      "description": "Dollars of credit. Capped categories: max 500 per redemption"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "requested",
+        "approved",
+        "fulfilled",
+        "declined"
+      ],
+      "default": "requested",
+      "description": "requested = waiting on Justin (not deducted); approved / fulfilled = deducted from the balance; declined = not deducted"
+    },
+    "details": {
+      "type": "string"
+    },
+    "request_id": {
+      "type": "string",
+      "description": "ClientRequest (kind credit_redemption) created from the portal"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "portal",
+        "admin"
+      ],
+      "default": "portal"
+    },
+    "requested_by": {
+      "type": "string"
+    },
+    "requested_at": {
+      "type": "string"
+    },
+    "decided_at": {
+      "type": "string"
+    },
+    "fulfilled_at": {
+      "type": "string"
+    },
+    "admin_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "memberId",
+    "category",
+    "amount"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
