@@ -88,7 +88,7 @@ export default function PortalInviteDialog({ open, client, onClose, onEditClient
                 </div>
               )}
               <ul className="space-y-1.5 border-t border-hair pt-4 text-[12.5px] text-ink/65">
-                <li className="flex gap-2"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#ff3c00]" /> No password is emailed. They sign in with Google or a one-time code.</li>
+                <li className="flex gap-2"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#ff3c00]" /> No password is emailed. They sign in with Google, or set their own password the first time (Sign up).</li>
                 <li className="flex gap-2"><Mail className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#ff3c00]" /> Sends the branded welcome email with a &ldquo;Log in to your portal&rdquo; button and turns their portal on.</li>
               </ul>
               <div className="flex items-center justify-between gap-3 border-t border-hair pt-4">
