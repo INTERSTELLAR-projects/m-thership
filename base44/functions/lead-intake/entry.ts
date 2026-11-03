@@ -5,6 +5,7 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 // POST with header `x-lead-key: <LEAD_INTAKE_KEY>` and JSON { action: "start" | "business" | "book", client_id?, ...answers }.
 //   start    → finds the client by email (or creates one with status "Lead", pipeline_stage "new"); returns client_id
 //   business → saves industry / revenue / team size / interest / timeline / biggest problem on the client + as a note
+//   subscribe → newsletter signup (website footer): upserts an EmailSubscriber (status subscribed), never a lead
 //   book     → adds the booked call (date, time, Meet link) as a note, sets booked_call_at, moves a lead to
 //              pipeline_stage "call_booked", and creates a P1 sales task on the call date
 // Optional on every action: source ("website" | "funnel" | "referral" | "cold" | "ads" | "social" | "other"; default
