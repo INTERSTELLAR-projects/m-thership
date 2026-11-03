@@ -95,7 +95,7 @@ export async function writeCriterion(ctx, key, value, { by = "justin", note = ""
     return true;
   }
   if (!has(value)) return false;
-  const text = Array.isArray(value) ? value.join(", ") : String(value).trim();
+  const text = Array.isArray(value) ? (w.field === "logo_url" ? String(value[0] || "") : value.join(", ")) : String(value).trim();
   if (w.to === "crm") {
     const patch = {};
     if (w.field === "phones") patch.phones = [...new Set([text, ...(ctx.client.phones || [])])];
