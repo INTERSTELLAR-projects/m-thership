@@ -90,7 +90,7 @@ export const SEED_SECTIONS = [
     body: [
       "- Every build includes a free Intel Briefing: an audit before the build and a final sweep at the end.",
       "- Clients get the portal tools for life: email signatures and QR codes (Wørmhole). The AI presentation creator is \"coming soon\".",
-      "- Prestige referral program: clients can earn up to $17,000 in Interstellar credits. Referrals are logged by hand.",
+      "- Prestige referral program: when a referral books a call the referrer gets a Priority Pass (their next request jumps to the front of the build queue, no dollar value). When a referral pays their first invoice the referrer gets $500 in Interstellar credit added to their account (never a subscription discount, invoice credit or free month). Credits bank and stack with no cap for builds (automations, app upgrades / new features, interactive website features, add-on packages); merch, marketing materials, social posts, videos and ad spend are capped at $500 per redemption, redeemed through Interstellar. Clients request spends from the portal (Referrals > Use my credits) and Justin approves each one. Tier ladder Prestige I to Master unlocks by signed referrals. Referrals are logged by hand.",
     ].join("\n"),
   },
   {
