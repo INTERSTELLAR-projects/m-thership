@@ -231,6 +231,7 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, children }) 
   const wrapRef = useRef(null);
   const navRef = useRef(null);
   const [fits, setFits] = useState(true);
+  const hasTabs = !!setTab;
   useEffect(() => {
     const wrap = wrapRef.current, nav = navRef.current;
     if (!wrap || !nav || typeof ResizeObserver === "undefined") return undefined;
@@ -239,7 +240,7 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, children }) 
     ro.observe(wrap);
     check();
     return () => ro.disconnect();
-  }, [tabs.length, unread, setTab]);
+  }, [tabs.length, unread, hasTabs]);
   return (
     <div className="grid-canvas min-h-screen text-ink" data-trail>
       <GridTrail />
