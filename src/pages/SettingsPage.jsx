@@ -1,5 +1,6 @@
 import { useSearchParams } from "react-router-dom";
-import { BookOpen, Building2, Globe, ListChecks, Plug, Users, Zap } from "lucide-react";
+import { BookOpen, Building2, Globe, ListChecks, Plug, Users, Zap, ShieldCheck } from "lucide-react";
+import SecurityTab from "@/features/settings/SecurityTab";
 import PageHeader from "@/components/PageHeader";
 import { FinanceStyles } from "@/components/financial/finance/ui";
 import { GeneralTab, TeamTab, PortalTab, IntegrationsTab } from "@/features/settings/tabs";
@@ -14,6 +15,7 @@ const TABS = [
   { id: "knowledge", label: "Agency knowledge", icon: BookOpen, blurb: "Offers, prices, rules and voice: the one source every generator and Claude task reads" },
   { id: "team", label: "Team & access", icon: Users, blurb: "Admins, client portal logins, invites" },
   { id: "portal", label: "Portal", icon: Globe, blurb: "Which clients have a portal and what it shows" },
+  { id: "security", label: "Security", icon: ShieldCheck, blurb: "Sign-in protection for admin and client portal logins" },
   { id: "integrations", label: "Integrations", icon: Plug, blurb: "Secrets and connectors (configured or not)" },
   { id: "lists", label: "Lists & fields", icon: ListChecks, blurb: "Edit dropdown options without code" },
   { id: "automations", label: "Automations", icon: Zap, blurb: "Every automation and notification" },
@@ -48,6 +50,7 @@ export default function SettingsPage() {
         {tab === "knowledge" && <AgencyKnowledgeTab />}
         {tab === "team" && <TeamTab />}
         {tab === "portal" && <PortalTab />}
+        {tab === "security" && <SecurityTab />}
         {tab === "integrations" && <IntegrationsTab />}
         {tab === "lists" && <ListsTab />}
         {tab === "automations" && <AutomationsHub />}
