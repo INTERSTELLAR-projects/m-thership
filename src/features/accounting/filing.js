@@ -85,12 +85,12 @@ export function buildGuide({ plan, sc, profile, taxYear }) {
     { line: "4a", text: "Line 3 × 92.35%", value: r2(t.nese) },
     { line: "10", text: "Social Security portion (12.4% up to the wage base)", value: r2(t.seSS) },
     { line: "11", text: "Medicare portion (2.9%)", value: r2(t.seMed) },
-    { line: "12", text: "Self-employment tax → Schedule 2 line 4", value: r2(t.seTax) },
-    { line: "13", text: "Deduction for one-half of SE tax → Schedule 1 line 15", value: r2(t.halfSe) },
+    { line: "12", text: "Self-employment tax -> Schedule 2 line 4", value: r2(t.seTax) },
+    { line: "13", text: "Deduction for one-half of SE tax -> Schedule 1 line 15", value: r2(t.halfSe) },
   ] });
   steps.push({ form: "Form 8995 — Qualified Business Income Deduction (simplified)", items: [
-    { line: "1", text: "Qualified business income (net profit − ½ SE tax − SE health − retirement)", value: r2(t.qbiBase) },
-    { line: "15", text: `QBI deduction → Form 1040 line 13 (${t.qbiNote})`, value: r2(t.qbi) },
+    { line: "1", text: "Qualified business income (net profit - ½ SE tax - SE health - retirement)", value: r2(t.qbiBase) },
+    { line: "15", text: `QBI deduction -> Form 1040 line 13 (${t.qbiNote})`, value: r2(t.qbi) },
   ] });
   steps.push({ form: "Schedule 1 — Additional Income and Adjustments", items: [
     { line: "3", text: "Business income (Schedule C line 31)", value: sc.line31 },

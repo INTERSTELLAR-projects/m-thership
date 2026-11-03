@@ -144,9 +144,8 @@ export function suggestSlot(post, posts, settings) {
 
 /* ─── Render + upload ───────────────────────────────────────────────── */
 async function uploadPublic(file) {
-  const Core = base44.integrations.Core;
-  const fn = Core.UploadPublicFile || Core.UploadFile;
-  const { file_url } = await fn({ file });
+  // UploadFile = public storage (the retired spelling of UploadPublicFile); Instagram must fetch it unauthenticated.
+  const { file_url } = await base44.integrations.Core.UploadFile({ file });
   if (!file_url) throw new Error("Upload returned no URL");
   return file_url;
 }
