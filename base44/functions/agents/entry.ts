@@ -488,12 +488,15 @@ Deno.serve(async (req) => {
     const who = user ? "justin" : "nightly";
 
     if (action === "nightly") {
-      // Throttle the unauthenticated path: at most once per 20 hours.
-      const flag = (await list(db.AppSettings, { key: "agents_nightly" }, "-updated_date", 1))[0];
-      const last = flag?.pageSettings?.last_at ? new Date(flag.pageSettings.last_at).getTime() : 0;
-      if (!user && Date.now() - last < 20 * 3600 * 1000) return Response.json({ skipped: true, reason: "ran recently", last_at: flag?.pageSettings?.last_at });
-      const mark = { key: "agents_nightly", pageSettings: { last_at: nowIso() } };
-      if (flag) await db.AppSettings.update(flag.id, mark); else await db.AppSettings.create(mark);
+      // Throttle the unauthenticated path: one completed run per 20 hours, and never two at once
+      // (a run that crashed can be retried after 10 minutes).
+      let flag = (await list(db.AppSettings, { key: "agents_nightly" }, "-updated_date", 1))[0];
+      const ps = flag?.pageSettings || {};
+      const doneAgo = ps.done_at ? Date.now() - new Date(ps.done_at).getTime() : Infinity;
+      const startAgo = ps.started_at ? Date.now() - new Date(ps.started_at).getTime() : Infinity;
+      if (!user && (doneAgo < 20 * 3600 * 1000 || startAgo < 10 * 60 * 1000)) return Response.json({ skipped: true, reason: "ran recently", ...ps });
+      const mark = { key: "agents_nightly", pageSettings: { ...ps, started_at: nowIso() } };
+      if (flag) await db.AppSettings.update(flag.id, mark); else flag = await db.AppSettings.create(mark);
       const seeded = await seedBrains(db);
       const sync = await syncClients(db, who === "justin" ? "in_app" : "nightly");
       const brains = await list(db.BusinessBrain, {}, "last_refined_at", 300);
@@ -506,6 +509,7 @@ Deno.serve(async (req) => {
       let brief: any = null;
       if (body?.brief !== false) brief = await makeBrief(base44, db, undefined, !user).then((b: any) => ({ id: b?.id, headline: b?.headline })).catch((e) => ({ error: String(e?.message || e) }));
       await db.AutomationRun.create({ automation_name: "Agents — nightly brain refresh", kind: "other", status: refined.some((r: any) => r.error) || brief?.error ? "failed" : "success", message: `Brains seeded/checked ${seeded.length}, instances +${sync.created}/~${sync.updated}, refined ${refined.length}${brief?.error ? `, brief failed: ${cut(brief.error, 120)}` : ", brief written"}`, started_at: nowIso(), finished_at: nowIso(), processed: true }).catch(() => null);
+      if (flag?.id) await db.AppSettings.update(flag.id, { pageSettings: { ...mark.pageSettings, done_at: nowIso(), last: { seeded: seeded.length, created: sync.created, updated: sync.updated, refined: refined.length } } }).catch(() => null);
       return Response.json({ seeded, sync, refined, brief });
     }
 
