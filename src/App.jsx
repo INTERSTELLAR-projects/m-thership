@@ -59,6 +59,7 @@ import ClientUsagePage from '@/features/usage/ClientUsagePage';
 import FuelEconomicsPage from '@/features/fuel/FuelEconomicsPage';
 import AgentsPage from '@/features/agents/AgentsPage';
 import IntelligencePage from '@/features/oracle/IntelligencePage';
+import LaunchPage from '@/features/launch/LaunchPage';
 import OracleTopicPage from '@/features/oracle/TopicPage';
 
 // Branded sign-in routes. They render without a session. While the platform's hosted login owns /login for this
@@ -125,6 +126,7 @@ const AuthenticatedApp = () => {
         <Route path="/client-usage" element={<ProtectedRoute><ClientUsagePage /></ProtectedRoute>} />
         <Route path="/fuel-economics" element={<ProtectedRoute><FuelEconomicsPage /></ProtectedRoute>} />
         <Route path="/agents" element={<ProtectedRoute><AgentsPage /></ProtectedRoute>} />
+        <Route path="/launch" element={<ProtectedRoute><LaunchPage /></ProtectedRoute>} />
         <Route path="/comms" element={<ProtectedRoute><Comms /></ProtectedRoute>} />
         <Route path="/orbit-seo" element={<Navigate to="/packages/orbit-seo" replace />} />
         <Route path="/orbit-seo/manage" element={<ProtectedRoute><OrbitSEO /></ProtectedRoute>} />
