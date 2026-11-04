@@ -245,7 +245,7 @@ export default function Financial() {
                   <div key={cat}>
                     <div className="flex items-center justify-between mb-3">
                       <h2 className="font-display font-bold text-xs tracking-[0.22em] uppercase bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{cat}</h2>
-                      <span className="text-xs font-display font-bold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">${total.toFixed(2)}/mo equiv.</span>
+                      <span className="text-xs font-display font-bold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">${total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo equiv.</span>
                     </div>
                     <div className="space-y-2">
                       {items.map((expense) => (
@@ -302,7 +302,7 @@ function ExpenseRow({ expense, isEditing, editForm, setEditForm, onEdit, onSave,
           <span className="text-ink/[0.38] text-xs">Due {formatDueDate(expense.dueDate)}</span>
         </div>
       </div>
-      <p className="text-sm font-display font-bold w-16 text-right shrink-0 bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">${expense.amount.toFixed(2)}</p>
+      <p className="text-sm font-display font-bold w-24 text-right shrink-0 tabular-nums bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">${Number(expense.amount || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
       <button onClick={onEdit} className="p-1.5 rounded-md hover:bg-ink/5 text-ink/[0.33] hover:text-ink/50 transition-all shrink-0"><Edit className="w-3.5 h-3.5" /></button>
       <button onClick={onDelete} className="p-1.5 rounded-md hover:bg-ink/5 text-ink/[0.33] hover:text-red-600/50 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
       <div className="shrink-0">
