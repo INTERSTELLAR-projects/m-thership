@@ -3,6 +3,16 @@
 // the client comes from the caller's login; admins preview with client_id.
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import { resolvePortalClient, gatherBriefing, json, today } from "../../shared/portalAssistant.ts";
+import { check, record } from "../../shared/meter.ts";
+
+// Voice is metered like any Nøva AI action (1 unit per transcription, 1 per spoken reply; feature "nova_voice"
+// so it runs on every plan, Studios or not). Admin previews are logged but never charged to the client.
+async function meterVoice(ctx: any, feature: string) {
+  const c = await check(ctx.db, ctx.client, "ai_action", 1, { admin: ctx.preview, feature }).catch(() => ({ ok: true } as any));
+  if (!c.ok) return json({ error: c.reason || "Voice is paused until your allowance resets.", code: c.code || "out_of_fuel" }, 402);
+  await record(ctx.db, ctx.client, "ai_action", 1, { admin: ctx.preview, feature, model: "openai-voice", user_email: ctx.user?.email || "", calls: 1 }).catch(() => null);
+  return null;
+}
 
 const OPENAI = "https://api.openai.com/v1";
 const MAX_AUDIO_BYTES = 8 * 1024 * 1024; // ~8 min of opus at 32 kbps
@@ -102,6 +112,8 @@ Deno.serve(async (req) => {
       if (!raw) return json({ error: "audio is required" }, 400);
       const bytes = b64ToBytes(raw);
       if (bytes.length > MAX_AUDIO_BYTES) return json({ error: "Recording is too long" }, 413);
+      const blocked = await meterVoice(ctx, "nova_voice_transcribe");
+      if (blocked) return blocked;
       const mime = String(body.mime || "audio/webm").split(";")[0];
       const ext = mime.includes("mp4") ? "mp4" : mime.includes("ogg") ? "ogg" : mime.includes("wav") ? "wav" : "webm";
       const attempt = (model: string) => {
@@ -124,6 +136,8 @@ Deno.serve(async (req) => {
       if (!key) return json({ available: false, error: "Server voice isn't set up" }, 501);
       const input = String(body.text || "").trim().slice(0, 1800);
       if (!input) return json({ error: "text is required" }, 400);
+      const blocked = await meterVoice(ctx, "nova_voice_speak");
+      if (blocked) return blocked;
       let res = await fetch(OPENAI + "/audio/speech", {
         method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
         body: JSON.stringify({ model: "gpt-4o-mini-tts", voice: "nova", input, instructions: VOICE_STYLE, speed: 1, response_format: "mp3" }),
