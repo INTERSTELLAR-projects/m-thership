@@ -20,10 +20,12 @@ import ChannelPlan from "./channels/ChannelPlan";
 import ChannelQueue from "./channels/ChannelQueue";
 import YouTubePlanner from "./channels/YouTubePlanner";
 import Conversations from "./channels/Conversations";
+import EngineSection from "./engine/EngineSection";
 
 import { Btn, ConfirmDialog, PromptDialog, Select, inputCls } from "./ui";
 
 const SECTIONS = [
+  { key: "engine", label: "One idea → 13 platforms" },
   { key: "posts", label: "Instagram & Facebook" },
   { key: "channels", label: "Channel plan" },
   { key: "linkedin", label: "LinkedIn" },
@@ -195,7 +197,8 @@ export default function SocialPage() {
             </button>
           ))}
         </nav>
-        {section === "channels" ? <ChannelPlan go={goSection} />
+        {section === "engine" ? <EngineSection />
+          : section === "channels" ? <ChannelPlan go={goSection} />
           : section === "linkedin" ? (
             <div className="mt-1 space-y-3">
               <div>
