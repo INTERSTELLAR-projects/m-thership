@@ -1,6 +1,4 @@
 {
-  "name": "Agents QA (temporary)",
-  "description": "Temporary QA run for the Agent Constellation (CEO chat, client CEO chat, brain edit / finding / refine). Archived after testing.",
   "trigger": {
     "condition": null,
     "config": {
@@ -8,7 +6,7 @@
       "events": [],
       "schedule_mode": "one_time",
       "cron_expression": null,
-      "one_time_date": "2027-12-31T08:00:00",
+      "one_time_date": "2027-12-31T08:00:00Z",
       "timezone": "America/Los_Angeles",
       "interval_value": null,
       "interval_unit": null,
@@ -18,6 +16,8 @@
       "ends_after_count": null
     }
   },
+  "name": "Agents QA (temporary)",
+  "description": "Temporary QA run for the Agent Constellation (CEO chat, client CEO chat, brain edit / finding / refine). Archived after testing.",
   "definition": {
     "document": {
       "dsl": "1.0.0",
