@@ -63,7 +63,7 @@ export default function PortalApp({ previewId }) {
     const next = businesses.length > 1 ? d.client.id : "";
     writePick(next);
     setPicked(next);
-  }, [previewId, picked, d?.client?.id, businesses.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [previewId, picked, d?.client?.id, businesses.length]);
   const switchTo = (id) => {
     if (!id || id === d?.client?.id) return;
     if (previewId) { window.location.assign(`/portal/${id}`); return; }
