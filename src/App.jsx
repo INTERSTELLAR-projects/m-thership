@@ -56,6 +56,7 @@ import HiringPlanPage from '@/features/hiring/HiringPlanPage';
 import SimpleSocialPage from '@/features/studios/SimpleSocialPage';
 import ChromeWorkspacePage from '@/features/workspace/ChromeWorkspacePage';
 import ClientUsagePage from '@/features/usage/ClientUsagePage';
+import FuelEconomicsPage from '@/features/fuel/FuelEconomicsPage';
 import AgentsPage from '@/features/agents/AgentsPage';
 import IntelligencePage from '@/features/oracle/IntelligencePage';
 import OracleTopicPage from '@/features/oracle/TopicPage';
@@ -122,6 +123,7 @@ const AuthenticatedApp = () => {
         <Route path="/pipeline" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
         <Route path="/clients/:id" element={<ProtectedRoute><ClientCockpit /></ProtectedRoute>} />
         <Route path="/client-usage" element={<ProtectedRoute><ClientUsagePage /></ProtectedRoute>} />
+        <Route path="/fuel-economics" element={<ProtectedRoute><FuelEconomicsPage /></ProtectedRoute>} />
         <Route path="/agents" element={<ProtectedRoute><AgentsPage /></ProtectedRoute>} />
         <Route path="/comms" element={<ProtectedRoute><Comms /></ProtectedRoute>} />
         <Route path="/orbit-seo" element={<Navigate to="/packages/orbit-seo" replace />} />
