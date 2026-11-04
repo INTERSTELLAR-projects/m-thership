@@ -83,6 +83,8 @@ export const DELIVERABLES = {
       "Notification stack: SMS, email and in-app alerts routed by rule",
       "Email agent and workflows that follow up until a lead answers",
       "Reactivation campaigns for old customers and lost quotes",
+      "NEW · AI Email Agent: organizes the inbox with labels and tabs, triages what matters, drafts replies for approval",
+      "NEW · Chrome Workspace: custom browser tab groups and a bookmark bar built for the business, installed for the team",
       "Handover training so the team actually uses it",
     ],
   },
