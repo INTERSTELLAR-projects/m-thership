@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import BrandLockup from "@/components/brand/BrandLockup";
+import FuelMeter from "@/features/fuel/FuelMeter";
 
 // ---------------------------------------------------------------------------------------------
 // Grouped portal navigation. ONE config (NAV) drives the desktop dropdowns and the mobile drawer.
@@ -43,9 +44,10 @@ export const NAV = [
     ],
   },
   {
-    // Studios: per-client state off (hidden) / preview (locked, default) / on. PortalApp passes which tabs exist
-    // and which are still locked; locked items show a lock tag and open the preview page (PortalStudios.jsx).
-    id: "studios", label: "Studios", eyebrow: "Included with your plan", align: "right",
+    // Studios: HyperCare+ only (other plans see every item locked, tagged "HyperCare+"). Within HyperCare+, per-client
+    // state off (hidden) / preview (locked, default) / on. PortalApp passes which tabs exist and which are locked;
+    // locked items open the preview page (PortalStudios.jsx). The panel shows the client's fuel gauge on top.
+    id: "studios", label: "Studios", eyebrow: "Included with HyperCare+", align: "right",
     items: [
       { k: "studio_social", label: "Social Studio", desc: "Plan, design and publish your posts", icon: Megaphone },
       { k: "studio_email", label: "Email Studio", desc: "Newsletters and promos to your list", icon: Mail },
@@ -62,9 +64,9 @@ export const NAV = [
 // Labels for tabs reached outside the nav (shown on the mobile menu button).
 const EXTRA_LABELS = { assistant: "Nøva", account: "Account" };
 
-export function navFor(tabKeys, locked = new Set()) {
+export function navFor(tabKeys, locked = new Set(), lockText = "Soon") {
   const has = new Set(tabKeys);
-  return NAV.map((g) => (g.items ? { ...g, items: g.items.filter((i) => has.has(i.k)).map((i) => (locked.has(i.k) ? { ...i, locked: true } : i)) } : g))
+  return NAV.map((g) => (g.items ? { ...g, items: g.items.filter((i) => has.has(i.k)).map((i) => (locked.has(i.k) ? { ...i, locked: i.k === "studio_simple_social" ? "Soon" : lockText } : i)) } : g))
     .filter((g) => (g.items ? g.items.length > 0 : has.has(g.tab)));
 }
 
@@ -82,8 +84,8 @@ const groupUnread = (g, unread) => (g.items?.some((i) => i.k === "messages") ? u
 function Bonus() {
   return <span className="mono-label inline-flex items-center bg-[#ff3c00]/10 px-1 py-[1px] text-[8px] leading-[1.4] text-[#ff3c00]">Bonus</span>;
 }
-function Locked() {
-  return <span className="mono-label inline-flex items-center gap-0.5 bg-ink/[0.07] px-1 py-[1px] text-[8px] leading-[1.4] text-ink/55"><Lock className="h-2 w-2" aria-hidden="true" />Soon</span>;
+function Locked({ text = "Soon" }) {
+  return <span className="mono-label inline-flex items-center gap-0.5 bg-ink/[0.07] px-1 py-[1px] text-[8px] leading-[1.4] text-ink/55"><Lock className="h-2 w-2" aria-hidden="true" />{typeof text === "string" ? text : "Soon"}</span>;
 }
 function Count({ n, label = "unread" }) {
   if (!n) return null;
@@ -95,7 +97,7 @@ function Count({ n, label = "unread" }) {
 // Enter / Space / ↓ opens and focuses the first item, ↑ the last; ↑ ↓ Home End move inside;
 // ← → move between top-level items; Escape closes and returns focus; Tab out closes.
 // ---------------------------------------------------------------------------------------------
-export function DesktopNav({ nav, tab, setTab, unread }) {
+export function DesktopNav({ nav, tab, setTab, unread, fuel, onRefuel }) {
   const [open, setOpen] = useState(null);
   const openedBy = useRef(null);
   const timer = useRef(null);
@@ -207,6 +209,7 @@ export function DesktopNav({ nav, tab, setTab, unread }) {
             >
               <div className="w-[min(372px,calc(100vw-32px))] overflow-hidden border border-hair bg-[#f7f5f2] shadow-[0_24px_48px_-20px_rgba(26,26,26,.35)] motion-safe:animate-[portalMenuIn_.16s_ease-out]">
                 <div className="h-[3px] bg-[linear-gradient(90deg,#ff3c00,#ff6a00,#ffaa00)]" aria-hidden="true" />
+                {g.id === "studios" && fuel && <FuelMeter fuel={fuel} compact onRefuel={onRefuel ? () => { setOpen(null); onRefuel(); } : undefined} />}
                 <p className="mono-label px-4 pb-1.5 pt-3.5 text-[9.5px] text-ink/45">({g.eyebrow})</p>
                 <ul className="px-1.5 pb-1.5">
                   {g.items.map((i) => {
@@ -227,7 +230,7 @@ export function DesktopNav({ nav, tab, setTab, unread }) {
                             <span className="flex items-center gap-1.5 text-[13.5px] font-semibold tracking-[-0.01em] text-ink">
                               {i.label}
                               {i.bonus && <Bonus />}
-                              {i.locked && <Locked />}
+                              {i.locked && <Locked text={i.locked} />}
                               {i.k === "messages" && <Count n={unread} />}
                               {cur && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#ff3c00]" aria-hidden="true" />}
                             </span>
@@ -251,7 +254,7 @@ export function DesktopNav({ nav, tab, setTab, unread }) {
 // Phones and tablets (< 1024px): a hamburger opens a full-height slide-in menu with the same groups
 // as collapsible sections. Focus is trapped while open; Escape / backdrop / picking a page closes it.
 // ---------------------------------------------------------------------------------------------
-export function MobileNav({ nav, client, tab, setTab, unread, preview, onSchedule }) {
+export function MobileNav({ nav, client, tab, setTab, unread, preview, onSchedule, fuel, onRefuel }) {
   const [open, setOpen] = useState(false);
   const activeGroup = nav.find((g) => g.items?.some((i) => i.k === tab))?.id;
   const [expanded, setExpanded] = useState(() => new Set(activeGroup ? [activeGroup] : ["growth"]));
@@ -380,6 +383,7 @@ export function MobileNav({ nav, client, tab, setTab, unread, preview, onSchedul
                       </button>
                     </h2>
                     <ul id={`portal-mgroup-${g.id}`} hidden={!isOpen} className="pb-1">
+                      {g.id === "studios" && fuel && <li className="px-3 pb-2"><FuelMeter fuel={fuel} compact onRefuel={onRefuel ? () => { setOpen(false); onRefuel(); } : undefined} /></li>}
                       {g.items.map((i) => <li key={i.k}><Row k={i.k} label={i.label} icon={i.icon} desc={i.desc} bonus={i.bonus} locked={i.locked} indent /></li>)}
                     </ul>
                   </section>
