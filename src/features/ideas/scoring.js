@@ -33,10 +33,11 @@ export const STAGES = [
   { key: "parked", label: "Parked" },
 ];
 
+// Calibrated on the first full AI scoring pass (Nov 2026): the best ideas land in the 60s, the median around 40.
 export const TIERS = [
-  { key: "S", min: 70, label: "S · build now" },
-  { key: "A", min: 58, label: "A · strong" },
-  { key: "B", min: 45, label: "B · maybe later" },
+  { key: "S", min: 62, label: "S · build now" },
+  { key: "A", min: 50, label: "A · strong" },
+  { key: "B", min: 40, label: "B · maybe later" },
   { key: "C", min: 0, label: "C · park" },
 ];
 
