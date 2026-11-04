@@ -18,7 +18,6 @@ import { BuildNextHero, RankedRow, ScorePanel, ConceptBrief, TierChip, StageChip
 const IDEA_CATS_KEY = "idea_vault_categories";
 const VIEW_KEY = "idea_vault_view";
 
-const STATUS_OPTIONS = ["New", "In Review", "Planned", "Implemented", "Shelved"];
 const STAGE_TO_STATUS = { idea: "New", validating: "In Review", building: "Planned", live: "Implemented", parked: "Shelved" };
 const fieldCls = "bg-ink/[0.03] border border-ink/[0.13] rounded-md px-2 py-1.5 text-xs text-ink outline-none focus:border-[#ff6a00]/60";
 const pill = (on) => `px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${on ? "border-[#ff3c00]/40 bg-[#ff3c00]/[0.07] text-[#d13300]" : "border-transparent text-ink/50 hover:text-ink/75"}`;
@@ -583,4 +582,3 @@ function AIAnalysisPanel({ idea, onReanalyze }) {
   );
 }
 
-export { STATUS_OPTIONS };
