@@ -5,6 +5,7 @@
 import { QA_ACCOUNTING } from "@/features/accounting/qaFixtures";
 import { QA_SOCIAL, qaSocialInvoke } from "@/features/social/qaFixtures";
 import { qaUsageInvoke } from "@/features/usage/qaFixtures";
+import { qaFuelInvoke } from "@/features/fuel/qaFixtures";
 import { demo, demoInvoke, warmDemo } from "@/lib/demoData";
 
 const host = typeof window !== "undefined" ? window.location.hostname : "";
@@ -144,6 +145,7 @@ export function installQa(base44) {
       if (IS_DEMO) { const d = demoInvoke(name, args, rows); if (d !== undefined) return { data: d }; }
       if (String(name).startsWith("social-")) return { data: qaSocialInvoke(name, args) };
       if (name === "usage") return { data: qaUsageInvoke(args) };
+      if (name === "fuel") return { data: qaFuelInvoke(args) };
       if (name !== "portal") return { data: {} };
       const cid = args.client_id || "c1";
       const of = (e) => rows(e).filter((r) => r.client_id === cid);
