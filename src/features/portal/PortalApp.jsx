@@ -24,6 +24,7 @@ import PortalInstagram from "@/features/social/portal/PortalInstagram";
 import { PortalGbp, ReviewLinkQuick } from "@/features/gbp/GbpPanel";
 import PortalAssistant, { AssistantLauncher } from "@/features/portal/assistant/PortalAssistant";
 import SecurityPanel from "@/features/security/SecurityPanel";
+import StudioPreview, { studioTabs, STUDIO_BY_TAB } from "@/features/portal/PortalStudios";
 import TwoFactorChallenge from "@/features/security/TwoFactorChallenge";
 import { needsSecondFactor } from "@/features/security/api";
 
@@ -46,7 +47,7 @@ export default function PortalApp({ previewId }) {
   const refresh = () => qc.invalidateQueries({ queryKey: ["portal", previewId] });
   const d = home.data;
   // The Brand kit tab only exists when an approved, portal-visible kit does.
-  const tabs = TABS.filter(([k]) => (k !== "brand" || d?.has_brand_kit) && (k !== "playbook" || d?.has_playbook));
+  const tabs = [...TABS.filter(([k]) => (k !== "brand" || d?.has_brand_kit) && (k !== "playbook" || d?.has_playbook)), ...studioTabs(d?.client).tabs];
 
   if (home.isLoading) return <Shell><p className="py-24 text-center text-ink/50">Loading your portal…</p></Shell>;
   // This login has 2-step verification on and this session hasn't passed it yet: nothing loads until it does.
@@ -102,6 +103,7 @@ export default function PortalApp({ previewId }) {
           {tab === "messages" && <MessagesView call={call} previewId={previewId} />}
           {tab === "assistant" && <PortalAssistant previewId={previewId} variant="page" />}
           {tab === "account" && <SecurityPanel preview={!!previewId} />}
+          {STUDIO_BY_TAB[tab] && tabs.some(([k]) => k === tab) && <StudioPreview tab={tab} client={d.client} call={call} preview={!!previewId} previewId={previewId} />}
         </div>
       )}
       {tab !== "assistant" && <AssistantLauncher previewId={previewId} onOpenFull={() => { setQrOpen(null); setTab("assistant"); }} />}
@@ -113,7 +115,7 @@ export default function PortalApp({ previewId }) {
 // "Schedule a call" button on the right. Nav config and components live in PortalNav.jsx.
 function Shell({ client, tabs = TABS, tab, setTab, unread, preview, previewId, children }) {
   const [schedOpen, setSchedOpen] = useState(false);
-  const nav = useMemo(() => navFor(tabs.map(([k]) => k)), [tabs]);
+  const nav = useMemo(() => navFor(tabs.map(([k]) => k), studioTabs(client).locked), [tabs, client]);
   return (
     <div className="grid-canvas min-h-screen text-ink" data-trail>
       <GridTrail />
