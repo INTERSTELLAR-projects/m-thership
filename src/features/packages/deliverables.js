@@ -7,7 +7,7 @@ export const DELIVERABLES = {
     includes: [
       "Weekly Google Business Profile posts",
       "Weekly 3,000-word blogs that answer real questions, down to their city",
-      "Every review replied to within 48 hours, good or bad",
+      "Every review replied to within 1 hour, good or bad",
       "Citations kept identical everywhere (name, address, phone, website)",
       "Unlimited site edits and updates; new projects published as work gets done",
       "Search Console errors fixed as they appear; indexing on Google, Bing and Apple",
