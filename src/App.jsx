@@ -54,6 +54,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import LoginPage from '@/features/auth/LoginPage';
 import HiringPlanPage from '@/features/hiring/HiringPlanPage';
 import SimpleSocialPage from '@/features/studios/SimpleSocialPage';
+import ChromeWorkspacePage from '@/features/workspace/ChromeWorkspacePage';
 import ClientUsagePage from '@/features/usage/ClientUsagePage';
 import AgentsPage from '@/features/agents/AgentsPage';
 import IntelligencePage from '@/features/oracle/IntelligencePage';
@@ -166,6 +167,7 @@ const AuthenticatedApp = () => {
         <Route path="/growth" element={<Navigate to="/growth/hiring" replace />} />
         <Route path="/growth/hiring" element={<ProtectedRoute><HiringPlanPage /></ProtectedRoute>} />
         <Route path="/studios/simple-social" element={<ProtectedRoute><SimpleSocialPage /></ProtectedRoute>} />
+        <Route path="/tools/chrome-workspace" element={<ProtectedRoute><ChromeWorkspacePage /></ProtectedRoute>} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
