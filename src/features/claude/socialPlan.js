@@ -429,28 +429,41 @@ export function socialPlanToMarkdown(raw, business = "") {
   if ((p.kpis || []).length) out.push("", "## KPIs", "| KPI | Platform | Now | Target |", "| --- | --- | --- | --- |", ...p.kpis.map((k) => `| ${k.name} | ${k.platform || "—"} | ${k.current || "unknown"} | ${k.target || "unknown"}${k.is_estimate ? " (est.)" : ""} |`));
   const r = p.roles || {};
   if ((r.interstellar || []).length || (r.client || []).length) out.push("", "## Who does what", "**Interstellar**", ...li(r.interstellar), "", "**You**", ...li(r.client), ...(r.together.length ? ["", "**Together**", ...li(r.together)] : []));
+  const sm = socialSearchMarkdown(p, { heading: "##" });
+  if (sm) out.push("", sm);
+  out.push("", "## Rules", ...li([...SOCIAL_COMPLIANCE, ...(p.compliance || [])]));
+  if ((p.next_steps || []).length) out.push("", "## Next steps", ...p.next_steps.map((s, i) => `${i + 1}. ${s}`));
+  return out.filter((x) => x !== null && x !== undefined).join("\n");
+}
+
+// The search (social SEO) + collaborations part of a plan as markdown. Used by socialPlanToMarkdown and
+// by the plan view (SocialPlanTab), so the structured sections are visible everywhere.
+export function socialSearchMarkdown(plan, { heading = "##" } = {}) {
+  const p = plan && plan.search !== undefined && plan.goals_audience ? plan : normalizeSocialPlan(plan);
+  if (!p) return "";
+  const out = [];
+  const li = (xs) => (xs || []).map((x) => `- ${x}`);
+  const h3 = `${heading}#`;
   const se = p.search || {};
   if ((se.keyword_map || []).length || (se.profile_seo || []).length || (se.sample_posts || []).length) {
-    out.push("", "## Search optimization (social SEO)");
+    out.push(`${heading} Search optimization (social SEO)`);
     (se.keyword_map || []).forEach((k) => out.push("", `**Keywords — ${platformLabel(k.platform)}**${k.notes ? ` (${k.notes})` : ""}`, ...li(k.phrases)));
     if ((se.profile_seo || []).length) {
-      out.push("", "### Profile fixes");
+      out.push("", `${h3} Profile fixes`);
       se.profile_seo.forEach((x) => out.push("", `**${platformLabel(x.platform)}**`, x.name_field ? `- Name field: ${x.name_field}` : "", x.username ? `- Username: ${x.username}` : "", x.bio ? `- Bio: ${x.bio}` : "", x.links.length ? `- Links: ${x.links.join("; ")}` : "", x.highlights.length ? `- Highlights: ${x.highlights.join(", ")}` : "", ...li(x.other)));
     }
-    if ((se.pillar_keywords || []).length) out.push("", "### Pillars → keywords", ...se.pillar_keywords.map((x) => `- **${x.pillar}:** ${x.keywords.join("; ")}`));
+    if ((se.pillar_keywords || []).length) out.push("", `${h3} Pillars → keywords`, ...se.pillar_keywords.map((x) => `- **${x.pillar}:** ${x.keywords.join("; ")}`));
     if (se.caption_template) out.push("", `**Caption template:** ${se.caption_template}`);
     if (se.alt_text_template) out.push(`**Alt-text template:** ${se.alt_text_template}`);
     if ((se.video_rules || []).length) out.push("", "**Video (Reels/Shorts/TikTok)**", ...li(se.video_rules));
     if ((se.sample_posts || []).length) {
-      out.push("", "### Sample posts");
+      out.push("", `${h3} Sample posts`);
       se.sample_posts.forEach((x, i) => out.push("", `**${i + 1}. ${platformLabel(x.platform)} · ${formatLabel(x.format)}${x.pillar ? ` · ${x.pillar}` : ""}** — keyword: ${x.primary_keyword || "—"}`, x.hook ? `- Hook: ${x.hook}` : "", x.on_screen_text ? `- On-screen: ${x.on_screen_text}` : "", x.spoken_keywords ? `- Spoken: ${x.spoken_keywords}` : "", x.caption ? `- Caption: ${x.caption.replace(/\n+/g, " / ")}` : "", x.alt_text ? `- Alt text: ${x.alt_text}` : "", x.hashtags.length ? `- Hashtags: ${x.hashtags.join(" ")}` : "", x.needs_from_client ? `- Needs: ${x.needs_from_client}` : ""));
     }
-    if ((se.measurement || []).length) out.push("", "### Search measurement", "| Metric | Where | Target |", "| --- | --- | --- |", ...se.measurement.map((m) => `| ${m.metric} | ${m.where || "—"} | ${m.target || "unknown"} |`));
+    if ((se.measurement || []).length) out.push("", `${h3} Search measurement`, "| Metric | Where | Target |", "| --- | --- | --- |", ...se.measurement.map((m) => `| ${m.metric} | ${m.where || "—"} | ${m.target || "unknown"} |`));
   }
-  if ((p.collaborations || []).length) out.push("", "## Collaborations", ...p.collaborations.map((c) => `- **${c.idea}**${c.format ? ` (${c.format})` : ""}${c.how ? ` — ${c.how}` : ""}${c.disclosure ? ` Disclosure: ${c.disclosure}` : ""}`));
-  out.push("", "## Rules", ...li([...SOCIAL_COMPLIANCE, ...(p.compliance || [])]));
-  if ((p.next_steps || []).length) out.push("", "## Next steps", ...p.next_steps.map((s, i) => `${i + 1}. ${s}`));
-  return out.filter((x) => x !== null && x !== undefined).join("\n");
+  if ((p.collaborations || []).length) out.push("", `${heading} Collaborations`, ...p.collaborations.map((c) => `- **${c.idea}**${c.format ? ` (${c.format})` : ""}${c.how ? ` — ${c.how}` : ""}${c.disclosure ? ` Disclosure: ${c.disclosure}` : ""}`));
+  return out.filter((x) => x !== null && x !== undefined).join("\n").trim();
 }
 
 /* ---------------- inputs ---------------- */
