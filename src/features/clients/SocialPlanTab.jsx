@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { useJobs, useRefreshJobs, approveJob, requestChanges, cancelJob, chatPrompt, JOB_STATUS } from "@/features/claude/jobs";
 import {
   SOCIAL_COMPLIANCE, fmtMinutes, formatLabel, gatherSocialPlanInputs, inputChips, isSocialPlanJob, normalizeSocialPlan, platformLabel,
-  queueSocialPlan, quickDraftSocialPlan, socialPlanBrief, socialPlanFromJob, weeklyBudget,
+  queueSocialPlan, quickDraftSocialPlan, socialPlanBrief, socialPlanFromJob, socialSearchMarkdown, weeklyBudget,
 } from "@/features/claude/socialPlan";
 import { socialPlanDeckBrief } from "@/features/presentations/lib/deckFromDocs";
 import DeckFromDocButton from "@/features/presentations/DeckFromDocButton";
@@ -347,6 +347,12 @@ export function SocialPlanView({ plan, body }) {
             <div className="rounded-md border border-hair bg-card px-3 py-2.5"><Label tone="text-green-700">you</Label><Bullets items={r.client} /></div>
             {r.together.length > 0 && <div className="rounded-md border border-hair bg-card px-3 py-2.5"><Label>together</Label><Bullets items={r.together} /></div>}
           </div>
+        </Section>
+      )}
+
+      {socialSearchMarkdown(p, { heading: "###" }) && (
+        <Section title="Search optimization (social SEO)">
+          <div className="prose prose-sm max-w-none text-ink/80"><ReactMarkdown>{socialSearchMarkdown(p, { heading: "###" })}</ReactMarkdown></div>
         </Section>
       )}
 
