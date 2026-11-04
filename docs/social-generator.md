@@ -68,6 +68,7 @@ and NEVER post, schedule or send anything to any social network or person.
    - Slogan is exactly "The Future of Business". No emoji anywhere. Avoid brand.js banned_words.
 
 6. Write captions for each post:
+   - SEARCH FIRST: follow brand.js SEARCH (social SEO rules + starting search phrases) for every caption, alt_text, on-image headline and video script; it overrides the hashtag count below (3-5, never more than 5). Sourced playbook: AgencyKnowledge key "social_search".
    - caption (Instagram/Facebook/X/TikTok): hook line, 2-4 short lines, clear CTA, then 3-6
      relevant hashtags (from brand.js hashtag_bank or close variants) on the last line. Under 600 chars.
    - caption_linkedin: same idea, a little longer and reflective, first person as Justin is fine
