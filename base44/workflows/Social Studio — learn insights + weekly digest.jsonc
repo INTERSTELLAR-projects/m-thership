@@ -1,0 +1,63 @@
+{
+  "name": "Social Studio — learn: insights + weekly digest",
+  "description": "Daily 5:40am PT: reads engagement back for posted variants where the platform API allows, then upserts last week's per-platform digest for every brand (real numbers only; takeaways are written in the app on request).",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "40 5 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "social_channels_learn",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "refresh_insights": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "social-channels",
+            "args": {
+              "action": "refresh_insights"
+            }
+          },
+          "then": "weekly_digest",
+          "x-base44": {
+            "title": "Refresh insights",
+            "description": "Posted variants, last 45 days"
+          }
+        }
+      },
+      {
+        "weekly_digest": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "social-channels",
+            "args": {
+              "action": "digest"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Weekly digest",
+            "description": "Upserts last week's SocialDigest per brand (idempotent)"
+          }
+        }
+      }
+    ]
+  }
+}

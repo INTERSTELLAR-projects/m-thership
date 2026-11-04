@@ -49,7 +49,7 @@ export default function ClientInstagram({ connectorId, onSaveConnector }) {
   const [advanced, setAdvanced] = useState(false);
   const [cid, setCid] = useState(connectorId || "");
   useEffect(() => setCid(connectorId || ""), [connectorId]);
-  const accounts = accountsQ.data || [];
+  const accounts = (accountsQ.data || []).filter((a) => (a.platform || "instagram") === "instagram");
   const clients = clientsQ.data || [];
   const free = clients.filter((c) => !accounts.some((a) => a.client_id === c.id));
   const r = reach.data || {};
