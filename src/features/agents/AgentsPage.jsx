@@ -300,7 +300,7 @@ export default function AgentsPage() {
 
         {/* Department switcher */}
         {!isLoading && !(web === "clients" && !client) ? (
-          <div className={`absolute bottom-3 left-3 z-20 md:left-5 ${panel ? (sel?.type === "ceo" || sel?.type === "brain" ? "right-3 md:right-[544px]" : "right-3 md:right-[464px]") : "right-16 md:right-20"}`}>
+          <div className={`absolute bottom-3 left-3 z-20 md:left-5 ${panel ? (sel?.type === "ceo" || sel?.type === "brain" ? "right-3 md:right-[544px]" : "right-3 md:right-[464px]") : "right-3 md:right-20"}`}>
             <div className="no-scrollbar flex gap-1.5 overflow-x-auto">
               <button type="button" className={`chip shrink-0 ${!dept ? "on" : ""}`} onClick={() => setP({ dept: null, deptpanel: null })}>Overview</button>
               {presentDepts.map((x) => {
