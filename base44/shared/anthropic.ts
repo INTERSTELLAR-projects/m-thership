@@ -29,6 +29,15 @@ export function toStrictSchema(s: any): any {
   return out;
 }
 
+// A free-form object (additionalProperties allowed, no listed properties) can't be expressed strictly: it would be
+// forced to {}. Those schemas go straight to the JSON-in-words path.
+function hasFreeForm(s: any): boolean {
+  if (!s || typeof s !== "object") return false;
+  if (Array.isArray(s)) return s.some(hasFreeForm);
+  if ((s.type === "object" || s.additionalProperties) && s.additionalProperties && s.additionalProperties !== false && !Object.keys(s.properties || {}).length) return true;
+  return Object.values(s).some((v) => typeof v === "object" && hasFreeForm(v));
+}
+
 function parseJsonLoose(text: string) {
   const t = String(text || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "");
   try { return JSON.parse(t); } catch { /* fall through */ }
@@ -64,9 +73,10 @@ export async function callClaude(opts: {
   if (opts.system) base.system = opts.system;
 
   let data: any;
-  let strict = !!opts.schema;
+  let strict = !!opts.schema && !hasFreeForm(opts.schema);
   if (opts.schema) {
     try {
+      if (!strict) throw new AnthropicError(400, "free_form", "free-form schema");
       data = await post(opts.key, { ...base, output_config: { format: { type: "json_schema", schema: toStrictSchema(opts.schema) } } });
     } catch (e) {
       if (!(e instanceof AnthropicError) || e.status !== 400) throw e;
