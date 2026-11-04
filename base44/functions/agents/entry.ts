@@ -27,7 +27,23 @@ const cut = (s: unknown, n: number) => { const t = String(s ?? "").replace(/\s+/
 const uid = () => Math.random().toString(36).slice(2, 10);
 const pacificDay = (d = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles" }).format(d);
 const SECRET_RE = /(password|passcode|pwd|api[_ -]?key|secret|token)\s*[:=]\s*\S+/gi;
-const scrub = (s: string) => String(s || "").replace(SECRET_RE, "[removed: credentials are never stored]");
+// Strips anything that looks like a credential, and applies the brand mark rule (™, never ®).
+const scrub = (s: string) => String(s || "").replace(SECRET_RE, "[removed: credentials are never stored]").replace(/®/g, "™");
+
+// Brand hygiene for existing brains: rewrite any section text that still carries ® (e.g. Stripe product names).
+async function brandHygiene(db: any) {
+  const brains = await list(db.BusinessBrain, {}, "-updated_date", 300);
+  let fixed = 0;
+  for (const b of brains) {
+    const secs = b.sections || {};
+    if (!JSON.stringify(secs).includes("®") && !String(b.glance || "").includes("®")) continue;
+    const next: any = {};
+    for (const [k, v] of Object.entries(secs)) next[k] = v && typeof v === "object" ? { ...(v as any), text: String((v as any).text || "").replace(/®/g, "™") } : v;
+    await db.BusinessBrain.update(b.id, { sections: next, glance: String(b.glance || "").replace(/®/g, "™") || b.glance });
+    fixed++;
+  }
+  return fixed;
+}
 
 async function list(ent: any, q: any = {}, sort = "-created_date", limit = 200) {
   try { return arr(await ent.filter(q, sort, limit)); } catch { return []; }
@@ -507,6 +523,7 @@ Deno.serve(async (req) => {
       const mark = { key: "agents_nightly", pageSettings: { ...ps, started_at: nowIso() } };
       if (flag) await db.AppSettings.update(flag.id, mark); else flag = await db.AppSettings.create(mark);
       const seeded = await seedBrains(db);
+      await brandHygiene(db).catch(() => 0);
       const sync = await syncClients(db, who === "justin" ? "in_app" : "nightly");
       const brains = await list(db.BusinessBrain, {}, "last_refined_at", 300);
       const due = brains
