@@ -319,7 +319,7 @@ export default function Constellation({ graph, viewKey, selectedId, onSelect, on
           </g>
         </g>
       </svg>
-      <div className="absolute bottom-4 right-4 z-20 flex flex-col overflow-hidden rounded-xl glass">
+      <div className="absolute bottom-4 z-20 flex flex-col overflow-hidden rounded-xl glass" style={{ right: (size.w >= 768 ? padRight : 0) + 16 }}>
         <button type="button" aria-label="Zoom in" className="grid h-9 w-9 place-items-center text-[var(--ink-m)] hover:text-white" onClick={() => { const c = center(); zoomAt(1.3, c.x, c.y); }}><Plus className="h-4 w-4" /></button>
         <button type="button" aria-label="Zoom out" className="grid h-9 w-9 place-items-center border-t border-[var(--hair-d)] text-[var(--ink-m)] hover:text-white" onClick={() => { const c = center(); zoomAt(1 / 1.3, c.x, c.y); }}><Minus className="h-4 w-4" /></button>
         <button type="button" aria-label="Fit to screen" className="grid h-9 w-9 place-items-center border-t border-[var(--hair-d)] text-[var(--ink-m)] hover:text-white" onClick={() => fit(true)}><Maximize2 className="h-3.5 w-3.5" /></button>
