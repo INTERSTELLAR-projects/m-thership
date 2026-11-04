@@ -66,7 +66,19 @@ export async function resolvePortalClient(base44: any, body: Row = {}, req?: Req
   } else {
     const email = String(user.email || "").toLowerCase();
     const all = await db.CRMClient.filter({ portal_enabled: true }, "business", 500);
-    client = (all || []).find((c: Row) => ((c.portal_emails as string[]) || []).some((e) => String(e).toLowerCase() === email)) || null;
+    const mine = ((all || []) as Row[]).filter((c: Row) => ((c.portal_emails as string[]) || []).some((e) => String(e).toLowerCase() === email));
+    // Package-deal owners (one login on several clients): the business picked in the portal switcher comes from the
+    // call or from active_client_id on their latest assistant conversation, and is honoured ONLY when this login is on
+    // that client's portal_emails. Anything else falls back to their first business.
+    let want = String(body?.client_id || "");
+    if (mine.length > 1 && !want) {
+      try {
+        const convs = await base44.agents.listConversations({ sort: "-updated_date", limit: 20 });
+        const list = (Array.isArray(convs) ? convs : (convs?.data || [])) as Row[];
+        want = String(list.find((x) => x.agent_name === AGENT_NAME && x.metadata?.active_client_id)?.metadata?.active_client_id || "");
+      } catch { /* no conversations */ }
+    }
+    client = (want ? mine.find((c: Row) => c.id === want) : null) || mine[0] || null;
     if (!client) return { error: json({ error: "No portal is set up for this login yet.", code: "no_client" }, 403) };
   }
   const cid = client.id as string;
