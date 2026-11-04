@@ -1,6 +1,6 @@
 {
   "name": "Agents \u2014 nightly brain refresh",
-  "description": "Nightly: seeds any missing Business Brain from M\u00f8thership records, rebuilds every active client's agent instances from real data, and refines up to 3 brains (merges agent/research findings, flags conflicts for Justin, rewrites the at-a-glance summary). Records only: never sends anything to a client and never changes a client site, package or price.",
+  "description": "Nightly: seeds any missing Business Brain from M\u00f8thership records, rebuilds every active client's agent instances from real data, and refines up to 5 brains (merges agent/research findings, flags conflicts for Justin, rewrites the at-a-glance summary). Records only: never sends anything to a client and never changes a client site, package or price.",
   "trigger": {
     "condition": null,
     "config": {

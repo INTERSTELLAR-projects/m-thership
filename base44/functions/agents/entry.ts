@@ -12,7 +12,7 @@
 //                for Justin, never silently overwritten), regenerate the at-a-glance summary.
 //   sync_clients {}                    (re)build every active client's template instances from real data.
 //   nightly      {}                    workflow "Agents — nightly brain refresh": seed missing brains, sync client
-//                instances, refine up to 3 brains. Callable without a user at most once per 8 hours.
+//                instances, refine up to 5 brains. Callable without a user at most once per 8 hours.
 // Never sends anything to a client, never changes a client site, package or price. No secrets are read or stored.
 // deno-lint-ignore-file no-explicit-any
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
@@ -512,7 +512,7 @@ Deno.serve(async (req) => {
       const due = brains
         .filter((b: any) => arr(b.pending_updates).some((u: any) => (u.status || "pending") === "pending") || !b.last_refined_at || Date.now() - new Date(b.last_refined_at).getTime() > 7 * DAY)
         .sort((a: any, b: any) => arr(b.pending_updates).filter((u: any) => (u.status || "pending") === "pending").length - arr(a.pending_updates).filter((u: any) => (u.status || "pending") === "pending").length)
-        .slice(0, Number(body?.max_refine) || 3);
+        .slice(0, Number(body?.max_refine) || 5);
       const refined = await Promise.all(due.map((b: any) => refineBrain(base44, db, b, who, !user).catch((e) => ({ brain_id: b.id, error: String(e?.message || e) }))));
       // Backup CEO brief so Commander always has today's facts even if the Claude registry sync didn't run.
       let brief: any = null;
