@@ -13,6 +13,7 @@ import { UserPlus as HiringIcon } from "lucide-react";
 import { Gauge as UsageIcon } from "lucide-react";
 import { Fuel as FuelIcon } from "lucide-react";
 import { Orbit as AgentsIcon } from "lucide-react";
+import { Rocket as LaunchIcon } from "lucide-react";
 import { Radar as IntelligenceIcon } from "lucide-react";
 import { Wand2 as SimpleSocialIcon } from "lucide-react";
 import { Chrome as ChromeWorkspaceIcon } from "lucide-react";
@@ -26,6 +27,7 @@ export const NAV_GROUPS = [
     label: "Command",
     items: [
       { label: "Mission Control", icon: LayoutDashboard, path: "/" },
+      { label: "Road to Dec 31", icon: LaunchIcon, path: "/launch" },
       { label: "Agents", icon: AgentsIcon, path: "/agents" },
       { label: "Intelligence", icon: IntelligenceIcon, path: "/intelligence" },
       { label: "Clients", icon: Users, path: "/crm" },
