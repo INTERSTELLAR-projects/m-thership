@@ -318,14 +318,12 @@ async function syncClients(db: any, by = "in_app") {
   // The template definitions themselves (scope template), so scheduled tasks can read the standard set from the DB.
   for (const t of CLIENT_TEMPLATES) {
     const key = `template:${t.key}`;
-    const inst = [...creates, ...registry].filter((r: any) => r.scope === "client" && r.template_key === t.key);
     const liveN = creates.filter((r: any) => r.template_key === t.key && r.status === "live").length + registry.filter((r: any) => r.scope === "client" && r.template_key === t.key && r.status === "live" && !creates.some((c: any) => c.key === r.key)).length;
     const notes = `${liveN} live of ${clients.length} clients`;
     const old: any = registry.find((r: any) => r.key === key);
     const rec = { key, name: t.name, scope: "template", template_key: t.key, department: t.department, role: t.role, kind: t.kind, status: liveN ? "live" : "planned", autonomy_target: t.autonomy_target, approval_required: t.autonomy_target !== "autonomous", reads_knowledge: t.reads, writes_knowledge: t.writes, replaces: t.replaces, kpis: t.kpis, notes, synced_at: now, synced_by: by, sort: CLIENT_TEMPLATES.indexOf(t) };
     if (!old) creates.push(rec);
     else if (old.notes !== notes || old.status !== rec.status || old.role !== rec.role) { await db.AgentRegistry.update(old.id, { notes, status: rec.status, role: rec.role, synced_at: now, synced_by: by }); updated++; }
-    void inst;
   }
   for (let i = 0; i < creates.length; i += 100) await db.AgentRegistry.bulkCreate(creates.slice(i, i + 100));
   return { clients: clients.length, created: creates.length, updated };
@@ -504,8 +502,11 @@ Deno.serve(async (req) => {
         .sort((a: any, b: any) => arr(b.pending_updates).filter((u: any) => (u.status || "pending") === "pending").length - arr(a.pending_updates).filter((u: any) => (u.status || "pending") === "pending").length)
         .slice(0, Number(body?.max_refine) || 3);
       const refined = await Promise.all(due.map((b: any) => refineBrain(base44, db, b, who, !user).catch((e) => ({ brain_id: b.id, error: String(e?.message || e) }))));
-      await db.AutomationRun.create({ automation_name: "Agents — nightly brain refresh", kind: "other", status: refined.some((r: any) => r.error) ? "failed" : "success", message: `Brains seeded/checked ${seeded.length}, instances +${sync.created}/~${sync.updated}, refined ${refined.length}`, started_at: nowIso(), finished_at: nowIso(), processed: true }).catch(() => null);
-      return Response.json({ seeded, sync, refined });
+      // Backup CEO brief so Commander always has today's facts even if the Claude registry sync didn't run.
+      let brief: any = null;
+      if (body?.brief !== false) brief = await makeBrief(base44, db, undefined, !user).then((b: any) => ({ id: b?.id, headline: b?.headline })).catch((e) => ({ error: String(e?.message || e) }));
+      await db.AutomationRun.create({ automation_name: "Agents — nightly brain refresh", kind: "other", status: refined.some((r: any) => r.error) || brief?.error ? "failed" : "success", message: `Brains seeded/checked ${seeded.length}, instances +${sync.created}/~${sync.updated}, refined ${refined.length}${brief?.error ? `, brief failed: ${cut(brief.error, 120)}` : ", brief written"}`, started_at: nowIso(), finished_at: nowIso(), processed: true }).catch(() => null);
+      return Response.json({ seeded, sync, refined, brief });
     }
 
     if (action === "ceo_chat") {
