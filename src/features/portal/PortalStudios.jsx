@@ -108,12 +108,14 @@ export const STUDIO_BY_TAB = Object.fromEntries(STUDIOS.map((s) => [s.tab, s]));
 
 // Tabs this client can see: everything not switched off. `locked` = tabs still in preview, or every Studio when the
 // client's plan doesn't include Studios (fuel.studios_unlocked false: shown as previews, never hidden).
+// The server's answer (fuel.studios) wins over the client record when it has one.
+const stateOf = (client, fuel, key) => (fuel?.studios?.[key] && fuel.studios[key] !== "locked" ? fuel.studios[key] : studioState(client, key));
 export function studioTabs(client, fuel) {
   const planLocked = !!fuel && fuel.studios_unlocked === false;
-  const visible = STUDIOS.filter((s) => s.comingSoon || planLocked || studioState(client, s.key) !== "off");
+  const visible = STUDIOS.filter((s) => s.comingSoon || planLocked || stateOf(client, fuel, s.key) !== "off");
   return {
     tabs: visible.map((s) => [s.tab, s.label]),
-    locked: new Set(visible.filter((s) => s.comingSoon || planLocked || studioState(client, s.key) === "preview").map((s) => s.tab)),
+    locked: new Set(visible.filter((s) => s.comingSoon || planLocked || stateOf(client, fuel, s.key) === "preview").map((s) => s.tab)),
     planLocked,
   };
 }
@@ -128,7 +130,7 @@ function LockBadge({ on, soon, plan }) {
 export default function StudioPreview({ tab, client, call, preview, previewId, scopeId, fuel, onRefuel, onFuelChanged }) {
   const s = STUDIO_BY_TAB[tab];
   const planLocked = !!fuel && fuel.studios_unlocked === false;
-  const state = planLocked ? "locked" : s?.comingSoon ? "preview" : studioState(client, s?.key);
+  const state = planLocked ? "locked" : s?.comingSoon ? "preview" : stateOf(client, fuel, s?.key);
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
