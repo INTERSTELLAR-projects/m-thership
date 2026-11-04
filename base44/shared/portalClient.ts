@@ -1,7 +1,9 @@
 // Which CRMClient may this caller act for? Same rule as the portal function:
 //   admin + client_id   -> that client (Justin previewing / acting for a client)
 //   admin, no client_id -> null (agency-level admin usage)
-//   portal user         -> the portal-enabled client whose portal_emails include their login; client_id is ignored,
+//   portal user         -> the portal-enabled client whose portal_emails include their login. A login on several
+//                          clients (package-deal owner) may pick one with client_id, but only among the clients
+//                          whose portal_emails include that login; any other id falls back to their first client,
 //                          so a portal user can never act on another client.
 export async function resolveClient(db: any, user: any, asClient?: unknown): Promise<Record<string, any> | null> {
   if (!user) return null;
@@ -11,7 +13,8 @@ export async function resolveClient(db: any, user: any, asClient?: unknown): Pro
   }
   const email = String(user.email || "").toLowerCase();
   const all = (await db.CRMClient.filter({ portal_enabled: true }, "business", 500).catch(() => [])) || [];
-  return all.find((c: Record<string, any>) => ((c.portal_emails as string[]) || []).some((e) => String(e).toLowerCase() === email)) || null;
+  const mine = all.filter((c: Record<string, any>) => ((c.portal_emails as string[]) || []).some((e) => String(e).toLowerCase() === email));
+  return (asClient ? mine.find((c: Record<string, any>) => c.id === String(asClient)) : null) || mine[0] || null;
 }
 
 // Secret presence only: values are never returned, logged or compared.
