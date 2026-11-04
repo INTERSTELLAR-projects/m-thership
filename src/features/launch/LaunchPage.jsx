@@ -293,8 +293,8 @@ export default function LaunchPage() {
                   <ul className="space-y-2">{s.questions.map((i) => <Question key={i.id} item={i} onAnswer={m.answer} />)}</ul>
                 </Section>
               </div>
-              <Section label="Clients" title="Launch" accent="readiness" right={<span className="mono-label text-[10px] text-ink/45">portal · login · site · profile ≥{COMPLETE_AT}% · app · engine</span>}><ClientCards items={items} /></Section>
-              <Section label="9 weeks" title="Week-by-week" accent="plan"><Plan items={items} /></Section>
+              <Section id="clients" label="Clients" title="Launch" accent="readiness" right={<span className="mono-label text-[10px] text-ink/45">portal · login · site · profile ≥{COMPLETE_AT}% · app · engine</span>}><ClientCards items={items} /></Section>
+              <Section id="plan" label="9 weeks" title="Week-by-week" accent="plan"><Plan items={items} /></Section>
               <Section label="Claude + agents" title="Claude's" accent="queue"><ClaudeQueue s={s} /></Section>
               <Section label="After launch" title="The 2027" accent="lane">
                 <div className="grid gap-px border border-hair bg-hair sm:grid-cols-2 xl:grid-cols-3">
