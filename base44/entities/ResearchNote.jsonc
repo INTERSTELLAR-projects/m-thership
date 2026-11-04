@@ -1,0 +1,96 @@
+{
+  "description": "Research department output: one researched finding with real sources, tagged with the department, the agents it feeds and (for client research) the client. Admin only.",
+  "name": "ResearchNote",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "department": {
+      "type": "string"
+    },
+    "for_agents": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "proposed_change": {
+      "type": "string"
+    },
+    "relevance": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "status": {
+      "default": "new",
+      "enum": [
+        "new",
+        "reviewed",
+        "applied",
+        "dismissed"
+      ],
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "topic": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "topic",
+    "summary"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

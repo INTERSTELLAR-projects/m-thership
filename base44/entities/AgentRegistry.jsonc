@@ -1,0 +1,212 @@
+{
+  "description": "Agent Constellation: one row per AI agent / automation running (or still needed) across Interstellar and each client. scope interstellar = agency agents; scope client = a per-client instance of a client template agent (key <template>:<clientId>); scope template = the client agent template definitions. Admin only.",
+  "name": "AgentRegistry",
+  "properties": {
+    "approval_required": {
+      "default": true,
+      "type": "boolean"
+    },
+    "autonomy": {
+      "enum": [
+        "manual",
+        "assisted",
+        "autonomous"
+      ],
+      "type": "string"
+    },
+    "autonomy_target": {
+      "enum": [
+        "manual",
+        "assisted",
+        "autonomous"
+      ],
+      "type": "string"
+    },
+    "branch": {
+      "description": "Optional sub-branch inside the department tree (e.g. Social, Content & blogs, Ads)",
+      "type": "string"
+    },
+    "build_order": {
+      "type": "number"
+    },
+    "build_priority": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "type": "string"
+    },
+    "client_id": {
+      "description": "CRMClient id when the agent works for one client",
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "department": {
+      "description": "Interstellar: command, research, sales, marketing, delivery, success, backoffice, systems. Client: brain, research, seo, social, ads, email, reviews, website, reporting, ceo, ops",
+      "type": "string"
+    },
+    "external_id": {
+      "description": "Claude trigger id, Base44 workflow id or backend function name",
+      "type": "string"
+    },
+    "key": {
+      "description": "Stable unique key, e.g. claude:trig_..., wf:social-publish, fn:ai-gateway, plan:speed_to_lead, seo_blog:<clientId>",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "claude_scheduled_task",
+        "base44_workflow",
+        "in_app_ai",
+        "backend_function",
+        "manual_skill",
+        "client_app_workflow"
+      ],
+      "type": "string"
+    },
+    "kpis": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "last_run_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "last_status": {
+      "enum": [
+        "success",
+        "failed",
+        "skipped",
+        "never",
+        "unknown",
+        "needs_approval"
+      ],
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "open_url": {
+      "description": "In-app route or external link to the agent's page",
+      "type": "string"
+    },
+    "owner_app": {
+      "description": "M\u00f8thership, or the client app name",
+      "type": "string"
+    },
+    "owner_app_id": {
+      "type": "string"
+    },
+    "reads_knowledge": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "replaces": {
+      "description": "The human job or tool this agent replaces",
+      "type": "string"
+    },
+    "reports_to": {
+      "description": "commander, or a department / client CEO key",
+      "type": "string"
+    },
+    "role": {
+      "description": "What it does, plain English",
+      "type": "string"
+    },
+    "run_count_30d": {
+      "type": "number"
+    },
+    "run_match": {
+      "description": "AutomationRun.automation_name values that belong to this agent",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "schedule": {
+      "type": "string"
+    },
+    "scope": {
+      "default": "interstellar",
+      "enum": [
+        "interstellar",
+        "client",
+        "template"
+      ],
+      "type": "string"
+    },
+    "sort": {
+      "default": 100,
+      "type": "number"
+    },
+    "status": {
+      "default": "planned",
+      "enum": [
+        "live",
+        "paused",
+        "planned",
+        "broken"
+      ],
+      "type": "string"
+    },
+    "success_rate_30d": {
+      "description": "0..1",
+      "type": "number"
+    },
+    "synced_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "synced_by": {
+      "type": "string"
+    },
+    "template_key": {
+      "description": "Client agent template this row instantiates (or belongs to)",
+      "type": "string"
+    },
+    "writes_knowledge": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "key",
+    "name",
+    "department"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

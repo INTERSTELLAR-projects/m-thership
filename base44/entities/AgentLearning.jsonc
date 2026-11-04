@@ -1,0 +1,87 @@
+{
+  "description": "What an agent learned (from a run review, research, Justin's feedback or the weekly retro). Proposed changes stay proposed until Justin approves. Client learnings carry client_id and only ever feed that client's brain. Admin only.",
+  "name": "AgentLearning",
+  "properties": {
+    "agent_key": {
+      "type": "string"
+    },
+    "applied": {
+      "default": false,
+      "type": "boolean"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "date": {
+      "format": "date",
+      "type": "string"
+    },
+    "department": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "string"
+    },
+    "learning": {
+      "type": "string"
+    },
+    "link": {
+      "type": "string"
+    },
+    "proposed_change": {
+      "description": "What should change in the agent or brain (approval-gated)",
+      "type": "string"
+    },
+    "source": {
+      "enum": [
+        "run_review",
+        "research",
+        "justin_feedback",
+        "retro"
+      ],
+      "type": "string"
+    },
+    "status": {
+      "default": "proposed",
+      "enum": [
+        "proposed",
+        "applied",
+        "dismissed"
+      ],
+      "type": "string"
+    },
+    "task_id": {
+      "description": "Command Briefing Task asking Justin to approve",
+      "type": "string"
+    }
+  },
+  "required": [
+    "learning"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

@@ -1,0 +1,102 @@
+{
+  "description": "Commander (CEO agent) brief: what the agents did, wins, failures, what needs Justin's approval, recommendations. Daily for Interstellar; per client on demand. Admin only.",
+  "name": "CeoBrief",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "clients_attention": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "date": {
+      "format": "date",
+      "type": "string"
+    },
+    "failures": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "generated_by": {
+      "description": "claude_task | in_app",
+      "type": "string"
+    },
+    "headline": {
+      "type": "string"
+    },
+    "is_retro": {
+      "default": false,
+      "type": "boolean"
+    },
+    "needs_approval": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "recommendations": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "scope": {
+      "default": "interstellar",
+      "enum": [
+        "interstellar",
+        "client"
+      ],
+      "type": "string"
+    },
+    "stats": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "wins": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "date"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

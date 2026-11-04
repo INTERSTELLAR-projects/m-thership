@@ -1,0 +1,124 @@
+{
+  "description": "Living knowledge base per client (scope client) and for Interstellar itself (scope interstellar). sections = { <key>: { text, sources[], updated_at, updated_by: justin|agent|research|seed, confidence: high|medium|low|unknown } }. Agents and research add pending_updates; the brain refresh merges them, flags conflicts for Justin and regenerates the one-screen glance. Never store passwords: only where logins live. Admin only.",
+  "name": "BusinessBrain",
+  "properties": {
+    "changelog": {
+      "description": "[{ at, by, section, change }] newest first, capped",
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "completeness": {
+      "description": "0..100",
+      "type": "number"
+    },
+    "conflicts": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "glance": {
+      "description": "Markdown: one-screen business at a glance",
+      "type": "string"
+    },
+    "glance_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "history": {
+      "description": "Previous section versions [{ at, by, section, text }] newest first, capped",
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "last_refined_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "open_questions": {
+      "items": {
+        "properties": {
+          "added_at": {
+            "type": "string"
+          },
+          "q": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "pending_updates": {
+      "description": "[{ id, section, text, source, by: agent|research|justin, agent_key, added_at, status: pending|merged|conflict|dismissed }]",
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "refined_by": {
+      "type": "string"
+    },
+    "scope": {
+      "default": "client",
+      "enum": [
+        "interstellar",
+        "client"
+      ],
+      "type": "string"
+    },
+    "sections": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "seeded_at": {
+      "format": "date-time",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scope"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}
