@@ -1,0 +1,88 @@
+// Anthropic Messages API (raw fetch, no SDK). Used by the ai-gateway function for client Studios so client AI runs on
+// our own ANTHROPIC_API_KEY instead of Base44 InvokeLLM credits. Model IDs live in usagePlans.ts (AI_MODELS).
+// JSON output uses structured outputs (output_config.format json_schema, GA, no beta header). If the API rejects
+// the schema, the call is retried once with plain "reply with JSON only" instructions and the text is parsed.
+
+import { AI_MODELS, type AiTier } from "./usagePlans.ts";
+
+const API = "https://api.anthropic.com/v1/messages";
+const VERSION = "2023-06-01";
+
+type Msg = { role: "user" | "assistant"; content: string };
+
+// Structured outputs accept a subset of JSON Schema: every object needs additionalProperties:false, and numeric /
+// length constraints are not allowed. Base44-style schemas (as passed to InvokeLLM) are converted here.
+const DROP = new Set(["minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf", "minLength", "maxLength", "maxItems", "uniqueItems", "minProperties", "maxProperties", "patternProperties", "title", "examples", "$schema"]);
+export function toStrictSchema(s: any): any {
+  if (Array.isArray(s)) return s.map(toStrictSchema);
+  if (!s || typeof s !== "object") return s;
+  const out: any = {};
+  for (const [k, v] of Object.entries(s)) {
+    if (DROP.has(k)) continue;
+    if (k === "minItems") { if (Number(v) <= 1) out.minItems = Number(v); continue; }
+    if (k === "properties" && v && typeof v === "object") { out.properties = Object.fromEntries(Object.entries(v as any).map(([pk, pv]) => [pk, toStrictSchema(pv)])); continue; }
+    if (k === "additionalProperties") continue;
+    out[k] = typeof v === "object" ? toStrictSchema(v) : v;
+  }
+  const isObj = out.type === "object" || (Array.isArray(out.type) && out.type.includes("object")) || out.properties;
+  if (isObj) { out.additionalProperties = false; if (!out.properties) out.properties = {}; }
+  return out;
+}
+
+function parseJsonLoose(text: string) {
+  const t = String(text || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "");
+  try { return JSON.parse(t); } catch { /* fall through */ }
+  const a = t.indexOf("{"), b = t.lastIndexOf("}");
+  if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch { /* ignore */ } }
+  return null;
+}
+
+export class AnthropicError extends Error {
+  status: number; type: string;
+  constructor(status: number, type: string, message: string) { super(message); this.status = status; this.type = type; }
+}
+
+async function post(key: string, body: Record<string, unknown>) {
+  const res = await fetch(API, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": VERSION },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new AnthropicError(res.status, String(data?.error?.type || "api_error"), String(data?.error?.message || `Anthropic API ${res.status}`).slice(0, 400));
+  return data;
+}
+
+export async function callClaude(opts: {
+  key: string; tier?: AiTier; system?: string; prompt?: string; messages?: Msg[];
+  schema?: Record<string, unknown> | null; max_tokens?: number;
+}) {
+  const model = AI_MODELS[opts.tier === "long" ? "long" : "routine"];
+  const messages: Msg[] = opts.messages?.length ? opts.messages : [{ role: "user", content: String(opts.prompt || "") }];
+  const max_tokens = Math.min(Math.max(Number(opts.max_tokens) || model.max_tokens, 64), 32000);
+  const base: Record<string, unknown> = { model: model.id, max_tokens, messages };
+  if (opts.system) base.system = opts.system;
+
+  let data: any;
+  let strict = !!opts.schema;
+  if (opts.schema) {
+    try {
+      data = await post(opts.key, { ...base, output_config: { format: { type: "json_schema", schema: toStrictSchema(opts.schema) } } });
+    } catch (e) {
+      if (!(e instanceof AnthropicError) || e.status !== 400) throw e;
+      strict = false; // schema not accepted: ask for JSON in words instead
+      const hint = `\n\nReply with ONLY a JSON object (no prose, no code fences) matching this JSON Schema:\n${JSON.stringify(opts.schema).slice(0, 12000)}`;
+      data = await post(opts.key, { ...base, system: `${opts.system || ""}${hint}`.trim() });
+    }
+  } else {
+    data = await post(opts.key, base);
+  }
+  const text = (data?.content || []).filter((b: any) => b?.type === "text").map((b: any) => b.text).join("");
+  const json = opts.schema ? parseJsonLoose(text) : null;
+  if (opts.schema && json == null) throw new AnthropicError(502, "bad_json", "The model's reply wasn't valid JSON. Try again.");
+  return {
+    text, json, strict, model: String(data?.model || model.id), stop_reason: data?.stop_reason || null,
+    input_tokens: Number(data?.usage?.input_tokens || 0) + Number(data?.usage?.cache_read_input_tokens || 0) + Number(data?.usage?.cache_creation_input_tokens || 0),
+    output_tokens: Number(data?.usage?.output_tokens || 0),
+  };
+}
