@@ -39,17 +39,18 @@ export function buildOverview({ depts, agents, brain, ceo, keeper, centerLabel =
   const nodes = [];
   const edges = [];
   nodes.push({ id: "brain", type: "brain", label: centerLabel, sub: centerSub, x: 0, y: 0, r: 44, brain });
-  if (ceo) { nodes.push({ id: `a:${ceo.key}`, type: "ceo", label: ceo.name, x: 0, y: -150, r: 17, status: ceo.status, agent: ceo }); edges.push({ from: "brain", to: `a:${ceo.key}`, kind: "ceo" }); }
+  if (ceo) { nodes.push({ id: `a:${ceo.key}`, type: "ceo", label: ceo.name, x: 0, y: -175, r: 17, status: ceo.status, agent: ceo }); edges.push({ from: "brain", to: `a:${ceo.key}`, kind: "ceo" }); }
   if (keeper) { nodes.push(agentNode(keeper, 0, 118, { type: "agent" })); edges.push({ from: "brain", to: `a:${keeper.key}`, kind: "keeper" }); }
 
   const present = depts.map((d) => ({ ...d, agents: agents.filter((a) => a.department === d.key) })).filter((d) => d.agents.length || d.always);
   const weights = present.map((d) => d.agents.length + 3);
   const total = weights.reduce((s, w) => s + w, 0) || 1;
-  const gap = 7;
-  const usable = 360 - gap * present.length;
-  // Start just right of the CEO so the top stays clear.
-  let cursor = -90 + 14;
-  const R = 300;
+  const gap = 6;
+  // Keep a clear wedge at the top for the CEO so its label never collides with a department.
+  const topGap = ceo ? 52 : 0;
+  const usable = 360 - gap * present.length - topGap;
+  let cursor = -90 + topGap / 2;
+  const R = 320;
   present.forEach((d, i) => {
     const span = (weights[i] / total) * usable;
     const mid = cursor + span / 2;
@@ -67,7 +68,7 @@ export function buildOverview({ depts, agents, brain, ceo, keeper, centerLabel =
     const branchAngles = new Map();
     leaves.forEach(({ a, g }, idx) => {
       const ang = start + step * idx;
-      const ring = g.branch ? 470 + (idx % 3) * 34 : 410 + (idx % 2) * 30;
+      const ring = g.branch ? 500 + (idx % 3) * 36 : 440 + (idx % 2) * 32;
       const p = polar(ring, ang);
       nodes.push(agentNode(a, p.x, p.y));
       if (g.branch) {
@@ -79,7 +80,7 @@ export function buildOverview({ depts, agents, brain, ceo, keeper, centerLabel =
     });
     branchAngles.forEach((angs, b) => {
       const ang = angs.reduce((s, x) => s + x, 0) / angs.length;
-      const p = polar(388, ang);
+      const p = polar(415, ang);
       nodes.push({ id: `b:${d.key}:${b}`, type: "branch", label: b, x: p.x, y: p.y, r: 4, dept: d.key });
       edges.push({ from: rootId, to: `b:${d.key}:${b}` });
     });
