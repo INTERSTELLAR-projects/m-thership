@@ -5,7 +5,7 @@ import { requireSecondFactor } from "../../shared/twoFactor.ts";
 // this function finds the client their login belongs to and returns only that client's
 // portal-visible records. Admins can pass client_id to preview any client's portal.
 
-const SAFE_CLIENT = ["id", "business", "contact", "domain", "websites", "plan", "services_managed", "industry", "location", "logoUrl", "logo_url", "started_on"];
+const SAFE_CLIENT = ["id", "business", "contact", "domain", "websites", "plan", "services_managed", "industry", "location", "logoUrl", "logo_url", "started_on", "studios"];
 const pick = (o: Record<string, unknown>, keys: string[]) => Object.fromEntries(keys.filter((k) => o?.[k] !== undefined).map((k) => [k, o[k]]));
 const visible = (r: Record<string, unknown>) => r.portal_visible !== false;
 // Request types are configured once on the frontend (REQUEST_TYPES in src/features/requests/formSchema.js);
