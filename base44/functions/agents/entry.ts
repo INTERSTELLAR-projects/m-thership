@@ -521,6 +521,11 @@ Deno.serve(async (req) => {
       const whoName = clientId ? `the Client CEO for ${String(body?.client_name || "this client")}` : String(body?.ceo_name || "Commander");
       const convo = msgs.map((m: any) => `${m.role === "assistant" ? "YOU" : "JUSTIN"}: ${m.content}`).join("\n\n");
       const text = await llm(base44, { system: CEO_SYSTEM(whoName) + (clientId ? "\nYou only know this one client. Never mention or use another client's data." : ""), prompt: `CONTEXT\n${ctx}\n\nCONVERSATION\n${convo}\n\nReply to Justin's last message.`, tier: "long", feature: clientId ? "agents.client_ceo" : "agents.ceo_chat" });
+      // Keep the conversation server-side so it follows Justin across devices (last 40 messages per CEO).
+      const chatKey = `agents_chat:${clientId || "hq"}`;
+      const row = (await list(db.AppSettings, { key: chatKey }, "-updated_date", 1))[0];
+      const saved = { key: chatKey, pageSettings: { messages: [...msgs, { role: "assistant", content: text, at: nowIso() }].slice(-40), updated_at: nowIso() } };
+      if (row) await db.AppSettings.update(row.id, saved).catch(() => null); else await db.AppSettings.create(saved).catch(() => null);
       return Response.json({ text });
     }
 
