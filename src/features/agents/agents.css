@@ -81,7 +81,8 @@
 .agx .spin-rev { transform-box: fill-box; transform-origin: center; animation: agx-orbit 90s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .agx .pulse, .agx .breathe, .agx .spin-slow, .agx .spin-rev { animation: none; } .agx .cst .world { transition: none; } }
 
-/* Side panel */
+/* Side panel: children never shrink inside the scrolling column (scroll containers would collapse). */
+.agx aside.panel-in > * { flex-shrink: 0; }
 @keyframes agx-in { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes agx-up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 .agx .panel-in { animation: agx-in .35s cubic-bezier(.22, 1, .36, 1) both; }
