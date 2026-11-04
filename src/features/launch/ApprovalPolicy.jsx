@@ -16,7 +16,7 @@ export default function ApprovalPolicy() {
   const [modes, setModes] = useState({});
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
-  useEffect(() => { setModes(saved || Object.fromEntries(GATES.map((g) => [g.key, g.current]))); }, [pol.data]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setModes(pol.data?.pageSettings?.modes || Object.fromEntries(GATES.map((g) => [g.key, g.current]))); }, [pol.data]);
   const families = useMemo(() => [...new Set(GATES.map((g) => g.family))], []);
   const changed = GATES.filter((g) => modes[g.key] && modes[g.key] !== g.current).length;
 
