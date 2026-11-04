@@ -96,9 +96,16 @@ export const studioState = (client: Client, key: string): StudioState => {
   const v = client?.studios?.[key];
   return v === "on" || v === true ? "on" : v === "off" ? "off" : "preview";
 };
-// true only for Studios that are switched ON (usable). Preview and off are both locked server-side.
+// Studios unlock only on HyperCare+ (or an explicit admin exception: usage_overrides.studios_unlocked / unlimited).
+// Same rule as fuel.ts studiosUnlocked with the default config; the meter re-checks with the live config.
+export const planUnlocksStudios = (client: Client) => {
+  const o = client?.usage_overrides || {};
+  return planOf(client) === "hypercare" || o.unlimited === true || o.studios_unlocked === true;
+};
+// true only for Studios that are switched ON (usable) AND on a plan that includes Studios. Preview, off and
+// locked-by-plan are all refused server-side.
 export const studiosOf = (client: Client) =>
-  Object.fromEntries(STUDIO_KEYS.map((k) => [k, studioState(client, k) === "on"])) as Record<(typeof STUDIO_KEYS)[number], boolean>;
+  Object.fromEntries(STUDIO_KEYS.map((k) => [k, planUnlocksStudios(client) && studioState(client, k) === "on"])) as Record<(typeof STUDIO_KEYS)[number], boolean>;
 export const anyStudioOn = (client: Client) => Object.values(studiosOf(client)).some(Boolean);
 
 // Months roll over on Justin's clock (Pacific), so "until next month" means the 1st in Molalla.
