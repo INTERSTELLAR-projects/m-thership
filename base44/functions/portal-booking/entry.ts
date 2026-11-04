@@ -113,7 +113,10 @@ Deno.serve(async (req) => {
     else {
       const email = String(user.email || "").toLowerCase();
       const all = await db.CRMClient.filter({ portal_enabled: true }, "business", 500);
-      client = (all || []).find((c: Record<string, unknown>) => ((c.portal_emails as string[]) || []).some((e) => String(e).toLowerCase() === email)) || null;
+      // Package-deal owners: client_id picks one of THIS login's businesses; an id it isn't on is refused.
+      const mine = ((all || []) as Record<string, unknown>[]).filter((c) => ((c.portal_emails as string[]) || []).some((e) => String(e).toLowerCase() === email));
+      client = asClient ? mine.find((c) => c.id === asClient) || null : mine[0] || null;
+      if (!client && asClient && mine.length) return Response.json({ error: "This login can't open that business.", code: "not_allowed" }, { status: 403 });
     }
     if (!client) return Response.json({ error: "No portal is set up for this login yet.", code: "no_client" }, { status: 403 });
     const cid = client.id as string;
