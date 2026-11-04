@@ -5,6 +5,7 @@
 import { QA_ACCOUNTING } from "@/features/accounting/qaFixtures";
 import { QA_SOCIAL, qaSocialInvoke } from "@/features/social/qaFixtures";
 import { qaUsageInvoke } from "@/features/usage/qaFixtures";
+import { demo, demoInvoke } from "@/lib/demoData";
 
 const host = typeof window !== "undefined" ? window.location.hostname : "";
 const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
@@ -14,6 +15,14 @@ if (host.startsWith("preview-sandbox--") && params.get("qa") === "1") {
 let flag = false;
 try { flag = host.startsWith("preview-sandbox--") && sessionStorage.getItem("ms_qa") === "1"; } catch { flag = false; }
 export const IS_QA = flag;
+
+// DEMO (screen library for the sales deck): ?qa=1&demo=1 swaps in a big fictional book from src/lib/demoData.js.
+// ?demo=0 switches it off again. Same preview-only guard as QA.
+if (flag && params.get("demo") === "1") { try { sessionStorage.setItem("ms_demo", "1"); } catch { /* ignore */ } }
+if (flag && params.get("demo") === "0") { try { sessionStorage.removeItem("ms_demo"); } catch { /* ignore */ } }
+let demoFlag = false;
+try { demoFlag = flag && sessionStorage.getItem("ms_demo") === "1"; } catch { demoFlag = false; }
+export const IS_DEMO = demoFlag;
 
 export const QA_USER = { id: "qa-admin", email: "qa@interstellar.test", full_name: "Commander", role: "admin" };
 
@@ -92,7 +101,7 @@ const FIX = {
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const store = {};
-const rows = (name) => (store[name] ||= clone(FIX[name] || []));
+const rows = (name) => (store[name] ||= clone((IS_DEMO && demo().E[name]) || FIX[name] || []));
 const matches = (r, q = {}) => Object.entries(q).every(([k, v]) => (v && typeof v === "object" ? true : r[k] === v));
 const sortBy = (arr, sort) => {
   if (!sort || typeof sort !== "string") return arr;
@@ -124,12 +133,13 @@ export function installQa(base44) {
   try {
     Object.defineProperty(base44, "entities", { value: ents, configurable: true });
   } catch { base44.entities = ents; }
-  base44.auth.me = async () => QA_USER;
+  base44.auth.me = async () => (IS_DEMO ? { ...QA_USER, email: "commander@interstellar.demo" } : QA_USER);
   base44.auth.isAuthenticated = async () => true;
   base44.auth.logout = () => { sessionStorage.removeItem("ms_qa"); window.location.href = "/"; };
   base44.integrations = { Core: { InvokeLLM: async () => ({}), UploadFile: async () => ({ file_url: "" }) } };
   base44.functions = {
     invoke: async (name, args = {}) => {
+      if (IS_DEMO) { const d = demoInvoke(name, args, rows); if (d !== undefined) return { data: d }; }
       if (String(name).startsWith("social-")) return { data: qaSocialInvoke(name, args) };
       if (name === "usage") return { data: qaUsageInvoke(args) };
       if (name !== "portal") return { data: {} };
