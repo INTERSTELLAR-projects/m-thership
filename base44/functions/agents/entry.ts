@@ -12,7 +12,7 @@
 //                for Justin, never silently overwritten), regenerate the at-a-glance summary.
 //   sync_clients {}                    (re)build every active client's template instances from real data.
 //   nightly      {}                    workflow "Agents — nightly brain refresh": seed missing brains, sync client
-//                instances, refine up to 3 brains. Callable without a user at most once per 20 hours.
+//                instances, refine up to 3 brains. Callable without a user at most once per 8 hours.
 // Never sends anything to a client, never changes a client site, package or price. No secrets are read or stored.
 // deno-lint-ignore-file no-explicit-any
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
@@ -488,13 +488,13 @@ Deno.serve(async (req) => {
     const who = user ? "justin" : "nightly";
 
     if (action === "nightly") {
-      // Throttle the unauthenticated path: one completed run per 20 hours, and never two at once
+      // Throttle the unauthenticated path: one completed run per 8 hours, and never two at once
       // (a run that crashed can be retried after 10 minutes).
       let flag = (await list(db.AppSettings, { key: "agents_nightly" }, "-updated_date", 1))[0];
       const ps = flag?.pageSettings || {};
       const doneAgo = ps.done_at ? Date.now() - new Date(ps.done_at).getTime() : Infinity;
       const startAgo = ps.started_at ? Date.now() - new Date(ps.started_at).getTime() : Infinity;
-      if (!user && (doneAgo < 20 * 3600 * 1000 || startAgo < 10 * 60 * 1000)) return Response.json({ skipped: true, reason: "ran recently", ...ps });
+      if (!user && (doneAgo < 8 * 3600 * 1000 || startAgo < 10 * 60 * 1000)) return Response.json({ skipped: true, reason: "ran recently", ...ps });
       const mark = { key: "agents_nightly", pageSettings: { ...ps, started_at: nowIso() } };
       if (flag) await db.AppSettings.update(flag.id, mark); else flag = await db.AppSettings.create(mark);
       const seeded = await seedBrains(db);
