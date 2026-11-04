@@ -77,4 +77,7 @@ export const SERVICE_LABELS = {
   brand: "Brand",
   starship_care: "GravïtyCare",
   website_care: "Website-only plan",
+  ops_command: "Ops Command",
+  ai_email_agent: "AI Email Agent (Ops Command)",
+  chrome_workspace: "Chrome Workspace (Ops Command)",
 };
