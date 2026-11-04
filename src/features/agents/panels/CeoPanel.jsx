@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUp, Check, Pencil, RefreshCw, Sparkles } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { base44 } from "@/api/base44Client";
 import PanelShell from "./PanelShell";
 import { Md, Section, Spinner, relTime } from "../ui";
 import { agentsCall, savePrefs } from "../useAgentsData";
@@ -32,18 +33,34 @@ function BriefCard({ brief }) {
 
 export default function CeoPanel({ scope = "interstellar", client, data, prefs, onClose, refresh }) {
   const isClient = scope === "client";
-  const storeKey = `agx-chat:${isClient ? client?.id : "hq"}`;
+  const chatKey = `agents_chat:${isClient ? client?.id : "hq"}`;
   const defaultName = prefs?.pageSettings?.ceo_name || "Commander";
   const [name, setName] = useState(defaultName);
   const [editing, setEditing] = useState(false);
-  const [msgs, setMsgs] = useState(() => { try { return JSON.parse(sessionStorage.getItem(storeKey) || "[]"); } catch { return []; } });
+  const [msgs, setMsgs] = useState([]);
+  const [chatRow, setChatRow] = useState(null);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const [briefBusy, setBriefBusy] = useState(false);
   const end = useRef(null);
 
   useEffect(() => { setName(defaultName); }, [defaultName]);
-  useEffect(() => { try { sessionStorage.setItem(storeKey, JSON.stringify(msgs.slice(-30))); } catch { /* ignore */ } end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [msgs, storeKey]);
+  // The conversation is saved server-side by the agents function, so it follows Justin across devices.
+  useEffect(() => {
+    let live = true;
+    base44.entities.AppSettings.filter({ key: chatKey }, "-updated_date", 1).then((rows) => {
+      const row = (Array.isArray(rows) ? rows : [])[0] || null;
+      if (!live) return;
+      setChatRow(row);
+      setMsgs((m) => (m.length ? m : (row?.pageSettings?.messages || []).map((x) => ({ role: x.role, content: x.content }))));
+    }).catch(() => null);
+    return () => { live = false; };
+  }, [chatKey]);
+  useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [msgs]);
+  const clearChat = async () => {
+    setMsgs([]);
+    if (chatRow?.id) await base44.entities.AppSettings.update(chatRow.id, { pageSettings: { messages: [], updated_at: new Date().toISOString() } }).catch(() => null);
+  };
 
   const brief = useMemo(() => {
     const list = data.briefs.filter((b) => (isClient ? b.client_id === client?.id : b.scope === "interstellar"));
@@ -147,7 +164,7 @@ export default function CeoPanel({ scope = "interstellar", client, data, prefs, 
           />
           <button type="submit" className="btn-f !h-10 !w-10 !px-0" disabled={!input.trim() || thinking} aria-label="Send"><ArrowUp className="h-4 w-4" /></button>
         </form>
-        {msgs.length ? <button type="button" className="mt-2 text-[11px] text-[var(--ink-s)] hover:text-white" onClick={() => setMsgs([])}>Clear conversation</button> : null}
+        {msgs.length ? <button type="button" className="mt-2 text-[11px] text-[var(--ink-s)] hover:text-white" onClick={clearChat}>Clear conversation</button> : null}
       </div>
     </PanelShell>
   );
