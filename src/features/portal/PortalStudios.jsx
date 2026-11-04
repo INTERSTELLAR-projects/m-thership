@@ -84,27 +84,42 @@ export const STUDIOS = [
     ],
     replaces: "Deck design tools and freelance deck designers",
   },
+  {
+    // Always shown, always locked: not switchable per client until it launches.
+    key: "simple_social", tab: "studio_simple_social", label: "Simple Social", eyebrow: "Coming soon · AI generation", comingSoon: true,
+    title: "Images, video and voice,", accent: "generated on brand.",
+    lead: "Simple Social is our AI generation platform: image, video, voice clipping and more, built from your brand kit and run with you inside your portal.",
+    features: [
+      ["Image generation", "On-brand photos and graphics from a prompt or a real job photo."],
+      ["Video generation", "Short clips and ad cuts sized for every platform you post on."],
+      ["Voice clipping", "Clip, clean and reuse voice for reels, ads and voiceovers."],
+      ["And more", "Captions, resizes and variations that flow straight into Social Studio."],
+    ],
+    replaces: "Separate image, video and voice AI subscriptions",
+    note: "Coming soon. Included with your plan under fair-use caps when it launches.",
+  },
 ];
 
 export const STUDIO_BY_TAB = Object.fromEntries(STUDIOS.map((s) => [s.tab, s]));
 
 // Tabs this client can see: everything not switched off. `locked` = tabs still in preview.
 export function studioTabs(client) {
-  const visible = STUDIOS.filter((s) => studioState(client, s.key) !== "off");
+  const visible = STUDIOS.filter((s) => s.comingSoon || studioState(client, s.key) !== "off");
   return {
     tabs: visible.map((s) => [s.tab, s.label]),
-    locked: new Set(visible.filter((s) => studioState(client, s.key) === "preview").map((s) => s.tab)),
+    locked: new Set(visible.filter((s) => s.comingSoon || studioState(client, s.key) === "preview").map((s) => s.tab)),
   };
 }
 
-function LockBadge({ on }) {
+function LockBadge({ on, soon }) {
+  if (soon) return <span className="inline-flex items-center gap-1.5 bg-ink px-3 py-1.5 text-[12px] font-medium text-white"><Lock className="h-3.5 w-3.5 text-[#ffaa00]" /> Coming soon · Included with your plan</span>;
   if (on) return <span className="inline-flex items-center gap-1.5 bg-green-700 px-3 py-1.5 text-[12px] font-medium text-white"><Check className="h-3.5 w-3.5" /> Included with your plan · Switched on</span>;
   return <span className="inline-flex items-center gap-1.5 bg-ink px-3 py-1.5 text-[12px] font-medium text-white"><Lock className="h-3.5 w-3.5 text-[#ffaa00]" /> Included with your plan · Unlocking soon</span>;
 }
 
 export default function StudioPreview({ tab, client, call, preview, previewId }) {
   const s = STUDIO_BY_TAB[tab];
-  const state = studioState(client, s?.key);
+  const state = s?.comingSoon ? "preview" : studioState(client, s?.key);
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -135,7 +150,7 @@ export default function StudioPreview({ tab, client, call, preview, previewId })
             {s.title} <span className="text-[#ff3c00]">{s.accent}</span>
           </h1>
           <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-ink/65">{s.lead}</p>
-          <div className="mt-5"><LockBadge on={on} /></div>
+          <div className="mt-5"><LockBadge on={on} soon={!!s.comingSoon} /></div>
           <div className="mt-5 border-l-2 border-[#ff3c00] bg-card px-4 py-3">
             <p className="mono-label text-[9.5px] text-ink/50">Replaces</p>
             <p className="mt-1 text-[14px] font-medium tracking-[-0.01em]">{s.replaces}</p>
@@ -276,6 +291,33 @@ function Mock({ k, business }) {
           {tx.map((t) => <li key={t[1]} className="flex items-center gap-2 px-2 py-1.5"><span className="w-10 font-mono text-[9px] text-ink/45">{t[0]}</span><span className="flex-1 truncate">{t[1]}</span><span className="bg-ink/[0.06] px-1.5 py-0.5 text-[9px]">{t[2]}</span><span className={`w-16 text-right tabular-nums ${t[3].startsWith("+") ? "text-green-700" : ""}`}>{t[3]}</span></li>)}
         </ul>
         <p className="mt-2 text-[10px] text-ink/50">3 transactions need a category · 2 receipts missing</p>
+      </div>
+    );
+  }
+  if (k === "simple_social") {
+    const tiles = [["Image", "Kitchen remodel · hero shot", "flame"], ["Image", "Crew at sunrise · 4:5", "ink"], ["Video", "15s reel · before → after", "ink"], ["Image", "Holiday promo · story", "flame"]];
+    return (
+      <div>
+        <div className="flex items-center gap-2 border border-hair bg-card px-2.5 py-2">
+          <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#ff3c00]" />
+          <p className="truncate text-[11px] text-ink/70">A sunlit modern kitchen we just finished, in our brand colors, for Instagram</p>
+          <span className="ml-auto shrink-0 flame-bg px-2 py-0.5 text-[9px] font-semibold text-white">Generate</span>
+        </div>
+        <div className="mt-3 grid grid-cols-4 gap-2">
+          {tiles.map(([kind, label, tone]) => (
+            <div key={label} className={`relative aspect-[4/5] p-1.5 ${tone === "flame" ? "flame-bg text-white" : "bg-ink text-white"}`}>
+              <span className="font-mono text-[7.5px] uppercase opacity-80">{kind}</span>
+              {kind === "Video" && <span className="absolute left-1/2 top-1/2 h-0 w-0 -translate-x-1/2 -translate-y-1/2 border-y-[6px] border-l-[10px] border-y-transparent border-l-white" />}
+              <p className="absolute bottom-1.5 left-1.5 right-1.5 text-[7.5px] leading-tight opacity-90">{label}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 border border-hair bg-card p-2.5">
+          <p className="font-mono text-[8.5px] uppercase text-ink/45">Voice clip · 0:14</p>
+          <div className="mt-1.5 flex h-6 items-end gap-[2px]">
+            {[5, 9, 14, 8, 18, 12, 22, 16, 10, 20, 13, 7, 17, 11, 19, 9, 14, 6, 12, 16, 8, 21, 13, 9].map((h, i) => <span key={i} className={`w-[3px] ${i < 14 ? "bg-[#ff3c00]" : "bg-ink/20"}`} style={{ height: h }} />)}
+          </div>
+        </div>
       </div>
     );
   }
