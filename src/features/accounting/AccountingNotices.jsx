@@ -42,11 +42,11 @@ export default function AccountingNotices() {
       <div className="flex items-start gap-3 p-4">
         <Bell className="mt-0.5 h-4 w-4 shrink-0 text-[#ff6a00]" />
         <div className="min-w-0 flex-1">
-          <p className="mono-label !text-[9px] text-white/50">Accounting{due ? ` · due ${due}` : ""}</p>
+          <p className="mono-label !text-[9px] text-white/50">{alert.kind === "usage" ? "Fair use" : "Accounting"}{due && alert.kind !== "usage" ? ` · due ${due}` : ""}</p>
           <p className="mt-1 text-[13px] font-semibold leading-snug">{alert.title}</p>
           <div className="mt-3 flex items-center gap-3">
             <button
-              onClick={() => { base44.entities.AccountingAlert.update(alert.id, { status: "seen" }).catch(() => {}); setAlert(null); navigate(alert.link || "/financial?tab=accounting"); }}
+              onClick={() => { base44.entities.AccountingAlert.update(alert.id, { status: "seen" }).catch(() => {}); setAlert(null); navigate(alert.link || (alert.kind === "usage" ? "/client-usage" : "/financial?tab=accounting")); }}
               className="rounded-md px-3 py-1.5 text-[12px] font-semibold text-white flame-bg">
               Open
             </button>

@@ -76,4 +76,5 @@ export const SERVICE_LABELS = {
   orbit_seo: "HyperCare+",
   brand: "Brand",
   starship_care: "GravïtyCare",
+  website_care: "Website-only plan",
 };
