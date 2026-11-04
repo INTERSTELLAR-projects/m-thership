@@ -22,7 +22,9 @@ export const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString("en-US",
 export function fuelTone(f) {
   if (!f) return "ok";
   if (f.out_of_fuel) return "out";
-  if (f.alert) return "alert";
+  // 80%+ of the monthly allowance used, and no Refuel credits behind it for that kind.
+  const low = (k) => k && k.cap != null && k.alert && !(k.wallet > 0);
+  if (low(f.ai) || (!f.nova_only && low(f.email))) return "alert";
   return "ok";
 }
 
