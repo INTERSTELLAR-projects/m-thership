@@ -16,6 +16,18 @@ import { ApproveDialog, DeclineDialog, useMe, usePostImage, useSocialStatus } fr
 import PostCard from "./PostCard";
 import CalendarView from "./CalendarView";
 import ConnectionsPanel from "./ConnectionsPanel";
+import ChannelPlan from "./channels/ChannelPlan";
+import ChannelQueue from "./channels/ChannelQueue";
+import YouTubePlanner from "./channels/YouTubePlanner";
+import Conversations from "./channels/Conversations";
+
+const SECTIONS = [
+  { key: "posts", label: "Instagram & Facebook" },
+  { key: "channels", label: "Channel plan" },
+  { key: "linkedin", label: "LinkedIn" },
+  { key: "youtube", label: "YouTube" },
+  { key: "conversations", label: "Conversations" },
+];
 import { Btn, ConfirmDialog, PromptDialog, Select, inputCls } from "./ui";
 
 const VIEW_KEY = "social_studio_view2";
@@ -54,6 +66,12 @@ export default function SocialPage() {
     pillar: params.get("pillar") || "",
     batch: params.get("batch") || "",
     q: params.get("q") || "",
+  };
+  const section = SECTIONS.some((s) => s.key === params.get("section")) ? params.get("section") : "posts";
+  const goSection = (key) => {
+    const next = new URLSearchParams();
+    if (key !== "posts") next.set("section", key);
+    setParams(next, { replace: false });
   };
   const setFilter = (k, v) => {
     const next = new URLSearchParams(params);
@@ -168,6 +186,28 @@ export default function SocialPage() {
       </PageHeader>
 
       <div className="px-5 py-5 md:px-8">
+        <nav className="-mt-1 mb-5 flex flex-wrap gap-1 border border-hair bg-card p-1" aria-label="Social Studio sections">
+          {SECTIONS.map((s) => (
+            <button key={s.key} type="button" onClick={() => goSection(s.key)}
+              className={`h-9 px-3.5 text-[13px] tracking-[-0.01em] transition-colors ${section === s.key ? "bg-ink font-semibold text-white" : "text-ink/60 hover:text-[#ff3c00]"}`}>
+              {s.label}
+            </button>
+          ))}
+        </nav>
+        {section === "channels" ? <ChannelPlan go={goSection} />
+          : section === "linkedin" ? (
+            <div className="mt-1 space-y-3">
+              <div>
+                <p className="mono-label text-[9px] text-ink/45">LinkedIn · manual, nothing posts from here</p>
+                <h2 className="text-[26px] font-semibold leading-none tracking-[-0.04em]">LinkedIn <span className="text-[#ff3c00]">/queue</span></h2>
+                <p className="mt-1.5 max-w-2xl text-[12.5px] text-ink/55">Two voices, two queues. Approve a draft, Copy text, Open LinkedIn, post it, then Mark as posted with the link. Starting cadence: company 2–3 a week, personal 3–5 a week.</p>
+              </div>
+              <ChannelQueue channels={["linkedin_company", "linkedin_personal"]} />
+            </div>
+          )
+          : section === "youtube" ? <YouTubePlanner />
+          : section === "conversations" ? <Conversations />
+          : (<>
         <AnalyticsStrip posts={posts} status={status} tz={tz} onOpen={(tab) => setFilter("tab", tab)} />
 
         {/* Folders (status tabs) + view */}
@@ -242,6 +282,7 @@ export default function SocialPage() {
             {filtered.length === 0 && <EmptyTab tab={f.tab} />}
           </div>
         )}
+        </>)}
       </div>
 
       <ApproveDialog
