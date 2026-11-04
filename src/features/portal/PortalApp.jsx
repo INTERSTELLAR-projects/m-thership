@@ -29,6 +29,8 @@ import { IS_DEMO } from "@/lib/qa";
 import TwoFactorChallenge from "@/features/security/TwoFactorChallenge";
 import { needsSecondFactor } from "@/features/security/api";
 import { BusinessDropdown, BusinessPills } from "@/features/portal/BusinessSwitcher";
+import { useFuel } from "@/features/fuel/useFuel";
+import { FuelBanner, RefuelModal } from "@/features/fuel/FuelPrompts";
 
 // Tabs this portal can show. Grouping, labels and icons for the header nav live in PortalNav.jsx (NAV);
 // free-for-life bonus tools (Signatures, QR Codes) are tagged there and listed together on Home.
@@ -58,6 +60,23 @@ export default function PortalApp({ previewId }) {
   const qc = useQueryClient();
   const refresh = () => qc.invalidateQueries({ queryKey: ["portal", scopeId] });
   const d = home.data;
+  // Fuel: Studios plan gating, meter, Refuel wallet (the `fuel` function). Loads once the portal knows its client.
+  const { fuel, refresh: refreshFuel } = useFuel(scopeId, { enabled: !!d?.client });
+  const [refuelOpen, setRefuelOpen] = useState(false);
+  // Back from Stripe Checkout: the webhook credits the wallet a moment later, so re-read the meter a few times.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    if (!p.get("fuel")) return undefined;
+    const timers = p.get("fuel") === "success" ? [0, 4000, 10000, 20000].map((ms) => setTimeout(refreshFuel, ms)) : [];
+    p.delete("fuel"); p.delete("session_id");
+    window.history.replaceState(null, "", `${window.location.pathname}${p.toString() ? `?${p}` : ""}`);
+    return () => timers.forEach(clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // Out of fuel: the Refuel modal opens when the client lands on a Studio page.
+  useEffect(() => {
+    if (fuel?.out_of_fuel && !fuel.nova_only && STUDIO_BY_TAB[tab]) setRefuelOpen(true);
+  }, [tab, fuel?.out_of_fuel, fuel?.nova_only]);
   const businesses = d?.businesses || [];
   // A saved choice this login no longer has: keep what the server resolved (or forget it if only one is left).
   useEffect(() => {
@@ -78,7 +97,7 @@ export default function PortalApp({ previewId }) {
     setPicked(id);
   };
   // The Brand kit tab only exists when an approved, portal-visible kit does.
-  const tabs = [...TABS.filter(([k]) => (k !== "brand" || d?.has_brand_kit) && (k !== "playbook" || d?.has_playbook)), ...studioTabs(d?.client).tabs];
+  const tabs = [...TABS.filter(([k]) => (k !== "brand" || d?.has_brand_kit) && (k !== "playbook" || d?.has_playbook)), ...studioTabs(d?.client, fuel).tabs];
 
   if (home.isLoading) return <Shell><p className="py-24 text-center text-ink/50">Loading your portal…</p></Shell>;
   // This login has 2-step verification on and this session hasn't passed it yet: nothing loads until it does.
@@ -101,7 +120,7 @@ export default function PortalApp({ previewId }) {
   }
 
   return (
-    <Shell client={d.client} tabs={tabs} tab={tab} setTab={(k) => { setQrOpen(null); setTab(k); }} unread={d.unread} preview={!!previewId} previewId={previewId} scopeId={scopeId} businesses={businesses} onSwitch={switchTo}>
+    <Shell client={d.client} tabs={tabs} tab={tab} setTab={(k) => { setQrOpen(null); setTab(k); }} unread={d.unread} preview={!!previewId} previewId={previewId} scopeId={scopeId} businesses={businesses} onSwitch={switchTo} fuel={fuel} refuelOpen={refuelOpen} setRefuelOpen={setRefuelOpen}>
       {audit ? (
         <IntakeView call={call} onClose={() => { setAudit(false); refresh(); }} />
       ) : (
@@ -134,7 +153,7 @@ export default function PortalApp({ previewId }) {
           {tab === "messages" && <MessagesView call={call} previewId={previewId} />}
           {tab === "assistant" && <PortalAssistant key={scopeId || "me"} previewId={scopeId} admin={!!previewId} variant="page" />}
           {tab === "account" && <SecurityPanel preview={!!previewId} />}
-          {STUDIO_BY_TAB[tab] && tabs.some(([k]) => k === tab) && <StudioPreview tab={tab} client={d.client} call={call} preview={!!previewId} previewId={previewId} />}
+          {STUDIO_BY_TAB[tab] && tabs.some(([k]) => k === tab) && <StudioPreview tab={tab} client={d.client} call={call} preview={!!previewId} previewId={previewId} scopeId={scopeId} fuel={fuel} onRefuel={() => setRefuelOpen(true)} onFuelChanged={refreshFuel} />}
         </div>
       )}
       {tab !== "assistant" && <AssistantLauncher key={scopeId || "me"} previewId={scopeId} admin={!!previewId} onOpenFull={() => { setQrOpen(null); setTab("assistant"); }} />}
@@ -144,10 +163,11 @@ export default function PortalApp({ previewId }) {
 
 // Header: brand on the left, grouped nav (desktop dropdowns / mobile drawer) and the
 // "Schedule a call" button on the right. Nav config and components live in PortalNav.jsx.
-function Shell({ client, tabs = TABS, tab, setTab, unread, preview, previewId, scopeId, businesses = [], onSwitch, children }) {
+function Shell({ client, tabs = TABS, tab, setTab, unread, preview, previewId, scopeId, businesses = [], onSwitch, fuel, refuelOpen = false, setRefuelOpen, children }) {
   const multi = businesses.length > 1 && !!onSwitch;
   const [schedOpen, setSchedOpen] = useState(false);
-  const nav = useMemo(() => navFor(tabs.map(([k]) => k), studioTabs(client).locked), [tabs, client]);
+  const nav = useMemo(() => navFor(tabs.map(([k]) => k), studioTabs(client, fuel).locked), [tabs, client, fuel]);
+  const openRefuel = setRefuelOpen ? () => setRefuelOpen(true) : undefined;
   return (
     <div className="grid-canvas min-h-screen text-ink" data-trail>
       <GridTrail />
@@ -171,11 +191,11 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, previewId, s
           {setTab ? (
             <>
               <div className="ml-auto hidden lg:block">
-                <DesktopNav nav={nav} tab={tab} setTab={setTab} unread={unread} />
+                <DesktopNav nav={nav} tab={tab} setTab={setTab} unread={unread} fuel={fuel} onRefuel={openRefuel} />
               </div>
               <div className="ml-auto flex items-center gap-2 lg:ml-3">
                 <ScheduleCallButton onClick={() => setSchedOpen(true)} />
-                <MobileNav nav={nav} client={client} tab={tab} setTab={setTab} unread={unread} preview={preview} onSchedule={() => setSchedOpen(true)} />
+                <MobileNav nav={nav} client={client} tab={tab} setTab={setTab} unread={unread} preview={preview} onSchedule={() => setSchedOpen(true)} fuel={fuel} onRefuel={openRefuel} />
                 <div className="hidden items-center lg:flex">
                   <button type="button" data-tab="account" onClick={() => setTab("account")} aria-current={tab === "account" ? "page" : undefined} className={`flex h-10 w-9 items-center justify-center ${tab === "account" ? "text-[#ff3c00]" : "text-ink/45 hover:text-ink"}`} title="Account & security" aria-label="Account and security">
                     <UserRound className="h-4 w-4" />
@@ -191,6 +211,8 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, previewId, s
         </div>
         {multi && <BusinessPills businesses={businesses} currentId={client?.id} onSwitch={onSwitch} className="md:hidden lg:block xl:hidden" />}
       </header>
+      {setTab && <FuelBanner fuel={fuel} onOpen={openRefuel} />}
+      {setRefuelOpen && <RefuelModal open={refuelOpen} onClose={() => setRefuelOpen(false)} fuel={fuel} scopeId={scopeId || previewId} preview={preview} onUpgrade={() => { setRefuelOpen(false); setSchedOpen(true); }} />}
       <main className="relative z-10 mx-auto max-w-[1280px] px-4 pb-20 pt-8 md:px-8">{children}</main>
     </div>
   );
