@@ -625,6 +625,7 @@ ${workBlock(d)}
 ${d.ctx ? contextToBrief(d.ctx, { sections: ["profile", "services"] }) : ""}
 ${agencyBlock(d.agency, ["offers", "delivery"])}
 ${agencyBlock(d.agency, ["social_search"], { maxChars: 4500 })}
+${agencyBlock(d.agency, ["hooks"], { maxChars: 2200 }) || `\n## Hook framework\n${hookBrief()}\n`}
 ${d.current ? `\n## Current approved social plan (v${d.current.version || 1})\nThis is a revision. Keep what still holds; change what Justin asks.\n${d.current.summary || ""}` : ""}
 
 ## Platforms (use these ids; include ONLY the ones that fit this business, list the rest in skipped_platforms with why)
@@ -649,6 +650,7 @@ ${FORMATS.map(([id, name]) => `- ${id} — ${name}`).join("\n")}
 ## Social search rules (every plan is built to be found — fill the "search" section completely)
 ${SOCIAL_SEARCH_RULES.map((r) => `- ${r}`).join("\n")}
 - search.keyword_map: one entry per chosen platform, 10-20 phrases each. search.profile_seo: recommended name field, username, bio text, links and highlights per platform (current bio unknown → write the recommended one and say so in assumptions).
+- Every hook (sample posts, calendar hooks, Reels/Shorts/TikTok scripts) follows the Triple Hook Method: CONTEXT first line states the topic and contains the search phrase (said, shown and written), then LEAN (curiosity), then CONTRARIAN SNAPBACK (the turn). No invented stats in hooks.
 - search.sample_posts: at least 6 fully written posts (hook, on-screen text, spoken keywords for video, full caption, alt text, 3-5 hashtags). Where a real story, photo or result is needed write "[CLIENT: real example]" — never invent one.
 - Every calendar post carries its keyword (and on_screen_text / spoken_keywords for video). captions.hashtag_sets: 3-5 tags per set.
 - collaborations: partner / sister-brand / creator ideas with honest disclosure of any material connection (FTC Endorsement Guides).
