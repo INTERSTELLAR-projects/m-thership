@@ -21,6 +21,8 @@ import ChannelQueue from "./channels/ChannelQueue";
 import YouTubePlanner from "./channels/YouTubePlanner";
 import Conversations from "./channels/Conversations";
 
+import { Btn, ConfirmDialog, PromptDialog, Select, inputCls } from "./ui";
+
 const SECTIONS = [
   { key: "posts", label: "Instagram & Facebook" },
   { key: "channels", label: "Channel plan" },
@@ -28,7 +30,6 @@ const SECTIONS = [
   { key: "youtube", label: "YouTube" },
   { key: "conversations", label: "Conversations" },
 ];
-import { Btn, ConfirmDialog, PromptDialog, Select, inputCls } from "./ui";
 
 const VIEW_KEY = "social_studio_view2";
 const readView = () => { try { return localStorage.getItem(VIEW_KEY) || "grid"; } catch { return "grid"; } };
