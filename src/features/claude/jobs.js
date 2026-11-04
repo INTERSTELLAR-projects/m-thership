@@ -11,6 +11,7 @@ import { isContentPlanJob, saveApprovedContentPlan } from "./contentPlan";
 import { isSocialPlanJob, saveApprovedSocialPlan } from "./socialPlan";
 import { isEnrichJob, applyEnrichment } from "@/features/clients/enrich";
 import { isMapPackJob, saveApprovedMapPack } from "./mapPack";
+import { isTopicCalendarJob, saveApprovedTopicCalendar } from "@/features/launch/topicCalendar";
 
 export const JOB_STATUS = {
   queued: { label: "Queued", tone: "bg-ink/[0.07] text-ink/70" },
@@ -26,7 +27,7 @@ export const ACTIVE = ["queued", "running", "needs_approval", "changes_requested
 
 export const KIND_LABELS = {
   task: "Task", audit: "Business audit", build_website: "Website build", build_app: "App build", blog: "Blog",
-  gbp_post: "GBP post", report: "Report", brand: "Brand", email: "Email draft", research: "Research", presentation: "Presentation", playbook: "Industry playbook", content_plan: "Content plan", social_plan: "Social plan", enrich_profile: "Profile enrichment", map_pack_plan: "Map pack plan", other: "Other",
+  gbp_post: "GBP post", report: "Report", brand: "Brand", email: "Email draft", research: "Research", presentation: "Presentation", playbook: "Industry playbook", content_plan: "Content plan", social_plan: "Social plan", enrich_profile: "Profile enrichment", map_pack_plan: "Map pack plan", topic_calendar: "Topic calendar", other: "Other",
 };
 
 export function guessKind(text = "") {
@@ -44,9 +45,11 @@ export function guessKind(text = "") {
 // Rules every job carries, so the runner never needs this conversation's memory.
 export const STANDING_RULES = [
   "Never read, print or store secret values (API keys, passwords, client logins).",
-  "Never send an email, publish public content, post to Google Business Profile, charge a card or delete data. Prepare it, then stop at needs_approval.",
+  "Never send an email, post to Google Business Profile or social media, charge a card or delete data. Public content is published only where the brief says it is pre-approved (blog posts from a Topic Calendar Justin approved); everything else is prepared and stops at needs_approval.",
+  "Never record a blog post as published (WorkLog, calendar, report) until you have seen it on the client's live blog index.",
   "Client emails: write the subject and the HTML body as a code block in result_body. Never create or send Gmail drafts for client deliverables.",
-  "GBP post copy never contains a phone number, a street address or a bare URL. The CTA link is the plain blog URL with no UTM parameters.",
+  "Google Business Profile posts are OFF for every client until the Google Business Profile API is approved: do not write or queue GBP posts. (When they return: no phone number, street address or bare URL; CTA = the plain blog URL, no UTM.)",
+  "Backlink and citation outreach is written from Justin Cowell (justin@interstellar-strategies.com) in a personal tone, on the client's behalf. Outreach emails are drafts until Justin approves each one; never send.",
   "SEO or search changes on a live site are proposals until Justin approves them.",
   "Brand gradient: #ff3c00 → #ff6a00 → #ffaa00. Never gold or yellow.",
   "Do not invent time estimates, prices or numbers. If a fact is missing, list it under needs_from_justin.",
@@ -191,6 +194,8 @@ export async function approveJob(job, opts = {}) {
   if (isSocialPlanJob(job)) await saveApprovedSocialPlan(job);
   // Map pack plan: the approved draft becomes the client's plan on the Map pack tab.
   if (isMapPackJob(job)) await saveApprovedMapPack(job);
+  // Topic calendar: saves the month's calendar and schedules each post to draft + publish on its date.
+  if (isTopicCalendarJob(job)) await saveApprovedTopicCalendar(job, STANDING_RULES);
   await base44.entities.ClaudeJob.update(job.id, { status: "approved", approved_at: now });
   // Intel audit: findings become visible in the client portal, and the briefing is logged as work.
   if (job.kind === "audit" && job.client_id) {
