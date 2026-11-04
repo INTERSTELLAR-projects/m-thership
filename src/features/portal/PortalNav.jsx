@@ -307,7 +307,7 @@ export function MobileNav({ nav, client, tab, setTab, unread, preview, onSchedul
         {cur && <span className="absolute inset-y-2 left-0 w-[3px] bg-[#ff3c00]" aria-hidden="true" />}
         <span className={`flex h-8 w-8 shrink-0 items-center justify-center ${cur || bonus ? "flame-bg text-white" : "bg-ink/[0.06] text-ink/70"}`}><Icon className="h-4 w-4" aria-hidden="true" /></span>
         <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-1.5 text-[14.5px] font-medium tracking-[-0.01em]">{label}{bonus && <Bonus />}{locked && <Locked />}{k === "messages" && <Count n={unread} />}</span>
+          <span className="flex items-center gap-1.5 text-[14.5px] font-medium tracking-[-0.01em]">{label}{bonus && <Bonus />}{locked && <Locked text={locked} />}{k === "messages" && <Count n={unread} />}</span>
           {desc && <span className="block truncate text-[11.5px] text-ink/50">{desc}</span>}
         </span>
       </button>
