@@ -1,10 +1,12 @@
-// Studios fair-use plans + per-client Studio state, for the UI. Mirror of base44/shared/usagePlans.ts (keep in sync).
-// Every Studio is free for clients on any plan, under monthly fair-use caps. No paid top-ups.
+// Studios plans + per-client Studio state, for the UI. Mirror of base44/shared/usagePlans.ts (keep in sync).
+// 2026-11-04 (pending Justin's final approval): Studios are HyperCare+ only; caps scale with the HyperCare+ tier;
+// one-time Refuel packs top up a 12-month wallet. Live numbers come from the `fuel` function (shared/fuel.ts);
+// these are fallbacks only.
 
 export const PLAN_CAPS = {
   hypercare: { label: "HyperCare+", ai_action: 1000, marketing_email: 25000, ads: "daily" },
-  website: { label: "Website-only", ai_action: 500, marketing_email: 10000, ads: "weekly" },
-  gravitycare: { label: "GravïtyCare", ai_action: 200, marketing_email: 2500, ads: "none" },
+  website: { label: "Website-only", ai_action: 50, marketing_email: 0, ads: "none" },
+  gravitycare: { label: "GravïtyCare", ai_action: 50, marketing_email: 0, ads: "none" },
   none: { label: "No care plan", ai_action: 0, marketing_email: 0, ads: "none" },
 };
 export const ADS_RUNS_PER_MONTH = { daily: 31, weekly: 5, none: 0 };
@@ -32,6 +34,8 @@ export function studioState(client, key) {
   return v === "on" || v === true ? "on" : v === "off" ? "off" : "preview";
 }
 export const anyStudioOn = (client) => STUDIO_KEYS.some((k) => studioState(client, k) === "on");
+// Studios unlock only on HyperCare+ (or an explicit admin exception).
+export const planUnlocksStudios = (client) => planOf(client) === "hypercare" || client?.usage_overrides?.unlimited === true || client?.usage_overrides?.studios_unlocked === true;
 
 export function planOf(client) {
   const forced = client?.usage_overrides?.plan;
