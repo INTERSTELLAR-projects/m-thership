@@ -129,6 +129,6 @@ export const DELIVERABLES = {
 
 // The two mission bundles, for reference next to the packages.
 export const MISSIONS = [
-  { name: "Mission ALPHA", price: "$8,997", note: "All seven packages in one 45-day build: Intel Briefing, Custom Website, Command System, Ops Command, Brand Arsenal, Launch Grid, Transmission. Live in 45 days or the first 3 months of HyperCare+ are free." },
+  { name: "Mission ALPHA", price: "$8,997", note: "All seven packages in one 45-day build: Intel Briefing, Custom Website, Command System, Ops Command, Brand Arsenal, Launch Grid, Transmission. Bonus: the first 45 days of HyperCare+ free, starting the day Mission ALPHA is purchased (the subscription starts on day 46). Live in 45 days or the first 3 months of HyperCare+ are free." },
   { name: "Mission BRAVO", price: "$6,497", note: "Intel Briefing (audit + final sweep) + Custom Website + Command System." },
 ];
