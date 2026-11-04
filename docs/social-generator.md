@@ -91,9 +91,30 @@ and NEVER post, schedule or send anything to any social network or person.
      "revision_history": []
    }
 
-8. Report back in 6 lines max: batch id, folder, and for each post the weekday, template,
-   pillar and headline. Remind Justin the drafts are in Møthership > Studio > Social Studio.
-   Do not say anything was posted or scheduled.
+8. Draft the manual channels (ChannelPost, drafts only; Justin posts these by hand). First
+   query_entities ChannelPost {"generation_batch": BATCH_ID}; if any exist, skip this step.
+   Then create_entities ChannelPost in ONE call:
+   - 3 x channel "linkedin_company": brand voice ("we", Interstellar Business OS), educational,
+     same pillars as the image posts. One idea each, a hook line that stands alone, short
+     paragraphs, a soft CTA, 3-5 hashtags, 600-1300 chars. planned_for Tue / Wed / Thu.
+   - 4 x channel "linkedin_personal": Justin Cowell in the first person. pillar one of
+     founder_story | lessons | behind_the_build | opinion. Plain, specific, no hype, no invented
+     stories, numbers or client results (if a post needs a real detail, write [JUSTIN: add the
+     real example] instead of making one up). End by pointing to the Interstellar Business OS
+     company page or inviting replies. 2-4 hashtags. planned_for Mon / Tue / Thu / Fri.
+   - 2-3 x channel "youtube_short": reuse this week's image posts. source_post_id = the
+     SocialPost id. body = a Shorts title under 60 chars on line 1, then 1-3 lines and
+     "#shorts" + 1-2 hashtags. If a YouTubeVideo (query_entities YouTubeVideo, sort "sort")
+     covers the same topic, set youtube_video_id to it (its Related video). planned_for Wed / Fri.
+   Every record: "status": "draft", "title": short internal name, "pillar", "body", "hook"
+   (first line), "hashtags": [...], "generation_batch": BATCH_ID, "generated_by": "claude".
+   Same hard rules as the image posts: no emoji, ™ never ®, prices only from AgencyKnowledge,
+   no invented results. NEVER post, approve, or send anything.
+
+9. Report back in 8 lines max: batch id, folder, and for each image post the weekday, template,
+   pillar and headline, plus one line with the LinkedIn company / personal / Shorts draft counts.
+   Remind Justin the drafts are in Møthership > Studio > Social Studio (Instagram & Facebook,
+   LinkedIn, and YouTube > Shorts queue). Do not say anything was posted or scheduled.
 ```
 
 ## How Justin works the batch
@@ -113,6 +134,21 @@ and NEVER post, schedule or send anything to any social network or person.
    publishes approved posts that are due to Instagram, and to the Facebook Page when that target is
    on, then marks them Posted with the permalink. Failures land in **Failed** with the reason.
    Only posts Justin approved ever publish; the generator must only create `status: "draft"`.
+
+## Manual channels (LinkedIn, YouTube)
+
+- **Social Studio → Channel plan**: one card per channel (Instagram, Facebook, YouTube long-form,
+  YouTube Shorts, LinkedIn company, LinkedIn personal) with the weekly target, pillars, this week's
+  planned / approved / posted counts and the profile link. Targets are editable.
+- **LinkedIn**: two queues (company "we" / Justin "I"). Approve → Copy text → Open LinkedIn →
+  post by hand → Mark as posted with the URL. No LinkedIn API posting.
+- **Conversations**: paste context about a person, pick the account, Claude drafts a connection
+  note / follow-up / reply. Copy only; saved with status draft or sent (manually).
+- **YouTube**: pipeline Idea → Script → Record → Edit → Scheduled → Published (Mon titles, Tue
+  script, Wed record, Thu edit + clip Shorts, Fri publish). Each video holds up to 10 title options,
+  thumbnail ideas, series, script (Claude can draft it from SeoIntel + AgencyKnowledge), chapters,
+  a description built from the upload-default template, and 3-5 Shorts whose Related video is the
+  long-form source. Shorts: clean masters only, no other-platform watermarks.
 
 ## Later (not built yet)
 
