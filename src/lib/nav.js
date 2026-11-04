@@ -11,6 +11,7 @@ import { BadgeDollarSign as AdsIcon } from "lucide-react";
 import { Mail as EmailStudioIcon } from "lucide-react";
 import { UserPlus as HiringIcon } from "lucide-react";
 import { Gauge as UsageIcon } from "lucide-react";
+import { Fuel as FuelIcon } from "lucide-react";
 import { Orbit as AgentsIcon } from "lucide-react";
 import { Radar as IntelligenceIcon } from "lucide-react";
 import { Wand2 as SimpleSocialIcon } from "lucide-react";
@@ -35,6 +36,7 @@ export const NAV_GROUPS = [
       { label: "Flight Plan", icon: Route, path: "/flight-plan" },
       { label: "Requests", icon: ClipboardList, path: "/requests" },
       { label: "Client usage", icon: UsageIcon, path: "/client-usage" },
+      { label: "Fuel economics", icon: FuelIcon, path: "/fuel-economics" },
     ],
   },
   {
