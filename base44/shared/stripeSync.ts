@@ -11,6 +11,38 @@ const LABEL = (plan: string, name: string) =>
   plan === "hypercare" ? "HyperCare+" : plan === "gravitycare" ? "GravïtyCare" : plan === "appcare" ? "AppCare" : plan === "manage" ? "Manage+" : plan === "mission" ? name.replace(/^Interstellar[®™]?\s*/i, "") + " (financed)" : name.replace(/^Interstellar[®™]?\s*/i, "");
 const DISCONTINUED = /badge|reviews|app management/i;
 
+// Care-plan flags in services_managed and the plan each one stands for.
+const CARE_FLAGS: Record<string, string> = { hypercare: "orbit_seo", gravitycare: "starship_care" };
+const careOfName = (n: string) => { const p = PLAN_OF(String(n || "")); return p === "hypercare" || p === "gravitycare" ? p : ""; };
+// Care plans a client was billed for through Stripe before this sync (so we only ever switch off a plan that
+// Stripe used to bill; clients on off-Stripe or combined arrangements are never flipped by this).
+const stripeCareBefore = (c: any) => new Set<string>((Array.isArray(c.services) ? c.services : []).filter((x: any) => x.stripe && x.status !== "canceled").map((x: any) => careOfName(x.name)).filter(Boolean));
+// Off-Stripe care lines that are still meant to be billed keep the plan on.
+const offStripeCare = (lines: any[]) => new Set<string>(lines.filter((x: any) => !x.stripe && x.status !== "canceled").map((x: any) => careOfName(x.name)).filter(Boolean));
+
+// A canceled or ended care subscription removes its flag (orbit_seo = HyperCare+, starship_care = GravïtyCare).
+// When no care plan is left the client is plan_status "inactive": Studios lock and the portal shows the
+// "plan inactive, contact us" screen. Nothing is deleted.
+function carePatch(client: any, livePlans: Set<string>, keptLines: any[], managed: Set<string>) {
+  const before = stripeCareBefore(client);
+  const off = offStripeCare(keptLines);
+  const ended: string[] = [];
+  for (const plan of Object.keys(CARE_FLAGS)) {
+    if (before.has(plan) && !livePlans.has(plan) && !off.has(plan)) { managed.delete(CARE_FLAGS[plan]); ended.push(plan); }
+  }
+  const hasCare = Object.keys(CARE_FLAGS).some((p) => livePlans.has(p) || off.has(p) || managed.has(CARE_FLAGS[p]));
+  const patch: any = {};
+  if (hasCare) {
+    if (client.plan_status === "inactive") { patch.plan_status = "active"; patch.plan_inactive_reason = ""; }
+    else if (!client.plan_status) patch.plan_status = "active";
+  } else if (ended.length) {
+    patch.plan_status = "inactive";
+    patch.plan_inactive_at = new Date().toISOString();
+    patch.plan_inactive_reason = `${ended.map((p) => (p === "hypercare" ? "HyperCare+" : "GravïtyCare")).join(" + ")} subscription canceled or ended in Stripe`;
+  }
+  return { patch, ended };
+}
+
 export async function syncFromStripe(base44: any, key: string) {
   const picture = await loadPicture(base44, key);
   const db = base44.asServiceRole.entities;
@@ -52,11 +84,12 @@ export async function syncFromStripe(base44: any, key: string) {
     if (t.plans.has("hypercare")) managed.add("orbit_seo");
     if (t.plans.has("gravitycare")) managed.add("starship_care");
     if (t.plans.has("appcare") || t.plans.has("manage")) managed.add("system");
+    const care = carePatch(t.client, t.plans, kept, managed);
     const ids = new Set<string>([...(t.client.stripe_customer_ids || []), ...t.customers]);
-    const patch: any = { services, services_managed: [...managed], stripe_customer_id: t.customer, stripe_customer_ids: [...ids], stripe_synced_at: new Date().toISOString() };
+    const patch: any = { ...care.patch, services, services_managed: [...managed], stripe_customer_id: t.customer, stripe_customer_ids: [...ids], stripe_synced_at: new Date().toISOString() };
     if (t.client.status !== "Active") patch.status = "Active";
     await db.CRMClient.update(id, patch);
-    report.push({ client: t.client.business, lines: t.lines.map((l) => `${l.name} $${l.price}/mo`), kept_off_stripe: kept.map((x) => x.name) });
+    report.push({ client: t.client.business, lines: t.lines.map((l) => `${l.name} $${l.price}/mo`), kept_off_stripe: kept.map((x) => x.name), ...(care.ended.length ? { care_ended: care.ended, plan_status: patch.plan_status || t.client.plan_status } : {}) });
   }
 
   // clients with Stripe lines but no live subscription any more → mark those lines ended
@@ -65,8 +98,10 @@ export async function syncFromStripe(base44: any, key: string) {
     const lines: any[] = Array.isArray(c.services) ? c.services : [];
     const stale = lines.filter((x) => x.stripe);
     if (!stale.length) continue;
-    await db.CRMClient.update(c.id, { services: lines.map((x) => (x.stripe ? { ...x, status: "canceled", price: 0 } : x)), stripe_synced_at: new Date().toISOString() });
-    report.push({ client: c.business, canceled: stale.map((x) => x.name) });
+    const managed = new Set<string>(c.services_managed || []);
+    const care = carePatch(c, new Set<string>(), lines.filter((x) => !x.stripe), managed);
+    await db.CRMClient.update(c.id, { ...care.patch, services_managed: [...managed], services: lines.map((x) => (x.stripe ? { ...x, status: "canceled", price: 0 } : x)), stripe_synced_at: new Date().toISOString() });
+    report.push({ client: c.business, canceled: stale.map((x) => x.name), ...(care.ended.length ? { care_ended: care.ended, plan_status: care.patch.plan_status || c.plan_status } : {}) });
   }
 
   return { synced: report.length, unmatched: picture.subscriptions.filter((s: any) => !s.client).map((s: any) => ({ id: s.id, customer: s.customer, mrr: s.mrr, lines: s.lines.map((l: any) => l.name) })), report, mrr: picture.mrr, plans: picture.plans };
