@@ -49,6 +49,43 @@ export async function verifyUnsubToken(token: string): Promise<string | null> {
   }
 }
 
+// ---- Client-scoped tokens (client Studios bulk email via SES) ----
+// token = "c." + base64url(client_id + "|" + email) + "." + base64url(HMAC(key, "email-unsub:client:v1:" + client_id + "|" + email))
+// Same key as above, different purpose string, so a client token can't be replayed as an agency token or for
+// another client. It only ever unsubscribes that address from that one client's list.
+export async function clientUnsubToken(clientId: string, email: string) {
+  const payload = `${String(clientId).replace(/\|/g, "")}|${normEmail(email)}`;
+  const sig = (await hmac(await unsubKey(), `email-unsub:client:v1:${payload}`)).slice(0, 24);
+  return `c.${b64url(enc.encode(payload))}.${b64url(sig)}`;
+}
+
+export async function verifyClientUnsubToken(token: string): Promise<{ client_id: string; email: string } | null> {
+  try {
+    const [tag, p, s] = String(token || "").split(".");
+    if (tag !== "c" || !p || !s || p.length > 600) return null;
+    const payload = new TextDecoder().decode(fromB64url(p));
+    const [client_id, email] = payload.split("|");
+    if (!client_id || !/^[A-Za-z0-9_-]{1,64}$/.test(client_id) || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email || "")) return null;
+    const expected = (await hmac(await unsubKey(), `email-unsub:client:v1:${payload}`)).slice(0, 24);
+    const given = fromB64url(s);
+    if (given.length !== expected.length) return null;
+    let diff = 0;
+    for (let i = 0; i < given.length; i++) diff |= given[i] ^ expected[i];
+    return diff === 0 ? { client_id, email } : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function clientUnsubscribeUrl(baseUrl: string, clientId: string, email: string) {
+  return `${String(baseUrl || "https://interstellar-mothership.com").replace(/\/+$/, "")}/functions/email-unsubscribe?t=${encodeURIComponent(await clientUnsubToken(clientId, email))}`;
+}
+
+// Purpose-bound token for the SES -> SNS bounce/complaint webhook URL (no extra secret needed).
+export async function sesHookToken() {
+  return b64url((await hmac(await unsubKey(), "ses-feedback-hook:v1")).slice(0, 18));
+}
+
 export async function unsubscribeUrl(baseUrl: string, email: string) {
   return `${String(baseUrl || "https://interstellar-mothership.com").replace(/\/+$/, "")}/functions/email-unsubscribe?t=${encodeURIComponent(await unsubToken(email))}`;
 }
