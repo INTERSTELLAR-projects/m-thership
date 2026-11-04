@@ -119,6 +119,9 @@ export default function PortalApp({ previewId }) {
     );
   }
 
+  // No active plan: a friendly screen with a way to reach us. Their data is kept; nothing else loads.
+  if (d.plan_inactive) return <PlanInactive d={d} call={call} previewId={previewId} />;
+
   return (
     <Shell client={d.client} tabs={tabs} tab={tab} setTab={(k) => { setQrOpen(null); setTab(k); }} unread={d.unread} preview={!!previewId} previewId={previewId} scopeId={scopeId} businesses={businesses} onSwitch={switchTo} fuel={fuel} refuelOpen={refuelOpen} setRefuelOpen={setRefuelOpen}>
       {audit ? (
@@ -218,6 +221,27 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, previewId, s
       {setRefuelOpen && <RefuelModal open={refuelOpen} onClose={() => setRefuelOpen(false)} fuel={fuel} scopeId={scopeId || previewId} preview={preview} onUpgrade={() => { setRefuelOpen(false); setSchedOpen(true); }} />}
       <main className="relative z-10 mx-auto max-w-[1280px] px-4 pb-20 pt-8 md:px-8">{children}</main>
     </div>
+  );
+}
+
+function PlanInactive({ d, call, previewId }) {
+  const [chat, setChat] = useState(false);
+  return (
+    <Shell client={d.client} preview={!!previewId}>
+      <div className="mx-auto max-w-xl py-16 text-center">
+        <img src={LOGO_URL} alt="" className="mx-auto h-14 w-20 object-contain" />
+        <p className="label-cross mt-6">(Plan inactive)</p>
+        <h1 className="mt-3 text-[30px] font-semibold leading-[1.05] tracking-[-0.04em] md:text-[40px]">Your plan is <span className="text-[#ff3c00]">paused</span>.</h1>
+        <p className="mx-auto mt-3 max-w-md text-[14.5px] leading-relaxed text-ink/60">
+          {d.client?.business ? `${d.client.business}'s` : "Your"} Interstellar plan isn&apos;t active right now, so your portal tools are switched off. Everything we built and saved for you is kept safe. Message us and we&apos;ll get you back up and running.
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <button type="button" onClick={() => setChat((v) => !v)} className="h-10 bg-[#ff3c00] px-5 text-[13px] font-medium text-white hover:bg-ink">{chat ? "Hide messages" : "Message us"}</button>
+          <a href="mailto:hello@interstellar-strategies.com" className="inline-flex h-10 items-center border border-hair px-5 text-[13px] font-medium hover:border-ink/30">hello@interstellar-strategies.com</a>
+        </div>
+      </div>
+      {chat && <div className="mx-auto max-w-3xl"><PortalChats call={call} previewId={previewId} /></div>}
+    </Shell>
   );
 }
 
