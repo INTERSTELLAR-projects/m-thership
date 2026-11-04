@@ -4,7 +4,7 @@ import { resolveClient } from "../../shared/portalClient.ts";
 import { sesConfig, sesSendEmail, SesError } from "../../shared/ses.ts";
 import { clientUnsubscribeUrl, sesHookToken, normEmail } from "../../shared/emailUnsub.ts";
 import { inviteSettings } from "../../shared/portalInvite.ts";
-import { checkAndRecord, record } from "../../shared/meter.ts";
+import { checkAndRecord } from "../../shared/meter.ts";
 import { studioState, MAX_FREE_LIST_SIZE, SES_COST_PER_EMAIL } from "../../shared/usagePlans.ts";
 
 // Client Studios bulk / marketing email through Amazon SES (our AWS account, each client's own verified domain).
@@ -282,5 +282,3 @@ Deno.serve(async (req) => {
   }
 });
 
-// Silence unused-import lint in editors: `record` is re-exported usage for future per-send corrections.
-export { record };
