@@ -3,6 +3,7 @@ import { requireSecondFactor } from "../../shared/twoFactor.ts";
 import { resolveClient, hasSecret } from "../../shared/portalClient.ts";
 import { capsFor, anyStudioOn, studioState, STUDIO_KEYS, monthKey, AI_MODELS } from "../../shared/usagePlans.ts";
 import { monthUsage } from "../../shared/meter.ts";
+import { loadFuelConfig, allowanceFor } from "../../shared/fuel.ts";
 import { sesHookToken } from "../../shared/emailUnsub.ts";
 import { inviteSettings } from "../../shared/portalInvite.ts";
 
@@ -13,6 +14,12 @@ import { inviteSettings } from "../../shared/portalInvite.ts";
 //   config   {}              admin: secret PRESENCE only (never values), model ids, SES feedback webhook URL.
 
 const capOut = (n: number) => (isFinite(n) ? n : null);
+// Caps now come from the plan + HyperCare+ tier (shared/fuel.ts, Fuel economics settings); ads cadence from capsFor.
+const capsWithTier = (c: any, cfg: any) => {
+  const caps = capsFor(c);
+  const a = allowanceFor(c, cfg);
+  return { ...caps, ai_action: a.ai_action, marketing_email: a.marketing_email, ads_cadence: a.studios_unlocked ? caps.ads_cadence : "none", tier_label: a.tier_label, studios_unlocked: a.studios_unlocked };
+};
 
 Deno.serve(async (req) => {
   try {
@@ -30,7 +37,7 @@ Deno.serve(async (req) => {
       const client = await resolveClient(db, user, body?.client_id);
       if (!client) return Response.json({ visible: false });
       if (!isAdmin && !anyStudioOn(client)) return Response.json({ visible: false });
-      const caps = capsFor(client);
+      const caps = capsWithTier(client, await loadFuelConfig(db));
       const u = await monthUsage(db, String(client.id));
       const out: Record<string, unknown> = {
         visible: anyStudioOn(client) || isAdmin, month: u.month, plan: caps.plan, plan_label: caps.plan_label,
@@ -60,14 +67,15 @@ Deno.serve(async (req) => {
         a.est_cost_usd += Number(r.est_cost_usd) || 0;
       }
       const empty = { ai_action: 0, marketing_email: 0, ads_run: 0, admin_ai_action: 0, admin_marketing_email: 0, admin_ads_run: 0, est_cost_usd: 0 };
+      const fuelCfg = await loadFuelConfig(db);
       return Response.json({
         month,
         truncated: rows.length >= 5000,
         agency: agg.agency || empty,
         clients: clients.map((c) => {
-          const caps = capsFor(c);
+          const caps = capsWithTier(c, fuelCfg);
           return {
-            id: c.id, business: c.business, logo_url: c.logo_url || "", plan: caps.plan, plan_label: caps.plan_label,
+            id: c.id, business: c.business, logo_url: c.logo_url || "", plan: caps.plan, plan_label: caps.plan_label, tier_label: caps.tier_label, studios_unlocked: caps.studios_unlocked,
             caps: { ai_action: capOut(caps.ai_action), marketing_email: capOut(caps.marketing_email), ads_cadence: caps.ads_cadence },
             unlimited: caps.unlimited, custom: caps.custom, overrides: c.usage_overrides || {},
             studios: Object.fromEntries(STUDIO_KEYS.map((k) => [k, studioState(c, k)])),
