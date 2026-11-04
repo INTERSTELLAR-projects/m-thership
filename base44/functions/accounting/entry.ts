@@ -57,7 +57,7 @@ async function getProfile(db: any) {
 }
 
 // ---------------- Stripe ----------------
-async function syncStripe(db: any, taxYear: number) {
+export async function syncStripe(db: any, taxYear: number) {
   let key = "";
   try { key = secrets.get("STRIPE_SECRET_KEY") || ""; } catch { key = ""; }
   if (!key) return { configured: false };
