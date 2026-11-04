@@ -146,9 +146,9 @@ export async function draftVariants({ brand, idea, targets, knowledge }) {
     },
     required: ["posts"],
     // Fuel routing (2026-11-04): per-platform captions + hashtags are short rewrites of an already-extracted idea, so
-    // they run on Haiku however many platforms are picked (was Sonnet above 6 targets). A batch that needs spoken
-    // video scripts stays on Sonnet.
-  }, { tier: targets.some((t) => formatOf(t.platform, t.format)?.video) ? "long" : "routine", feature: "social_variants" });
+    // they run on Haiku however many platforms are picked (was Sonnet above 6 targets). A big batch (7+) that also
+    // needs spoken video scripts stays on Sonnet, as before.
+  }, { tier: targets.length > 6 && targets.some((t) => formatOf(t.platform, t.format)?.video) ? "long" : "routine", feature: "social_variants" });
   const emoji = !!g.emoji_ok;
   return (res?.posts || []).map((p) => {
     const t = targets.find((x) => x.id === p.id);
