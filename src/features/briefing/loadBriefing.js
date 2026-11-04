@@ -147,7 +147,7 @@ async function outreachSection() {
 export async function loadBriefing() {
   const now = new Date();
   const today = dayKey(now);
-  const [raw, tasks, focus, waiting, moving, requests, audits, reviewClients, legal, intel, goals, outreach, cache] = await Promise.all([
+  const [raw, tasks, focus, waiting, moving, requests, audits, reviewClients, legal, intel, goals, outreach, agents, cache] = await Promise.all([
     fetchFinanceRaw(),
     arr(base44.entities.Task.filter({ status: { $in: OPEN_STATUSES } }, "due_date", 500)),
     arr(base44.entities.Task.filter({ is_focus: true, status: { $ne: "done" } }, "priority", 6)),
