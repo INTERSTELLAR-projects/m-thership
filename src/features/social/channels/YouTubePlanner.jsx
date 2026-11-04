@@ -72,9 +72,9 @@ export default function YouTubePlanner() {
                 <Droppable droppableId={s.key} key={s.key}>
                   {(drop, snap) => (
                     <div ref={drop.innerRef} {...drop.droppableProps} className={`flex min-h-[300px] flex-col gap-1.5 border p-1.5 ${snap.isDraggingOver ? "border-[#ff3c00] bg-[#ff3c00]/5" : "border-hair bg-card/60"}`}>
-                      <div className="flex items-baseline justify-between px-1">
+                      <div className="flex items-baseline justify-between gap-2 px-1">
                         <span className="text-[13px] font-semibold">{s.label}</span>
-                        <span className="mono-label text-[8.5px] text-ink/40">{s.day || ""} · {col.length}</span>
+                        <span className="mono-label text-[8.5px] text-ink/40">{col.length}</span>
                       </div>
                       {col.map((v, i) => (
                         <Draggable draggableId={v.id} index={i} key={v.id}>
