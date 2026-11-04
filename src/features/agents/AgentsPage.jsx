@@ -213,7 +213,7 @@ export default function AgentsPage() {
           </div>
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <nav aria-label="Breadcrumb" className="flex min-w-0 flex-wrap items-center gap-1.5 text-[12.5px]">
+          <nav aria-label="Breadcrumb" className="flex w-full min-w-0 flex-wrap items-center gap-1.5 text-[12.5px] sm:w-auto">
             {crumbs.map((c, i) => (
               <span key={i} className="flex items-center gap-1.5">
                 {i ? <span className="text-[var(--ink-s)]">/</span> : null}
@@ -224,8 +224,8 @@ export default function AgentsPage() {
               {counts.live} live · {counts.paused} paused · {counts.planned} planned{counts.broken ? ` · ${counts.broken} broken` : ""}
             </span>
           </nav>
-          <div className="flex flex-1 items-center justify-end gap-2 sm:flex-none">
-            <label className="relative flex-1 sm:w-64 sm:flex-none">
+          <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
+            <label className="relative min-w-0 flex-1 sm:w-64 sm:flex-none">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--ink-s)]" />
               <input className="inp w-full !pl-8" placeholder="Search agents" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search agents" />
               {q ? <button type="button" aria-label="Clear search" onClick={() => setQ("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--ink-s)] hover:text-white"><X className="h-3.5 w-3.5" /></button> : null}
@@ -233,8 +233,8 @@ export default function AgentsPage() {
             <button type="button" className={`btn-d ${filtering && (fStatus.size || fKind.size || fAuto.size) ? "!border-[rgba(255,106,0,.7)]" : ""}`} onClick={() => setShowFilters((v) => !v)} aria-expanded={showFilters}>
               <Filter className="h-3.5 w-3.5" />Filters{fStatus.size + fKind.size + fAuto.size ? ` · ${fStatus.size + fKind.size + fAuto.size}` : ""}
             </button>
-            <button type="button" className="btn-f hidden sm:inline-flex" onClick={() => (web === "clients" && client ? select({ type: "ceo" }) : setP({ web: null, client: null, dept: null, ceo: "1", agent: null, brain: null }))}>
-              <Sparkles className="h-4 w-4" />{web === "clients" && client ? "Client CEO" : ceoName}
+            <button type="button" aria-label={web === "clients" && client ? "Client CEO" : ceoName} className="btn-f !px-3 sm:!px-3.5" onClick={() => (web === "clients" && client ? select({ type: "ceo" }) : setP({ web: null, client: null, dept: null, ceo: "1", agent: null, brain: null }))}>
+              <Sparkles className="h-4 w-4" /><span className="hidden sm:inline">{web === "clients" && client ? "Client CEO" : ceoName}</span>
             </button>
           </div>
         </div>
