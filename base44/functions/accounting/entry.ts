@@ -13,7 +13,7 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { secrets } from "base44:runtime";
 import { callClaude } from "../../shared/anthropic.ts";
 import { getSecret } from "../../shared/portalClient.ts";
-import { estimateAiCost } from "../../shared/usagePlans.ts";
+import { estimateAiCost, monthKey } from "../../shared/usagePlans.ts";
 
 const BUSINESS_ID = "interstellar";
 // Justin's decision (2026-11-03): no QuickBooks / bank connections. qbo_* actions stay dormant until this is flipped.
@@ -309,7 +309,7 @@ ${rows.map((r: any) => `- id=${r.id} | ${r.date} | ${r.direction === "in" ? "+" 
     try {
       const r = await callClaude({ key: akey, tier: "routine", prompt, schema, max_tokens: 4096 });
       res = r.json;
-      await db.UsageLedger.create({ client_id: "agency", client_name: "Interstellar (admin)", month: new Date().toISOString().slice(0, 7), kind: "ai_action", units: 1, calls: 1, model: r.model, est_cost_usd: estimateAiCost(r.model, r.input_tokens, r.output_tokens), feature: "accounting.ai_categorize", by_admin: true, input_tokens: r.input_tokens, output_tokens: r.output_tokens, created_at: new Date().toISOString() }).catch(() => null);
+      await db.UsageLedger.create({ client_id: "agency", client_name: "Interstellar (admin)", month: monthKey(), kind: "ai_action", units: 1, calls: 1, model: r.model, est_cost_usd: estimateAiCost(r.model, r.input_tokens, r.output_tokens), feature: "accounting.ai_categorize", by_admin: true, input_tokens: r.input_tokens, output_tokens: r.output_tokens, created_at: new Date().toISOString() }).catch(() => null);
     } catch (e) { console.error("accounting haiku", (e as Error)?.message); res = null; }
   }
   if (!res) res = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, model: MODEL, response_json_schema: schema });
