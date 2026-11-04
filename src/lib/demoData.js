@@ -2,7 +2,6 @@
 // A FICTIONAL agency book: Interstellar running a made-up roster of clients ("Summit Ridge Builders" and co).
 // No real client, person, email, phone or dollar figure appears here. Everything is generated and in memory.
 // Remove together with qa.js before launch.
-import { generateSignatureHTML } from "@/features/signatures/lib/signatureTemplates";
 
 const NOW = new Date();
 const DAY = 864e5;
@@ -355,7 +354,6 @@ function build() {
   const ROLES = [["Dana Whitaker", "Owner & CEO"], ["Mateo Reyes", "Director of Operations"], ["Claire Donovan", "Lead Estimator"], ["Isaac Monroe", "Project Manager"], ["Grace Holland", "Office Manager"], ["Owen Castillo", "Site Superintendent"], ["Ruby Fischer", "Design Coordinator"], ["Eli Navarro", "Project Manager"], ["Hannah Kerr", "Customer Success"], ["Felix Moreau", "Estimator"], ["Ivy Sinclair", "Marketing Lead"], ["Noah Bauer", "Crew Lead"], ["Zoe Larkin", "Accounts"], ["Silas Grant", "Crew Lead"], ["Mila Ortega", "Permits Coordinator"], ["Theo Walsh", "Warranty & Service"], ["Ada Pierce", "Scheduler"], ["Jonah Ellis", "Field Tech"], ["Lena Brooks", "Interior Designer"], ["Caleb Ross", "Safety Officer"], ["Nora Vance", "HR & Recruiting"], ["Miles Carter", "Estimator"], ["Elena Duarte", "Bookkeeper"], ["Wyatt Hale", "Crew Lead"], ["Sofia Lind", "Sales"]];
   const TPL = ["t1_classic", "t2_minimal", "t3_compact", "t4_centered", "t5_rail"];
   E.Signature = ROLES.map(([full_name, job_title], i) => ({ id: `sg${i}`, name: full_name, template_id: TPL[i % 3 === 0 ? 0 : i % 5], client_id: c1.id, client_name: c1.business, folder: i < 6 ? "Leadership" : i < 16 ? "Office" : "Field", fields: { full_name, job_title, company_name: "Summit Ridge Builders", phone: `(208) 555-01${pad(i + 10)}`, email: `${full_name.split(" ")[0].toLowerCase()}@summitridge.demo`, website: "summitridge.demo", website_show: true, slogan: "Built right. Built to last.", assets: {} }, theme: { accent_color: "#ff3c00", accent_color_2: "#ffaa00", animated: true }, updated_date: agoTs(i % 9), created_date: agoTs(30) }));
-  E.Signature.forEach((sg) => { try { sg.generated_html = generateSignatureHTML({ fields: sg.fields, theme: sg.theme, template_id: sg.template_id }); } catch { /* preview renders on open */ } });
   E.SignatureTemplate = [{ id: "st1", name: "Summit Ridge · Animated flame", scope: "client", client_id: c1.id, client_name: c1.business, template_id: "t1_classic", is_default: true, portal_visible: true, fields: { company_name: "Summit Ridge Builders" }, theme: { accent_color: "#ff3c00", accent_color_2: "#ffaa00" } }];
 
   const deck = (title, client, n, eyebrow) => ({ title, client_id: client?.id, client_name: client?.business, theme: "flame", generation_status: "ready", brand: { bg: "#111111", fg: "#f7f5f2", accent: "#ff3c00", mode: "dark" }, slides: [
@@ -443,6 +441,14 @@ function build() {
 
 let cache = null;
 export function demo() { return (cache ||= build()); }
+
+// Signature thumbnails need rendered HTML. Loaded lazily (a static import would be circular through qa.js).
+export async function warmDemo() {
+  try {
+    const { generateSignatureHTML } = await import("@/features/signatures/lib/signatureTemplates");
+    demo().E.Signature.forEach((sg) => { try { sg.generated_html = generateSignatureHTML({ fields: sg.fields, theme: sg.theme, template_id: sg.template_id }); } catch { /* renders on open */ } });
+  } catch { /* thumbnails render on open */ }
+}
 
 // Function-call fakes for the demo (return undefined to fall through to the QA defaults).
 export function demoInvoke(name, args = {}, rows) {
