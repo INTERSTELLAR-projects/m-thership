@@ -15,12 +15,11 @@ export async function resolveClient(db: any, user: any, asClient?: unknown): Pro
 }
 
 // Secret presence only: values are never returned, logged or compared.
-export function hasSecret(name: string, secrets?: { get: (n: string) => string | undefined }) {
+type SecretStore = { get: (n: string) => string | undefined };
+export function getSecret(name: string, secrets?: SecretStore) {
   let v = "";
-  try { v = (secrets && secrets.get(name)) || ""; } catch { v = ""; }
-  if (!v) { try { v = Deno.env.get(name) || ""; } catch { v = ""; } }
-  return v.length > 0;
+  try { v = Deno.env.get(name) || ""; } catch { v = ""; }
+  if (!v) { try { v = (secrets && secrets.get(name)) || ""; } catch { v = ""; } }
+  return v;
 }
-export function getSecret(name: string) {
-  try { return Deno.env.get(name) || ""; } catch { return ""; }
-}
+export const hasSecret = (name: string, secrets?: SecretStore) => getSecret(name, secrets).length > 0;
