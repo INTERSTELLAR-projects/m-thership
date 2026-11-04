@@ -122,6 +122,15 @@
       "type": "string",
       "format": "date-time"
     },
+    "fuel_paused": {
+      "type": "boolean",
+      "description": "true while the client is out of fuel: the post keeps its schedule and waits; it resumes automatically after a Refuel or the monthly reset"
+    },
+    "fuel_original_scheduled_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The slot the post had before an out-of-fuel pause pushed it to the next valid slot"
+    },
     "approved_at": {
       "type": "string",
       "format": "date-time"
