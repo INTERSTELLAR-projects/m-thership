@@ -169,7 +169,7 @@ export default function Constellation({ graph, viewKey, selectedId, onSelect, on
     if (!size.w || !size.h) return;
     const b = bbox(graph.nodes);
     // Leave room for an open side panel on wide screens so the map centers in what is still visible.
-    const w = size.w >= 768 ? Math.max(320, size.w - padRight) : size.w;
+    const w = size.w >= 1000 ? Math.max(320, size.w - padRight) : size.w;
     const k = clamp(Math.min(w / b.w, size.h / b.h), K_MIN, 1.6);
     setInstant(!animate);
     setT({ k, x: w / 2 - (b.x + b.w / 2) * k, y: size.h / 2 - (b.y + b.h / 2) * k });
@@ -319,7 +319,7 @@ export default function Constellation({ graph, viewKey, selectedId, onSelect, on
           </g>
         </g>
       </svg>
-      <div className="absolute bottom-4 z-20 flex flex-col overflow-hidden rounded-xl glass" style={{ right: (size.w >= 768 ? padRight : 0) + 16 }}>
+      <div className="absolute bottom-4 z-20 flex flex-col overflow-hidden rounded-xl glass" style={{ right: (size.w >= 768 ? padRight : 0) + 16, bottom: size.w < 768 ? 64 : 16 }}>
         <button type="button" aria-label="Zoom in" className="grid h-9 w-9 place-items-center text-[var(--ink-m)] hover:text-white" onClick={() => { const c = center(); zoomAt(1.3, c.x, c.y); }}><Plus className="h-4 w-4" /></button>
         <button type="button" aria-label="Zoom out" className="grid h-9 w-9 place-items-center border-t border-[var(--hair-d)] text-[var(--ink-m)] hover:text-white" onClick={() => { const c = center(); zoomAt(1 / 1.3, c.x, c.y); }}><Minus className="h-4 w-4" /></button>
         <button type="button" aria-label="Fit to screen" className="grid h-9 w-9 place-items-center border-t border-[var(--hair-d)] text-[var(--ink-m)] hover:text-white" onClick={() => fit(true)}><Maximize2 className="h-3.5 w-3.5" /></button>
