@@ -1,6 +1,7 @@
 // QA-mode fixtures for the Social Studio (only used by src/lib/qa.js on the preview sandbox with ?qa=1).
 // Copies of the first weekly batch, put into every publishing state so the UI can be reviewed.
 import { specHash } from "./lib/specHash";
+import { SEED_VIDEOS } from "./channels/seedVideos";
 
 const BASE = [
   { id: "6aea2fa76a9f7c6ca398d943", title: "Untitled post", status: "draft", pillar: "pain_point", template: "pain_fix", spec: { eyebrow: "The app pile", headline: "Your business runs on 9 logins and a spreadsheet.", accent_word: "9 logins", subhead: "Every new tool fixed one problem and created two more.", cta: "See the Command System", theme: "light", lockup: "interstellar", mock: { before_label: "Today", before_items: ["Leads in one app, jobs in another", "Invoices typed in twice", "Follow-ups living in your head", "A spreadsheet holding it together"], after_label: "One system", after_items: ["Every lead lands in one pipeline", "Quote to invoice in one click", "Follow-ups that send themselves", "One login for the whole team"] } }, caption: "Nine logins and a spreadsheet is not a system.", generated_by: "justin", created_date: "2026-11-03T19:01:59.486Z" },
@@ -24,6 +25,13 @@ const withImage = (p) => (p.status === "approved" ? { ...p, image_url: "https://
 export const QA_SOCIAL = {
   SocialPost: BASE.map((p) => withImage({ ...p, ...(STATES[p.id] || {}) })),
   SocialAccount: [],
+  YouTubeVideo: SEED_VIDEOS.map((v, i) => ({ id: `qa_v${i}`, ...v, ...(i === 0 ? { stage: "script", publish_date: at(3, 17).slice(0, 10), title_options: ["The Future of Business, in 60 seconds", "What this channel will teach you"] } : {}), ...(i === 1 ? { stage: "record" } : {}) })),
+  ChannelPost: [
+    { id: "qa_l1", channel: "linkedin_company", status: "draft", title: "Your map pack is a storefront", pillar: "education", generated_by: "claude", planned_for: at(1, 17).slice(0, 10), created_date: at(0, 10), body: "Your Google Business Profile is the storefront most customers see first.\n\nWe audit three things before we touch a website: categories, service areas, and whether the hours match the site.\n\nGet those right and the map pack starts doing its job.\n\nFollow Interstellar Business OS for one practical fix a week.\n\n#localseo #smallbusiness #googlebusinessprofile" },
+    { id: "qa_l2", channel: "linkedin_personal", status: "draft", title: "Why I stopped selling websites", pillar: "founder_story", generated_by: "claude", planned_for: at(2, 17).slice(0, 10), created_date: at(0, 10), body: "I stopped selling websites last year.\n\nNot because websites don't matter. Because owners kept telling me the site was fine and the business still ran on sticky notes.\n\nSo now we build the system first and the website second.\n\nMore on how that works over on the Interstellar Business OS page.\n\n#founder #smallbusiness" },
+    { id: "qa_l3", channel: "linkedin_company", status: "posted", title: "Eight apps, one system", pillar: "pain_point", generated_by: "claude", planned_for: at(-1, 17).slice(0, 10), posted_at: at(-1, 18), posted_url: "https://www.linkedin.com/company/interstellar-business-os/", created_date: at(-3, 10), body: "Eight logins. Eight bills. Zero of them talk to each other." },
+  ],
+  SocialConversation: [],
 };
 
 const QA_STATUS = {
