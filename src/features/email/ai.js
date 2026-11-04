@@ -1,4 +1,4 @@
-import { base44 } from "@/api/base44Client";
+import { invokeAI } from "@/lib/aiGateway";
 import { loadClientContext, contextToBrief } from "@/features/clients/clientContext";
 import { loadAgencyKnowledge, agencyBlock } from "@/features/agency/knowledge";
 import { AI_EMAIL_SCHEMA, BLOCK_TYPES, TAG_STYLES, MERGE_FIELDS, normalizeBlocks } from "./emailBlocks";
@@ -56,7 +56,8 @@ Use {{first_name}} in the intro. When the email goes to several recipients, NEVE
 - Button URLs: only {{portal_url}}, {{website}}, or a URL given below. Otherwise leave url empty and say so in notes.`;
 
 async function callModel(prompt) {
-  const out = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: AI_EMAIL_SCHEMA });
+  // Anthropic via ai-gateway (metered, Sonnet-class for full emails); falls back to InvokeLLM on any gateway error.
+  const out = await invokeAI({ prompt, response_json_schema: AI_EMAIL_SCHEMA, tier: "long", feature: "email.compose" });
   const data = typeof out === "string" ? JSON.parse(out) : out;
   if (!data || !Array.isArray(data.blocks)) throw new Error("The AI did not return an email. Try again.");
   return { subject: String(data.subject || "").slice(0, 250), blocks: normalizeBlocks(data.blocks), notes: Array.isArray(data.notes) ? data.notes.map(String).slice(0, 12) : [] };
