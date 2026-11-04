@@ -4,7 +4,46 @@
   "properties": {
     "client_id": {
       "type": "string",
-      "description": "CRMClient id this social account belongs to"
+      "description": "CRMClient id this social account belongs to, or 'interstellar' for Interstellar's own accounts"
+    },
+    "account_kind": {
+      "type": "string",
+      "description": "company | personal | page | channel | board | subreddit | server (free text; LinkedIn uses company/personal)"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string",
+      "description": "Public profile / channel URL (Open platform button)"
+    },
+    "target_id": {
+      "type": "string",
+      "description": "Where posts go: Facebook Page id, LinkedIn organization id, Pinterest board id, Telegram channel (@name or -100 id), subreddit, Threads user id"
+    },
+    "secret_ref": {
+      "type": "string",
+      "description": "Name of the Base44 Secret holding this account's webhook/token. Must start with SOCIAL_ (e.g. SOCIAL_DISCORD_WEBHOOK_INTERSTELLAR). Never the secret itself."
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "mode_override": {
+      "type": "string",
+      "enum": [
+        "",
+        "manual"
+      ],
+      "description": "manual = never auto-post this account even when it could"
+    },
+    "daily_limit": {
+      "type": "number"
+    },
+    "own_subreddit": {
+      "type": "boolean",
+      "default": false,
+      "description": "Reddit only: the brand owns/moderates this subreddit, so auto-posting is allowed"
     },
     "client_name": {
       "type": "string"
@@ -12,7 +51,19 @@
     "platform": {
       "type": "string",
       "enum": [
-        "instagram"
+        "instagram",
+        "facebook",
+        "youtube",
+        "linkedin",
+        "tiktok",
+        "threads",
+        "x",
+        "pinterest",
+        "gbp",
+        "discord",
+        "telegram",
+        "reddit",
+        "whatsapp"
       ],
       "default": "instagram"
     },
