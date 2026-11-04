@@ -18,6 +18,7 @@ export async function draftChannelPost({ channel, topic, pillar, sourceText, exi
     sourceText ? `Repurpose this existing post (same idea, rewritten for this channel, not copied):\n${sourceText}` : "",
     existing ? `Current draft to improve:\n${existing}` : "",
     "Rules: no emoji, never invent client results, statistics, testimonials or reviews; prices only from the offers above; the trademark sign is ™ (never ®).",
+    "Open with a Triple Hook (context line with the search phrase, then lean, then contrarian snapback). No invented stats in the hook.",
     "Return hook (the first line / Shorts title), body (the full post text including the hook as the first line and hashtags at the end) and hashtags (array).",
   ].filter(Boolean).join("\n\n"), {
     type: "object",
@@ -70,6 +71,7 @@ export async function draftVideo({ video, part = "all" }) {
     video.angle ? `Angle: ${video.angle}` : "",
     video.guardrails ? `Guardrails (must respect): ${video.guardrails}` : "",
     "Never invent client results, statistics or testimonials. If the video needs a real number, write [REAL NUMBER NEEDED] instead of making one up. ™ not ®. No emoji.",
+    "The hook (first 15 seconds) and every Shorts hook use the Triple Hook Method from the brand brief: CONTEXT (say + show + write the topic with the search phrase in the first line), LEAN (curiosity), CONTRARIAN SNAPBACK (the turn). Title options state the topic plainly.",
     part === "titles" ? "Return only title_options (10) and thumbnail_ideas (4)." : "Return title_options (10, under 70 characters, curiosity without clickbait), thumbnail_ideas (4, each: big text + visual), hook (the first 15 seconds, spoken), script (spoken script with [B-ROLL] / [SCREEN] cues), chapters (timestamped, first is 0:00), and shorts (3-5 clip ideas: title, hook, which part of the script).",
   ].filter(Boolean).join("\n\n"), {
     type: "object",
