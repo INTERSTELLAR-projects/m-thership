@@ -1,0 +1,116 @@
+{
+  "name": "SocialBrand",
+  "description": "Social Studio Voice Guide + brand colors per brand: Interstellar (brand_key 'interstellar') or a client (brand_key = CRMClient id). Read by the content engine for every draft. Admin only.",
+  "type": "object",
+  "properties": {
+    "brand_key": {
+      "type": "string",
+      "description": "'interstellar' or the CRMClient id"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "tone": {
+      "type": "string",
+      "description": "How the brand sounds, plain words"
+    },
+    "audience": {
+      "type": "string"
+    },
+    "words_use": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "words_avoid": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Real example posts/lines in the brand's voice"
+    },
+    "registers": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ platform: register note } e.g. instagram casual, linkedin formal, x punchy, youtube scripted"
+    },
+    "emoji_ok": {
+      "type": "boolean",
+      "default": false
+    },
+    "hashtags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cta_default": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "handle_line": {
+      "type": "string"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Primary search phrases (social search)"
+    },
+    "colors": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ primary, secondary, accent, ink, paper } hex"
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "font": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "updated_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "brand_key"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

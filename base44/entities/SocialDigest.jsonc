@@ -1,0 +1,82 @@
+{
+  "name": "SocialDigest",
+  "description": "Weekly per-platform Learn digest for one brand. per_platform holds real numbers from the platforms (no estimates). summary/double_down/ideas are written by Claude only from those numbers.",
+  "type": "object",
+  "properties": {
+    "brand_key": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "week_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "week_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "per_platform": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ platform: { posts, with_data, totals{metric:n}, top{title,url,insights} } }"
+    },
+    "posts_count": {
+      "type": "number"
+    },
+    "data_points": {
+      "type": "number"
+    },
+    "computed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "double_down": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ideas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "written_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "brand_key",
+    "week_start"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

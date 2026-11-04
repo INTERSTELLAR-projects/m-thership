@@ -1,0 +1,201 @@
+{
+  "name": "SocialVariant",
+  "description": "One platform/account draft of a SocialIdea. Nothing publishes unless an admin approved it (approved_at). Auto-mode accounts publish through social-channels at scheduled_at; manual accounts wait for Mark posted.",
+  "type": "object",
+  "properties": {
+    "idea_id": {
+      "type": "string"
+    },
+    "brand_key": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "instagram",
+        "facebook",
+        "youtube",
+        "linkedin",
+        "tiktok",
+        "threads",
+        "x",
+        "pinterest",
+        "gbp",
+        "discord",
+        "telegram",
+        "reddit",
+        "whatsapp"
+      ]
+    },
+    "account_id": {
+      "type": "string",
+      "description": "SocialAccount it posts to (empty = manual, no account)"
+    },
+    "account_label": {
+      "type": "string"
+    },
+    "format": {
+      "type": "string",
+      "description": "feed | carousel | story | reel | short | video | post | document | pin | update | message"
+    },
+    "ratio": {
+      "type": "string",
+      "description": "Ratio key from the engine (ig_feed, square, story, yt_thumb, pin, wide, gbp, doc)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved",
+        "publishing",
+        "posted",
+        "failed",
+        "declined"
+      ],
+      "default": "draft"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "needs_connection",
+        "manual"
+      ],
+      "default": "manual"
+    },
+    "title": {
+      "type": "string"
+    },
+    "text": {
+      "type": "string"
+    },
+    "hashtags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "alt_text": {
+      "type": "string"
+    },
+    "link": {
+      "type": "string"
+    },
+    "script": {
+      "type": "string"
+    },
+    "first_comment": {
+      "type": "string"
+    },
+    "hook_check": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ context, lean, snapback } reviewer ticks for the Triple Hook"
+    },
+    "needs_image": {
+      "type": "boolean",
+      "default": true
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "image_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "document_url": {
+      "type": "string"
+    },
+    "render_hash": {
+      "type": "string"
+    },
+    "rendered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "scheduled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "declined_reason": {
+      "type": "string"
+    },
+    "publish_lock": {
+      "type": "string"
+    },
+    "publishing_started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "publish_attempts": {
+      "type": "integer",
+      "default": 0
+    },
+    "publish_error": {
+      "type": "string"
+    },
+    "publish_meta": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "external_id": {
+      "type": "string"
+    },
+    "posted_url": {
+      "type": "string"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "posted_by": {
+      "type": "string"
+    },
+    "insights": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Real numbers read back from the platform API (or empty). Never estimated."
+    },
+    "edited": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "platform"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

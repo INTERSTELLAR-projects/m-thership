@@ -1,0 +1,112 @@
+{
+  "name": "SocialIdea",
+  "description": "One captured idea (video link, voice note, upload/transcript or a messy thought) and what Claude extracted from it: hook bank (Triple Hook), quotes, carousel outline, clip cut list, the one visual. Each platform draft is a SocialVariant. Admin only.",
+  "type": "object",
+  "properties": {
+    "brand_key": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "brand_name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "captured",
+        "extracting",
+        "drafted",
+        "archived"
+      ],
+      "default": "captured"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "thought",
+        "voice",
+        "video_link",
+        "upload",
+        "transcript"
+      ],
+      "default": "thought"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "source_meta": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "source_text": {
+      "type": "string",
+      "description": "Notes / dictation / transcript text"
+    },
+    "transcript_segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "[{ start, end, text }] seconds, parsed from .srt/.vtt or timestamped text"
+    },
+    "upload_url": {
+      "type": "string"
+    },
+    "upload_name": {
+      "type": "string"
+    },
+    "extraction": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ summary, primary_keyword, secondary_keyword, hooks[], triple_hooks[{context,lean,snapback,full}], quotes[], carousel{title,slides[{heading,body}]}, clips[{start,end,label,hook,why}], visual{}, ideas_next[] }"
+    },
+    "design": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ template, spec } the one visual; rendered to every ratio"
+    },
+    "platforms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "generation_batch": {
+      "type": "string"
+    },
+    "created_by_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "brand_key"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
