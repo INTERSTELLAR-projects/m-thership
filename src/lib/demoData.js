@@ -448,7 +448,27 @@ export function demoInvoke(name, args = {}, rows) {
   if (name === "stripeProducts") return { configured: true, products: [] };
   if (name === "reviews") { const r = rows("ReviewClient").find((x) => x.slug === args.client); return r ? { ...r.cache, cachedAt: r.cached_at } : { reviews: [] }; }
   if (name === "portal") return demoPortal(args, rows, D);
+  if (name === "usage") return demoUsage(args, rows);
   return undefined;
+}
+
+function demoUsage(args, rows) {
+  const month = new Date().toISOString().slice(0, 7);
+  const list = rows("CRMClient").filter((c) => c.status === "Active" && /^c\d/.test(c.id)).slice(0, 36).map((c, i) => {
+    const tier = c.services[0].name;
+    const plan = /Grav/.test(tier) ? "gravitycare" : "hypercare";
+    const caps = plan === "hypercare" ? { ai_action: 1000, marketing_email: 25000, ads_cadence: "daily" } : { ai_action: 200, marketing_email: 2500, ads_cadence: "none" };
+    const on = i < 3 ? { social: "on", email: "on", ads: "on", accounting: "on", hiring: "on", presentations: "on" } : { social: "on", email: i % 2 ? "on" : "preview", ads: i % 3 ? "preview" : "on" };
+    const u = { ai_action: 180 + ((i * 97) % 760), marketing_email: (i * 1931) % 21000, ads_run: i % 3 ? 0 : 4 + (i % 9), admin_ai_action: 12 + (i % 30), admin_marketing_email: 0, admin_ads_run: 0 };
+    u.est_cost_usd = +(u.ai_action * 0.0058 + u.marketing_email * 0.0001).toFixed(2);
+    return { id: c.id, business: c.business, plan, plan_label: plan === "hypercare" ? tier : "GravïtyCare", caps, unlimited: false, custom: false, overrides: {}, portal_enabled: true,
+      studios: { social: "preview", email: "preview", ads: "preview", accounting: "preview", hiring: "preview", presentations: "preview", ...on },
+      ses: { from_email: `news@${c.domain}`, from_name: c.business, reply_to: c.emails[0], domain: c.domain, verified: i % 4 !== 3 }, usage: u };
+  });
+  if (args.action === "overview") return { month, truncated: false, agency: { est_cost_usd: 61.4 }, clients: list };
+  if (args.action === "config") return { secrets: { ANTHROPIC_API_KEY: true, AWS_SES_ACCESS_KEY_ID: true, AWS_SES_SECRET_ACCESS_KEY: true, AWS_SES_REGION: true }, models: { routine: { id: "claude-haiku-5-5" }, long: { id: "claude-sonnet-5-5" } }, ses_feedback_webhook: "https://interstellar-mothership.com/functions/email-bulk?hook=DEMO", checked_at: new Date().toISOString() };
+  if (args.action === "summary") { const c = list.find((x) => x.id === (args.client_id || "c1")) || list[0]; return { visible: true, month, plan: c.plan, plan_label: c.plan_label, caps: c.caps, usage: c.usage, admin_usage: {}, est_cost_usd: c.usage.est_cost_usd, unlimited: false, custom: false, studios: c.studios }; }
+  return {};
 }
 
 const PREST_DEF = {
