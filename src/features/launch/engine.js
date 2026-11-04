@@ -27,8 +27,8 @@ export const SITE_FACTS = {
   "6a39e2026c54d9a15b5caf25": { live: false, domain: "takerein.com", old: "Squarespace", blog: "Post entity" },
   "69d884d3049d808969e477d1": { live: false, domain: "musclementorcoaching.com", old: "Framer", blog: "file-based" },
   "69d884d30f93ad2e14bbbeb3": { live: false, domain: "redline-visuals.com", old: "Framer", blog: "BlogPost entity" },
-  "6a3c9320b05f612c08347d74": { live: false, domain: "thebulbabros.com", old: "unknown", blog: "" },
-  "6a28bfea1bde8e3ea488f04d": { live: false, domain: "bobablasticmolalla.com", old: "unknown", blog: "file-based" },
+  "6a3c9320b05f612c08347d74": { live: false, domain: "thebulbabros.com", old: "none (domain not registered)", blog: "BlogPost entity" },
+  "6a28bfea1bde8e3ea488f04d": { live: false, domain: "bobablasticmolalla.com", old: "none (domain not registered)", blog: "file-based (src/data/blog.js)" },
   "69d884d4293101b78d2939cf": { live: false, domain: "smplsocial.io", old: "Framer", blog: "" },
 };
 // Client apps that must be finished by Dec 31 (KB launch plan) and the LaunchItem keys that close them.
