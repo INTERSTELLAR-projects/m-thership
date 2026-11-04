@@ -10,7 +10,8 @@ import { base44 } from "@/api/base44Client";
 const call = async (action, previewId) => (await base44.functions.invoke("social-instagram", { action, ...(previewId ? { client_id: previewId } : {}) })).data;
 const n = (v) => (v == null ? "—" : Number(v).toLocaleString("en-US"));
 
-export default function PortalInstagram({ previewId }) {
+// previewId: the client to load (admin preview, or the business a package-deal owner picked); admin: Justin previewing.
+export default function PortalInstagram({ previewId, admin = !!previewId }) {
   const qc = useQueryClient();
   const key = ["portal", previewId, "instagram"];
   const q = useQuery({ queryKey: key, queryFn: () => call("portal", previewId), retry: false, staleTime: 5 * 60000 });
@@ -58,7 +59,7 @@ export default function PortalInstagram({ previewId }) {
           <p className="mono-label text-[9px] text-ink/45">Instagram</p>
           <h3 className="text-[18px] font-semibold tracking-[-0.03em]">{a?.handle ? <>@{a.handle}</> : <>Your <span className="text-[#ff3c00]">/Instagram</span></>}</h3>
         </div>
-        {a && d.can_connect && a.source === "app_user_connector" && !previewId && (
+        {a && d.can_connect && a.source === "app_user_connector" && !admin && (
           <button type="button" onClick={sync} disabled={busy} className="inline-flex h-8 items-center gap-1.5 border border-hair px-2.5 text-[12px] text-ink/65 hover:border-[#ff3c00] hover:text-[#ff3c00] disabled:opacity-40">
             <RefreshCw className={`h-3.5 w-3.5 ${busy ? "animate-spin" : ""}`} />Refresh
           </button>
@@ -68,7 +69,7 @@ export default function PortalInstagram({ previewId }) {
       {!a ? (
         <div className="flex flex-col items-start gap-3 px-4 py-5 sm:flex-row sm:items-center">
           <p className="flex-1 text-[13.5px] leading-snug text-ink/65">Connect your Instagram business account and your followers, recent posts and engagement show up here next to your other results. Read-only: we can&apos;t post or message from this connection.</p>
-          <button type="button" onClick={connect} disabled={busy || !!previewId} title={previewId ? "The client connects from their own login" : undefined}
+          <button type="button" onClick={connect} disabled={busy || admin} title={admin ? "The client connects from their own login" : undefined}
             className="inline-flex h-10 shrink-0 items-center gap-2 bg-[#ff3c00] px-4 text-[13px] font-medium text-white transition-colors hover:bg-ink disabled:opacity-50">
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Instagram className="h-4 w-4" />}Connect your Instagram
           </button>
