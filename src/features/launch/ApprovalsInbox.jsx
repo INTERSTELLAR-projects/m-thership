@@ -5,7 +5,8 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, ChevronDown, ChevronRight, CheckCheck } from "lucide-react";
-import { GATES, loadWaiting, approveRow, rowTitle, MODES } from "./gates";
+import { GATES, loadWaiting, approveRow, rowTitle, MODES, loadPolicy, gateMode } from "./gates";
+import TopicCalendarCards from "./TopicCalendarCards";
 
 export function useWaiting() {
   return useQuery({ queryKey: ["launchWaiting"], queryFn: loadWaiting, staleTime: 20_000 });
@@ -51,13 +52,16 @@ export default function ApprovalsInbox() {
   const q = useWaiting();
   const [open, setOpen] = useState({});
   const [confirm, setConfirm] = useState(null);
-  const groups = useMemo(() => GATES.map((g) => ({ g, rows: (q.data || {})[g.key] || [] })).filter((x) => x.rows.length), [q.data]);
+  const pol = useQuery({ queryKey: ["approvalPolicy"], queryFn: loadPolicy, staleTime: 60_000 });
+  // Topic calendars have their own cards above; everything else groups by gate.
+  const groups = useMemo(() => GATES.filter((g) => g.key !== "claude.topic_calendar").map((g) => ({ g, rows: (q.data || {})[g.key] || [] })).filter((x) => x.rows.length), [q.data]);
   const total = waitingTotal(q.data);
   const refresh = () => { qc.invalidateQueries({ queryKey: ["launchWaiting"] }); qc.invalidateQueries({ queryKey: ["ClaudeJob"] }); };
 
   if (q.isLoading) return <p className="py-8 text-[13px] text-ink/50">Gathering everything that's waiting…</p>;
   return (
     <div>
+      <TopicCalendarCards />
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <p className="max-w-2xl text-[13px] leading-relaxed text-ink/60">{total.toLocaleString()} items wait across {groups.length} gates. Groups that can be approved in one go show <b>Approve all</b>; the rest open where they live, because each one needs a per-item choice or a visual check.</p>
         <button type="button" onClick={refresh} className="h-8 border border-hair px-3 text-[12px] text-ink/60 hover:border-ink/30 hover:text-ink">Refresh</button>
@@ -75,7 +79,7 @@ export default function ApprovalsInbox() {
                   <span className="font-mono text-[18px] font-semibold tabular-nums text-[#ff3c00]">{rows.length.toLocaleString()}</span>
                   <span className="min-w-0">
                     <span className="block truncate text-[13.5px] font-medium">{g.label}</span>
-                    <span className="mono-label text-[9.5px] text-ink/45">{g.family} · today: {MODES[g.current].label} · recommended: {MODES[g.recommended].label}</span>
+                    <span className="mono-label text-[9.5px] text-ink/45">{g.family} · policy: {MODES[gateMode(pol.data, g.key)].label}{gateMode(pol.data, g.key) !== "approve" ? (g.autoIf ? " (only matching items clear; the rest wait)" : " (clears automatically)") : ""}</span>
                   </span>
                 </button>
                 <div className="flex items-center gap-2">
