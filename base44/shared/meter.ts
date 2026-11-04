@@ -122,7 +122,7 @@ export async function record(db: Db, client: Client, kind: Kind, units: number, 
   return m.row;
 }
 
-export async function checkAndRecord(db: Db, client: Client, kind: Kind, units: number, meta: Parameters<typeof record>[3] = {}) {
+export async function checkAndRecord(db: Db, client: Client, kind: Kind, units: number, meta: Parameters<typeof record>[4] = {}) {
   const c = await check(db, client, kind, units, { admin: meta.admin, feature: meta.feature });
   if (!c.ok) return c;
   await record(db, client, kind, units, meta);
