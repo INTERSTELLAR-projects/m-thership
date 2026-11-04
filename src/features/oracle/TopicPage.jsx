@@ -23,6 +23,7 @@ export default function TopicPage() {
   const Icon = meta.icon;
   const words = meta.name.split(" ");
   const last = words.pop();
+  if (!words.length) words.push("Topic");
 
   return (
     <div className="min-h-screen bg-[#0b0b0d] text-white">
