@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import {
   Home, LineChart, MapPin, Target, Compass, ClipboardList, MessageSquare, FolderOpen, Palette, BookOpen,
   PenLine, QrCode, Crown, CalendarDays, ChevronDown, Menu, X, LogOut, ArrowLeft, UserRound, Check, Video, Loader2, ArrowUpRight,
+  Megaphone, Mail, BadgeDollarSign, Calculator, UserPlus, Presentation, Lock,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import BrandLockup from "@/components/brand/BrandLockup";
@@ -41,15 +42,28 @@ export const NAV = [
       { k: "qr", label: "QR Codes", desc: "Branded, trackable codes you can re-point", icon: QrCode, bonus: true },
     ],
   },
+  {
+    // Studios: per-client state off (hidden) / preview (locked, default) / on. PortalApp passes which tabs exist
+    // and which are still locked; locked items show a lock tag and open the preview page (PortalStudios.jsx).
+    id: "studios", label: "Studios", eyebrow: "Included with your plan", align: "right",
+    items: [
+      { k: "studio_social", label: "Social Studio", desc: "Plan, design and publish your posts", icon: Megaphone },
+      { k: "studio_email", label: "Email Studio", desc: "Newsletters and promos to your list", icon: Mail },
+      { k: "studio_ads", label: "Ads Studio", desc: "An ads agent that watches your spend", icon: BadgeDollarSign },
+      { k: "studio_accounting", label: "Accounting & Taxes", desc: "Books, receipts and quarterly taxes", icon: Calculator },
+      { k: "studio_hiring", label: "Hiring plan", desc: "When to hire, and who", icon: UserPlus },
+      { k: "studio_presentations", label: "Presentations", desc: "On-brand decks and proposals", icon: Presentation },
+    ],
+  },
   { id: "referrals", label: "Referrals", icon: Crown, tab: "referrals" },
 ];
 
 // Labels for tabs reached outside the nav (shown on the mobile menu button).
 const EXTRA_LABELS = { assistant: "Nøva", account: "Account" };
 
-export function navFor(tabKeys) {
+export function navFor(tabKeys, locked = new Set()) {
   const has = new Set(tabKeys);
-  return NAV.map((g) => (g.items ? { ...g, items: g.items.filter((i) => has.has(i.k)) } : g))
+  return NAV.map((g) => (g.items ? { ...g, items: g.items.filter((i) => has.has(i.k)).map((i) => (locked.has(i.k) ? { ...i, locked: true } : i)) } : g))
     .filter((g) => (g.items ? g.items.length > 0 : has.has(g.tab)));
 }
 
@@ -66,6 +80,9 @@ const groupUnread = (g, unread) => (g.items?.some((i) => i.k === "messages") ? u
 
 function Bonus() {
   return <span className="mono-label inline-flex items-center bg-[#ff3c00]/10 px-1 py-[1px] text-[8px] leading-[1.4] text-[#ff3c00]">Bonus</span>;
+}
+function Locked() {
+  return <span className="mono-label inline-flex items-center gap-0.5 bg-ink/[0.07] px-1 py-[1px] text-[8px] leading-[1.4] text-ink/55"><Lock className="h-2 w-2" aria-hidden="true" />Soon</span>;
 }
 function Count({ n, label = "unread" }) {
   if (!n) return null;
@@ -209,6 +226,7 @@ export function DesktopNav({ nav, tab, setTab, unread }) {
                             <span className="flex items-center gap-1.5 text-[13.5px] font-semibold tracking-[-0.01em] text-ink">
                               {i.label}
                               {i.bonus && <Bonus />}
+                              {i.locked && <Locked />}
                               {i.k === "messages" && <Count n={unread} />}
                               {cur && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#ff3c00]" aria-hidden="true" />}
                             </span>
@@ -273,7 +291,7 @@ export function MobileNav({ nav, client, tab, setTab, unread, preview, onSchedul
   const toggle = (id) => setExpanded((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const current = labelFor(nav, tab);
 
-  const Row = ({ k, label, icon: Icon, desc, bonus, indent }) => {
+  const Row = ({ k, label, icon: Icon, desc, bonus, locked, indent }) => {
     const cur = tab === k;
     return (
       <button
@@ -285,7 +303,7 @@ export function MobileNav({ nav, client, tab, setTab, unread, preview, onSchedul
         {cur && <span className="absolute inset-y-2 left-0 w-[3px] bg-[#ff3c00]" aria-hidden="true" />}
         <span className={`flex h-8 w-8 shrink-0 items-center justify-center ${cur || bonus ? "flame-bg text-white" : "bg-ink/[0.06] text-ink/70"}`}><Icon className="h-4 w-4" aria-hidden="true" /></span>
         <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-1.5 text-[14.5px] font-medium tracking-[-0.01em]">{label}{bonus && <Bonus />}{k === "messages" && <Count n={unread} />}</span>
+          <span className="flex items-center gap-1.5 text-[14.5px] font-medium tracking-[-0.01em]">{label}{bonus && <Bonus />}{locked && <Locked />}{k === "messages" && <Count n={unread} />}</span>
           {desc && <span className="block truncate text-[11.5px] text-ink/50">{desc}</span>}
         </span>
       </button>
@@ -361,7 +379,7 @@ export function MobileNav({ nav, client, tab, setTab, unread, preview, onSchedul
                       </button>
                     </h2>
                     <ul id={`portal-mgroup-${g.id}`} hidden={!isOpen} className="pb-1">
-                      {g.items.map((i) => <li key={i.k}><Row k={i.k} label={i.label} icon={i.icon} desc={i.desc} bonus={i.bonus} indent /></li>)}
+                      {g.items.map((i) => <li key={i.k}><Row k={i.k} label={i.label} icon={i.icon} desc={i.desc} bonus={i.bonus} locked={i.locked} indent /></li>)}
                     </ul>
                   </section>
                 );
