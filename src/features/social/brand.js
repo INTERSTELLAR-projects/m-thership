@@ -75,6 +75,7 @@ export const VOICE = {
     "The slogan is exactly \"The Future of Business\".",
     "Prices only from BRAVO/ALPHA offers in this file; no invented discounts, deadlines or scarcity.",
     "Captions are short and punchy: a keyword-first hook line (see SEARCH rules), two to four short lines, a clear call to action, then 3 to 5 relevant hashtags (Instagram caps posts at 5).",
+    "Hooks follow the Triple Hook Method (HOOKS below): context line with the search phrase, then lean, then a contrarian snapback. No invented stats in hooks.",
     "LinkedIn caption: same idea, slightly longer and more reflective, 3 to 5 hashtags, no hashtag walls.",
     "Never post to social media, approve or schedule anything. Generated posts are drafts (status draft); only Justin approves and schedules them in Møthership.",
   ],
@@ -115,6 +116,37 @@ export const SEARCH = {
     "small business automation", "show up in AI search", "get found on ChatGPT", "why my website gets no calls",
   ],
 };
+
+// Hook framework (Settings > Agency knowledge, section "hooks"; AgencyKnowledge key hooks). Every generator opens
+// posts, Reels/Shorts/TikTok scripts and YouTube scripts with it, combined with the keyword-first SEARCH rule.
+export const HOOKS = {
+  name: "Triple Hook Method",
+  source: "Kallaway, \"Triple Hook Method\" — https://www.instagram.com/p/DfQ5RxHjg1S/",
+  steps: [
+    { key: "context", label: "Context", rule: "The first line immediately establishes what the post/video is about: say it in audio, show it on screen, write it in the caption, ideally all three aligned. It contains the post's search phrase (keyword-first). Delaying context, even to the end of the first sentence, raises skip rate (the author's claim)." },
+    { key: "lean", label: "Lean", rule: "Create curiosity in a direction so the viewer leans in and wants more (open the curiosity loop)." },
+    { key: "snapback", label: "Contrarian snapback", rule: "Then pull the viewer the other way: a turn or contrast (\"but here's the thing…\") that snaps them down an unexpected path, like setting a fish hook." },
+  ],
+  test: "Read the first 1-2 sentences alone: is the context clear AND is there something that makes you want to hear more?",
+  rules: [
+    "Open with context, then lean, then the contrarian snapback. Never a vague teaser first.",
+    "The context line contains the primary search phrase (social search: keyword-first).",
+    "No invented statistics or results in hooks. A number in a hook must be real and sourced, or the hook is rewritten without it.",
+  ],
+};
+
+/** Hook framework text for AI prompts. Prefers the AgencyKnowledge "hooks" section when it is passed in. */
+export function hookBrief(section) {
+  const d = section?.data || {};
+  const steps = Array.isArray(d.steps) && d.steps.length ? d.steps : HOOKS.steps;
+  const rules = Array.isArray(d.rules) && d.rules.length ? d.rules : HOOKS.rules;
+  return [
+    `Hook framework: ${d.name || HOOKS.name} (${d.source || HOOKS.source}). Every post and script opens with it:`,
+    ...steps.map((s, i) => `${i + 1}. ${String(s.label || s.key).toUpperCase()}: ${s.rule}`),
+    `Test: ${d.test || HOOKS.test}`,
+    ...rules.map((r) => `- ${r}`),
+  ].join("\n");
+}
 
 // draft -> approved (scheduled) -> publishing -> posted | failed; declined. Only Justin approves.
 export const STATUSES = [
@@ -161,6 +193,7 @@ export function brandBrief() {
     `Voice:\n- ${VOICE.tone.join("\n- ")}`,
     `Hard rules:\n- ${VOICE.rules.join("\n- ")}`,
     `Search rules (social SEO):\n- ${SEARCH.rules.join("\n- ")}\nStarting search phrases: ${SEARCH.keywords.join("; ")}`,
+    hookBrief(),
     `Avoid words: ${VOICE.banned_words.join(", ")}`,
   ].join("\n\n");
 }
