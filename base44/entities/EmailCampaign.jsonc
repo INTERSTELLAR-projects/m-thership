@@ -38,9 +38,19 @@
         "sent",
         "partial",
         "failed",
-        "cancelled"
+        "cancelled",
+        "paused"
       ],
-      "default": "queued"
+      "default": "queued",
+      "description": "paused = out of fuel: the campaign waits in place (not metered yet) and resumes automatically after a Refuel or the monthly reset"
+    },
+    "fuel_paused_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "metered": {
+      "type": "boolean",
+      "description": "true once the campaign's emails were metered (UsageLedger). Paused campaigns are metered when they resume."
     },
     "total": {
       "type": "number",
