@@ -7,11 +7,15 @@ import CommandPalette from "./CommandPalette";
 import GridTrail from "./GridTrail";
 import BrandLockup from "@/components/brand/BrandLockup";
 import AccountingNotices from "@/features/accounting/AccountingNotices";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { usePolicySweep } from "@/features/launch/usePolicySweep";
 
 export default function Layout() {
   const [cmdOpen, setCmdOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  // Applies Justin's approval policy in the background (auto/notify gates; logged to Live Ops).
+  usePolicySweep();
 
   useEffect(() => {
     const handler = (e) => {
@@ -45,11 +49,13 @@ export default function Layout() {
       <main data-trail className="grid-canvas relative z-10 flex-1 overflow-y-auto pt-12 md:pt-0">
         <TimeZoneBar />
         <div key={location.pathname} data-trail className="page-enter relative z-10">
-          <Outlet />
+          <ErrorBoundary where="admin route" resetKey={location.pathname}>
+            <Outlet />
+          </ErrorBoundary>
         </div>
       </main>
       <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} />
-      <AccountingNotices />
+      <ErrorBoundary compact where="accounting notices"><AccountingNotices /></ErrorBoundary>
     </div>
   );
 }
