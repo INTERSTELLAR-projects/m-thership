@@ -13,6 +13,7 @@ import { UserPlus as HiringIcon } from "lucide-react";
 import { Gauge as UsageIcon } from "lucide-react";
 import { Orbit as AgentsIcon } from "lucide-react";
 import { Radar as IntelligenceIcon } from "lucide-react";
+import { Wand2 as SimpleSocialIcon } from "lucide-react";
 
 export const LOGO_URL =
   "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/536102fbf_interstellar-mark-v2.webp";
@@ -64,6 +65,7 @@ export const NAV_GROUPS = [
       { label: "Social Studio", icon: SocialIcon, path: "/social" },
       { label: "Ads Studio", icon: AdsIcon, path: "/ads" },
       { label: "Email Studio", icon: EmailStudioIcon, path: "/email" },
+      { label: "Simple Social", icon: SimpleSocialIcon, path: "/studios/simple-social", arch: "SOON" },
     ],
   },
   {
