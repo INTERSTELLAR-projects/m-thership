@@ -12,7 +12,6 @@ export default function ApprovalPolicy() {
   const qc = useQueryClient();
   const pol = useQuery({ queryKey: ["approvalPolicy"], queryFn: loadPolicy });
   const waiting = useWaiting();
-  const saved = pol.data?.pageSettings?.modes || null;
   const [modes, setModes] = useState({});
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
