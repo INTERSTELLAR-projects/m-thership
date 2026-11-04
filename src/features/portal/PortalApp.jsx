@@ -31,6 +31,7 @@ import { needsSecondFactor } from "@/features/security/api";
 import { BusinessDropdown, BusinessPills } from "@/features/portal/BusinessSwitcher";
 import { useFuel } from "@/features/fuel/useFuel";
 import { FuelBanner, RefuelModal } from "@/features/fuel/FuelPrompts";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Tabs this portal can show. Grouping, labels and icons for the header nav live in PortalNav.jsx (NAV);
 // free-for-life bonus tools (Signatures, QR Codes) are tagged there and listed together on Home.
@@ -127,6 +128,7 @@ export default function PortalApp({ previewId }) {
       {audit ? (
         <IntakeView call={call} onClose={() => { setAudit(false); refresh(); }} />
       ) : (
+        <ErrorBoundary where="portal tab" resetKey={`${d.client.id}:${tab}`}>
         <div key={`${d.client.id}:${tab}`} className="page-enter">
           {tab === "home" && <HomeView d={d} go={setTab} call={call} previewId={scopeId} openAudit={() => setAudit(true)} />}
           {tab === "results" && <ResultsView d={d} previewId={scopeId} admin={!!previewId} />}
@@ -158,8 +160,9 @@ export default function PortalApp({ previewId }) {
           {tab === "account" && <SecurityPanel preview={!!previewId} />}
           {STUDIO_BY_TAB[tab] && tabs.some(([k]) => k === tab) && <StudioPreview tab={tab} client={d.client} call={call} preview={!!previewId} previewId={previewId} scopeId={scopeId} fuel={fuel} onRefuel={() => setRefuelOpen(true)} onFuelChanged={refreshFuel} />}
         </div>
+        </ErrorBoundary>
       )}
-      {tab !== "assistant" && <AssistantLauncher key={scopeId || "me"} previewId={scopeId} admin={!!previewId} onOpenFull={() => { setQrOpen(null); setTab("assistant"); }} />}
+      {tab !== "assistant" && <ErrorBoundary compact where="portal assistant launcher"><AssistantLauncher key={scopeId || "me"} previewId={scopeId} admin={!!previewId} onOpenFull={() => { setQrOpen(null); setTab("assistant"); }} /></ErrorBoundary>}
     </Shell>
   );
 }
