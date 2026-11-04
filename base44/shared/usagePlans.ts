@@ -62,6 +62,8 @@ type Client = Record<string, any>;
 export function planOf(client: Client): PlanKey {
   const forced = client?.usage_overrides?.plan;
   if (forced && forced in PLAN_CAPS) return forced as PlanKey;
+  // Canceled / ended care subscription (set by the Stripe sync): no plan, whatever the free text says.
+  if (client?.plan_status === "inactive") return "none";
   const managed: string[] = Array.isArray(client?.services_managed) ? client.services_managed : [];
   if (managed.includes("orbit_seo")) return "hypercare";
   if (managed.includes("website_care")) return "website";
