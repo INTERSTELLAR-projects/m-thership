@@ -184,7 +184,7 @@ function VideoSheet({ id, videos, template, onClose }) {
         <SheetHeader className="border-b border-hair px-5 pb-4 pt-6 text-left">
           <p className="label-cross text-ink/60">({d.format === "trailer" ? "Trailer" : seriesLabel(d.series) || "Video"})</p>
           <SheetTitle className="sr-only">{d.title}</SheetTitle>
-          <input value={d.title || ""} onChange={(e) => set({ title: e.target.value })} onBlur={() => save({})} className="w-full bg-transparent text-[26px] font-semibold leading-tight tracking-[-0.04em] outline-none focus:text-[#ff3c00]" />
+          <textarea rows={2} value={d.title || ""} onChange={(e) => set({ title: e.target.value })} onBlur={() => save({})} className="w-full resize-none bg-transparent text-[24px] font-semibold leading-tight tracking-[-0.04em] outline-none focus:text-[#ff3c00]" />
           <div className="flex flex-wrap gap-2 pt-1">
             <Btn variant="flame" onClick={() => ai("all")} disabled={!!busy}>{busy === "all" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}Draft script with Claude</Btn>
             <Btn onClick={() => ai("titles")} disabled={!!busy}>{busy === "titles" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}Titles & thumbnails</Btn>
@@ -229,7 +229,7 @@ function VideoSheet({ id, videos, template, onClose }) {
             <div className="space-y-1">
               {list(chapters, 20).map((c, i) => (
                 <div key={i} className="flex gap-1">
-                  <input value={c?.t || ""} onChange={(e) => { const n = [...chapters]; n[i] = { ...(n[i] || {}), t: e.target.value }; set({ chapters: n }); }} onBlur={() => save({ chapters: (d.chapters || []).filter((x) => x?.label) })} placeholder="0:00" className={`${inputCls} w-20 py-1.5 font-mono`} />
+                  <input value={c?.t || ""} onChange={(e) => { const n = [...chapters]; n[i] = { ...(n[i] || {}), t: e.target.value }; set({ chapters: n }); }} onBlur={() => save({ chapters: (d.chapters || []).filter((x) => x?.label) })} placeholder="0:00" className={`${inputCls} !w-20 shrink-0 py-1.5 font-mono`} />
                   <input value={c?.label || ""} onChange={(e) => { const n = [...chapters]; n[i] = { ...(n[i] || {}), label: e.target.value }; set({ chapters: n }); }} onBlur={() => save({ chapters: (d.chapters || []).filter((x) => x?.label) })} placeholder="Chapter" className={`${inputCls} py-1.5`} />
                 </div>
               ))}
