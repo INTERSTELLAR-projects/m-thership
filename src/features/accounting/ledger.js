@@ -39,10 +39,10 @@ export const CATEGORIES = [
   { key: "retirement", label: "Retirement contribution (SEP/Solo 401k)", dir: "out", tax: "adjustment", lines: { schedule_c: "Schedule 1 L16", f1065: "Schedule 1 L16", f1120s: "1120-S L17", f1120: "1120 L23" } },
   { key: "est_tax_federal", label: "Estimated tax payment: IRS", dir: "out", tax: "tax_payment", jurisdiction: "federal", lines: { schedule_c: "1040 L26" } },
   { key: "est_tax_oregon", label: "Estimated tax payment: Oregon", dir: "out", tax: "tax_payment", jurisdiction: "oregon", lines: { schedule_c: "OR-40 estimated payments" } },
-  { key: "owner_draw", label: "Owner draw (to personal)", dir: "out", tax: "equity", lines: {} },
+  { key: "owner_draw", label: "Owner draw (personal — not deductible)", dir: "out", tax: "equity", lines: {} },
   { key: "owner_contribution", label: "Owner contribution", dir: "in", tax: "equity", lines: {} },
   { key: "transfer", label: "Transfer between accounts / Stripe payout", dir: "any", tax: "transfer", lines: {} },
-  { key: "loan", label: "Loan proceeds / principal", dir: "any", tax: "transfer", lines: {} },
+  { key: "loan", label: "Loan proceeds / principal (e.g. Stripe Capital)", dir: "any", tax: "transfer", lines: {} },
   { key: "personal", label: "Personal (not business)", dir: "any", tax: "personal", lines: {} },
 ];
 
