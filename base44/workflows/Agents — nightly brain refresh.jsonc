@@ -1,0 +1,47 @@
+{
+  "name": "Agents \u2014 nightly brain refresh",
+  "description": "Nightly: seeds any missing Business Brain from M\u00f8thership records, rebuilds every active client's agent instances from real data, and refines up to 3 brains (merges agent/research findings, flags conflicts for Justin, rewrites the at-a-glance summary). Records only: never sends anything to a client and never changes a client site, package or price.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "13 22 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "agents_nightly_brain_refresh",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "nightly": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "agents",
+            "args": {
+              "action": "nightly"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Seed, sync and refine brains",
+            "description": "Business Brains + client agent instances"
+          }
+        }
+      }
+    ]
+  }
+}
