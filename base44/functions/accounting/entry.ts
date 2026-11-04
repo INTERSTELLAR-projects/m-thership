@@ -11,6 +11,9 @@
 //                                         due date + monthly close task, as Task + AccountingAlert. Idempotent by alert key.
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { secrets } from "base44:runtime";
+import { callClaude } from "../../shared/anthropic.ts";
+import { getSecret } from "../../shared/portalClient.ts";
+import { estimateAiCost } from "../../shared/usagePlans.ts";
 
 const BUSINESS_ID = "interstellar";
 // Justin's decision (2026-11-03): no QuickBooks / bank connections. qbo_* actions stay dormant until this is flipped.
@@ -297,7 +300,19 @@ ${rows.map((r: any) => `- id=${r.id} | ${r.date} | ${r.direction === "in" ? "+" 
     },
     required: ["results"],
   };
-  const res: any = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, model: MODEL, response_json_schema: schema });
+  // Classification against a fixed category list: routed to Claude Haiku on our own Anthropic key (was Sonnet via
+  // Base44 InvokeLLM, which also spent Base44 integration credits). Falls back to InvokeLLM if the key is missing or
+  // the call fails, so categorizing never breaks. Justin still approves every suggestion.
+  let res: any = null;
+  const akey = getSecret("ANTHROPIC_API_KEY");
+  if (akey) {
+    try {
+      const r = await callClaude({ key: akey, tier: "routine", prompt, schema, max_tokens: 4096 });
+      res = r.json;
+      await db.UsageLedger.create({ client_id: "agency", client_name: "Interstellar (admin)", month: new Date().toISOString().slice(0, 7), kind: "ai_action", units: 1, calls: 1, model: r.model, est_cost_usd: estimateAiCost(r.model, r.input_tokens, r.output_tokens), feature: "accounting.ai_categorize", by_admin: true, input_tokens: r.input_tokens, output_tokens: r.output_tokens, created_at: new Date().toISOString() }).catch(() => null);
+    } catch (e) { console.error("accounting haiku", (e as Error)?.message); res = null; }
+  }
+  if (!res) res = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, model: MODEL, response_json_schema: schema });
   const out = typeof res === "string" ? JSON.parse(res) : res;
   const at = new Date().toISOString();
   const valid = (out?.results || []).filter((x: any) => ids.includes(x.id) && keys.has(x.category));
