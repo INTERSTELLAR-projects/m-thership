@@ -143,7 +143,7 @@ function Overview({ o, acc }) {
                   <Trend t={t.row?.trend} />
                 </div>
                 <p className="mt-3 line-clamp-3 text-[13px] leading-snug text-white/75">{t.row?.headline_answer || <span className="text-white/35">{t.question}</span>}</p>
-                {t.row?.headline_stat?.source_url && <div className="mt-3 border-t border-white/[0.06] pt-3"><Stat s={t.row.headline_stat} /></div>}
+                {t.row?.headline_stat?.source_url && <div className="mt-3 border-t border-white/[0.06] pt-3"><Stat s={t.row.headline_stat} plain /></div>}
                 <div className="mt-auto flex items-center justify-between pt-3">
                   <span className={`${mono} text-[9px] text-white/35`}>{t.count} findings · {ago(t.row?.last_scanned_at)}</span>
                   <ArrowUpRight className="h-3.5 w-3.5 text-white/30 group-hover:text-[#ff6a00]" />
