@@ -462,6 +462,18 @@ async function ceoContext(db: any, scope: string, clientId?: string) {
   parts.push(`AGENT LEARNINGS (newest first):\n${learnings.map((l: any) => `- ${l.date || String(l.created_date).slice(0, 10)} [${l.status || "proposed"}] ${l.agent_key || ""}${l.client_name ? ` · ${l.client_name}` : ""}: ${cut(l.learning, 200)}${l.proposed_change ? ` → proposes: ${cut(l.proposed_change, 140)}` : ""}`).join("\n") || "none yet"}`);
   parts.push(`RESEARCH NOTES (newest first):\n${notes.map((n: any) => `- ${String(n.created_at || n.created_date).slice(0, 10)} [${n.relevance || "?"}] ${n.department || ""}${n.client_name ? ` · ${n.client_name}` : ""}: ${n.topic} — ${cut(n.summary, 220)} (for: ${arr(n.for_agents).join(", ")}; sources: ${arr(n.sources).map((s: any) => s.url).slice(0, 2).join(" ")})`).join("\n") || "none yet"}`);
   if (!clientId) {
+    // Road to Dec 31 (/launch): launch progress from LaunchItem, so the daily brief reports it.
+    const launch = await list(db.LaunchItem, {}, "priority", 1000);
+    if (launch.length) {
+      const gaps = launch.filter((i: any) => (i.lane || "launch") === "launch" && (i.kind || "gap") === "gap" && i.status !== "deferred");
+      const w = (i: any) => Math.max(0.5, Number(i.effort_hours) || 1);
+      const tot = gaps.reduce((n: number, i: any) => n + w(i), 0) || 1;
+      const open = gaps.filter((i: any) => i.status !== "done");
+      const days = Math.max(0, Math.ceil((new Date("2026-12-31T23:59:59-08:00").getTime() - Date.now()) / DAY));
+      const moves = open.filter((i: any) => i.owner === "justin").sort((a: any, b: any) => (Number(b.unblocks) || 0) - (Number(a.unblocks) || 0)).slice(0, 5);
+      const doneRecent = gaps.filter((i: any) => i.status === "done" && i.done_at && Date.now() - new Date(i.done_at).getTime() < 2 * DAY);
+      parts.push(`ROAD TO DEC 31 (LaunchItem, /launch): ${days} days left · ${Math.round((gaps.filter((i: any) => i.status === "done").reduce((n: number, i: any) => n + w(i), 0) / tot) * 100)}% done · ${open.length} open (${open.filter((i: any) => i.blocking_launch).length} blocking; Justin ${moves.length ? open.filter((i: any) => i.owner === "justin").length : 0}, Claude ${open.filter((i: any) => i.owner === "claude").length}, client ${open.filter((i: any) => i.owner === "client").length}) · questions unanswered ${launch.filter((i: any) => i.kind === "question" && !i.answer).length}\nDone in the last 2 days: ${doneRecent.map((i: any) => i.title).slice(0, 8).join("; ") || "none"}\nJustin's top moves: ${moves.map((i: any) => `${i.title} (unblocks ${i.unblocks || 0})`).join("; ") || "none"}`);
+    }
     // Future Oracle (research agent on /intelligence): its latest brief's top changes and opportunities, if the entity exists.
     const oracle = await list(db.OracleBrief, {}, "-created_date", 1);
     if (oracle[0]) {
@@ -489,7 +501,7 @@ async function makeBrief(base44: any, db: any, clientId?: string, asService = fa
   const reg = await list(db.AgentRegistry, clientId ? { client_id: clientId } : {}, "sort", 2000);
   const count = (s: string, scope?: string) => reg.filter((r: any) => r.status === s && (!scope || r.scope === scope)).length;
   const stats = { live: count("live", clientId ? undefined : "interstellar"), paused: count("paused", clientId ? undefined : "interstellar"), planned: count("planned", clientId ? undefined : "interstellar"), broken: count("broken", clientId ? undefined : "interstellar"), client_instances: clientId ? undefined : reg.filter((r: any) => r.scope === "client").length };
-  const res: any = await llm(base44, { system: CEO_SYSTEM("Commander") + "\nWrite today's CEO brief. Each list item one line. clients_attention: clients needing Justin and why (Interstellar brief only). If a FUTURE ORACLE brief is in the context, put its top change in `summary` and its best opportunity in `recommendations` (say it came from the Future Oracle).", prompt: ctx, schema: BRIEF_SCHEMA, tier: "long", feature: "agents.ceo_brief", asService });
+  const res: any = await llm(base44, { system: CEO_SYSTEM("Commander") + "\nWrite today's CEO brief. Each list item one line. clients_attention: clients needing Justin and why (Interstellar brief only). If a FUTURE ORACLE brief is in the context, put its top change in `summary` and its best opportunity in `recommendations` (say it came from the Future Oracle). If ROAD TO DEC 31 is in the context, start `summary` with the launch line (days left, % done, blocking count) and put Justin's single top launch move first in `needs_approval` (act at /launch).", prompt: ctx, schema: BRIEF_SCHEMA, tier: "long", feature: "agents.ceo_brief", asService });
   const day = pacificDay();
   const client = clientId ? (await list(db.CRMClient, { id: clientId }, "business", 1))[0] : null;
   const rec = { date: day, scope: clientId ? "client" : "interstellar", client_id: clientId || "", client_name: client?.business || "", headline: cut(res?.headline, 160), summary: String(res?.summary || ""), wins: arr(res?.wins), failures: arr(res?.failures), needs_approval: arr(res?.needs_approval), recommendations: arr(res?.recommendations), clients_attention: arr(res?.clients_attention), stats, generated_by: "in_app", generated_at: nowIso() };
