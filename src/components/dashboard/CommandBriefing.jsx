@@ -127,6 +127,7 @@ export default function CommandBriefing() {
             <LegalSection b={b} />
             <IntelSection b={b} />
             <OutreachSection b={b} />
+            <AgentsSection b={b} />
           </div>
         </>
       )}
@@ -391,6 +392,27 @@ function IntelSection({ b }) {
       {(i.proposed > 0 || i.approved > 0) && (
         <Row to="/packages/orbit-seo" title={`${i.proposed} proposed action${i.proposed === 1 ? "" : "s"} to review`} sub={i.approved ? `${i.approved} approved, not yet implemented` : null} right={i.proposed ? "Review" : null} hot={i.proposed > 0} />
       )}
+    </Section>
+  );
+}
+
+function AgentsSection({ b }) {
+  const a = b.agents;
+  if (!a) return null;
+  return (
+    <Section icon={Sparkles} title="Agents · CEO brief" meta={a.brief ? `brief ${fmtDate(a.brief.date)}` : null} to="/agents?ceo=1">
+      {a.brief && (
+        <li>
+          <Link to="/agents?ceo=1" className="block px-3.5 py-2.5 hover:bg-ink/[0.03]">
+            <p className="mono-label text-[8.5px] text-[#ff3c00]">{a.brief.is_retro ? "Weekly retro" : "Commander"}</p>
+            <p className="mt-0.5 text-[12.5px] font-medium leading-snug">{a.brief.headline}</p>
+            {a.brief.needs_approval?.[0] && <p className="mt-0.5 line-clamp-2 text-[11px] text-ink/50">Needs you: {a.brief.needs_approval[0]}</p>}
+          </Link>
+        </li>
+      )}
+      {a.broken.length > 0 && <Row to="/agents?view=list" title={`${a.broken.length} broken agent${a.broken.length === 1 ? "" : "s"}`} sub={a.broken.slice(0, 3).map((x) => x.name).join(", ")} right="Fix" hot />}
+      {a.proposed > 0 && <Row to="/agents?ceo=1" title={`${a.proposed} proposed agent improvement${a.proposed === 1 ? "" : "s"}`} sub="Learnings waiting for your OK" right="Review" hot />}
+      {a.conflicts > 0 && <Row to="/agents?web=clients" title={`${a.conflicts} brain conflict${a.conflicts === 1 ? "" : "s"} to settle`} sub="An agent contradicted a fact you set" right="Settle" hot />}
     </Section>
   );
 }
