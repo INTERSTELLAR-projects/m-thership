@@ -1,5 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
-import { verifyUnsubToken } from "../../shared/emailUnsub.ts";
+import { verifyUnsubToken, verifyClientUnsubToken } from "../../shared/emailUnsub.ts";
 
 // Public one-click unsubscribe for Email Studio mass / subscriber emails. No login: the signed token in the link
 // (base44/shared/emailUnsub.ts) is the only proof needed, and it can only ever unsubscribe the address it was
@@ -39,6 +39,28 @@ const formFor = (t: string, op: string, label: string, ghost = false) =>
   `<form method="POST"><input type="hidden" name="t" value="${esc(t)}"><input type="hidden" name="op" value="${op}"><button class="${ghost ? "ghost" : ""}" type="submit">${label}</button></form>`;
 const bad = () => html(page({ title: "Link", accent: "expired", text: `This unsubscribe link isn't valid. Email <a href="mailto:justin@interstellar-strategies.com">justin@interstellar-strategies.com</a> and we'll take you off the list by hand.` }), 400);
 
+async function clientUnsub(req: Request, token: string, op: string, s: { client_id: string; email: string }) {
+  const base44 = createClientFromRequest(req);
+  const db = base44.asServiceRole.entities;
+  const client = await db.CRMClient.get(s.client_id).catch(() => null);
+  if (!client) return bad();
+  const biz = esc(client.business || "this business");
+  const addr = `<a href="mailto:${esc(s.email)}">${esc(s.email)}</a>`;
+  if (req.method !== "POST") {
+    return html(page({ title: "Unsubscribe", accent: "one click", text: `Stop ${biz} list emails to ${addr}?`, form: formFor(token, "unsubscribe", "Unsubscribe &nbsp;&rarr;") }));
+  }
+  const rows = (await db.EmailSuppression.filter({ client_id: s.client_id, email: s.email }, "-created_date", 20).catch(() => [])) || [];
+  if (op === "resubscribe") {
+    // Only an unsubscribe can be undone here; bounces and complaints stay suppressed.
+    for (const r of rows) if (r.reason === "unsubscribe") await db.EmailSuppression.delete(r.id).catch(() => null);
+    return html(page({ title: "You're back", accent: "on the list", text: `${addr} will get ${biz} updates again.` }));
+  }
+  if (!rows.some((r: { reason?: string }) => r.reason === "unsubscribe")) {
+    await db.EmailSuppression.create({ client_id: s.client_id, email: s.email, reason: "unsubscribe", detail: "One-click unsubscribe link", created_at: new Date().toISOString() });
+  }
+  return html(page({ title: "You're", accent: "unsubscribed", text: `${addr} won't get any more ${biz} list emails. Changed your mind?`, form: formFor(token, "resubscribe", "Resubscribe", true) }));
+}
+
 Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
@@ -57,6 +79,11 @@ Deno.serve(async (req) => {
       // RFC 8058 one-click POST (List-Unsubscribe=One-Click) also unsubscribes.
       if (!op) op = "unsubscribe";
     }
+    // Client Studios list emails (sent through SES for one client): the token is scoped to that client, and the
+    // unsubscribe only adds the address to that client's suppression list.
+    const scoped = await verifyClientUnsubToken(token);
+    if (scoped) return await clientUnsub(req, token, op, scoped);
+
     const email = await verifyUnsubToken(token);
     if (!email) return bad();
 
