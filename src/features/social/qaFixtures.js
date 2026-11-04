@@ -2,6 +2,7 @@
 // Copies of the first weekly batch, put into every publishing state so the UI can be reviewed.
 import { specHash } from "./lib/specHash";
 import { SEED_VIDEOS } from "./channels/seedVideos";
+import { QA_CHANNELS_STATUS, QA_ENGINE } from "./engine/qaEngine";
 
 const BASE = [
   { id: "6aea2fa76a9f7c6ca398d943", title: "Untitled post", status: "draft", pillar: "pain_point", template: "pain_fix", spec: { eyebrow: "The app pile", headline: "Your business runs on 9 logins and a spreadsheet.", accent_word: "9 logins", subhead: "Every new tool fixed one problem and created two more.", cta: "See the Command System", theme: "light", lockup: "interstellar", mock: { before_label: "Today", before_items: ["Leads in one app, jobs in another", "Invoices typed in twice", "Follow-ups living in your head", "A spreadsheet holding it together"], after_label: "One system", after_items: ["Every lead lands in one pipeline", "Quote to invoice in one click", "Follow-ups that send themselves", "One login for the whole team"] } }, caption: "Nine logins and a spreadsheet is not a system.", generated_by: "justin", created_date: "2026-11-03T19:01:59.486Z" },
@@ -32,6 +33,7 @@ export const QA_SOCIAL = {
     { id: "qa_l3", channel: "linkedin_company", status: "posted", title: "Eight apps, one system", pillar: "pain_point", generated_by: "claude", planned_for: at(-1, 17).slice(0, 10), posted_at: at(-1, 18), posted_url: "https://www.linkedin.com/company/interstellar-business-os/", created_date: at(-3, 10), body: "Eight logins. Eight bills. Zero of them talk to each other." },
   ],
   SocialConversation: [],
+  ...QA_ENGINE,
 };
 
 const QA_STATUS = {
@@ -45,6 +47,7 @@ export function qaSocialInvoke(name, args = {}) {
   if (name === "social-publish" && (args.action || "status") === "status") return QA_STATUS;
   if (name === "social-publish") return { ok: true, results: [], note: "QA mode: nothing was published" };
   if (name === "social-instagram") return { visible: false };
+  if (name === "social-channels") return (args.action || "status") === "status" ? QA_CHANNELS_STATUS : { ok: true, results: [], note: "QA mode: nothing was published" };
   if (name === "social-clients") {
     return {
       connected: true, missing_scopes: ["instagram_basic", "instagram_manage_insights"],
