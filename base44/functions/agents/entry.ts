@@ -18,6 +18,8 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { callClaude, AnthropicError } from "../../shared/anthropic.ts";
 import { getSecret } from "../../shared/portalClient.ts";
+import { estimateAiCost } from "../../shared/usagePlans.ts";
+import { weightFor } from "../../shared/fuel.ts";
 import { CLIENT_TEMPLATES, BRAIN_SECTIONS, BRAIN_SECTION_KEYS, brainCompleteness, sectionScore } from "../../shared/agentDefs.js";
 
 const nowIso = () => new Date().toISOString();
@@ -56,7 +58,7 @@ async function llm(base44: any, opts: { system: string; prompt: string; schema?:
   if (key) {
     try {
       const out = await callClaude({ key, tier: opts.tier || "long", system: opts.system, prompt: opts.prompt, schema: opts.schema || null, max_tokens: 6000 });
-      await db.UsageLedger.create({ client_id: "agency", client_name: "Interstellar (admin)", month: pacificDay().slice(0, 7), kind: "ai_action", units: 1, model: out.model, feature: opts.feature, by_admin: true, input_tokens: out.input_tokens, output_tokens: out.output_tokens, created_at: nowIso() }).catch(() => null);
+      await db.UsageLedger.create({ client_id: "agency", client_name: "Interstellar (admin)", month: pacificDay().slice(0, 7), kind: "ai_action", units: weightFor(out.model, out.input_tokens, opts.feature), calls: 1, model: out.model, est_cost_usd: estimateAiCost(out.model, out.input_tokens, out.output_tokens), feature: opts.feature, by_admin: true, input_tokens: out.input_tokens, output_tokens: out.output_tokens, created_at: nowIso() }).catch(() => null);
       return opts.schema ? out.json : out.text;
     } catch (e) {
       if (!(e instanceof AnthropicError)) throw e;
