@@ -55,6 +55,21 @@ export const SOCIAL_COMPLIANCE = [
   "Posting days and times are starting points to test, not data. Adjust from the client's own insights after 4-6 weeks.",
 ];
 
+// Social search (social SEO): every client plan is built to be FOUND in platform search and Google.
+// Sourced playbook: AgencyKnowledge key "social_search" (Settings > Agency knowledge).
+export const SOCIAL_SEARCH_RULES = [
+  "Keyword map: 10-20 search phrases per main platform, written the way THIS client's customers type them (validate in each app's search suggestions / TikTok Creator Search Insights; never claim search volumes you don't have).",
+  "Profile SEO fixes per platform: name field = Brand | main keyword (Instagram searches username and name), bio with keywords (+ location if local), links, highlights, the same brand name and handle everywhere, and the website's Organization schema sameAs listing every profile.",
+  "Pillars are mapped to keywords: each pillar names the search phrases it targets.",
+  "Every post has ONE primary search phrase: keyword-first hook line, 1-2 keywords used naturally in the caption, on-image/cover text that states the topic, alt text that describes the image with the keyword.",
+  "Reels / Shorts / TikTok: say the keyword in the first 3 seconds, show it as on-screen text, burned-in captions on; Shorts title = the search phrase.",
+  "Hashtags: 3-5 specific, relevant tags per post (Instagram caps at 5; Facebook recommends no more than 5). No generic walls.",
+  "Original content only: no reposts, no third-party (TikTok/CapCut) watermarks; Instagram and Facebook stop recommending mostly-unoriginal accounts.",
+  "Answer-style content people save and send: how-to, checklists, myth vs fact, what-to-expect.",
+  "Public professional Instagram accounts are indexed by Google (since July 2025): keep the account public, professional, with Search engine indexing on.",
+  "Measure search: profile visits, non-follower reach, search traffic source, saves, sends per reach, likes per reach, average watch time (Shorts: viewed vs swiped away), and GA4 social referrals.",
+];
+
 /* ---------------- schema ---------------- */
 
 const str = { type: "string" };
@@ -92,7 +107,7 @@ export const SOCIAL_PLAN_JSON_SCHEMA = obj({
   calendar: arr({
     week: num,
     theme: str,
-    posts: arr({ day: str, platform: str, format: str, pillar: str, idea: str, hook: str }),
+    posts: arr({ day: str, platform: str, format: str, pillar: str, idea: str, hook: str, keyword: str, on_screen_text: str, spoken_keywords: str }),
   }),
   workflow: obj({
     steps: arr({ id: { type: "string", enum: WORKFLOW_IDS }, title: str, who: str, how: strList, tools: strList, minutes_per_week: num }),
@@ -105,6 +120,17 @@ export const SOCIAL_PLAN_JSON_SCHEMA = obj({
   repurposing: arr({ from: str, to: strList, how: str }),
   kpis: arr({ name: str, platform: str, current: str, target: str, source: str, is_estimate: bool, how_to_track: str }),
   roles: obj({ interstellar: strList, client: strList, together: strList }),
+  search: obj({
+    keyword_map: arr({ platform: str, phrases: strList, notes: str }),
+    profile_seo: arr({ platform: str, name_field: str, username: str, bio: str, links: strList, highlights: strList, other: strList }),
+    pillar_keywords: arr({ pillar: str, keywords: strList }),
+    caption_template: str,
+    alt_text_template: str,
+    video_rules: strList,
+    sample_posts: arr({ platform: str, format: str, pillar: str, primary_keyword: str, hook: str, on_screen_text: str, spoken_keywords: str, caption: str, alt_text: str, hashtags: strList, needs_from_client: str }),
+    measurement: arr({ metric: str, where: str, target: str }),
+  }),
+  collaborations: arr({ idea: str, format: str, how: str, disclosure: str }),
   compliance: strList,
   next_steps: strList,
   assumptions: strList,
@@ -143,6 +169,17 @@ export const SOCIAL_PLAN_JSON_SHAPE = `{
   "repurposing": [{ "from": "blog post", "to": ["GBP post", "reel", "carousel"], "how": "" }],
   "kpis": [{ "name": "", "platform": "", "current": "real figure or \\"unknown\\"", "target": "", "source": "", "is_estimate": false, "how_to_track": "" }],
   "roles": { "interstellar": ["what Interstellar does (only services they actually have)"], "client": ["what the owner/team does"], "together": [""] },
+  "search": {
+    "keyword_map": [{ "platform": "instagram", "phrases": ["10-20 phrases customers type on this platform"], "notes": "how they were chosen / validate where" }],
+    "profile_seo": [{ "platform": "instagram", "name_field": "Brand | main keyword", "username": "@handle (same everywhere)", "bio": "recommended bio text with keywords", "links": ["link + where it goes"], "highlights": ["highlight names"], "other": ["category, indexing on, sameAs, etc."] }],
+    "pillar_keywords": [{ "pillar": "pillar name", "keywords": ["phrases this pillar targets"] }],
+    "caption_template": "keyword-first hook → value → CTA → 3-5 hashtags",
+    "alt_text_template": "what is in the image + topic keyword, under ~125 chars",
+    "video_rules": ["keyword spoken in first 3s, on-screen text, captions on"],
+    "sample_posts": [{ "platform": "", "format": "", "pillar": "", "primary_keyword": "", "hook": "", "on_screen_text": "", "spoken_keywords": "", "caption": "full caption", "alt_text": "", "hashtags": ["#…"], "needs_from_client": "real example / photo / fact we need" }],
+    "measurement": [{ "metric": "", "where": "", "target": "unknown or est." }]
+  },
+  "collaborations": [{ "idea": "", "format": "Collab post / Remix / takeover", "how": "", "disclosure": "how any material connection is disclosed" }],
   "compliance": ["extra rules for this business (industry, permissions)"],
   "next_steps": ["3-5 ordered steps for the first two weeks"],
   "assumptions": ["anything you assumed"]
@@ -231,6 +268,7 @@ export function normalizeSocialPlan(raw) {
     posts: l(w.posts, 14).filter((x) => x && typeof x === "object").map((x) => ({
       day: t(x.day, 12), platform: platformId(x.platform) || t(x.platform, 30), format: formatId(x.format) || t(x.format, 30),
       pillar: t(x.pillar, 60), idea: t(x.idea, 300), hook: t(x.hook, 200),
+      keyword: t(x.keyword, 100), on_screen_text: t(x.on_screen_text, 140), spoken_keywords: t(x.spoken_keywords, 200),
     })).filter((x) => x.idea),
   }));
   if (!platforms.length && !calendar.length && !(g.social_goals || []).length) return null;
@@ -279,9 +317,32 @@ export function normalizeSocialPlan(raw) {
       source: t(k && k.source, 140), is_estimate: Boolean(k && k.is_estimate), how_to_track: t(k && k.how_to_track, 200),
     })).filter((k) => k.name),
     roles: { interstellar: strs(roles.interstellar, 8), client: strs(roles.client, 8), together: strs(roles.together, 6) },
+    search: normalizeSearch(p.search),
+    collaborations: l(p.collaborations, 8).map((c) => ({ idea: t(c && c.idea, 300), format: t(c && c.format, 80), how: t(c && c.how, 400), disclosure: t(c && c.disclosure, 240) })).filter((c) => c.idea),
     compliance: strs(p.compliance, 8),
     next_steps: strs(p.next_steps, 8),
     assumptions: strs(p.assumptions, 8),
+  };
+}
+
+function normalizeSearch(raw) {
+  const s = o(raw);
+  return {
+    keyword_map: l(s.keyword_map, 8).filter((k) => k && typeof k === "object").map((k) => ({ platform: platformId(k.platform) || t(k.platform, 30), phrases: strs(k.phrases, 20, 100), notes: t(k.notes, 300) })).filter((k) => k.phrases.length),
+    profile_seo: l(s.profile_seo, 8).filter((x) => x && typeof x === "object").map((x) => ({
+      platform: platformId(x.platform) || t(x.platform, 30), name_field: t(x.name_field, 100), username: t(x.username, 60), bio: t(x.bio, 400),
+      links: strs(x.links, 6, 200), highlights: strs(x.highlights, 10, 60), other: strs(x.other, 8, 240),
+    })).filter((x) => x.platform),
+    pillar_keywords: l(s.pillar_keywords, 8).map((x) => ({ pillar: t(x && x.pillar, 60), keywords: strs(x && x.keywords, 10, 100) })).filter((x) => x.pillar),
+    caption_template: t(s.caption_template, 600),
+    alt_text_template: t(s.alt_text_template, 300),
+    video_rules: strs(s.video_rules, 8, 240),
+    sample_posts: l(s.sample_posts, 10).filter((x) => x && typeof x === "object").map((x) => ({
+      platform: platformId(x.platform) || t(x.platform, 40), format: formatId(x.format) || t(x.format, 30), pillar: t(x.pillar, 60),
+      primary_keyword: t(x.primary_keyword, 100), hook: t(x.hook, 200), on_screen_text: t(x.on_screen_text, 200), spoken_keywords: t(x.spoken_keywords, 300),
+      caption: t(x.caption, 2200), alt_text: t(x.alt_text, 300), hashtags: strs(x.hashtags, 5, 40), needs_from_client: t(x.needs_from_client, 300),
+    })).filter((x) => x.caption || x.hook),
+    measurement: l(s.measurement, 12).map((m) => ({ metric: t(m && m.metric, 100), where: t(m && m.where, 120), target: t(m && m.target, 80) })).filter((m) => m.metric),
   };
 }
 
@@ -332,7 +393,7 @@ export function socialPlanToMarkdown(raw, business = "") {
     out.push("", "## 4-week starter calendar");
     p.calendar.forEach((w) => {
       out.push("", `### Week ${w.week}${w.theme ? ` — ${w.theme}` : ""}`, "| Day | Platform | Format | Post |", "| --- | --- | --- | --- |");
-      w.posts.forEach((x) => out.push(`| ${x.day} | ${platformLabel(x.platform)} | ${formatLabel(x.format)} | ${x.idea}${x.hook ? ` — hook: "${x.hook}"` : ""} |`));
+      w.posts.forEach((x) => out.push(`| ${x.day} | ${platformLabel(x.platform)} | ${formatLabel(x.format)} | ${x.idea}${x.hook ? ` — hook: "${x.hook}"` : ""}${x.keyword ? ` — keyword: ${x.keyword}` : ""}${x.on_screen_text ? ` — on-screen: "${x.on_screen_text}"` : ""} |`));
     });
   }
   const wf = p.workflow || {};
@@ -368,6 +429,25 @@ export function socialPlanToMarkdown(raw, business = "") {
   if ((p.kpis || []).length) out.push("", "## KPIs", "| KPI | Platform | Now | Target |", "| --- | --- | --- | --- |", ...p.kpis.map((k) => `| ${k.name} | ${k.platform || "—"} | ${k.current || "unknown"} | ${k.target || "unknown"}${k.is_estimate ? " (est.)" : ""} |`));
   const r = p.roles || {};
   if ((r.interstellar || []).length || (r.client || []).length) out.push("", "## Who does what", "**Interstellar**", ...li(r.interstellar), "", "**You**", ...li(r.client), ...(r.together.length ? ["", "**Together**", ...li(r.together)] : []));
+  const se = p.search || {};
+  if ((se.keyword_map || []).length || (se.profile_seo || []).length || (se.sample_posts || []).length) {
+    out.push("", "## Search optimization (social SEO)");
+    (se.keyword_map || []).forEach((k) => out.push("", `**Keywords — ${platformLabel(k.platform)}**${k.notes ? ` (${k.notes})` : ""}`, ...li(k.phrases)));
+    if ((se.profile_seo || []).length) {
+      out.push("", "### Profile fixes");
+      se.profile_seo.forEach((x) => out.push("", `**${platformLabel(x.platform)}**`, x.name_field ? `- Name field: ${x.name_field}` : "", x.username ? `- Username: ${x.username}` : "", x.bio ? `- Bio: ${x.bio}` : "", x.links.length ? `- Links: ${x.links.join("; ")}` : "", x.highlights.length ? `- Highlights: ${x.highlights.join(", ")}` : "", ...li(x.other)));
+    }
+    if ((se.pillar_keywords || []).length) out.push("", "### Pillars → keywords", ...se.pillar_keywords.map((x) => `- **${x.pillar}:** ${x.keywords.join("; ")}`));
+    if (se.caption_template) out.push("", `**Caption template:** ${se.caption_template}`);
+    if (se.alt_text_template) out.push(`**Alt-text template:** ${se.alt_text_template}`);
+    if ((se.video_rules || []).length) out.push("", "**Video (Reels/Shorts/TikTok)**", ...li(se.video_rules));
+    if ((se.sample_posts || []).length) {
+      out.push("", "### Sample posts");
+      se.sample_posts.forEach((x, i) => out.push("", `**${i + 1}. ${platformLabel(x.platform)} · ${formatLabel(x.format)}${x.pillar ? ` · ${x.pillar}` : ""}** — keyword: ${x.primary_keyword || "—"}`, x.hook ? `- Hook: ${x.hook}` : "", x.on_screen_text ? `- On-screen: ${x.on_screen_text}` : "", x.spoken_keywords ? `- Spoken: ${x.spoken_keywords}` : "", x.caption ? `- Caption: ${x.caption.replace(/\n+/g, " / ")}` : "", x.alt_text ? `- Alt text: ${x.alt_text}` : "", x.hashtags.length ? `- Hashtags: ${x.hashtags.join(" ")}` : "", x.needs_from_client ? `- Needs: ${x.needs_from_client}` : ""));
+    }
+    if ((se.measurement || []).length) out.push("", "### Search measurement", "| Metric | Where | Target |", "| --- | --- | --- |", ...se.measurement.map((m) => `| ${m.metric} | ${m.where || "—"} | ${m.target || "unknown"} |`));
+  }
+  if ((p.collaborations || []).length) out.push("", "## Collaborations", ...p.collaborations.map((c) => `- **${c.idea}**${c.format ? ` (${c.format})` : ""}${c.how ? ` — ${c.how}` : ""}${c.disclosure ? ` Disclosure: ${c.disclosure}` : ""}`));
   out.push("", "## Rules", ...li([...SOCIAL_COMPLIANCE, ...(p.compliance || [])]));
   if ((p.next_steps || []).length) out.push("", "## Next steps", ...p.next_steps.map((s, i) => `${i + 1}. ${s}`));
   return out.filter((x) => x !== null && x !== undefined).join("\n");
@@ -531,6 +611,7 @@ ${workBlock(d)}
 
 ${d.ctx ? contextToBrief(d.ctx, { sections: ["profile", "services"] }) : ""}
 ${agencyBlock(d.agency, ["offers", "delivery"])}
+${agencyBlock(d.agency, ["social_search"], { maxChars: 4500 })}
 ${d.current ? `\n## Current approved social plan (v${d.current.version || 1})\nThis is a revision. Keep what still holds; change what Justin asks.\n${d.current.summary || ""}` : ""}
 
 ## Platforms (use these ids; include ONLY the ones that fit this business, list the rest in skipped_platforms with why)
@@ -550,7 +631,15 @@ ${FORMATS.map(([id, name]) => `- ${id} — ${name}`).join("\n")}
 - Testimonials and reviews: real only, with permission. Never write fake quotes.
 - Google Business Profile posts: no phone number, no street address, no bare URL in the copy; the Learn more button is the only link and it is the plain URL with no UTM parameters.
 - Editing guidelines use the approved brand kit's colors (hex), fonts and voice when one exists.
-- The Interstellar brand gradient is #ff3c00 → #ff6a00 → #ffaa00 (never gold or yellow).`;
+- The Interstellar brand gradient is #ff3c00 → #ff6a00 → #ffaa00 (never gold or yellow).
+
+## Social search rules (every plan is built to be found — fill the "search" section completely)
+${SOCIAL_SEARCH_RULES.map((r) => `- ${r}`).join("\n")}
+- search.keyword_map: one entry per chosen platform, 10-20 phrases each. search.profile_seo: recommended name field, username, bio text, links and highlights per platform (current bio unknown → write the recommended one and say so in assumptions).
+- search.sample_posts: at least 6 fully written posts (hook, on-screen text, spoken keywords for video, full caption, alt text, 3-5 hashtags). Where a real story, photo or result is needed write "[CLIENT: real example]" — never invent one.
+- Every calendar post carries its keyword (and on_screen_text / spoken_keywords for video). captions.hashtag_sets: 3-5 tags per set.
+- collaborations: partner / sister-brand / creator ideas with honest disclosure of any material connection (FTC Endorsement Guides).
+- Health, supplement and fitness clients: no disease or medical claims, no guaranteed results, no invented before/afters; flag any claim that needs substantiation in compliance.`;
 }
 
 export function socialPlanBrief(client, d, extra = "") {
@@ -580,7 +669,7 @@ Write back to this ClaudeJob: result_data, result_body, result_summary, result_l
 function quickPrompt(client, d, extra) {
   return `You are Interstellar Strategies' senior social media strategist. ${core(client, d, extra)}
 
-Return JSON only, matching the schema: {headline, summary, goals_audience, platforms[], skipped_platforms[], pillars[], formats[], calendar[4 weeks], workflow, editing, captions, engagement, consistency, repurposing[], kpis[], roles, compliance[], next_steps[], assumptions[]}. Include 3-5 pillars and only the platforms that fit.`;
+Return JSON only, matching the schema: {headline, summary, goals_audience, platforms[], skipped_platforms[], pillars[], formats[], calendar[4 weeks], workflow, editing, captions, engagement, consistency, repurposing[], kpis[], roles, search{keyword_map, profile_seo, pillar_keywords, caption_template, alt_text_template, video_rules, sample_posts, measurement}, collaborations[], compliance[], next_steps[], assumptions[]}. Include 3-5 pillars and only the platforms that fit.`;
 }
 
 function jobFields(client, d, extra) {
