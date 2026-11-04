@@ -56,15 +56,36 @@ Deno.serve(async (req) => {
     const db = base44.asServiceRole.entities;
 
     // Resolve the client this user may see.
+    // Package-deal owners (one login in portal_emails of 2+ clients) may pass client_id to switch business;
+    // the id is only honoured when this login is on THAT client's portal_emails (never trusted from the browser alone).
     let client: Record<string, unknown> | null = null;
+    const lc = (v: unknown) => String(v || "").toLowerCase();
+    const emailsOf = (c: Record<string, unknown>) => ((c.portal_emails as string[]) || []).map(lc).filter(Boolean);
+    let mine: Record<string, unknown>[] = [];
     if (user.role === "admin" && asClient) {
       client = await db.CRMClient.get(asClient).catch(() => null);
     } else {
-      const email = String(user.email || "").toLowerCase();
+      const email = lc(user.email);
       const all = await db.CRMClient.filter({ portal_enabled: true }, "business", 500);
-      client = (all || []).find((c: Record<string, unknown>) => ((c.portal_emails as string[]) || []).some((e) => String(e).toLowerCase() === email)) || null;
+      mine = ((all || []) as Record<string, unknown>[]).filter((c) => emailsOf(c).includes(email));
+      if (asClient) {
+        client = mine.find((c) => c.id === String(asClient)) || null;
+        // A stale saved choice on first load falls back to the login's first business; anything else is refused.
+        if (!client && action === "home") client = mine[0] || null;
+        else if (!client && mine.length) return Response.json({ error: "This login can't open that business.", code: "not_allowed" }, { status: 403 });
+      } else client = mine[0] || null;
     }
     if (!client) return Response.json({ error: "No portal is set up for this login yet.", code: "no_client" }, { status: 403 });
+    // Businesses this login (or, in admin preview, this client's portal logins) can switch between.
+    const businessesFor = async () => {
+      const keep = (c: Record<string, unknown>) => ({ id: c.id, business: c.business, logo_url: c.logo_url || c.logoUrl || "", accent: c.accent || "", ...(user.role === "admin" ? { portal_enabled: !!c.portal_enabled } : {}) });
+      if (user.role !== "admin") return mine.map(keep);
+      const em = emailsOf(client as Record<string, unknown>);
+      if (!em.length) return [keep(client as Record<string, unknown>)];
+      const all = ((await db.CRMClient.list("business", 500).catch(() => [])) || []) as Record<string, unknown>[];
+      const linked = all.filter((c) => c.id === (client as Record<string, unknown>).id || emailsOf(c).some((e) => em.includes(e)));
+      return linked.map(keep);
+    };
     const cid = client.id as string;
     const by = (entity: string, sort = "-created_date", limit = 500) => db[entity].filter({ client_id: cid }, sort, limit).then((r: unknown[]) => r || []);
 
@@ -95,6 +116,7 @@ Deno.serve(async (req) => {
       const groupUnread = await myGroups().then((gs) => Promise.all(gs.map(async (g) => groupUnreadCount(await groupMsgs(g.id as string))))).then((n) => n.reduce((a, b) => a + b, 0)).catch(() => 0);
       return Response.json({
         client: pick(client, SAFE_CLIENT),
+        businesses: await businessesFor().catch(() => []),
         user: { email: user.email, name: user.full_name, is_admin_preview: user.role === "admin" },
         work: work.filter(visible).filter((w: Record<string, unknown>) => w.status !== "failed").map((w: Record<string, unknown>) => pick(w, ["id", "kind", "title", "url", "date", "description", "status", "verified_live"])),
         automations: autos.filter(visible).filter((a: Record<string, unknown>) => a.status === "active").map((a: Record<string, unknown>) => pick(a, ["id", "name", "kind", "schedule", "last_run_at", "runs_count"])),
