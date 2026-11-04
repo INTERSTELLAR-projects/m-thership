@@ -27,6 +27,7 @@ import SecurityPanel from "@/features/security/SecurityPanel";
 import StudioPreview, { studioTabs, STUDIO_BY_TAB } from "@/features/portal/PortalStudios";
 import TwoFactorChallenge from "@/features/security/TwoFactorChallenge";
 import { needsSecondFactor } from "@/features/security/api";
+import { BusinessDropdown, BusinessPills } from "@/features/portal/BusinessSwitcher";
 
 // Tabs this portal can show. Grouping, labels and icons for the header nav live in PortalNav.jsx (NAV);
 // free-for-life bonus tools (Signatures, QR Codes) are tagged there and listed together on Home.
@@ -38,14 +39,42 @@ function usePortal(previewId) {
   return { call, home };
 }
 
+// Package-deal owners (one login on several clients' portal_emails) pick which business the portal shows.
+// The choice is remembered per browser; the server only honours a client_id this login is on.
+const PICK_KEY = "portal.business";
+const readPick = () => { try { return localStorage.getItem(PICK_KEY) || ""; } catch { return ""; } };
+const writePick = (id) => { try { if (id) localStorage.setItem(PICK_KEY, id); else localStorage.removeItem(PICK_KEY); } catch { /* storage blocked */ } };
+
 export default function PortalApp({ previewId }) {
-  const { call, home } = usePortal(previewId);
+  const [picked, setPicked] = useState(() => (previewId ? "" : readPick()));
+  // scopeId: the client every portal call is for (admin preview id, or the business a package-deal owner picked).
+  const scopeId = previewId || picked || undefined;
+  const { call, home } = usePortal(scopeId);
   const [tab, setTab] = useState("home");
   const [audit, setAudit] = useState(false);
   const [qrOpen, setQrOpen] = useState(null); // a QR code to open on the QR tab (from Google Business)
   const qc = useQueryClient();
-  const refresh = () => qc.invalidateQueries({ queryKey: ["portal", previewId] });
+  const refresh = () => qc.invalidateQueries({ queryKey: ["portal", scopeId] });
   const d = home.data;
+  const businesses = d?.businesses || [];
+  // A saved choice this login no longer has: keep what the server resolved (or forget it if only one is left).
+  useEffect(() => {
+    if (previewId || !picked || !d?.client?.id || d.client.id === picked) return;
+    const next = businesses.length > 1 ? d.client.id : "";
+    writePick(next);
+    setPicked(next);
+  }, [previewId, picked, d?.client?.id, businesses.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  const switchTo = (id) => {
+    if (!id || id === d?.client?.id) return;
+    if (previewId) { window.location.assign(`/portal/${id}`); return; }
+    writePick(id);
+    // Views keyed without a client id (chats, referrals) are dropped so they reload for the new business.
+    qc.removeQueries({ predicate: (q) => q.queryKey[0] === "portal" && q.queryKey[1] == null });
+    setAudit(false);
+    setQrOpen(null);
+    setTab("home");
+    setPicked(id);
+  };
   // The Brand kit tab only exists when an approved, portal-visible kit does.
   const tabs = [...TABS.filter(([k]) => (k !== "brand" || d?.has_brand_kit) && (k !== "playbook" || d?.has_playbook)), ...studioTabs(d?.client).tabs];
 
@@ -70,14 +99,14 @@ export default function PortalApp({ previewId }) {
   }
 
   return (
-    <Shell client={d.client} tabs={tabs} tab={tab} setTab={(k) => { setQrOpen(null); setTab(k); }} unread={d.unread} preview={!!previewId} previewId={previewId}>
+    <Shell client={d.client} tabs={tabs} tab={tab} setTab={(k) => { setQrOpen(null); setTab(k); }} unread={d.unread} preview={!!previewId} previewId={previewId} scopeId={scopeId} businesses={businesses} onSwitch={switchTo}>
       {audit ? (
         <IntakeView call={call} onClose={() => { setAudit(false); refresh(); }} />
       ) : (
-        <div key={tab} className="page-enter">
-          {tab === "home" && <HomeView d={d} go={setTab} call={call} previewId={previewId} openAudit={() => setAudit(true)} />}
-          {tab === "results" && <ResultsView d={d} previewId={previewId} />}
-          {tab === "gbp" && <PortalGbp call={call} previewId={previewId} onOpenQr={(code) => { setQrOpen(code.id); setTab("qr"); }} />}
+        <div key={`${d.client.id}:${tab}`} className="page-enter">
+          {tab === "home" && <HomeView d={d} go={setTab} call={call} previewId={scopeId} openAudit={() => setAudit(true)} />}
+          {tab === "results" && <ResultsView d={d} previewId={scopeId} admin={!!previewId} />}
+          {tab === "gbp" && <PortalGbp call={call} previewId={scopeId} onOpenQr={(code) => { setQrOpen(code.id); setTab("qr"); }} />}
           {tab === "goals" && <GoalsView d={d} />}
           {tab === "files" && (
             <div className="space-y-4">
@@ -88,32 +117,33 @@ export default function PortalApp({ previewId }) {
               {d.files.length ? <FileGrid files={d.files} /> : <Panel><Empty>Nothing delivered yet. Your brand kit, SOPs, presentations and other finished work will appear here as we hand it over.</Empty></Panel>}
             </div>
           )}
-          {tab === "brand" && d.has_brand_kit && <BrandKitView call={call} previewId={previewId} business={d.client.business} />}
-          {tab === "playbook" && d.has_playbook && <PortalPlaybook call={call} previewId={previewId} business={d.client.business} />}
-          {tab === "resources" && <PortalResources call={call} previewId={previewId} business={d.client.business} go={setTab} />}
-          {tab === "requests" && <RequestsView d={d} call={call} refresh={refresh} previewId={previewId} />}
+          {tab === "brand" && d.has_brand_kit && <BrandKitView call={call} previewId={scopeId} business={d.client.business} />}
+          {tab === "playbook" && d.has_playbook && <PortalPlaybook call={call} previewId={scopeId} business={d.client.business} />}
+          {tab === "resources" && <PortalResources call={call} previewId={scopeId} business={d.client.business} go={setTab} />}
+          {tab === "requests" && <RequestsView d={d} call={call} refresh={refresh} previewId={scopeId} />}
           {tab === "signatures" && (
             <div className="space-y-4">
               <span className="inline-flex items-center gap-1.5 flame-bg px-3 py-1.5 text-[12px] font-medium text-white"><Gift className="h-3.5 w-3.5" /> Bonus tool · Free for life with Interstellar</span>
               <PortalSignatures call={call} />
             </div>
           )}
-          {tab === "qr" && <PortalQr call={call} previewId={previewId} openId={qrOpen} />}
+          {tab === "qr" && <PortalQr call={call} previewId={scopeId} openId={qrOpen} />}
           {tab === "referrals" && <PortalPrestige call={call} previewId={previewId} />}
           {tab === "messages" && <MessagesView call={call} previewId={previewId} />}
-          {tab === "assistant" && <PortalAssistant previewId={previewId} variant="page" />}
+          {tab === "assistant" && <PortalAssistant key={scopeId || "me"} previewId={scopeId} admin={!!previewId} variant="page" />}
           {tab === "account" && <SecurityPanel preview={!!previewId} />}
           {STUDIO_BY_TAB[tab] && tabs.some(([k]) => k === tab) && <StudioPreview tab={tab} client={d.client} call={call} preview={!!previewId} previewId={previewId} />}
         </div>
       )}
-      {tab !== "assistant" && <AssistantLauncher previewId={previewId} onOpenFull={() => { setQrOpen(null); setTab("assistant"); }} />}
+      {tab !== "assistant" && <AssistantLauncher key={scopeId || "me"} previewId={scopeId} admin={!!previewId} onOpenFull={() => { setQrOpen(null); setTab("assistant"); }} />}
     </Shell>
   );
 }
 
 // Header: brand on the left, grouped nav (desktop dropdowns / mobile drawer) and the
 // "Schedule a call" button on the right. Nav config and components live in PortalNav.jsx.
-function Shell({ client, tabs = TABS, tab, setTab, unread, preview, previewId, children }) {
+function Shell({ client, tabs = TABS, tab, setTab, unread, preview, previewId, scopeId, businesses = [], onSwitch, children }) {
+  const multi = businesses.length > 1 && !!onSwitch;
   const [schedOpen, setSchedOpen] = useState(false);
   const nav = useMemo(() => navFor(tabs.map(([k]) => k), studioTabs(client).locked), [tabs, client]);
   return (
@@ -130,7 +160,11 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, previewId, c
           <div className="flex min-w-0 shrink-0 items-center gap-3">
             <BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={18} />
             <span className="hidden h-7 w-px bg-hair md:block lg:hidden xl:block" aria-hidden="true" />
-            <p className="hidden max-w-[180px] truncate text-[13px] font-medium tracking-[-0.02em] text-ink/70 md:block lg:hidden xl:block">{client?.business || "Client Portal"}</p>
+            {multi ? (
+              <div className="hidden md:block lg:hidden xl:block"><BusinessDropdown businesses={businesses} currentId={client?.id} onSwitch={onSwitch} /></div>
+            ) : (
+              <p className="hidden max-w-[180px] truncate text-[13px] font-medium tracking-[-0.02em] text-ink/70 md:block lg:hidden xl:block">{client?.business || "Client Portal"}</p>
+            )}
           </div>
           {setTab ? (
             <>
@@ -147,12 +181,13 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, previewId, c
                   {!preview && <button type="button" onClick={() => base44.auth.logout()} className="flex h-10 w-8 items-center justify-center text-ink/45 hover:text-[#ff3c00]" title="Log out" aria-label="Log out"><LogOut className="h-4 w-4" /></button>}
                 </div>
               </div>
-              <ScheduleCallModal open={schedOpen} onClose={() => setSchedOpen(false)} previewId={previewId} preview={preview} />
+              <ScheduleCallModal open={schedOpen} onClose={() => setSchedOpen(false)} previewId={scopeId || previewId} preview={preview} />
             </>
           ) : (
             !preview && <button onClick={() => base44.auth.logout()} className="ml-auto p-2 text-ink/45 hover:text-[#ff3c00]" title="Log out" aria-label="Log out"><LogOut className="h-4 w-4" /></button>
           )}
         </div>
+        {multi && <BusinessPills businesses={businesses} currentId={client?.id} onSwitch={onSwitch} className="md:hidden lg:block xl:hidden" />}
       </header>
       <main className="relative z-10 mx-auto max-w-[1280px] px-4 pb-20 pt-8 md:px-8">{children}</main>
     </div>
@@ -333,7 +368,7 @@ function BonusTools({ go }) {
   );
 }
 
-function ResultsView({ d, previewId }) {
+function ResultsView({ d, previewId, admin }) {
   return (
     <div className="space-y-4">
       <p className="label-cross">(Results)</p>
@@ -342,7 +377,7 @@ function ResultsView({ d, previewId }) {
       {d.site_health && <ClientHealthSummary health={d.site_health} businessName={d.client.business} />}
       <PerformanceView snapshots={d.snapshots} compact />
       {/* Instagram: renders nothing until the client has data or was invited to connect. */}
-      <PortalInstagram previewId={previewId} />
+      <PortalInstagram previewId={previewId} admin={admin} />
     </div>
   );
 }
@@ -359,11 +394,16 @@ function GoalsView({ d }) {
               const base = g.baseline_value ?? 0;
               const pct = g.target_value ? Math.max(0, Math.min(100, Math.round((((g.current_value ?? base) - base) / ((g.target_value - base) || 1)) * 100))) : 0;
               return (
-                <Panel key={g.id} label={`${g.year || ""} · ${g.metric || "Goal"}`} title={g.title}>
+                <Panel key={g.id} label={[g.year, g.metric || "Goal"].filter(Boolean).join(" · ")} title={g.title}>
                   <div className="px-4 py-4">
-                    <p className="text-[26px] font-semibold tabular-nums tracking-[-0.04em]">{g.current_value ?? "—"}<span className="text-[14px] text-ink/45"> / {g.target_value ?? "—"} {g.unit}</span></p>
-                    <div className="mt-3 h-1.5 bg-ink/[0.08]"><div className="h-full flame-bg" style={{ width: `${pct}%` }} /></div>
-                    <ul className="mt-4 space-y-1.5">
+                    {/* Numbers only when the goal has a real target; qualitative goals show their plan. */}
+                    {g.target_value != null && (
+                      <>
+                        <p className="text-[26px] font-semibold tabular-nums tracking-[-0.04em]">{g.current_value ?? "—"}<span className="text-[14px] text-ink/45"> / {g.target_value} {g.unit}</span></p>
+                        <div className="mt-3 h-1.5 bg-ink/[0.08]"><div className="h-full flame-bg" style={{ width: `${pct}%` }} /></div>
+                      </>
+                    )}
+                    <ul className={`${g.target_value != null ? "mt-4" : ""} space-y-1.5`}>
                       {(g.plan_steps || []).map((s, i) => (
                         <li key={i} className="flex items-start gap-2 text-[13px]">
                           <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center border ${s.done ? "border-[#ff3c00] bg-[#ff3c00] text-white" : "border-ink/30"}`}>{s.done && <Check className="h-3 w-3" />}</span>
