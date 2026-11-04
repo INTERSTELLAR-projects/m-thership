@@ -40,7 +40,7 @@ export function buildOverview({ depts, agents, brain, ceo, keeper, centerLabel =
   const edges = [];
   nodes.push({ id: "brain", type: "brain", label: centerLabel, sub: centerSub, x: 0, y: 0, r: 44, brain });
   if (ceo) { nodes.push({ id: `a:${ceo.key}`, type: "ceo", label: ceo.name, x: 0, y: -175, r: 17, status: ceo.status, agent: ceo }); edges.push({ from: "brain", to: `a:${ceo.key}`, kind: "ceo" }); }
-  if (keeper) { nodes.push(agentNode(keeper, 0, 118, { type: "agent" })); edges.push({ from: "brain", to: `a:${keeper.key}`, kind: "keeper" }); }
+  if (keeper) { nodes.push(agentNode(keeper, 0, 165, { type: "agent", showLabel: true })); edges.push({ from: "brain", to: `a:${keeper.key}`, kind: "keeper" }); }
 
   const present = depts.map((d) => ({ ...d, agents: agents.filter((a) => a.department === d.key) })).filter((d) => d.agents.length || d.always);
   const weights = present.map((d) => d.agents.length + 3);
