@@ -4,6 +4,7 @@
 
 import { QA_ACCOUNTING } from "@/features/accounting/qaFixtures";
 import { QA_SOCIAL, qaSocialInvoke } from "@/features/social/qaFixtures";
+import { qaUsageInvoke } from "@/features/usage/qaFixtures";
 
 const host = typeof window !== "undefined" ? window.location.hostname : "";
 const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
@@ -130,6 +131,7 @@ export function installQa(base44) {
   base44.functions = {
     invoke: async (name, args = {}) => {
       if (String(name).startsWith("social-")) return { data: qaSocialInvoke(name, args) };
+      if (name === "usage") return { data: qaUsageInvoke(args) };
       if (name !== "portal") return { data: {} };
       const cid = args.client_id || "c1";
       const of = (e) => rows(e).filter((r) => r.client_id === cid);
