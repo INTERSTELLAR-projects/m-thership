@@ -1,0 +1,154 @@
+{
+  "description": "ONE source of truth for Interstellar's packages, plans, prices, architectures, features, bonuses, guarantees, policies and Studio access by plan. Seeded from the KB (Nov 4, 2026). The website, portal and decks read it through the public read-only function launch {action: 'offers'} (only public rows). Admin-only writes; a price change here is a business decision by Justin.",
+  "name": "OfferCatalog",
+  "properties": {
+    "applies_to": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "architecture": {
+      "type": "string"
+    },
+    "architecture_version": {
+      "type": "string"
+    },
+    "billing": {
+      "enum": [
+        "one_time",
+        "monthly",
+        "included",
+        "none"
+      ],
+      "type": "string"
+    },
+    "bonuses": {
+      "description": "Keys of bonus rows (missions)",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "effective_from": {
+      "format": "date",
+      "type": "string"
+    },
+    "includes": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "key": {
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "mission",
+        "build",
+        "addon",
+        "subscription",
+        "subscription_tier",
+        "internal",
+        "bonus",
+        "guarantee",
+        "policy",
+        "portal_tool",
+        "studio_access"
+      ],
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "payment_plan": {
+      "additionalProperties": true,
+      "description": "{down, monthly, months}",
+      "type": "object"
+    },
+    "price": {
+      "description": "USD; monthly for subscriptions; 0 when included",
+      "type": "number"
+    },
+    "price_display": {
+      "type": "string"
+    },
+    "public": {
+      "default": true,
+      "description": "false = internal only, never returned by the public function",
+      "type": "boolean"
+    },
+    "requires": {
+      "description": "Keys this offer requires (e.g. a care plan)",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "short": {
+      "type": "string"
+    },
+    "sort": {
+      "type": "number"
+    },
+    "source": {
+      "type": "string"
+    },
+    "status": {
+      "default": "active",
+      "enum": [
+        "active",
+        "pending_approval",
+        "retired"
+      ],
+      "type": "string"
+    },
+    "studio_access": {
+      "additionalProperties": true,
+      "description": "kind studio_access: {plan: state}",
+      "type": "object"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "terms": {
+      "type": "string"
+    },
+    "value": {
+      "description": "Stacked value in USD where the KB states one",
+      "type": "number"
+    }
+  },
+  "required": [
+    "key",
+    "kind",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

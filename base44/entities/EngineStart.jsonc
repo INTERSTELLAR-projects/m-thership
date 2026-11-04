@@ -1,0 +1,90 @@
+{
+  "description": "A client's 'Start engine' click: the readiness snapshot at that moment and the recurring work it queued (ClaudeJobs). Nothing here sends, posts or publishes; every queued job ends in needs_approval. Admin only.",
+  "name": "EngineStart",
+  "properties": {
+    "cadence": {
+      "additionalProperties": true,
+      "description": "{ blogs_per_month, gbp_per_month, source: blogSchedule|default }",
+      "type": "object"
+    },
+    "checklist": {
+      "description": "[{key, label, ok, detail}] at the time of the click",
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "next_cycle_at": {
+      "description": "When the next month's batch is due",
+      "format": "date",
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "queued": {
+      "description": "[{stream, title, job_id, how_it_executes, iffy}]",
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "queued_job_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "started_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "started_by": {
+      "type": "string"
+    },
+    "status": {
+      "default": "queued",
+      "enum": [
+        "queued",
+        "running",
+        "paused",
+        "stopped"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

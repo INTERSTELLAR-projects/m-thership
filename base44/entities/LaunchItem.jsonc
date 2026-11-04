@@ -1,0 +1,150 @@
+{
+  "name": "LaunchItem",
+  "description": "Road to Dec 31, 2026: one gap between today and 'launched' (KB Launch plan). Written by the launch audit and kept current by Claude and the Commander brief. owner justin = only calls/sales, payments/billing decisions, logins/consents/OAuth, DNS/domain cutovers, publishing, final approval of client-facing or public output, business decisions. Everything else is owner claude. kind question = a question whose answer unblocks autonomous work. Admin only.",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Stable unique key, e.g. web:domain-cutover, client:northwoods:app-stage2"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "gap",
+        "question"
+      ],
+      "default": "gap"
+    },
+    "workstream": {
+      "type": "string",
+      "description": "M\u00f8thership | Portal | Website | Automations & Agents | Client: <name> | Client apps | Billing & Accounts | Security"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "why_it_matters": {
+      "type": "string"
+    },
+    "blocking_launch": {
+      "type": "boolean",
+      "default": false
+    },
+    "owner": {
+      "type": "string",
+      "enum": [
+        "claude",
+        "justin",
+        "client"
+      ],
+      "default": "claude"
+    },
+    "effort_hours": {
+      "type": "number"
+    },
+    "depends_on": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Keys of LaunchItems that must be done first"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "todo",
+        "in_progress",
+        "waiting",
+        "done",
+        "deferred"
+      ],
+      "default": "todo"
+    },
+    "lane": {
+      "type": "string",
+      "enum": [
+        "launch",
+        "2027"
+      ],
+      "default": "launch"
+    },
+    "week": {
+      "type": "number",
+      "description": "Planned week 1-9 of the road to Dec 31 (week 1 = Nov 4-8)"
+    },
+    "unblocks": {
+      "type": "number",
+      "description": "How many other items this unblocks (orders Justin's moves)"
+    },
+    "priority": {
+      "type": "number",
+      "default": 3,
+      "description": "1 highest"
+    },
+    "justin_steps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Click-by-click steps, only when owner = justin"
+    },
+    "claude_plan": {
+      "type": "string",
+      "description": "What Claude / an agent will do and when (owner claude)"
+    },
+    "answer": {
+      "type": "string",
+      "description": "Justin's answer (kind question)"
+    },
+    "answered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string",
+      "description": "Evidence: record ids, file paths, API results"
+    },
+    "done_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "done_by": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "key",
+    "title",
+    "workstream"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
