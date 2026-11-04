@@ -15,6 +15,19 @@ function curve(a, b) {
 
 function short(s, n) { const t = String(s || ""); return t.length > n ? `${t.slice(0, n - 1)}…` : t; }
 
+// Two lines of at most about `n` characters, breaking on spaces.
+function wrap2(s, n) {
+  const words = String(s || "").split(" ");
+  const lines = [""];
+  for (const w of words) {
+    const cur = lines[lines.length - 1];
+    if (!cur) lines[lines.length - 1] = w;
+    else if ((cur + " " + w).length <= n || lines.length === 2) lines[lines.length - 1] = cur + " " + w;
+    else lines.push(w);
+  }
+  return lines.map((l) => short(l, n + 2));
+}
+
 // Renders one node. Purely presentational; hit-testing is done by the parent through data-id.
 function Node({ n, k, selected, dim, showLabel, query }) {
   const ls = 1 / clamp(k, 0.55, 1.5);
@@ -119,7 +132,11 @@ function Node({ n, k, selected, dim, showLabel, query }) {
       )}
       <circle r={r + 5} className="ring-h" />
       <circle r={Math.max(r + 9, 14)} className="hit" />
-      {label ? <text className="lbl" y={r + 15 * ls} textAnchor="middle" style={{ fontSize: 11 * ls }}>{short(a.name, 28)}</text> : null}
+      {label ? (n.wrap ? (
+        <text className="lbl" y={r + 15 * ls} textAnchor="middle" style={{ fontSize: 11 * ls }}>
+          {wrap2(a.name, 20).map((line, i) => <tspan key={i} x="0" dy={i ? 13 * ls : 0}>{line}</tspan>)}
+        </text>
+      ) : <text className="lbl" y={r + 15 * ls} textAnchor="middle" style={{ fontSize: 11 * ls }}>{short(a.name, 28)}</text>) : null}
     </g>
   );
 }
