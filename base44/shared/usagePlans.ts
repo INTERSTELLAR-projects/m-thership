@@ -23,7 +23,10 @@ export const ADS_MIN_GAP_HOURS: Record<AdsCadence, number> = { daily: 20, weekly
 export const MAX_FREE_LIST_SIZE = 25000;
 export const ALERT_AT = 0.8;
 
-export const STUDIO_KEYS = ["social", "email", "ads", "accounting", "hiring"] as const;
+// Per-client Studio state: off (hidden) / preview (visible in the portal, locked: the default) / on (usable).
+// Server functions only ever act for a portal user when the Studio is "on".
+export const STUDIO_KEYS = ["social", "email", "ads", "accounting", "hiring", "presentations"] as const;
+export type StudioState = "off" | "preview" | "on";
 
 // ---- Model routing (Anthropic Messages API, our own key, never Base44 InvokeLLM credits for clients) ----
 // IDs verified 2026-11-04 at https://platform.claude.com/docs/en/about-claude/models/overview and pricing at
@@ -86,10 +89,13 @@ export function capsFor(client: Client) {
   };
 }
 
-export const studiosOf = (client: Client) => {
-  const s = client?.studios || {};
-  return Object.fromEntries(STUDIO_KEYS.map((k) => [k, s[k] === true])) as Record<(typeof STUDIO_KEYS)[number], boolean>;
+export const studioState = (client: Client, key: string): StudioState => {
+  const v = client?.studios?.[key];
+  return v === "on" || v === true ? "on" : v === "off" ? "off" : "preview";
 };
+// true only for Studios that are switched ON (usable). Preview and off are both locked server-side.
+export const studiosOf = (client: Client) =>
+  Object.fromEntries(STUDIO_KEYS.map((k) => [k, studioState(client, k) === "on"])) as Record<(typeof STUDIO_KEYS)[number], boolean>;
 export const anyStudioOn = (client: Client) => Object.values(studiosOf(client)).some(Boolean);
 
 // Months roll over on Justin's clock (Pacific), so "until next month" means the 1st in Molalla.
