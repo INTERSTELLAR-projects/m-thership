@@ -262,11 +262,12 @@ export default function AgentsPage() {
         ) : (
           <>
             <Constellation graph={graph} viewKey={viewKey} selectedId={selectedId} onSelect={onNode} isMatch={filtering ? isMatch : null} query={query} labelsAlways={!!dept}
+              padRight={panel ? (sel?.type === "ceo" || sel?.type === "brain" ? 540 : 460) : 0}
               onHover={(n, x, y) => setHover(n ? { n, x, y } : null)} />
             {dept ? (
               <>
                 <button type="button" aria-label="Previous department" onClick={() => stepDept(-1)} className="glass absolute left-3 top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full text-[var(--ink-m)] transition hover:text-white md:left-5"><ChevronLeft className="h-5 w-5" /></button>
-                <button type="button" aria-label="Next department" onClick={() => stepDept(1)} className={`glass absolute top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full text-[var(--ink-m)] transition hover:text-white ${panel ? "right-3 md:right-[464px]" : "right-3 md:right-5"}`}><ChevronRight className="h-5 w-5" /></button>
+                <button type="button" aria-label="Next department" onClick={() => stepDept(1)} className={`glass absolute top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full text-[var(--ink-m)] transition hover:text-white ${panel ? (sel?.type === "ceo" || sel?.type === "brain" ? "right-3 md:right-[544px]" : "right-3 md:right-[464px]") : "right-3 md:right-5"}`}><ChevronRight className="h-5 w-5" /></button>
               </>
             ) : null}
             {/* Legend */}
@@ -299,7 +300,7 @@ export default function AgentsPage() {
 
         {/* Department switcher */}
         {!isLoading && !(web === "clients" && !client) ? (
-          <div className={`absolute bottom-3 left-3 z-20 md:left-5 ${panel ? "right-3 md:right-[464px]" : "right-16 md:right-20"}`}>
+          <div className={`absolute bottom-3 left-3 z-20 md:left-5 ${panel ? (sel?.type === "ceo" || sel?.type === "brain" ? "right-3 md:right-[544px]" : "right-3 md:right-[464px]") : "right-16 md:right-20"}`}>
             <div className="no-scrollbar flex gap-1.5 overflow-x-auto">
               <button type="button" className={`chip shrink-0 ${!dept ? "on" : ""}`} onClick={() => setP({ dept: null, deptpanel: null })}>Overview</button>
               {presentDepts.map((x) => {
