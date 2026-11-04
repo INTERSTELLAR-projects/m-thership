@@ -25,6 +25,7 @@ import { PortalGbp, ReviewLinkQuick } from "@/features/gbp/GbpPanel";
 import PortalAssistant, { AssistantLauncher } from "@/features/portal/assistant/PortalAssistant";
 import SecurityPanel from "@/features/security/SecurityPanel";
 import StudioPreview, { studioTabs, STUDIO_BY_TAB } from "@/features/portal/PortalStudios";
+import { IS_DEMO } from "@/lib/qa";
 import TwoFactorChallenge from "@/features/security/TwoFactorChallenge";
 import { needsSecondFactor } from "@/features/security/api";
 import { BusinessDropdown, BusinessPills } from "@/features/portal/BusinessSwitcher";
@@ -50,7 +51,8 @@ export default function PortalApp({ previewId }) {
   // scopeId: the client every portal call is for (admin preview id, or the business a package-deal owner picked).
   const scopeId = previewId || picked || undefined;
   const { call, home } = usePortal(scopeId);
-  const [tab, setTab] = useState("home");
+  // Demo screen library (preview + ?qa=1&demo=1 only): ?tab= opens a portal tab directly for captures.
+  const [tab, setTab] = useState(() => (IS_DEMO && new URLSearchParams(window.location.search).get("tab")) || "home");
   const [audit, setAudit] = useState(false);
   const [qrOpen, setQrOpen] = useState(null); // a QR code to open on the QR tab (from Google Business)
   const qc = useQueryClient();
