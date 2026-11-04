@@ -191,7 +191,33 @@ const INTEGRATIONS = [
   { group: "Google", name: "Google Places", secret: "GOOGLE_PLACES_API_KEY", uses: "Stärboard reviews feed on client sites" },
   { group: "Google", name: "PageSpeed Insights", secret: "PAGESPEED_API_KEY", uses: "Site audits (optional: raises Google's quota)", optional: true },
   { group: "AI", name: "OpenAI", secret: "OPENAI_API_KEY", uses: "Voice Core transcription + speech (optional: falls back to the browser)", optional: true },
+  { group: "Client Studios", name: "Anthropic API", secret: "ANTHROPIC_API_KEY", uses: "AI for client Studios through the ai-gateway (Haiku 5.5 drafts, Sonnet 5.5 long work). Without it client AI is off; your admin AI falls back to Base44." },
+  { group: "Client Studios", name: "Amazon SES access key", secret: "AWS_SES_ACCESS_KEY_ID", uses: "Client marketing email (email-bulk). Without all three SES secrets client sends are disabled." },
+  { group: "Client Studios", name: "Amazon SES secret key", secret: "AWS_SES_SECRET_ACCESS_KEY", uses: "Signs SES requests (SigV4). Never leaves the server." },
+  { group: "Client Studios", name: "Amazon SES region", secret: "AWS_SES_REGION", uses: "e.g. us-west-2: the region your SES identities are verified in" },
 ];
+
+function StudiosSetup() {
+  const q = useQuery({
+    queryKey: ["settings", "studios-config"],
+    staleTime: 60_000,
+    retry: false,
+    queryFn: async () => (await base44.functions.invoke("usage", { action: "config" })).data,
+  });
+  const d = q.data || {};
+  return (
+    <Panel title="Client Studios setup" subtitle="Free for clients under fair-use caps. Client AI and bulk email run on our own accounts, never Base44 credits.">
+      <ol className="list-decimal space-y-2 pl-4 text-[12.5px] leading-relaxed text-ink/70">
+        <li><b>Anthropic:</b> create a key at platform.claude.com &gt; API keys, set a monthly spend limit, then add it as <span className="font-mono">ANTHROPIC_API_KEY</span>. Models: <span className="font-mono">{d.models?.routine?.id || "claude-haiku-5-5"}</span> (drafts) and <span className="font-mono">{d.models?.long?.id || "claude-sonnet-5-5"}</span> (scripts, ad analysis).</li>
+        <li><b>Amazon SES:</b> in AWS, open SES in one region, request production access, and create an IAM user with only <span className="font-mono">ses:SendEmail</span>. Add <span className="font-mono">AWS_SES_ACCESS_KEY_ID</span>, <span className="font-mono">AWS_SES_SECRET_ACCESS_KEY</span> and <span className="font-mono">AWS_SES_REGION</span>.</li>
+        <li><b>Per client:</b> verify the client&apos;s domain in SES (DKIM records on their DNS), then in Client usage set their sending address and tick &quot;Domain verified&quot;.</li>
+        <li><b>Bounces &amp; complaints:</b> create an SNS topic, subscribe this HTTPS URL, and point each SES identity&apos;s bounce + complaint notifications at the topic:
+          <span className="mt-1 block break-all rounded-md bg-ink/[0.04] px-2 py-1.5 font-mono text-[10.5px] text-ink/70">{q.isLoading ? "Loading…" : d.ses_feedback_webhook || "Unavailable (needs EMAIL_UNSUB_SECRET or MFA_ENCRYPTION_KEY)"}</span>
+        </li>
+      </ol>
+    </Panel>
+  );
+}
 
 export function IntegrationsTab() {
   const q = useQuery({
@@ -238,6 +264,7 @@ export function IntegrationsTab() {
             <li className="flex items-center justify-between gap-3 py-2"><span>Google Calendar connector<span className="block text-[11.5px] text-ink/50">Declared in the app; connect or reconnect in Base44 &gt; Connectors</span></span><Pill neutral="Base44" /></li>
           </ul>
         </Panel>
+        <StudiosSetup />
         <Panel title="Change a secret">
           <p className="text-[12.5px] leading-relaxed text-ink/65">Add or rotate secrets in the Base44 dashboard: this app &gt; Settings &gt; Secrets (or ask Claude to set one). The status here updates on the next check.</p>
         </Panel>
