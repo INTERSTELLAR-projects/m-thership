@@ -56,12 +56,18 @@
         "social_plan",
         "enrich_profile",
         "map_pack_plan",
+        "topic_calendar",
         "other"
       ],
       "type": "string"
     },
     "needs_from_justin": {
       "description": "Anything Claude could not do without him (logins, a decision, a send)",
+      "type": "string"
+    },
+    "not_before": {
+      "description": "YYYY-MM-DD (Pacific). The queue runner leaves the job alone until this date (scheduled blog posts from an approved Topic Calendar).",
+      "format": "date",
       "type": "string"
     },
     "next_stage": {
