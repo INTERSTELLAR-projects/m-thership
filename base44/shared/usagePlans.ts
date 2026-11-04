@@ -1,0 +1,95 @@
+// Studios fair-use plans: one source of truth for the backend. Mirrored for the UI in src/features/usage/plans.js
+// (keep the two in sync). Decided in "Interstellar Platform Value & Plans" (2026-11):
+//   every Studio is free for clients on any plan, under monthly fair-use caps; no paid top-ups.
+//   80% -> Justin is alerted (in-app alert + Command Briefing task). 100% -> AI drafting / sends pause until next
+//   month. Nothing already created is ever locked.
+
+export type PlanKey = "hypercare" | "website" | "gravitycare" | "none";
+export type UsageKind = "ai_action" | "marketing_email" | "ads_run";
+export type AdsCadence = "daily" | "weekly" | "none";
+
+export const PLAN_CAPS: Record<PlanKey, { label: string; ai_action: number; marketing_email: number; ads: AdsCadence }> = {
+  hypercare: { label: "HyperCare+", ai_action: 1000, marketing_email: 25000, ads: "daily" },
+  website: { label: "Website-only", ai_action: 500, marketing_email: 10000, ads: "weekly" },
+  gravitycare: { label: "GravïtyCare", ai_action: 200, marketing_email: 2500, ads: "none" },
+  none: { label: "No care plan", ai_action: 0, marketing_email: 0, ads: "none" },
+};
+
+// Ads agent cadence -> runs per month (the meter also enforces the spacing between runs).
+export const ADS_RUNS_PER_MONTH: Record<AdsCadence, number> = { daily: 31, weekly: 5, none: 0 };
+export const ADS_MIN_GAP_HOURS: Record<AdsCadence, number> = { daily: 20, weekly: 6 * 24, none: 0 };
+
+// Not offered free (expensive): AI video / image generation, lists over this size.
+export const MAX_FREE_LIST_SIZE = 25000;
+export const ALERT_AT = 0.8;
+
+export const STUDIO_KEYS = ["social", "email", "ads", "accounting", "hiring"] as const;
+
+// ---- Model routing (Anthropic Messages API, our own key, never Base44 InvokeLLM credits for clients) ----
+// IDs verified 2026-11-04 at https://platform.claude.com/docs/en/about-claude/models/overview and pricing at
+// https://platform.claude.com/docs/en/about-claude/pricing.
+export const AI_MODELS = {
+  routine: { id: "claude-haiku-5-5", label: "Claude Haiku 5.5", max_tokens: 2048 },
+  long: { id: "claude-sonnet-5-5", label: "Claude Sonnet 5.5", max_tokens: 8192 },
+} as const;
+export type AiTier = keyof typeof AI_MODELS;
+
+// USD per million tokens. Haiku 5.5 is priced by prompt length (over 100k input tokens costs more).
+export function estimateAiCost(model: string, inputTokens: number, outputTokens: number) {
+  const i = Number(inputTokens) || 0;
+  const o = Number(outputTokens) || 0;
+  let pin = 0, pout = 0;
+  if (/haiku-5-5/.test(model)) { pin = i > 100000 ? 0.5 : 0.1; pout = i > 100000 ? 2.5 : 0.5; }
+  else if (/sonnet-5-5/.test(model)) { pin = 2; pout = 10; }
+  else return 0;
+  return Math.round(((i * pin + o * pout) / 1e6) * 1e6) / 1e6;
+}
+
+// Amazon SES outbound: $0.10 per 1,000 emails (attachments/data extra; not used here).
+export const SES_COST_PER_EMAIL = 0.0001;
+
+type Client = Record<string, any>;
+
+// Plan from existing client fields: services_managed (Stripe sync switches orbit_seo <-> HyperCare+,
+// starship_care <-> GravïtyCare; website_care = the $500 back-end Website-only plan), then the free-text plan /
+// service names, then an explicit admin choice (usage_overrides.plan) which wins over everything.
+export function planOf(client: Client): PlanKey {
+  const forced = client?.usage_overrides?.plan;
+  if (forced && forced in PLAN_CAPS) return forced as PlanKey;
+  const managed: string[] = Array.isArray(client?.services_managed) ? client.services_managed : [];
+  if (managed.includes("orbit_seo")) return "hypercare";
+  if (managed.includes("website_care")) return "website";
+  if (managed.includes("starship_care")) return "gravitycare";
+  const text = [client?.plan, ...((client?.services || []) as any[]).map((s) => s?.name)].filter(Boolean).join(" ").toLowerCase();
+  if (/hypercare|ørbit|orbit/.test(text)) return "hypercare";
+  if (/website[- ]only|back[- ]?end plan|website care/.test(text)) return "website";
+  if (/gravity|gravïty|starship/.test(text)) return "gravitycare";
+  return "none";
+}
+
+export function capsFor(client: Client) {
+  const plan = planOf(client);
+  const base = PLAN_CAPS[plan];
+  const o = client?.usage_overrides || {};
+  const unlimited = o.unlimited === true;
+  const num = (v: unknown, d: number) => (typeof v === "number" && isFinite(v) && v >= 0 ? Math.floor(v) : d);
+  const ads: AdsCadence = ["daily", "weekly", "none"].includes(o.ads_cadence) ? o.ads_cadence : base.ads;
+  return {
+    plan,
+    plan_label: base.label,
+    unlimited,
+    ai_action: unlimited ? Infinity : num(o.ai_actions, base.ai_action),
+    marketing_email: unlimited ? Infinity : num(o.marketing_emails, base.marketing_email),
+    ads_cadence: unlimited && ads === "none" ? "daily" as AdsCadence : ads,
+    ads_run: unlimited ? Infinity : ADS_RUNS_PER_MONTH[ads],
+    custom: o.ai_actions != null || o.marketing_emails != null || o.ads_cadence != null || !!o.plan,
+  };
+}
+
+export const studiosOf = (client: Client) => {
+  const s = client?.studios || {};
+  return Object.fromEntries(STUDIO_KEYS.map((k) => [k, s[k] === true])) as Record<(typeof STUDIO_KEYS)[number], boolean>;
+};
+export const anyStudioOn = (client: Client) => Object.values(studiosOf(client)).some(Boolean);
+
+export const monthKey = (d = new Date()) => d.toISOString().slice(0, 7);
