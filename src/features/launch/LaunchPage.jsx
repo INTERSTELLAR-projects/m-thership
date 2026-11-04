@@ -66,8 +66,8 @@ function Hero({ s, waiting }) {
           <div className="mt-3"><Bar pct={s.overall} dark h="h-2.5" /></div>
           <p className="mt-2 text-[12px] text-white/50">Weighted by effort across {s.live.length} launch items. 2027 work and questions are tracked separately.</p>
           <div className="mt-5 grid grid-cols-2 gap-px bg-white/10 sm:grid-cols-5">
-            {stats.map(([v, l]) => (
-              <div key={l} className="bg-ink px-3 py-2.5">
+            {stats.map(([v, l], i) => (
+              <div key={l} className={`bg-ink px-3 py-2.5 ${i === stats.length - 1 ? "col-span-2 sm:col-span-1" : ""}`}>
                 <p className="font-mono text-[22px] font-semibold tabular-nums">{Number(v || 0).toLocaleString()}</p>
                 <p className="mono-label text-[9px] text-white/45">{l}</p>
               </div>
