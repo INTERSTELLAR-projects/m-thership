@@ -55,6 +55,8 @@ import LoginPage from '@/features/auth/LoginPage';
 import HiringPlanPage from '@/features/hiring/HiringPlanPage';
 import ClientUsagePage from '@/features/usage/ClientUsagePage';
 import AgentsPage from '@/features/agents/AgentsPage';
+import IntelligencePage from '@/features/oracle/IntelligencePage';
+import OracleTopicPage from '@/features/oracle/TopicPage';
 
 // Branded sign-in routes. They render without a session. While the platform's hosted login owns /login for this
 // private app (custom auth not enrolled), the server answers these paths itself; the page takes over as soon as
@@ -131,6 +133,8 @@ const AuthenticatedApp = () => {
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/automations" element={<ProtectedRoute><AutomationsPage /></ProtectedRoute>} />
         <Route path="/idea-vault" element={<ProtectedRoute><IdeaVault /></ProtectedRoute>} />
+        <Route path="/intelligence" element={<ProtectedRoute><IntelligencePage /></ProtectedRoute>} />
+        <Route path="/intelligence/:topicKey" element={<ProtectedRoute><OracleTopicPage /></ProtectedRoute>} />
         <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
         <Route path="/reviews" element={<ProtectedRoute><Reviews /></ProtectedRoute>} />
         <Route path="/signatures" element={<ProtectedRoute><SignaturesPage /></ProtectedRoute>} />
