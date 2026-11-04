@@ -1,18 +1,76 @@
 {
   "name": "AccountingAlert",
-  "description": "In-app notification from the Accounting & Tax center (estimated-tax reminders, monthly close). Written by the accounting function's daily reminder run.",
+  "description": "In-app notification from the Accounting & Tax center (estimated-tax reminders, monthly close). Written by the accounting function's daily reminder run. Also Studios fair-use alerts (kind usage, written by base44/shared/meter.ts).",
   "type": "object",
   "properties": {
-    "business_id": { "type": "string", "default": "interstellar" },
-    "key": { "type": "string", "description": "Unique per reminder, e.g. est-2026-Q4 or close-2026-10" },
-    "kind": { "type": "string", "enum": ["estimated_tax", "monthly_close", "info"], "default": "info" },
-    "title": { "type": "string" },
-    "body": { "type": "string" },
-    "due_date": { "type": "string", "format": "date" },
-    "link": { "type": "string" },
-    "task_id": { "type": "string" },
-    "status": { "type": "string", "enum": ["new", "seen", "dismissed"], "default": "new" }
+    "business_id": {
+      "type": "string",
+      "default": "interstellar"
+    },
+    "key": {
+      "type": "string",
+      "description": "Unique per reminder, e.g. est-2026-Q4 or close-2026-10"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "estimated_tax",
+        "monthly_close",
+        "info",
+        "usage"
+      ],
+      "default": "info"
+    },
+    "title": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "link": {
+      "type": "string"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "seen",
+        "dismissed"
+      ],
+      "default": "new"
+    }
   },
-  "required": ["key", "title"],
-  "rls": {"create": {"user_condition": {"role": "admin"}}, "read": {"user_condition": {"role": "admin"}}, "update": {"user_condition": {"role": "admin"}}, "delete": {"user_condition": {"role": "admin"}}}
+  "required": [
+    "key",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

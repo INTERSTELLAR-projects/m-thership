@@ -1,0 +1,61 @@
+{
+  "name": "EmailSuppression",
+  "type": "object",
+  "description": "Per-client do-not-send list for client Studios bulk email (SES): unsubscribes, hard bounces, complaints, manual blocks.",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Lowercased"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "unsubscribe",
+        "bounce",
+        "complaint",
+        "manual"
+      ]
+    },
+    "detail": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "client_id",
+    "email",
+    "reason"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

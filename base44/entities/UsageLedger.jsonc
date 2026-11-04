@@ -1,0 +1,90 @@
+{
+  "name": "UsageLedger",
+  "type": "object",
+  "description": "Studios fair-use meter: one row per metered action (AI call, marketing email batch, ads agent run). Written only by backend functions (ai-gateway, email-bulk) through base44/shared/meter.ts. Rows with by_admin=true are Justin's own usage: recorded for cost, never counted toward the client's cap.",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id, or 'agency' for admin usage with no client"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "month": {
+      "type": "string",
+      "description": "YYYY-MM (Pacific)"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "ai_action",
+        "marketing_email",
+        "ads_run"
+      ]
+    },
+    "units": {
+      "type": "number",
+      "default": 1
+    },
+    "model": {
+      "type": "string",
+      "description": "Model id for AI actions (e.g. claude-haiku-5-5), or ses / base44-invokellm"
+    },
+    "est_cost_usd": {
+      "type": "number",
+      "default": 0
+    },
+    "feature": {
+      "type": "string",
+      "description": "Which Studio feature, e.g. email.compose, social.caption, ads.analysis"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "by_admin": {
+      "type": "boolean",
+      "default": false
+    },
+    "input_tokens": {
+      "type": "number"
+    },
+    "output_tokens": {
+      "type": "number"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "client_id",
+    "month",
+    "kind",
+    "units"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

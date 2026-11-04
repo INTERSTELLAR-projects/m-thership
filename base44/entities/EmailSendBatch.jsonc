@@ -1,0 +1,86 @@
+{
+  "name": "EmailSendBatch",
+  "type": "object",
+  "description": "Up to 500 recipients of one EmailCampaign, sent one email per recipient by email-bulk.",
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "index": {
+      "type": "number"
+    },
+    "recipients": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "sending",
+        "done",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "cursor": {
+      "type": "number",
+      "default": 0
+    },
+    "sent": {
+      "type": "number",
+      "default": 0
+    },
+    "failed": {
+      "type": "number",
+      "default": 0
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "attempts": {
+      "type": "number",
+      "default": 0
+    },
+    "locked_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "campaign_id",
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

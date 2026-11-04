@@ -93,7 +93,7 @@
       "type": "array"
     },
     "plan": {
-      "description": "e.g. ALPHA + \u00d8rbit Local",
+      "description": "e.g. ALPHA + Ørbit Local",
       "type": "string"
     },
     "portal_emails": {
@@ -120,7 +120,8 @@
           "system",
           "orbit_seo",
           "brand",
-          "starship_care"
+          "starship_care",
+          "website_care"
         ],
         "type": "string"
       },
@@ -208,6 +209,58 @@
     "booked_call_at": {
       "type": "string",
       "description": "Booked strategy call (ISO date-time when parseable, else date)"
+    },
+    "studios": {
+      "type": "object",
+      "description": "Client portal Studios switched on for this client (all OFF by default; Justin turns them on per client in Client usage).",
+      "properties": {
+        "social": {
+          "type": "boolean",
+          "default": false
+        },
+        "email": {
+          "type": "boolean",
+          "default": false
+        },
+        "ads": {
+          "type": "boolean",
+          "default": false
+        },
+        "accounting": {
+          "type": "boolean",
+          "default": false
+        },
+        "hiring": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "usage_overrides": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Fair-use overrides: plan (hypercare|website|gravitycare|none), ai_actions (number), marketing_emails (number), ads_cadence (daily|weekly|none), unlimited (bool), note"
+    },
+    "ses_from_email": {
+      "type": "string",
+      "description": "Verified SES sending address for this client's marketing email (e.g. news@clientdomain.com)"
+    },
+    "ses_from_name": {
+      "type": "string",
+      "description": "Display name on this client's marketing email"
+    },
+    "ses_reply_to": {
+      "type": "string"
+    },
+    "ses_domain": {
+      "type": "string",
+      "description": "Sending domain verified in Amazon SES (DKIM)"
+    },
+    "ses_domain_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Justin confirms the domain shows Verified in SES before client sends are allowed"
     }
   },
   "required": [
