@@ -166,7 +166,10 @@ export default function PortalApp({ previewId }) {
 function Shell({ client, tabs = TABS, tab, setTab, unread, preview, previewId, scopeId, businesses = [], onSwitch, fuel, refuelOpen = false, setRefuelOpen, children }) {
   const multi = businesses.length > 1 && !!onSwitch;
   const [schedOpen, setSchedOpen] = useState(false);
-  const nav = useMemo(() => navFor(tabs.map(([k]) => k), studioTabs(client, fuel).locked), [tabs, client, fuel]);
+  const nav = useMemo(() => {
+    const st = studioTabs(client, fuel);
+    return navFor(tabs.map(([k]) => k), st.locked, st.planLocked ? "HyperCare+" : "Soon");
+  }, [tabs, client, fuel]);
   const openRefuel = setRefuelOpen ? () => setRefuelOpen(true) : undefined;
   return (
     <div className="grid-canvas min-h-screen text-ink" data-trail>
