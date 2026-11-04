@@ -443,6 +443,15 @@ async function ceoContext(db: any, scope: string, clientId?: string) {
   if (!clientId) parts.push(`OTHER APPROVALS: ${adRecs.length} ad recommendations proposed; ${intel.length} Search Intel actions proposed (${intel.slice(0, 5).map((i: any) => `${i.action_id}: ${cut(i.title, 60)}`).join("; ")}).`);
   parts.push(`AGENT LEARNINGS (newest first):\n${learnings.map((l: any) => `- ${l.date || String(l.created_date).slice(0, 10)} [${l.status || "proposed"}] ${l.agent_key || ""}${l.client_name ? ` · ${l.client_name}` : ""}: ${cut(l.learning, 200)}${l.proposed_change ? ` → proposes: ${cut(l.proposed_change, 140)}` : ""}`).join("\n") || "none yet"}`);
   parts.push(`RESEARCH NOTES (newest first):\n${notes.map((n: any) => `- ${String(n.created_at || n.created_date).slice(0, 10)} [${n.relevance || "?"}] ${n.department || ""}${n.client_name ? ` · ${n.client_name}` : ""}: ${n.topic} — ${cut(n.summary, 220)} (for: ${arr(n.for_agents).join(", ")}; sources: ${arr(n.sources).map((s: any) => s.url).slice(0, 2).join(" ")})`).join("\n") || "none yet"}`);
+  if (!clientId) {
+    // Future Oracle (research agent on /intelligence): its latest brief's top changes and opportunities, if the entity exists.
+    const oracle = await list(db.OracleBrief, {}, "-created_date", 1);
+    if (oracle[0]) {
+      const o: any = { ...oracle[0] };
+      ["id", "created_by", "created_by_id", "updated_date", "is_sample"].forEach((k) => delete o[k]);
+      parts.push(`FUTURE ORACLE — LATEST BRIEF (research agent, see /intelligence; include its top changes and opportunities when briefing):\n${cut(flat(o), 2500)}`);
+    }
+  }
   parts.push(`RECENT CEO BRIEFS:\n${briefs.map((b: any) => `- ${b.date} ${b.headline || ""}: ${cut(b.summary, 300)}`).join("\n") || "none yet"}`);
   return parts.join("\n\n");
 }
