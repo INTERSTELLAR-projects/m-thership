@@ -45,10 +45,24 @@ const DEFAULT_CATEGORIES = ["AI Tools", "Design", "Finance", "Hosting", "Marketi
 const FREQUENCIES = ["Monthly", "Quarterly", "Annually"];
 const FIN_CATS_KEY = "financial_categories";
 const FIN_TABS = [
-  ["dashboard", "Dashboard"], ["goal", "Goal"], ["advisor", "Advisor"], ["overview", "Expenses"], ["accounting", "Accounting & Taxes"], ["categories", "Categories"],
+  ["dashboard", "Dashboard"], ["goal", "Goal"], ["advisor", "Advisor"], ["overview", "Expenses"], ["accounting", "Accounting & Taxes"],
   ["stripe", "Stripe"], ["projections", "Projections"], ["investments", "Investments"],
 ];
 const LIVE_TABS = new Set(["dashboard", "goal", "advisor", "overview"]);
+// Expenses and their categories go hand in hand: Categories is a tab INSIDE Expenses ("Expenses | Categories").
+// The old ?tab=categories link still lands there.
+const EXP_TABS = [["expenses", "Expenses"], ["categories", "Categories"]];
+
+function ExpSubTabs({ value, onChange }) {
+  return (
+    <div className="inline-flex border border-ink/[0.13] bg-card p-0.5" role="tablist" aria-label="Expenses view">
+      {EXP_TABS.map(([k, label]) => (
+        <button key={k} type="button" role="tab" aria-selected={value === k} onClick={() => onChange(k)}
+          className={`px-4 py-1.5 text-xs font-semibold tracking-wider uppercase transition-colors ${value === k ? "bg-ink text-white" : "text-ink/[0.48] hover:text-ink/70"}`}>{label}</button>
+      ))}
+    </div>
+  );
+}
 
 // Expense categories are shared: Settings > Lists & fields > Expense categories (old per-browser list seeds it once).
 
@@ -60,7 +74,12 @@ export default function Financial() {
   const [editForm, setEditForm] = useState({});
   const [subPage, setSubPage] = useState(() => {
     const t = new URLSearchParams(window.location.search).get("tab");
+    if (t === "categories") return "overview";
     return FIN_TABS.some(([k]) => k === t) ? t : "dashboard";
+  });
+  const [expSub, setExpSub] = useState(() => {
+    const q = new URLSearchParams(window.location.search);
+    return q.get("tab") === "categories" || q.get("sub") === "categories" ? "categories" : "expenses";
   });
   const financeData = useFinanceData(LIVE_TABS.has(subPage));
   const [categories, saveCats] = useCategoryList("expense_categories", FIN_CATS_KEY);
@@ -142,9 +161,12 @@ export default function Financial() {
           <InvestmentAdvisor data={financeData} />
         ) : subPage === "accounting" ? (
           <AccountingCenter />
-        ) : subPage === "overview" ? (
-          <ExpensesTab expenses={expenses} categories={categories} now={now} finance={financeData}
-            onAdd={addExpense} onUpdate={updateExpense} onDelete={deleteExpense} onMarkPaid={markPaid} />
+        ) : subPage === "overview" && expSub === "expenses" ? (
+          <>
+            <ExpSubTabs value={expSub} onChange={setExpSub} />
+            <ExpensesTab expenses={expenses} categories={categories} now={now} finance={financeData}
+              onAdd={addExpense} onUpdate={updateExpense} onDelete={deleteExpense} onMarkPaid={markPaid} />
+          </>
         ) : subPage === "projections" ? (
           <>
             <RevenueProjections />
@@ -156,6 +178,7 @@ export default function Financial() {
           <InvestmentsList />
         ) : (
           <div className="space-y-4">
+            <ExpSubTabs value={expSub} onChange={setExpSub} />
             <div className="flex items-center justify-between">
               <p className="text-ink/[0.43] text-xs">Group your expenses by category.</p>
               <button onClick={() => setManagingCats(!managingCats)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${managingCats ? "bg-orange-500/15 text-orange-500 border-orange-500/20" : "text-ink/[0.48] hover:text-ink/60 border-ink/[0.13]"}`}>
