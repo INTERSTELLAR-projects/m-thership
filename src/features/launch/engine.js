@@ -1,11 +1,14 @@
 // Engine readiness + "Start engine" for one client.
 // Ready = profile ≥ the completeness meter's green threshold (80%) with every blog-critical field filled,
 // the new site live on Base44 with a blog collection, a GBP connection or link on file, and the portal on.
-// Starting creates one EngineStart record and queues month 1 as ClaudeJobs the hourly queue runner picks up.
-// Every job ends in needs_approval: nothing is published, posted or sent by starting an engine.
+// Starting creates one EngineStart record and queues month 1 as ClaudeJobs the hourly queue runner picks up:
+// the month's Topic Calendar (Justin approves it once; posts then publish on their own), outreach research +
+// drafts, the social plan and review-request drafts. Claude may press Start engine itself when all four lights are
+// green (approval policy: notify). Months 2+ are queued by the "Engines — monthly re-queue" workflow.
 import { base44 } from "@/api/base44Client";
 import { evaluateCriteria, has } from "@/features/clients/criteria";
 import { STANDING_RULES } from "@/features/claude/jobs";
+import { queueTopicCalendar, monthKeyLA, monthLabel } from "./topicCalendar";
 
 export const COMPLETE_AT = 80; // same threshold the profile meter and the % badge turn green at
 export const BLOG_CRITICAL = ["services", "service_areas", "keywords", "voice", "photos", "reviews_link"];
@@ -76,54 +79,73 @@ export function cadenceOf(client) {
   return { blogs_per_month: 4, gbp_per_month: 4, source: "default (HyperCare+ weekly blog + GBP post; confirm)" };
 }
 
-// How each stream executes today, and the step that is still undecided (asked as a LaunchItem question).
+// GBP posting is OFF for every client until the Google Business Profile API is approved for auto-posting
+// (Justin, Nov 4, 2026). Engines skip the stream and show "Waiting on Google API". Flip GBP_API_APPROVED when it is.
+export const GBP_API_APPROVED = false;
+export const OUTREACH_SENDER = { email: "justin@interstellar-strategies.com", name: "Justin Cowell", tone: "personal, first person, on the client's behalf" };
+
+// Every recurring stream an engine runs each month. state: "on" queues work; "waiting" shows why it doesn't.
 export const STREAMS = [
-  { key: "blog", kind: "blog", label: "Long-form blog drafts", how: "Queue runner (hourly Claude task) writes each post into result_body for approval. Publishing into the client's Base44 blog is a separate approved step.", iffy: "q:blog-publish-path — may Claude publish an approved post straight into the blog collection, or do you press publish?" },
-  { key: "gbp", kind: "gbp_post", label: "Paired GBP post drafts", how: "One GBP draft per blog (no phone, address or bare URL; Learn more = plain blog URL, no UTM).", iffy: "q:gbp-poster — GBP API approval is pending, so who pastes approved posts: you or Claude in your browser?" },
-  { key: "outreach", kind: "research", label: "Backlink + citation research and outreach drafts", how: "Research lands in Citations & PR (OutreachTarget); outreach emails stay drafts.", iffy: "q:outreach-identity — which address sends outreach, and is it ever sent automatically?" },
-  { key: "social", kind: "social_plan", label: "Social plan for the month", how: "Social-search plan saved hidden from the portal; posts then flow through Social Studio approval.", iffy: "Client social accounts are mostly not connected in Social Studio, so posts are drafts you or the client post." },
-  { key: "reviews", kind: "task", label: "Review requests", how: "Claude prepares the request list + message drafts from finished jobs and the review link.", iffy: "q:review-sender — sent by the client's own Command System, or from Møthership on their behalf? Which clients have SMS?" },
+  { key: "calendar", kind: "topic_calendar", label: "Monthly blog Topic Calendar", how: "Claude proposes the month's topics; you approve the calendar once. Each post then drafts and publishes into the client's Base44 blog on its date and is verified on the live blog index before it counts as published.", state: "on" },
+  { key: "gbp", kind: "gbp_post", label: "Google Business Profile posts", how: "Off for every client until the Google Business Profile API is approved for auto-posting.", state: GBP_API_APPROVED ? "on" : "waiting", waiting: "Waiting on Google API" },
+  { key: "outreach", kind: "research", label: "Backlink + citation research and outreach drafts", how: `Targets land in Citations & PR and qualify automatically; outreach emails are drafted from ${OUTREACH_SENDER.email} (personal tone, on the client's behalf) and each one waits for your approval. Nothing is sent automatically.`, state: "on" },
+  { key: "social", kind: "social_plan", label: "Social plan for the month", how: "Social-search plan saved hidden from the portal (auto-approved by policy); individual posts still need your approval.", state: "on" },
+  { key: "reviews", kind: "task", label: "Review requests", how: "Claude prepares the request list and message drafts from verified finished jobs and the review link. Sending waits for your approval.", state: "on" },
 ];
 
 const monthName = (d) => d.toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "America/Los_Angeles" });
 
-function brief(client, stream, n, i, cadence, month) {
+function brief(client, stream, cadence, month) {
   const head = {
-    blog: `Write long-form blog draft ${i} of ${n} for ${client.business} (${month}). Use the approved content plan if one exists, else the keyword list in the ClientDossier; answer a real question people in their service area ask, down to the city. Draft only: put title, slug, meta description, body (markdown), internal links and image notes in result_body; put the structured post in result_data.post. Do not publish.`,
-    gbp: `Write the Google Business Profile post that pairs with blog draft ${i} of ${n} for ${client.business} (${month}). Under 1,500 characters, no phone number, no street address, no bare URL. CTA "Learn more" with the plain blog URL once the post is live (no UTM). Draft only; never post.`,
-    outreach: `Backlink and citation research for ${client.business} (${month}): find 10-20 qualified targets (directories, local news, associations, resource pages) matching their industry and service area, add them as OutreachTarget records (status discovered/qualified) and write outreach drafts as OutreachMessage status draft. Never send.`,
-    social: `Build ${client.business}'s social plan for ${month} as a social-search strategist (posts found by each platform's search). Save as the result for approval; it is saved hidden from the portal.`,
+    outreach: `Backlink and citation research for ${client.business} (${month}): find 10-20 qualified targets (directories, local news, associations, resource pages) matching their industry and service area and add them as OutreachTarget records (status discovered). Then write outreach drafts as OutreachMessage status draft, from ${OUTREACH_SENDER.name} <${OUTREACH_SENDER.email}>: first person, ${OUTREACH_SENDER.tone}, short, specific to the target, signed with the outreach_rules signature. Each draft waits for Justin's approval. Never send.`,
+    social: `Build ${client.business}'s social plan for ${month} as a social-search strategist (posts found by each platform's search). Save as the result; it is saved hidden from the portal.`,
     reviews: `Prepare ${client.business}'s review requests for ${month}: list recent finished jobs or customers you can verify from their Command System or records, and draft the short request message (SMS + email) with their Google review link. Never send; never invent customers.`,
   }[stream.key];
-  return [head, "", `Cadence: ${cadence.blogs_per_month} blogs + ${cadence.gbp_per_month} GBP posts per month (${cadence.source}).`, `How this executes today: ${stream.how}`, "", "Standing rules:", ...STANDING_RULES.map((r) => `- ${r}`)].join("\n");
+  return [head, "", `Cadence: ${cadence.blogs_per_month} blogs a month (${cadence.source}). GBP posts: off until the Google Business Profile API is approved.`, `How this executes: ${stream.how}`, "", "Standing rules:", ...STANDING_RULES.map((r) => `- ${r}`)].join("\n");
 }
 
-export async function startEngine(client, checklist, by = "justin") {
-  const now = new Date();
-  const month = monthName(now);
+const firstOfNextMonth = (now) => {
+  const k = monthKeyLA(now);
+  const [y, m] = k.split("-").map(Number);
+  return m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, "0")}-01`;
+};
+
+// Queues one month of an engine: the Topic Calendar + outreach + social + reviews. GBP is recorded as waiting.
+export async function queueMonth(client, startId, { monthKey = monthKeyLA() } = {}) {
   const cadence = cadenceOf(client);
-  const next = new Date(now); next.setMonth(next.getMonth() + 1);
-  const start = await base44.entities.EngineStart.create({
-    client_id: client.id, client_name: client.business, status: "queued", started_at: now.toISOString(), started_by: by,
-    checklist: checklist.map(({ key, label, ok, detail }) => ({ key, label, ok, detail })), cadence, next_cycle_at: next.toISOString().slice(0, 10),
-    notes: "Month 1 queued. Month 2+ needs the monthly re-queue (LaunchItem a:engine-recur).",
-  });
-  const plan = [];
-  STREAMS.forEach((s) => {
-    const n = s.key === "blog" ? cadence.blogs_per_month : s.key === "gbp" ? cadence.gbp_per_month : 1;
-    for (let i = 1; i <= n; i++) plan.push({ s, i, n });
-  });
+  const month = monthLabel(monthKey);
   const queued = [];
-  for (const { s, i, n } of plan) {
-    const title = `Engine · ${client.business} · ${s.label}${n > 1 ? ` ${i}/${n}` : ""} · ${month}`;
+  const cal = await queueTopicCalendar(client, { monthKey, n: Math.max(1, cadence.blogs_per_month), engineStartId: startId, rules: STANDING_RULES });
+  queued.push({ stream: "calendar", title: cal.title, job_id: cal.id, how_it_executes: STREAMS[0].how, month_key: monthKey });
+  for (const s of STREAMS.filter((x) => x.key !== "calendar")) {
+    if (s.state !== "on") { queued.push({ stream: s.key, title: `${s.label} · ${month}`, job_id: "", state: "waiting", how_it_executes: s.how, month_key: monthKey }); continue; }
+    const title = `Engine · ${client.business} · ${s.label} · ${month}`;
     const job = await base44.entities.ClaudeJob.create({
-      title, kind: s.kind, instructions: brief(client, s, n, i, cadence, month), client_id: client.id, client_name: client.business,
-      status: "queued", priority: 3, requested_at: now.toISOString(), complete_task_on_approve: false,
-      context: { engine_start_id: start.id, stream: s.key, month, index: i, of: n },
+      title, kind: s.kind, instructions: brief(client, s, cadence, month), client_id: client.id, client_name: client.business,
+      status: "queued", priority: 3, requested_at: new Date().toISOString(), complete_task_on_approve: false,
+      context: { engine_start_id: startId, stream: s.key, month, month_key: monthKey },
     });
-    queued.push({ stream: s.key, title, job_id: job.id, how_it_executes: s.how, iffy: s.iffy });
+    queued.push({ stream: s.key, title, job_id: job.id, how_it_executes: s.how, month_key: monthKey });
   }
-  await base44.entities.EngineStart.update(start.id, { queued, queued_job_ids: queued.map((q) => q.job_id) });
+  return { queued, cadence };
+}
+
+// by: who pressed it. auto = Claude pressed it because the checklist was green (policy: notify, don't ask).
+export async function startEngine(client, checklist, by = "justin", { auto = false } = {}) {
+  const now = new Date();
+  const cadence = cadenceOf(client);
+  const start = await base44.entities.EngineStart.create({
+    client_id: client.id, client_name: client.business, status: "running", started_at: now.toISOString(), started_by: auto ? `claude (auto, checklist green) for ${by}` : by,
+    checklist: checklist.map(({ key, label, ok, detail }) => ({ key, label, ok, detail })), cadence, next_cycle_at: firstOfNextMonth(now),
+    notes: `Month 1 (${monthName(now)}) queued. The "Engines — monthly re-queue" workflow queues each next month on next_cycle_at. GBP posts: waiting on Google API.`,
+  });
+  const { queued } = await queueMonth(client, start.id);
+  await base44.entities.EngineStart.update(start.id, { queued, queued_job_ids: queued.map((q) => q.job_id).filter(Boolean) });
+  await base44.entities.AutomationRun.create({
+    automation_name: "Start engine", kind: "other", client_id: client.id, client_name: client.business, status: "success",
+    started_at: now.toISOString(), finished_at: new Date().toISOString(), processed: true,
+    message: `${auto ? "Auto-started (checklist green; notify policy)" : "Started"}: Topic Calendar for ${monthName(now)} + outreach, social and review-request jobs queued. GBP posts waiting on Google API.`,
+  }).catch(() => null);
   return { ...start, queued };
 }
 
