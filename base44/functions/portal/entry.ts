@@ -87,6 +87,17 @@ Deno.serve(async (req) => {
       return linked.map(keep);
     };
     const cid = client.id as string;
+    // No active care plan (canceled / ended in Stripe): the portal shows a friendly "plan inactive, contact us"
+    // screen. Only the home summary and messages (so they can reach us) stay open; their data is kept untouched.
+    if (client.plan_status === "inactive") {
+      const OPEN = ["home", "chats", "chat_messages", "chat_send", "messages", "send_message"];
+      if (action === "home") {
+        return Response.json({ plan_inactive: true, client: pick(client, ["id", "business", "logoUrl", "logo_url"]), businesses: [] });
+      }
+      if (!OPEN.includes(String(action)) && user.role !== "admin") {
+        return Response.json({ error: "Your Interstellar plan is inactive. Message us and we'll get you back up and running.", code: "plan_inactive" }, { status: 403 });
+      }
+    }
     const by = (entity: string, sort = "-created_date", limit = 500) => db[entity].filter({ client_id: cid }, sort, limit).then((r: unknown[]) => r || []);
 
     // Chat helpers. Group membership lives on ChatThread.client_ids and is only ever checked here.
