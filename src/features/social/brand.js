@@ -74,7 +74,7 @@ export const VOICE = {
     "Brand gradient is orange (#ff3c00 → #ff6a00 → #ffaa00). Never gold.",
     "The slogan is exactly \"The Future of Business\".",
     "Prices only from BRAVO/ALPHA offers in this file; no invented discounts, deadlines or scarcity.",
-    "Captions are short and punchy: a hook line, two to four short lines, a clear call to action, then 3 to 6 relevant hashtags.",
+    "Captions are short and punchy: a keyword-first hook line (see SEARCH rules), two to four short lines, a clear call to action, then 3 to 5 relevant hashtags (Instagram caps posts at 5).",
     "LinkedIn caption: same idea, slightly longer and more reflective, 3 to 5 hashtags, no hashtag walls.",
     "Never post to social media, approve or schedule anything. Generated posts are drafts (status draft); only Justin approves and schedules them in Møthership.",
   ],
@@ -91,6 +91,29 @@ export const VOICE = {
     "#contractors", "#homeservices", "#operations", "#interstellarstrategies",
   ],
   banned_words: ["synergy", "game-changer", "revolutionary", "unlock", "skyrocket", "guaranteed results", "10x"],
+};
+
+// Social search (social SEO) rules: every generated post is written to be FOUND in Instagram / TikTok /
+// YouTube / LinkedIn search and in Google (public pro Instagram posts are indexed since July 2025).
+// Sourced playbook: Settings > Agency knowledge, section "social_search" (AgencyKnowledge key social_search).
+export const SEARCH = {
+  rules: [
+    "Keyword-first hook: the first caption line (and the first on-screen words) uses the phrase an owner would actually type into search, e.g. \"How to get more Google reviews\", not \"Big news!\".",
+    "Pick ONE primary search phrase per post (from SEARCH.keywords or a close variant) and use it plus at most one secondary keyword naturally in the caption. Never keyword-stuff.",
+    "alt_text describes what is actually in the image AND names the topic keyword, one sentence, under ~125 characters (e.g. \"Dashboard mockup showing a CRM for a plumbing business with jobs, invoices and reviews in one view\").",
+    "Hashtags: 3 to 5, specific and relevant (topic + niche + #interstellarstrategies). No generic walls (#love #instagood), never more than 5.",
+    "On-image text states the topic plainly (the headline is the search phrase or a direct answer), not a teaser.",
+    "Reels / Shorts / TikTok scripts: say the primary keyword out loud in the first 3 seconds, show it as on-screen text, keep burned-in captions on; YouTube Shorts title = the search phrase.",
+    "Brand naming is identical everywhere: \"Interstellar Strategies\" (never Interstellar Strategy / IS / Interstellar Digital), product names exactly as in BRAND/offers.",
+    "Answer-style posts beat announcements: how-to, checklist, myth vs fact, cost/what-to-expect. Give people a reason to save or send the post.",
+    "Original content only: no reposted clips, no third-party watermarks.",
+  ],
+  // Starting search phrases our audience types (validate in Instagram/TikTok search suggestions; not volume data).
+  keywords: [
+    "website design for small business", "website for contractors", "local SEO for service business", "how to rank in Google Maps",
+    "Google Business Profile tips", "how to get more Google reviews", "CRM for small business", "CRM for contractors",
+    "small business automation", "show up in AI search", "get found on ChatGPT", "why my website gets no calls",
+  ],
 };
 
 // draft -> approved (scheduled) -> publishing -> posted | failed; declined. Only Justin approves.
@@ -137,6 +160,7 @@ export function brandBrief() {
     `Pain points we speak to:\n- ${PAIN_POINTS.map((p) => `${p.pain} -> ${p.fix}`).join("\n- ")}`,
     `Voice:\n- ${VOICE.tone.join("\n- ")}`,
     `Hard rules:\n- ${VOICE.rules.join("\n- ")}`,
+    `Search rules (social SEO):\n- ${SEARCH.rules.join("\n- ")}\nStarting search phrases: ${SEARCH.keywords.join("; ")}`,
     `Avoid words: ${VOICE.banned_words.join(", ")}`,
   ].join("\n\n");
 }
