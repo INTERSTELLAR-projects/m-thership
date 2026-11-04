@@ -56,7 +56,9 @@ export default function CeoPanel({ scope = "interstellar", client, data, prefs, 
     }).catch(() => null);
     return () => { live = false; };
   }, [chatKey]);
-  useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [msgs]);
+  // Only follow the conversation once Justin is chatting; on open, the brief stays in view.
+  const chatting = useRef(false);
+  useEffect(() => { if (chatting.current) end.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [msgs, thinking]);
   const clearChat = async () => {
     setMsgs([]);
     if (chatRow?.id) await base44.entities.AppSettings.update(chatRow.id, { pageSettings: { messages: [], updated_at: new Date().toISOString() } }).catch(() => null);
@@ -70,6 +72,7 @@ export default function CeoPanel({ scope = "interstellar", client, data, prefs, 
   const ask = async (text) => {
     const q = String(text || input).trim();
     if (!q || thinking) return;
+    chatting.current = true;
     const next = [...msgs, { role: "user", content: q }];
     setMsgs(next);
     setInput("");
