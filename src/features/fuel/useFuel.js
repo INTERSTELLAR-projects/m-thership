@@ -29,7 +29,7 @@ export function fuelTone(f) {
 // Share of fuel left across allowance + wallet, for one kind (0..1). Unlimited = 1.
 export function leftShare(k) {
   if (!k || k.cap == null) return 1;
-  const total = (k.cap || 0) + (k.wallet || 0) + Math.max(0, (k.used || 0) - (k.cap || 0) > 0 ? 0 : 0);
-  if (!total) return 0;
-  return Math.max(0, Math.min(1, (k.left || 0) / Math.max(total, k.left || 0)));
+  const tank = (k.cap || 0) + (k.wallet || 0);
+  if (!tank) return 0;
+  return Math.max(0, Math.min(1, (k.left || 0) / tank));
 }
