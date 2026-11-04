@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import {
   Home, LineChart, MapPin, Target, Compass, ClipboardList, MessageSquare, FolderOpen, Palette, BookOpen,
   PenLine, QrCode, Crown, CalendarDays, ChevronDown, Menu, X, LogOut, ArrowLeft, UserRound, Check, Video, Loader2, ArrowUpRight,
-  Megaphone, Mail, BadgeDollarSign, Calculator, UserPlus, Presentation, Lock,
+  Megaphone, Mail, BadgeDollarSign, Calculator, UserPlus, Presentation, Lock, Sparkles,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import BrandLockup from "@/components/brand/BrandLockup";
@@ -53,6 +53,7 @@ export const NAV = [
       { k: "studio_accounting", label: "Accounting & Taxes", desc: "Books, receipts and quarterly taxes", icon: Calculator },
       { k: "studio_hiring", label: "Hiring plan", desc: "When to hire, and who", icon: UserPlus },
       { k: "studio_presentations", label: "Presentations", desc: "On-brand decks and proposals", icon: Presentation },
+      { k: "studio_simple_social", label: "Simple Social", desc: "AI generation: image, video, voice clipping and more", icon: Sparkles },
     ],
   },
   { id: "referrals", label: "Referrals", icon: Crown, tab: "referrals" },
