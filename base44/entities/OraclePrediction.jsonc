@@ -1,0 +1,133 @@
+{
+  "description": "Future Oracle prediction with probability; resolved by the daily task when resolve_by passes. outcome pending|right|wrong|partial. calibration_note records what the oracle learned. Admin only.",
+  "name": "OraclePrediction",
+  "properties": {
+    "calibration_note": {
+      "type": "string"
+    },
+    "claim": {
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "evidence": {
+      "items": {
+        "properties": {
+          "published_date": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "finding_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "history": {
+      "description": "[{at, probability, why}] adjustments",
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "horizon": {
+      "enum": [
+        "now",
+        "6-12mo",
+        "1-3yr",
+        "3-10yr"
+      ],
+      "type": "string"
+    },
+    "outcome": {
+      "default": "pending",
+      "enum": [
+        "pending",
+        "right",
+        "wrong",
+        "partial"
+      ],
+      "type": "string"
+    },
+    "probability": {
+      "description": "0..1",
+      "type": "number"
+    },
+    "reasoning": {
+      "type": "string"
+    },
+    "resolution_criteria": {
+      "type": "string"
+    },
+    "resolution_note": {
+      "type": "string"
+    },
+    "resolve_by": {
+      "description": "YYYY-MM-DD",
+      "type": "string"
+    },
+    "resolved_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "topic_key": {
+      "enum": [
+        "ai_industry",
+        "tech",
+        "jobs_labor",
+        "industries",
+        "economy",
+        "markets",
+        "politics_policy",
+        "home_service_local",
+        "marketing_platforms",
+        "robotics_autonomy",
+        "future_signals",
+        "opportunities"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "claim"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

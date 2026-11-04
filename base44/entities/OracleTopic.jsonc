@@ -1,0 +1,119 @@
+{
+  "description": "Future Oracle: one row per tracked topic. headline_answer is the current one-line answer; headline_stat must carry a source_url and date. Updated by the Future Oracle daily scheduled task. Admin only.",
+  "name": "OracleTopic",
+  "properties": {
+    "finding_count": {
+      "type": "number"
+    },
+    "headline_answer": {
+      "type": "string"
+    },
+    "headline_stat": {
+      "properties": {
+        "date": {
+          "description": "Date the stat refers to (YYYY-MM or YYYY-MM-DD)",
+          "type": "string"
+        },
+        "display": {
+          "description": "Human display, e.g. '4.3%'",
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "metric": {
+          "description": "Stable series key for charting, e.g. us_unemployment_rate",
+          "type": "string"
+        },
+        "source_title": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "key": {
+      "enum": [
+        "ai_industry",
+        "tech",
+        "jobs_labor",
+        "industries",
+        "economy",
+        "markets",
+        "politics_policy",
+        "home_service_local",
+        "marketing_platforms",
+        "robotics_autonomy",
+        "future_signals",
+        "opportunities"
+      ],
+      "type": "string"
+    },
+    "last_deep_scan_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "last_scanned_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "order": {
+      "type": "number"
+    },
+    "question": {
+      "description": "The question this topic answers",
+      "type": "string"
+    },
+    "trend": {
+      "enum": [
+        "up",
+        "down",
+        "flat",
+        "mixed"
+      ],
+      "type": "string"
+    },
+    "what_it_means": {
+      "description": "What this means for Justin / Interstellar clients",
+      "type": "string"
+    }
+  },
+  "required": [
+    "key",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

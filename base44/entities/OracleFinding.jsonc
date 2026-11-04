@@ -1,0 +1,172 @@
+{
+  "description": "Future Oracle signal/finding: a sourced fact about what is happening now or coming. Every key_stat needs value, date and source_url. Never invent numbers. dedupe_key = normalized headline/entity+date. Politics: describe what policies do, no opinions. Markets: informational only, not financial advice. Admin only.",
+  "name": "OracleFinding",
+  "properties": {
+    "confidence": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "type": "string"
+    },
+    "date": {
+      "description": "Date of the underlying event/data (YYYY-MM-DD)",
+      "type": "string"
+    },
+    "dedupe_key": {
+      "type": "string"
+    },
+    "headline": {
+      "type": "string"
+    },
+    "horizon": {
+      "enum": [
+        "now",
+        "6-12mo",
+        "1-3yr",
+        "3-10yr"
+      ],
+      "type": "string"
+    },
+    "impact": {
+      "description": "Impact on Justin / Interstellar clients",
+      "type": "string"
+    },
+    "key_stats": {
+      "items": {
+        "properties": {
+          "date": {
+            "description": "Date the stat refers to (YYYY-MM or YYYY-MM-DD)",
+            "type": "string"
+          },
+          "display": {
+            "description": "Human display, e.g. '4.3%'",
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "metric": {
+            "description": "Stable series key for charting, e.g. us_unemployment_rate",
+            "type": "string"
+          },
+          "source_title": {
+            "type": "string"
+          },
+          "source_url": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "opportunity": {
+      "type": "string"
+    },
+    "scanned_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "scanned_by": {
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "properties": {
+          "published_date": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "status": {
+      "default": "active",
+      "enum": [
+        "active",
+        "superseded"
+      ],
+      "type": "string"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "topic_key": {
+      "enum": [
+        "ai_industry",
+        "tech",
+        "jobs_labor",
+        "industries",
+        "economy",
+        "markets",
+        "politics_policy",
+        "home_service_local",
+        "marketing_platforms",
+        "robotics_autonomy",
+        "future_signals",
+        "opportunities"
+      ],
+      "type": "string"
+    },
+    "trend": {
+      "enum": [
+        "up",
+        "down",
+        "flat",
+        "mixed"
+      ],
+      "type": "string"
+    },
+    "whats_happening": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "topic_key",
+    "headline"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}
