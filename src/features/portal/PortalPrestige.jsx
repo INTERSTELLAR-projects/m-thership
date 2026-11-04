@@ -240,7 +240,7 @@ export default function PortalPrestige({ call, previewId }) {
             await call("prestige_redeem", payload);
             await qc.invalidateQueries({ queryKey: ["portal", previewId] });
             setRedeemOpen(false);
-            setSent("Sent to Justin for approval. It shows under Requests, and your balance updates once it's approved.");
+            setSent("Sent to Interstellar for approval. It shows under Requests, and your balance updates once it's approved.");
           }}
         />
       )}
@@ -287,7 +287,7 @@ function RedeemDialog({ open, onOpenChange, credits, preview, onSubmit }) {
         <DialogHeader>
           <DialogTitle className="text-ink">Use my credits</DialogTitle>
           <DialogDescription className="text-[12.5px] text-ink/55">
-            {usd(credits.available)} available. This goes to Justin for approval; nothing comes off your balance until it&apos;s approved.
+            {usd(credits.available)} available. This goes to Interstellar for approval; nothing comes off your balance until it&apos;s approved.
           </DialogDescription>
         </DialogHeader>
         <div className="max-h-[65vh] space-y-4 overflow-y-auto pr-1">

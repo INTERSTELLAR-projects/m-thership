@@ -79,7 +79,7 @@ export default function TwoFactorChallenge({ methods = {}, emailHint = "", onDon
           </button>
         </form>
         <p className="mt-7 flex items-center justify-between border-t border-hair pt-5 text-[13px] text-ink/55">
-          <span>Locked out? Email <a className="ms-link" href="mailto:justin@interstellar-strategies.com">Justin</a>.</span>
+          <span>Locked out? Email <a className="ms-link" href="mailto:hello@interstellar-strategies.com">hello@interstellar-strategies.com</a>.</span>
           <button type="button" onClick={() => base44.auth.logout()} className="inline-flex items-center gap-1.5 hover:text-[#ff3c00]"><LogOut className="h-3.5 w-3.5" />Sign out</button>
         </p>
       </div>

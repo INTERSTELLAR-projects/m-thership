@@ -28,8 +28,8 @@ Deno.serve(async (req) => {
       status: "received", priority: r.priority, ...(r.due_date ? { due_date: r.due_date } : {}),
       page_status: "none",
     });
-    return json({ ok: true, request: requestOut(created), next: "Justin's team replies within 1 business day. It shows under Requests in the portal." });
+    return json({ ok: true, request: requestOut(created), next: "The Interstellar team replies within 1 business day. It shows under Requests in the portal." });
   } catch (_e) {
-    return json({ error: "Couldn't submit the request right now. Suggest the Requests tab or messaging Justin." }, 500);
+    return json({ error: "Couldn't submit the request right now. Suggest the Requests tab or messaging the team." }, 500);
   }
 });

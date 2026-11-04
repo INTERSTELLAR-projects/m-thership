@@ -98,7 +98,7 @@ ${emailHeaderRows(`Portal access &nbsp;&middot;&nbsp; ${esc(date)}`)}
       ${card("01", "Work feed", "Everything we publish for you", "Every blog, Google post and website update shows up the moment it goes live.")}
       ${card("02", "Results", "Your numbers and your reviews", "Site health, Google reviews and the results we track, in one view.")}
       ${card("03", "Requests", "Ask for anything", "Website edits, content, Google posts or design: send a request or a message and track it to done.")}
-      ${card("04", "Assistant", "N&oslash;va, on call", "Ask what we did this month, check a request or reach Justin, by text or voice.")}
+      ${card("04", "Assistant", "N&oslash;va, on call", "Ask what we did this month, check a request or reach our team, by text or voice.")}
       ${card("05", "Bonus", "Tools that are yours for life", "Email signatures, QR codes with scan tracking, and Prestige referral rewards.")}
       <tr><td class="px" style="padding:26px 40px 14px;">${eyebrow("What we need from you")}
         <div style="padding-top:8px;${F}font-size:15px;line-height:23px;color:#4a4744;">Three quick things when you log in:</div></td></tr>
@@ -116,7 +116,7 @@ ${emailHeaderRows(`Portal access &nbsp;&middot;&nbsp; ${esc(date)}`)}
       </td>
     </tr></table>
     <div style="padding-top:22px;font-size:14px;line-height:22px;color:#bdbab5;">This invite is only for ${mailLink(email, "#ff6a00")}. We will never ask for a password by email. Questions? Just reply to this email and it comes straight to me.</div>
-    <div style="padding-top:16px;font-size:14px;line-height:22px;color:#bdbab5;">Welcome to the future of business, ${esc(first)}.<br>&mdash; Justin Cowell, Interstellar Strategies</div>
+    <div style="padding-top:16px;font-size:14px;line-height:22px;color:#bdbab5;">Welcome to the future of business, ${esc(first)}.<br>&mdash; The Interstellar Strategies team</div>
     <div style="padding-top:22px;font-size:11px;font-weight:700;letter-spacing:1.6px;color:#6f6c68;text-transform:uppercase;">Interstellar Strategies &nbsp;&middot;&nbsp; The Future of Business</div>
   </td></tr>
   <tr><td height="6" bgcolor="#ffaa00" style="height:6px;line-height:6px;font-size:0;background-color:#ffaa00;background-image:linear-gradient(90deg,#ffaa00,#ff6a00,#ff3c00);">&nbsp;</td></tr>
@@ -131,7 +131,7 @@ ${emailHeaderRows(`Portal access &nbsp;&middot;&nbsp; ${esc(date)}`)}
 // Sent through the app's own mail domain (no-reply@interstellar-mothership.com, set up in the app's email
 // settings), shown as "Justin | Interstellar Strategies". SendEmail has no reply-to, so the footer gives
 // Justin's address as a mailto link instead of "just reply".
-export const SENDER_NAME = "Justin | Interstellar Strategies";
+export const SENDER_NAME = "Interstellar Strategies";
 export async function sendBrandedEmail(base44: any, { to, subject, html }: { to: string; subject: string; html: string }) {
   await base44.asServiceRole.integrations.Core.SendEmail({ to, subject, body: html, from_name: SENDER_NAME });
   return { via: "app_mail_domain" };

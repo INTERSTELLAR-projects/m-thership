@@ -21,7 +21,7 @@ const TOOL_LABELS = {
   assistantMyRequests: ["Checking your requests", "Requests checked"],
   assistantSubmitRequest: ["Sending your request", "Request sent"],
   assistantEditRequest: ["Updating your request", "Request updated"],
-  assistantHandoff: ["Messaging Justin", "Sent to Justin"],
+  assistantHandoff: ["Messaging the team", "Sent to the team"],
 };
 
 const call = async (args) => (await base44.functions.invoke("portal-assistant", args)).data;
@@ -349,7 +349,7 @@ export default function PortalAssistant({ previewId, admin = !!previewId, varian
           <div className="flex items-start gap-2.5">
             <div className="mt-0.5 shrink-0"><Martian palette={KING.palette} king size={26} /></div>
             <div className="border border-hair bg-card px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink/85">
-              Hi{ctxQ.data?.first_name && !admin ? ` ${ctxQ.data.first_name}` : ""}, I&apos;m Nøva, your Interstellar assistant. I can recap what we&apos;ve done for {ctxQ.data?.business || "you"}, send a request to the team, check on your requests, or get Justin for you.
+              Hi{ctxQ.data?.first_name && !admin ? ` ${ctxQ.data.first_name}` : ""}, I&apos;m Nøva, your Interstellar assistant. I can recap what we&apos;ve done for {ctxQ.data?.business || "you"}, send a request to the team, check on your requests, or get the team for you.
             </div>
           </div>
         ) : (
@@ -411,7 +411,7 @@ export default function PortalAssistant({ previewId, admin = !!previewId, varian
             <ArrowUp className="h-4 w-4" />
           </button>
         </form>
-        <p className="mt-1.5 text-[10.5px] text-ink/40">The assistant can make mistakes. Anything it sends goes to Justin&apos;s team for review.</p>
+        <p className="mt-1.5 text-[10.5px] text-ink/40">The assistant can make mistakes. Anything it sends goes to our team for review.</p>
       </div>
     </div>
   );

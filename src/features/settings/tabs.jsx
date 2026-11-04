@@ -33,7 +33,7 @@ export function GeneralTab() {
           <img src={LOGO_URL} alt="Interstellar Strategies mark" className="h-14 w-14 rounded-md border border-hair bg-paper object-contain p-1.5" />
           <div>
             <p className="text-[18px] font-semibold tracking-[-0.03em]">Interstellar Strategies</p>
-            <p className="text-[12.5px] text-ink/55">Møthership · agency OS · Molalla, OR</p>
+            <p className="text-[12.5px] text-ink/55">Møthership · agency OS</p>
           </div>
         </div>
         <div className="mt-5">

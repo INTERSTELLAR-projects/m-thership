@@ -2,7 +2,7 @@
 // facts: anything that needs a real number or detail is a [bracketed placeholder], and Email Studio warns
 // before sending while any placeholder is left. Copy for the portal template mirrors the onboarding email.
 
-const SIGNOFF = { type: "signoff", text: "Questions? Reply to this email or write to justin@interstellar-strategies.com and it comes straight to me.", name: "Justin Cowell, Interstellar Strategies" };
+const SIGNOFF = { type: "signoff", text: "Questions? Reply to this email or write to hello@interstellar-strategies.com and it comes straight to our team.", name: "The Interstellar Strategies team" };
 
 export const SEED_TEMPLATES = [
   {

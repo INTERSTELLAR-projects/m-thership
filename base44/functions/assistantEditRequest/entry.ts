@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
     const r = body?.request_id ? await ctx.db.ClientRequest.get(String(body.request_id)).catch(() => null) : null;
     if (!r || r.client_id !== ctx.cid) return json({ ok: false, error: "Request not found" }, 404);
     if (!CLIENT_EDITABLE.includes(String(r.status))) {
-      return json({ ok: false, error: `This request is ${String(r.status).replace("_", " ")}, so it can't be changed here. Offer to pass the change to Justin (handoff) instead.` }, 409);
+      return json({ ok: false, error: `This request is ${String(r.status).replace("_", " ")}, so it can't be changed here. Offer to pass the change to the team (handoff) instead.` }, 409);
     }
     if (body?.confirmed !== true) return json({ ok: false, error: "Not saved: confirm the exact change with the client first, then call again with confirmed: true." }, 400);
 

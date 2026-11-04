@@ -9,7 +9,7 @@
 // (#ff3c00 on light, #ff6a00 on dark, white bold on the orange band), never blue; brand gradient is
 // #ff3c00 -> #ff6a00 -> #ffaa00 (never gold); the model only ever fills block text, never raw HTML.
 
-export const SENDER_NAME = "Justin | Interstellar Strategies";
+export const SENDER_NAME = "Interstellar Strategies";
 export const TEST_EMAIL = "justin@interstellar-strategies.com";
 export const LOGO = "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/9226df076_interstellar-email-logo.png";
 export const REG = `<sup style="color:#ff3c00;font-size:9px;line-height:0;vertical-align:super;">&trade;</sup>`;
@@ -154,7 +154,7 @@ export function defaultBlock(type) {
     case "image": return { id, type, url: "", alt: "", caption: "", link: "" };
     case "darkband": return { id, type, eyebrow: "Looking ahead", title: "", accent: "", text: "" };
     case "button": return { id, type, label: "Log in to your portal", url: "{{portal_url}}" };
-    case "signoff": return { id, type, text: "Questions? Reply to this email and it comes straight to me.", name: "Justin Cowell, Interstellar Strategies" };
+    case "signoff": return { id, type, text: "Questions? Reply to this email and it comes straight to our team.", name: "The Interstellar Strategies team" };
     default: return { id, type: "paragraph", text: "" };
   }
 }
@@ -178,7 +178,7 @@ export function normalizeBlock(b) {
     case "image": return { id, type: "image", url: clip(b.url, 600), alt: clip(b.alt, 160), caption: clip(b.caption, 300), link: clip(b.link, 600) };
     case "darkband": return { id, type: "darkband", eyebrow: clip(b.eyebrow, 40), title: clip(b.title, 80), accent: clip(b.accent, 60), text: clip(b.text, 1200) };
     case "button": return { id, type: "button", label: clip(b.label, 50) || "Learn more", url: clip(b.url, 600) };
-    case "signoff": return { id, type: "signoff", text: clip(b.text, 1200), name: clip(b.name, 80) || "Justin Cowell, Interstellar Strategies" };
+    case "signoff": return { id, type: "signoff", text: clip(b.text, 1200), name: clip(b.name, 80) || "The Interstellar Strategies team" };
     default: return null;
   }
 }
@@ -336,7 +336,7 @@ function renderBlock(b, ctx, first) {
     case "signoff":
       return `<tr><td class="px" style="${pad(first ? 34 : 22)}${F}">
         ${b.text ? `<div style="font-size:14px;line-height:22px;color:#bdbab5;">${rich(b.text, "dark", v)}</div>` : ""}
-        <div style="padding-top:${b.text ? 16 : 0}px;font-size:14px;line-height:22px;color:#bdbab5;">&mdash; ${t(b.name || "Justin Cowell, Interstellar Strategies")}</div>
+        <div style="padding-top:${b.text ? 16 : 0}px;font-size:14px;line-height:22px;color:#bdbab5;">&mdash; ${t(b.name || "The Interstellar Strategies team")}</div>
       </td></tr>`;
     default:
       return "";

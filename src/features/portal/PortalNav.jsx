@@ -514,7 +514,7 @@ export function ScheduleCallModal({ open, onClose, previewId, preview }) {
           <div className="min-w-0">
             <p className="mono-label text-[9.5px] text-[#ff3c00]">(Schedule a call)</p>
             <h2 id="sched-title" className="mt-1.5 text-[22px] font-semibold leading-tight tracking-[-0.035em] sm:text-[26px]">{done ? "You're booked." : "Book time with Interstellar"}</h2>
-            {!done && <p className="mt-1 text-[13px] text-ink/60">A {minutes}-minute Google Meet with Justin. Pick a time and the invite lands in your inbox.</p>}
+            {!done && <p className="mt-1 text-[13px] text-ink/60">A {minutes}-minute Google Meet with Interstellar. Pick a time and the invite lands in your inbox.</p>}
           </div>
           <button type="button" onClick={onClose} data-autofocus={done ? undefined : ""} className="-mr-2 -mt-1 flex h-10 w-10 shrink-0 items-center justify-center text-ink/55 hover:text-ink" aria-label="Close">
             <X className="h-5 w-5" />
@@ -531,7 +531,7 @@ export function ScheduleCallModal({ open, onClose, previewId, preview }) {
                 <p className="mt-2 text-[13.5px] leading-relaxed text-ink/65">
                   {done.confirmed
                     ? <>A Google Calendar invite with the Meet link is on its way to <span className="font-medium text-ink">{done.email}</span>. It&apos;s also in your Requests history.</>
-                    : <>We&apos;ve got your request. Justin will confirm this time by email shortly. It&apos;s also in your Requests history.</>}
+                    : <>We&apos;ve got your request. We&apos;ll confirm this time by email shortly. It&apos;s also in your Requests history.</>}
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2">
                   {done.meetLink && (
@@ -551,7 +551,7 @@ export function ScheduleCallModal({ open, onClose, previewId, preview }) {
                 <p className="mb-4 border border-ink/15 bg-white/60 px-3 py-2 text-[12px] text-ink/65">Admin preview: you can see the open times, but booking only works from the client&apos;s own login.</p>
               )}
               {!data ? (
-                <div className="flex items-center gap-2 py-10 text-[13px] text-ink/50"><Loader2 className="h-4 w-4 animate-spin" /> Checking Justin&apos;s calendar…</div>
+                <div className="flex items-center gap-2 py-10 text-[13px] text-ink/50"><Loader2 className="h-4 w-4 animate-spin" /> Checking the calendar…</div>
               ) : days.length === 0 ? (
                 <div className="py-8 text-center">
                   <p className="text-[14px] font-medium">{err || "No open times in the next two weeks."}</p>
@@ -605,7 +605,7 @@ export function ScheduleCallModal({ open, onClose, previewId, preview }) {
                   {data.you && !preview && (
                     <p className="mt-2 text-[11.5px] text-ink/50">Booking as {[data.you.name, data.you.email, data.you.business].filter(Boolean).join(" · ")}</p>
                   )}
-                  {data.fallback && <p className="mt-2 text-[11.5px] text-ink/50">Justin will confirm the time by email.</p>}
+                  {data.fallback && <p className="mt-2 text-[11.5px] text-ink/50">We&apos;ll confirm the time by email.</p>}
                 </>
               )}
             </div>

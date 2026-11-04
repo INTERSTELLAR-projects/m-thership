@@ -37,7 +37,7 @@ footer{padding:0 24px 28px;max-width:640px;margin:0 auto;width:100%;font-size:11
 const html = (s: string, status = 200) => new Response(s, { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-robots-tag": "noindex" } });
 const formFor = (t: string, op: string, label: string, ghost = false) =>
   `<form method="POST"><input type="hidden" name="t" value="${esc(t)}"><input type="hidden" name="op" value="${op}"><button class="${ghost ? "ghost" : ""}" type="submit">${label}</button></form>`;
-const bad = () => html(page({ title: "Link", accent: "expired", text: `This unsubscribe link isn't valid. Email <a href="mailto:justin@interstellar-strategies.com">justin@interstellar-strategies.com</a> and we'll take you off the list by hand.` }), 400);
+const bad = () => html(page({ title: "Link", accent: "expired", text: `This unsubscribe link isn't valid. Email <a href="mailto:hello@interstellar-strategies.com">hello@interstellar-strategies.com</a> and we'll take you off the list by hand.` }), 400);
 
 async function clientUnsub(req: Request, token: string, op: string, s: { client_id: string; email: string }) {
   const base44 = createClientFromRequest(req);
@@ -105,6 +105,6 @@ Deno.serve(async (req) => {
     return html(page({ title: "You're", accent: "unsubscribed", text: `<a href="mailto:${esc(email)}">${esc(email)}</a> won't get any more Interstellar Strategies list emails. Changed your mind?`, form: formFor(token, "resubscribe", "Resubscribe", true) }));
   } catch (e) {
     console.error("email-unsubscribe", (e as Error).message);
-    return html(page({ title: "Something", accent: "went wrong", text: `Please try again, or email <a href="mailto:justin@interstellar-strategies.com">justin@interstellar-strategies.com</a> and we'll take you off the list by hand.` }), 500);
+    return html(page({ title: "Something", accent: "went wrong", text: `Please try again, or email <a href="mailto:hello@interstellar-strategies.com">hello@interstellar-strategies.com</a> and we'll take you off the list by hand.` }), 500);
   }
 });
