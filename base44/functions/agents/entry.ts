@@ -315,6 +315,18 @@ async function syncClients(db: any, by = "in_app") {
       }
     }
   }
+  // The template definitions themselves (scope template), so scheduled tasks can read the standard set from the DB.
+  for (const t of CLIENT_TEMPLATES) {
+    const key = `template:${t.key}`;
+    const inst = [...creates, ...registry].filter((r: any) => r.scope === "client" && r.template_key === t.key);
+    const liveN = creates.filter((r: any) => r.template_key === t.key && r.status === "live").length + registry.filter((r: any) => r.scope === "client" && r.template_key === t.key && r.status === "live" && !creates.some((c: any) => c.key === r.key)).length;
+    const notes = `${liveN} live of ${clients.length} clients`;
+    const old: any = registry.find((r: any) => r.key === key);
+    const rec = { key, name: t.name, scope: "template", template_key: t.key, department: t.department, role: t.role, kind: t.kind, status: liveN ? "live" : "planned", autonomy_target: t.autonomy_target, approval_required: t.autonomy_target !== "autonomous", reads_knowledge: t.reads, writes_knowledge: t.writes, replaces: t.replaces, kpis: t.kpis, notes, synced_at: now, synced_by: by, sort: CLIENT_TEMPLATES.indexOf(t) };
+    if (!old) creates.push(rec);
+    else if (old.notes !== notes || old.status !== rec.status || old.role !== rec.role) { await db.AgentRegistry.update(old.id, { notes, status: rec.status, role: rec.role, synced_at: now, synced_by: by }); updated++; }
+    void inst;
+  }
   for (let i = 0; i < creates.length; i += 100) await db.AgentRegistry.bulkCreate(creates.slice(i, i + 100));
   return { clients: clients.length, created: creates.length, updated };
 }
