@@ -1,5 +1,8 @@
 // Client portal Studios: Social, Email, Ads, Accounting & Taxes, Hiring plan, Presentations.
-// Each Studio has a per-client state set by Justin in Møthership > Client usage:
+// PLAN GATING (2026-11-04): Studios unlock only on HyperCare+. GravïtyCare and Website-only clients see every Studio
+// as a locked preview with "Upgrade to HyperCare+" (a call or a request, never a self-serve plan change). The plan
+// decision comes from the `fuel` function (fuel.studios_unlocked). Signatures + QR Codes stay free for life.
+// Within HyperCare+, each Studio has a per-client state set by Justin in Møthership > Client usage:
 //   off     -> no tab, no nav entry
 //   preview -> visible, LOCKED preview page (default for every client): what it does, what it replaces, a static
 //              sample of the real admin UI. The only action is "Ask about early access" (a ClientRequest).
@@ -8,7 +11,8 @@
 import { useState } from "react";
 import { Lock, Check, Sparkles, ArrowUpRight, Loader2, Send } from "lucide-react";
 import { studioState } from "@/features/usage/plans";
-import PortalUsageCard from "@/features/usage/PortalUsageCard";
+import { WalletPanel, UpgradeCta } from "@/features/fuel/FuelPrompts";
+import { ScheduleCallModal } from "@/features/portal/PortalNav";
 
 export const STUDIOS = [
   {
@@ -96,33 +100,39 @@ export const STUDIOS = [
       ["And more", "Captions, resizes and variations that flow straight into Social Studio."],
     ],
     replaces: "Separate image, video and voice AI subscriptions",
-    note: "Coming soon. Included with your plan under fair-use caps when it launches.",
+    note: "Coming soon. Image, video and voice generation will use Media credits, separate from your AI actions.",
   },
 ];
 
 export const STUDIO_BY_TAB = Object.fromEntries(STUDIOS.map((s) => [s.tab, s]));
 
-// Tabs this client can see: everything not switched off. `locked` = tabs still in preview.
-export function studioTabs(client) {
-  const visible = STUDIOS.filter((s) => s.comingSoon || studioState(client, s.key) !== "off");
+// Tabs this client can see: everything not switched off. `locked` = tabs still in preview, or every Studio when the
+// client's plan doesn't include Studios (fuel.studios_unlocked false: shown as previews, never hidden).
+export function studioTabs(client, fuel) {
+  const planLocked = !!fuel && fuel.studios_unlocked === false;
+  const visible = STUDIOS.filter((s) => s.comingSoon || planLocked || studioState(client, s.key) !== "off");
   return {
     tabs: visible.map((s) => [s.tab, s.label]),
-    locked: new Set(visible.filter((s) => s.comingSoon || studioState(client, s.key) === "preview").map((s) => s.tab)),
+    locked: new Set(visible.filter((s) => s.comingSoon || planLocked || studioState(client, s.key) === "preview").map((s) => s.tab)),
+    planLocked,
   };
 }
 
-function LockBadge({ on, soon }) {
+function LockBadge({ on, soon, plan }) {
+  if (plan) return <span className="inline-flex items-center gap-1.5 bg-ink px-3 py-1.5 text-[12px] font-medium text-white"><Lock className="h-3.5 w-3.5 text-[#ffaa00]" /> Included with HyperCare+</span>;
   if (soon) return <span className="inline-flex items-center gap-1.5 bg-ink px-3 py-1.5 text-[12px] font-medium text-white"><Lock className="h-3.5 w-3.5 text-[#ffaa00]" /> Coming soon · Included with your plan</span>;
   if (on) return <span className="inline-flex items-center gap-1.5 bg-green-700 px-3 py-1.5 text-[12px] font-medium text-white"><Check className="h-3.5 w-3.5" /> Included with your plan · Switched on</span>;
   return <span className="inline-flex items-center gap-1.5 bg-ink px-3 py-1.5 text-[12px] font-medium text-white"><Lock className="h-3.5 w-3.5 text-[#ffaa00]" /> Included with your plan · Unlocking soon</span>;
 }
 
-export default function StudioPreview({ tab, client, call, preview, previewId }) {
+export default function StudioPreview({ tab, client, call, preview, previewId, scopeId, fuel, onRefuel, onFuelChanged }) {
   const s = STUDIO_BY_TAB[tab];
-  const state = s?.comingSoon ? "preview" : studioState(client, s?.key);
+  const planLocked = !!fuel && fuel.studios_unlocked === false;
+  const state = planLocked ? "locked" : s?.comingSoon ? "preview" : studioState(client, s?.key);
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [sched, setSched] = useState(false);
   if (!s) return null;
   const on = state === "on";
 
@@ -150,11 +160,17 @@ export default function StudioPreview({ tab, client, call, preview, previewId })
             {s.title} <span className="text-[#ff3c00]">{s.accent}</span>
           </h1>
           <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-ink/65">{s.lead}</p>
-          <div className="mt-5"><LockBadge on={on} soon={!!s.comingSoon} /></div>
+          <div className="mt-5"><LockBadge on={on} soon={!!s.comingSoon} plan={planLocked} /></div>
           <div className="mt-5 border-l-2 border-[#ff3c00] bg-card px-4 py-3">
             <p className="mono-label text-[9.5px] text-ink/50">Replaces</p>
             <p className="mt-1 text-[14px] font-medium tracking-[-0.01em]">{s.replaces}</p>
           </div>
+          {planLocked ? (
+            <div className="mt-6">
+              <UpgradeCta call={call} client={client} preview={preview} studioLabel={s.label} onSchedule={() => setSched(true)} />
+              <ScheduleCallModal open={sched} onClose={() => setSched(false)} previewId={scopeId || previewId} preview={preview} />
+            </div>
+          ) : (
           <div className="mt-6 flex flex-wrap items-center gap-3">
             {on ? (
               <p className="text-[13px] text-ink/60">It&apos;s switched on for your account. Message us and we&apos;ll walk you through your first {s.key === "email" ? "campaign" : "session"}.</p>
@@ -171,6 +187,7 @@ export default function StudioPreview({ tab, client, call, preview, previewId })
             )}
             {preview && !on && <span className="text-[11.5px] text-ink/45">Admin preview: the button works from the client&apos;s login.</span>}
           </div>
+          )}
           {err && <p role="alert" className="mt-2 text-[12px] text-red-700">{err}</p>}
         </div>
         <SampleFrame label={s.label}><Mock k={s.key} business={client?.business} /></SampleFrame>
@@ -186,7 +203,7 @@ export default function StudioPreview({ tab, client, call, preview, previewId })
         ))}
       </section>
       {s.note && <p className="text-[11.5px] text-ink/45">{s.note}</p>}
-      {on && <PortalUsageCard previewId={previewId} />}
+      {fuel && !planLocked && !s.comingSoon && <WalletPanel key={`${fuel.client_id || ""}${fuel.month}`} fuel={fuel} scopeId={scopeId || previewId} preview={preview} onChanged={onFuelChanged} onRefuel={onRefuel} />}
     </div>
   );
 }
