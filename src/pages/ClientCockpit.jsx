@@ -24,6 +24,7 @@ import ClientOutreachTab from "@/features/outreach/ClientOutreachTab";
 import ProfileMeter from "@/features/clients/ProfileMeter";
 import PortalInviteDialog from "@/features/clients/PortalInviteDialog";
 import { ClientRecentEmails, emailClientPath } from "@/features/email/ClientEmails";
+import { ClientUsageCard } from "@/features/usage/ClientUsagePage";
 
 const TABS = [
   ["overview", "Overview"], ["constellations", "✧ Constellations"], ["claude", "✦ Claude"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
@@ -119,7 +120,7 @@ export default function ClientCockpit() {
       </div>
 
       <div key={tab} className="page-enter px-5 pt-6 md:px-8">
-        {tab === "overview" && <><OverviewTab client={client} onEdit={() => setEditing(true)} go={go} /><ClientRecentEmails client={client} /></>}
+        {tab === "overview" && <><OverviewTab client={client} onEdit={() => setEditing(true)} go={go} /><ClientRecentEmails client={client} /><ClientUsageCard client={client} /></>}
         {tab === "constellations" && <ConstellationsTab client={client} />}
         {tab === "claude" && <ClientClaudeTab client={client} />}
         {tab === "work" && <WorkTab client={client} />}

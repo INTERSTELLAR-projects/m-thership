@@ -10,6 +10,7 @@ import { Megaphone as SocialIcon } from "lucide-react";
 import { BadgeDollarSign as AdsIcon } from "lucide-react";
 import { Mail as EmailStudioIcon } from "lucide-react";
 import { UserPlus as HiringIcon } from "lucide-react";
+import { Gauge as UsageIcon } from "lucide-react";
 
 export const LOGO_URL =
   "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/536102fbf_interstellar-mark-v2.webp";
@@ -27,6 +28,7 @@ export const NAV_GROUPS = [
       { label: "Projects", icon: FolderKanban, path: "/projects" },
       { label: "Flight Plan", icon: Route, path: "/flight-plan" },
       { label: "Requests", icon: ClipboardList, path: "/requests" },
+      { label: "Client usage", icon: UsageIcon, path: "/client-usage" },
     ],
   },
   {

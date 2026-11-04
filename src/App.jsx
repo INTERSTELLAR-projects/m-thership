@@ -53,6 +53,7 @@ import { Navigate } from 'react-router-dom';
 import { useParams, useLocation } from 'react-router-dom';
 import LoginPage from '@/features/auth/LoginPage';
 import HiringPlanPage from '@/features/hiring/HiringPlanPage';
+import ClientUsagePage from '@/features/usage/ClientUsagePage';
 
 // Branded sign-in routes. They render without a session. While the platform's hosted login owns /login for this
 // private app (custom auth not enrolled), the server answers these paths itself; the page takes over as soon as
@@ -115,6 +116,7 @@ const AuthenticatedApp = () => {
         <Route path="/crm" element={<ProtectedRoute><CRM /></ProtectedRoute>} />
         <Route path="/pipeline" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
         <Route path="/clients/:id" element={<ProtectedRoute><ClientCockpit /></ProtectedRoute>} />
+        <Route path="/client-usage" element={<ProtectedRoute><ClientUsagePage /></ProtectedRoute>} />
         <Route path="/comms" element={<ProtectedRoute><Comms /></ProtectedRoute>} />
         <Route path="/orbit-seo" element={<Navigate to="/packages/orbit-seo" replace />} />
         <Route path="/orbit-seo/manage" element={<ProtectedRoute><OrbitSEO /></ProtectedRoute>} />
