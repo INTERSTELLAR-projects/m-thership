@@ -132,10 +132,11 @@ export function buildClientsOverview({ clients, instances, brains }) {
   const nodes = [{ id: "hub", type: "brain", label: "Interstellar", sub: `${clients.length} clients`, x: 0, y: 0, r: 40 }];
   const edges = [];
   const n = clients.length || 1;
-  const R = n > 10 ? 340 : 280;
+  // An ellipse (wider than tall) so 14+ client names have room on a laptop screen.
+  const rx = n > 10 ? 500 : 380, ry = n > 10 ? 310 : 260;
   clients.forEach((c, i) => {
     const ang = -90 + (360 / n) * i;
-    const p = polar(R, ang);
+    const p = { x: Math.cos(ang * RAD) * rx, y: Math.sin(ang * RAD) * ry };
     const mine = instances.filter((a) => a.client_id === c.id);
     const counts = countStatus(mine);
     const brain = brains.find((b) => b.client_id === c.id);
