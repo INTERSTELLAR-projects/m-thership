@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
     if (action === "requeue_engines") {
       // Safe without a user (scheduled workflow): it only queues internal jobs for engines Justin/Claude already started.
       if (user && user.role !== "admin") return Response.json({ error: "Forbidden" }, { status: 403 });
-      return Response.json(await requeueEngines(db, body?.force === true));
+      return Response.json(await requeueEngines(db, !!user && body?.force === true));
     }
     if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
     if (user.role !== "admin") return Response.json({ error: "Forbidden" }, { status: 403 });
