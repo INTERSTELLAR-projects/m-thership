@@ -65,6 +65,17 @@ function accessOf(ctx, key) {
   if (!v || typeof v !== "object") return undefined;
   return v.status === "granted" || v.status === "not_needed" ? v : undefined;
 }
+// Not applicable: IntakeAudit.answers.not_applicable = { criterionKey: "reason" } (e.g. nap_address for an
+// online-only business). An n/a field shows as filled ("N/A: reason"), never blocks an output, and is left out
+// of the completeness total so it neither helps nor penalizes the %.
+function naOf(ctx, key) {
+  const m = ia(ctx, "not_applicable");
+  if (!m || typeof m !== "object" || Array.isArray(m)) return "";
+  const r = m[key];
+  if (!r) return "";
+  return typeof r === "string" ? r : "Not applicable";
+}
+
 export const accessLabel = (v) => (v && typeof v === "object" ? `${v.status === "not_needed" ? "Not needed" : "Granted"}${v.by ? ` by ${v.by}` : ""}${v.on ? ` on ${v.on}` : ""}` : "");
 
 /* ---------------- the list ---------------- */
@@ -134,17 +145,22 @@ export function displayValue(v, max = 220) {
 
 export function evaluateCriteria(ctx) {
   const items = CRITERIA.map((f) => {
+    let na = "";
+    try { na = naOf(ctx, f.key); } catch { na = ""; }
+    if (na) return { ...f, value: `N/A: ${na}`, filled: true, na: true };
     let value;
     try { value = f.read(ctx); } catch { value = undefined; }
     return { ...f, value, filled: has(value) };
   });
-  const total = items.reduce((n, i) => n + i.weight, 0);
-  const got = items.filter((i) => i.filled).reduce((n, i) => n + i.weight, 0);
+  const scored = items.filter((i) => !i.na);
+  const total = scored.reduce((n, i) => n + i.weight, 0);
+  const got = scored.filter((i) => i.filled).reduce((n, i) => n + i.weight, 0);
   const groups = GROUPS.map((g) => {
     const list = items.filter((i) => i.group === g.key);
-    const t = list.reduce((n, i) => n + i.weight, 0);
-    const d = list.filter((i) => i.filled).reduce((n, i) => n + i.weight, 0);
-    return { ...g, items: list, pct: t ? Math.round((d / t) * 100) : 0, missing: list.filter((i) => !i.filled) };
+    const sl = list.filter((i) => !i.na);
+    const t = sl.reduce((n, i) => n + i.weight, 0);
+    const d = sl.filter((i) => i.filled).reduce((n, i) => n + i.weight, 0);
+    return { ...g, items: list, pct: t ? Math.round((d / t) * 100) : 100, missing: list.filter((i) => !i.filled) };
   });
   const outputs = OUTPUTS.map((o) => {
     const need = items.filter((i) => i.unlocks.includes(o.key));
