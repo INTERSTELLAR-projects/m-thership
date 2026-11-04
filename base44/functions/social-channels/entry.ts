@@ -1,6 +1,7 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { Any, GraphError, errText } from "../../shared/social.ts";
 import { ADAPTERS, LIMITS, idFromUrl, makeCtx, readSecret, resolveAccount } from "../../shared/channels.ts";
+import { pausedClientIds } from "../../shared/fuel.ts";
 
 // Social Studio content engine: one idea -> every platform. Publishes SocialVariant rows through the Channel
 // adapters in shared/channels.ts. NOTHING publishes unless an admin approved that variant (status "approved"
@@ -143,8 +144,15 @@ async function runDue(ctx: Any, db: Any, { actor, onlyId }: { actor: string; onl
   };
   const dayKey = new Date().toISOString().slice(0, 10);
   const postedToday = new Map<string, number>();
+  // Out of fuel: a client's approved posts wait in place (schedule kept, flagged fuel_paused). They are moved to the
+  // next valid slots, spaced out, when the client refuels or the month resets (shared/fuel.ts resumeClient).
+  const outOfFuel = onlyId ? new Set<string>() : await pausedClientIds(db, "ai_action").catch(() => new Set<string>());
   let n = 0;
   for (const v of due) {
+    if (v.client_id && outOfFuel.has(String(v.client_id))) {
+      if (!v.fuel_paused) await db.SocialVariant.update(v.id, { fuel_paused: true }).catch(() => null);
+      continue;
+    }
     if (n >= MAX_PER_RUN) break;
     const a = await accountOf(v);
     if (!a) { if (onlyId) results.push({ id: v.id, result: "not posted (no account: post by hand)" }); continue; }
