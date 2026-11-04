@@ -3,7 +3,8 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Send, Sparkles, ArrowUpRight, Lightbulb, Check, X, Radar, Telescope, Target, MessageCircle, LayoutGrid, CalendarClock } from "lucide-react";
 import { useOracle, accuracyOf, askOracle, sendToVault, ago, host } from "@/features/oracle/oracleData";
-import { TOPICS, TOPIC_BY_KEY, DISCLAIMER, HORIZONS } from "@/features/oracle/topics";
+import { TOPICS, TOPIC_BY_KEY, DISCLAIMER } from "@/features/oracle/topics";
+import { base44 } from "@/api/base44Client";
 import { panel, mono, Label, Title, Trend, Stat, Sources, RealityMeter, ProbBar, Outcome, Horizon } from "@/features/oracle/parts";
 
 const VIEWS = [
@@ -258,7 +259,6 @@ function Opportunities({ o }) {
     } catch (e) { setErr(e?.message || "Could not send to the Idea Vault"); } finally { setBusy(null); }
   };
   const dismiss = async (opp) => {
-    const { base44 } = await import("@/api/base44Client");
     await base44.entities.OracleOpportunity.update(opp.id, { status: "dismissed" });
     o.setData((d) => ({ ...d, opportunities: d.opportunities.map((x) => (x.id === opp.id ? { ...x, status: "dismissed" } : x)) }));
   };
@@ -378,4 +378,3 @@ function OracleAnswer({ text, map }) {
   );
 }
 
-export { HORIZONS };
