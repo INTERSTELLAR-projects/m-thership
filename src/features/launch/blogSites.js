@@ -48,7 +48,7 @@ export const blogSiteOf = (clientId, facts) => {
   const f = facts && facts[clientId];
   if (!base) return null;
   // launch_facts can flip a site live (and override the entity) after a cutover without a code change.
-  return f && typeof f.live === "boolean" ? { ...base, live: f.live && base.live !== undefined ? f.live : base.live } : base;
+  return f && typeof f.live === "boolean" ? { ...base, live: f.live } : base;
 };
 
 // The publish + verify instructions every scheduled blog job carries.
