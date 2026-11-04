@@ -36,7 +36,10 @@ const isFailed = (t) => {
 const listOf = (r) => (Array.isArray(r) ? r : Array.isArray(r?.data) ? r.data : []);
 
 // ---------------- Conversation ----------------
-function useConversation(previewId) {
+// previewId is the client this panel acts for. Admin previews store it as preview_client_id; a package-deal owner
+// who picked a business in the portal switcher stores it as active_client_id (the server re-checks their access).
+function useConversation(previewId, admin = !!previewId) {
+  const metaKey = admin ? "preview_client_id" : "active_client_id";
   const [conv, setConv] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +52,7 @@ function useConversation(previewId) {
       setLoading(true);
       try {
         const all = listOf(await base44.agents.listConversations({ q: { agent_name: AGENT }, sort: "-updated_date", limit: 20 }));
-        const mine = all.find((c) => c.agent_name === AGENT && (c.metadata?.preview_client_id || null) === (previewId || null));
+        const mine = all.find((c) => c.agent_name === AGENT && (c.metadata?.[metaKey] || null) === (previewId || null) && (admin || !c.metadata?.preview_client_id));
         if (mine && !off) {
           const full = await base44.agents.getConversation(mine.id);
           if (!off) { setConv(full); setMessages(full?.messages || []); }
@@ -58,7 +61,7 @@ function useConversation(previewId) {
       if (!off) setLoading(false);
     })();
     return () => { off = true; };
-  }, [previewId]);
+  }, [previewId, metaKey, admin]);
 
   useEffect(() => {
     if (!conv?.id) return undefined;
@@ -77,7 +80,7 @@ function useConversation(previewId) {
       if (!c) {
         c = await base44.agents.createConversation({
           agent_name: AGENT,
-          metadata: { name: "Nøva", source: "client_portal", ...(previewId ? { preview_client_id: previewId } : {}) },
+          metadata: { name: "Nøva", source: "client_portal", ...(previewId ? { [metaKey]: previewId } : {}) },
         });
         setConv(c);
       }
@@ -88,7 +91,7 @@ function useConversation(previewId) {
       setError(e?.response?.data?.message || e?.response?.data?.error || "The assistant couldn't be reached. Try again in a moment.");
       return false;
     } finally { setSending(false); }
-  }, [conv, previewId, sending]);
+  }, [conv, previewId, metaKey, sending]);
 
   const reset = useCallback(() => { stopReading(); setConv(null); setMessages([]); setError(""); }, []);
 
@@ -105,7 +108,7 @@ function useConversation(previewId) {
 }
 
 // ---------------- Briefing card ----------------
-function BriefingCard({ previewId, onAsk }) {
+function BriefingCard({ previewId, admin = !!previewId, onAsk }) {
   const qc = useQueryClient();
   const day = new Date().toISOString().slice(0, 10);
   const key = ["portal-assistant", previewId || "me", "briefing", day];
@@ -133,12 +136,12 @@ function BriefingCard({ previewId, onAsk }) {
       <div className="h-[3px] flame-bg" />
       <header className="flex items-center gap-3 px-4 py-3">
         <span className="mono-label text-[9.5px] text-[#ff3c00]">Today&apos;s briefing</span>
-        {previewId && c && (
+        {admin && c && (
           <button type="button" onClick={refresh} disabled={busy} title="Regenerate (admin preview)" className="ml-auto text-ink/40 hover:text-[#ff3c00] disabled:opacity-40">
             <RefreshCw className={`h-3.5 w-3.5 ${busy ? "animate-spin" : ""}`} />
           </button>
         )}
-        <button type="button" onClick={() => setOpen((o) => !o)} className={`${previewId && c ? "" : "ml-auto"} text-ink/40 hover:text-ink`} aria-label={open ? "Collapse briefing" : "Expand briefing"}>
+        <button type="button" onClick={() => setOpen((o) => !o)} className={`${admin && c ? "" : "ml-auto"} text-ink/40 hover:text-ink`} aria-label={open ? "Collapse briefing" : "Expand briefing"}>
           <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
         </button>
       </header>
@@ -251,10 +254,10 @@ function Bubble({ m, speakingId, onSpeak }) {
 }
 
 // ---------------- Panel ----------------
-export default function PortalAssistant({ previewId, variant = "page", onClose, onExpand }) {
+export default function PortalAssistant({ previewId, admin = !!previewId, variant = "page", onClose, onExpand }) {
   const ctxQ = useQuery({ queryKey: ["portal-assistant", previewId || "me", "context"], queryFn: () => call({ action: "context", client_id: previewId }), staleTime: 3600 * 1000, retry: false });
   const serverVoice = !!ctxQ.data?.voice;
-  const { messages, loading, thinking, error, send, reset, clearError } = useConversation(previewId);
+  const { messages, loading, thinking, error, send, reset, clearError } = useConversation(previewId, admin);
   const [input, setInput] = useState("");
   const [autoRead, setAutoRead] = useState(readPref);
   const [speakingId, setSpeakingId] = useState(null);
@@ -319,7 +322,7 @@ export default function PortalAssistant({ previewId, variant = "page", onClose, 
         <Martian palette={KING.palette} king size={34} active={thinking} title="Nøva" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[14.5px] font-semibold tracking-[-0.02em]">Nøva</p>
-          <p className="truncate text-[11px] text-ink/50">{previewId ? "Admin preview · acting as this client" : "The Future of Business · replies in seconds"}</p>
+          <p className="truncate text-[11px] text-ink/50">{admin ? "Admin preview · acting as this client" : "The Future of Business · replies in seconds"}</p>
         </div>
         <button type="button" onClick={toggleRead} title={autoRead ? "Read replies aloud: on" : "Read replies aloud: off"} aria-pressed={autoRead} className={`p-1.5 ${autoRead ? "text-[#ff3c00]" : "text-ink/40 hover:text-ink"}`}>
           {autoRead ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
@@ -331,14 +334,14 @@ export default function PortalAssistant({ previewId, variant = "page", onClose, 
 
       {/* Thread */}
       <div ref={scroller} className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">
-        <BriefingCard previewId={previewId} onAsk={submit} />
+        <BriefingCard previewId={previewId} admin={admin} onAsk={submit} />
         {loading ? (
           <p className="py-6 text-center text-[12.5px] text-ink/45">Loading your conversation…</p>
         ) : empty ? (
           <div className="flex items-start gap-2.5">
             <div className="mt-0.5 shrink-0"><Martian palette={KING.palette} king size={26} /></div>
             <div className="border border-hair bg-card px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink/85">
-              Hi{ctxQ.data?.first_name && !previewId ? ` ${ctxQ.data.first_name}` : ""}, I&apos;m Nøva, your Interstellar assistant. I can recap what we&apos;ve done for {ctxQ.data?.business || "you"}, send a request to the team, check on your requests, or get Justin for you.
+              Hi{ctxQ.data?.first_name && !admin ? ` ${ctxQ.data.first_name}` : ""}, I&apos;m Nøva, your Interstellar assistant. I can recap what we&apos;ve done for {ctxQ.data?.business || "you"}, send a request to the team, check on your requests, or get Justin for you.
             </div>
           </div>
         ) : (
@@ -407,7 +410,7 @@ export default function PortalAssistant({ previewId, variant = "page", onClose, 
 }
 
 // Floating launcher + slide-over drawer (shown on every portal tab except the full Assistant tab).
-export function AssistantLauncher({ previewId, onOpenFull }) {
+export function AssistantLauncher({ previewId, admin = !!previewId, onOpenFull }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     if (!open) return undefined;
@@ -432,7 +435,7 @@ export function AssistantLauncher({ previewId, onOpenFull }) {
         <div className="fixed inset-0 z-50 flex justify-end">
           <button type="button" aria-label="Close assistant" className="absolute inset-0 bg-ink/30 backdrop-blur-[1px]" onClick={() => setOpen(false)} />
           <div role="dialog" aria-modal="true" aria-label="Nøva" className="page-enter relative flex h-full w-full max-w-[440px] flex-col border-l border-hair bg-canvas shadow-2xl">
-            <PortalAssistant previewId={previewId} variant="drawer" onClose={() => setOpen(false)} onExpand={onOpenFull ? () => { setOpen(false); onOpenFull(); } : undefined} />
+            <PortalAssistant previewId={previewId} admin={admin} variant="drawer" onClose={() => setOpen(false)} onExpand={onOpenFull ? () => { setOpen(false); onOpenFull(); } : undefined} />
           </div>
         </div>
       )}
