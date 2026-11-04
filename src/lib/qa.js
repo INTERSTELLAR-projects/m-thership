@@ -5,7 +5,7 @@
 import { QA_ACCOUNTING } from "@/features/accounting/qaFixtures";
 import { QA_SOCIAL, qaSocialInvoke } from "@/features/social/qaFixtures";
 import { qaUsageInvoke } from "@/features/usage/qaFixtures";
-import { demo, demoInvoke } from "@/lib/demoData";
+import { demo, demoInvoke, warmDemo } from "@/lib/demoData";
 
 const host = typeof window !== "undefined" ? window.location.hostname : "";
 const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
@@ -130,6 +130,7 @@ function entityApi(name) {
 
 export function installQa(base44) {
   if (!IS_QA) return base44;
+  if (IS_DEMO) warmDemo();
   const ents = new Proxy({}, { get: (_, name) => entityApi(String(name)) });
   try {
     Object.defineProperty(base44, "entities", { value: ents, configurable: true });
