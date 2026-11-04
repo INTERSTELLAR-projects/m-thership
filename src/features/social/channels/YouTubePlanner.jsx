@@ -10,6 +10,7 @@ import { draftVideo } from "./channelAi";
 import ChannelQueue from "./ChannelQueue";
 import { CH_SETTINGS_KEY, CP_KEY, YT_KEY, cp, useChannelSettings, useVideos, yt } from "./data";
 
+const FIELDS = ["title", "stage", "sort", "series", "format", "title_options", "chosen_title", "thumbnail_ideas", "angle", "guardrails", "script", "chapters", "description", "shorts", "publish_date", "youtube_url", "notes"];
 const seriesLabel = (k) => SERIES.find((s) => s.key === k)?.label || "";
 const RHYTHM = [["Mon", "Topic + titles"], ["Tue", "Script"], ["Wed", "Record"], ["Thu", "Edit + clip Shorts"], ["Fri", "Publish"]];
 
@@ -142,7 +143,7 @@ function VideoSheet({ id, videos, template, onClose }) {
   const save = async (patch) => {
     const next = { ...d, ...patch };
     setD(next);
-    const { id: _id, created_date: _c, updated_date: _u, created_by: _b, ...data } = next;
+    const data = Object.fromEntries(FIELDS.filter((k) => next[k] !== undefined).map((k) => [k, next[k]]));
     await yt.update(id, data).catch((e) => toast({ title: "Couldn't save", description: String(e?.message || e), variant: "destructive" }));
     qc.invalidateQueries({ queryKey: YT_KEY });
   };
