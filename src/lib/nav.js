@@ -12,6 +12,7 @@ import { Mail as EmailStudioIcon } from "lucide-react";
 import { UserPlus as HiringIcon } from "lucide-react";
 import { Gauge as UsageIcon } from "lucide-react";
 import { Orbit as AgentsIcon } from "lucide-react";
+import { Radar as IntelligenceIcon } from "lucide-react";
 
 export const LOGO_URL =
   "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/536102fbf_interstellar-mark-v2.webp";
@@ -23,6 +24,7 @@ export const NAV_GROUPS = [
     items: [
       { label: "Mission Control", icon: LayoutDashboard, path: "/" },
       { label: "Agents", icon: AgentsIcon, path: "/agents" },
+      { label: "Intelligence", icon: IntelligenceIcon, path: "/intelligence" },
       { label: "Clients", icon: Users, path: "/crm" },
       { label: "Pipeline", icon: Target, path: "/pipeline" },
       { label: "Tasks", icon: ListTodo, path: "/tasks" },
