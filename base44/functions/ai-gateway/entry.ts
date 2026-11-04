@@ -2,7 +2,7 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { requireSecondFactor } from "../../shared/twoFactor.ts";
 import { resolveClient, getSecret } from "../../shared/portalClient.ts";
 import { callClaude, AnthropicError } from "../../shared/anthropic.ts";
-import { AI_MODELS, estimateAiCost, anyStudioOn, studiosOf, type AiTier } from "../../shared/usagePlans.ts";
+import { AI_MODELS, estimateAiCost, anyStudioOn, studiosOf, monthKey, type AiTier } from "../../shared/usagePlans.ts";
 import { check, record } from "../../shared/meter.ts";
 
 // AI gateway for Studios. Client AI runs on our own Anthropic key (ANTHROPIC_API_KEY), never Base44 InvokeLLM credits.
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
       await record(db, client, "ai_action", 1, { admin: isAdmin, model: out.model, est_cost_usd: est, feature, user_email: user.email, input_tokens: out.input_tokens, output_tokens: out.output_tokens });
     } else {
       // Agency-level admin usage (no client): still recorded so the Anthropic bill is explainable.
-      await db.UsageLedger.create({ client_id: "agency", client_name: "Interstellar (admin)", month: new Date().toISOString().slice(0, 7), kind: "ai_action", units: 1, model: out.model, est_cost_usd: est, feature, user_email: user.email, by_admin: true, input_tokens: out.input_tokens, output_tokens: out.output_tokens, created_at: new Date().toISOString() }).catch(() => null);
+      await db.UsageLedger.create({ client_id: "agency", client_name: "Interstellar (admin)", month: monthKey(), kind: "ai_action", units: 1, model: out.model, est_cost_usd: est, feature, user_email: user.email, by_admin: true, input_tokens: out.input_tokens, output_tokens: out.output_tokens, created_at: new Date().toISOString() }).catch(() => null);
     }
     const used = meter ? meter.used + (isAdmin ? 0 : 1) : null;
     return Response.json({
