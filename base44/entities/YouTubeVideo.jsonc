@@ -1,0 +1,132 @@
+{
+  "name": "YouTubeVideo",
+  "description": "Interstellar YouTube pipeline: Idea -> Script -> Record -> Edit -> Scheduled -> Published. Planning only; nothing uploads to YouTube from the app.",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Working title"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "idea",
+        "script",
+        "record",
+        "edit",
+        "scheduled",
+        "published"
+      ],
+      "default": "idea"
+    },
+    "sort": {
+      "type": "number"
+    },
+    "series": {
+      "type": "string",
+      "enum": [
+        "ai_search_brief",
+        "command_system_walkthrough",
+        "teardown",
+        "business_os_qa",
+        "channel"
+      ],
+      "description": "Playlist"
+    },
+    "format": {
+      "type": "string",
+      "enum": [
+        "long",
+        "trailer"
+      ],
+      "default": "long"
+    },
+    "title_options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Up to 10"
+    },
+    "chosen_title": {
+      "type": "string"
+    },
+    "thumbnail_ideas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "angle": {
+      "type": "string",
+      "description": "Hook / promise of the video"
+    },
+    "guardrails": {
+      "type": "string",
+      "description": "Conditions, e.g. only with a real number / consenting client"
+    },
+    "script": {
+      "type": "string"
+    },
+    "chapters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "description": {
+      "type": "string"
+    },
+    "shorts": {
+      "type": "array",
+      "description": "3-5 Shorts clipped from this video: { title, hook, timestamp, channel_post_id, status }",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "publish_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "youtube_url": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

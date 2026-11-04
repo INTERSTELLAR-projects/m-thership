@@ -1,0 +1,112 @@
+{
+  "name": "ChannelPost",
+  "description": "Manual-channel drafts for Interstellar's own channels: LinkedIn company page, Justin's personal LinkedIn, and YouTube Shorts captions. Nothing here is posted by the app; Justin copies, posts by hand and marks posted. Instagram/Facebook image posts stay in SocialPost.",
+  "type": "object",
+  "properties": {
+    "channel": {
+      "type": "string",
+      "enum": [
+        "linkedin_company",
+        "linkedin_personal",
+        "youtube_short"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved",
+        "posted",
+        "declined"
+      ],
+      "default": "draft",
+      "description": "draft (Claude/Justin) -> approved (ready to post by hand) -> posted (Justin pasted the URL). Nothing auto-posts."
+    },
+    "title": {
+      "type": "string",
+      "description": "Internal name"
+    },
+    "pillar": {
+      "type": "string"
+    },
+    "format": {
+      "type": "string",
+      "description": "text | carousel_pdf | image | poll | short (free text)"
+    },
+    "body": {
+      "type": "string",
+      "description": "Post text (LinkedIn) or Shorts title + description"
+    },
+    "hook": {
+      "type": "string",
+      "description": "First line / Shorts title"
+    },
+    "hashtags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_post_id": {
+      "type": "string",
+      "description": "SocialPost this reuses (Shorts / repurposed posts)"
+    },
+    "youtube_video_id": {
+      "type": "string",
+      "description": "YouTubeVideo the Short points to (Related video)"
+    },
+    "planned_for": {
+      "type": "string",
+      "format": "date"
+    },
+    "posted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "posted_url": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "declined_reason": {
+      "type": "string"
+    },
+    "generation_batch": {
+      "type": "string"
+    },
+    "generated_by": {
+      "type": "string",
+      "enum": [
+        "claude",
+        "justin"
+      ],
+      "default": "justin"
+    }
+  },
+  "required": [
+    "channel"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

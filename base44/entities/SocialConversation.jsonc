@@ -1,0 +1,75 @@
+{
+  "name": "SocialConversation",
+  "description": "LinkedIn message drafts (connection requests, follow-ups, comment/DM replies). Holds only what Justin typed. Copy-only: the app never sends.",
+  "type": "object",
+  "properties": {
+    "account": {
+      "type": "string",
+      "enum": [
+        "linkedin_personal",
+        "linkedin_company"
+      ],
+      "default": "linkedin_personal"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "connection_request",
+        "follow_up",
+        "comment_reply",
+        "dm_reply",
+        "other"
+      ],
+      "default": "connection_request"
+    },
+    "person_label": {
+      "type": "string",
+      "description": "How Justin refers to the person (name or role), as he typed it"
+    },
+    "context": {
+      "type": "string",
+      "description": "Exactly what Justin entered about the situation"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "draft": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent"
+      ],
+      "default": "draft",
+      "description": "sent = Justin sent it manually"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
