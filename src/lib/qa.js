@@ -24,7 +24,7 @@ let demoFlag = false;
 try { demoFlag = flag && sessionStorage.getItem("ms_demo") === "1"; } catch { demoFlag = false; }
 export const IS_DEMO = demoFlag;
 
-export const QA_USER = { id: "qa-admin", email: "qa@interstellar.test", full_name: "Commander", role: "admin" };
+export const QA_USER = { id: "qa-admin", email: IS_DEMO ? "commander@interstellar.demo" : "qa@interstellar.test", full_name: "Commander", role: "admin" };
 
 const today = new Date();
 const iso = (d) => d.toISOString().slice(0, 10);
@@ -133,7 +133,7 @@ export function installQa(base44) {
   try {
     Object.defineProperty(base44, "entities", { value: ents, configurable: true });
   } catch { base44.entities = ents; }
-  base44.auth.me = async () => (IS_DEMO ? { ...QA_USER, email: "commander@interstellar.demo" } : QA_USER);
+  base44.auth.me = async () => QA_USER;
   base44.auth.isAuthenticated = async () => true;
   base44.auth.logout = () => { sessionStorage.removeItem("ms_qa"); window.location.href = "/"; };
   base44.integrations = { Core: { InvokeLLM: async () => ({}), UploadFile: async () => ({ file_url: "" }) } };
