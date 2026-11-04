@@ -8,6 +8,7 @@ import { enrichExpense } from "@/components/financial/finance/expenses";
 import { computeDeadline } from "@/features/legal/legalDates";
 import { OPEN_STAGES, bookedCallOf, isLeadish, isOverdue, stageOf } from "@/features/pipeline/pipeline";
 import { OPEN_STATUSES } from "@/features/tasks/lib/constants";
+import { loadAgentsBriefing } from "@/features/agents/briefing";
 
 const DAY = 86400000;
 const OPEN_REQ = ["received", "in_progress", "needs_info"];
@@ -159,6 +160,7 @@ export async function loadBriefing() {
     arr(base44.entities.SeoIntel.list("-brief_date", 120)),
     arr(base44.entities.RevenueGoal.list("-created_date", 20)),
     outreachSection(),
+    loadAgentsBriefing().catch(() => null),
     readBriefingCache().catch(() => ({ id: null, data: {} })),
   ]);
 
@@ -202,6 +204,7 @@ export async function loadBriefing() {
     legal: legalSection(legal),
     intel: intelSection(intel),
     outreach,
+    agents,
     cache,
   };
 }
