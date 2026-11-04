@@ -1,3 +1,5 @@
+import { secrets } from "base44:runtime";
+
 // Which CRMClient may this caller act for? Same rule as the portal function:
 //   admin + client_id   -> that client (Justin previewing / acting for a client)
 //   admin, no client_id -> null (agency-level admin usage)
@@ -18,11 +20,11 @@ export async function resolveClient(db: any, user: any, asClient?: unknown): Pro
 }
 
 // Secret presence only: values are never returned, logged or compared.
-type SecretStore = { get: (n: string) => string | undefined };
-export function getSecret(name: string, secrets?: SecretStore) {
+// Deno.env first (Base44 app secrets), then the runtime secret store (same source the Stripe functions use).
+export function getSecret(name: string) {
   let v = "";
   try { v = Deno.env.get(name) || ""; } catch { v = ""; }
-  if (!v) { try { v = (secrets && secrets.get(name)) || ""; } catch { v = ""; } }
+  if (!v) { try { v = secrets.get(name) || ""; } catch { v = ""; } }
   return v;
 }
-export const hasSecret = (name: string, secrets?: SecretStore) => getSecret(name, secrets).length > 0;
+export const hasSecret = (name: string) => getSecret(name).length > 0;
