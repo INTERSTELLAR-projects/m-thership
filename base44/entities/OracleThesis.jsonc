@@ -1,0 +1,121 @@
+{
+  "description": "Future Signals (Justin's I, Robot seed notes): each thesis checked against real-world status with sources. reality_stage scifi|pilot|scaling|mainstream. Timelines are labeled estimates. Admin only.",
+  "name": "OracleThesis",
+  "properties": {
+    "current_status": {
+      "type": "string"
+    },
+    "examples": {
+      "items": {
+        "properties": {
+          "company": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "source_url": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "what": {
+            "type": "string"
+          },
+          "where": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "history": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "interstellar_angle": {
+      "type": "string"
+    },
+    "key": {
+      "type": "string"
+    },
+    "last_checked_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "order": {
+      "type": "number"
+    },
+    "reality_stage": {
+      "enum": [
+        "scifi",
+        "pilot",
+        "scaling",
+        "mainstream"
+      ],
+      "type": "string"
+    },
+    "seed_note": {
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "properties": {
+          "published_date": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "timeline_estimate": {
+      "description": "Labeled estimate with reasoning",
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "key",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

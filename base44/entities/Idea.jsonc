@@ -13,6 +13,14 @@
     "description": {
       "type": "string"
     },
+    "oracle_opportunity_id": {
+      "type": "string"
+    },
+    "override": {
+      "additionalProperties": true,
+      "description": "Justin's manual overrides: { score?: 0-100, rank?: pinned position, note?, at }",
+      "type": "object"
+    },
     "plan": {
       "additionalProperties": true,
       "description": "AI Action Plan: verdict, do_first, pareto, phases, ignore, risks, kill_criteria, first_metric, hormozi_angle, resources",
@@ -27,8 +35,48 @@
       "description": "Map of plan step key (p{phase}-{step}) to true when checked off",
       "type": "object"
     },
+    "prev_rank": {
+      "type": "number"
+    },
     "project_id": {
       "description": "Project created from this idea's plan",
+      "type": "string"
+    },
+    "rank": {
+      "description": "1 = build next",
+      "type": "number"
+    },
+    "rank_changed_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "score": {
+      "description": "0-100 AI/value-equation score computed from score_breakdown.factors (see src/features/ideas/scoring.js)",
+      "type": "number"
+    },
+    "score_breakdown": {
+      "additionalProperties": true,
+      "description": "{ factors: { revenue, fit, time_to_dollar, effort, assets, timing, risk: { score 1-10, why } }, value_eq: { dream, likelihood, time, effort, raw }, revenue_band, effort_band, time_to_dollar_label, sizing_note, next_action, model, formula_version }",
+      "type": "object"
+    },
+    "scored_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "source": {
+      "description": "manual | oracle | seed",
+      "type": "string"
+    },
+    "stage": {
+      "default": "idea",
+      "description": "Pipeline stage shown on the ranked board",
+      "enum": [
+        "idea",
+        "validating",
+        "building",
+        "live",
+        "parked"
+      ],
       "type": "string"
     },
     "status": {
@@ -44,6 +92,11 @@
     },
     "title": {
       "type": "string"
+    },
+    "writeup": {
+      "additionalProperties": true,
+      "description": "Full concept brief: { pitch, who_for, problem, wedge, features[{name, detail, phase}], competitors[{name, url, note}], mvp[], monetization, risks[], sources[{title,url}] }",
+      "type": "object"
     }
   },
   "required": [

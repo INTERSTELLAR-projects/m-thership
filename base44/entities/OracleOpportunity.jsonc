@@ -1,0 +1,120 @@
+{
+  "description": "Future Oracle opportunities feed, ranked for Interstellar. Justin clicks Send to Idea Vault; the oracle never creates Ideas itself. Admin only.",
+  "name": "OracleOpportunity",
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "effort": {
+      "enum": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "type": "string"
+    },
+    "finding_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "fit_score": {
+      "description": "0..100 fit for Interstellar",
+      "type": "number"
+    },
+    "idea_id": {
+      "type": "string"
+    },
+    "rank": {
+      "type": "number"
+    },
+    "revenue_band_estimate": {
+      "description": "Labeled estimate with reasoning",
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "properties": {
+          "published_date": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "status": {
+      "default": "new",
+      "enum": [
+        "new",
+        "sent_to_vault",
+        "dismissed"
+      ],
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "topic_key": {
+      "enum": [
+        "ai_industry",
+        "tech",
+        "jobs_labor",
+        "industries",
+        "economy",
+        "markets",
+        "politics_policy",
+        "home_service_local",
+        "marketing_platforms",
+        "robotics_autonomy",
+        "future_signals",
+        "opportunities"
+      ],
+      "type": "string"
+    },
+    "why_now": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}
