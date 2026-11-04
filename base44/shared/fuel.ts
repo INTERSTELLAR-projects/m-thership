@@ -476,6 +476,8 @@ export async function resumeClient(db: Db, client: Client, reason: string, cfg?:
       if (units > left + buffer) { out.campaigns_waiting++; continue; }
       // Meter it now (allowance first, then wallet), then hand it back to the drain job.
       await meterUnits(db, client, "marketing_email", units, { model: "ses", est_cost_usd: units * (cfg.costs.ses_per_1000 / 1000), feature: "email.campaign.resumed", campaign_id: c.id }, cfg);
+      const held = ((await db.EmailSendBatch.filter({ campaign_id: c.id, status: "held" }, "created_date", 200).catch(() => [])) || []) as any[];
+      for (const b of held) await db.EmailSendBatch.update(b.id, { status: "pending" }).catch(() => null);
       await db.EmailCampaign.update(c.id, { status: "queued", metered: true }).catch(() => null);
       left -= units; out.campaigns_resumed++;
     }
