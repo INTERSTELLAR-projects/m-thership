@@ -40,6 +40,8 @@ export const planUnlocksStudios = (client) => planOf(client) === "hypercare" || 
 export function planOf(client) {
   const forced = client?.usage_overrides?.plan;
   if (forced && PLAN_CAPS[forced]) return forced;
+  // Canceled / ended care subscription (set by the Stripe sync): no plan, whatever the free text says.
+  if (client?.plan_status === "inactive") return "none";
   const managed = Array.isArray(client?.services_managed) ? client.services_managed : [];
   if (managed.includes("orbit_seo")) return "hypercare";
   if (managed.includes("website_care")) return "website";
