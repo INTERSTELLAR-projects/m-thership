@@ -151,12 +151,15 @@ function build() {
   const subscriptions = active.map((c, i) => {
     const mrr = c.services.reduce((s, v) => s + v.price, 0);
     const started = ago(Math.round(20 + (i / active.length) * 520 + ri(0, 25)));
-    return { id: `sub_${i}`, status: "active", started, ended: null, mrr, client: { id: c.id, name: c.business }, customer: { id: `cus_${i}`, name: c.business }, items: c.services.map((s) => ({ name: s.name, amount: s.price, interval: "month" })) };
+    return { id: `sub_${i}`, status: "active", started, ended: null, mrr, current_period_end: ahead(ri(1, 28)), client: { id: c.id, name: c.business, business: c.business }, customer: { id: `cus_${i}`, name: c.business }, lines: c.services.map((s) => ({ name: s.name, amount: s.price })), items: c.services.map((s) => ({ name: s.name, amount: s.price, interval: "month" })) };
   });
   // a handful of churned subs so the movement chart has texture
-  for (let i = 0; i < 9; i++) subscriptions.push({ id: `sub_x${i}`, status: "canceled", started: ago(400 - i * 20), ended: ago(200 - i * 18), mrr: [750, 1100, 1750, 2450][i % 4], client: { id: `x${i}`, name: "Former client" }, customer: { id: `cusx${i}` }, items: [] });
+  for (let i = 0; i < 9; i++) subscriptions.push({ id: `sub_x${i}`, status: "canceled", started: ago(400 - i * 20), ended: ago(200 - i * 18), mrr: [750, 1100, 1750, 2450][i % 4], client: null, customer: { id: `cusx${i}`, name: "Former client" }, lines: [], items: [] });
   const mrrNow = subscriptions.filter((s) => s.status === "active").reduce((a, s) => a + s.mrr, 0);
-  const stripeSubs = { configured: true, subscriptions, month: { key: monthKey(NOW), subscriptions: Math.round(mrrNow * 0.83) }, mrr: mrrNow, customers: active.length };
+  const hc = active.filter((c) => /HyperCare/.test(c.services[0].name)); const gc = active.filter((c) => /Gravïty/.test(c.services[0].name));
+  const sumMrr = (arr) => arr.reduce((a, c) => a + c.services.reduce((x, v) => x + v.price, 0), 0);
+  const cur = months[11];
+  const stripeSubs = { configured: true, subscriptions: subscriptions.filter((x) => x.status === "active"), plans: { hypercare: { count: hc.length, mrr: sumMrr(hc) }, gravitycare: { count: gc.length, mrr: sumMrr(gc) }, mission: { count: 6, mrr: 8400 } }, month: { key: monthKey(NOW), subscriptions: Math.round(mrrNow * 0.83), invoices: Math.round(active.length * 0.83), other: Math.max(0, cur.collected - Math.round(mrrNow * 0.83)), collected: cur.collected, fees: cur.fees, capital: 0, net: cur.net }, mrr: mrrNow, customers: active.length, history: subscriptions };
 
   // Accounting & Taxes ledger: this tax year's deposits and spend at the same scale.
   const LB = { business_id: "interstellar", tax_year: Y };
