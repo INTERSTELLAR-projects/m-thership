@@ -1,0 +1,47 @@
+{
+  "name": "Fuel \u2014 resume paused queues",
+  "description": "Daily just after midnight Pacific: clients who were out of fuel and have fuel again (monthly reset on the 1st, or a Refuel the webhook didn't already resume) get their paused posts moved to the next valid slots (spaced out, never a burst) and their paused email campaigns released in order. One run a day; does nothing when nobody is paused.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "7 0 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "fuel_resume_due",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "resume_due": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "fuel",
+            "args": {
+              "action": "resume_due"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Resume paused clients",
+            "description": "Fuel back after reset or refuel"
+          }
+        }
+      }
+    ]
+  }
+}
