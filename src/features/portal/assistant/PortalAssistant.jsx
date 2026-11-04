@@ -76,6 +76,14 @@ function useConversation(previewId, admin = !!previewId) {
     const optimistic = { id: `local-${Date.now()}`, role: "user", content, local: true };
     setMessages((m) => [...m, optimistic]);
     try {
+      // Fuel: each Nøva message is one AI action (every plan; GravïtyCare / Website-only have a small Nøva-only
+      // allowance). Admin previews are never metered. If the meter itself is unreachable, Nøva still answers.
+      const tick = await base44.functions.invoke("fuel", { action: "nova_tick", client_id: previewId }).then((r) => r?.data).catch(() => null);
+      if (tick && tick.ok === false) {
+        setMessages((m) => m.filter((x) => x.id !== optimistic.id));
+        setError(tick.code === "out_of_fuel" ? `You're out of fuel for this month. Nøva is back on ${tick.reset_label || "the 1st"}, or Refuel from Studios.` : (tick.reason || "Nøva isn't available right now."));
+        return false;
+      }
       let c = conv;
       if (!c) {
         c = await base44.agents.createConversation({
