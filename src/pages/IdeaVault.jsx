@@ -488,7 +488,7 @@ Category: ${idea.category}`;
                         <section key={b.key}>
                           <div className="mb-2 flex items-center gap-3">
                             {b.key === "U" ? <span className="mono-label text-[10px] text-ink/45">Unscored</span> : <TierChip score={TIERS.find((t) => t.key === b.key).min} className="!text-[11px] !px-2" />}
-                            <span className="mono-label text-[10px] text-ink/50">{b.label.replace(/^[SABC] · /, "")}</span>
+                            {b.key !== "U" && <span className="mono-label text-[10px] text-ink/50">{b.label.replace(/^[SABC] · /, "")}</span>}
                             <span className="h-px flex-1 bg-hair" />
                             <span className="mono-label text-[9.5px] text-ink/35">{items.length}</span>
                           </div>
