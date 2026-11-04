@@ -101,7 +101,7 @@ function Node({ n, k, selected, dim, showLabel, query }) {
         <circle r={n.r + 12} className="ring-h" />
         <circle r={n.r + 16} className="hit" />
         <text className="lbl" y={n.r + 52 * ls} textAnchor="middle" style={{ fontSize: 12 * ls, fontWeight: 600 }}>{short(n.label, 26)}</text>
-        <text className="lbl sub" y={n.r + 67 * ls} textAnchor="middle" style={{ fontSize: 9.5 * ls }}>{c.live || 0} LIVE · {c.planned || 0} PLANNED · BRAIN {pct}%</text>
+        <text className="lbl sub" y={n.r + 67 * ls} textAnchor="middle" style={{ fontSize: 9.5 * ls }}>{c.live || 0} LIVE · BRAIN {pct}%</text>
       </g>
     );
   }
