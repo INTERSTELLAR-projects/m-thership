@@ -212,27 +212,61 @@
     },
     "studios": {
       "type": "object",
-      "description": "Client portal Studios switched on for this client (all OFF by default; Justin turns them on per client in Client usage).",
+      "description": "Client portal Studio states per client: off (hidden), preview (visible, locked; default), on (usable). Missing key = preview. Set in Møthership > Client usage.",
       "properties": {
         "social": {
-          "type": "boolean",
-          "default": false
+          "type": "string",
+          "enum": [
+            "off",
+            "preview",
+            "on"
+          ],
+          "default": "preview"
         },
         "email": {
-          "type": "boolean",
-          "default": false
+          "type": "string",
+          "enum": [
+            "off",
+            "preview",
+            "on"
+          ],
+          "default": "preview"
         },
         "ads": {
-          "type": "boolean",
-          "default": false
+          "type": "string",
+          "enum": [
+            "off",
+            "preview",
+            "on"
+          ],
+          "default": "preview"
         },
         "accounting": {
-          "type": "boolean",
-          "default": false
+          "type": "string",
+          "enum": [
+            "off",
+            "preview",
+            "on"
+          ],
+          "default": "preview"
         },
         "hiring": {
-          "type": "boolean",
-          "default": false
+          "type": "string",
+          "enum": [
+            "off",
+            "preview",
+            "on"
+          ],
+          "default": "preview"
+        },
+        "presentations": {
+          "type": "string",
+          "enum": [
+            "off",
+            "preview",
+            "on"
+          ],
+          "default": "preview"
         }
       },
       "additionalProperties": false
