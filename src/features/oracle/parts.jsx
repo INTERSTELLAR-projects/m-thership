@@ -55,13 +55,16 @@ export function Sources({ sources, max = 4, className = "" }) {
   );
 }
 
-export function Stat({ s, big = false }) {
+// plain: render without its own link (for use inside another link, e.g. a topic tile); the source still shows.
+export function Stat({ s, big = false, plain = false }) {
   if (!s) return null;
+  const Tag = plain ? "div" : "a";
+  const linkProps = plain ? {} : { href: s.source_url, target: "_blank", rel: "noreferrer", onClick: (e) => e.stopPropagation() };
   return (
-    <a href={s.source_url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title={`${s.source_title || host(s.source_url)} · ${s.date}`} className="group block">
+    <Tag {...linkProps} title={`${s.source_title || host(s.source_url)} · ${s.date}`} className="group block">
       <span className={`block font-semibold tabular-nums tracking-[-0.03em] text-white ${big ? "text-[30px] leading-none" : "text-[17px]"}`}>{s.display || `${s.value}${s.unit ? ` ${s.unit}` : ""}`}</span>
       <span className="mt-1 block text-[11px] leading-snug text-white/55 group-hover:text-white/80">{s.label} <span className="text-white/35">· {s.date} · {host(s.source_url)}</span></span>
-    </a>
+    </Tag>
   );
 }
 
