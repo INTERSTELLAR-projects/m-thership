@@ -92,4 +92,9 @@ export const studiosOf = (client: Client) => {
 };
 export const anyStudioOn = (client: Client) => Object.values(studiosOf(client)).some(Boolean);
 
-export const monthKey = (d = new Date()) => d.toISOString().slice(0, 7);
+// Months roll over on Justin's clock (Pacific), so "until next month" means the 1st in Molalla.
+export const monthKey = (d = new Date()) => {
+  const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit" }).formatToParts(d);
+  return `${p.find((x) => x.type === "year")?.value}-${p.find((x) => x.type === "month")?.value}`;
+};
+export const dayKeyLA = (d = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles" }).format(d);
