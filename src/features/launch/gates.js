@@ -94,6 +94,6 @@ export function rowTitle(g, r) {
 
 export async function approveRow(g, r) {
   if (g.bulk === "job") return approveJob(r);
-  if (g.bulk === "status") return base44.entities[g.entity].update(r.id, { ...g.approveTo, approved_at: new Date().toISOString() });
+  if (g.bulk === "status") return base44.entities[g.entity].update(r.id, { ...g.approveTo, ...(g.entity === "MapPackPlan" ? { approved_at: new Date().toISOString() } : {}) });
   throw new Error("This group must be reviewed where it lives.");
 }
