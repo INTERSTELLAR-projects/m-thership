@@ -4,8 +4,10 @@ import { resolveClient } from "../../shared/portalClient.ts";
 import { sesConfig, sesSendEmail, SesError } from "../../shared/ses.ts";
 import { clientUnsubscribeUrl, sesHookToken, normEmail } from "../../shared/emailUnsub.ts";
 import { inviteSettings } from "../../shared/portalInvite.ts";
-import { checkAndRecord } from "../../shared/meter.ts";
-import { studioState, MAX_FREE_LIST_SIZE, SES_COST_PER_EMAIL } from "../../shared/usagePlans.ts";
+import { check, record } from "../../shared/meter.ts";
+import { studioState, planUnlocksStudios, MAX_FREE_LIST_SIZE, SES_COST_PER_EMAIL } from "../../shared/usagePlans.ts";
+import { markOutOfFuel, loadFuelConfig } from "../../shared/fuel.ts";
+import { getSecret } from "../../shared/portalClient.ts";
 
 // Client Studios bulk / marketing email through Amazon SES (our AWS account, each client's own verified domain).
 // Base44 SendEmail stays in use for 1:1 and system mail (email-studio, invites, alerts). Nobody ever sees another
@@ -20,8 +22,12 @@ import { studioState, MAX_FREE_LIST_SIZE, SES_COST_PER_EMAIL } from "../../share
 //   suppressions / suppress / unsuppress           per-client do-not-send list (portal: own client; admin: any)
 //   POST ?hook=<token>                             SES -> SNS bounce / complaint notifications (no login; token-gated)
 //
-// Portal users act only for their own client, only when Email Studio is "on" for them, within the plan's monthly
-// marketing-email cap and the 25,000-contact list limit. Admin sends are never capped (recorded as by_admin).
+// Portal users act only for their own client, only on HyperCare+ with Email Studio "on", within the plan's monthly
+// marketing-email fuel (allowance + Refuel wallet) and the 25,000-contact list limit. Admin sends are never capped.
+// Batching: ONE function invocation per campaign (all recipients queued as 500-recipient EmailSendBatch rows), then
+// the 5-minute drain job; never one invocation per recipient. SES itself gets one SendEmail per recipient (privacy).
+// Out of fuel: a campaign that doesn't fit is saved as "paused" (batches "held", not metered) and resumes in order
+// after a Refuel or the monthly reset (fuel.ts resumeClient). A campaign already sending always finishes.
 // If SES secrets are missing, client marketing sends are disabled with a clear message.
 
 const BATCH = 500;
@@ -76,6 +82,7 @@ async function drain(db: any, onlyCampaign?: string) {
     if (Date.now() - started > TIME_BUDGET_MS || throttled) break;
     const camp = campaigns[b.campaign_id] ||= await db.EmailCampaign.get(b.campaign_id).catch(() => null);
     if (!camp || camp.status === "cancelled") { await db.EmailSendBatch.update(b.id, { status: "failed" }).catch(() => null); continue; }
+    if (camp.status === "paused") { await db.EmailSendBatch.update(b.id, { status: "held" }).catch(() => null); continue; }
     const client = clients[b.client_id] ||= await db.CRMClient.get(b.client_id).catch(() => null);
     if (!client) continue;
     await db.EmailSendBatch.update(b.id, { status: "sending", locked_at: new Date().toISOString(), attempts: (Number(b.attempts) || 0) + 1 });
@@ -200,6 +207,7 @@ Deno.serve(async (req) => {
 
     const client = await resolveClient(db, user, body?.client_id);
     if (!client) return Response.json({ error: isAdmin ? "Pick a client" : "No portal is set up for this login yet.", code: "no_client" }, { status: isAdmin ? 400 : 403 });
+    if (!isAdmin && !planUnlocksStudios(client)) return Response.json({ error: "Email Studio is included with HyperCare+. Ask us about upgrading from your portal.", code: "studios_locked" }, { status: 403 });
     if (!isAdmin && studioState(client, "email") !== "on") return Response.json({ error: "Email Studio isn't switched on for your account yet.", code: "studio_off" }, { status: 403 });
     const cid = String(client.id);
 
@@ -258,21 +266,29 @@ Deno.serve(async (req) => {
       if (!queue.length) return Response.json({ error: "No one left to send to: every address is invalid, a duplicate or on the do-not-send list." }, { status: 400 });
 
       const meta = { admin: isAdmin, model: "ses", est_cost_usd: queue.length * SES_COST_PER_EMAIL, feature: "email.campaign", user_email: user.email };
-      const m = await checkAndRecord(db, client, "marketing_email", queue.length, meta);
-      if (!m.ok) return Response.json({ error: m.reason, code: m.code, meter: m }, { status: 429 });
+      const m = await check(db, client, "marketing_email", queue.length, { admin: isAdmin, feature: "email.campaign" });
+      // Out of fuel (or not enough for this list): keep the campaign, paused in place, instead of refusing it.
+      const pause = !m.ok && (m.code === "out_of_fuel" || m.code === "insufficient_fuel");
+      if (!m.ok && !pause) return Response.json({ error: m.reason, code: m.code, meter: m }, { status: 429 });
 
       const camp = await db.EmailCampaign.create({
         client_id: cid, client_name: client.business, name: String(body?.name || subject).slice(0, 160), subject, html,
         text: String(body?.text || "").slice(0, 100_000), from_email: client.ses_from_email, from_name: String(body?.from_name || client.ses_from_name || client.business).slice(0, 120),
-        reply_to: client.ses_reply_to || "", status: "queued", total: queue.length, sent_count: 0, failed_count: 0, skipped_count: skipped,
+        reply_to: client.ses_reply_to || "", status: pause ? "paused" : "queued", total: queue.length, sent_count: 0, failed_count: 0, skipped_count: skipped,
         batches: Math.ceil(queue.length / BATCH), created_by: user.email, by_admin: isAdmin, created_at: new Date().toISOString(),
+        metered: !pause, ...(pause ? { fuel_paused_at: new Date().toISOString() } : {}),
       });
       for (let i = 0; i < queue.length; i += BATCH) {
-        await db.EmailSendBatch.create({ campaign_id: camp.id, client_id: cid, index: i / BATCH, recipients: queue.slice(i, i + BATCH), status: "pending", cursor: 0, sent: 0, failed: 0, errors: [], attempts: 0 });
+        await db.EmailSendBatch.create({ campaign_id: camp.id, client_id: cid, index: i / BATCH, recipients: queue.slice(i, i + BATCH), status: pause ? "held" : "pending", cursor: 0, sent: 0, failed: 0, errors: [], attempts: 0 });
       }
+      if (pause) {
+        if (m.code === "out_of_fuel") await markOutOfFuel(db, client, "marketing_email", await loadFuelConfig(db), getSecret("STRIPE_SECRET_KEY") || null).catch(() => null);
+        return Response.json({ ok: true, paused: true, campaign_id: camp.id, queued: queue.length, skipped, status: "paused", code: m.code, message: m.reason, meter: { used: m.used, cap: m.cap, left: m.left, wallet: m.wallet } });
+      }
+      await record(db, client, "marketing_email", queue.length, { ...meta, campaign_id: camp.id });
       const run = await drain(db, camp.id).catch((e) => ({ ok: false, error: (e as Error).message }));
       const now = await db.EmailCampaign.get(camp.id).catch(() => camp);
-      return Response.json({ ok: true, campaign_id: camp.id, queued: queue.length, skipped, status: now?.status, sent_so_far: now?.sent_count || 0, run, meter: { used: m.used, cap: m.cap } });
+      return Response.json({ ok: true, campaign_id: camp.id, queued: queue.length, skipped, status: now?.status, sent_so_far: now?.sent_count || 0, run, meter: { used: m.used + (isAdmin ? 0 : queue.length), cap: m.cap } });
     }
 
     return Response.json({ error: "Unknown action" }, { status: 400 });
