@@ -112,7 +112,8 @@ const sortBy = (arr, sort) => {
 
 function entityApi(name) {
   return {
-    list: async (sort, limit) => sortBy(rows(name), sort).slice(0, limit || 500),
+    // Some callers pass list({ sort, limit }) and read `.items`: support both shapes.
+    list: async (sort, limit) => { const o = sort && typeof sort === "object" ? sort : { sort, limit }; const out = sortBy(rows(name), o.sort).slice(0, o.limit || 500); out.items = out; return out; },
     filter: async (q, sort, limit) => sortBy(rows(name).filter((r) => matches(r, q)), typeof sort === "object" ? sort?.sort : sort).slice(0, (typeof sort === "object" ? sort?.limit : limit) || 500),
     aggregate: async () => [],
     count: async (q) => rows(name).filter((r) => matches(r, q || {})).length,
