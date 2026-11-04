@@ -1,0 +1,85 @@
+{
+  "description": "One client's monthly blog Topic Calendar. Justin approves it once per client per month (Road to Dec 31 > Approvals); after that the month's posts draft and publish into the client's Base44 site blog on their own. A post counts as published only after Claude verified it on the client's live blog index (posts[].verified_live_at). Admin only.",
+  "name": "TopicCalendar",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "month": {
+      "description": "YYYY-MM (Pacific)",
+      "type": "string"
+    },
+    "status": {
+      "default": "draft",
+      "enum": [
+        "draft",
+        "approved",
+        "changes_requested",
+        "superseded"
+      ],
+      "type": "string"
+    },
+    "topics": {
+      "description": "[{ title, slug, primary_keyword, intent, city, angle, publish_on (YYYY-MM-DD), job_id, state: planned|queued|drafting|published_unverified|verified_live|failed, live_url, verified_live_at }]",
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "site": {
+      "additionalProperties": true,
+      "description": "Where posts publish: { app_id, mode: entity|file, entity, domain, blog_index }",
+      "type": "object"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "source_job_id": {
+      "type": "string"
+    },
+    "engine_start_id": {
+      "type": "string"
+    },
+    "approved_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id",
+    "month"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}
