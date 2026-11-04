@@ -95,32 +95,34 @@ export function buildDeptView({ dept, agents }) {
   const edges = [];
   const rootId = `d:${dept.key}`;
   nodes.push({ id: rootId, type: "dept", label: dept.label, code: dept.code, x: 0, y: 0, r: 18, dept: dept.key, counts: countStatus(agents), big: true });
+  // A canopy: each branch gets its own block of columns; leaves stack in zig-zag columns above it,
+  // arched so the tree reads like the reference (root at the bottom, name under the root).
   const groups = groupLeaves(agents);
-  const leaves = groups.flatMap((g) => g.agents.map((a) => ({ a, g })));
-  const n = leaves.length;
-  const tiers = n > 14 ? 3 : n > 6 ? 2 : 1;
-  const arc = n <= 3 ? 70 : n <= 8 ? 120 : 156;
-  const start = -90 - arc / 2;
-  const step = n > 1 ? arc / (n - 1) : 0;
-  const base = Math.max(300, Math.min(520, 220 + n * 9));
-  const branchAngles = new Map();
-  leaves.forEach(({ a, g }, idx) => {
-    const ang = n > 1 ? start + step * idx : -90;
-    const r = base + (idx % tiers) * 92;
-    const p = polar(r, ang);
-    nodes.push(agentNode(a, p.x, p.y, { showLabel: true }));
+  const n = agents.length;
+  const rows = n > 28 ? 5 : n > 18 ? 4 : n > 10 ? 3 : n > 5 ? 2 : 1;
+  const colW = 172, rowH = 84, gapW = 40;
+  const blocks = groups.map((g) => ({ g, cols: Math.max(1, Math.ceil(g.agents.length / rows)) }));
+  const totalW = blocks.reduce((s, b) => s + b.cols * colW, 0) + gapW * Math.max(0, blocks.length - 1);
+  const half = Math.max(totalW / 2, 1);
+  const leafBase = groups.some((g) => g.branch) ? 250 : 190;
+  const arch = (x) => 70 * (1 - Math.min(1, (x / (half + colW)) ** 2));
+  let x0 = -totalW / 2;
+  blocks.forEach(({ g, cols }) => {
+    const blockW = cols * colW;
+    const cx = x0 + blockW / 2;
+    const bId = g.branch ? `b:${dept.key}:${g.branch}` : rootId;
     if (g.branch) {
-      const list = branchAngles.get(g.branch) || [];
-      list.push(ang);
-      branchAngles.set(g.branch, list);
-      edges.push({ from: `b:${dept.key}:${g.branch}`, to: `a:${a.key}` });
-    } else edges.push({ from: rootId, to: `a:${a.key}` });
-  });
-  branchAngles.forEach((angs, b) => {
-    const ang = angs.reduce((s, x) => s + x, 0) / angs.length;
-    const p = polar(base * 0.52, ang);
-    nodes.push({ id: `b:${dept.key}:${b}`, type: "branch", label: b, x: p.x, y: p.y, r: 5, dept: dept.key, showLabel: true });
-    edges.push({ from: rootId, to: `b:${dept.key}:${b}` });
+      nodes.push({ id: bId, type: "branch", label: g.branch, x: cx * 0.55, y: -150 - arch(cx) * 0.4, r: 5, dept: dept.key, showLabel: true });
+      edges.push({ from: rootId, to: bId });
+    }
+    g.agents.forEach((a, i) => {
+      const col = Math.floor(i / rows), row = i % rows;
+      const x = x0 + colW / 2 + col * colW;
+      const y = -(leafBase + row * rowH + (col % 2) * (rowH / 2)) - arch(x);
+      nodes.push(agentNode(a, x, y, { showLabel: true, wrap: true }));
+      edges.push({ from: bId, to: `a:${a.key}` });
+    });
+    x0 += blockW + gapW;
   });
   return { nodes, edges };
 }
