@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Fuel, Loader2, Save, Settings2, FlaskConical, Gift } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { Panel, Tag, Stat } from "@/features/clients/ui";
+import { base44 } from "@/api/base44Client";
 import { fuelCall } from "./useFuel";
 
 const usd = (n, d = 2) => `$${(Number(n) || 0).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d })}`;
@@ -178,7 +179,7 @@ function Settings() {
 }
 
 function Tools() {
-  const q = useQuery({ queryKey: ["client-usage", "overview"], queryFn: async () => (await import("@/api/base44Client")).base44.functions.invoke("usage", { action: "overview" }).then((r) => r.data), staleTime: 60_000 });
+  const q = useQuery({ queryKey: ["client-usage", "overview"], queryFn: async () => (await base44.functions.invoke("usage", { action: "overview" })).data, staleTime: 60_000 });
   const clients = useMemo(() => (q.data?.clients || []).map((c) => ({ id: c.id, business: c.business })), [q.data]);
   const [cid, setCid] = useState("");
   const [pack, setPack] = useState("refuel");
