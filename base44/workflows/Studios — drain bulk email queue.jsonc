@@ -1,0 +1,43 @@
+{
+  "name": "Studios \u2014 drain bulk email queue",
+  "description": "Every 5 minutes: sends the next queued batches of client Studios marketing email through Amazon SES (rate-limited, one email per recipient, suppression list respected). Does nothing when the queue is empty or SES isn't configured.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/5 * * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "then": "end",
+          "with": {
+            "args": {
+              "action": "drain"
+            },
+            "function_name": "email-bulk"
+          }
+        }
+      }
+    ],
+    "document": {
+      "dsl": "1.0.0",
+      "name": "studios_drain_bulk_email",
+      "namespace": "base44",
+      "version": "1.0"
+    }
+  }
+}
