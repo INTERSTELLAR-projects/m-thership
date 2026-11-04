@@ -1,0 +1,84 @@
+{
+  "description": "Per-client fuel state for Studios (one row per client): out-of-fuel pause flags and the client's optional Auto-refuel opt-in (off by default). Written only by backend functions through base44/shared/fuel.ts.",
+  "name": "ClientFuel",
+  "properties": {
+    "auto_refuel_enabled": {
+      "default": false,
+      "type": "boolean"
+    },
+    "auto_refuel_monthly_ceiling_usd": {
+      "default": 0,
+      "type": "number"
+    },
+    "auto_refuel_pack": {
+      "default": "refuel",
+      "type": "string"
+    },
+    "auto_refuel_set_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "auto_refuel_set_by": {
+      "type": "string"
+    },
+    "auto_refuel_spent": {
+      "additionalProperties": true,
+      "description": "{ 'YYYY-MM': dollars charged by Auto-refuel that month }",
+      "type": "object"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "last_resume_reason": {
+      "type": "string"
+    },
+    "last_resumed_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "paused_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "paused_kinds": {
+      "description": "Usage kinds that are out of fuel right now (ai_action, marketing_email). Queued posts / campaigns for a paused kind wait in place.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "paused_month": {
+      "description": "YYYY-MM the pause started (Pacific)",
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

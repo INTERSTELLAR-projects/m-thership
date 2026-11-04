@@ -1,0 +1,126 @@
+{
+  "description": "Refuel wallet: one row per one-time credit pack bought by a client (Stripe Checkout, payment mode). Each row is a wallet lot: purchased amounts, what has been used, and when it expires (12 months). Lots are drawn soonest-expiring first, only after the monthly plan allowance is used up, and roll over month to month. Written only by backend functions (fuel, stripeWebhook) through base44/shared/fuel.ts.",
+  "name": "CreditPurchase",
+  "properties": {
+    "ai_actions": {
+      "default": 0,
+      "description": "AI actions purchased",
+      "type": "number"
+    },
+    "ai_used": {
+      "default": 0,
+      "type": "number"
+    },
+    "buyer_email": {
+      "type": "string"
+    },
+    "client_id": {
+      "description": "CRMClient id",
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "emails": {
+      "default": 0,
+      "description": "Marketing emails purchased",
+      "type": "number"
+    },
+    "emails_used": {
+      "default": 0,
+      "type": "number"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "media_credits": {
+      "default": 0,
+      "description": "Reserved for future Simple Social media credits (disabled)",
+      "type": "number"
+    },
+    "media_used": {
+      "default": 0,
+      "type": "number"
+    },
+    "note": {
+      "type": "string"
+    },
+    "pack_key": {
+      "description": "refuel | big_refuel (see Fuel economics settings)",
+      "type": "string"
+    },
+    "pack_label": {
+      "type": "string"
+    },
+    "price_usd": {
+      "default": 0,
+      "type": "number"
+    },
+    "purchased_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "source": {
+      "description": "mock = test payload (never a real charge); admin = granted by Justin",
+      "enum": [
+        "stripe",
+        "auto_refuel",
+        "mock",
+        "admin"
+      ],
+      "type": "string"
+    },
+    "status": {
+      "default": "active",
+      "enum": [
+        "active",
+        "used_up",
+        "expired",
+        "refunded"
+      ],
+      "type": "string"
+    },
+    "stripe_payment_intent": {
+      "type": "string"
+    },
+    "stripe_session_id": {
+      "description": "Checkout Session id: the idempotency key for webhook crediting",
+      "type": "string"
+    },
+    "test": {
+      "default": false,
+      "description": "true for mocked test credits: excluded from refuel revenue",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "client_id",
+    "pack_key",
+    "purchased_at",
+    "expires_at"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

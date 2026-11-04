@@ -19,7 +19,8 @@
       "enum": [
         "ai_action",
         "marketing_email",
-        "ads_run"
+        "ads_run",
+        "media_credit"
       ]
     },
     "units": {
@@ -53,6 +54,18 @@
     },
     "campaign_id": {
       "type": "string"
+    },
+    "calls": {
+      "type": "number",
+      "description": "Raw model calls behind this row (units are weighted: Haiku 1, Sonnet 3, large agent run 5; see Fuel economics settings)"
+    },
+    "wallet_units": {
+      "type": "number",
+      "description": "Units drawn from purchased Refuel credits (after the monthly allowance ran out)"
+    },
+    "absorbed_units": {
+      "type": "number",
+      "description": "Overshoot absorbed by Interstellar when an in-progress item finished past zero fuel (up to the buffer, 3% of the cap)"
     },
     "created_at": {
       "type": "string",
