@@ -17,6 +17,8 @@ function short(s, n) { const t = String(s || ""); return t.length > n ? `${t.sli
 
 // Two lines of at most about `n` characters, breaking on spaces.
 function wrap2(s, n) {
+  const dot = String(s || "").split(" · ");
+  if (dot.length === 2) return dot.map((l) => short(l, n + 2));
   const words = String(s || "").split(" ");
   const lines = [""];
   for (const w of words) {
@@ -151,7 +153,7 @@ function star(R, r, n) {
   return pts.join(" ");
 }
 
-export default function Constellation({ graph, viewKey, selectedId, onSelect, onHover, isMatch, query = "", labelsAlways = false }) {
+export default function Constellation({ graph, viewKey, selectedId, onSelect, onHover, isMatch, query = "", labelsAlways = false, padRight = 0 }) {
   const wrap = useRef(null);
   const svg = useRef(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -166,10 +168,12 @@ export default function Constellation({ graph, viewKey, selectedId, onSelect, on
   const fit = useCallback((animate = true) => {
     if (!size.w || !size.h) return;
     const b = bbox(graph.nodes);
-    const k = clamp(Math.min(size.w / b.w, size.h / b.h), K_MIN, 1.6);
+    // Leave room for an open side panel on wide screens so the map centers in what is still visible.
+    const w = size.w >= 768 ? Math.max(320, size.w - padRight) : size.w;
+    const k = clamp(Math.min(w / b.w, size.h / b.h), K_MIN, 1.6);
     setInstant(!animate);
-    setT({ k, x: size.w / 2 - (b.x + b.w / 2) * k, y: size.h / 2 - (b.y + b.h / 2) * k });
-  }, [graph, size]);
+    setT({ k, x: w / 2 - (b.x + b.w / 2) * k, y: size.h / 2 - (b.y + b.h / 2) * k });
+  }, [graph, size, padRight]);
 
   useEffect(() => {
     const el = wrap.current;
@@ -183,7 +187,7 @@ export default function Constellation({ graph, viewKey, selectedId, onSelect, on
   const lastFit = useRef("");
   useEffect(() => {
     if (!size.w) return;
-    const key = `${viewKey}|${Math.round(size.w / 40)}|${Math.round(size.h / 40)}`;
+    const key = `${viewKey}|${Math.round(size.w / 40)}|${Math.round(size.h / 40)}|${padRight}`;
     if (lastFit.current === key) return;
     const first = !lastFit.current;
     lastFit.current = key;
