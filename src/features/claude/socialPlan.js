@@ -6,6 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { STANDING_RULES } from "./jobs";
 import { loadClientContext, contextToBrief } from "@/features/clients/clientContext";
 import { loadAgencyKnowledge, agencyBlock } from "@/features/agency/knowledge";
+import { hookBrief } from "@/features/social/brand";
 
 export const SOCIAL_PLAN_CONTEXT = "social_plan";
 
