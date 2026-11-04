@@ -25,9 +25,11 @@
         "pending",
         "sending",
         "done",
-        "failed"
+        "failed",
+        "held"
       ],
-      "default": "pending"
+      "default": "pending",
+      "description": "held = the campaign is paused (client out of fuel); set back to pending when it resumes"
     },
     "cursor": {
       "type": "number",
