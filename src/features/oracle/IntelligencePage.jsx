@@ -350,19 +350,27 @@ function Ask({ findings }) {
 }
 
 function OracleAnswer({ text, map }) {
-  const cited = [...new Set((String(text).match(/\[F\d+\]/g) || []).map((x) => x.slice(1, -1)))].filter((k) => map?.[k]);
-  const parts = String(text).split(/(\[F\d+\])/g);
+  // Citations come as [F3] or [F3, F7]; render each id as a link to its first source.
+  const cited = [...new Set(String(text).match(/F\d+/g) || [])].filter((k) => map?.[k]);
+  const parts = String(text).split(/(\[F\d+(?:\s*,\s*F\d+)*\])/g);
   return (
     <div className="flex gap-2.5">
       <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md flame-bg"><Radar className="h-3.5 w-3.5 text-white" /></span>
       <div className="min-w-0 flex-1">
         <div className="whitespace-pre-wrap text-[13.5px] leading-relaxed text-white/85">
           {parts.map((p, i) => {
-            const m = p.match(/^\[(F\d+)\]$/);
-            if (!m) return <span key={i}>{p.replace(/\*\*/g, "")}</span>;
-            const f = map?.[m[1]];
-            const url = f?.sources?.[0]?.url;
-            return url ? <a key={i} href={url} target="_blank" rel="noreferrer" title={f.headline} className="mx-0.5 rounded bg-[#ff6a00]/15 px-1 text-[11px] font-semibold text-[#ffaa00] hover:bg-[#ff6a00]/30">{m[1]}</a> : <span key={i} className="text-white/40">{p}</span>;
+            if (!/^\[F\d+(?:\s*,\s*F\d+)*\]$/.test(p)) return <span key={i}>{p.replace(/\*\*/g, "")}</span>;
+            return (
+              <span key={i}>
+                {p.match(/F\d+/g).map((id) => {
+                  const f = map?.[id];
+                  const url = f?.sources?.[0]?.url;
+                  return url
+                    ? <a key={id} href={url} target="_blank" rel="noreferrer" title={f.headline} className="mx-0.5 rounded bg-[#ff6a00]/15 px-1 text-[11px] font-semibold text-[#ffaa00] hover:bg-[#ff6a00]/30">{id}</a>
+                    : <span key={id} className="mx-0.5 text-[11px] text-white/40">{id}</span>;
+                })}
+              </span>
+            );
           })}
         </div>
         {cited.length > 0 && (
