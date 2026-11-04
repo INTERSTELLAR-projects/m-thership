@@ -138,12 +138,12 @@ export function KitView({ kit, body }) {
         <Section title="Logo usage">
           <div className="flex flex-wrap items-start gap-5">
             {logo.primary_url && (
-              <div className="grid h-28 w-44 place-items-center rounded-md border border-hair bg-white p-3">
+              <div className="grid h-28 w-44 place-items-center rounded-md border border-hair bg-white p-3" style={logo.background ? { background: logo.background } : undefined}>
                 <img src={logo.primary_url} alt="Primary logo" className="max-h-full max-w-full object-contain" />
               </div>
             )}
             <div className="min-w-0 flex-1 space-y-3">
-              <Pairs obj={logo} skip={["primary_url", "variations", "misuse"]} />
+              <Pairs obj={logo} skip={["primary_url", "variations", "misuse", "background"]} />
               {asList(logo.variations).length > 0 && (
                 <ul className="space-y-1">
                   {logo.variations.map((v, i) => (
