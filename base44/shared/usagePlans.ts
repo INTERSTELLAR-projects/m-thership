@@ -1,8 +1,10 @@
-// Studios fair-use plans: one source of truth for the backend. Mirrored for the UI in src/features/usage/plans.js
-// (keep the two in sync). Decided in "Interstellar Platform Value & Plans" (2026-11):
-//   every Studio is free for clients on any plan, under monthly fair-use caps; no paid top-ups.
-//   80% -> Justin is alerted (in-app alert + Command Briefing task). 100% -> AI drafting / sends pause until next
-//   month. Nothing already created is ever locked.
+// Studios plans: plan detection + the base caps table. Mirrored for the UI in src/features/usage/plans.js
+// (keep the two in sync). UPDATED 2026-11-04 (Justin's decisions, numbers pending his final approval):
+//   Studios are HyperCare+ only. GravïtyCare and Website-only see locked previews and get a Nøva-only allowance.
+//   HyperCare+ caps scale with the tier (Local / National / Global + extra locations) and one-time "Refuel" packs
+//   top up a 12-month wallet. The live, editable numbers live in base44/shared/fuel.ts (DEFAULT_FUEL + Fuel
+//   economics settings); PLAN_CAPS below is only the fallback for code that has no config loaded.
+//   80% -> Justin is alerted. Allowance + wallet at 0 -> queued items pause in place until a Refuel or the reset.
 
 export type PlanKey = "hypercare" | "website" | "gravitycare" | "none";
 export type UsageKind = "ai_action" | "marketing_email" | "ads_run";
@@ -10,8 +12,9 @@ export type AdsCadence = "daily" | "weekly" | "none";
 
 export const PLAN_CAPS: Record<PlanKey, { label: string; ai_action: number; marketing_email: number; ads: AdsCadence }> = {
   hypercare: { label: "HyperCare+", ai_action: 1000, marketing_email: 25000, ads: "daily" },
-  website: { label: "Website-only", ai_action: 500, marketing_email: 10000, ads: "weekly" },
-  gravitycare: { label: "GravïtyCare", ai_action: 200, marketing_email: 2500, ads: "none" },
+  // Nøva-only allowance (Studios locked on these plans).
+  website: { label: "Website-only", ai_action: 50, marketing_email: 0, ads: "none" },
+  gravitycare: { label: "GravïtyCare", ai_action: 50, marketing_email: 0, ads: "none" },
   none: { label: "No care plan", ai_action: 0, marketing_email: 0, ads: "none" },
 };
 
