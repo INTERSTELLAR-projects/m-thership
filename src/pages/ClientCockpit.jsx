@@ -25,6 +25,7 @@ import ProfileMeter from "@/features/clients/ProfileMeter";
 import PortalInviteDialog from "@/features/clients/PortalInviteDialog";
 import { ClientRecentEmails, emailClientPath } from "@/features/email/ClientEmails";
 import { ClientUsageCard } from "@/features/usage/ClientUsagePage";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import EngineChecklist from "@/features/launch/EngineChecklist";
 
 const TABS = [
@@ -121,7 +122,7 @@ export default function ClientCockpit() {
       </div>
 
       <div key={tab} className="page-enter px-5 pt-6 md:px-8">
-        {tab === "overview" && <><EngineChecklist client={client} /><OverviewTab client={client} onEdit={() => setEditing(true)} go={go} /><ClientRecentEmails client={client} /><ClientUsageCard client={client} /></>}
+        {tab === "overview" && <><ErrorBoundary compact where="engine checklist"><EngineChecklist client={client} /></ErrorBoundary><OverviewTab client={client} onEdit={() => setEditing(true)} go={go} /><ErrorBoundary compact where="recent emails"><ClientRecentEmails client={client} /></ErrorBoundary><ErrorBoundary compact where="usage card"><ClientUsageCard client={client} /></ErrorBoundary></>}
         {tab === "constellations" && <ConstellationsTab client={client} />}
         {tab === "claude" && <ClientClaudeTab client={client} />}
         {tab === "work" && <WorkTab client={client} />}
