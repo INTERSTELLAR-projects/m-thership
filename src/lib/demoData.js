@@ -372,7 +372,7 @@ function build() {
   E.DeckProject = [{ id: "dp1", name: "Interstellar · Board & team", description: "Board reviews, all-hands, product", client: "Interstellar" }, { id: "dp2", name: "Client proposals & kickoffs", description: "Every Mission deck", client: "Clients" }, { id: "dp3", name: "Sales & product", description: "Pitches and roadmaps", client: "Interstellar" }];
 
   // ---------------- Hiring (trigger reads flights/projects/clients) ----------------
-  E.OnboardingFlight = active.slice(0, 18).map((c, i) => ({ id: `of${i}`, client_id: c.id, client_name: c.business, package_key: pick(["mission_alpha", "mission_bravo", "command_system", "custom_website"]), price: pick([8997, 6497, 5997, 4997]), start_date: ago(i * 3), status: i < 6 ? "collecting" : i < 12 ? "kicked_off" : "launched", care_plan: "orbit_national", current_step: "access" }));
+  E.OnboardingFlight = active.slice(0, 44).map((c, i) => ({ id: `of${i}`, client_id: c.id, client_name: c.business, sale_package: i % 6 === 5 ? "mission_bravo" : "mission_alpha", package_key: i % 6 === 5 ? "mission_bravo" : "mission_alpha", price: i % 6 === 5 ? 6497 : 8997, start_date: ago(Math.round(i * 4.1)), status: i < 6 ? "collecting" : i < 14 ? "kicked_off" : "launched", care_plan: "orbit_national", current_step: "access" }));
 
   // ---------------- Agents ----------------
   const DEPTS = ["command", "research", "sales", "marketing", "delivery", "success", "backoffice", "systems"];
