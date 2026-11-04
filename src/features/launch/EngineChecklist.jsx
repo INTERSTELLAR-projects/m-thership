@@ -1,9 +1,11 @@
 // Engine readiness card on the client dashboard (Overview tab). Four lights; when all are green a
-// "Start engine" button appears. Starting queues month 1 as drafts for approval (see engine.js).
+// "Start engine" button appears (and Claude presses it on its own: approval policy "notify"). Starting queues
+// month 1: the Topic Calendar, outreach, social plan and review requests (see engine.js). GBP posts show
+// "Waiting on Google API" until the Business Profile API is approved.
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Rocket, X, ArrowUpRight } from "lucide-react";
+import { Check, Rocket, X, ArrowUpRight, Clock } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { loadClientContext } from "@/features/clients/clientContext";
 import { engineChecklist, loadFacts, startEngine, cadenceOf, STREAMS } from "./engine";
@@ -76,8 +78,16 @@ export default function EngineChecklist({ client }) {
           ))}
         </ul>
       )}
+      <ul className="flex flex-wrap gap-x-4 gap-y-1 border-t border-hair px-4 py-2.5 text-[11.5px]">
+        {STREAMS.map((s) => (
+          <li key={s.key} className={`inline-flex items-center gap-1.5 ${s.state === "on" ? "text-ink/60" : "text-[#c24100]"}`}>
+            {s.state === "on" ? <Check className="h-3 w-3 text-[#ff3c00]" /> : <Clock className="h-3 w-3" />}
+            {s.label}{s.state !== "on" && <span className="font-medium"> · {s.waiting}</span>}
+          </li>
+        ))}
+      </ul>
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-hair px-4 py-2.5 text-[11.5px] text-ink/50">
-        <span>Cadence: {cad.blogs_per_month} blogs + {cad.gbp_per_month} GBP posts a month ({cad.source}). Everything queued ends as a draft for your approval.</span>
+        <span>Cadence: {cad.blogs_per_month} blogs a month ({cad.source}). You approve the month's Topic Calendar once; posts then publish on their own and count only once verified live.</span>
         <Link to="/launch" className="inline-flex items-center gap-1 hover:text-[#ff3c00]">Road to Dec 31 <ArrowUpRight className="h-3 w-3" /></Link>
       </div>
 
@@ -86,13 +96,12 @@ export default function EngineChecklist({ client }) {
           <div onMouseDown={(e) => e.stopPropagation()} className="w-full max-w-lg border border-hair bg-canvas shadow-2xl">
             <div className="px-5 py-4">
               <h3 className="text-[17px] font-semibold tracking-[-0.03em]">Start {client.business}'s <span className="text-[#ff3c00]">/engine</span></h3>
-              <p className="mt-2 text-[13px] text-ink/65">This queues month 1 for the Claude queue runner. Nothing is published, posted or sent; every item comes back to you for approval.</p>
+              <p className="mt-2 text-[13px] text-ink/65">This queues month 1 for the Claude queue runner. You approve the Topic Calendar once; outreach emails and anything public still come to you.</p>
               <ul className="mt-3 space-y-2">
                 {STREAMS.map((s) => (
                   <li key={s.key} className="border border-hair bg-card px-3 py-2">
-                    <p className="text-[13px] font-medium">{s.label}{s.key === "blog" ? ` × ${cad.blogs_per_month}` : s.key === "gbp" ? ` × ${cad.gbp_per_month}` : ""}</p>
+                    <p className="text-[13px] font-medium">{s.label}{s.key === "calendar" ? ` · ${cad.blogs_per_month} posts` : ""}{s.state !== "on" && <span className="ml-1 text-[#c24100]">· {s.waiting}</span>}</p>
                     <p className="text-[11.5px] text-ink/55">{s.how}</p>
-                    <p className="mt-0.5 text-[11.5px] text-[#c23000]">Open question: {s.iffy}</p>
                   </li>
                 ))}
               </ul>
