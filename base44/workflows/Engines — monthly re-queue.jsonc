@@ -1,0 +1,43 @@
+{
+  "name": "Engines \u2014 monthly re-queue",
+  "description": "Daily at 6:12 AM PT: for every started client engine whose next cycle date has come (the 1st of each month), queues that month's Topic Calendar (Justin approves once), outreach research + drafts, social plan and review-request drafts. GBP posts are recorded as waiting on the Google API. Idempotent; never sends or publishes. Function: launch / requeue_engines.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "12 6 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "then": "end",
+          "with": {
+            "args": {
+              "action": "requeue_engines"
+            },
+            "function_name": "launch"
+          }
+        }
+      }
+    ],
+    "document": {
+      "dsl": "1.0.0",
+      "name": "engines_monthly_requeue",
+      "namespace": "base44",
+      "version": "1.0"
+    }
+  }
+}
