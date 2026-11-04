@@ -10,7 +10,7 @@ export const AGENTS_KEY = ["agents-constellation"];
 async function loadAll() {
   const since = new Date(Date.now() - 30 * 864e5).toISOString();
   const E = base44.entities;
-  const [registry, learnings, notes, briefs, brains, clients, runs, prefs] = await Promise.all([
+  const [registry, learnings, notes, briefs, brains, clients, runs, prefs, agency] = await Promise.all([
     safe(E.AgentRegistry.list("sort", 1500)),
     safe(E.AgentLearning.list("-created_date", 300)),
     safe(E.ResearchNote.list("-created_date", 300)),
@@ -19,8 +19,9 @@ async function loadAll() {
     safe(E.CRMClient.filter({ status: "Active" }, "business", 200)),
     safe(E.AutomationRun.filter({ started_at: { $gte: since } }, "-started_at", 600)),
     safe(E.AppSettings.filter({ key: "agents_prefs" }, "-updated_date", 1)),
+    safe(E.AgencyKnowledge.list("sort", 50)),
   ]);
-  return { registry, learnings, notes, briefs, brains, clients, runs, prefs: prefs[0] || null };
+  return { registry, learnings, notes, briefs, brains, clients, runs, prefs: prefs[0] || null, agency };
 }
 
 export function useAgentsData() {
