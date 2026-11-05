@@ -3,7 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Loader2, Sparkles } from 'lucide-react';
 import PresentMode from '@/features/presentations/studio/PresentMode';
 import GenerateDeckDialog from '@/features/presentations/studio/GenerateDeckDialog';
-import { deckFromJob } from '@/features/presentations/lib/deckSchema';
+import { buildBrief, deckFromJob, editDeck, generateDeck, regenerateSlide } from '@/features/presentations/lib/deckSchema';
+import { brandFromText } from '@/features/presentations/lib/clientBrand';
 import { queueDeckJob } from '@/features/presentations/lib/claudeDeckJob';
 import { approveJob, JOB_STATUS } from '@/features/claude/jobs';
 import { base44 } from '@/api/base44Client';
@@ -34,6 +35,12 @@ const ensureIds = (slides) => (slides || []).map((slide) => (slide.id ? slide : 
 
 const unwrap = (response) => (response && response.data !== undefined ? response.data : response);
 
+// Entity-safe slides: a slide with no chart carries no chart key (null would fail the object-typed field).
+const storable = (slides) => (slides || []).map(({ chart, ...s }) => (chart && Array.isArray(chart.points) ? { ...s, chart } : s));
+
+const needsMessage = (needs) =>
+  needs && needs.length ? `Facts that would make it stronger (nothing was guessed): ${needs.slice(0, 6).join('; ')}.` : '';
+
 const EMPTY_DECK = {
   id: null,
   title: 'Untitled deck',
@@ -43,6 +50,8 @@ const EMPTY_DECK = {
   brand: null,
   prompt: '',
   project_id: '',
+  client_id: '',
+  client_name: '',
   claude_job_id: '',
   generation_status: 'none',
   slides: []
@@ -144,10 +153,12 @@ export default function StudioPage() {
           title: record.title || 'Untitled deck',
           subtitle: record.subtitle || '',
           summary: record.summary || '',
-          theme: record.theme || 'paper',
+          theme: record.theme || 'interstellar',
           brand: record.brand || null,
           prompt: record.prompt || '',
           project_id: record.project_id || '',
+          client_id: record.client_id || '',
+          client_name: record.client_name || '',
           claude_job_id: record.claude_job_id || '',
           generation_status: record.generation_status || 'none',
           slides
@@ -158,7 +169,8 @@ export default function StudioPage() {
         setOptions((prev) => ({ ...prev, projectId: record.project_id || '', tone: record.tone || prev.tone }));
         setSelectedId(slides[0] ? slides[0].id : null);
         setMessages([
-          { role: 'assistant', content: `Opened “${loaded.title}”. Ask me for any change, or edit a slide directly.` }
+          { role: 'assistant', content: `Opened “${loaded.title}”. Ask me for any change, or edit a slide directly.` },
+          ...(needsMessage(record.needs) ? [{ role: 'assistant', content: needsMessage(record.needs) }] : [])
         ]);
       } catch (error) {
         if (!active) return;
@@ -187,13 +199,17 @@ export default function StudioPage() {
           theme: deck.theme,
           brand: deck.brand || null,
           tone: options.tone,
-          slides: deck.slides,
+          slides: storable(deck.slides),
           project_id: deck.project_id || ''
         };
         if (deck.id) {
           await base44.entities.Presentation.update(deck.id, body);
         } else {
-          const created = await base44.entities.Presentation.create({ ...body, prompt: deck.prompt || '' });
+          const created = await base44.entities.Presentation.create({
+            ...body,
+            prompt: deck.prompt || '',
+            ...(deck.pending || {})
+          });
           deckIdRef.current = created.id;
           setDeck((prev) => (prev.id ? prev : { ...prev, id: created.id }));
           navigate(PRESENTATIONS_ROUTES.deck(created.id), { replace: true });
@@ -236,8 +252,8 @@ export default function StudioPage() {
 
   const generateVisualsFor = async (slides, themeId, brand) => {
     const targets = slides
-      .filter((slide) => slide.needs_visual && slide.image_prompt && !slide.image_url)
-      .slice(0, 4);
+      .filter((slide) => slide.needs_visual && slide.image_prompt && !slide.image_url && ['cover', 'split', 'image'].includes(slide.layout))
+      .slice(0, 3);
     if (!targets.length) return;
 
     for (let index = 0; index < targets.length; index += 2) {
@@ -268,56 +284,63 @@ export default function StudioPage() {
     }
   };
 
-  const send = async (text, slideId = null) => {
-    if (busy || !text.trim()) return;
-    const instruction = slideId
-      ? `Change only the slide with id "${slideId}". Leave every other slide exactly as it is. Instruction: ${text}`
-      : text;
+  // Chat: the first prompt plans an outline and writes the deck; later prompts edit the whole deck; a prompt on
+  // one slide (or Regenerate) rewrites just that slide. All through the ai-gateway, metered to the deck's client.
+  const send = async (text, slideId = null, { regenerate = false } = {}) => {
+    if (busy || (!text.trim() && !regenerate)) return;
     const history = messages.slice(-6).map((message) => ({ role: message.role, content: message.content }));
+    const clientId = deck.client_id || '';
 
-    setMessages((prev) => [...prev, { role: 'user', content: text }]);
+    if (!regenerate) setMessages((prev) => [...prev, { role: 'user', content: text }]);
     setBusy(true);
     if (slideId) setRefineTarget(slideId);
-    setStatus(deck.slides.length ? 'Updating your deck' : 'Writing your deck');
+    setStatus(slideId ? 'Rewriting this slide' : deck.slides.length ? 'Updating your deck' : 'Planning the outline');
 
     try {
-      const response = await base44.functions.invoke('deckChat', {
-        instruction,
-        history,
-        options: {
-          slideCount: options.slideCount,
-          tone: options.tone,
-          audience: options.audience,
-          theme: deck.theme
-        },
-        deck: deck.slides.length
-          ? { title: deck.title, subtitle: deck.subtitle, theme: deck.theme, brand: deck.brand, slides: deck.slides }
-          : null
-      });
-      const data = unwrap(response) || {};
-      if (data.error) throw new Error(data.error);
-      if (!Array.isArray(data.slides) || !data.slides.length) throw new Error('No slides came back.');
+      if (slideId) {
+        const slide = deck.slides.find((s) => s.id === slideId);
+        if (!slide) throw new Error('That slide is gone.');
+        const next = await regenerateSlide({ deck, slide, instruction: regenerate ? '' : text, brief: deck.prompt, clientId });
+        updateSlide(slideId, next);
+        setMessages((prev) => [...prev, { role: 'assistant', content: regenerate ? `Regenerated slide ${deck.slides.indexOf(slide) + 1}.` : 'Updated that slide.' }]);
+        return;
+      }
 
-      const slides = ensureIds(data.slides);
-      const nextTheme = data.theme || deck.theme;
-      const nextBrand =
-        nextTheme === 'custom' ? data.brand || deck.brand || DEFAULT_CUSTOM_BRAND : null;
+      if (deck.slides.length) {
+        const { deck: edited, reply } = await editDeck({ deck, instruction: text, brief: deck.prompt, clientId, history });
+        const slides = ensureIds(edited.slides);
+        setDeck((prev) => ({ ...prev, title: edited.title || prev.title, subtitle: edited.subtitle || prev.subtitle, summary: edited.summary || prev.summary, slides }));
+        setSelectedId((current) => (slides.some((slide) => slide.id === current) ? current : slides[0].id));
+        setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
+        if (options.visuals) await generateVisualsFor(slides, deck.theme, deck.brand);
+        return;
+      }
+
+      // New deck from a chat prompt: outline first, then slides. Colours named in the prompt become the theme.
+      const brief = buildBrief({ topic: text, audience: options.audience, slideCount: options.slideCount, tone: options.tone });
+      const typedBrand = brandFromText(text);
+      const nextTheme = typedBrand ? 'custom' : deck.theme || 'interstellar';
+      const nextBrand = typedBrand || (nextTheme === 'custom' ? deck.brand : null);
+      const { deck: drafted, outline } = await generateDeck({ brief, slideCount: options.slideCount, clientId, onStage: setStatus });
+      const slides = ensureIds(drafted.slides);
       setDeck((prev) => ({
         ...prev,
-        title: data.title || prev.title,
-        subtitle: data.subtitle || prev.subtitle,
-        summary: data.summary || prev.summary,
-        theme: data.theme || prev.theme,
-        brand:
-          (data.theme || prev.theme) === 'custom'
-            ? data.brand || prev.brand || DEFAULT_CUSTOM_BRAND
-            : null,
-        prompt: prev.prompt || (slideId ? prev.prompt : text),
+        title: drafted.title || prev.title,
+        subtitle: drafted.subtitle || '',
+        summary: drafted.summary || '',
+        theme: nextTheme,
+        brand: nextBrand,
+        prompt: brief,
         project_id: prev.project_id || options.projectId || '',
+        pending: { outline, needs: drafted.needs || [], generated_by: 'pipeline_v2', brand_source: typedBrand ? 'Brief' : '', audience: options.audience || '' },
         slides
       }));
-      setSelectedId((current) => (slides.some((slide) => slide.id === current) ? current : slides[0].id));
-      setMessages((prev) => [...prev, { role: 'assistant', content: data.reply || 'Done.' }]);
+      setSelectedId(slides[0].id);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: `Planned ${outline.slides.length} slides and wrote “${drafted.title}”. Edit any slide, or ask me for changes.` },
+        ...(needsMessage(drafted.needs) ? [{ role: 'assistant', content: needsMessage(drafted.needs) }] : [])
+      ]);
       if (options.visuals) await generateVisualsFor(slides, nextTheme, nextBrand);
     } catch (error) {
       setMessages((prev) => [...prev, { role: 'assistant', content: `That request did not go through: ${error.message}` }]);
@@ -422,20 +445,27 @@ export default function StudioPage() {
     setSelectedId(incoming.slides[0] ? incoming.slides[0].id : null);
   };
 
-  const handleDraft = async ({ deck: drafted, brief, meta, target }) => {
+  const handleDraft = async ({ deck: drafted, brief, meta, target, outline }) => {
     const record = {
       client_id: meta.client_id || '',
       client_name: meta.client_name || '',
       brief: meta.brief || {},
       audience: meta.audience || '',
       tone: meta.tone || options.tone,
-      generated_by: 'quick_draft',
+      brand_source: meta.brand_source || '',
+      outline: outline || null,
+      needs: drafted.needs || [],
+      generated_by: 'pipeline_v2',
       generation_status: 'ready'
     };
     if (target === 'replace' && deck.id) {
-      applyDeck(drafted, { prompt: brief });
-      await base44.entities.Presentation.update(deck.id, record);
-      setMessages((prev) => [...prev, { role: 'assistant', content: `Drafted “${drafted.title}” from your brief. Edit any slide, or ask me for changes.` }]);
+      applyDeck(drafted, { prompt: brief, client_id: record.client_id, client_name: record.client_name });
+      await base44.entities.Presentation.update(deck.id, { ...record, prompt: brief });
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: `Wrote “${drafted.title}” from your outline. Edit any slide, or ask me for changes.` },
+        ...(needsMessage(drafted.needs) ? [{ role: 'assistant', content: needsMessage(drafted.needs) }] : [])
+      ]);
       if (options.visuals) await generateVisualsFor(drafted.slides, drafted.theme, drafted.brand);
       return;
     }
@@ -446,7 +476,7 @@ export default function StudioPage() {
       summary: drafted.summary,
       theme: drafted.theme,
       brand: drafted.brand,
-      slides: drafted.slides,
+      slides: storable(drafted.slides),
       prompt: brief,
       project_id: options.projectId || ''
     });
@@ -454,13 +484,16 @@ export default function StudioPage() {
     navigate(PRESENTATIONS_ROUTES.deck(created.id));
   };
 
-  const handleSendToClaude = async ({ brief, meta, title, target }) => {
+  const handleSendToClaude = async ({ brief, meta, title, target, theme: lookTheme, brand: lookBrand }) => {
     const record = {
       client_id: meta.client_id || '',
       client_name: meta.client_name || '',
       brief: meta.brief || {},
       audience: meta.audience || '',
       tone: meta.tone || options.tone,
+      brand_source: meta.brand_source || '',
+      theme: lookTheme || 'interstellar',
+      brand: lookBrand || null,
       generation_status: 'waiting_claude'
     };
     let presentationId = target === 'replace' && deck.id ? deck.id : null;
@@ -471,7 +504,6 @@ export default function StudioPage() {
         ...record,
         title: title || 'Deck for Claude',
         prompt: brief,
-        theme: 'interstellar',
         slides: [],
         project_id: options.projectId || ''
       });
@@ -630,6 +662,7 @@ export default function StudioPage() {
                   total={deck.slides.length}
                   onChange={(patch) => updateSlide(selectedSlide.id, patch)}
                   onRefine={(text) => send(text, selectedSlide.id)}
+                  onRegenerate={() => send('', selectedSlide.id, { regenerate: true })}
                   refining={busy && refineTarget === selectedSlide.id}
                   onDuplicate={duplicateSlide}
                   onDelete={deleteSlide}
