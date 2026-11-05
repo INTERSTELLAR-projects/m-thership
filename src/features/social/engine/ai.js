@@ -32,6 +32,8 @@ function guideBlock(brand, knowledge) {
     // brandBrief() already carries the Triple Hook rules for Interstellar; the Agency knowledge version wins when loaded.
     brand.isInterstellar && !knowledge?.hooks ? "" : hookBrief(knowledge?.hooks),
     knowledge?.social_search?.data?.rules ? `Social search playbook (Agency knowledge):\n- ${knowledge.social_search.data.rules.join("\n- ")}` : `Social search rules:\n- ${SEARCH.rules.join("\n- ")}`,
+    // Social strategist playbook (Agency knowledge key social_strategist): the quality bar every draft must clear.
+    Array.isArray(knowledge?.social_strategist?.data?.quality_bar) && knowledge.social_strategist.data.quality_bar.length ? `Quality bar (Social strategist playbook):\n- ${knowledge.social_strategist.data.quality_bar.slice(0, 12).join("\n- ")}` : "",
     "Hard rules: never invent results, statistics, testimonials, reviews, client names or numbers; a number you don't have becomes [REAL NUMBER NEEDED]. The trademark sign is ™, never ®.",
   ].filter(Boolean).join("\n\n");
 }
