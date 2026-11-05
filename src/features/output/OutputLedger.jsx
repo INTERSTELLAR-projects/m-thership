@@ -72,7 +72,7 @@ function EditPanel({ e, onClose, onSaved, baselines }) {
       const minutes_baseline = e.baseline_override ? Number(e.minutes_baseline) || 0 : b ? b.minutes : Number(e.minutes_baseline) || 0;
       const manual = Math.max(0, Number(f.manual_minutes) || 0);
       const patch = {
-        ...f, manual_minutes: manual, minutes_baseline,
+        ...f, manual_minutes: manual, minutes_baseline, locked: true,
         minutes_saved_estimate: f.done_by === "justin_manual" ? 0 : Math.max(0, minutes_baseline - manual),
         visibility_locked: f.visibility !== e.visibility || e.visibility_locked || false,
         ...(f.visibility !== e.visibility ? { visibility_reason: "Set by Justin" } : {}),
