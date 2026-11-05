@@ -372,8 +372,10 @@ Deno.serve(async (req) => {
         for (const r of await all(db.WorkEntry, { baseline_override: { $ne: true } }, "-created_date", 500, 20000)) {
           const b = next.map.get(r.task_type);
           if (!b || Number(r.minutes_baseline) === b.minutes) continue;
-          const m = { ...r, minutes_baseline: b.minutes };
-          await db.WorkEntry.update(r.id, { minutes_baseline: b.minutes, minutes_saved_estimate: savedMinutes(m), ...(r.done_by === "justin_manual" ? { manual_minutes: b.minutes } : {}) });
+          // Justin's own minutes were only estimated (= the old baseline) unless he entered them; keep entered ones.
+          const followManual = r.done_by === "justin_manual" && Number(r.manual_minutes) === Number(r.minutes_baseline);
+          const m = { ...r, minutes_baseline: b.minutes, ...(followManual ? { manual_minutes: b.minutes } : {}) };
+          await db.WorkEntry.update(r.id, { minutes_baseline: b.minutes, minutes_saved_estimate: savedMinutes(m), ...(followManual ? { manual_minutes: b.minutes } : {}) });
           changed++;
         }
         return Response.json({ ok: true, rows: next.rows, hourly_rate: next.hourly_rate, updated: changed });
