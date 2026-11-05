@@ -292,7 +292,8 @@ export function groundingIndex(source) {
     vals.add(Math.abs(a - b));
     vals.add(a + b);
     // Percent change / share only between figures of a comparable size (Q2 vs Q3 revenue, a budget line vs the total).
-    if (b && a / b >= 0.2 && a / b <= 5) { pcts.add(((a - b) / b) * 100); pcts.add((a / b) * 100); }
+    const ordinal = (x) => Number.isInteger(x) && x <= 12; // "Q3", "Week 2": labels, not measurements
+    if (b && !ordinal(a) && !ordinal(b) && a / b >= 0.2 && a / b <= 5) { pcts.add(((a - b) / b) * 100); pcts.add((a / b) * 100); }
   }));
   const years = base.filter((x) => x >= 1990 && x <= 2100);
   const times = new Set(timesIn(source));
