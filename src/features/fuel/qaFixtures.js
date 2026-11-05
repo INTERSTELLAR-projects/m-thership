@@ -20,7 +20,7 @@ function kind(cap, used, wallet, alertAt = 0.8) {
 
 export function qaFuelSummary(state = stateNow()) {
   const base = {
-    visible: true, config_status: "Pending Justin's final approval", month: new Date().toISOString().slice(0, 7), reset_on: iso(next1st()).slice(0, 10), reset_label: resetLabel(),
+    visible: true, config_status: "Approved Nov 4, 2026", month: new Date().toISOString().slice(0, 7), reset_on: iso(next1st()).slice(0, 10), reset_label: resetLabel(),
     plan: "hypercare", plan_label: "HyperCare+", tier: "local", tier_label: "Local + 1 extra location", extra_locations: 1, studios_unlocked: true, nova_only: false, unlimited: false,
     studios: { social: "on", email: "on", ads: "preview", accounting: "preview", hiring: "preview", presentations: "preview" }, free_for_life: ["signatures", "qr"],
     paused: { kinds: [], since: null, posts: 0, campaigns: 0, campaign_emails: 0 },
@@ -80,7 +80,7 @@ export function qaFuelEconomics() {
   const agency = { ai_units: 388, ai_calls: 214, in_tokens: 2_400_000, out_tokens: 410_000, ai_cost: 8.9 };
   const cost = t.ai_cost + t.email_cost + agency.ai_cost;
   return {
-    month: new Date().toISOString().slice(0, 7), truncated: false, config_status: "Pending Justin's final approval",
+    month: new Date().toISOString().slice(0, 7), truncated: false, config_status: "Approved Nov 4, 2026",
     costs: { sonnet_in_per_m: 2, sonnet_out_per_m: 10, haiku_in_per_m: 0.1, haiku_out_per_m: 0.5, ses_per_1000: 0.1 },
     clients, near_caps: clients.filter((c) => c.near_cap || c.out_of_fuel).map((c) => ({ id: c.id, business: c.business, pct: c.pct, out_of_fuel: c.out_of_fuel })),
     agency,
@@ -102,7 +102,7 @@ export function qaFuelEconomics() {
 
 export function qaFuelConfig() {
   return {
-    status_note: "Pending Justin's final approval",
+    status_note: "Approved Nov 4, 2026",
     config: {
       studios_require_hypercare: true, nova_only_ai_actions: 50,
       tiers: { local: { label: "Local", ai_action: 1000, marketing_email: 25000 }, national: { label: "National", ai_action: 2500, marketing_email: 60000 }, global: { label: "Global", ai_action: 5000, marketing_email: 120000 } },

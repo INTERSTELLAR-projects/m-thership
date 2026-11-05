@@ -17,7 +17,7 @@ import {
 //   nova_tick        { client_id? }             meter one Nøva message (works on every plan, Nøva-only allowance)
 //   --- admin ---
 //   economics        { month? }                 per client: actions, emails, est. cost, margin, refuel revenue, near caps
-//   get_config / save_config { config }        every fuel number (pending Justin's final approval)
+//   get_config / save_config { config }        every fuel number (approved Nov 4, 2026)
 //   grant            { client_id, pack, note }  admin-granted credits (no charge)
 //   mock_checkout_completed { client_id, pack, session_id? }  TEST ONLY: runs the exact webhook crediting path on a
 //                                               fake checkout.session.completed payload. Never charges anyone.

@@ -1,5 +1,5 @@
 // Studios plans + per-client Studio state, for the UI. Mirror of base44/shared/usagePlans.ts (keep in sync).
-// 2026-11-04 (pending Justin's final approval): Studios are HyperCare+ only; caps scale with the HyperCare+ tier;
+// 2026-11-04 (approved Nov 4, 2026): Studios are HyperCare+ only; caps scale with the HyperCare+ tier;
 // one-time Refuel packs top up a 12-month wallet. Live numbers come from the `fuel` function (shared/fuel.ts);
 // these are fallbacks only.
 

@@ -1,5 +1,5 @@
 // Studios plans: plan detection + the base caps table. Mirrored for the UI in src/features/usage/plans.js
-// (keep the two in sync). UPDATED 2026-11-04 (Justin's decisions, numbers pending his final approval):
+// (keep the two in sync). UPDATED 2026-11-04 (Justin's decisions; numbers approved Nov 4, 2026):
 //   Studios are HyperCare+ only. GravïtyCare and Website-only see locked previews and get a Nøva-only allowance.
 //   HyperCare+ caps scale with the tier (Local / National / Global + extra locations) and one-time "Refuel" packs
 //   top up a 12-month wallet. The live, editable numbers live in base44/shared/fuel.ts (DEFAULT_FUEL + Fuel

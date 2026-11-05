@@ -2,7 +2,8 @@
 // pause / resume, model weights and the media-credit hooks. One source of truth for the backend; the UI mirror is
 // src/features/fuel/fuelConfig.js (defaults only, the live numbers always come from the `fuel` function).
 //
-// EVERY NUMBER HERE IS PENDING JUSTIN'S FINAL APPROVAL. Defaults live in DEFAULT_FUEL; Justin edits them in
+// APPROVED Nov 4, 2026 (Justin delegated the call; logged in AppSettings fuel_config pageSettings.approval_log):
+// tiers, extra location, Refuel packs, 12-month credits and the Nøva-only allowance below. Defaults live in DEFAULT_FUEL; Justin edits them in
 // Møthership > Fuel economics > Settings, saved as AppSettings { key: "fuel_config", advancedSettings: {...} }.
 //
 //   loadFuelConfig(db)                         -> merged config (defaults + saved overrides)
@@ -22,7 +23,7 @@ import { planOf, monthKey, dayKeyLA, PLAN_CAPS, type PlanKey, type UsageKind } f
 type Db = any;
 type Client = Record<string, any>;
 
-export const FUEL_STATUS_NOTE = "Pending Justin's final approval";
+export const FUEL_STATUS_NOTE = "Approved Nov 4, 2026";
 
 export const DEFAULT_FUEL = {
   status_note: FUEL_STATUS_NOTE,

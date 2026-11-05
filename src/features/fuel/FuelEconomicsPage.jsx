@@ -1,11 +1,11 @@
 // Møthership > Fuel economics (admin). Per client this month: AI actions (weighted) and emails, estimated cost from
 // real token counts (Sonnet / Haiku rates) + SES, margin against what the client is billed, Refuel revenue, who is
 // near their caps; an agency total; Base44 integration-credit burn; and every fuel number in one settings form,
-// labelled "pending Justin's final approval". Data: the `fuel` function (economics, get_config, save_config, grant,
+// labelled with its approval (approved Nov 4, 2026). Data: the `fuel` function (economics, get_config, save_config, grant,
 // mock_checkout_completed). Mock credits are tagged test and never count as revenue.
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Fuel, Loader2, Save, Settings2, FlaskConical, Gift } from "lucide-react";
+import { AlertTriangle, Check, Fuel, Loader2, Save, Settings2, FlaskConical, Gift } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { Panel, Tag, Stat } from "@/features/clients/ui";
 import { base44 } from "@/api/base44Client";
@@ -17,7 +17,7 @@ const pct = (x) => `${Math.round((Number(x) || 0) * 100)}%`;
 const mtok = (n) => `${((Number(n) || 0) / 1e6).toFixed(2)}M`;
 
 function PendingBadge() {
-  return <span className="inline-flex items-center gap-1.5 bg-amber-500/15 px-2 py-1 text-[11px] font-medium text-amber-800"><AlertTriangle className="h-3 w-3" /> Pending Justin&apos;s final approval</span>;
+  return <span className="inline-flex items-center gap-1.5 bg-[#ff3c00]/10 px-2 py-1 text-[11px] font-medium text-[#c24100]"><Check className="h-3 w-3" /> Approved Nov 4, 2026</span>;
 }
 
 function Meter({ value }) {
