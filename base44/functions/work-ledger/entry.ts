@@ -178,9 +178,13 @@ async function sync(db: any, base44: any, user: any) {
       toCreate.push(row);
       continue;
     }
-    // Source moved on (job approved, blog verified live): follow it, unless Justin marked the row duplicate/cancelled.
-    if (["duplicate", "cancelled"].includes(ex.status) || ex.status === c.status) continue;
-    const patch: any = { status: c.status, completed_at: c.completed_at || ex.completed_at };
+    // Source moved on (job approved, blog verified live) or the mapping improved: follow it, unless Justin edited the
+    // row (locked) or marked it duplicate/cancelled.
+    if (["duplicate", "cancelled"].includes(ex.status) || ex.locked) continue;
+    const remap = ex.task_type !== c.task_type || ex.done_by !== c.done_by;
+    if (ex.status === c.status && !remap) continue;
+    const patch: any = { status: c.status, completed_at: c.completed_at || ex.completed_at, task_type: c.task_type, done_by: c.done_by };
+    if (remap && ex.client_copy_status === "skipped") patch.client_copy_status = "pending";
     Object.assign(patch, normalize({ ...ex, ...patch }, cfg));
     if (patch.status === "done" && !ex.client_title) patch.client_copy_status = "pending";
     await db.WorkEntry.update(ex.id, patch);
