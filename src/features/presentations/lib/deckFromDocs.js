@@ -46,7 +46,9 @@ export async function playbookDeckBrief(client, record) {
     lookLines(brand),
     "",
     "## The approved playbook",
+    "<document>",
     content,
+    "</document>",
   ].join("\n");
   const brief = buildBrief({
     topic: `${client.business}: 2027 Industry Playbook`,
@@ -87,7 +89,9 @@ export async function socialPlanDeckBrief(client, record) {
     lookLines(brand),
     "",
     "## The approved social plan",
+    "<document>",
     content,
+    "</document>",
   ].join("\n");
   const brief = buildBrief({
     topic: `${client.business}: Social Media Plan`,
@@ -125,7 +129,9 @@ export async function brandKitDeckBrief(client, record) {
     lookLines(brand),
     "",
     "## The approved brand kit",
+    "<document>",
     content,
+    "</document>",
   ].join("\n");
   const brief = buildBrief({
     topic: `${client.business} brand guidelines`,
