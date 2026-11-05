@@ -65,8 +65,14 @@ export function makeBrand({ name = "", palette = [], headingFamily = "", bodyFam
   const find = (re) => cols.find((p) => re.test(tag(p)));
   const bgC = find(/background|\bbg\b|canvas|base|paper/);
   const textC = find(/\btext\b|ink|body copy|foreground/);
-  const vivid = cols.filter((p) => p !== bgC && p !== textC).sort((a, b) => saturation(b.hex) - saturation(a.hex));
-  const accentC = find(/primary|accent|brand|signature/) && find(/primary|accent|brand|signature/) !== bgC ? find(/primary|accent|brand|signature/) : vivid[0] || cols[0];
+  const rest = cols.filter((p) => p !== bgC && p !== textC);
+  // Kits list their primary colour early: first vivid mid-tone in listed order, then the most saturated.
+  const vivid = [
+    ...rest.filter((p) => saturation(p.hex) > 0.35 && lum(p.hex) > 0.04 && lum(p.hex) < 0.85),
+    ...rest.slice().sort((a, b) => saturation(b.hex) - saturation(a.hex))
+  ].filter((p, i, a) => a.indexOf(p) === i);
+  const named = find(/primary|accent|brand|signature/);
+  const accentC = named && named !== bgC ? named : vivid[0] || cols[0];
   const accent2C = vivid.find((p) => p !== accentC && contrast(p.hex, accentC.hex) > 1.3) || null;
 
   let bg = bgC ? bgC.hex : "";
