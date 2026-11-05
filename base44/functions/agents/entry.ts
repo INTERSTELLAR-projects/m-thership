@@ -87,6 +87,10 @@ function flat(v: any, depth = 0): string {
 const bullets = (lines: (string | false | null | undefined)[]) => lines.filter(Boolean).map((l) => `- ${l}`).join("\n");
 const block = (label: string, v: any) => { const t = flat(v); return t ? `${label}:\n- ${t}` : ""; };
 
+// DESIGN.md lives inside the brand section (sections.brand.design_md, AgencyKnowledge build_standard section 7).
+// Seed, refine and section edits rewrite a section's text; they keep design_md. Only an explicit design_md write changes it.
+const keepDesign = (old: any, next: any) => (old && old.design_md ? { ...next, design_md: old.design_md } : next);
+
 function sec(text: string, sources: string[], confidence = "medium") {
   const t = scrub(String(text || "").trim());
   return { text: t || "unknown", sources: t ? sources : [], updated_at: nowIso(), updated_by: "seed", confidence: t ? confidence : "unknown" };
@@ -240,7 +244,7 @@ async function seedBrains(db: any, clientId?: string) {
       const old = cur[k];
       const fresh = sections[k];
       const oldIsSeedOrEmpty = !old || old.updated_by === "seed" || sectionScore(old) === 0;
-      if (oldIsSeedOrEmpty && fresh && sectionScore(fresh) > sectionScore(old || {})) { cur[k] = fresh; filled.push(k); }
+      if (oldIsSeedOrEmpty && fresh && sectionScore(fresh) > sectionScore(old || {})) { cur[k] = keepDesign(old, fresh); filled.push(k); }
     }
     if (filled.length) {
       await db.BusinessBrain.update(existing.id, { sections: cur, completeness: brainCompleteness(cur), open_questions: [...arr(existing.open_questions).filter((q: any) => !filled.includes(q.section)), ...openQuestionsFor(cur, base.client_name || "Interstellar", arr(existing.open_questions))], changelog: [{ at: nowIso(), by: "seed", section: filled.join(","), change: `Filled from records: ${filled.join(", ")}` }, ...arr(existing.changelog)].slice(0, 200) });
@@ -392,7 +396,7 @@ async function refineBrain(base44: any, db: any, brain: any, by = "justin", asSe
     if (old.updated_by === "justin" && String(old.text || "").length > 0 && text.length < String(old.text).length * 0.5) continue;
     if (text === old.text) continue;
     history.unshift({ at, by: old.updated_by || "seed", section: s.key, text: old.text || "" });
-    sections[s.key] = { text, sources: Array.from(new Set([...(old.sources || []), ...arr(s.sources)])).slice(0, 20), updated_at: at, updated_by: "refine", confidence: s.confidence || old.confidence || "medium" };
+    sections[s.key] = keepDesign(old, { text, sources: Array.from(new Set([...(old.sources || []), ...arr(s.sources)])).slice(0, 20), updated_at: at, updated_by: "refine", confidence: s.confidence || old.confidence || "medium" });
     changelog.unshift({ at, by: `refine (${by})`, section: s.key, change: cut(s.change_note || "Merged updates", 240) });
     applied.push(s.key);
   }
@@ -584,7 +588,7 @@ Deno.serve(async (req) => {
         if (!BRAIN_SECTION_KEYS.includes(key)) return Response.json({ error: "Unknown section" }, { status: 400 });
         const text = scrub(String(body?.text || "").trim()).slice(0, 20000);
         const old = (brain.sections || {})[key] || {};
-        const sections = { ...(brain.sections || {}), [key]: { text: text || "unknown", sources: Array.from(new Set([...(old.sources || []), "Justin"])), updated_at: at, updated_by: "justin", confidence: text ? (body?.confidence || "high") : "unknown" } };
+        const sections = { ...(brain.sections || {}), [key]: keepDesign(old, { text: text || "unknown", sources: Array.from(new Set([...(old.sources || []), "Justin"])), updated_at: at, updated_by: "justin", confidence: text ? (body?.confidence || "high") : "unknown" }) };
         const oq = arr(brain.open_questions).map((q: any) => (q.section === key && text && q.status === "open" ? { ...q, status: "answered", answered_at: at } : q));
         await db.BusinessBrain.update(brain.id, { sections, completeness: brainCompleteness(sections), open_questions: oq, history: [{ at, by: old.updated_by || "seed", section: key, text: old.text || "" }, ...arr(brain.history)].slice(0, 300), changelog: [{ at, by: "justin", section: key, change: "Edited by Justin" }, ...arr(brain.changelog)].slice(0, 300) });
         return Response.json({ ok: true, completeness: brainCompleteness(sections) });
