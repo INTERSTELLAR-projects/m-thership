@@ -36,19 +36,25 @@ export function Embed({ e }) {
   );
 }
 
+// react-markdown hands each renderer a `node` prop; drop it so it never reaches the DOM.
+const el = (Tag, className, extra = {}) => {
+  const C = ({ node: _node, ...p }) => <Tag className={className} {...extra} {...p} />;
+  C.displayName = `Md${Tag}`;
+  return C;
+};
 const MD = {
-  h1: (p) => <h3 className="mt-5 text-[19px] font-semibold tracking-[-0.02em]" {...p} />,
-  h2: (p) => <h3 className="mt-5 text-[17px] font-semibold tracking-[-0.02em]" {...p} />,
-  h3: (p) => <h4 className="mt-4 text-[15px] font-semibold" {...p} />,
-  p: (p) => <p className="mt-3 text-[15px] leading-relaxed text-ink/80" {...p} />,
-  ul: (p) => <ul className="mt-3 space-y-2 [&>li]:relative [&>li]:pl-4 [&>li]:before:absolute [&>li]:before:left-0 [&>li]:before:top-[9px] [&>li]:before:h-1.5 [&>li]:before:w-1.5 [&>li]:before:bg-[#ff3c00] [&>li]:before:content-['']" {...p} />,
-  ol: (p) => <ol className="mt-3 list-decimal space-y-2 pl-5 text-[15px] leading-relaxed text-ink/80" {...p} />,
-  li: (p) => <li className="text-[15px] leading-relaxed text-ink/80" {...p} />,
-  blockquote: (p) => <blockquote className="mt-4 border-l-2 border-[#ffaa00] bg-[#ffaa00]/10 px-3 py-2 text-[13.5px] text-ink/75 [&_p]:mt-0" {...p} />,
-  a: (p) => <a className="text-[#ff3c00] underline" target="_blank" rel="noreferrer" {...p} />,
-  strong: (p) => <strong className="font-semibold text-ink" {...p} />,
-  code: (p) => <code className="bg-ink/[0.06] px-1 font-mono text-[12.5px]" {...p} />,
-  img: (p) => <img className="mt-3 h-auto w-full border border-hair" alt="" loading="lazy" {...p} />,
+  h1: el("h3", "mt-5 text-[19px] font-semibold tracking-[-0.02em]"),
+  h2: el("h3", "mt-5 text-[17px] font-semibold tracking-[-0.02em]"),
+  h3: el("h4", "mt-4 text-[15px] font-semibold"),
+  p: el("p", "mt-3 text-[15px] leading-relaxed text-ink/80"),
+  ul: el("ul", "mt-3 space-y-2 [&>li]:relative [&>li]:pl-4 [&>li]:before:absolute [&>li]:before:left-0 [&>li]:before:top-[9px] [&>li]:before:h-1.5 [&>li]:before:w-1.5 [&>li]:before:bg-[#ff3c00] [&>li]:before:content-['']"),
+  ol: el("ol", "mt-3 list-decimal space-y-2 pl-5 text-[15px] leading-relaxed text-ink/80"),
+  li: el("li", "text-[15px] leading-relaxed text-ink/80"),
+  blockquote: el("blockquote", "mt-4 border-l-2 border-[#ffaa00] bg-[#ffaa00]/10 px-3 py-2 text-[13.5px] text-ink/75 [&_p]:mt-0"),
+  a: el("a", "text-[#ff3c00] underline", { target: "_blank", rel: "noreferrer" }),
+  strong: el("strong", "font-semibold text-ink"),
+  code: el("code", "bg-ink/[0.06] px-1 font-mono text-[12.5px]"),
+  img: el("img", "mt-3 h-auto w-full border border-hair", { alt: "", loading: "lazy" }),
 };
 
 export default function Lesson({ md, embeds = [] }) {
