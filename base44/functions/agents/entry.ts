@@ -16,7 +16,7 @@
 // Never sends anything to a client, never changes a client site, package or price. No secrets are read or stored.
 // deno-lint-ignore-file no-explicit-any
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
-import { callClaude, AnthropicError } from "../../shared/anthropic.ts";
+import { callClaude, AnthropicError, HOUSE_RULES } from "../../shared/anthropic.ts";
 import { getSecret } from "../../shared/portalClient.ts";
 import { estimateAiCost } from "../../shared/usagePlans.ts";
 import { weightFor } from "../../shared/fuel.ts";
@@ -66,7 +66,8 @@ async function llm(base44: any, opts: { system: string; prompt: string; schema?:
     }
   }
   const core = opts.asService ? base44.asServiceRole.integrations.Core : base44.integrations.Core;
-  const out = await core.InvokeLLM({ prompt: `${opts.system}\n\n${opts.prompt}`, ...(opts.schema ? { response_json_schema: opts.schema } : {}) });
+  // Fallback keeps the same house rules the Anthropic path prepends (PROMPTING-STANDARD.md).
+  const out = await core.InvokeLLM({ prompt: `${HOUSE_RULES}\n\n${opts.system}\n\n<context>\n${opts.prompt}\n</context>`, ...(opts.schema ? { response_json_schema: opts.schema } : {}) });
   if (opts.schema) return typeof out === "string" ? JSON.parse(out) : out;
   return typeof out === "string" ? out : JSON.stringify(out);
 }
