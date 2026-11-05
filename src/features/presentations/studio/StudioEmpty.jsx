@@ -2,15 +2,15 @@ import React from 'react';
 import { ArrowUpRight, Wand2 } from 'lucide-react';
 
 const STARTERS = [
-  'Pitch deck for our new AI onboarding product, for operations leaders',
-  'Q4 business review for an existing customer: results and next-quarter roadmap',
-  'Client proposal for migrating a retailer to a headless ecommerce stack'
+  'A sales pitch for our annual maintenance plan: what it includes, the price, and how to sign up',
+  'A training deck for new hires on our opening procedure, step by step',
+  'A project proposal for a homeowner: scope, timeline, investment and warranty'
 ];
 
 const STEPS = [
-  'Describe the presentation you need',
-  'Refine any slide by prompting, or edit it directly',
-  'Download as PDF or PowerPoint'
+  'Describe the deck and give the real facts',
+  'Check the outline, then edit or regenerate any slide',
+  'Present, or download as PDF or PowerPoint'
 ];
 
 export default function StudioEmpty({ onStart }) {
@@ -29,7 +29,7 @@ export default function StudioEmpty({ onStart }) {
         What are we presenting?
       </h2>
       <p className="relative mx-auto mt-3 max-w-[46ch] text-sm leading-relaxed text-muted-foreground sm:text-base">
-        Describe the deck in a sentence. Cønstellation writes it, designs every slide, and keeps it editable with a prompt.
+        Describe the deck in a sentence. The Presentation Creator plans the story, writes every slide from your facts, and keeps it editable with a prompt.
       </p>
 
       <div className="relative mx-auto mt-8 grid max-w-[640px] gap-2">
