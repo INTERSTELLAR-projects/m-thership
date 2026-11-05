@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, X, Users, FolderKanban, CornerDownLeft } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { ALL_NAV } from "@/lib/nav";
+import { usePins } from "@/components/navPrefs";
 
 // ⌘K / "Jump to…" palette: pages, clients and projects in one list.
 // Light paper styling to match the app (the old dark panel hid its dark text).
@@ -27,6 +28,7 @@ export default function CommandPalette({ open, onClose }) {
   const [selected, setSelected] = useState(0);
   const [records, setRecords] = useState({ clients: [], projects: [] });
   const navigate = useNavigate();
+  const [pins] = usePins();
   const inputRef = useRef();
   const listRef = useRef();
 
@@ -43,10 +45,15 @@ export default function CommandPalette({ open, onClose }) {
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     const match = (s) => !q || String(s || "").toLowerCase().includes(q);
-    const pages = ALL_NAV.filter((c) => match(c.label)).map((c) => ({
-      key: "p:" + c.path, group: "Pages", label: c.label, icon: c.icon, path: c.path,
+    // Pages match on their name or their section ("studios", "finance"…); pinned pages lead when nothing is typed.
+    const pinned = (pins || []).map((k) => ALL_NAV.find((c) => c.key === k)).filter(Boolean);
+    const pages = ALL_NAV.filter((c) => match(c.label) || match(c.group)).map((c) => ({
+      key: "p:" + c.key, group: "Pages", label: c.label, hint: c.group, icon: c.icon, path: c.path,
     }));
-    if (!q) return pages;
+    if (!q) {
+      const pin = pinned.map((c) => ({ key: "pin:" + c.key, group: "Pinned", label: c.label, hint: c.group, icon: c.icon, path: c.path }));
+      return [...pin, ...pages.filter((p) => !pinned.some((c) => "p:" + c.key === p.key))];
+    }
     const clients = records.clients
       .filter((c) => match(c.business) || match(c.contact))
       .slice(0, 8)
@@ -62,7 +69,7 @@ export default function CommandPalette({ open, onClose }) {
         hint: p.client_name || "", icon: FolderKanban, path: "/projects/" + p.id,
       }));
     return [...pages, ...clients, ...projects];
-  }, [query, records]);
+  }, [query, records, pins]);
 
   useEffect(() => {
     const el = listRef.current?.querySelector(`[data-index="${selected}"]`);
@@ -124,7 +131,7 @@ export default function CommandPalette({ open, onClose }) {
             <p className="py-6 text-center text-sm text-black/45">Nothing matches “{query}”</p>
           ) : (
             results.map((r, i) => {
-              const header = query.trim() && r.group !== lastGroup ? r.group : null;
+              const header = (query.trim() || r.group === "Pinned" || lastGroup === "Pinned") && r.group !== lastGroup ? r.group : null;
               lastGroup = r.group;
               const Icon = r.icon;
               const active = selected === i;
