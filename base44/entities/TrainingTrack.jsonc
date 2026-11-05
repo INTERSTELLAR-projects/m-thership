@@ -1,0 +1,138 @@
+{
+  "name": "TrainingTrack",
+  "description": "People > Training: one onboarding / training track (an ordered set of TrainingModule rows) for a role. client_id 'agency' = Interstellar's own team; otherwise a CRMClient id (HyperCare+ Training Studio in the portal). Built from SOPs / documents (grounded drafting through the ai-gateway, metered against the client's Fuel) or from a role template. Admin only: portal owners and trainees reach it through the training / training-player functions.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "'agency' for Interstellar, else CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "office_hire",
+        "crew_member",
+        "crew_lead",
+        "sales",
+        "manager",
+        "client_ops_build",
+        "custom"
+      ],
+      "default": "custom"
+    },
+    "role_label": {
+      "type": "string",
+      "description": "Shown to trainees, e.g. 'Client Operations & Build Specialist'"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "module_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Module order"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "needs_sops",
+        "published",
+        "archived"
+      ],
+      "default": "draft"
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "{type: sop|client_file|document|brain|hiring|pasted, id, title} the track was built from"
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Missing information flagged while drafting (never filled with invented steps)"
+    },
+    "template_key": {
+      "type": "string"
+    },
+    "es_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Spanish toggle shown to trainees (only modules with an approved Spanish version)"
+    },
+    "pass_score": {
+      "type": "number",
+      "default": 80,
+      "description": "Quiz % needed to pass a module"
+    },
+    "requires_signoff": {
+      "type": "boolean",
+      "default": true
+    },
+    "hiring_role_key": {
+      "type": "string",
+      "description": "Set when the track is the onboarding track for a Hiring plan role"
+    },
+    "created_via": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "portal",
+        "seed"
+      ],
+      "default": "admin"
+    },
+    "created_by": {
+      "type": "string"
+    },
+    "drafted_at": {
+      "type": "string"
+    },
+    "published_at": {
+      "type": "string"
+    },
+    "completions": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "client_id",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
