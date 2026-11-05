@@ -8,7 +8,8 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 const REFRESH_MS = 24 * 60 * 60 * 1000;
 const RETRY_MS = 6 * 60 * 60 * 1000;
 // nationalPhoneNumber/formattedAddress are the GBP's NAP (source of truth for client phones); same Places SKU as reviews.
-const FIELD_MASK = "displayName,rating,userRatingCount,reviews,googleMapsUri,nationalPhoneNumber,internationalPhoneNumber,formattedAddress";
+// regularOpeningHours = the GBP's hours (source of truth for client sites + CRM); same Places SKU tier as reviews.
+const FIELD_MASK = "displayName,rating,userRatingCount,reviews,googleMapsUri,nationalPhoneNumber,internationalPhoneNumber,formattedAddress,regularOpeningHours";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -42,6 +43,7 @@ async function fetchFromGoogle(placeId: string) {
     phone: data.nationalPhoneNumber || null,
     phoneIntl: data.internationalPhoneNumber || null,
     address: data.formattedAddress || null,
+    hours: Array.isArray(data.regularOpeningHours?.weekdayDescriptions) ? data.regularOpeningHours.weekdayDescriptions : null,
     reviewUrl: "https://search.google.com/local/writereview?placeid=" + encodeURIComponent(placeId),
     reviews,
   };
