@@ -207,7 +207,8 @@ export function normalizeSlide(raw) {
     bullets: l(s.bullets, 8).map((b) => t(b, 200).replace(/^\s*(?:\d{1,2}[.)]|[-•*])\s+/, "")).filter(Boolean),
     cards: l(s.cards, 4).map((x) => ({ title: t(x && x.title, 60), text: t(x && x.text, 220) })).filter((x) => x.title || x.text),
     stats: l(s.stats, 4).map((x) => ({ value: t(x && x.value, 24), label: t(x && x.label, 120) })).filter((x) => x.value || x.label),
-    chart: normalizeChart(s.chart),
+    // Only chart slides carry chart data (writers sometimes fill the field on every slide).
+    chart: layout === "chart" ? normalizeChart(s.chart) : null,
     steps: l(s.steps, 5).map((x) => ({ label: t(x && x.label, 40), text: t(x && x.text, 180) })).filter((x) => x.label || x.text),
     columns: l(s.columns, 2).map((x) => ({ heading: t(x && x.heading, 80), text: t(x && x.text, 460) })).filter((x) => x.heading || x.text),
     offers: l(s.offers, 3).map((x) => ({
@@ -407,6 +408,15 @@ export function enforceDeck(deck, { source, slideCount }) {
     if (long || (s.layout !== "closing" && words(vis) > 60)) push("too much text on the slide: shorten to the key words, move detail to notes");
     if (words(s.notes) < 12) push("speaker notes missing or too short (2-4 sentences)");
     if (s.layout !== "closing" && /^(overview|introduction|agenda|conclusion|summary|thank you|questions)$/i.test(s.title.trim())) push("title is a topic label, write the takeaway");
+    const tw = new Set(s.title.toLowerCase().split(/\W+/).filter((w) => w.length > 3));
+    const dup = slides.findIndex((o, j) => {
+      if (j >= i || o.layout === "cover" || s.layout === "closing") return false;
+      const ow = new Set(o.title.toLowerCase().split(/\W+/).filter((w) => w.length > 3));
+      const inter = [...tw].filter((w) => ow.has(w)).length;
+      const sameKind = o.layout === s.layout && ["timeline", "pricing", "chart", "bigstat"].includes(s.layout);
+      return sameKind || (tw.size && inter / Math.max(tw.size, ow.size) >= 0.6);
+    });
+    if (dup >= 0) push(`repeats slide ${dup + 1} (${slides[dup].title}): replace it with a different input fact or remove it`);
     if (s.layout === "section" && slides.length < 12) push("section dividers are only for decks of 12+ slides: turn this into a content slide (cards, bullets, stats) using input facts");
   });
   if (slideCount && (slides.length > slideCount + 1 || slides.length < slideCount - 2)) issues.push({ id: "", index: -1, problem: `deck has ${slides.length} slides, ${slideCount} were requested` });
