@@ -45,6 +45,8 @@ export const DEFAULT_BASELINES: { key: string; label: string; category: string; 
   { key: "client_request", label: "Client request completed", category: "website", minutes: 45 },
   { key: "agent_run", label: "Agent routine run (brief, sync, refresh)", category: "ops", minutes: 30 },
   { key: "ops_task", label: "Ops / admin task", category: "ops", minutes: 30 },
+  { key: "training_track", label: "Training track built (lessons, checklists, quiz)", category: "ops", minutes: 240 },
+  { key: "training_complete", label: "Trainee completed a training track", category: "ops", minutes: 0 },
   { key: "billing_task", label: "Billing task", category: "billing", minutes: 20 },
   { key: "decision", label: "Decision or answer (Justin)", category: "ops", minutes: 10 },
   { key: "other", label: "Other", category: "ops", minutes: 30 },
