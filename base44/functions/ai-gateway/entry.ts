@@ -1,7 +1,7 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { requireSecondFactor } from "../../shared/twoFactor.ts";
 import { resolveClient, getSecret } from "../../shared/portalClient.ts";
-import { callClaude, AnthropicError } from "../../shared/anthropic.ts";
+import { callClaude, AnthropicError, HOUSE_RULES } from "../../shared/anthropic.ts";
 import { AI_MODELS, estimateAiCost, anyStudioOn, studiosOf, monthKey, planUnlocksStudios, type AiTier } from "../../shared/usagePlans.ts";
 import { check, record } from "../../shared/meter.ts";
 import { loadFuelConfig, weightFor } from "../../shared/fuel.ts";
@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
     if (!key) {
       if (!isAdmin) return Response.json({ error: "AI isn't configured yet. Interstellar has been notified.", code: "ai_not_configured" }, { status: 503 });
       // Justin's own usage only: fall back to Base44 InvokeLLM so admin Studios keep working without the key.
-      const fullPrompt = [system, messages ? messages.map((m: any) => `${m.role.toUpperCase()}: ${m.content}`).join("\n\n") : prompt].filter(Boolean).join("\n\n");
+      const fullPrompt = [HOUSE_RULES, system, messages ? messages.map((m: any) => `${m.role.toUpperCase()}: ${m.content}`).join("\n\n") : prompt].filter(Boolean).join("\n\n");
       const out = await base44.integrations.Core.InvokeLLM({ prompt: fullPrompt, ...(schema ? { response_json_schema: schema } : {}) });
       const json = schema ? (typeof out === "string" ? JSON.parse(out) : out) : null;
       const text = schema ? JSON.stringify(json) : (typeof out === "string" ? out : JSON.stringify(out));
