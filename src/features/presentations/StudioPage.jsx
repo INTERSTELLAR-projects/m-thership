@@ -601,7 +601,7 @@ export default function StudioPage() {
           />
         </aside>
 
-        <section className={`${mobileView === 'deck' ? 'flex' : 'hidden'} min-h-0 flex-1 flex-col lg:flex`}>
+        <section className={`${mobileView === 'deck' ? 'flex' : 'hidden'} min-h-0 min-w-0 flex-1 flex-col lg:flex`}>
           <DeckToolbar
             title={deck.title}
             onTitleChange={(value) => setDeck((prev) => ({ ...prev, title: value }))}
@@ -643,8 +643,8 @@ export default function StudioPage() {
             </div>
           ) : null}
 
-          <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-            <div className="thin-scroll flex min-h-0 flex-1 items-center justify-center overflow-auto p-4 lg:p-6">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
+            <div className="thin-scroll flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-auto p-4 lg:p-6">
               <DeckCanvas
                 slides={deck.slides}
                 theme={theme}
@@ -679,7 +679,7 @@ export default function StudioPage() {
           </div>
 
           {deck.slides.length ? (
-            <div className="border-t border-border/70">
+            <div className="min-w-0 border-t border-border/70">
               <SlideRail
                 slides={deck.slides}
                 themeId={deck.theme}
