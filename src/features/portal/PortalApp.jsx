@@ -32,10 +32,12 @@ import { BusinessDropdown, BusinessPills } from "@/features/portal/BusinessSwitc
 import { useFuel } from "@/features/fuel/useFuel";
 import { FuelBanner, RefuelModal } from "@/features/fuel/FuelPrompts";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import PortalUpgrades, { UpgradeSpotlight } from "@/features/addons/PortalUpgrades";
+import { useAddonStore } from "@/features/addons/api";
 
 // Tabs this portal can show. Grouping, labels and icons for the header nav live in PortalNav.jsx (NAV);
 // free-for-life bonus tools (Signatures, QR Codes) are tagged there and listed together on Home.
-const TABS = [["home", "Home"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["resources", "Resources"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["referrals", "Referrals"], ["messages", "Messages"], ["account", "Account"]];
+const TABS = [["home", "Home"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["resources", "Resources"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["upgrades", "Upgrades"], ["referrals", "Referrals"], ["messages", "Messages"], ["account", "Account"]];
 
 function usePortal(previewId) {
   const call = async (action, args = {}) => (await base44.functions.invoke("portal", { action, client_id: previewId, ...args })).data;
@@ -55,7 +57,8 @@ export default function PortalApp({ previewId }) {
   const scopeId = previewId || picked || undefined;
   const { call, home } = usePortal(scopeId);
   // Demo screen library (preview + ?qa=1&demo=1 only): ?tab= opens a portal tab directly for captures.
-  const [tab, setTab] = useState(() => (IS_DEMO && new URLSearchParams(window.location.search).get("tab")) || "home");
+  // Back from an Upgrade Store checkout (?tab=upgrades): open the Upgrades tab.
+  const [tab, setTab] = useState(() => (IS_DEMO && new URLSearchParams(window.location.search).get("tab")) || (new URLSearchParams(window.location.search).get("tab") === "upgrades" ? "upgrades" : "home"));
   const [audit, setAudit] = useState(false);
   const [qrOpen, setQrOpen] = useState(null); // a QR code to open on the QR tab (from Google Business)
   const qc = useQueryClient();
@@ -97,8 +100,10 @@ export default function PortalApp({ previewId }) {
     setTab("home");
     setPicked(id);
   };
+  // Upgrade Store: the Upgrades tab exists only when this client has at least one add-on offered (or owned).
+  const { addons: upgrades } = useAddonStore(scopeId, { enabled: !!d?.client });
   // The Brand kit tab only exists when an approved, portal-visible kit does.
-  const tabs = [...TABS.filter(([k]) => (k !== "brand" || d?.has_brand_kit) && (k !== "playbook" || d?.has_playbook)), ...studioTabs(d?.client, fuel).tabs];
+  const tabs = [...TABS.filter(([k]) => (k !== "brand" || d?.has_brand_kit) && (k !== "playbook" || d?.has_playbook) && (k !== "upgrades" || upgrades.length > 0)), ...studioTabs(d?.client, fuel).tabs];
 
   if (home.isLoading) return <Shell><p className="py-24 text-center text-ink/50">Loading your portal…</p></Shell>;
   // This login has 2-step verification on and this session hasn't passed it yet: nothing loads until it does.
@@ -158,6 +163,7 @@ export default function PortalApp({ previewId }) {
           {tab === "messages" && <MessagesView call={call} previewId={previewId} />}
           {tab === "assistant" && <PortalAssistant key={scopeId || "me"} previewId={scopeId} admin={!!previewId} variant="page" />}
           {tab === "account" && <SecurityPanel preview={!!previewId} />}
+          {tab === "upgrades" && <PortalUpgrades scopeId={scopeId} preview={!!previewId} call={call} />}
           {STUDIO_BY_TAB[tab] && tabs.some(([k]) => k === tab) && <StudioPreview tab={tab} client={d.client} call={call} preview={!!previewId} previewId={previewId} scopeId={scopeId} fuel={fuel} onRefuel={() => setRefuelOpen(true)} onFuelChanged={refreshFuel} />}
         </div>
         </ErrorBoundary>
@@ -336,6 +342,7 @@ function HomeView({ d, go, call, previewId, openAudit }) {
             </Panel>
           )}
           <ReviewLinkQuick call={call} previewId={previewId} go={go} />
+          <UpgradeSpotlight scopeId={previewId} go={go} />
           <BonusTools go={go} />
           <button onClick={openAudit} className="card-hover w-full rounded-md border border-hair bg-card p-4 text-left">
             <p className="mono-label text-[9.5px] text-ink/50">Business audit</p>
