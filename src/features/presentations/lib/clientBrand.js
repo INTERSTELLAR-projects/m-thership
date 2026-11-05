@@ -125,10 +125,16 @@ export function brandFromKit(kit, name = "") {
 export function brandFromText(text, name = "", logo_url = "") {
   const t = String(text || "");
   const palette = [];
-  t.split(/\n|;|\.(?=\s)/).forEach((line) => {
-    (line.match(HEX_RE) || []).forEach((h) => palette.push({ hex: h, name: line.replace(HEX_RE, "").slice(0, 60) }));
+  // Each hex is tagged only by its own clause ("orange accent #E8833A", "charcoal #2B2B2B background").
+  t.split(/\n|;|,|:|\.(?=\s)|\band\b/i).forEach((clause) => {
+    (clause.match(HEX_RE) || []).forEach((h) => palette.push({ hex: h, name: clause.replace(HEX_RE, " ").trim().slice(0, 60) }));
   });
   if (!palette.length) return null;
+  const NAMED_BG = { white: "#FFFFFF", black: "#0B0B0B", cream: "#F6F1E9", "off-white": "#FAF8F5", ivory: "#FBF8F1" };
+  if (!palette.some((p) => /background|\bbg\b/i.test(p.name))) {
+    const m = t.match(/\b(white|black|cream|off-white|ivory)\s+(?:background|bg|canvas)\b/i);
+    if (m) palette.unshift({ hex: NAMED_BG[m[1].toLowerCase()], name: "background" });
+  }
   const font = (re) => {
     const m = t.match(re);
     return m ? m[1] : "";
