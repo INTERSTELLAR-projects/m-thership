@@ -1,0 +1,134 @@
+{
+  "name": "TrainingAssignment",
+  "description": "A trainee on a TrainingTrack: due dates, per-module progress (lesson read, checklist ticks, quiz score), questions routed to the owner, manager sign-off and an optional completion badge. Trainees open it with a private link (/t/<id>?k=<access_token>, no login). Admin only (served through the training / training-player functions).",
+  "type": "object",
+  "properties": {
+    "track_id": {
+      "type": "string"
+    },
+    "track_title": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "trainee_name": {
+      "type": "string"
+    },
+    "trainee_email": {
+      "type": "string"
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "en",
+        "es"
+      ],
+      "default": "en"
+    },
+    "start_date": {
+      "type": "string"
+    },
+    "due_date": {
+      "type": "string"
+    },
+    "module_due": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "module_id -> YYYY-MM-DD"
+    },
+    "progress": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "module_id -> {lesson_done, checks{}, quiz_score, quiz_passed, attempts, completed_at}"
+    },
+    "current_module_id": {
+      "type": "string"
+    },
+    "pct": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "awaiting_signoff",
+        "completed",
+        "archived"
+      ],
+      "default": "not_started"
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "{id, module_id, module_title, text, asked_at, answer, answered_at, answered_by}"
+    },
+    "signoff": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{by, at, note}"
+    },
+    "badge": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{code, issued_at, title}"
+    },
+    "completed_at": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string"
+    },
+    "last_active_at": {
+      "type": "string"
+    },
+    "access_token": {
+      "type": "string"
+    },
+    "assigned_by": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "hiring_plan"
+      ],
+      "default": "manual"
+    },
+    "hire_key": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "track_id",
+    "trainee_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
