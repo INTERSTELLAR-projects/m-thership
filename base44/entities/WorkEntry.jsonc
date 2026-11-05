@@ -1,0 +1,181 @@
+{
+  "description": "The work ledger: one row per meaningful piece of work done for a client or for Interstellar, by an agent, a Claude scheduled task, a Claude session, Justin by hand, or the team. Drives Output (tasks done, hours saved, $ value) and the client portal 'Work we did' feed (visibility client only, client_title/client_summary only). Written by the work-ledger function (sync from LaunchItem/AutomationRun/ClaudeJob/WorkLog/ClientRequest/EngineStart/SocialPost/EmailCampaign, and log), and by Claude via create_entities (the hourly sync fills baselines, visibility and client copy for rows with processed != true). Admin only.",
+  "name": "WorkEntry",
+  "properties": {
+    "agent_key": {
+      "description": "AgentRegistry key when an agent or scheduled task did it",
+      "type": "string"
+    },
+    "agent_name": {
+      "type": "string"
+    },
+    "baseline_override": {
+      "default": false,
+      "description": "True when minutes_baseline was set by hand and the table must not overwrite it",
+      "type": "boolean"
+    },
+    "category": {
+      "default": "ops",
+      "enum": [
+        "website",
+        "seo",
+        "content",
+        "gbp",
+        "citations",
+        "app_build",
+        "brand",
+        "social",
+        "email",
+        "ads",
+        "ops",
+        "research",
+        "security",
+        "billing"
+      ],
+      "type": "string"
+    },
+    "client_copy_status": {
+      "default": "pending",
+      "enum": [
+        "pending",
+        "generated",
+        "edited",
+        "fallback",
+        "skipped"
+      ],
+      "type": "string"
+    },
+    "client_id": {
+      "description": "CRMClient id, or 'agency' for Interstellar's own work",
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "client_summary": {
+      "description": "Client-safe one or two sentences. Shown in the portal.",
+      "type": "string"
+    },
+    "client_title": {
+      "description": "Client-safe title in team voice ('We fixed...'). Shown in the portal.",
+      "type": "string"
+    },
+    "completed_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "dedupe_key": {
+      "description": "Unique key; the sync and log never create a second row with the same key",
+      "type": "string"
+    },
+    "done_by": {
+      "default": "claude_session",
+      "enum": [
+        "agent",
+        "scheduled_task",
+        "claude_session",
+        "justin_manual",
+        "team"
+      ],
+      "type": "string"
+    },
+    "evidence": {
+      "description": "Where the proof is: record ids, checkpoint names, file paths (internal)",
+      "type": "string"
+    },
+    "link": {
+      "description": "Client-safe URL to the result (live page, post), if any",
+      "type": "string"
+    },
+    "manual_minutes": {
+      "default": 0,
+      "description": "Minutes Justin actually spent on it",
+      "type": "number"
+    },
+    "minutes_baseline": {
+      "description": "Estimate: minutes this would take Justin by hand (from the baseline table, or overridden)",
+      "type": "number"
+    },
+    "minutes_saved_estimate": {
+      "description": "Estimate: baseline minus Justin's minutes (0 when Justin did it by hand)",
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "processed": {
+      "default": false,
+      "description": "Baseline, visibility and client copy applied by the work-ledger function",
+      "type": "boolean"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "source_type": {
+      "description": "launch_item | automation_run | claude_job | work_log | request | engine | social_post | email_campaign | checkpoint | manual | api | claude",
+      "type": "string"
+    },
+    "status": {
+      "default": "done",
+      "enum": [
+        "done",
+        "in_progress",
+        "awaiting_approval",
+        "failed",
+        "duplicate",
+        "cancelled"
+      ],
+      "type": "string"
+    },
+    "task_type": {
+      "description": "Key in the time-saved baseline table (AppSettings work_baselines), e.g. blog_post, site_migration, app_feature",
+      "type": "string"
+    },
+    "title": {
+      "description": "Internal title (Justin only)",
+      "type": "string"
+    },
+    "visibility": {
+      "default": "internal",
+      "enum": [
+        "client",
+        "internal"
+      ],
+      "type": "string"
+    },
+    "visibility_locked": {
+      "default": false,
+      "description": "Justin set visibility by hand; automation never changes it",
+      "type": "boolean"
+    },
+    "visibility_reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}
