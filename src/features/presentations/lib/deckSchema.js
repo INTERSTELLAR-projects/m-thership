@@ -674,8 +674,27 @@ export async function finalizeDeck({ deck, brief, slideCount, clientId, source, 
     d = await repairDeck({ brief, deck: d, issues, clientId });
     ({ deck: d, issues } = enforceDeck(d, { source: src, slideCount }));
   }
+  // Near-duplicates the repair left behind are dropped (while the deck stays within 2 of the requested count).
+  const dupIds = issues.filter((x) => x.id && /^repeats slide/.test(x.problem)).map((x) => x.id);
+  const floor = Math.max(5, (slideCount || d.slides.length) - 2);
+  dupIds.forEach((id) => { if (d.slides.length > floor) d = { ...d, slides: d.slides.filter((s) => s.id !== id) }; });
   const { deck: stripped, removed } = stripUngrounded(d, src);
   return { deck: stripped, issues, removed, found };
+}
+
+// The brief compares figures (or splits a total) but no chart survived: turn the best figures slide into one.
+async function ensureChart({ deck, brief, clientId }) {
+  const reason = chartReason(brief);
+  if (!reason || deck.slides.some((s) => s.layout === "chart" && s.chart && s.chart.points.length >= 2)) return deck;
+  const target = deck.slides.find((s) => ["stats", "bigstat"].includes(s.layout)) || deck.slides.find((s) => s.layout !== "cover" && s.layout !== "closing" && numbersIn(visibleText(s)).some((n) => n.value > 12));
+  if (!target) return deck;
+  try {
+    const next = await regenerateSlide({ deck, slide: target, brief, clientId, instruction: `Turn this into a chart slide (layout "chart") because ${reason}. Use only figures written in the input, as plain numbers: column chart for periods, donut for parts of a whole. Keep the takeaway title.` });
+    if (next.layout === "chart" && next.chart && next.chart.points.length >= 2) return { ...deck, slides: deck.slides.map((s) => (s.id === target.id ? next : s)) };
+  } catch {
+    /* keep the deck as it is */
+  }
+  return deck;
 }
 
 export async function writeSlides({ brief, outline, slideCount = 10, clientId }) {
@@ -683,7 +702,8 @@ export async function writeSlides({ brief, outline, slideCount = 10, clientId })
   const { json } = await deckAI({ system, prompt, schema: DECK_JSON_SCHEMA, tier: "long", feature: "presentations.slides", clientId, maxTokens: 14000 });
   const deck = normalizeDeck({ ...json, theme: "interstellar" });
   const out = await finalizeDeck({ deck, brief, slideCount, clientId });
-  return { ...out, deck: { ...out.deck, title: out.deck.title || outline.title, needs: [...new Set([...(outline.needs || []), ...(deck.needs || [])])].slice(0, 12) } };
+  const charted = await ensureChart({ deck: out.deck, brief, clientId });
+  return { ...out, deck: { ...charted, title: out.deck.title || outline.title, needs: [...new Set([...(outline.needs || []), ...(deck.needs || [])])].slice(0, 12) } };
 }
 
 /** Outline-first generation in one go (chat path, deck-from-document path). */
