@@ -53,7 +53,7 @@ import { Navigate } from 'react-router-dom';
 import { useParams, useLocation } from 'react-router-dom';
 import LoginPage from '@/features/auth/LoginPage';
 import HiringPlanPage from '@/features/hiring/HiringPlanPage';
-import SimpleSocialPage from '@/features/studios/SimpleSocialPage';
+import SmplStudioPage from '@/features/studios/SmplStudioPage';
 import ChromeWorkspacePage from '@/features/workspace/ChromeWorkspacePage';
 import ClientUsagePage from '@/features/usage/ClientUsagePage';
 import FuelEconomicsPage from '@/features/fuel/FuelEconomicsPage';
@@ -172,7 +172,8 @@ const AuthenticatedApp = () => {
         <Route path="/output-analytics" element={<ProtectedRoute><OutputAnalytics /></ProtectedRoute>} />
         <Route path="/growth" element={<Navigate to="/growth/hiring" replace />} />
         <Route path="/growth/hiring" element={<ProtectedRoute><HiringPlanPage /></ProtectedRoute>} />
-        <Route path="/studios/simple-social" element={<ProtectedRoute><SimpleSocialPage /></ProtectedRoute>} />
+        <Route path="/studios/smpl" element={<ProtectedRoute><SmplStudioPage /></ProtectedRoute>} />
+        <Route path="/studios/simple-social" element={<Navigate to="/studios/smpl" replace />} />
         <Route path="/tools/chrome-workspace" element={<ProtectedRoute><ChromeWorkspacePage /></ProtectedRoute>} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
