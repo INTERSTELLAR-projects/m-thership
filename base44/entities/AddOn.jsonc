@@ -38,6 +38,10 @@
         "additionalProperties": true
       }
     },
+    "demo_url": {
+      "type": "string",
+      "description": "Optional public live demo (https), shown as 'Open the live demo' on the detail view"
+    },
     "price_model": {
       "type": "string",
       "enum": [
