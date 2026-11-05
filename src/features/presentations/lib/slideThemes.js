@@ -351,6 +351,10 @@ export function buildCustomTheme(input) {
   const heading = brand.headingFamily ? `'${brand.headingFamily}', ${fallbackHeading}` : fallbackHeading;
   const body = brand.bodyFamily ? `'${brand.bodyFamily}', 'Inter', sans-serif` : "'Inter', sans-serif";
   const accentText = brand.accentText || brand.accent;
+  // Chart series colours must all be visible on the canvas: a stored accent2 too close to the background is
+  // replaced by a tint of the accent.
+  const visible = (hex) => /^#[0-9a-f]{6}$/i.test(hex || '') && Math.abs(luminance(hex) - luminance(brand.bg)) > 0.12;
+  const second = visible(brand.accent2) ? brand.accent2 : shade(brand.accent, dark ? 0.45 : -0.4);
   return {
     id: CUSTOM_THEME_ID,
     name: brand.name || 'Custom',
@@ -363,11 +367,11 @@ export function buildCustomTheme(input) {
     faint: withAlpha(brand.fg, 0.42),
     accent: brand.accent,
     accentText,
-    accent2: brand.accent2 || '',
+    accent2: visible(brand.accent2) ? brand.accent2 : '',
     accentInk: contrastInk(brand.accent),
     accentSoft: withAlpha(brand.accent, dark ? 0.18 : 0.12),
     eyebrowColor: accentText,
-    chartColors: [brand.accent, brand.accent2 || shade(brand.accent, dark ? 0.35 : -0.35), withAlpha(brand.fg, 0.55), shade(brand.accent, dark ? -0.3 : 0.45), withAlpha(brand.fg, 0.3)],
+    chartColors: [brand.accent, second, withAlpha(brand.fg, 0.6), shade(brand.accent, dark ? -0.35 : 0.55), withAlpha(brand.fg, 0.35)],
     panel: dark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.72)',
     border: withAlpha(brand.fg, dark ? 0.2 : 0.16),
     hairline: withAlpha(brand.fg, dark ? 0.14 : 0.12),
