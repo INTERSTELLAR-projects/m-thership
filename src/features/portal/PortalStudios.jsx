@@ -140,20 +140,6 @@ export default function StudioPreview({ tab, client, call, preview, previewId, s
   const [sched, setSched] = useState(false);
   if (!s) return null;
   const on = state === "on";
-  if (s.cobrand === "smpl") {
-    return (
-      <SmplStudioPreview
-        business={client?.business} preview={preview} onAsk={ask} sent={sent} busy={busy} err={err}
-        replaces={s.replaces} note={s.note}
-        upgrade={planLocked ? (
-          <div>
-            <UpgradeCta call={call} client={client} preview={preview} studioLabel={s.label} onSchedule={() => setSched(true)} />
-            <ScheduleCallModal open={sched} onClose={() => setSched(false)} previewId={scopeId || previewId} preview={preview} />
-          </div>
-        ) : null}
-      />
-    );
-  }
 
   const ask = async () => {
     if (preview || busy || sent) return;
@@ -169,6 +155,21 @@ export default function StudioPreview({ tab, client, call, preview, previewId, s
       setErr(e?.response?.data?.error || "Couldn't send that. Try again or message us.");
     } finally { setBusy(false); }
   };
+
+  if (s.cobrand === "smpl") {
+    return (
+      <SmplStudioPreview
+        business={client?.business} preview={preview} onAsk={ask} sent={sent} busy={busy} err={err}
+        replaces={s.replaces} note={s.note}
+        upgrade={planLocked ? (
+          <div>
+            <UpgradeCta call={call} client={client} preview={preview} studioLabel={s.label} onSchedule={() => setSched(true)} />
+            <ScheduleCallModal open={sched} onClose={() => setSched(false)} previewId={scopeId || previewId} preview={preview} />
+          </div>
+        ) : null}
+      />
+    );
+  }
 
   return (
     <div className="space-y-8" data-studio={s.key} data-studio-state={state}>
