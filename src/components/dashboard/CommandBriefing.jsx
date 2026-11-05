@@ -13,6 +13,7 @@ import { pickOneThing, polishOneThing, spokenBriefing } from "@/features/briefin
 import { speak, stopSpeaking } from "@/features/tasks/lib/speech";
 import { fmtDate } from "@/lib/useData";
 import { HiringTriggerCard } from "@/features/hiring/HiringPlanPage";
+import OutputStrip from "@/features/output/OutputStrip";
 
 // Mission Control's Command Briefing: the day in ten seconds. Every number is live from the
 // current entities (see features/briefing/loadBriefing.js); empty sections collapse.
@@ -104,6 +105,7 @@ export default function CommandBriefing() {
                 </p>
               </Link>
               <StatusChips b={b} />
+              <OutputStrip />
             </>
           )}
         </div>
