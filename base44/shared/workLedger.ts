@@ -94,7 +94,8 @@ export function normalize(e: any, cfg: any) {
   const type = cfg.map.get(e.task_type) ? e.task_type : "other";
   if (type !== e.task_type) out.task_type = type;
   const b = cfg.map.get(type);
-  if (!e.category || !CATEGORIES.includes(e.category)) out.category = b?.category || "ops";
+  // Category follows the task type (the schema default "ops" would otherwise stick), unless Justin edited the row.
+  if (!e.locked || !CATEGORIES.includes(e.category)) out.category = b?.category || "ops";
   if (!DONE_BY.includes(e.done_by)) out.done_by = "claude_session";
   const merged = { ...e, ...out };
   if (!e.baseline_override) out.minutes_baseline = b ? b.minutes : 30;
