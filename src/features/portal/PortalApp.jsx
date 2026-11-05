@@ -34,6 +34,7 @@ import { FuelBanner, RefuelModal } from "@/features/fuel/FuelPrompts";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PortalUpgrades, { UpgradeSpotlight } from "@/features/addons/PortalUpgrades";
 import { useAddonStore } from "@/features/addons/api";
+import PortalWorkFeed from "@/features/portal/PortalWorkFeed";
 
 // Tabs this portal can show. Grouping, labels and icons for the header nav live in PortalNav.jsx (NAV);
 // free-for-life bonus tools (Signatures, QR Codes) are tagged there and listed together on Home.
@@ -298,6 +299,8 @@ function HomeView({ d, go, call, previewId, openAudit }) {
       </section>
 
       <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr] [&>*]:min-w-0">
+        {/* "Work we did" from the work ledger (client-safe copy only). Older portals without work_feed fall back to WorkLog. */}
+        {Array.isArray(d.work_feed) ? <PortalWorkFeed items={d.work_feed} business={d.client.business} /> : (
         <Panel label="Latest" title="Work feed">
           {d.work.length === 0 ? <Empty>Your work feed fills up as we publish for you.</Empty> : (
             <ul className="divide-y divide-hair">
@@ -312,6 +315,7 @@ function HomeView({ d, go, call, previewId, openAudit }) {
             </ul>
           )}
         </Panel>
+        )}
         <div className="space-y-5">
           <div className="band-dark grain rounded-md p-5">
             <p className="mono-label text-[10px] text-white/50">Need something?</p>
