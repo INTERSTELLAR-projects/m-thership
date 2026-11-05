@@ -1,5 +1,4 @@
 import React from 'react';
-import { Image } from '@/components/ui/image';
 
 // An image, or (when there is none) a quiet brand-coloured panel. Never a "Visual" placeholder label: an empty
 // image slot must still look finished in an export.
@@ -9,7 +8,8 @@ export default function VisualBlock({ theme, src, style, logo }) {
   if (src) {
     return (
       <div style={box}>
-        <Image src={src} alt="" fittingType="fill" loading="eager" className="absolute inset-0 h-full w-full" />
+        {/* object-fit: cover so a 16:9 image fills a portrait panel (v1 letterboxed it with white bars). */}
+        <img src={src} alt="" crossOrigin="anonymous" loading="eager" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
     );
   }
