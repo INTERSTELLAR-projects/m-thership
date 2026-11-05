@@ -36,7 +36,12 @@ const ensureIds = (slides) => (slides || []).map((slide) => (slide.id ? slide : 
 const unwrap = (response) => (response && response.data !== undefined ? response.data : response);
 
 // Entity-safe slides: a slide with no chart carries no chart key (null would fail the object-typed field).
-const storable = (slides) => (slides || []).map(({ chart, ...s }) => (chart && Array.isArray(chart.points) ? { ...s, chart } : s));
+const storable = (slides) =>
+  (slides || []).map(({ chart, ...s }) =>
+    chart && Array.isArray(chart.points)
+      ? { ...s, chart: { ...chart, points: chart.points.map((p) => ({ label: String(p.label || ''), value: Number(p.value) || 0 })) } }
+      : s
+  );
 
 const needsMessage = (needs) =>
   needs && needs.length ? `Facts that would make it stronger (nothing was guessed): ${needs.slice(0, 6).join('; ')}.` : '';
