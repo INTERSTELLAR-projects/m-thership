@@ -107,7 +107,7 @@ export function normalize(e: any, cfg: any) {
     out.visibility = v.visibility;
     out.visibility_reason = v.reason;
   }
-  if (!e.completed_at && merged.status === "done") out.completed_at = e.created_date || new Date().toISOString();
+  if (!e.completed_at && merged.status === "done" && e.source_type !== "work_log") out.completed_at = e.created_date || new Date().toISOString();
   return out;
 }
 
