@@ -29,7 +29,7 @@ export const DEFAULT_FUEL = {
   status_note: FUEL_STATUS_NOTE,
   // 1. Studios are HyperCare+ only. Signatures + QR Codes stay free for life on every plan.
   studios_require_hypercare: true,
-  gated_studios: ["social", "email", "ads", "accounting", "hiring", "presentations"],
+  gated_studios: ["social", "email", "ads", "accounting", "hiring", "training", "presentations"],
   free_for_life: ["signatures", "qr"],
   // Nøva works on every plan; non-HyperCare plans get a small Nøva-only AI allowance.
   nova_only_ai_actions: 50,

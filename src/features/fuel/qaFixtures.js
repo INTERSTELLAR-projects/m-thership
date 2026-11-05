@@ -22,7 +22,7 @@ export function qaFuelSummary(state = stateNow()) {
   const base = {
     visible: true, config_status: "Approved Nov 4, 2026", month: new Date().toISOString().slice(0, 7), reset_on: iso(next1st()).slice(0, 10), reset_label: resetLabel(),
     plan: "hypercare", plan_label: "HyperCare+", tier: "local", tier_label: "Local + 1 extra location", extra_locations: 1, studios_unlocked: true, nova_only: false, unlimited: false,
-    studios: { social: "on", email: "on", ads: "preview", accounting: "preview", hiring: "preview", presentations: "preview" }, free_for_life: ["signatures", "qr"],
+    studios: { social: "on", email: "on", ads: "preview", accounting: "preview", hiring: "preview", training: "on", presentations: "preview" }, free_for_life: ["signatures", "qr"],
     paused: { kinds: [], since: null, posts: 0, campaigns: 0, campaign_emails: 0 },
     wallet: { ai_action: 0, marketing_email: 0, next_expiry: null, lots: [] }, packs: PACKS, credit_validity_months: 12,
     auto_refuel: { enabled: false, pack: "refuel", monthly_ceiling_usd: 0, spent_this_month_usd: 0, max_ceiling_usd: 500, live: false },
@@ -30,7 +30,7 @@ export function qaFuelSummary(state = stateNow()) {
   };
   if (state === "gravity") {
     return { ...base, plan: "gravitycare", plan_label: "GravïtyCare", tier: null, tier_label: "", extra_locations: 0, studios_unlocked: false, nova_only: true,
-      studios: { social: "locked", email: "locked", ads: "locked", accounting: "locked", hiring: "locked", presentations: "locked" },
+      studios: { social: "locked", email: "locked", ads: "locked", accounting: "locked", hiring: "locked", training: "locked", presentations: "locked" },
       ai: kind(50, 12, 0), email: kind(0, 0, 0), out_of_fuel: false, out_kinds: [], alert: false };
   }
   if (state === "alert") {

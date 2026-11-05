@@ -28,7 +28,7 @@ export const ALERT_AT = 0.8;
 
 // Per-client Studio state: off (hidden) / preview (visible in the portal, locked: the default) / on (usable).
 // Server functions only ever act for a portal user when the Studio is "on".
-export const STUDIO_KEYS = ["social", "email", "ads", "accounting", "hiring", "presentations"] as const;
+export const STUDIO_KEYS = ["social", "email", "ads", "accounting", "hiring", "training", "presentations"] as const;
 export type StudioState = "off" | "preview" | "on";
 
 // ---- Model routing (Anthropic Messages API, our own key, never Base44 InvokeLLM credits for clients) ----

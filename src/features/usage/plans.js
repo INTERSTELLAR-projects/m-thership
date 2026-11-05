@@ -23,10 +23,10 @@ export const STUDIO_STATES = [
   { value: "preview", label: "Preview" },
   { value: "on", label: "On" },
 ];
-export const STUDIO_KEYS = ["social", "email", "ads", "accounting", "hiring", "presentations"];
+export const STUDIO_KEYS = ["social", "email", "ads", "accounting", "hiring", "training", "presentations"];
 export const STUDIO_LABELS = {
   social: "Social Studio", email: "Email Studio", ads: "Ads Studio",
-  accounting: "Accounting & Taxes", hiring: "Hiring plan", presentations: "Presentations",
+  accounting: "Accounting & Taxes", hiring: "Hiring plan", training: "Training", presentations: "Presentations",
 };
 
 export function studioState(client, key) {

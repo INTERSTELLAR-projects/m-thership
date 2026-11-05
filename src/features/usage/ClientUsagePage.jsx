@@ -11,7 +11,7 @@ import { Panel, Tag, Stat, Btn } from "@/features/clients/ui";
 import { UsageBar } from "./PortalUsageCard";
 import { PLAN_CAPS, ADS_LABEL, STUDIO_KEYS, STUDIO_LABELS, STUDIO_STATES, fmtUsd, fmtNum } from "./plans";
 
-const SHORT = { social: "Social", email: "Email", ads: "Ads", accounting: "Accounting", hiring: "Hiring", presentations: "Decks" };
+const SHORT = { social: "Social", email: "Email", ads: "Ads", accounting: "Accounting", hiring: "Hiring", training: "Training", presentations: "Decks" };
 
 const useOverview = () => useQuery({
   queryKey: ["client-usage", "overview"],
