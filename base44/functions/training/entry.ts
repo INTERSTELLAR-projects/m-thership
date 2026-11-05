@@ -193,7 +193,7 @@ Deno.serve(async (req) => {
         return {
           id: a.id, track_id: a.track_id, track_title: titles.get(a.track_id) || a.track_title || "", trainee_name: a.trainee_name, trainee_email: a.trainee_email || "",
           language: a.language || "en", start_date: a.start_date || "", due_date: a.due_date || "", pct: a.pct || 0, status: a.status, started_at: a.started_at || "",
-          last_active_at: a.last_active_at || "", completed_at: a.completed_at || "", signoff: a.signoff || null, badge: a.badge || null, source: a.source || "manual",
+          last_active_at: a.last_active_at || "", completed_at: a.completed_at || "", signoff: a.signoff || null, badge: a.badge || null, source: a.source || "manual", hire_key: a.hire_key || "",
           questions: arr(a.questions), access_token: a.access_token, module_due: a.module_due || {},
           modules: ms.map((x: any) => {
             const p = (a.progress || {})[x.id] || {};
