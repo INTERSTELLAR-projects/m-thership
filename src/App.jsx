@@ -57,6 +57,7 @@ import SimpleSocialPage from '@/features/studios/SimpleSocialPage';
 import ChromeWorkspacePage from '@/features/workspace/ChromeWorkspacePage';
 import ClientUsagePage from '@/features/usage/ClientUsagePage';
 import FuelEconomicsPage from '@/features/fuel/FuelEconomicsPage';
+import UpgradeStorePage from '@/features/addons/UpgradeStorePage';
 import AgentsPage from '@/features/agents/AgentsPage';
 import IntelligencePage from '@/features/oracle/IntelligencePage';
 import LaunchPage from '@/features/launch/LaunchPage';
@@ -125,6 +126,7 @@ const AuthenticatedApp = () => {
         <Route path="/clients/:id" element={<ProtectedRoute><ClientCockpit /></ProtectedRoute>} />
         <Route path="/client-usage" element={<ProtectedRoute><ClientUsagePage /></ProtectedRoute>} />
         <Route path="/fuel-economics" element={<ProtectedRoute><FuelEconomicsPage /></ProtectedRoute>} />
+        <Route path="/upgrades" element={<ProtectedRoute><UpgradeStorePage /></ProtectedRoute>} />
         <Route path="/agents" element={<ProtectedRoute><AgentsPage /></ProtectedRoute>} />
         <Route path="/launch" element={<ProtectedRoute><LaunchPage /></ProtectedRoute>} />
         <Route path="/comms" element={<ProtectedRoute><Comms /></ProtectedRoute>} />
