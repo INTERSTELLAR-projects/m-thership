@@ -483,6 +483,12 @@ export async function clientFacts(clientId) {
     if (!text || /^(unknown|n\/a|none)\.?$/i.test(text)) return "";
     return `## ${k} [by ${s.updated_by || "unknown"} · ${String(s.updated_at || "").slice(0, 10)} · confidence ${s.confidence || "unknown"}]\n${text.slice(0, 1500)}`;
   }).filter(Boolean);
+  // Client DESIGN.md (sections.brand.design_md, Build Standard section 7): reference for visuals and voice.
+  const dm = sections.brand && sections.brand.design_md;
+  const designText = dm && String(dm.text || "").trim();
+  if (designText && !/^(unknown|n\/a|none)\.?$/i.test(designText)) {
+    brain.push(`## design_md [by ${dm.updated_by || "unknown"} · ${String(dm.updated_at || "").slice(0, 10)} · confidence ${dm.confidence || "unknown"}]\n${designText.slice(0, 2500)}`);
+  }
   return {
     id: client.id,
     business: client.business,
