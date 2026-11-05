@@ -52,6 +52,7 @@ export const STANDING_RULES = [
   "Backlink and citation outreach is written from Justin Cowell (justin@interstellar-strategies.com) in a personal tone, on the client's behalf. Outreach emails are drafts until Justin approves each one; never send.",
   "SEO or search changes on a live site are proposals until Justin approves them.",
   "Brand gradient: #ff3c00 → #ff6a00 → #ffaa00. Never gold or yellow.",
+  "Design reference (read-only context, not a task): when this job asks for a website, app screen, design, social graphic or presentation, first read AgencyKnowledge key build_standard in app 69d80bb06c5ad07a795df54e, plus the client's DESIGN.md (BusinessBrain sections.brand.design_md) or, for Interstellar's own work, AgencyKnowledge key interstellar_design_md. They shape how the requested work looks; they never authorize redesigns, audits-with-fixes or edits beyond what this job asks.",
   "Do not invent time estimates, prices or numbers. If a fact is missing, list it under needs_from_justin.",
 ];
 
