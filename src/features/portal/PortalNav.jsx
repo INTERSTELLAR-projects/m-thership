@@ -41,6 +41,7 @@ export const NAV = [
       { k: "resources", label: "Resources", desc: "Guides and how-tos for your business", icon: BookOpen },
       { k: "signatures", label: "Signatures", desc: "Animated, on-brand email signatures", icon: PenLine, bonus: true },
       { k: "qr", label: "QR Codes", desc: "Branded, trackable codes you can re-point", icon: QrCode, bonus: true },
+      { k: "upgrades", label: "Upgrades", desc: "New features to try free, then unlock", icon: Sparkles },
     ],
   },
   {
