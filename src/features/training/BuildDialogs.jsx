@@ -79,7 +79,7 @@ export function BuildFromSopsDialog({ open, onClose, call, portal, templates, on
                         return (
                           <li key={s.id}>
                             <button type="button" onClick={() => toggle(s.id)} aria-pressed={on} className={`flex w-full items-start gap-2.5 border px-3 py-2.5 text-left transition-colors ${on ? "border-[#ff3c00] bg-[#ff3c00]/[0.05]" : "border-hair bg-card hover:border-ink/30"}`}>
-                              <span className={`mt-0.5 flex h-4.5 h-[18px] w-[18px] shrink-0 items-center justify-center border ${on ? "border-[#ff3c00] bg-[#ff3c00] text-white" : "border-ink/30 bg-white"}`}>{on && <Check className="h-3 w-3" />}</span>
+                              <span className={`mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center border ${on ? "border-[#ff3c00] bg-[#ff3c00] text-white" : "border-ink/30 bg-white"}`}>{on && <Check className="h-3 w-3" />}</span>
                               {s.type === "sop" ? <BookOpenCheck className="mt-0.5 h-4 w-4 shrink-0 text-ink/45" /> : <FileText className="mt-0.5 h-4 w-4 shrink-0 text-ink/45" />}
                               <span className="min-w-0 flex-1">
                                 <span className="block text-[13px] font-medium leading-snug">{s.title}</span>
