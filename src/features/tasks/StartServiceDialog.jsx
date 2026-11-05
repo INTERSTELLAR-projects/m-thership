@@ -9,8 +9,8 @@ import { useList } from "@/lib/useData";
 // needsCare: hosted builds must run on HyperCare+ or GravïtyCare; the dialog starts the care plan in the same click.
 export const SERVICE_GROUPS = [
   { label: "Missions", items: [
-    { key: "mission_alpha", label: "Mission ALPHA", price: "$8,997", onboarding: true, needsCare: true, careDelay: 45, streams: ["intel_briefing", "website", "system", "ops_command", "brand_arsenal", "launch_grid", "transmission"] },
-    { key: "mission_bravo", label: "Mission BRAVO", price: "$6,497", onboarding: true, needsCare: true, careDelay: 30, streams: ["intel_briefing", "website", "system"] },
+    { key: "mission_alpha", label: "Mission ALPHA", price: "$11,997", onboarding: true, needsCare: true, careDelay: 45, streams: ["intel_briefing", "website", "system", "ops_command", "brand_arsenal", "launch_grid", "transmission"] },
+    { key: "mission_bravo", label: "Mission BRAVO", price: "$9,997", onboarding: true, needsCare: true, careDelay: 30, streams: ["intel_briefing", "website", "system"] },
   ] },
   { label: "Builds", items: [
     { key: "custom_website", label: "Custom Website", price: "$4,997", onboarding: true, needsCare: true, careDelay: 21, streams: ["intel_briefing", "website"] },

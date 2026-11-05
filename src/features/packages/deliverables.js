@@ -48,7 +48,7 @@ export const DELIVERABLES = {
     ],
   },
   "custom-website": {
-    price: "$4,997 on its own (offered on the call, not listed publicly) · Intel Briefing audit + final sweep included · included in Mission ALPHA ($8,997) and BRAVO ($6,497) · always + a care plan",
+    price: "$4,997 on its own (offered on the call, not listed publicly) · Intel Briefing audit + final sweep included · included in Mission ALPHA ($11,997) and BRAVO ($9,997) · always + a care plan",
     cadence: "One-time build",
     includes: [
       "Messaging and structure written answer-first, one clear action per page",
@@ -61,7 +61,7 @@ export const DELIVERABLES = {
     ],
   },
   "command-system": {
-    price: "$5,997 on its own (offered on the call, not listed publicly) · Intel Briefing audit + final sweep included · included in Mission ALPHA ($8,997) and BRAVO ($6,497) · always + a care plan",
+    price: "$5,997 on its own (offered on the call, not listed publicly) · Intel Briefing audit + final sweep included · included in Mission ALPHA ($11,997) and BRAVO ($9,997) · always + a care plan",
     cadence: "One-time build",
     includes: [
       "Custom CRM: every lead, customer and conversation in one record",
@@ -129,6 +129,6 @@ export const DELIVERABLES = {
 
 // The two mission bundles, for reference next to the packages.
 export const MISSIONS = [
-  { name: "Mission ALPHA", price: "$8,997", note: "All seven packages in one 45-day build: Intel Briefing, Custom Website, Command System, Ops Command, Brand Arsenal, Launch Grid, Transmission. Bonus: the first 45 days of HyperCare+ free, starting the day Mission ALPHA is purchased (the subscription starts on day 46). Live in 45 days or the first 3 months of HyperCare+ are free." },
-  { name: "Mission BRAVO", price: "$6,497", note: "Intel Briefing (audit + final sweep) + Custom Website + Command System." },
+  { name: "Mission ALPHA", price: "$11,997", note: "All seven packages in one 45-day build: Intel Briefing, Custom Website, Command System, Ops Command, Brand Arsenal, Launch Grid, Transmission. Bonus: the first 45 days of HyperCare+ free, starting the day Mission ALPHA is purchased (the subscription starts on day 46). Live in 45 days or the first 3 months of HyperCare+ are free." },
+  { name: "Mission BRAVO", price: "$9,997", note: "Intel Briefing (audit + final sweep) + Custom Website + Command System." },
 ];

@@ -172,7 +172,7 @@ export async function loadHiring({ months = 6 } = {}) {
 /* ─── Capacity model inputs (Agency Knowledge prices) ───────────────────── */
 export function offersModel(sections) {
   const alpha = offerByKey("mission_alpha", sections);
-  const price = offerPrice("mission_alpha", 8997, sections);
+  const price = offerPrice("mission_alpha", 11997, sections);
   const t = String(alpha?.terms || "");
   const m = t.match(/\$([\d,]+)\s*down\s*\+\s*(\d+)\s*[×x]\s*\$([\d,]+)/i);
   const num = (s) => Number(String(s).replace(/,/g, ""));

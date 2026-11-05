@@ -22,8 +22,8 @@ export const BRAND = {
   offers: {
     // Fallback copy of the AgencyKnowledge offer prices (same keys as the start-service catalog,
     // except hypercare_plus = orbit_local and gravitycare = starship_care).
-    mission_alpha: { label: "Mission ALPHA", price: 8997, includes: ["Custom Website", "Command System", "Ops Command", "Brand Arsenal", "Launch Grid", "Transmission", "Intel Briefing (free)"] },
-    mission_bravo: { label: "Mission BRAVO", price: 6497, includes: ["Custom Website", "Command System", "Intel Briefing (free)"] },
+    mission_alpha: { label: "Mission ALPHA", price: 11997, includes: ["Custom Website", "Command System", "Ops Command", "Brand Arsenal", "Launch Grid", "Transmission", "Intel Briefing (free)"] },
+    mission_bravo: { label: "Mission BRAVO", price: 9997, includes: ["Custom Website", "Command System", "Intel Briefing (free)"] },
     custom_website: { label: "Custom Website", price: 4997 },
     command_system: { label: "Command System", price: 5997 },
     ops_command: { label: "Ops Command", price: 3000 },

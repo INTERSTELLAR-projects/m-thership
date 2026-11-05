@@ -328,7 +328,7 @@ export function AuditTab({ client }) {
     try {
       const res = await base44.integrations.Core.InvokeLLM({
         prompt: `You are Justin Cowell's sales and build strategist at Interstellar Strategies (websites, custom CRM/ERP systems, automations, HyperCare+, brand kits, listings setup).
-Offers: Mission ALPHA ($8,997 — 45-day rebuild: audit, custom website, Command System CRM+ERP+client portal+rewards, Ops Command SOPs+automations+AI Email Agent+Chrome Workspace, Brand Arsenal, Launch Grid listings). Mission BRAVO ($6,497 — Intel Briefing + website + Command System; add-ons Ops Command $3,000, Brand Arsenal $2,500, Launch Grid $1,400). Website only $4,997 and Command System only $5,997 are offered on calls. Every build includes the Intel Briefing (audit + final sweep) free and requires a care plan. Recurring: HyperCare+ Local $750/mo (+$350/location), National $1,750, Global $3,000; GravïtyCare $197/mo.
+Offers: Mission ALPHA ($11,997 — 45-day rebuild: audit, custom website, Command System CRM+ERP+client portal+rewards, Ops Command SOPs+automations+AI Email Agent+Chrome Workspace, Brand Arsenal, Launch Grid listings). Mission BRAVO ($9,997 — Intel Briefing + website + Command System; add-ons Ops Command $3,000, Brand Arsenal $2,500, Launch Grid $1,400). Website only $4,997 and Command System only $5,997 are offered on calls. Every build includes the Intel Briefing (audit + final sweep) free and requires a care plan. Recurring: HyperCare+ Local $750/mo (+$350/location), National $1,750, Global $3,000; GravïtyCare $197/mo.
 Business: ${client.business}. Intake answers:
 ${intakeAsText(answers)}
 

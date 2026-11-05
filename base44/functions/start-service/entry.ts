@@ -12,10 +12,10 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 
 type Pkg = { label: string; type: string; value: number; billing: string; streams: string[]; onboarding: boolean; services: string[]; needsCare?: boolean };
 export const PACKAGES: Record<string, Pkg> = {
-  mission_alpha:  { label: "Mission ALPHA", type: "website", value: 8997, billing: "one_time", onboarding: true, needsCare: true,
+  mission_alpha:  { label: "Mission ALPHA", type: "website", value: 11997, billing: "one_time", onboarding: true, needsCare: true,
                     streams: ["intel_briefing", "website", "system", "ops_command", "brand_arsenal", "launch_grid", "transmission"],
                     services: ["website", "system", "brand"] },
-  mission_bravo:  { label: "Mission BRAVO", type: "website", value: 6497, billing: "one_time", onboarding: true, needsCare: true,
+  mission_bravo:  { label: "Mission BRAVO", type: "website", value: 9997, billing: "one_time", onboarding: true, needsCare: true,
                     streams: ["intel_briefing", "website", "system"], services: ["website", "system"] },
   // Every build includes the Intel Briefing: the audit first, the final sweep at the end. It is never sold as an add-on.
   custom_website: { label: "Custom Website", type: "website", value: 4997, billing: "one_time", onboarding: true, needsCare: true, streams: ["intel_briefing", "website"], services: ["website"] },

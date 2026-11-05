@@ -22,7 +22,7 @@ export const SALES = SERVICE_GROUPS.flatMap((g) => g.items.map((i) => ({ ...i, g
 export const saleByKey = (k) => SALES.find((s) => s.key === k) || null;
 // Prices come from Settings > Agency knowledge (AgencyKnowledge offers). The numbers below are the
 // fallback used until it loads, and Settings flags any mismatch between the two.
-export const PRICE_OF = { mission_alpha: 8997, mission_bravo: 6497, custom_website: 4997, command_system: 5997, ops_command: 3000, brand_arsenal: 2500, launch_grid: 1400, transmission: 1500, orbit_local: 750, orbit_multi: 350, orbit_national: 1750, orbit_global: 3000, starship_care: 197 };
+export const PRICE_OF = { mission_alpha: 11997, mission_bravo: 9997, custom_website: 4997, command_system: 5997, ops_command: 3000, brand_arsenal: 2500, launch_grid: 1400, transmission: 1500, orbit_local: 750, orbit_multi: 350, orbit_national: 1750, orbit_global: 3000, starship_care: 197 };
 export const defaultPrice = (k) => offerPrice(k, PRICE_OF[k] || 0);
 const carePlan = (key, label) => ({ key, label, get base() { return defaultPrice(key); } });
 export const CARE_PLANS = [

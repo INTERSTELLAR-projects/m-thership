@@ -3,8 +3,8 @@
 // updates this chart. What lives here is only the routing: which purchase passes through which stage.
 
 export const LANES = [
-  { key: "alpha", label: "Mission ALPHA", price: "$8,997", sub: "All seven packages · 45-day build", service: "mission_alpha", color: "#ff3c00" },
-  { key: "bravo", label: "Mission BRAVO", price: "$6,497", sub: "Intel Briefing + Website + Command System", service: "mission_bravo", color: "#8a2e00" },
+  { key: "alpha", label: "Mission ALPHA", price: "$11,997", sub: "All seven packages · 45-day build", service: "mission_alpha", color: "#ff3c00" },
+  { key: "bravo", label: "Mission BRAVO", price: "$9,997", sub: "Intel Briefing + Website + Command System", service: "mission_bravo", color: "#8a2e00" },
   { key: "website", label: "Website only", price: "$4,997", sub: "Intel Briefing + Custom Website · offered on the call", service: "custom_website", color: "#1a1a1a" },
   { key: "app", label: "App only", price: "$5,997", sub: "Intel Briefing + Command System · offered on the call", service: "command_system", color: "#57534e" },
   { key: "addon", label: "Add-on only", price: "$1,400–$3,000", sub: "One package for an existing client", service: null, color: "#b45309" },
