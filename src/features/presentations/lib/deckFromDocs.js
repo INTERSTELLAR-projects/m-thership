@@ -2,54 +2,29 @@
 // schema: an in-app quick draft (deckSchema.quickDraft) or a Claude Queue `presentation` job
 // (claudeDeckJob.queueDeckJob). Client-branded when an approved brand kit exists, else Interstellar.
 import { base44 } from "@/api/base44Client";
-import { buildBrief, clientFacts, quickDraft } from "@/features/presentations/lib/deckSchema";
+import { buildBrief, clientFacts, generateDeck } from "@/features/presentations/lib/deckSchema";
 import { queueDeckJob } from "@/features/presentations/lib/claudeDeckJob";
+import { clientBrand, brandFromKit } from "@/features/presentations/lib/clientBrand";
 import { playbookToMarkdown } from "@/features/claude/playbook";
 import { socialPlanToMarkdown } from "@/features/claude/socialPlan";
 
-const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
-const normHex = (h) => {
-  const s = String(h || "").trim();
-  const v = s.startsWith("#") ? s : `#${s}`;
-  return HEX.test(v) ? v : "";
-};
-const lum = (hex) => {
-  let h = hex.replace("#", "");
-  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
-  const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-};
+// Kept for callers that import it from here. The v1 version matched palette roles on `role` only, so kits that
+// name their colours ("Background", "Rein Gold") got a near-black accent on a pale background.
+export { brandFromKit };
 
-// Deck brand {bg, fg, accent, mode, headingFont} from an approved BrandKit's kit JSON (null if no usable palette).
-export function brandFromKit(kit) {
-  const palette = (kit && Array.isArray(kit.palette) ? kit.palette : []).map((p) => ({ ...p, hex: normHex(p && p.hex) })).filter((p) => p.hex);
-  if (!palette.length) return null;
-  const role = (r) => palette.find((p) => String(p.role || "").toLowerCase().includes(r));
-  const accentC = role("primary") || role("accent") || palette[0];
-  const bgC = role("background") || palette.filter((p) => p !== accentC).sort((a, b) => lum(b.hex) - lum(a.hex))[0];
-  const bg = bgC ? bgC.hex : "#FFFFFF";
-  const light = lum(bg) > 0.45;
-  const textC = role("text");
-  const fg = textC && Math.abs(lum(textC.hex) - lum(bg)) > 0.3 ? textC.hex : light ? "#111111" : "#F7F4EF";
-  const heading = String((kit.typography && kit.typography.headings && (kit.typography.headings.family || kit.typography.headings)) || "");
-  const serif = /serif|playfair|merriweather|lora|garamond|baskerville|fraunces|dm serif|libre/i.test(heading) && !/sans/i.test(heading);
-  return { bg, fg, accent: accentC.hex, mode: light ? "light" : "dark", headingFont: serif ? "serif" : "sans" };
+// The client's deck brand: approved brand kit first, then the Business Brain brand section, then the profile.
+async function approvedBrand(clientId) {
+  const { brand } = await clientBrand(clientId).catch(() => ({ brand: null }));
+  return brand;
 }
 
-async function approvedKit(clientId) {
-  const rows = await base44.entities.BrandKit.filter({ client_id: clientId, status: "approved" }, "-version", 1).catch(() => []);
-  return (rows || [])[0] || null;
-}
-
-function lookLines(brand) {
-  return brand
-    ? `Use theme "custom" with exactly this brand object (from the client's approved brand kit): ${JSON.stringify(brand)}.`
-    : 'Use theme "interstellar" (Interstellar Strategies: brand gradient #ff3c00 → #ff6a00 → #ffaa00, never gold or yellow).';
+// The look is applied by the studio (client brand kit or Interstellar), so the writer never picks colours.
+function lookLines() {
+  return "The studio applies the brand colours, fonts and logo automatically. Do not describe colours or fonts on slides unless the deck is about the brand itself.";
 }
 
 export async function playbookDeckBrief(client, record) {
-  const [facts, kit] = await Promise.all([clientFacts(client.id), approvedKit(client.id)]);
-  const brand = kit ? brandFromKit(kit.kit) : null;
+  const [facts, brand] = await Promise.all([clientFacts(client.id), approvedBrand(client.id)]);
   const pb = record.playbook || {};
   const pillars = (pb.pillars || []).map((p) => p.name).join(", ");
   const content = (record.body_md && record.body_md.length > 400 ? record.body_md : playbookToMarkdown(pb, client.business)).slice(0, 12000);
@@ -87,8 +62,7 @@ export async function playbookDeckBrief(client, record) {
 }
 
 export async function socialPlanDeckBrief(client, record) {
-  const [facts, kit] = await Promise.all([clientFacts(client.id), approvedKit(client.id)]);
-  const brand = kit ? brandFromKit(kit.kit) : null;
+  const [facts, brand] = await Promise.all([clientFacts(client.id), approvedBrand(client.id)]);
   const plan = record.plan || {};
   const platforms = (plan.platforms || []).map((p) => p.name || p.id).join(", ");
   const content = (record.body_md && record.body_md.length > 400 ? record.body_md : socialPlanToMarkdown(plan, client.business)).slice(0, 12000);
@@ -130,7 +104,7 @@ export async function socialPlanDeckBrief(client, record) {
 
 export async function brandKitDeckBrief(client, record) {
   const facts = await clientFacts(client.id);
-  const brand = brandFromKit(record.kit);
+  const brand = brandFromKit(record.kit, client.business) || (await approvedBrand(client.id));
   const content = (record.body_md && record.body_md.length > 400 ? record.body_md : JSON.stringify(record.kit || {}, null, 1)).slice(0, 12000);
   const extra = [
     "This deck presents the client's APPROVED brand kit as brand guidelines. Use only what is in the kit below.",
@@ -142,7 +116,7 @@ export async function brandKitDeckBrief(client, record) {
     "4. stats or bullets: color palette with each colour's name and hex code and its role.",
     "5. compare: typography (headings vs body: family, weights, use).",
     "6. compare: voice — \"We say\" vs \"We never say\".",
-    "7. quote: the primary tagline (attribution: \"Brand tagline\"), then bullets for key messages.",
+    "7. quote: the primary tagline copied word for word from the kit (quote_source \"input\", attribution: \"Brand tagline\"), then cards for key messages.",
     "8. bullets: imagery and applications.",
     "9. compare: Do vs Don't.",
     "10. closing.",
@@ -176,18 +150,21 @@ export async function createDeckFromBrief({ client, brief, brand, title, mode, s
     brief: { source, look: brand ? "client" : "interstellar" },
   };
   if (mode === "quick") {
-    const deck = await quickDraft(brief);
-    const theme = brand ? "custom" : ["interstellar", "interstellar-dark"].includes(deck.theme) ? deck.theme : "interstellar";
+    const m = String(brief).match(/Slides:\s*(\d+)/);
+    const { deck, outline } = await generateDeck({ brief, slideCount: m ? Number(m[1]) : 10, clientId: client.id });
     const created = await base44.entities.Presentation.create({
       ...base,
       title: deck.title || title,
       subtitle: deck.subtitle,
       summary: deck.summary,
-      theme,
+      theme: brand ? "custom" : "interstellar",
       brand: brand || null,
-      slides: deck.slides,
+      brand_source: brand ? "Client brand" : "",
+      slides: deck.slides.map(({ chart, ...s }) => (chart ? { ...s, chart } : s)),
+      outline,
+      needs: deck.needs || [],
       prompt: brief,
-      generated_by: "quick_draft",
+      generated_by: "pipeline_v2",
       generation_status: "ready",
     });
     return created.id;
