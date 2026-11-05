@@ -43,10 +43,10 @@ export const DEFAULT_FUEL = {
   alert_at: 0.8,
   // 4. In-progress items may finish past zero by up to this share of the cap; Interstellar absorbs it.
   overshoot_buffer_pct: 0.03,
-  // 3. Refuel packs: one-time, no subscriptions. Credits last 12 months and are used after the allowance.
+  // 3. Refuel packs (repriced Nov 5, 2026 by Justin: price >= ~10x model+email+Stripe cost at heavy Sonnet use, >4x even at worst-case large-agent use): one-time, no subscriptions. Credits last 12 months and are used after the allowance.
   packs: [
-    { key: "refuel", label: "Refuel", price_usd: 25, ai_actions: 500, emails: 10000 },
-    { key: "big_refuel", label: "Big Refuel", price_usd: 99, ai_actions: 2000, emails: 40000 },
+    { key: "refuel", label: "Refuel", price_usd: 49, ai_actions: 250, emails: 5000 },
+    { key: "big_refuel", label: "Big Refuel", price_usd: 149, ai_actions: 800, emails: 15000 },
   ] as { key: string; label: string; price_usd: number; ai_actions: number; emails: number }[],
   credit_validity_months: 12,
   auto_refuel: {
@@ -67,7 +67,7 @@ export const DEFAULT_FUEL = {
     packs: [] as { key: string; label: string; price_usd: number; media_credits: number }[],
   },
   // 6. Cost assumptions for Fuel economics (USD).
-  costs: { sonnet_in_per_m: 2, sonnet_out_per_m: 10, haiku_in_per_m: 0.1, haiku_out_per_m: 0.5, ses_per_1000: 0.1 },
+  costs: { sonnet_in_per_m: 3, sonnet_out_per_m: 15, haiku_in_per_m: 1, haiku_out_per_m: 5, ses_per_1000: 0.1 }, // Nov 5, 2026: list-price model costs (conservative)
   // List prices, used for margin only when a client has no billed plan lines.
   plan_prices: { local: 750, national: 1750, global: 3000, extra_location: 350, website: 500, gravitycare: 197, none: 0 } as Record<string, number>,
   // Resume: paused posts that missed their time move to the next valid slot, spaced out (never a burst).
@@ -392,7 +392,7 @@ export async function markOutOfFuel(db: Db, client: Client, kind: UsageKind | "m
   if (exists?.length) return;
   const label = kind === "ai_action" ? "AI actions" : kind === "marketing_email" ? "marketing emails" : "media credits";
   const title = `${client.business} is out of fuel (${label}). Queued Studio items are paused until they Refuel or the month resets on ${resetLabel()}.`;
-  const body = `Their portal shows Refuel $25 / Big Refuel $99 / Upgrade / Wait for reset. Raise their cap in Client usage or grant credits in Fuel economics if they should keep going.`;
+  const body = `Their portal shows Refuel $49 / Big Refuel $149 / Upgrade / Wait for reset. Raise their cap in Client usage or grant credits in Fuel economics if they should keep going.`;
   const today = dayKeyLA();
   const task = await db.Task.create({ title: `Out of fuel: ${client.business} (${label})`, category: "ops", priority: 1, status: "next", source: "automation", task_type: "internal", due_date: today, client_id: String(client.id), notes: `${title}\n${body}\nOpen: /fuel-economics` }).catch(() => null);
   await db.AccountingAlert.create({ business_id: "interstellar", key, kind: "usage", title, body, due_date: today, link: "/fuel-economics", task_id: task?.id, status: "new" }).catch(() => null);

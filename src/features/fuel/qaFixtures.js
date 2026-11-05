@@ -5,8 +5,8 @@ if (params.get("fuelqa")) { try { sessionStorage.setItem("ms_fuelqa", params.get
 const stateNow = () => { try { return sessionStorage.getItem("ms_fuelqa") || "hypercare"; } catch { return "hypercare"; } };
 
 const PACKS = [
-  { key: "refuel", label: "Refuel", price_usd: 25, ai_actions: 500, emails: 10000 },
-  { key: "big_refuel", label: "Big Refuel", price_usd: 99, ai_actions: 2000, emails: 40000 },
+  { key: "refuel", label: "Refuel", price_usd: 49, ai_actions: 250, emails: 5000 },
+  { key: "big_refuel", label: "Big Refuel", price_usd: 149, ai_actions: 800, emails: 15000 },
 ];
 const next1st = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth() + 1, 1); };
 const resetLabel = () => next1st().toLocaleDateString("en-US", { month: "long", day: "numeric" });
@@ -43,7 +43,7 @@ export function qaFuelSummary(state = stateNow()) {
       paused: { kinds: ["ai_action", "marketing_email"], since: iso(new Date(Date.now() - 5 * 3600e3)), posts: 4, campaigns: 1, campaign_emails: 2140 } };
   }
   if (state === "refueled") {
-    const lots = [{ pack_label: "Big Refuel", ai_left: 2000, emails_left: 40000, expires_at: iso(inMonths(12)), purchased_at: iso(new Date()) }];
+    const lots = [{ pack_label: "Big Refuel", ai_left: 800, emails_left: 15000, expires_at: iso(inMonths(12)), purchased_at: iso(new Date()) }];
     const ai = kind(1300, 1318, 2000), email = kind(32500, 32500, 40000);
     ai.left = 2000 - 18; ai.wallet = 1982; ai.from_wallet = 18; lots[0].ai_left = 1982;
     return { ...base, ai, email, out_of_fuel: false, out_kinds: [], alert: true,
