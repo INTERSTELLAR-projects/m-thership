@@ -286,22 +286,25 @@ export function groundingIndex(source) {
   const base = [...new Set(numbersIn(source).map((x) => x.value))].slice(0, 80);
   const vals = new Set(base);
   const pcts = new Set();
+  const isYear = (x) => Number.isInteger(x) && x >= 1990 && x <= 2100;
   base.forEach((a) => base.forEach((b) => {
-    if (a === b) return;
+    if (a === b || isYear(a) || isYear(b)) return;
     vals.add(Math.abs(a - b));
     vals.add(a + b);
-    if (b) { pcts.add(((a - b) / b) * 100); pcts.add((a / b) * 100); }
+    // Percent change / share only between figures of a comparable size (Q2 vs Q3 revenue, a budget line vs the total).
+    if (b && a / b >= 0.05 && a / b <= 20) { pcts.add(((a - b) / b) * 100); pcts.add((a / b) * 100); }
   }));
   const years = base.filter((x) => x >= 1990 && x <= 2100);
   const times = new Set(timesIn(source));
-  return { vals, pcts, years, times };
+  return { vals, pcts, years, times, base: new Set(base) };
 }
 
 function grounded(n, idx) {
   const v = n.value;
-  if (Number.isInteger(v) && v >= 0 && v <= 12) return true; // ordinals, step numbers, "3 weeks" style counts
+  if (!n.pct && Number.isInteger(v) && v >= 0 && v <= 12) return true; // ordinals, step numbers, "3 weeks" style counts
   if (idx.years.length && v >= 1990 && v <= 2100 && v >= Math.min(...idx.years) && v <= Math.max(...idx.years) + 1) return true;
   for (const x of idx.vals) {
+    if (n.pct && !idx.base.has(x)) continue; // a percentage must be given, or derived below
     if (Math.abs(v - x) <= Math.max(0.005 * Math.abs(x), 0.01)) return true;
     // "$412K" vs 412,000 / "2.6" vs 2.6%: same figure written another way
     if (Math.abs(v * 1000 - x) <= 0.005 * Math.abs(x) || Math.abs(v - x * 1000) <= 0.005 * Math.abs(v)) return true;
