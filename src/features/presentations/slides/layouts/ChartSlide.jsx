@@ -113,7 +113,7 @@ function Donut({ c, theme, h }) {
       {arcs}
       <circle cx={cx} cy={cy} r={r * 0.58} fill={theme.bg} />
       <text x={cx} y={cy + 6} textAnchor="middle" fontSize={34} fontWeight={700} fill={theme.fg} fontFamily={theme.headingFont}>{fmt(c, total)}</text>
-      <text x={cx} y={cy + 36} textAnchor="middle" fontSize={20} letterSpacing="2" fill={theme.muted} fontFamily={theme.monoFont}>TOTAL</text>
+      <text x={cx} y={cy + 36} textAnchor="middle" fontSize={22} letterSpacing="2" fill={theme.muted} fontFamily={theme.monoFont}>TOTAL</text>
       {pts.map((p, i) => (
         <g key={i}>
           <rect x={lx} y={y0 + i * row + row / 2 - 11} width={22} height={22} rx={4} fill={colors[i % colors.length]} />
