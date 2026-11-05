@@ -30,7 +30,7 @@ import { resolveClient, getSecret } from "../../shared/portalClient.ts";
 import { planUnlocksStudios, studioState } from "../../shared/usagePlans.ts";
 import { callClaude, AnthropicError } from "../../shared/anthropic.ts";
 import { check, record } from "../../shared/meter.ts";
-import { estimateAiCost, monthKey } from "../../shared/usagePlans.ts";
+import { estimateAiCost, monthKey, AI_MODELS } from "../../shared/usagePlans.ts";
 import { loadFuelConfig, weightFor } from "../../shared/fuel.ts";
 import {
   ROLES, templateList, templateModules, ROLE_TEMPLATES, DRAFT_SYSTEM, DRAFT_SCHEMA, draftPrompt, groundDraft,
@@ -84,7 +84,7 @@ async function ai(base44: any, db: any, user: any, client: any, args: { tier: "r
   const isAdmin = user.role === "admin";
   const cfg = await loadFuelConfig(db);
   if (client) {
-    const c = await check(db, client, "ai_action", weightFor(args.tier === "long" ? "claude-sonnet-5-5" : "claude-haiku-5-5", 0, args.feature, cfg), { admin: isAdmin, feature: args.feature });
+    const c = await check(db, client, "ai_action", weightFor(args.tier === "long" ? AI_MODELS.long.id : AI_MODELS.routine.id, 0, args.feature, cfg), { admin: isAdmin, feature: args.feature });
     if (!c.ok) throw Object.assign(new Error(c.reason || "Out of fuel"), { status: 429, code: c.code, meter: c });
   }
   const out = await callClaude({ key, tier: args.tier, system: args.system, prompt: args.prompt, schema: args.schema, max_tokens: args.max_tokens });
