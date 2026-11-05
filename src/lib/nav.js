@@ -16,7 +16,7 @@ import { Store as UpgradeStoreIcon } from "lucide-react";
 import { Orbit as AgentsIcon } from "lucide-react";
 import { Rocket as LaunchIcon } from "lucide-react";
 import { Radar as IntelligenceIcon } from "lucide-react";
-import { Wand2 as SimpleSocialIcon } from "lucide-react";
+import { Wand2 as SmplStudioIcon } from "lucide-react";
 import { Chrome as ChromeWorkspaceIcon } from "lucide-react";
 import { Inbox as ApprovalsIcon, Crown as CommanderIcon, BookOpenCheck as SopsIcon, Globe as PortalIcon } from "lucide-react";
 
@@ -95,7 +95,7 @@ export const NAV_GROUPS = [
       { label: "Presentations", icon: Presentation, path: "/presentations/projects" },
       { label: "Signatures", icon: PenLine, path: "/signatures" },
       { label: "QR Codes", icon: QrCode, path: "/qr" },
-      { label: "Simple Social", icon: SimpleSocialIcon, path: "/studios/simple-social", arch: "SOON" },
+      { label: "SMPL. Studio", icon: SmplStudioIcon, path: "/studios/smpl", arch: "SOON" },
     ],
   },
   {
