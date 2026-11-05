@@ -1,5 +1,5 @@
 import React from 'react';
-import { Copy, ImagePlus, Loader2, Sparkles, Trash2 } from 'lucide-react';
+import { Copy, ImagePlus, Loader2, RefreshCw, Sparkles, Trash2 } from 'lucide-react';
 import RowListEditor from '@/features/presentations/studio/inspector/RowListEditor';
 import VisualBlock from '@/features/presentations/slides/VisualBlock';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SLIDE_LAYOUTS } from '@/features/presentations/lib/slideThemes';
+import { CHART_TYPES } from '@/features/presentations/lib/deckSchema';
 
 const labelCls = 'text-[11px] uppercase tracking-wider text-muted-foreground';
 
@@ -53,6 +54,35 @@ function OffersEditor({ offers, onChange }) {
 }
 const VISUAL_LAYOUTS = ['cover', 'split', 'image'];
 
+// Chart data: type, units and the points (label + number). Values should be the real figures from the brief.
+function ChartEditor({ chart, onChange }) {
+  const c = chart && typeof chart === 'object' ? chart : { type: 'column', unit_prefix: '', unit_suffix: '', points: [], note: '' };
+  const set = (patch) => onChange({ ...c, ...patch });
+  return (
+    <div className="space-y-2">
+      <div className="grid grid-cols-3 gap-2">
+        <Select value={c.type || 'column'} onValueChange={(v) => set({ type: v })}>
+          <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+          <SelectContent>{CHART_TYPES.map((t) => <SelectItem key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</SelectItem>)}</SelectContent>
+        </Select>
+        <Input value={c.unit_prefix || ''} onChange={(e) => set({ unit_prefix: e.target.value })} placeholder="Prefix $" className="h-9 text-sm" />
+        <Input value={c.unit_suffix || ''} onChange={(e) => set({ unit_suffix: e.target.value })} placeholder="Suffix % / K" className="h-9 text-sm" />
+      </div>
+      <RowListEditor
+        fields={[
+          { key: 'label', label: 'Label', placeholder: 'Q3' },
+          { key: 'value', label: 'Value', placeholder: '412' }
+        ]}
+        items={(c.points || []).map((p) => ({ label: p.label, value: String(p.value ?? '') }))}
+        onChange={(rows) => set({ points: rows.map((r) => ({ label: r.label || '', value: Number(String(r.value || '').replace(/[^0-9.-]/g, '')) || 0 })) })}
+        max={8}
+        addLabel="Add data point"
+      />
+      <Input value={c.note || ''} onChange={(e) => set({ note: e.target.value })} placeholder="Source or context line" className="h-9 text-sm" />
+    </div>
+  );
+}
+
 export default function SlideInspector({
   slide,
   theme,
@@ -60,6 +90,7 @@ export default function SlideInspector({
   total,
   onChange,
   onRefine,
+  onRegenerate,
   refining,
   onDuplicate,
   onDelete,
@@ -68,8 +99,8 @@ export default function SlideInspector({
 }) {
   const [prompt, setPrompt] = React.useState('');
   const hasText = (key) => String(slide[key] || '').trim();
-  const showSubtitle = !['quote', 'closing', 'stats'].includes(slide.layout);
-  const showBody = ['quote', 'closing', 'bullets'].includes(slide.layout);
+  const showSubtitle = !['quote'].includes(slide.layout);
+  const showBody = ['quote', 'closing', 'bullets', 'split', 'pricing'].includes(slide.layout);
 
   const runRefine = () => {
     const text = prompt.trim();
@@ -86,6 +117,11 @@ export default function SlideInspector({
           <p className="text-[11px] text-muted-foreground">of {total}</p>
         </div>
         <div className="ml-auto flex items-center gap-1">
+          {onRegenerate ? (
+            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={onRegenerate} disabled={refining} title="Rewrite this slide from the brief">
+              {refining ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Regenerate
+            </Button>
+          ) : null}
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onDuplicate} aria-label="Duplicate slide">
             <Copy className="h-3.5 w-3.5" />
           </Button>
@@ -157,7 +193,7 @@ export default function SlideInspector({
         </div>
 
         <div className="space-y-2">
-          <Label className={labelCls}>{slide.layout === 'quote' ? 'Quote title' : 'Title'}</Label>
+          <Label className={labelCls}>Title</Label>
           <Textarea
             value={slide.title}
             onChange={(event) => onChange({ title: event.target.value })}
@@ -180,7 +216,7 @@ export default function SlideInspector({
 
         {showBody ? (
           <div className="space-y-2">
-            <Label className={labelCls}>{slide.layout === 'quote' ? 'Quote' : 'Statement'}</Label>
+            <Label className={labelCls}>{slide.layout === 'quote' ? 'Quote (real words only)' : slide.layout === 'closing' ? 'Statement' : 'Text (shown when there are no bullets)'}</Label>
             <Textarea
               value={slide.body}
               onChange={(event) => onChange({ body: event.target.value })}
@@ -200,6 +236,29 @@ export default function SlideInspector({
               max={6}
               addLabel="Add bullet"
             />
+          </div>
+        ) : null}
+
+        {slide.layout === 'cards' ? (
+          <div className="space-y-2">
+            <Label className={labelCls}>Cards</Label>
+            <RowListEditor
+              fields={[
+                { key: 'title', label: 'Card title', placeholder: 'Priority scheduling' },
+                { key: 'text', label: 'Text', type: 'textarea', placeholder: 'One short line' }
+              ]}
+              items={slide.cards}
+              onChange={(cards) => onChange({ cards })}
+              max={4}
+              addLabel="Add card"
+            />
+          </div>
+        ) : null}
+
+        {slide.layout === 'chart' ? (
+          <div className="space-y-2">
+            <Label className={labelCls}>Chart data</Label>
+            <ChartEditor chart={slide.chart} onChange={(chart) => onChange({ chart })} />
           </div>
         ) : null}
 
@@ -252,7 +311,7 @@ export default function SlideInspector({
               ]}
               items={slide.steps}
               onChange={(steps) => onChange({ steps })}
-              max={4}
+              max={5}
               addLabel="Add step"
             />
           </div>
@@ -279,7 +338,7 @@ export default function SlideInspector({
             <Input
               value={slide.attribution}
               onChange={(event) => onChange({ attribution: event.target.value })}
-              placeholder="Head of Operations, mid-market retail"
+              placeholder="Who said it, as they're named (real quotes only)"
               className="h-9 text-sm"
             />
           </div>
