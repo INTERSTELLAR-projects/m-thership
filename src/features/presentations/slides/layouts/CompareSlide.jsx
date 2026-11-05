@@ -1,51 +1,46 @@
 import React from 'react';
-import SlideTitle from '@/features/presentations/slides/SlideTitle';
+import SlideTitle, { SlideBody } from '@/features/presentations/slides/SlideTitle';
 
+// Comparison: two columns. The second column is the recommended / "after" side and carries the accent.
 export default function CompareSlide({ theme, slide }) {
   const columns = (slide.columns || []).slice(0, 2);
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <SlideTitle theme={theme} eyebrow={slide.eyebrow} title={slide.title} size={46} />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 28 }}>
-        {columns.map((column, index) => {
-          const highlighted = index === 1;
-          return (
-            <div
-              key={index}
-              style={{
-                border: `1px solid ${highlighted ? theme.accent : theme.border}`,
-                background: highlighted ? theme.accentSoft : theme.panel,
-                borderRadius: theme.radius,
-                padding: '32px 34px',
-                minHeight: 268
-              }}
-            >
+      <SlideTitle theme={theme} eyebrow={slide.eyebrow} title={slide.title} subtitle={slide.subtitle} />
+      <SlideBody>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 26 }}>
+          {columns.map((column, index) => {
+            const hi = index === 1;
+            const lines = String(column.text || '').split('\n').map((x) => x.replace(/^[-•*]\s*/, '').trim()).filter(Boolean);
+            const px = lines.length > 3 || lines.some((x) => x.length > 48) ? 23 : 26;
+            return (
               <div
+                key={index}
                 style={{
-                  fontFamily: theme.monoFont,
-                  fontSize: 13,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: highlighted ? theme.accent : theme.muted
+                  position: 'relative',
+                  border: `${hi ? 2 : 1}px solid ${hi ? theme.accent : theme.border}`,
+                  background: hi ? theme.accentSoft : theme.panel,
+                  borderRadius: theme.radius,
+                  padding: '30px 34px 34px',
+                  minHeight: 250
                 }}
               >
-                {column.heading}
-              </div>
-              <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {String(column.text || '')
-                  .split('\n')
-                  .filter((line) => line.trim())
-                  .map((line, lineIndex) => (
-                    <div key={lineIndex} style={{ fontSize: 19, lineHeight: 1.5, color: theme.fg }}>
-                      {line}
+                <div style={{ fontFamily: theme.monoFont, fontSize: 16, letterSpacing: '0.16em', textTransform: 'uppercase', color: hi ? theme.accentText || theme.accent : theme.muted }}>
+                  {column.heading}
+                </div>
+                <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {lines.map((line, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                      <span style={{ flex: 'none', width: 10, height: 10, marginTop: Math.round(px * 0.5), borderRadius: hi ? 2 : '50%', background: hi ? theme.accent : theme.faint }} />
+                      <span style={{ fontSize: px, lineHeight: 1.38, color: theme.fg }}>{line}</span>
                     </div>
                   ))}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </SlideBody>
     </div>
   );
 }
