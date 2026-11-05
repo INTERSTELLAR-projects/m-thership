@@ -79,7 +79,8 @@ Deno.serve(async (req) => {
     const fresh = client.cache && now - cachedAt < REFRESH_MS;
     const coolingDown = now - attemptAt < (client.last_error ? RETRY_MS : REFRESH_MS);
     // One-time backfill: caches written before the GBP phone/address were requested refresh once.
-    const missingNap = client.cache && !("phone" in client.cache) && !client.last_error;
+    // Same for caches written before opening hours were requested (Nov 5, 2026).
+    const missingNap = client.cache && (!("phone" in client.cache) || !("hours" in client.cache)) && !client.last_error;
     if (!force && !missingNap && (fresh || coolingDown)) {
       return reply({ ...(client.cache || { configured: true, reviews: [] }), cachedAt: client.cached_at || null });
     }
