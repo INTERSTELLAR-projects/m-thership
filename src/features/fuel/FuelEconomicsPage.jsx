@@ -5,7 +5,7 @@
 // mock_checkout_completed). Mock credits are tagged test and never count as revenue.
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Check, Fuel, Loader2, Save, Settings2, FlaskConical, Gift } from "lucide-react";
+import { Check, Fuel, Loader2, Save, Settings2, FlaskConical, Gift } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { Panel, Tag, Stat } from "@/features/clients/ui";
 import { base44 } from "@/api/base44Client";
