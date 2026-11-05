@@ -139,6 +139,10 @@ export function brandFromText(text, name = "", logo_url = "") {
     const m = t.match(/\b(white|black|cream|off-white|ivory)\s+(?:background|bg|canvas)\b/i);
     if (m) palette.unshift({ hex: NAMED_BG[m[1].toLowerCase()], name: "background" });
   }
+  if (!palette.some((p) => /\btext\b|\bink\b/i.test(p.name))) {
+    const m = t.match(/\b(white|black)\s+(?:text|type|copy)\b/i);
+    if (m) palette.push({ hex: m[1].toLowerCase() === "white" ? "#FFFFFF" : "#111111", name: "text" });
+  }
   const font = (re) => {
     const m = t.match(re);
     return m ? m[1] : "";
