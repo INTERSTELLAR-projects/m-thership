@@ -369,3 +369,81 @@ export async function logTrainingWork(db: any, e: {
     return null;
   }
 }
+
+// ---------------------------------------------------------------- trainee player (shared by training + training-player)
+// reveal=false (trainee link): quiz answers stay on the server; grading happens in applyPlayerSave().
+export function playerPayload(track: any, modules: any[], a: any | null, opts: { reveal?: boolean; business?: string } = {}) {
+  const esOn = track?.es_enabled === true;
+  const pubQuiz = (q: any) => ({ id: q.id, question: q.question, options: q.options || [], ...(opts.reveal ? { answer_index: q.answer_index, explanation: q.explanation || "" } : {}) });
+  const mods = modules.map((x) => {
+    const esOk = esOn && x.es?.status === "approved";
+    return {
+      id: x.id, title: x.title, summary: x.summary || "", lesson_md: x.lesson_md || "", embeds: x.embeds || [],
+      sop_refs: (x.sop_refs || []).map((r: any) => ({ title: r.title })), checklist: (x.checklist || []).map((c: any) => ({ id: c.id, text: c.text })),
+      quiz: (x.quiz || []).map(pubQuiz), est_minutes: x.est_minutes || 15, required: x.required !== false,
+      es: esOk ? {
+        title: x.es.title, summary: x.es.summary || "", lesson_md: x.es.lesson_md || "",
+        checklist: (x.es.checklist || []).map((c: any) => ({ id: c.id, text: c.text })),
+        quiz: (x.es.quiz || []).map((q: any, i: number) => ({ id: q.id, question: q.question, options: q.options || [], ...(opts.reveal ? { answer_index: x.quiz?.[i]?.answer_index, explanation: q.explanation || "" } : {}) })),
+      } : null,
+    };
+  });
+  return {
+    business: opts.business || "",
+    track: { id: track.id, title: track.title, description: track.description || "", role_label: track.role_label || ROLES[track.role] || "", pass_score: track.pass_score ?? 80, requires_signoff: track.requires_signoff !== false, es_available: mods.some((x) => !!x.es) },
+    modules: mods,
+    assignment: a ? {
+      id: a.id, trainee_name: a.trainee_name, language: a.language || "en", due_date: a.due_date || "", module_due: a.module_due || {},
+      progress: a.progress || {}, current_module_id: a.current_module_id || "", pct: a.pct || 0, status: a.status,
+      questions: (a.questions || []).map((q: any) => ({ id: q.id, module_id: q.module_id, text: q.text, asked_at: q.asked_at, answer: q.answer || "", answered_at: q.answered_at || "" })),
+      signoff: a.signoff?.at ? { at: a.signoff.at } : null, badge: a.badge || null, completed_at: a.completed_at || "",
+    } : null,
+  };
+}
+
+// One trainee action. Returns { patch, result } (result: quiz grading for the player).
+export function applyPlayerSave(track: any, modules: any[], a: any, body: any) {
+  const mod = modules.find((x) => x.id === String(body?.module_id || ""));
+  const progress = { ...(a.progress || {}) };
+  const now = new Date().toISOString();
+  let result: any = null;
+  const patch: any = { last_active_at: now };
+  if (!a.started_at) patch.started_at = now;
+  if (body?.language === "en" || body?.language === "es") patch.language = body.language;
+  if (mod) {
+    const p = { ...(progress[mod.id] || {}) };
+    if (body.lesson_done === true) p.lesson_done = true;
+    if (body.check && typeof body.check.id === "string" && (mod.checklist || []).some((c: any) => c.id === body.check.id)) {
+      p.checks = { ...(p.checks || {}), [body.check.id]: body.check.value !== false };
+    }
+    if (Array.isArray(body.quiz_answers) && (mod.quiz || []).length) {
+      const quiz = mod.quiz || [];
+      const es = body.language === "es" && mod.es?.status === "approved" ? mod.es : null;
+      const per = quiz.map((q: any, i: number) => {
+        const picked = Number(body.quiz_answers[i]);
+        return { id: q.id, picked, correct: picked === q.answer_index, answer_index: q.answer_index, explanation: (es?.quiz?.[i]?.explanation) || q.explanation || "" };
+      });
+      const score = Math.round((per.filter((x: any) => x.correct).length / quiz.length) * 100);
+      const pass = score >= (Number(track.pass_score) || 80);
+      p.attempts = (p.attempts || 0) + 1;
+      p.quiz_score = Math.max(Number(p.quiz_score) || 0, score);
+      p.last_score = score;
+      if (pass) p.quiz_passed = true;
+      result = { score, pass, per, pass_score: Number(track.pass_score) || 80 };
+    }
+    if (moduleDone(mod, p) && !p.completed_at) p.completed_at = now;
+    progress[mod.id] = p;
+    patch.current_module_id = mod.id;
+  }
+  patch.progress = progress;
+  const c = computeProgress(track, modules, { ...a, ...patch });
+  patch.pct = c.pct;
+  patch.status = c.status;
+  if (c.current_module_id && (!mod || moduleDone(mod, progress[mod.id]))) patch.current_module_id = c.current_module_id;
+  if (c.status === "completed" && !a.completed_at) patch.completed_at = now;
+  return { patch, result, progress: c };
+}
+
+export function badgeFor(track: any, a: any) {
+  return { code: `IS-${String(a.id || "").slice(-6).toUpperCase()}`, issued_at: new Date().toISOString(), title: `${track.title} · Completed` };
+}
