@@ -87,8 +87,11 @@ export function makeBrand({ name = "", palette = [], headingFamily = "", bodyFam
     const darkest = cols.filter((p) => p.hex !== bg).sort((a, b) => lum(a.hex) - lum(b.hex))[0];
     fg = !dark && darkest && contrast(darkest.hex, bg) >= 7 ? darkest.hex : dark ? "#F7F5F2" : "#141414";
   }
-  const accent = ensureContrast(accentC.hex, bg, 3);
-  const accent2 = accent2C ? ensureContrast(accent2C.hex, bg, 3) : "";
+  // accent stays the exact brand colour (rules, bars, fills); accentText is the same hue nudged until it is
+  // readable as text on the background (big numbers, eyebrows, labels).
+  const accent = accentC.hex;
+  const accentText = ensureContrast(accentC.hex, bg, 3);
+  const accent2 = accent2C ? accent2C.hex : "";
   const hf = cleanFamily(headingFamily);
   const bf = cleanFamily(bodyFamily) || hf;
   return {
@@ -96,6 +99,7 @@ export function makeBrand({ name = "", palette = [], headingFamily = "", bodyFam
     bg,
     fg,
     accent,
+    accentText,
     accent2,
     mode: dark ? "dark" : "light",
     headingFont: SERIF_RE.test(headingFamily) && !/sans/i.test(headingFamily) ? "serif" : "sans",
