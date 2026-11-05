@@ -127,7 +127,9 @@ function Donut({ c, theme, h }) {
 }
 
 export default function ChartSlide({ theme, slide }) {
-  const c = slide.chart && Array.isArray(slide.chart.points) && slide.chart.points.length ? slide.chart : null;
+  // Values may be strings while being typed in the inspector: coerce once here.
+  const raw = slide.chart && Array.isArray(slide.chart.points) ? slide.chart.points.map((p) => ({ label: p.label, value: Number(p.value) || 0 })) : [];
+  const c = raw.length ? { ...slide.chart, points: raw } : null;
   const h = slide.subtitle ? 330 : 380;
   const Kind = !c ? null : c.type === 'bar' ? Bars : c.type === 'line' ? Line : c.type === 'donut' ? Donut : Columns;
   return (
