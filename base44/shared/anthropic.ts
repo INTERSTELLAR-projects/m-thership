@@ -99,7 +99,7 @@ export async function callClaude(opts: {
     data = await post(opts.key, base);
   }
   // A refusal or a reply cut off at max_tokens is a failure, never a result (Sonnet 5.5 / structured-outputs docs).
-  if (data?.stop_reason === "refusal") throw new AnthropicError(422, "refusal", "The model declined this request. Rephrase it or ask Justin.");
+  if (data?.stop_reason === "refusal") throw new AnthropicError(422, "refusal", "The AI declined this request. Rephrase it, or message the team.");
   if (opts.schema && data?.stop_reason === "max_tokens") throw new AnthropicError(502, "max_tokens", "The reply was cut off before it finished. Try again with a shorter input.");
   const text = (data?.content || []).filter((b: any) => b?.type === "text").map((b: any) => b.text).join("");
   const json = opts.schema ? parseJsonLoose(text) : null;
