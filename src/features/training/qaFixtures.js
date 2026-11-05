@@ -14,7 +14,7 @@ const CREW = [
   {
     title: "Roof safety, every job", summary: "The safety rules on every Summit roof.",
     lesson_md: "Safety comes before speed on every roof.\n\n- Tie off to an anchor before you step onto any roof steeper than 4/12.\n- Ladders extend 3 feet past the roof edge and get tied off at the top.\n- No one works on the roof alone. There's always a second person on site.\n- Stop work when wind gusts pass 25 mph or the deck is wet.",
-    embeds: [{ type: "video", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", caption: "Tie-off walkthrough (2 min)" }],
+    embeds: [],
     sop_refs: [safetySop],
     checklist: [{ id: "c1", text: "Put on your harness and have your lead check the fit." }, { id: "c2", text: "Set and tie off a ladder with your lead watching." }],
     quiz: [
