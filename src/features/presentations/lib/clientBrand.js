@@ -73,7 +73,6 @@ export function makeBrand({ name = "", palette = [], headingFamily = "", bodyFam
   ].filter((p, i, a) => a.indexOf(p) === i);
   const named = find(/primary|accent|brand|signature/);
   const accentC = named && named !== bgC ? named : vivid[0] || cols[0];
-  const accent2C = vivid.find((p) => p !== accentC && contrast(p.hex, accentC.hex) > 1.3) || null;
 
   let bg = bgC ? bgC.hex : "";
   if (!bg) {
@@ -95,6 +94,9 @@ export function makeBrand({ name = "", palette = [], headingFamily = "", bodyFam
   // readable as text on the background (big numbers, eyebrows, labels).
   const accent = accentC.hex;
   const accentText = ensureContrast(accentC.hex, bg, 3);
+  // Secondary colour: distinct from the accent AND visible on the canvas (v2 test: a brief whose palette was
+  // black + yellow picked the black background as the second chart colour, hiding a donut slice).
+  const accent2C = vivid.find((p) => p !== accentC && p.hex !== bg && p.hex !== fg && contrast(p.hex, accentC.hex) > 1.3 && contrast(p.hex, bg) >= 2) || null;
   const accent2 = accent2C ? accent2C.hex : "";
   const hf = cleanFamily(headingFamily);
   const bf = cleanFamily(bodyFamily) || hf;
