@@ -14,7 +14,6 @@ import { clientBrand, brandFromText } from '@/features/presentations/lib/clientB
 
 const labelCls = 'text-[11px] uppercase tracking-wider text-muted-foreground';
 const COUNTS = [5, 6, 8, 10, 12, 14, 16, 20];
-const LAYOUT_LABEL = Object.fromEntries(SLIDE_LAYOUTS.map((l) => [l.id, l.label]));
 
 function Swatches({ brand }) {
   if (!brand) return null;
