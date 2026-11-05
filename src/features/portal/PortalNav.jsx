@@ -56,18 +56,22 @@ export const NAV = [
       { k: "studio_accounting", label: "Accounting & Taxes", desc: "Books, receipts and quarterly taxes", icon: Calculator },
       { k: "studio_hiring", label: "Hiring plan", desc: "When to hire, and who", icon: UserPlus },
       { k: "studio_presentations", label: "Presentations", desc: "On-brand decks and proposals", icon: Presentation },
-      { k: "studio_simple_social", label: "Simple Social", desc: "AI generation: image, video, voice clipping and more", icon: Sparkles },
+      // Co-branded with SMPL. (product: SMPL Social). Tile uses SMPL's cyan -> magenta -> orange gradient.
+      { k: "studio_smpl", label: "SMPL. Studio", desc: "SMPL Social AI generation: image, video, voice and clipping", icon: Sparkles, cobrand: true },
     ],
   },
   { id: "referrals", label: "Referrals", icon: Crown, tab: "referrals" },
 ];
+
+// SMPL. partner gradient (cyan -> magenta -> orange) for the co-branded SMPL. Studio item.
+const SMPL_GRAD = "linear-gradient(135deg, #35BAEC 0%, #CF41C1 55%, #FF9810 100%)";
 
 // Labels for tabs reached outside the nav (shown on the mobile menu button).
 const EXTRA_LABELS = { assistant: "Nøva", account: "Account" };
 
 export function navFor(tabKeys, locked = new Set(), lockText = "Soon") {
   const has = new Set(tabKeys);
-  return NAV.map((g) => (g.items ? { ...g, items: g.items.filter((i) => has.has(i.k)).map((i) => (locked.has(i.k) ? { ...i, locked: i.k === "studio_simple_social" ? "Soon" : lockText } : i)) } : g))
+  return NAV.map((g) => (g.items ? { ...g, items: g.items.filter((i) => has.has(i.k)).map((i) => (locked.has(i.k) ? { ...i, locked: i.k === "studio_smpl" ? "Soon" : lockText } : i)) } : g))
     .filter((g) => (g.items ? g.items.length > 0 : has.has(g.tab)));
 }
 
@@ -224,7 +228,7 @@ export function DesktopNav({ nav, tab, setTab, unread, fuel, onRefuel }) {
                           onClick={() => go(i.k)}
                           className={`group/item flex w-full items-start gap-3 px-2.5 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#ff3c00]/50 ${cur ? "bg-white" : "hover:bg-white focus-visible:bg-white"}`}
                         >
-                          <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center transition-colors ${cur || i.bonus ? "flame-bg text-white" : "bg-ink/[0.06] text-ink/70 group-hover/item:bg-ink group-hover/item:text-white"}`}>
+                          <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center transition-colors ${i.cobrand ? "text-white" : cur || i.bonus ? "flame-bg text-white" : "bg-ink/[0.06] text-ink/70 group-hover/item:bg-ink group-hover/item:text-white"}`} style={i.cobrand ? { background: SMPL_GRAD } : undefined}>
                             <Icon className="h-4 w-4" aria-hidden="true" />
                           </span>
                           <span className="min-w-0 flex-1">
@@ -296,7 +300,7 @@ export function MobileNav({ nav, client, tab, setTab, unread, preview, onSchedul
   const toggle = (id) => setExpanded((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const current = labelFor(nav, tab);
 
-  const Row = ({ k, label, icon: Icon, desc, bonus, locked, indent }) => {
+  const Row = ({ k, label, icon: Icon, desc, bonus, locked, indent, cobrand }) => {
     const cur = tab === k;
     return (
       <button
@@ -306,7 +310,7 @@ export function MobileNav({ nav, client, tab, setTab, unread, preview, onSchedul
         className={`relative flex w-full items-center gap-3 py-2.5 text-left transition-colors ${indent ? "pl-7 pr-5" : "px-5"} ${cur ? "bg-white text-ink" : "text-ink/75 hover:bg-white/60 hover:text-ink"}`}
       >
         {cur && <span className="absolute inset-y-2 left-0 w-[3px] bg-[#ff3c00]" aria-hidden="true" />}
-        <span className={`flex h-8 w-8 shrink-0 items-center justify-center ${cur || bonus ? "flame-bg text-white" : "bg-ink/[0.06] text-ink/70"}`}><Icon className="h-4 w-4" aria-hidden="true" /></span>
+        <span className={`flex h-8 w-8 shrink-0 items-center justify-center ${cobrand ? "text-white" : cur || bonus ? "flame-bg text-white" : "bg-ink/[0.06] text-ink/70"}`} style={cobrand ? { background: SMPL_GRAD } : undefined}><Icon className="h-4 w-4" aria-hidden="true" /></span>
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-1.5 text-[14.5px] font-medium tracking-[-0.01em]">{label}{bonus && <Bonus />}{locked && <Locked text={locked} />}{k === "messages" && <Count n={unread} />}</span>
           {desc && <span className="block truncate text-[11.5px] text-ink/50">{desc}</span>}
@@ -385,7 +389,7 @@ export function MobileNav({ nav, client, tab, setTab, unread, preview, onSchedul
                     </h2>
                     <ul id={`portal-mgroup-${g.id}`} hidden={!isOpen} className="pb-1">
                       {g.id === "studios" && fuel && <li className="px-3 pb-2"><FuelMeter fuel={fuel} compact onRefuel={onRefuel ? () => { setOpen(false); onRefuel(); } : undefined} /></li>}
-                      {g.items.map((i) => <li key={i.k}><Row k={i.k} label={i.label} icon={i.icon} desc={i.desc} bonus={i.bonus} locked={i.locked} indent /></li>)}
+                      {g.items.map((i) => <li key={i.k}><Row k={i.k} label={i.label} icon={i.icon} desc={i.desc} bonus={i.bonus} locked={i.locked} cobrand={i.cobrand} indent /></li>)}
                     </ul>
                   </section>
                 );
