@@ -1,5 +1,5 @@
 // QA / demo fixtures for the work ledger (fictional clients c1 Summit Roofing, c2 Harbor Coffee). Preview + ?qa=1 only.
-import { DEFAULT_BASELINES, DEFAULT_RATE } from "./ledger";
+import { DEFAULT_BASELINES, DEFAULT_RATE } from "./baselines";
 
 const H = 3600e3;
 const ago = (h) => new Date(Date.now() - h * H).toISOString();
