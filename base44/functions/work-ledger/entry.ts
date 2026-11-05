@@ -103,7 +103,9 @@ async function candidates(db: any) {
       dedupe_key: `wl:${w.id}`, source_type: "work_log", source_id: w.id, client_id: w.client_id || "agency", client_name: w.client_name,
       title: clip(w.title, 300), notes: clip(w.description, 1200), evidence: `WorkLog ${w.id}`, task_type: WORKLOG_TYPE[w.kind] || "other",
       done_by: w.source === "automation" ? "scheduled_task" : w.source === "claude" ? "claude_session" : "team",
-      status: live ? "done" : "in_progress", completed_at: iso(w.date || w.created_date), link: isClientSafeUrl(w.url) ? w.url : "",
+      // Undated rows were logged by hand before the ledger existed: no date is invented, so they count in all-time only.
+      status: live ? "done" : "in_progress", completed_at: iso(w.date), link: isClientSafeUrl(w.url) ? w.url : "",
+      ...(!w.date ? { notes: clip(`${w.description ? `${w.description} · ` : ""}Logged before the work ledger; date and who did it weren't recorded.`, 1200) } : {}),
       ...(w.portal_visible === false ? { visibility: "internal", visibility_locked: true, visibility_reason: "Hidden from the portal on the work log" } : {}),
     });
   }
@@ -309,7 +311,7 @@ function summarize(rows: any[], rate: number) {
   const weekStart = new Date(la); weekStart.setHours(0, 0, 0, 0); weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
   const monthStart = new Date(la.getFullYear(), la.getMonth(), 1);
   const offset = now.getTime() - la.getTime();
-  const since = (d: Date) => done.filter((r) => new Date(r.completed_at || r.created_date).getTime() >= d.getTime() + offset);
+  const since = (d: Date) => done.filter((r) => r.completed_at && new Date(r.completed_at).getTime() >= d.getTime() + offset);
   const tot = (xs: any[]) => {
     const saved = xs.reduce((s, r) => s + (Number(r.minutes_saved_estimate) || savedMinutes(r)), 0) / 60;
     const manual = xs.filter((r) => r.done_by === "justin_manual").reduce((s, r) => s + (Number(r.manual_minutes) || 0), 0) / 60;
