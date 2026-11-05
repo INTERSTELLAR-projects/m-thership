@@ -9,6 +9,7 @@ import { Check, Rocket, X, ArrowUpRight, Clock } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { loadClientContext } from "@/features/clients/clientContext";
 import { engineChecklist, loadFacts, startEngine, cadenceOf, STREAMS } from "./engine";
+import { loadHold } from "./engineHold";
 
 export default function EngineChecklist({ client }) {
   const qc = useQueryClient();
@@ -27,6 +28,8 @@ export default function EngineChecklist({ client }) {
     },
     staleTime: 30_000,
   });
+  const holdQ = useQuery({ queryKey: ["enginesHold"], queryFn: loadHold, staleTime: 30_000 });
+  const held = holdQ.data ? holdQ.data.on : true;
   const list = q.data?.list || [];
   const started = (q.data?.starts || [])[0];
   const green = list.length > 0 && list.every((c) => c.ok);
@@ -54,6 +57,8 @@ export default function EngineChecklist({ client }) {
         </div>
         {started ? (
           <span className="inline-flex items-center gap-2 bg-ink px-3 py-1.5 text-[12px] font-medium text-white"><Rocket className="h-3.5 w-3.5 text-[#ffaa00]" /> Engine started {String(started.started_at || "").slice(0, 10)} · {(started.queued || []).length} jobs queued</span>
+        ) : held ? (
+          <Link to="/launch" className="inline-flex items-center gap-2 border border-[#ff3c00]/40 bg-[#ff3c00]/[0.06] px-3 py-1.5 text-[12px] font-medium text-[#c24100] hover:border-[#ff3c00]"><Clock className="h-3.5 w-3.5" /> Engines on hold until all clients are launched</Link>
         ) : green ? (
           <button type="button" onClick={() => setConfirm(true)} className="btn-roll is-flame">
             <span className="roll"><span>Start engine</span><span>Start engine</span></span><span className="box"><Rocket className="h-3.5 w-3.5" /></span>
