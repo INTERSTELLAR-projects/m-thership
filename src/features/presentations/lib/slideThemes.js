@@ -5,13 +5,15 @@ export const SLIDE_H = 720;
 const INTERSTELLAR_GRADIENT = 'linear-gradient(90deg, #ff3c00 0%, #ff6a00 55%, #ffaa00 100%)';
 
 export const SLIDE_THEMES = [
+  // Interstellar decks follow the SOP-deck branding (AgencyKnowledge voice rules): light canvas #ebe8e4, ink,
+  // flame gradient, Geist + JetBrains Mono.
   {
     id: 'interstellar',
     name: 'Interstellar',
     dark: false,
-    bg: '#F7F4EF',
+    bg: '#EBE8E4',
     bgGradient:
-      'radial-gradient(closest-side at 100% 100%, rgba(255,106,0,0.16), rgba(255,106,0,0) 72%), #F7F4EF',
+      'radial-gradient(closest-side at 100% 100%, rgba(255,106,0,0.14), rgba(255,106,0,0) 72%), #EBE8E4',
     fg: '#1A1A1A',
     muted: 'rgba(26,26,26,0.66)',
     faint: 'rgba(26,26,26,0.38)',
@@ -22,14 +24,16 @@ export const SLIDE_THEMES = [
     panel: 'rgba(255,255,255,0.78)',
     border: 'rgba(26,26,26,0.14)',
     hairline: 'rgba(26,26,26,0.10)',
-    headingFont: "'Manrope', sans-serif",
-    bodyFont: "'Manrope', sans-serif",
+    headingFont: "'Geist', 'Manrope', sans-serif",
+    bodyFont: "'Geist', 'Manrope', sans-serif",
     monoFont: "'JetBrains Mono', monospace",
-    displayFont: "'Manrope', sans-serif",
+    displayFont: "'Geist', 'Manrope', sans-serif",
     headingWeight: 600,
-    eyebrowColor: '#FF6A00',
+    eyebrowColor: '#E03500',
+    accentText: '#E03500',
+    chartColors: ['#FF3C00', '#FF6A00', '#FFAA00', '#1A1A1A', '#8A8580'],
     radius: 6,
-    swatch: ['#F7F4EF', '#FF3C00', '#FFAA00']
+    swatch: ['#EBE8E4', '#FF3C00', '#FFAA00']
   },
   {
     id: 'interstellar-dark',
@@ -48,12 +52,13 @@ export const SLIDE_THEMES = [
     panel: 'rgba(255,255,255,0.06)',
     border: 'rgba(255,255,255,0.16)',
     hairline: 'rgba(255,255,255,0.12)',
-    headingFont: "'Manrope', sans-serif",
-    bodyFont: "'Manrope', sans-serif",
+    headingFont: "'Geist', 'Manrope', sans-serif",
+    bodyFont: "'Geist', 'Manrope', sans-serif",
     monoFont: "'JetBrains Mono', monospace",
-    displayFont: "'Manrope', sans-serif",
+    displayFont: "'Geist', 'Manrope', sans-serif",
     headingWeight: 600,
     eyebrowColor: '#FFAA00',
+    chartColors: ['#FF6A00', '#FFAA00', '#FF3C00', '#F7F4EF', '#8A8580'],
     radius: 6,
     swatch: ['#121212', '#FF6A00', '#FFAA00']
   },
@@ -245,12 +250,14 @@ export const SLIDE_LAYOUTS = [
   { id: 'cover', label: 'Title / cover' },
   { id: 'section', label: 'Section divider' },
   { id: 'bullets', label: 'Bullets' },
+  { id: 'cards', label: 'Cards' },
   { id: 'list', label: 'Numbered list' },
-  { id: 'compare', label: 'Two columns' },
+  { id: 'compare', label: 'Comparison' },
   { id: 'split', label: 'Image + text' },
   { id: 'image', label: 'Full image' },
   { id: 'stats', label: 'Key figures' },
-  { id: 'bigstat', label: 'Big stat' },
+  { id: 'bigstat', label: 'Big number' },
+  { id: 'chart', label: 'Chart' },
   { id: 'quote', label: 'Quote' },
   { id: 'timeline', label: 'Timeline' },
   { id: 'pricing', label: 'Pricing / offer' },
@@ -315,45 +322,63 @@ function shade(hex, percent) {
   return `#${[nr, ng, nb].map((x) => x.toString(16).padStart(2, '0')).join('')}`;
 }
 
+const famStr = (v) => (typeof v === 'string' ? v.replace(/['"]/g, '').trim().slice(0, 40) : '');
+
 export function normalizeBrand(input) {
   const raw = input && typeof input === 'object' ? input : {};
   const mode = raw.mode === 'light' || raw.mode === 'dark' ? raw.mode : 'dark';
   return {
+    name: typeof raw.name === 'string' ? raw.name.slice(0, 80) : '',
     bg: clampHex(raw.bg, DEFAULT_CUSTOM_BRAND.bg),
     fg: clampHex(raw.fg, DEFAULT_CUSTOM_BRAND.fg),
     accent: clampHex(raw.accent, DEFAULT_CUSTOM_BRAND.accent),
+    accentText: clampHex(raw.accentText, ''),
+    accent2: clampHex(raw.accent2, ''),
     mode,
-    headingFont: raw.headingFont === 'serif' ? 'serif' : 'sans'
+    headingFont: raw.headingFont === 'serif' ? 'serif' : 'sans',
+    headingFamily: famStr(raw.headingFamily),
+    bodyFamily: famStr(raw.bodyFamily),
+    logo_url: /^https?:\/\//.test(String(raw.logo_url || '')) ? String(raw.logo_url) : ''
   };
 }
 
 export function buildCustomTheme(input) {
   const brand = normalizeBrand(input);
   const dark = brand.mode === 'dark';
-  const heading =
-    brand.headingFont === 'serif'
-      ? "'Instrument Serif', Georgia, serif"
-      : "'Sora', sans-serif";
+  const fallbackHeading = brand.headingFont === 'serif' ? "'Instrument Serif', Georgia, serif" : "'Sora', sans-serif";
+  // The client's real fonts when the brand kit names them (loaded from Google Fonts by loadBrandFonts),
+  // falling back to a matching serif / sans.
+  const heading = brand.headingFamily ? `'${brand.headingFamily}', ${fallbackHeading}` : fallbackHeading;
+  const body = brand.bodyFamily ? `'${brand.bodyFamily}', 'Inter', sans-serif` : "'Inter', sans-serif";
+  const accentText = brand.accentText || brand.accent;
   return {
     id: CUSTOM_THEME_ID,
-    name: 'Custom',
+    name: brand.name || 'Custom',
     dark,
     bg: brand.bg,
-    bgGradient: `radial-gradient(130% 120% at 100% 0%, ${withAlpha(brand.accent, dark ? 0.18 : 0.1)} 0%, ${brand.bg} 58%, ${shade(brand.bg, dark ? -0.08 : -0.04)} 100%)`,
+    // Glow layered over a solid fill: no transparent corners when presenting or exporting.
+    bgGradient: `radial-gradient(120% 110% at 100% 0%, ${withAlpha(brand.accent, dark ? 0.16 : 0.09)} 0%, ${withAlpha(brand.accent, 0)} 55%), linear-gradient(180deg, ${brand.bg} 0%, ${shade(brand.bg, dark ? -0.06 : -0.03)} 100%)`,
     fg: brand.fg,
-    muted: withAlpha(brand.fg, 0.66),
-    faint: withAlpha(brand.fg, 0.36),
+    muted: withAlpha(brand.fg, dark ? 0.74 : 0.72),
+    faint: withAlpha(brand.fg, 0.42),
     accent: brand.accent,
+    accentText,
+    accent2: brand.accent2 || '',
     accentInk: contrastInk(brand.accent),
     accentSoft: withAlpha(brand.accent, dark ? 0.18 : 0.12),
+    eyebrowColor: accentText,
+    chartColors: [brand.accent, brand.accent2 || shade(brand.accent, dark ? 0.35 : -0.35), withAlpha(brand.fg, 0.55), shade(brand.accent, dark ? -0.3 : 0.45), withAlpha(brand.fg, 0.3)],
     panel: dark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.72)',
     border: withAlpha(brand.fg, dark ? 0.2 : 0.16),
     hairline: withAlpha(brand.fg, dark ? 0.14 : 0.12),
     headingFont: heading,
-    bodyFont: "'Inter', sans-serif",
+    bodyFont: body,
     monoFont: "'JetBrains Mono', monospace",
     displayFont: heading,
-    radius: 20,
+    headingWeight: brand.headingFont === 'serif' ? 500 : 650,
+    radius: 14,
+    logo: brand.logo_url || '',
+    brandName: brand.name || '',
     swatch: [brand.bg, brand.accent, brand.fg],
     brand
   };
@@ -361,7 +386,15 @@ export function buildCustomTheme(input) {
 
 export function getTheme(id, brand) {
   if (id === CUSTOM_THEME_ID) return buildCustomTheme(brand || DEFAULT_CUSTOM_BRAND);
-  return SLIDE_THEMES.find((t) => t.id === id) || SLIDE_THEMES[0];
+  const base = SLIDE_THEMES.find((t) => t.id === id) || SLIDE_THEMES[0];
+  return {
+    ...base,
+    accentText: base.accentText || base.accent,
+    chartColors: base.chartColors || [base.accent, base.fg, base.muted, base.faint],
+    // A preset theme can still carry the client's logo and name in the footer.
+    logo: (brand && brand.logo_url) || '',
+    brandName: (brand && brand.name) || ''
+  };
 }
 
 export function blankSlide(layout = 'bullets') {
@@ -373,6 +406,8 @@ export function blankSlide(layout = 'bullets') {
     subtitle: '',
     body: '',
     bullets: layout === 'bullets' || layout === 'split' || layout === 'list' ? [''] : [],
+    cards: layout === 'cards' ? [{ title: '', text: '' }, { title: '', text: '' }] : [],
+    chart: layout === 'chart' ? { type: 'column', unit_prefix: '', unit_suffix: '', points: [{ label: 'A', value: 1 }, { label: 'B', value: 2 }], note: '' } : null,
     stats: layout === 'stats' || layout === 'bigstat' ? [{ value: '', label: '' }] : [],
     offers: layout === 'pricing' ? [{ name: '', price: '', period: '', description: '', features: [], highlighted: true }] : [],
     steps: layout === 'timeline' ? [{ label: '', text: '' }] : [],
