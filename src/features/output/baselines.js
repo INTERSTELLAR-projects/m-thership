@@ -18,6 +18,7 @@ export const DEFAULT_BASELINES = [
   ["research_brief", "Research brief", "research", 120], ["report", "Report", "research", 90], ["security_fix", "Security fix", "security", 90],
   ["data_cleanup", "Data cleanup", "ops", 45], ["client_request", "Client request completed", "website", 45],
   ["agent_run", "Agent routine run (brief, sync, refresh)", "ops", 30], ["ops_task", "Ops / admin task", "ops", 30],
+  ["training_track", "Training track built (lessons, checklists, quiz)", "ops", 240], ["training_complete", "Trainee completed a training track", "ops", 0],
   ["billing_task", "Billing task", "billing", 20], ["decision", "Decision or answer (Justin)", "ops", 10], ["other", "Other", "ops", 30],
 ].map(([key, label, category, minutes]) => ({ key, label, category, minutes }));
 export const DEFAULT_RATE = 75;
