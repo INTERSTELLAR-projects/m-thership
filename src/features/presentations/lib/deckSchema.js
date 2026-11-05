@@ -203,7 +203,8 @@ export function normalizeSlide(raw) {
     title: t(s.title, 140),
     subtitle: t(s.subtitle, 260),
     body: t(s.body, 700),
-    bullets: l(s.bullets, 8).map((b) => t(b, 200)).filter(Boolean),
+    // Numbering is drawn by the layout: strip "1." / "01 -" prefixes a writer adds itself.
+    bullets: l(s.bullets, 8).map((b) => t(b, 200).replace(/^\s*(?:\d{1,2}[.)]|[-•*])\s+/, "")).filter(Boolean),
     cards: l(s.cards, 4).map((x) => ({ title: t(x && x.title, 60), text: t(x && x.text, 220) })).filter((x) => x.title || x.text),
     stats: l(s.stats, 4).map((x) => ({ value: t(x && x.value, 24), label: t(x && x.label, 120) })).filter((x) => x.value || x.label),
     chart: normalizeChart(s.chart),
@@ -640,12 +641,13 @@ export async function finalizeDeck({ deck, brief, slideCount, clientId, source, 
   const src = source || brief;
   let { deck: d, issues } = enforceDeck(deck, { source: src, slideCount });
   if (audit) issues = [...issues, ...(await auditClaims({ source: src, deck: d, clientId }))];
+  const found = issues;
   if (issues.some((x) => x.id)) {
     d = await repairDeck({ brief, deck: d, issues, clientId });
     ({ deck: d, issues } = enforceDeck(d, { source: src, slideCount }));
   }
   const { deck: stripped, removed } = stripUngrounded(d, src);
-  return { deck: stripped, issues, removed };
+  return { deck: stripped, issues, removed, found };
 }
 
 export async function writeSlides({ brief, outline, slideCount = 10, clientId }) {
