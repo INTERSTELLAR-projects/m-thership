@@ -3,11 +3,14 @@ import { secrets } from 'base44:runtime';
 import { syncFromStripe } from "../../shared/stripeSync.ts";
 import { queueFromInvoice } from "../../shared/portalInvite.ts";
 import { creditFromCheckoutSession } from "../../shared/fuel.ts";
+import { activateFromCheckoutSession, handleSubscriptionEvent } from "../../shared/addons.ts";
 
 /*
  * Stripe → Møthership, as it happens. Register this function's URL in Stripe (Developers → Webhooks) for:
  *   customer.subscription.created · customer.subscription.updated · customer.subscription.deleted · invoice.paid
- *   checkout.session.completed   (Refuel credit packs: credits the client's wallet, idempotent by session id)
+ *   checkout.session.completed   (Refuel credit packs: credits the client's wallet, idempotent by session id;
+ *                                 Upgrade Store add-ons: activates the add-on, idempotent by session id)
+ * Upgrade Store monthly add-ons also use customer.subscription.updated / .deleted (cancel at period end, deactivate).
  * and save the endpoint's signing secret as STRIPE_WEBHOOK_SECRET. Subscription events re-sync the clients' lines.
  */
 async function verify(payload: string, header: string, secret: string) {
@@ -40,7 +43,8 @@ export default async function (req: Request) {
     try {
       const base44 = createClientFromRequest(req);
       const out = await creditFromCheckoutSession(base44.asServiceRole.entities, event.data?.object || {});
-      return Response.json({ received: true, type: event.type, refuel: out });
+      const addon = await activateFromCheckoutSession(base44.asServiceRole.entities, event.data?.object || {});
+      return Response.json({ received: true, type: event.type, refuel: out, addon });
     } catch (error: any) {
       // 500 so Stripe retries: crediting is idempotent.
       return Response.json({ received: false, error: error.message }, { status: 500 });
@@ -50,11 +54,13 @@ export default async function (req: Request) {
   if (!relevant) return Response.json({ received: true, ignored: event.type });
   try {
     const base44 = createClientFromRequest(req);
+    // Upgrade Store monthly add-ons: deactivate on cancel / record cancel-at-period-end. Never blocks the sync.
+    const addon = /^customer\.subscription\./.test(event.type || "") ? await handleSubscriptionEvent(base44.asServiceRole.entities, event).catch((e: any) => ({ error: e.message })) : null;
     const result = await syncFromStripe(base44, key);
     // First payment on a new subscription: queue the client's portal onboarding invite for the next day.
     let invite = null;
     if (event.type === "invoice.paid") invite = await queueFromInvoice(base44, event.data?.object).catch((e: any) => ({ queued: false, reason: e.message }));
-    return Response.json({ received: true, type: event.type, synced: result.synced, unmatched: result.unmatched.length, invite });
+    return Response.json({ received: true, type: event.type, synced: result.synced, unmatched: result.unmatched.length, invite, addon });
   } catch (error: any) {
     return Response.json({ received: true, error: error.message }, { status: 200 });
   }
