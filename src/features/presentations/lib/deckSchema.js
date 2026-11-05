@@ -729,7 +729,9 @@ export async function saveApprovedDeck(job) {
   if (!current) return false;
   const waiting = !(current.slides || []).length || current.generation_status === "waiting_claude";
   if (!waiting) return false;
-  const { deck: safe } = stripUngrounded(enforceDeck(deck, { source: current.prompt || "" }).deck, current.prompt || "");
+  // Not stripped against the brief: Claude Queue jobs may add facts researched from the client's live site, and
+  // Justin reviews the job before approving it. Formatting (dashes, ®) is still cleaned.
+  const safe = { slides: deck.slides.map(scrubSlide) };
   await base44.entities.Presentation.update(id, {
     title: deck.title,
     subtitle: deck.subtitle,
@@ -737,7 +739,7 @@ export async function saveApprovedDeck(job) {
     // The studio owns the look: keep the theme/brand the deck was created with (client brand kit or Interstellar).
     theme: current.theme || deck.theme,
     brand: current.brand || deck.brand,
-    slides: safe.slides.length >= 2 ? safe.slides : deck.slides,
+    slides: safe.slides,
     needs: deck.needs || [],
     generation_status: "ready",
     generated_by: "claude_queue"
