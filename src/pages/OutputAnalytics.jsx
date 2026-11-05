@@ -10,6 +10,8 @@ import TimeIntelligence from "@/features/tasks/components/TimeIntelligence";
 import { TASK_STATUSES, OPEN_STATUSES, TASK_TYPES, PROJECT_TYPES, PROJECT_STATUSES } from "@/features/tasks/lib/constants";
 import { TIMER_CHANGED, totalSeconds } from "@/features/tasks/lib/timer";
 import { TASKS_CHANGED } from "@/features/tasks/lib/clients";
+import OutputLedger from "@/features/output/OutputLedger";
+import { Layers } from "lucide-react";
 
 // Output = one source of truth: the Task engine (Task), Projects (Project) and the task clock (TimeEntry).
 
@@ -391,10 +393,13 @@ export default function OutputAnalytics() {
   const data = useOutputData();
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Agency / Output" rightText="Real-Time Performance" />
-      <div className="px-5 md:px-8 py-6">
-        <Tabs defaultValue="time" className="w-full">
-          <TabsList className="bg-card border border-ink/[0.13] mb-6">
+      <PageHeader breadcrumb="Command / Output" rightText="Work ledger · estimates" />
+      <div className="px-4 md:px-8 py-6">
+        <Tabs defaultValue="ledger" className="w-full">
+          <TabsList className="no-scrollbar mb-6 h-auto max-w-full justify-start overflow-x-auto border border-ink/[0.13] bg-card">
+            <TabsTrigger value="ledger" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58] gap-2">
+              <Layers className="w-3.5 h-3.5" /> Work ledger
+            </TabsTrigger>
             <TabsTrigger value="time" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58] gap-2">
               <Clock className="w-3.5 h-3.5" /> Time Intelligence
             </TabsTrigger>
@@ -405,6 +410,9 @@ export default function OutputAnalytics() {
               <Activity className="w-3.5 h-3.5" /> Project Output
             </TabsTrigger>
           </TabsList>
+          <TabsContent value="ledger">
+            <OutputLedger />
+          </TabsContent>
           <TabsContent value="time">
             <TimeIntelligence />
           </TabsContent>
