@@ -1,0 +1,116 @@
+{
+  "name": "TrainingModule",
+  "description": "One step of a TrainingTrack: lesson (markdown + video/image embeds), the SOP(s) it teaches, a hands-on checklist and a quick quiz. Drafted items carry source_id + quote so every step traces back to an SOP; missing info lives in gaps. es = owner-reviewed Spanish version. Admin only (served through the training functions).",
+  "type": "object",
+  "properties": {
+    "track_id": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "sort": {
+      "type": "number",
+      "default": 0
+    },
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "lesson_md": {
+      "type": "string",
+      "description": "Lesson body (markdown)"
+    },
+    "embeds": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "{type: video|image, url, caption}"
+    },
+    "sop_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "{type, id, title} linked SOPs / documents"
+    },
+    "checklist": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "{id, text, source_id?, quote?} hands-on tasks"
+    },
+    "quiz": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "{id, question, options[], answer_index, explanation, source_id?, quote?}"
+    },
+    "est_minutes": {
+      "type": "number",
+      "default": 15
+    },
+    "required": {
+      "type": "boolean",
+      "default": true
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "needs_sops": {
+      "type": "boolean",
+      "default": false
+    },
+    "drafted": {
+      "type": "boolean",
+      "default": false
+    },
+    "reviewed": {
+      "type": "boolean",
+      "default": false
+    },
+    "es": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{title, summary, lesson_md, checklist[{id,text}], quiz[{id,question,options[],explanation}], status: draft|approved, translated_at, approved_at}"
+    }
+  },
+  "required": [
+    "track_id",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
