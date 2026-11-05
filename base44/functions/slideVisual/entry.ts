@@ -1,6 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
 
 const STYLE = {
+  interstellar: 'refined editorial photography, warm neutral light, soft natural shadows, a subtle warm orange accent, calm and premium',
+  'interstellar-dark': 'moody editorial photography, low-key light, deep charcoal tones with a warm orange glow',
   signal: 'refined corporate editorial imagery, clean composition with a warm orange accent on a near-white snow background, soft directional light, minimal and confident',
   'signal-dark': 'moody corporate editorial imagery, dark charcoal background with a warm orange accent glow, low-key cinematic lighting',
   paper: 'clean editorial photography or refined abstract geometry, bright neutral palette, soft natural shadows',
@@ -36,7 +38,9 @@ export default async function (req) {
       style = STYLE[theme] || STYLE.paper;
     }
 
-    const prompt = `Presentation slide visual, wide 16:9 landscape composition. ${brief}. Style: ${style}. Absolutely no text, letters, numbers, captions, logos, watermarks, charts or interface elements anywhere in the image. Sophisticated, high-end, gallery quality.`;
+    // The generator returns a square image that slides crop to fit (object-fit: cover). Asking for a "16:9" frame
+    // made it letterbox the picture with white bars, so ask for an edge-to-edge frame with the subject centred.
+    const prompt = `${brief}. Full-bleed photograph that fills the entire frame edge to edge, subject centred with breathing room so it can be cropped to landscape or portrait. No borders, no frames, no white or black bars, no letterboxing. Style: ${style}. Absolutely no text, letters, numbers, captions, logos, watermarks, charts or interface elements anywhere in the image. Sophisticated, high-end.`;
 
     const generated = await base44.asServiceRole.integrations.Core.GenerateImage({ prompt });
     const url = generated && typeof generated.url === 'string' ? generated.url : '';
