@@ -8,6 +8,7 @@ import { qaUsageInvoke } from "@/features/usage/qaFixtures";
 import { qaFuelInvoke } from "@/features/fuel/qaFixtures";
 import { demo, demoInvoke, warmDemo } from "@/lib/demoData";
 import { QA_LEDGER, qaLedgerInvoke, qaWorkFeed } from "@/features/output/qaFixtures";
+import { qaTrainingInvoke } from "@/features/training/qaFixtures";
 
 const host = typeof window !== "undefined" ? window.location.hostname : "";
 const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
@@ -149,6 +150,7 @@ export function installQa(base44) {
       if (name === "usage") return { data: qaUsageInvoke(args) };
       if (name === "fuel") return { data: qaFuelInvoke(args) };
       if (name === "work-ledger") return { data: qaLedgerInvoke(args) };
+      if (name === "training") return { data: qaTrainingInvoke(args) };
       if (name !== "portal") return { data: {} };
       const cid = args.client_id || "c1";
       const of = (e) => rows(e).filter((r) => r.client_id === cid);

@@ -55,6 +55,8 @@ import LoginPage from '@/features/auth/LoginPage';
 import HiringPlanPage from '@/features/hiring/HiringPlanPage';
 import SmplStudioPage from '@/features/studios/SmplStudioPage';
 import ChromeWorkspacePage from '@/features/workspace/ChromeWorkspacePage';
+import TrainingAdminPage from '@/features/training/TrainingAdminPage';
+import TraineePage from '@/features/training/TraineePage';
 import ClientUsagePage from '@/features/usage/ClientUsagePage';
 import FuelEconomicsPage from '@/features/fuel/FuelEconomicsPage';
 import UpgradeStorePage from '@/features/addons/UpgradeStorePage';
@@ -82,6 +84,11 @@ const AuthenticatedApp = () => {
   }
 
   // Public request forms (/r/<id>?k=...) need no login: client sites link straight to them.
+  // Trainee links (/t/<assignment>?k=...) need no login: new hires open their training on their phone.
+  if (window.location.pathname.startsWith('/t/')) {
+    return <Routes><Route path="/t/:id" element={<TraineePage />} /></Routes>;
+  }
+
   if (window.location.pathname.startsWith('/r/')) {
     return <Routes><Route path="/r/:id" element={<PublicRequest />} /></Routes>;
   }
@@ -173,6 +180,7 @@ const AuthenticatedApp = () => {
         <Route path="/growth" element={<Navigate to="/growth/hiring" replace />} />
         <Route path="/growth/hiring" element={<ProtectedRoute><HiringPlanPage /></ProtectedRoute>} />
         <Route path="/studios/smpl" element={<ProtectedRoute><SmplStudioPage /></ProtectedRoute>} />
+        <Route path="/training" element={<ProtectedRoute><TrainingAdminPage /></ProtectedRoute>} />
         <Route path="/studios/simple-social" element={<Navigate to="/studios/smpl" replace />} />
         <Route path="/tools/chrome-workspace" element={<ProtectedRoute><ChromeWorkspacePage /></ProtectedRoute>} />
         <Route path="*" element={<PageNotFound />} />

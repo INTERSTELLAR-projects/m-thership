@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import {
   Home, LineChart, MapPin, Target, Compass, ClipboardList, MessageSquare, FolderOpen, Palette, BookOpen,
   PenLine, QrCode, Crown, CalendarDays, ChevronDown, Menu, X, LogOut, ArrowLeft, UserRound, Check, Video, Loader2, ArrowUpRight,
-  Megaphone, Mail, BadgeDollarSign, Calculator, UserPlus, Presentation, Lock, Sparkles,
+  Megaphone, Mail, BadgeDollarSign, Calculator, UserPlus, Presentation, Lock, Sparkles, GraduationCap,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import BrandLockup from "@/components/brand/BrandLockup";
@@ -55,6 +55,7 @@ export const NAV = [
       { k: "studio_ads", label: "Ads Studio", desc: "An ads agent that watches your spend", icon: BadgeDollarSign },
       { k: "studio_accounting", label: "Accounting & Taxes", desc: "Books, receipts and quarterly taxes", icon: Calculator },
       { k: "studio_hiring", label: "Hiring plan", desc: "When to hire, and who", icon: UserPlus },
+      { k: "studio_training", label: "Training", desc: "Onboard new people from your processes", icon: GraduationCap },
       { k: "studio_presentations", label: "Presentations", desc: "On-brand decks and proposals", icon: Presentation },
       // Co-branded with SMPL. (product: SMPL Social). Tile uses SMPL's cyan -> magenta -> orange gradient.
       { k: "studio_smpl", label: "SMPL. Studio", desc: "SMPL Social AI generation: image, video, voice and clipping", icon: Sparkles, cobrand: true },

@@ -10,6 +10,7 @@ import PageHeader from "@/components/PageHeader";
 import { useToast } from "@/components/ui/use-toast";
 import { GROUPS, SEED_BLOCKS } from "./content";
 import { ensurePlan, loadHiring, monthLabel } from "./engine";
+import HireOnboardingCard from "@/features/training/HireOnboardingCard";
 
 const money = (n) => "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
 const signed = (n) => (n < 0 ? `−${money(-n)}` : money(n));
@@ -75,6 +76,7 @@ export default function HiringPlanPage() {
             <CapacityCard d={d} />
             <HowCounted d={d} />
           </div>
+          <HireOnboardingCard plan={plan} save={save} />
           <ContentArea plan={plan} save={save} toast={toast} />
           <div className="grid gap-4 xl:grid-cols-2">
             <Checklist plan={plan} save={save} />

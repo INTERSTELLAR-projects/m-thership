@@ -19,6 +19,7 @@ import { Radar as IntelligenceIcon } from "lucide-react";
 import { Wand2 as SmplStudioIcon } from "lucide-react";
 import { Chrome as ChromeWorkspaceIcon } from "lucide-react";
 import { Inbox as ApprovalsIcon, Crown as CommanderIcon, BookOpenCheck as SopsIcon, Globe as PortalIcon } from "lucide-react";
+import { GraduationCap as TrainingIcon } from "lucide-react";
 
 export const LOGO_URL =
   "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/536102fbf_interstellar-mark-v2.webp";
@@ -113,6 +114,7 @@ export const NAV_GROUPS = [
     items: [
       { label: "Tasks", icon: ListTodo, path: "/tasks" },
       { label: "SOPs", icon: SopsIcon, path: "/tasks/sops" },
+      { label: "Training", icon: TrainingIcon, path: "/training" },
       { label: "Automations", icon: AutomationsIcon, path: "/automations" },
       { label: "Documents", icon: FileText, path: "/documents" },
       { label: "Chrome Workspace", icon: ChromeWorkspaceIcon, path: "/tools/chrome-workspace" },

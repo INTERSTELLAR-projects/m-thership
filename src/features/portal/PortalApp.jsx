@@ -35,6 +35,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import PortalUpgrades, { UpgradeSpotlight } from "@/features/addons/PortalUpgrades";
 import { useAddonStore } from "@/features/addons/api";
 import PortalWorkFeed from "@/features/portal/PortalWorkFeed";
+import PortalTraining from "@/features/training/PortalTraining";
 
 // Tabs this portal can show. Grouping, labels and icons for the header nav live in PortalNav.jsx (NAV);
 // free-for-life bonus tools (Signatures, QR Codes) are tagged there and listed together on Home.
@@ -165,7 +166,9 @@ export default function PortalApp({ previewId }) {
           {tab === "assistant" && <PortalAssistant key={scopeId || "me"} previewId={scopeId} admin={!!previewId} variant="page" />}
           {tab === "account" && <SecurityPanel preview={!!previewId} />}
           {tab === "upgrades" && <PortalUpgrades scopeId={scopeId} preview={!!previewId} call={call} />}
-          {STUDIO_BY_TAB[tab] && tabs.some(([k]) => k === tab) && <StudioPreview tab={tab} client={d.client} call={call} preview={!!previewId} previewId={previewId} scopeId={scopeId} fuel={fuel} onRefuel={() => setRefuelOpen(true)} onFuelChanged={refreshFuel} />}
+          {/* Training (People): the real workspace once unlocked (HyperCare+ and switched on); otherwise the locked preview below. */}
+          {tab === "studio_training" && tabs.some(([k]) => k === tab) && !studioTabs(d.client, fuel).locked.has(tab) && <PortalTraining scopeId={scopeId} business={d.client.business} />}
+          {STUDIO_BY_TAB[tab] && tabs.some(([k]) => k === tab) && !(tab === "studio_training" && !studioTabs(d.client, fuel).locked.has(tab)) && <StudioPreview tab={tab} client={d.client} call={call} preview={!!previewId} previewId={previewId} scopeId={scopeId} fuel={fuel} onRefuel={() => setRefuelOpen(true)} onFuelChanged={refreshFuel} />}
         </div>
         </ErrorBoundary>
       )}

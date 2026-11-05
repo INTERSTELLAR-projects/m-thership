@@ -79,6 +79,19 @@ export const STUDIOS = [
     replaces: "Recruiting spend (median cost per hire: $1,200)",
   },
   {
+    // People pillar. Unlocked: the real Training workspace (src/features/training/PortalTraining.jsx).
+    key: "training", tab: "studio_training", label: "Training", eyebrow: "People · onboarding",
+    title: "Train new people", accent: "your way, fast.",
+    lead: "Turn your processes into step-by-step training a new hire finishes on their phone: a short lesson, hands-on tasks, a quick check, then the next step.",
+    features: [
+      ["Built from your SOPs", "Lessons, hands-on checklists and quiz questions drafted from your own processes. Anything missing is flagged for you."],
+      ["Role templates", "Start from new office hire, crew member, crew lead, sales or manager, then make it yours."],
+      ["Phone-first player", "Trainees open a private link, pick up where they left off and ask you questions as they go. English or Spanish."],
+      ["Manager view + sign-off", "See who's on track, who's stuck or overdue, quiz results, and sign them off when they're ready."],
+    ],
+    replaces: "Training platforms ($8–$15 per user/mo) + hours of shadowing for every new hire",
+  },
+  {
     key: "presentations", tab: "studio_presentations", label: "Presentations", eyebrow: "Decks & proposals",
     title: "Pitch decks and proposals,", accent: "on brand in minutes.",
     lead: "Turn a prompt or a document into a polished, on-brand deck you can present, share by link or export as a PDF.",
@@ -328,6 +341,28 @@ function Mock({ k, business }) {
           {tx.map((t) => <li key={t[1]} className="flex items-center gap-2 px-2 py-1.5"><span className="w-10 font-mono text-[9px] text-ink/45">{t[0]}</span><span className="flex-1 truncate">{t[1]}</span><span className="bg-ink/[0.06] px-1.5 py-0.5 text-[9px]">{t[2]}</span><span className={`w-16 text-right tabular-nums ${t[3].startsWith("+") ? "text-green-700" : ""}`}>{t[3]}</span></li>)}
         </ul>
         <p className="mt-2 text-[10px] text-ink/50">3 transactions need a category · 2 receipts missing</p>
+      </div>
+    );
+  }
+  if (k === "training") {
+    const people = [["Marco R.", "Crew member", 67, "ES"], ["Dana O.", "Crew member", 100, "Sign-off"], ["Tyler B.", "Office hire", 25, "Stuck"]];
+    return (
+      <div>
+        <div className="grid grid-cols-3 gap-2"><Tile k="In training" v="3" /><Tile k="Avg. complete" v="64%" /><Tile k="Questions" v="1" sub="Waiting on you" /></div>
+        <ul className="mt-3 space-y-2">
+          {people.map((p) => (
+            <li key={p[0]} className="flex items-center gap-2.5 border border-hair bg-card px-2.5 py-2">
+              <span className="w-16 truncate text-[11.5px] font-medium">{p[0]}</span>
+              <span className="w-20 truncate text-[9.5px] text-ink/50">{p[1]}</span>
+              <span className="h-1.5 flex-1 bg-ink/[0.08]"><span className="block h-full bg-[linear-gradient(90deg,#ff3c00,#ff6a00,#ffaa00)]" style={{ width: `${p[2]}%` }} /></span>
+              <span className={`w-14 text-right text-[9px] ${p[3] === "Stuck" ? "text-amber-700" : p[3] === "Sign-off" ? "text-[#ff3c00]" : "text-ink/50"}`}>{p[3]}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-3 border-l-2 border-[#ff3c00] bg-card p-2.5">
+          <p className="font-mono text-[8.5px] uppercase text-[#ff3c00]">Module 2 of 6 · Hands-on</p>
+          <p className="mt-1 text-[11px] leading-snug">Load a truck from the job sheet with your lead. Then take before photos of every slope.</p>
+        </div>
       </div>
     );
   }
