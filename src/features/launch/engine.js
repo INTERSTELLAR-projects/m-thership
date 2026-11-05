@@ -9,6 +9,7 @@ import { base44 } from "@/api/base44Client";
 import { evaluateCriteria, has } from "@/features/clients/criteria";
 import { STANDING_RULES } from "@/features/claude/jobs";
 import { queueTopicCalendar, monthKeyLA, monthLabel } from "./topicCalendar";
+import { assertEnginesReleased } from "./engineHold";
 
 export const COMPLETE_AT = 80; // same threshold the profile meter and the % badge turn green at
 export const BLOG_CRITICAL = ["services", "service_areas", "keywords", "voice", "photos", "reviews_link"];
@@ -113,6 +114,7 @@ const firstOfNextMonth = (now) => {
 
 // Queues one month of an engine: the Topic Calendar + outreach + social + reviews. GBP is recorded as waiting.
 export async function queueMonth(client, startId, { monthKey = monthKeyLA() } = {}) {
+  await assertEnginesReleased(); // global hold: nothing recurring until every client is launched
   const cadence = cadenceOf(client);
   const month = monthLabel(monthKey);
   const queued = [];
@@ -133,6 +135,7 @@ export async function queueMonth(client, startId, { monthKey = monthKeyLA() } = 
 
 // by: who pressed it. auto = Claude pressed it because the checklist was green (policy: notify, don't ask).
 export async function startEngine(client, checklist, by = "justin", { auto = false } = {}) {
+  await assertEnginesReleased(); // global hold: manual and auto-press both stop here
   const now = new Date();
   const cadence = cadenceOf(client);
   const start = await base44.entities.EngineStart.create({

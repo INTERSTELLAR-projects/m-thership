@@ -4,6 +4,7 @@
 // verifies on the live blog index. Nothing is recorded as published until it is verified live.
 import { base44 } from "@/api/base44Client";
 import { blogSiteOf, publishSteps } from "./blogSites";
+import { assertEnginesReleased } from "./engineHold";
 
 export const isTopicCalendarJob = (job) => !!(job && job.kind === "topic_calendar");
 
@@ -96,6 +97,7 @@ function blogBrief(client, cal, topic, i, n, site, rules) {
 
 // Approval of a topic_calendar job: save the calendar, then schedule one blog job per topic.
 export async function saveApprovedTopicCalendar(job, rules = []) {
+  await assertEnginesReleased(); // no blog schedule starts while engines are on hold
   if (!job.client_id) return null;
   const topics = topicsFromJob(job);
   if (!topics.length) throw new Error("This calendar has no topics yet. Ask Claude for changes instead.");
@@ -134,6 +136,7 @@ export async function saveApprovedTopicCalendar(job, rules = []) {
 }
 
 export async function queueTopicCalendar(client, { monthKey = monthKeyLA(), n = 4, engineStartId = "", rules = [] } = {}) {
+  await assertEnginesReleased();
   const open = (await base44.entities.ClaudeJob.filter({ client_id: client.id, kind: "topic_calendar" }, "-created_date", 10).catch(() => [])) || [];
   const dupe = open.find((j) => j.context && j.context.month_key === monthKey && j.status !== "cancelled" && j.status !== "failed");
   if (dupe) return dupe;

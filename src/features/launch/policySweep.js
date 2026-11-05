@@ -10,6 +10,7 @@ import { proposalsFromJob } from "@/features/clients/enrich";
 import { loadClientContext } from "@/features/clients/clientContext";
 import { GATES, gateMode, loadPolicy, loadWaiting, approveRow, rowTitle, POLICY_KEY } from "./gates";
 import { engineChecklist, loadFacts, startEngine } from "./engine";
+import { loadHold } from "./engineHold";
 
 const THROTTLE_KEY = "mothership.policySweep.lastRun";
 const MIN_GAP_MS = 20 * 60 * 1000;
@@ -64,6 +65,8 @@ async function clearRow(g, r) {
 }
 
 async function autoStartEngines(by, out) {
+  // Global hold (Justin): no engine auto-press until every client is launched.
+  if ((await loadHold()).on) { out.engines_held = true; return; }
   const [clients, starts, facts] = await Promise.all([
     base44.entities.CRMClient.filter({ status: "Active" }, "business", 100).catch(() => []),
     base44.entities.EngineStart.list("-started_at", 300).catch(() => []),
