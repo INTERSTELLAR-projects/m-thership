@@ -150,6 +150,11 @@
     },
     "visibility_reason": {
       "type": "string"
+    },
+    "locked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Justin edited this row; the sync never re-maps its task type or done_by"
     }
   },
   "required": [
