@@ -89,7 +89,7 @@ export const STUDIOS = [
       ["Phone-first player", "Trainees open a private link, pick up where they left off and ask you questions as they go. English or Spanish."],
       ["Manager view + sign-off", "See who's on track, who's stuck or overdue, quiz results, and sign them off when they're ready."],
     ],
-    replaces: "Training platforms ($8–$15 per user/mo) + hours of shadowing for every new hire",
+    replaces: "Training binders, slide decks and hours of shadowing for every new hire",
   },
   {
     key: "presentations", tab: "studio_presentations", label: "Presentations", eyebrow: "Decks & proposals",

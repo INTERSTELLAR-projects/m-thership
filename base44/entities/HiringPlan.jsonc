@@ -41,6 +41,14 @@
       },
       "description": "{key, label, done, done_at} launch checklist"
     },
+    "hires": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "{key, name, email, role, start_date, added_at, assignment_id?} people hired; each is offered an onboarding track (People > Training)"
+    },
     "seed_version": {
       "type": "number"
     },
