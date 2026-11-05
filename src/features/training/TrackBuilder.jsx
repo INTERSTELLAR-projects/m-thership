@@ -124,7 +124,7 @@ function TrackHeader({ track, roles, onSave, modules, gapsTotal, needs, portal }
         <div className="space-y-3">
           {(gapsTotal > 0 || needs > 0) && (
             <div className="border border-amber-300/70 bg-amber-50 px-3 py-3">
-              <p className="flex items-center gap-1.5 text-[13px] font-semibold text-amber-900"><AlertTriangle className="h-4 w-4" />{needs ? `${needs} module${needs === 1 ? "" : "s"} need SOPs · ` : ""}{gapsTotal} gap{gapsTotal === 1 ? "" : "s"} flagged</p>
+              <p className="flex items-center gap-1.5 text-[13px] font-semibold text-amber-900"><AlertTriangle className="h-4 w-4" />{needs ? `${needs} module${needs === 1 ? " needs" : "s need"} SOPs · ` : ""}{gapsTotal} gap{gapsTotal === 1 ? "" : "s"} flagged</p>
               <p className="mt-1 text-[12px] leading-snug text-amber-900/80">These are things your SOPs don&apos;t say yet. Fill them in the lesson, or add the missing SOP and rebuild. Nothing was guessed.</p>
               {(track.gaps || []).length > 0 && <ul className="mt-2 space-y-1 text-[12px] text-amber-950/80">{track.gaps.map((g, i) => <li key={i} className="flex gap-1.5"><span className="mt-[7px] h-1 w-1 shrink-0 bg-amber-700" />{g}</li>)}</ul>}
             </div>

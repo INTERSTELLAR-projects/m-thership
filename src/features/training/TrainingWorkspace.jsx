@@ -121,7 +121,7 @@ function TrackCard({ t, onOpen }) {
           <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" />{t.active} in training · {t.completed} done</span>
           {t.es_enabled && <span>EN / ES</span>}
         </div>
-        {(t.needs_sops > 0 || t.gaps > 0) && <p className="mt-2 inline-flex items-center gap-1 text-[11.5px] font-medium text-amber-800"><AlertTriangle className="h-3.5 w-3.5" />{t.needs_sops ? `${t.needs_sops} need SOPs · ` : ""}{t.gaps} gap{t.gaps === 1 ? "" : "s"}</p>}
+        {(t.needs_sops > 0 || t.gaps > 0) && <p className="mt-2 inline-flex items-center gap-1 text-[11.5px] font-medium text-amber-800"><AlertTriangle className="h-3.5 w-3.5" />{t.needs_sops ? `${t.needs_sops} need${t.needs_sops === 1 ? "s" : ""} SOPs · ` : ""}{t.gaps} gap{t.gaps === 1 ? "" : "s"}</p>}
       </div>
     </button>
   );
