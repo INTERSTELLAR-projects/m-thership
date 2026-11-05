@@ -349,7 +349,7 @@ export function publicAddon(addon: Rec, ca: Rec | null, client: Rec, opts: { adm
   const open = String(addon.external_url || "");
   return {
     key: addon.key, name: addon.name, tagline: addon.tagline || "", description: addon.description || "", category: addon.category || "",
-    highlights: addon.highlights || [], media: addon.media || [], status: addon.status, draft: addon.status === "draft", icon: addon.icon || "",
+    highlights: addon.highlights || [], media: addon.media || [], demo_url: /^https:\/\//.test(String(addon.demo_url || "")) ? addon.demo_url : "", status: addon.status, draft: addon.status === "draft", icon: addon.icon || "",
     price_model: addon.price_model || "one_time", plans: plansOf(addon), priced: plansOf(addon).length > 0,
     state: s.state, access: s.access, trial: s.trial, plan: ca?.plan || null, activated_at: ca?.activated_at || null, cancel_at: ca?.cancel_at || null,
     can_cancel: s.state === "active" && !!ca?.stripe_subscription_id && !ca?.cancel_at,
