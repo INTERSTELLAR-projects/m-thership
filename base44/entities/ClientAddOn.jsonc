@@ -1,0 +1,177 @@
+{
+  "name": "ClientAddOn",
+  "description": "One row per client per Upgrade Store add-on: state (preview | trial | active | canceled), server-side trial meter, purchases and Stripe ids, app license key hash. Written only by the `addons` function and the Stripe webhook.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "addon_id": {
+      "type": "string"
+    },
+    "addon_key": {
+      "type": "string"
+    },
+    "addon_name": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "preview",
+        "trial",
+        "active",
+        "canceled"
+      ],
+      "default": "preview"
+    },
+    "plan": {
+      "type": "string",
+      "description": "one_time | monthly | both"
+    },
+    "views": {
+      "type": "number",
+      "default": 0
+    },
+    "first_viewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_viewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "trial_started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "trial_started_via": {
+      "type": "string",
+      "description": "portal | app name"
+    },
+    "trial_uses_total": {
+      "type": "number"
+    },
+    "trial_uses_left": {
+      "type": "number",
+      "description": "Null for day-based trials"
+    },
+    "trial_ends_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "trial_use_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Refs already counted (one use per ref)"
+    },
+    "trial_last_used_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_used_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "checkout_started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "checkout_plan": {
+      "type": "string"
+    },
+    "purchases": {
+      "type": "array",
+      "description": "[{ session_id, at, plan, mode, amount_usd, subscription_id, payment_intent, email, source, test, needs_review }]",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "stripe_session_id": {
+      "type": "string"
+    },
+    "stripe_subscription_id": {
+      "type": "string"
+    },
+    "stripe_customer_id": {
+      "type": "string"
+    },
+    "activated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cancel_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Subscription set to end at period end"
+    },
+    "canceled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cancel_reason": {
+      "type": "string"
+    },
+    "granted_by": {
+      "type": "string"
+    },
+    "license_key_hash": {
+      "type": "string",
+      "description": "SHA-256 of the client app key (the key itself is never stored)"
+    },
+    "license_key_hint": {
+      "type": "string"
+    },
+    "license_issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_app_check_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "test": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id",
+    "addon_key"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
