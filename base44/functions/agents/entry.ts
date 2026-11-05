@@ -67,7 +67,7 @@ async function llm(base44: any, opts: { system: string; prompt: string; schema?:
   }
   const core = opts.asService ? base44.asServiceRole.integrations.Core : base44.integrations.Core;
   // Fallback keeps the same house rules the Anthropic path prepends (PROMPTING-STANDARD.md).
-  const out = await core.InvokeLLM({ prompt: `${HOUSE_RULES}\n\n${opts.system}\n\n<context>\n${opts.prompt}\n</context>`, ...(opts.schema ? { response_json_schema: opts.schema } : {}) });
+  const out = await core.InvokeLLM({ prompt: `${HOUSE_RULES}\n\n${opts.system}\n\n${opts.prompt}`, ...(opts.schema ? { response_json_schema: opts.schema } : {}) });
   if (opts.schema) return typeof out === "string" ? JSON.parse(out) : out;
   return typeof out === "string" ? out : JSON.stringify(out);
 }
