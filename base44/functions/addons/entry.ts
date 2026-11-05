@@ -28,7 +28,7 @@ import {
 const json = (d: unknown, status = 200) => Response.json(d, { status });
 
 const ADDON_FIELDS = [
-  "key", "name", "tagline", "description", "category", "icon", "media", "highlights", "price_model", "price_one_time", "price_monthly",
+  "key", "name", "tagline", "description", "category", "icon", "media", "demo_url", "highlights", "price_model", "price_one_time", "price_monthly",
   "payment_link_one_time", "payment_link_monthly", "trial_mode", "trial_days", "trial_uses", "availability", "client_ids", "industries",
   "delivery_type", "feature_flag", "external_url", "provisioning_notes", "status", "pricing_note", "sort_order", "notes",
 ];
@@ -40,7 +40,7 @@ function cleanAddon(input: any) {
     if (out[k] === "" || out[k] === null) out[k] = null;
     else if (out[k] !== undefined) out[k] = Math.max(0, Number(out[k]) || 0);
   }
-  for (const k of ["payment_link_one_time", "payment_link_monthly", "external_url"]) {
+  for (const k of ["payment_link_one_time", "payment_link_monthly", "external_url", "demo_url"]) {
     if (out[k] !== undefined && out[k] && !/^https:\/\/\S+$/.test(String(out[k]))) throw new Error(`${k.replace(/_/g, " ")} must be an https link`);
   }
   for (const k of ["client_ids", "industries", "highlights"]) if (out[k] !== undefined) out[k] = (Array.isArray(out[k]) ? out[k] as unknown[] : []).map(String).filter(Boolean).slice(0, 200);
