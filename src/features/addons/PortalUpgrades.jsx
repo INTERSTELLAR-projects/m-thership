@@ -189,8 +189,8 @@ function AddonDetail({ addon: a, scopeId, preview, call, onBack, onChanged }) {
   const media = a.media || [];
   const active = a.state === "active", inTrial = a.state === "trial", ended = a.state === "trial_ended" || a.state === "canceled";
   const BuyBtn = ({ big }) => (a.priced ? (
-    <button type="button" data-buy onClick={buy} disabled={!!busy || preview} title={preview ? "Admin preview: only the client's own login can buy" : undefined} className={`flame-bg flex w-full items-center justify-center gap-2 ${big ? "h-12 text-[14.5px]" : "h-11 text-[13.5px]"} font-semibold text-white disabled:opacity-60`}>
-      {busy === "buy" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />} Unlock {a.name} · {priceLine(a)}
+    <button type="button" data-buy onClick={buy} disabled={!!busy || preview} title={preview ? "Admin preview: only the client's own login can buy" : undefined} className={`flame-bg flex w-full items-center justify-center gap-2 px-3 py-2 text-center leading-tight ${big ? "min-h-12 text-[14.5px]" : "min-h-11 text-[13.5px]"} font-semibold text-white disabled:opacity-60`}>
+      {busy === "buy" ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : <Lock className="h-4 w-4 shrink-0" />} <span>Unlock <span className="hidden sm:inline">{a.name} · </span>{priceLine(a)}</span>
     </button>
   ) : (
     <button type="button" onClick={ask} disabled={!!busy || preview} className="flex h-11 w-full items-center justify-center gap-2 border border-ink text-[13.5px] font-semibold hover:bg-ink hover:text-white disabled:opacity-50">
@@ -234,7 +234,7 @@ function AddonDetail({ addon: a, scopeId, preview, call, onBack, onChanged }) {
           )}
         </div>
 
-        <aside className="lg:sticky lg:top-24 lg:self-start">
+        <aside className="order-first lg:order-none lg:sticky lg:top-24 lg:self-start">
           <div className="overflow-hidden rounded-md border border-hair bg-card" data-buy-card>
             <div className="h-[3px] bg-[linear-gradient(90deg,#ff3c00,#ff6a00,#ffaa00)]" />
             <div className="space-y-4 p-5">
