@@ -6,7 +6,7 @@ import { fmtDate } from "@/lib/useData";
 
 const CAT = {
   website: ["Website", Globe], seo: ["Search", Search], content: ["Content", PenLine], gbp: ["Google profile", MapPin], citations: ["Listings", Link2],
-  app_build: ["Your system", LayoutGrid], brand: ["Brand", Palette], social: ["Social", Megaphone], email: ["Email", Mail], ads: ["Ads", BadgeDollarSign],
+  app_build: ["Your system", LayoutGrid], research: ["Strategy", Search], ops: ["Behind the scenes", LayoutGrid], security: ["Behind the scenes", LayoutGrid], brand: ["Brand", Palette], social: ["Social", Megaphone], email: ["Email", Mail], ads: ["Ads", BadgeDollarSign],
 };
 
 // Group by month so a long feed reads like a story of the relationship.
