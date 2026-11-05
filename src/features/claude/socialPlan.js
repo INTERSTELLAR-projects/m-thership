@@ -627,6 +627,7 @@ ${d.ctx ? contextToBrief(d.ctx, { sections: ["profile", "services"] }) : ""}
 ${agencyBlock(d.agency, ["offers", "delivery"])}
 ${agencyBlock(d.agency, ["social_search"], { maxChars: 4500 })}
 ${agencyBlock(d.agency, ["hooks"], { maxChars: 2200 }) || `\n## Hook framework\n${hookBrief()}\n`}
+${agencyBlock(d.agency, ["social_strategist"], { maxChars: 4500 })}
 ${d.current ? `\n## Current approved social plan (v${d.current.version || 1})\nThis is a revision. Keep what still holds; change what Justin asks.\n${d.current.summary || ""}` : ""}
 
 ## Platforms (use these ids; include ONLY the ones that fit this business, list the rest in skipped_platforms with why)
