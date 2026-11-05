@@ -745,7 +745,7 @@ export async function editDeck({ deck, instruction, brief, clientId, history = [
     "<output_format>\nJSON {reply, title, subtitle, summary, slides:[...]}. reply is 1-2 sentences to the person, never mentioning JSON or ids.\n</output_format>"
   ].join("\n\n");
   const convo = history.slice(-6).map((m) => `${m.role === "assistant" ? "Assistant" : "User"}: ${String(m.content || "").slice(0, 600)}`).join("\n");
-  const prompt = `<input>\n${brief || ""}\n</input>\n\n<deck>\n${JSON.stringify({ title: deck.title, subtitle: deck.subtitle, slides: deck.slides.map(({ image_url, ...s }) => s) })}\n</deck>\n${convo ? `\n<conversation>\n${convo}\n</conversation>\n` : ""}\nRequest: ${instruction}`;
+  const prompt = `<input>\n${brief || ""}\n</input>\n\n<deck>\n${JSON.stringify({ title: deck.title, subtitle: deck.subtitle, slides: deck.slides.map(({ image_url: _img, ...s }) => s) })}\n</deck>\n${convo ? `\n<conversation>\n${convo}\n</conversation>\n` : ""}\nRequest: ${instruction}`;
   const { json } = await deckAI({ system, prompt, schema: EDIT_SCHEMA, tier: "long", feature: "presentations.edit", clientId, maxTokens: 14000 });
   const next = normalizeDeck({ ...json, theme: deck.theme, brand: deck.brand });
   const prev = new Map(deck.slides.map((s) => [s.id, s]));
