@@ -74,7 +74,7 @@ function ChartEditor({ chart, onChange }) {
           { key: 'value', label: 'Value', placeholder: '412' }
         ]}
         items={(c.points || []).map((p) => ({ label: p.label, value: String(p.value ?? '') }))}
-        onChange={(rows) => set({ points: rows.map((r) => ({ label: r.label || '', value: Number(String(r.value || '').replace(/[^0-9.-]/g, '')) || 0 })) })}
+        onChange={(rows) => set({ points: rows.map((r) => ({ label: r.label || '', value: String(r.value ?? '').replace(/[^0-9.-]/g, '') })) })}
         max={8}
         addLabel="Add data point"
       />
