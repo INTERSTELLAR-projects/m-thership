@@ -13,6 +13,7 @@ import { loadFacts, APP_SCOPE, COMPLETE_AT } from "./engine";
 import ApprovalsInbox, { useWaiting, waitingTotal } from "./ApprovalsInbox";
 import ApprovalPolicy from "./ApprovalPolicy";
 import OffersPanel from "./OffersPanel";
+import EngineHoldGate from "./EngineHoldGate";
 
 const TABS = [["mission", "Mission"], ["approvals", "Approvals"], ["policy", "Approval policy"], ["offers", "Offers"]];
 
@@ -282,6 +283,7 @@ export default function LaunchPage() {
         <div key={tab} className="page-enter pt-6">
           {tab === "mission" && !q.isLoading && (
             <>
+              <EngineHoldGate items={q.data || []} />
               <Section label="Progress" title="Workstreams" accent="status"><Workstreams s={s} /></Section>
               <div className="grid gap-x-8 xl:grid-cols-2">
                 <Section id="moves" label="Only what needs you" title="Your" accent="moves" right={<button type="button" onClick={() => setShowDone(!showDone)} className="text-[12px] text-ink/50 hover:text-ink">{showDone ? "Hide done" : "Show done"}</button>}>
