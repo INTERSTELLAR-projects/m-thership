@@ -31,7 +31,7 @@ export const SITE_FACTS = {
   "69d884d30f93ad2e14bbbeb3": { live: false, domain: "redline-visuals.com", old: "Framer", blog: "BlogPost entity" },
   "6a3c9320b05f612c08347d74": { live: false, domain: "thebulbabros.com", old: "none (domain not registered)", blog: "BlogPost entity" },
   "6a28bfea1bde8e3ea488f04d": { live: false, domain: "bobablasticmolalla.com", old: "none (domain not registered)", blog: "file-based (src/data/blog.js)" },
-  "69d884d4293101b78d2939cf": { live: false, domain: "smplsocial.io", old: "Next.js on Vercel (blog on smplcontent.com)", blog: "" },
+  "69d884d4293101b78d2939cf": { live: false, domain: "smplcontent.com", old: "Framer (smplsocial.io is the product app, not the site)", blog: "file-based (src/data/posts.json)" },
 };
 // Client apps that must be finished by Dec 31 (KB launch plan) and the LaunchItem keys that close them.
 export const APP_SCOPE = {
