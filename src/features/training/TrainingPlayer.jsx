@@ -49,7 +49,8 @@ export default function TrainingPlayer({ data, mode = "trainee", onSave, onAsk, 
   const [err, setErr] = useState("");
   const [menu, setMenu] = useState(false);
   const [askOpen, setAskOpen] = useState(false);
-  const [finished, setFinished] = useState(false);
+  // A trainee who already finished lands on the completion screen.
+  const [finished, setFinished] = useState(() => mode === "trainee" && (data?.modules || []).length > 0 && (data.modules || []).every((m) => isDone(m, (data?.assignment?.progress || {})[m.id])));
   const topRef = useRef(null);
   const t = L[lang];
 
@@ -137,8 +138,6 @@ export default function TrainingPlayer({ data, mode = "trainee", onSave, onAsk, 
 
   if (!modules.length) return <div className="px-5 py-20 text-center text-[14px] text-ink/55">No modules yet.</div>;
 
-  const showDone = finished || (allDone && step !== "quiz" && finished !== false && false);
-
   return (
     <div className="min-h-[100dvh] bg-canvas text-ink" data-training-player={mode}>
       <div ref={topRef} />
@@ -175,7 +174,7 @@ export default function TrainingPlayer({ data, mode = "trainee", onSave, onAsk, 
       {preview && <p className="mx-auto max-w-[680px] px-4 pt-3 text-[11.5px] text-ink/50">{t.preview}</p>}
 
       <main className="mx-auto max-w-[680px] px-4 pb-36 pt-5">
-        {showDone || finished ? (
+        {finished ? (
           <Done t={t} data={data} signed={signed} allDone={allDone} onBack={() => setFinished(false)} />
         ) : (
           <>
@@ -282,7 +281,7 @@ export default function TrainingPlayer({ data, mode = "trainee", onSave, onAsk, 
           <div className="mx-auto flex max-w-[680px] items-center gap-2 px-4 py-3">
             <button type="button" onClick={() => (idx > 0 ? go(idx - 1, "lesson") : null)} disabled={idx === 0} className="flex h-12 w-12 shrink-0 items-center justify-center border border-hair bg-card text-ink/60 disabled:opacity-30" aria-label="Previous module"><ArrowLeft className="h-5 w-5" /></button>
             <button type="button" onClick={() => setAskOpen(true)} className="relative flex h-12 shrink-0 items-center gap-1.5 border border-hair bg-card px-3 text-[13px] font-medium text-ink/75" aria-label={t.ask}>
-              <MessageCircleQuestion className="h-4.5 w-4.5 h-[18px] w-[18px]" /><span className="hidden min-[400px]:inline">{t.ask}</span>
+              <MessageCircleQuestion className="h-[18px] w-[18px]" /><span className="hidden min-[400px]:inline">{t.ask}</span>
               {questions.some((q) => q.answer && q.module_id === mod?.id) && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#ff3c00]" />}
             </button>
             <button type="button" onClick={onPrimary} disabled={primaryDisabled} className="flame-bg flex h-12 min-w-0 flex-1 items-center justify-center gap-2 px-4 text-[14.5px] font-semibold text-white shadow-[0_10px_24px_-12px_rgba(255,60,0,.9)] disabled:opacity-45">
