@@ -301,6 +301,7 @@ async function logEntries(db: any, list: any[]) {
       ...(e.visibility === "internal" || e.visibility === "client" ? { visibility: e.visibility, visibility_locked: true, visibility_reason: "Set when logged" } : {}),
     };
     Object.assign(row, normalize(row, cfg));
+    if (CATEGORIES.includes(e.category)) row.category = e.category; // an explicit category from the caller wins
     const created = await db.WorkEntry.create(row);
     out.push({ id: created.id, dedupe_key: key, visibility: row.visibility, minutes_saved_estimate: row.minutes_saved_estimate });
   }
