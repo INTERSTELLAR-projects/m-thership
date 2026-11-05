@@ -77,9 +77,13 @@ export function makeBrand({ name = "", palette = [], headingFamily = "", bodyFam
 
   let bg = bgC ? bgC.hex : "";
   if (!bg) {
-    // No declared background: a dark brand palette (most colours dark) gets a dark canvas, else a warm off-white.
-    const darkShare = cols.filter((p) => lum(p.hex) < 0.08).length / cols.length;
-    bg = darkShare >= 0.5 ? cols.filter((p) => lum(p.hex) < 0.08).sort((a, b) => lum(a.hex) - lum(b.hex))[0].hex : "#FAF8F5";
+    // No declared background. Light text means a dark canvas; otherwise a mostly-dark palette gets its darkest
+    // colour, and everything else gets a warm off-white canvas.
+    const nonText = cols.filter((p) => p !== textC);
+    const darks = nonText.filter((p) => lum(p.hex) < 0.08).sort((a, b) => lum(a.hex) - lum(b.hex));
+    if (textC && lum(textC.hex) > 0.6) bg = darks[0] ? darks[0].hex : "#111111";
+    else if (!textC && darks.length && darks.length / Math.max(1, nonText.length) >= 0.5) bg = darks[0].hex;
+    else bg = "#FAF8F5";
   }
   const dark = lum(bg) < 0.4;
   let fg = textC && contrast(textC.hex, bg) >= 4.5 ? textC.hex : "";
