@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
 const EXAMPLES = [
-  'A 10-slide client proposal for migrating a retailer to a headless ecommerce stack',
-  'Q4 business review for an existing customer: results, learnings, next-quarter roadmap',
-  'A pitch deck for our new AI onboarding product, aimed at operations leaders',
-  'A services overview deck for a mid-market prospect, focused on outcomes and pricing tiers',
-  'A discovery workshop agenda and findings summary for a manufacturing client'
+  'A sales pitch for our annual maintenance plan: what it includes, the price, and how to sign up',
+  'Quarterly review for a client: revenue, traffic and conversion this quarter vs last, what worked, next quarter plan',
+  'A training deck for new hires on our opening procedure, step by step',
+  'A project proposal for a homeowner: scope, timeline, investment and warranty',
+  'A one-pager deck for a local investor: traction, the ask and use of funds'
 ];
 
 export default function ChatPanel({ messages, onSend, busy, statusText, options, onOptionsChange, projects }) {
@@ -34,11 +34,11 @@ export default function ChatPanel({ messages, onSend, busy, statusText, options,
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-2 border-b border-border/70 px-4 py-3">
         <span className="flex h-7 w-7 items-center justify-center rounded-none bg-primary text-[11px] font-semibold text-primary-foreground">
-          CØ
+          AI
         </span>
         <div className="min-w-0">
-          <p className="text-sm font-medium">Deck assistant</p>
-          <p className="truncate text-[11px] text-muted-foreground">Prompt a deck, then refine any slide</p>
+          <p className="text-sm font-medium">Presentation Creator</p>
+          <p className="truncate text-[11px] text-muted-foreground">Outline first, then every slide on brand</p>
         </div>
         <Button
           variant={showOptions ? 'secondary' : 'ghost'}
@@ -55,8 +55,9 @@ export default function ChatPanel({ messages, onSend, busy, statusText, options,
         {messages.length === 0 ? (
           <div className="space-y-3">
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Describe the presentation you need and Cønstellation will write it and design every slide. Then keep prompting to
-              change anything.
+              Describe the deck and paste the real facts (numbers, prices, steps). It plans an outline, writes every slide from
+              your facts only, and you can keep prompting to change anything. For a client deck with their brand kit, use
+              Generate.
             </p>
             <div className="space-y-2">
               {EXAMPLES.map((example) => (
