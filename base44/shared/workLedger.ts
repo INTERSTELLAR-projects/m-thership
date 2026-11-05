@@ -219,7 +219,8 @@ export function launchItemType(i: any): string {
   if (/ca:nw-stages|build .*stages|command system v1/.test(k)) return "app_build_stage";
   if (/^ca:.*qa|qa against|full test/.test(k)) return "app_qa";
   if (/mobile-qa|playwright pass|lead-test|end-to-end test/.test(k)) return "site_qa";
-  if (/profile|brain/.test(k)) return "brain_fill";
+  if (/performance|code-split|booking|qr-merge|consolidate qr/.test(k)) return "site_feature";
+  if (/:profile\b|business brain|brain \d/.test(k)) return "brain_fill";
   if (/^s:|security|sync key/.test(k)) return "security_fix";
   if (/cleanup|zz-duplicate|test records/.test(k)) return "data_cleanup";
   if (/spanish|translat/.test(k)) return "translation";
@@ -228,7 +229,6 @@ export function launchItemType(i: any): string {
   if (/^b:|subscription|billing|fuel-numbers/.test(k)) return "billing_task";
   if (/engine-recur|blog-skills|registry-brief|workflow|re-queue/.test(k)) return "automation_setup";
   if (/tools-page|page\b/.test(k) && /^w:/.test(String(i.key || ""))) return "site_page";
-  if (/performance|booking|qr-merge/.test(k)) return "site_feature";
   if (/^m:|policy|error-boundary|launch-page/.test(k)) return "app_feature";
   if (/hours|form url|careers-form/.test(k)) return "ops_task";
   if (/^a:/.test(String(i.key || ""))) return "ops_task";
@@ -238,6 +238,8 @@ export function launchItemType(i: any): string {
 
 export function launchItemDoneBy(i: any): string {
   const by = String(i.done_by || "").toLowerCase();
+  // Answered questions: Justin's decision when the answer says so; otherwise Claude found the answer itself.
+  if ((i.kind || "gap") === "question") return /\bjustin\b|^approved/i.test(String(i.answer || "")) || by.includes("justin") ? "justin_manual" : by === "agent" ? "agent" : "claude_session";
   if (i.owner === "justin") return by === "claude" ? "claude_session" : "justin_manual";
   if (by === "agent") return "agent";
   if (by === "justin") return "justin_manual";
@@ -268,6 +270,6 @@ export function runType(name: string, kind: string): string {
   if (/citation/.test(n)) return "citation";
   if (/outreach|backlink/.test(n)) return "outreach";
   if (/social/.test(n) && /publish/.test(n)) return "social_post";
-  if (kind && WORKLOG_TYPE[kind]) return WORKLOG_TYPE[kind];
+  if (kind && kind !== "other" && WORKLOG_TYPE[kind]) return WORKLOG_TYPE[kind];
   return "agent_run";
 }
