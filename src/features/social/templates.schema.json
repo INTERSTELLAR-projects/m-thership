@@ -325,7 +325,7 @@
           "offer_name": "Mission ALPHA",
           "items": [{ "name": "Custom Website", "value": "$4,997" }, { "name": "Command System", "value": "$5,997" }, { "name": "Ops Command", "value": "$3,000" }, { "name": "Brand Arsenal", "value": "$2,500" }, { "name": "Launch Grid", "value": "$1,400" }, { "name": "Transmission", "value": "$1,500" }, { "name": "Intel Briefing", "value": "Free" }],
           "total_label": "$19,394 if bought separately",
-          "price": "$8,997",
+          "price": "$11,997",
           "price_note": "Runs on HyperCare+ after launch"
         }
       }
