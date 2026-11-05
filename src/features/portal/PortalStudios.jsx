@@ -1,4 +1,5 @@
-// Client portal Studios: Social, Email, Ads, Accounting & Taxes, Hiring plan, Presentations.
+// Client portal Studios: Social, Email, Ads, Accounting & Taxes, Hiring plan, Presentations, and the co-branded
+// INTERSTELLAR™ × SMPL. "SMPL. Studio" (SMPL Social, coming soon; rendered by components/brand/SmplCoBrand.jsx).
 // PLAN GATING (2026-11-04): Studios unlock only on HyperCare+. GravïtyCare and Website-only clients see every Studio
 // as a locked preview with "Upgrade to HyperCare+" (a call or a request, never a self-serve plan change). The plan
 // decision comes from the `fuel` function (fuel.studios_unlocked). Signatures + QR Codes stay free for life.
@@ -13,6 +14,7 @@ import { Lock, Check, Sparkles, ArrowUpRight, Loader2, Send } from "lucide-react
 import { studioState } from "@/features/usage/plans";
 import { WalletPanel, UpgradeCta } from "@/features/fuel/FuelPrompts";
 import { ScheduleCallModal } from "@/features/portal/PortalNav";
+import SmplStudioPreview from "@/components/brand/SmplCoBrand";
 
 export const STUDIOS = [
   {
@@ -90,17 +92,18 @@ export const STUDIOS = [
   },
   {
     // Always shown, always locked: not switchable per client until it launches.
-    key: "simple_social", tab: "studio_simple_social", label: "Simple Social", eyebrow: "Coming soon · AI generation", comingSoon: true,
-    title: "Images, video and voice,", accent: "generated on brand.",
-    lead: "Simple Social is our AI generation platform: image, video, voice clipping and more, built from your brand kit and run with you inside your portal.",
+    // Co-branded with our partner SMPL. (brand "SMPL.", product "SMPL Social"). Never write "Simple Social".
+    key: "smpl", tab: "studio_smpl", label: "SMPL. Studio", eyebrow: "Coming soon · AI generation", comingSoon: true, cobrand: "smpl",
+    title: "Image, video and voice.", accent: "Plus clipping.",
+    lead: "SMPL Social is AI generation for image, video and voice, plus clipping, from our partners at SMPL., built into your portal. Content made SMPL.",
     features: [
-      ["Image generation", "On-brand photos and graphics from a prompt or a real job photo."],
-      ["Video generation", "Short clips and ad cuts sized for every platform you post on."],
-      ["Voice clipping", "Clip, clean and reuse voice for reels, ads and voiceovers."],
-      ["And more", "Captions, resizes and variations that flow straight into Social Studio."],
+      ["Image", "Product shots, ads and graphics from a prompt or a real photo."],
+      ["Video", "Short clips, reels and ad cuts for TikTok, Reels and Shorts."],
+      ["Voice", "Natural voiceovers for ads, reels and explainers."],
+      ["Clipping", "Long videos turned into ready-to-post clips with captions."],
     ],
     replaces: "Separate image, video and voice AI subscriptions",
-    note: "Coming soon. Image, video and voice generation will use Media credits, separate from your AI actions.",
+    note: "Coming soon. SMPL Social image, video and voice generation will use Media credits, separate from your AI actions.",
   },
 ];
 
@@ -137,6 +140,20 @@ export default function StudioPreview({ tab, client, call, preview, previewId, s
   const [sched, setSched] = useState(false);
   if (!s) return null;
   const on = state === "on";
+  if (s.cobrand === "smpl") {
+    return (
+      <SmplStudioPreview
+        business={client?.business} preview={preview} onAsk={ask} sent={sent} busy={busy} err={err}
+        replaces={s.replaces} note={s.note}
+        upgrade={planLocked ? (
+          <div>
+            <UpgradeCta call={call} client={client} preview={preview} studioLabel={s.label} onSchedule={() => setSched(true)} />
+            <ScheduleCallModal open={sched} onClose={() => setSched(false)} previewId={scopeId || previewId} preview={preview} />
+          </div>
+        ) : null}
+      />
+    );
+  }
 
   const ask = async () => {
     if (preview || busy || sent) return;
@@ -313,7 +330,7 @@ function Mock({ k, business }) {
       </div>
     );
   }
-  if (k === "simple_social") {
+  if (k === "smpl") {
     const tiles = [["Image", "Kitchen remodel · hero shot", "flame"], ["Image", "Crew at sunrise · 4:5", "ink"], ["Video", "15s reel · before → after", "ink"], ["Image", "Holiday promo · story", "flame"]];
     return (
       <div>
