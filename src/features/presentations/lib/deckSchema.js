@@ -382,13 +382,13 @@ function contentIssue(s) {
  * Validate a normalised deck against the input it was written from.
  * Returns { deck, issues: [{ id, index, problem }] }. Never throws for content problems.
  */
-export function enforceDeck(deck, { source, slideCount }) {
+export function enforceDeck(deck, { source, slideCount, structure = true }) {
   const idx = groundingIndex(source);
   let slides = deck.slides.map(scrubSlide);
   const issues = [];
-  // Structure: cover first, closing last.
-  if (slides.length && slides[0].layout !== "cover") slides[0] = { ...slides[0], layout: "cover" };
-  if (slides.length > 2 && slides[slides.length - 1].layout !== "closing") {
+  // Structure (whole decks only, never a single regenerated slide): cover first, closing last.
+  if (structure && slides.length > 1 && slides[0].layout !== "cover") slides[0] = { ...slides[0], layout: "cover" };
+  if (structure && slides.length > 2 && slides[slides.length - 1].layout !== "closing") {
     const last = slides[slides.length - 1];
     if (["bullets", "section"].includes(last.layout) || !contentIssue({ ...last, layout: "closing" })) slides[slides.length - 1] = { ...last, layout: "closing", body: last.body || last.title };
   }
@@ -665,14 +665,14 @@ export async function auditClaims({ source, deck, clientId }) {
 }
 
 /** Validate + fact-check -> repair once -> strip. Returns { deck, issues (remaining, informational), removed }. */
-export async function finalizeDeck({ deck, brief, slideCount, clientId, source, audit = true }) {
+export async function finalizeDeck({ deck, brief, slideCount, clientId, source, audit = true, structure = true }) {
   const src = source || brief;
-  let { deck: d, issues } = enforceDeck(deck, { source: src, slideCount });
+  let { deck: d, issues } = enforceDeck(deck, { source: src, slideCount, structure });
   if (audit) issues = [...issues, ...(await auditClaims({ source: src, deck: d, clientId }))];
   const found = issues;
   if (issues.some((x) => x.id)) {
     d = await repairDeck({ brief, deck: d, issues, clientId });
-    ({ deck: d, issues } = enforceDeck(d, { source: src, slideCount }));
+    ({ deck: d, issues } = enforceDeck(d, { source: src, slideCount, structure }));
   }
   // Near-duplicates the repair left behind are dropped (while the deck stays within 2 of the requested count).
   const dupIds = issues.filter((x) => x.id && /^repeats slide/.test(x.problem)).map((x) => x.id);
@@ -731,7 +731,7 @@ export async function regenerateSlide({ deck, slide, instruction, brief, clientI
   if (!raw) throw new Error("No slide came back. Try again.");
   const next = { ...normalizeSlide(raw), id: slide.id, image_url: slide.image_url };
   const src = `${brief || ""}\n${instruction || ""}\n${visibleText(slide)}\n${slide.notes || ""}`;
-  const { deck: fixed } = await finalizeDeck({ deck: { slides: [next] }, brief: src, clientId, source: src, audit: false });
+  const { deck: fixed } = await finalizeDeck({ deck: { slides: [next] }, brief: src, clientId, source: src, audit: false, structure: false });
   return fixed.slides[0] || { ...slide };
 }
 
