@@ -107,6 +107,10 @@ ${site && intake?.website_prompt ? `\nIntake build prompt (draft, facts only):\n
 ### Calls
 ${meetingsBlock(client)}
 
+### Design language (reference, read before Stage 1)
+- Build Standard: AgencyKnowledge key build_standard in app ${MOTHERSHIP_APP} (brand, truth, the Floor, taste).
+- This client's DESIGN.md: BusinessBrain for client_id "${client.id}", field sections.brand.design_md (colors, type, components, voice, do/don't). If it is missing or says unknown, list that under needs_from_justin instead of guessing.
+
 ### References Justin uploaded
 ${refsBlock(refs)}
 Look at every screenshot. For a screen recording you cannot play, use its note and its reference site, and say so in result_body.
