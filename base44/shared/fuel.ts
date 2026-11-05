@@ -59,7 +59,7 @@ export const DEFAULT_FUEL = {
   },
   // 5. Weighted AI actions by model.
   weights: { haiku: 1, sonnet: 3, agent_large: 5, nova: 1, large_context_tokens: 50000 },
-  // 5. Media credits (Simple Social image / video / voice). Hooks only: disabled, nothing generates yet.
+  // 5. Media credits (SMPL Social image / video / voice). Hooks only: disabled, nothing generates yet.
   media_credits: {
     enabled: false,
     starter: { hypercare: 0, website: 0, gravitycare: 0, none: 0 } as Record<string, number>,
@@ -552,7 +552,7 @@ export async function pausedClientIds(db: Db, kind: string) {
 }
 
 // ---------- media credits (hooks only; disabled) ----------
-// Future Simple Social generation calls checkMedia() first and meterMedia() after. Disabled config = refused.
+// Future SMPL Social generation calls checkMedia() first and meterMedia() after. Disabled config = refused.
 export async function checkMedia(db: Db, client: Client, units: number) {
   const cfg = await loadFuelConfig(db);
   if (!cfg.media_credits.enabled) return { ok: false, code: "media_disabled", reason: "Image, video and voice generation isn't available yet." };

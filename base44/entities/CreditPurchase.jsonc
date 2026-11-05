@@ -36,7 +36,7 @@
     },
     "media_credits": {
       "default": 0,
-      "description": "Reserved for future Simple Social media credits (disabled)",
+      "description": "Reserved for future SMPL Social media credits (disabled)",
       "type": "number"
     },
     "media_used": {

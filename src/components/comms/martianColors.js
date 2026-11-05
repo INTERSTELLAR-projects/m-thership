@@ -30,7 +30,7 @@ const NAME_MAP = [
   [["redline"], "red"],
   [["rein nutrition"], "gold"],
   [["royalz", "royal barberz"], "gold"],
-  [["simple social", "smpl"], "purpleblue"],
+  [["smpl social", "smpl"], "purpleblue"],
   [["bulba bros"], "green"],
   [["velocity"], "red"],
 ];

@@ -331,33 +331,6 @@ function Mock({ k, business }) {
       </div>
     );
   }
-  if (k === "smpl") {
-    const tiles = [["Image", "Kitchen remodel · hero shot", "flame"], ["Image", "Crew at sunrise · 4:5", "ink"], ["Video", "15s reel · before → after", "ink"], ["Image", "Holiday promo · story", "flame"]];
-    return (
-      <div>
-        <div className="flex items-center gap-2 border border-hair bg-card px-2.5 py-2">
-          <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#ff3c00]" />
-          <p className="truncate text-[11px] text-ink/70">A sunlit modern kitchen we just finished, in our brand colors, for Instagram</p>
-          <span className="ml-auto shrink-0 flame-bg px-2 py-0.5 text-[9px] font-semibold text-white">Generate</span>
-        </div>
-        <div className="mt-3 grid grid-cols-4 gap-2">
-          {tiles.map(([kind, label, tone]) => (
-            <div key={label} className={`relative aspect-[4/5] p-1.5 ${tone === "flame" ? "flame-bg text-white" : "bg-ink text-white"}`}>
-              <span className="font-mono text-[7.5px] uppercase opacity-80">{kind}</span>
-              {kind === "Video" && <span className="absolute left-1/2 top-1/2 h-0 w-0 -translate-x-1/2 -translate-y-1/2 border-y-[6px] border-l-[10px] border-y-transparent border-l-white" />}
-              <p className="absolute bottom-1.5 left-1.5 right-1.5 text-[7.5px] leading-tight opacity-90">{label}</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 border border-hair bg-card p-2.5">
-          <p className="font-mono text-[8.5px] uppercase text-ink/45">Voice clip · 0:14</p>
-          <div className="mt-1.5 flex h-6 items-end gap-[2px]">
-            {[5, 9, 14, 8, 18, 12, 22, 16, 10, 20, 13, 7, 17, 11, 19, 9, 14, 6, 12, 16, 8, 21, 13, 9].map((h, i) => <span key={i} className={`w-[3px] ${i < 14 ? "bg-[#ff3c00]" : "bg-ink/20"}`} style={{ height: h }} />)}
-          </div>
-        </div>
-      </div>
-    );
-  }
   if (k === "hiring") {
     const roles = [["Now", "Field technician", "Revenue supports it", true], ["Q2 2027", "Office coordinator", "At $35K/mo revenue", false], ["Q4 2027", "Crew lead", "At $52K/mo revenue", false]];
     return (
