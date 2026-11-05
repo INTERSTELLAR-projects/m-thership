@@ -8,7 +8,7 @@ export default function useDeckExport(containerRef, deck) {
 
   const run = async (kind) => {
     const container = containerRef.current;
-    const nodes = container ? Array.from(container.querySelectorAll('[data-export-slide]')) : [];
+    const nodes = container ? Array.from(container.querySelectorAll('[data-export-slide] > div')) : [];
     if (!nodes.length) throw new Error('There is nothing to export yet.');
 
     setExporting(kind);
@@ -16,17 +16,13 @@ export default function useDeckExport(containerRef, deck) {
     try {
       const fileName = slugify(deck.title);
       const theme = getTheme(deck.theme, deck.brand);
+      // Files carry the client's name (or Interstellar's), never the tool's.
+      const author = (deck.brand && deck.brand.name) || deck.client_name || 'Interstellar Strategies';
       const onProgress = (done, total, phase) => setProgress({ done, total, phase });
       if (kind === 'pdf') {
-        await exportDeckToPdf(nodes, theme, fileName, onProgress);
+        await exportDeckToPdf(nodes, theme, fileName, onProgress, { title: deck.title, author });
       } else {
-        await exportDeckToPptx(nodes, {
-          theme,
-          fileName,
-          title: deck.title,
-          slides: deck.slides || [],
-          onProgress
-        });
+        await exportDeckToPptx(nodes, { theme, fileName, title: deck.title, slides: deck.slides || [], author, onProgress });
       }
       return `${fileName}.${kind === 'pdf' ? 'pdf' : 'pptx'}`;
     } finally {
