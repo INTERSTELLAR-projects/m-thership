@@ -1,5 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 import { requireSecondFactor } from "../../shared/twoFactor.ts";
+import { BANNED as LEDGER_BANNED, isClientSafeUrl } from "../../shared/workLedger.ts";
 
 // Client portal API. Every table is admin-only, so portal users never touch entities directly:
 // this function finds the client their login belongs to and returns only that client's
@@ -124,6 +125,21 @@ Deno.serve(async (req) => {
       ]);
       const playbooks = await by("IndustryPlaybook", "-version", 20).catch(() => []);
       const msgs = await by("ConversationMessage", "-created_date", 200);
+      // "Work we did": the work ledger's client-visible, finished rows, in client-safe team-voice copy only (never the
+      // internal title, who or what did it, minutes, costs or evidence). Older WorkLog rows the ledger hasn't picked up
+      // yet fill in, unless their title names internal tools.
+      const ledger = (await by("WorkEntry", "-completed_at", 400).catch(() => [])) as Record<string, unknown>[];
+      const covered = new Set(ledger.filter((e) => e.source_type === "work_log").map((e) => String(e.source_id)));
+      const KIND_CAT: Record<string, string> = { blog: "content", gbp_post: "gbp", citation: "citations", press: "citations", mention: "citations", backlink: "citations", schema: "seo", search_console: "seo", bing: "seo", analytics: "seo" };
+      const workFeed = [
+        ...ledger.filter((e) => e.visibility === "client" && e.status === "done" && e.client_title).map((e) => ({
+          id: e.id, title: e.client_title, summary: e.client_summary || "", category: e.category || "website",
+          date: e.completed_at ? String(e.completed_at).slice(0, 10) : null, url: isClientSafeUrl(e.link) ? e.link : "",
+        })),
+        ...work.filter(visible).filter((w: Record<string, unknown>) => w.status === "live" && !covered.has(String(w.id)) && !LEDGER_BANNED.test(String(w.title || ""))).map((w: Record<string, unknown>) => ({
+          id: `wl_${w.id}`, title: w.title, summary: "", category: KIND_CAT[String(w.kind)] || "website", date: w.date || null, url: isClientSafeUrl(w.url) ? w.url : "",
+        })),
+      ].sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 120);
       const groupUnread = await myGroups().then((gs) => Promise.all(gs.map(async (g) => groupUnreadCount(await groupMsgs(g.id as string))))).then((n) => n.reduce((a, b) => a + b, 0)).catch(() => 0);
       return Response.json({
         client: pick(client, SAFE_CLIENT),
@@ -143,6 +159,7 @@ Deno.serve(async (req) => {
         files: files.filter(visible).map((f: Record<string, unknown>) => pick(f, ["id", "title", "category", "file_url", "link_url", "description", "delivered_on"])),
         future: (await by("Project")).filter((p: Record<string, unknown>) => p.portal_visible !== false && ["proposed", "backlog", "planning", "in_progress", "review"].includes(String(p.status))).map((p: Record<string, unknown>) => pick(p, ["id", "title", "type", "status", "description", "progress", "due_date"])),
         unread: msgs.filter((m: Record<string, unknown>) => m.sender_role === "admin" && !m.read_at).length + groupUnread,
+        work_feed: workFeed,
       });
     }
 
