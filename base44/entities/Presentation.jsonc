@@ -30,6 +30,30 @@
       "type": "object",
       "description": "Custom brand settings used when theme is 'custom'",
       "properties": {
+        "name": {
+          "type": "string",
+          "description": "Brand / business name (footer, file author)"
+        },
+        "accentText": {
+          "type": "string",
+          "description": "Accent nudged for text contrast on the background"
+        },
+        "accent2": {
+          "type": "string",
+          "description": "Secondary brand color"
+        },
+        "headingFamily": {
+          "type": "string",
+          "description": "Brand heading font family (Google Fonts name)"
+        },
+        "bodyFamily": {
+          "type": "string",
+          "description": "Brand body font family (Google Fonts name)"
+        },
+        "logo_url": {
+          "type": "string",
+          "description": "Brand logo URL"
+        },
         "bg": {
           "type": "string",
           "description": "Background hex color"
@@ -94,7 +118,23 @@
     },
     "generated_by": {
       "type": "string",
-      "description": "chat, quick_draft or claude_queue"
+      "description": "pipeline_v2, chat, quick_draft or claude_queue"
+    },
+    "brand_source": {
+      "type": "string",
+      "description": "Where the brand came from: Approved brand kit, Business Brain, Client profile, Brief"
+    },
+    "outline": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "The approved outline the slides were written from (outline-first generation)"
+    },
+    "needs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Facts the deck is missing (needs_from_user), shown in the studio"
     },
     "slides": {
       "type": "array",
@@ -125,6 +165,55 @@
             "items": {
               "type": "string"
             }
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "chart": {
+            "type": "object",
+            "description": "Chart layout: type column|bar|line|donut, unit prefix/suffix, points, note",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "unit_prefix": {
+                "type": "string"
+              },
+              "unit_suffix": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              },
+              "points": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "quote_source": {
+            "type": "string"
           },
           "stats": {
             "type": "array",
