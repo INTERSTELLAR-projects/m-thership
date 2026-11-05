@@ -7,6 +7,8 @@ import { GeneralTab, TeamTab, PortalTab, IntegrationsTab } from "@/features/sett
 import ListsTab from "@/features/settings/ListsTab";
 import AgencyKnowledgeTab from "@/features/settings/AgencyKnowledgeTab";
 import AutomationsHub from "@/features/automations/AutomationsHub";
+import EstimatesTab from "@/features/output/EstimatesTab";
+import { Timer } from "lucide-react";
 
 // Settings = only things the app actually reads. Feature-owned settings stay on their feature page
 // (General lists where). Tabs are addressable: /settings?tab=lists, /settings?tab=automations …
@@ -19,6 +21,7 @@ const TABS = [
   { id: "integrations", label: "Integrations", icon: Plug, blurb: "Secrets and connectors (configured or not)" },
   { id: "lists", label: "Lists & fields", icon: ListChecks, blurb: "Edit dropdown options without code" },
   { id: "automations", label: "Automations", icon: Zap, blurb: "Every automation and notification" },
+  { id: "estimates", label: "Time-saved estimates", icon: Timer, blurb: "Manual minutes per task type and your hourly rate: the estimates behind hours saved and $ value on Output" },
 ];
 
 export default function SettingsPage() {
@@ -54,6 +57,7 @@ export default function SettingsPage() {
         {tab === "integrations" && <IntegrationsTab />}
         {tab === "lists" && <ListsTab />}
         {tab === "automations" && <AutomationsHub />}
+        {tab === "estimates" && <EstimatesTab />}
       </div>
     </div>
   );
