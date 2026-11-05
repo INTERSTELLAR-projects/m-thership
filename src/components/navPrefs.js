@@ -20,7 +20,6 @@ function usePref(name, fallback) {
     const on = (e) => { if (!e.detail || e.detail === key) setValue(read(key, fallback)); };
     window.addEventListener(EVT, on);
     return () => window.removeEventListener(EVT, on);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
   const set = (next) => {
     const v = typeof next === "function" ? next(read(key, fallback)) : next;
