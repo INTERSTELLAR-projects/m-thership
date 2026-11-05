@@ -23,7 +23,7 @@ function seed(state) {
       description: DESCRIPTION,
       highlights: ["Plan + live 3D side by side", "Your material catalog and pricing", "Branded PDF and HD/4K renders", "Private customer link for phones", "Day-to-night lighting"],
       media: [], demo_url: "https://example.com/demo", status: "live",
-      price_model: "both", plans: [{ plan: "both", label: "Setup + monthly", one_time: 4500, monthly: 349, link: false }],
+      price_model: "both", plans: [{ plan: "both", label: "Setup + monthly", one_time: 5000, monthly: 349, link: false }],
       trial_mode: "uses", trial_uses: 3,
       ca: trial,
     },
@@ -72,7 +72,7 @@ const admin = () => {
     price_one_time: a.plans[0]?.one_time || null, price_monthly: a.plans[0]?.monthly || null, delivery_type: "external_url", external_url: "https://example.com/studio",
     pricing_note: i ? "" : "QA sample price (not real)", sort_order: i,
     funnel: i ? { clients: 3, views: 9, viewed: 3, trials: 1, buyers: 0, revenue: 0, active: 0, mrr: 0, view_to_trial: 0.33, trial_to_buy: 0, view_to_buy: 0 }
-      : { clients: 2, views: 14, viewed: 2, trials: 2, buyers: 1, revenue: 4849, active: 1, mrr: 349, view_to_trial: 1, trial_to_buy: 0.5, view_to_buy: 0.5 },
+      : { clients: 2, views: 14, viewed: 2, trials: 2, buyers: 1, revenue: 5349, active: 1, mrr: 349, view_to_trial: 1, trial_to_buy: 0.5, view_to_buy: 0.5 },
     offered_to: ["c1", "c2"],
   }));
   const now = Date.now();
@@ -80,7 +80,7 @@ const admin = () => {
     addons, stripe_ready: true, portal_url: "https://interstellar-mothership.com",
     clients: [{ id: "c1", business: "Summit Roofing Co", industry: "Roofing", portal_enabled: true }, { id: "c2", business: "Harbor Coffee", industry: "Coffee shop", portal_enabled: true }],
     client_addons: [
-      { id: "qa_ca1", client_id: "c1", client_name: "Summit Roofing Co", addon_key: "dreamscape_3d", state: "active", plan: "both", views: 9, trial_started_at: iso(now - 9 * 864e5), trial_uses_left: 0, trial_uses_total: 3, activated_at: iso(now - 2 * 864e5), purchases: [{ session_id: "cs_test_qa", amount_usd: 4849, plan: "both", at: iso(now - 2 * 864e5) }], stripe_subscription_id: "sub_qa", has_license_key: true, license_key_hint: "Q7xA", last_app_check_at: iso(now - 3600e3) },
+      { id: "qa_ca1", client_id: "c1", client_name: "Summit Roofing Co", addon_key: "dreamscape_3d", state: "active", plan: "both", views: 9, trial_started_at: iso(now - 9 * 864e5), trial_uses_left: 0, trial_uses_total: 3, activated_at: iso(now - 2 * 864e5), purchases: [{ session_id: "cs_test_qa", amount_usd: 5349, plan: "both", at: iso(now - 2 * 864e5) }], stripe_subscription_id: "sub_qa", has_license_key: true, license_key_hint: "Q7xA", last_app_check_at: iso(now - 3600e3) },
       { id: "qa_ca2", client_id: "c2", client_name: "Harbor Coffee", addon_key: "dreamscape_3d", state: "trial", views: 5, trial_started_at: iso(now - 864e5), trial_uses_left: 1, trial_uses_total: 3, purchases: [] },
     ],
   };
