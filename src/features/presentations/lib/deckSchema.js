@@ -338,7 +338,7 @@ export function visibleText(s) {
   (s.steps || []).forEach((c) => parts.push(c.label, c.text));
   (s.columns || []).forEach((c) => parts.push(c.heading, c.text));
   (s.offers || []).forEach((o) => parts.push(o.name, o.price, o.period, o.description, ...(o.features || [])));
-  if (s.chart) { parts.push(s.chart.note); s.chart.points.forEach((p) => parts.push(p.label, `${s.chart.unit_prefix || ""}${p.value}${s.chart.unit_suffix && s.chart.unit_suffix !== "K" && s.chart.unit_suffix !== "M" ? s.chart.unit_suffix : ""}`)); }
+  if (s.chart) { parts.push(s.chart.note); s.chart.points.forEach((p) => parts.push(p.label, `${s.chart.unit_prefix || ""}${p.value}${s.chart.unit_suffix || ""}`)); }
   return parts.filter(Boolean).join(" \n ");
 }
 const chartValueText = (c, p) => `${c.unit_prefix || ""}${p.value}${/^[kKmM]$/.test(c.unit_suffix || "") ? c.unit_suffix : (c.unit_suffix || "").startsWith("%") ? "%" : ""}`;
@@ -584,10 +584,27 @@ export function normalizeOutline(raw, slideCount) {
   };
 }
 
+// Numbers that compare periods ("$412,000 in Q3 vs $365,000 in Q2") or split a total ("use of funds") belong in
+// a chart. Returns a short reason when the brief has them, else "".
+export function chartReason(brief) {
+  const s = String(brief || "");
+  if (numbersIn(s).filter((n) => n.value > 12).length < 2) return "";
+  if (/\bvs\.?\b|versus|compared (?:to|with)|\bwas \$?\d|up from|down from|from \$?\d[\d,.]*\w*\s+to\b/i.test(s)) return "the brief compares figures across periods";
+  if (/use of funds|budget|breakdown|split|allocation/i.test(s) && (s.match(/\$\d/g) || []).length >= 3) return "the brief breaks a total into parts";
+  return "";
+}
+
 export async function planOutline({ brief, slideCount = 10, clientId }) {
   const { system, prompt } = outlinePrompt({ brief, slideCount });
-  const { json } = await deckAI({ system, prompt, schema: OUTLINE_JSON_SCHEMA, tier: "long", feature: "presentations.outline", clientId, maxTokens: 6000 });
-  return normalizeOutline(json, slideCount);
+  const run = async (p) => normalizeOutline((await deckAI({ system, prompt: p, schema: OUTLINE_JSON_SCHEMA, tier: "long", feature: "presentations.outline", clientId, maxTokens: 6000 })).json, slideCount);
+  const outline = await run(prompt);
+  const reason = chartReason(brief);
+  if (reason && !outline.slides.some((s) => s.layout === "chart")) {
+    // Code-side check: one re-plan with the feedback, then accept whatever comes back.
+    const retry = await run(`${prompt}\n\nYour previous outline had no chart slide, but ${reason}. Include one chart slide for those figures (column for periods, donut for parts of a whole).`).catch(() => null);
+    if (retry && retry.slides.some((s) => s.layout === "chart")) return retry;
+  }
+  return outline;
 }
 
 async function repairDeck({ brief, deck, issues, clientId }) {
