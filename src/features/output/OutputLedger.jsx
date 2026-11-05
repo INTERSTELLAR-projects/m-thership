@@ -7,7 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { Eye, EyeOff, Pencil, RefreshCw, Search, Sparkles, X, ArrowUpRight, Loader2, Settings2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { ChartTooltip, FlameDefs, axisProps, gridProps, barCursor } from "@/components/charts/ChartKit";
+import { ChartTooltip, axisProps, gridProps, barCursor } from "@/components/charts/ChartKit";
 import {
   useLedger, useLedgerConfig, DONE_BY, DONE_BY_ORDER, CATEGORIES, totals, windows, weeklyTrend, byClient, byAgent,
   savedMin, manualMin, fmtHours, fmtUsd, counted,
@@ -223,13 +223,12 @@ export default function OutputLedger() {
           <div className="h-[210px]">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={m.trend} margin={{ top: 4, right: 4, left: -18, bottom: 0 }}>
-                <FlameDefs id="led" />
                 <CartesianGrid {...gridProps()} />
                 <XAxis dataKey="label" {...axisProps()} interval="preserveStartEnd" minTickGap={18} />
                 <YAxis yAxisId="t" allowDecimals={false} {...axisProps()} width={36} />
                 <YAxis yAxisId="h" orientation="right" {...axisProps()} width={36} />
                 <Tooltip content={<ChartTooltip format={(v, n) => (n === "Hours saved" ? `${v}h` : v)} />} cursor={barCursor()} />
-                <Bar yAxisId="t" dataKey="tasks" name="Tasks" fill="url(#led-bar)" radius={[4, 4, 0, 0]} maxBarSize={34} />
+                <Bar yAxisId="t" dataKey="tasks" name="Tasks" fill="#ff6a00" radius={[4, 4, 0, 0]} maxBarSize={34} />
                 <Line yAxisId="h" type="monotone" dataKey="hours" name="Hours saved" stroke="#1a1a1a" strokeWidth={2} dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
