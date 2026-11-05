@@ -407,6 +407,7 @@ export function enforceDeck(deck, { source, slideCount }) {
     if (long || (s.layout !== "closing" && words(vis) > 60)) push("too much text on the slide: shorten to the key words, move detail to notes");
     if (words(s.notes) < 12) push("speaker notes missing or too short (2-4 sentences)");
     if (s.layout !== "closing" && /^(overview|introduction|agenda|conclusion|summary|thank you|questions)$/i.test(s.title.trim())) push("title is a topic label, write the takeaway");
+    if (s.layout === "section" && slides.length < 12) push("section dividers are only for decks of 12+ slides: turn this into a content slide (cards, bullets, stats) using input facts");
   });
   if (slideCount && (slides.length > slideCount + 1 || slides.length < slideCount - 2)) issues.push({ id: "", index: -1, problem: `deck has ${slides.length} slides, ${slideCount} were requested` });
   return { deck: { ...deck, slides }, issues };
