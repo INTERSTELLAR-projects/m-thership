@@ -148,7 +148,7 @@ export default function SmplStudioPreview({ business, preview, onAsk, sent, busy
             </p>
             <ul className="mt-5 flex flex-wrap gap-2" aria-label="What it makes">
               {CAPS.map((c) => (
-                <li key={c.h} className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.05] px-3 py-1.5 text-[12.5px] font-medium text-white/90">
+                <li key={c.h} className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.05] px-3 py-1.5 text-[12.5px] font-medium text-white/90">
                   <span className="h-1.5 w-1.5 rounded-full" style={{ background: c.c }} aria-hidden="true" /> {c.h}
                 </li>
               ))}

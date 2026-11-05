@@ -185,6 +185,8 @@ async function sync(db: any, base44: any, user: any) {
     if (ex.status === c.status && !remap) continue;
     const patch: any = { status: c.status, completed_at: c.completed_at || ex.completed_at, task_type: c.task_type, done_by: c.done_by };
     if (remap && ex.client_copy_status === "skipped") patch.client_copy_status = "pending";
+    // Moving off "Justin by hand": his minutes were only the estimate, so they no longer apply.
+    if (ex.done_by === "justin_manual" && c.done_by !== "justin_manual") patch.manual_minutes = 0;
     Object.assign(patch, normalize({ ...ex, ...patch }, cfg));
     if (patch.status === "done" && !ex.client_title) patch.client_copy_status = "pending";
     await db.WorkEntry.update(ex.id, patch);

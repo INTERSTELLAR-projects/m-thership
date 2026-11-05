@@ -52,7 +52,7 @@
 .smpl-prompt { border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); }
 .smpl-panel { border-radius: 8px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); }
 .smpl-tile { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
-.smpl-art-a { background: radial-gradient(circle at 30% 30%, #ffffff 0 7%, transparent 8%), radial-gradient(120% 90% at 20% 10%, #8fe0ff, transparent 55%), linear-gradient(160deg, #35BAEC, #2a3f9e 60%, #141433); }
+.smpl-art-a { background: radial-gradient(120% 90% at 20% 10%, #8fe0ff, transparent 55%), linear-gradient(160deg, #35BAEC, #2a3f9e 60%, #141433); }
 .smpl-art-b { background: radial-gradient(90% 70% at 70% 20%, #ff8ce9, transparent 55%), linear-gradient(200deg, #CF41C1, #5b1f74 60%, #160b22); }
 .smpl-art-c { background: radial-gradient(80% 60% at 30% 80%, #ffd27a, transparent 60%), linear-gradient(170deg, #FF9810, #c2410c 55%, #2a0f05); }
 .smpl-art-d { background: radial-gradient(100% 80% at 50% 0%, rgba(255,255,255,.55), transparent 50%), linear-gradient(135deg, #35BAEC 0%, #CF41C1 55%, #FF9810 100%); }
