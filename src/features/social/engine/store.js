@@ -142,9 +142,9 @@ export async function channels(action, args = {}) {
   }
 }
 
-/** AgencyKnowledge "hooks" (Triple Hook Method) + "social_search" sections for the prompts. */
+/** AgencyKnowledge "hooks" (Triple Hook Method) + "social_search" + "social_strategist" sections for the prompts. */
 export async function loadHooksKnowledge() {
   const one = async (key) => arr(await base44.entities.AgencyKnowledge.filter({ key }, "-updated_date", 1).catch(() => []))[0] || null;
-  const [hooks, social_search] = await Promise.all([one("hooks"), one("social_search")]);
-  return { hooks, social_search };
+  const [hooks, social_search, social_strategist] = await Promise.all([one("hooks"), one("social_search"), one("social_strategist")]);
+  return { hooks, social_search, social_strategist };
 }
