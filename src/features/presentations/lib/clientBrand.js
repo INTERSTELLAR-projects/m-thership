@@ -176,6 +176,12 @@ export async function clientBrand(clientId) {
   const logo = (client && client.logo_url) || bi.logo_url || "";
   const fromKit = kit ? brandFromKit(kit.kit, name) : null;
   if (fromKit) return { brand: { ...fromKit, logo_url: fromKit.logo_url || logo }, source: "Approved brand kit" };
+  // Client DESIGN.md (sections.brand.design_md): only its color-token and typography sections, so the YAML
+  // header doesn't add unnamed colors. Comes after the approved kit, before the free-text brand section.
+  const dmText = String((brain && brain.sections && brain.sections.brand && brain.sections.brand.design_md && brain.sections.brand.design_md.text) || "");
+  const dmPart = (dmText.match(/##\s*\d*\.?\s*Color tokens[\s\S]*?(?=\n##\s*\d*\.?\s*Spacing|$)/i) || [""])[0];
+  const fromDesign = dmPart ? brandFromText(dmPart, name, logo) : null;
+  if (fromDesign) return { brand: fromDesign, source: "Client DESIGN.md" };
   const brainText = brain && brain.sections && brain.sections.brand && brain.sections.brand.text;
   const fromBrain = brainText ? brandFromText(brainText, name, logo) : null;
   if (fromBrain) return { brand: fromBrain, source: "Business Brain" };
