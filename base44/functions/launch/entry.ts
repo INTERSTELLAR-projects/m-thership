@@ -94,6 +94,9 @@ function streamBrief(client: any, k: string, month: string) {
 }
 async function requeueEngines(db: any, force = false) {
   const today = laDay();
+  // Global hold (Justin, Nov 4, 2026): no recurring engine work until every client is launched. Missing record = ON.
+  const hold = (await list(db.AppSettings, { key: "engines_hold" }, "-updated_date", 1))[0];
+  if (!hold || hold.pageSettings?.on !== false) return { ran_at: new Date().toISOString(), today, held: true, results: [], note: "Engines on hold until all clients are launched (AppSettings engines_hold). Only Justin releases it." };
   const starts = await list(db.EngineStart, {}, "-started_at", 500);
   const latest = new Map<string, any>();
   for (const s of starts) if (!latest.has(s.client_id)) latest.set(s.client_id, s);
