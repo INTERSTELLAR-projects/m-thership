@@ -49,6 +49,8 @@ export default function PortalUpgrades({ scopeId, preview, call }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const current = addons.find((a) => a.key === open);
+  // The server says whether this is Justin's admin preview (QA fixtures play the client's own login).
+  const isPreview = store ? !!store.admin_preview : preview;
 
   return (
     <div className="space-y-6" data-upgrades>
@@ -66,7 +68,7 @@ export default function PortalUpgrades({ scopeId, preview, call }) {
         </div>
       )}
       {current ? (
-        <AddonDetail addon={current} scopeId={scopeId} preview={preview || store?.admin_preview} call={call} onBack={() => setOpen("")} onChanged={refetch} />
+        <AddonDetail addon={current} scopeId={scopeId} preview={isPreview} call={call} onBack={() => setOpen("")} onChanged={refetch} />
       ) : (
         <>
           <div>
@@ -79,7 +81,7 @@ export default function PortalUpgrades({ scopeId, preview, call }) {
               : (
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-store-grid>
                   {addons.map((a) => (
-                    <button key={a.key} type="button" data-addon={a.key} onClick={() => { setOpen(a.key); if (!preview) addonsCall("view", { key: a.key, client_id: scopeId }).catch(() => null); }} className="card-hover flex flex-col overflow-hidden rounded-md border border-hair bg-card text-left">
+                    <button key={a.key} type="button" data-addon={a.key} onClick={() => { setOpen(a.key); if (!isPreview) addonsCall("view", { key: a.key, client_id: scopeId }).catch(() => null); }} className="card-hover flex flex-col overflow-hidden rounded-md border border-hair bg-card text-left">
                       <AddonVisual addon={a} />
                       <div className="flex flex-1 flex-col p-5">
                         <div className="flex flex-wrap items-center gap-2">
