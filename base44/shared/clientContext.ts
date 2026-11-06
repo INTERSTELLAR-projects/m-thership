@@ -82,8 +82,8 @@ export function buildContextBlock(src: any, opts: { maxChars?: number } = {}) {
     const t = secText(brain, "goals", 700);
     L.push(t ? `- From the Brain: ${t}` : "- Goals and targets: not on file (no goals call yet).");
   }
-  const kpis = Object.entries(d.kpis || {}).filter(([k]) => !/phone|password|token|secret|login/i.test(k)).slice(0, 10);
-  if (kpis.length) L.push(`- Numbers on file: ${kpis.map(([k, v]) => `${k.replace(/_/g, " ")}: ${cut(typeof v === "object" ? JSON.stringify(v) : v, 120)}`).join(" · ")}`);
+  const kpis = Object.entries(d.kpis || {}).filter(([k]) => !/phone|password|token|secret|login|cid|place_id|share_link/i.test(k)).slice(0, 8);
+  if (kpis.length) L.push(`- Numbers on file: ${kpis.map(([k, v]) => `${k.replace(/_/g, " ")}: ${cut(typeof v === "object" ? JSON.stringify(v) : v, 90)}`).join(" · ")}`);
   if (yes(d.dream_outcome)) L.push(`- What their customer is really buying (dream outcome): ${cut(d.dream_outcome, 300)}`);
 
   // 3. Offers
@@ -130,12 +130,12 @@ export function buildContextBlock(src: any, opts: { maxChars?: number } = {}) {
   const kws = arr(d.keywords).filter((k: any) => k?.term && k.status !== "retired");
   if (kws.length) {
     const rank = (k: any) => ({ primary: 0, secondary: 1, long_tail: 2 } as any)[k.priority] ?? 1;
-    const top = [...kws].sort((x: any, y: any) => rank(x) - rank(y)).slice(0, 25);
+    const top = [...kws].sort((x: any, y: any) => rank(x) - rank(y)).slice(0, 15);
     L.push(`- Target keywords (${kws.length}; ${kws.filter((k: any) => yes(k.page_url)).length} mapped to a page). Top: ${top.map((k: any) => `"${cut(k.term, 60)}"${k.city ? ` [${cut(k.city, 30)}]` : ""}${typeof k.rank === "number" ? ` rank ${k.rank}${k.rank_source ? ` (${cut(k.rank_source, 20)})` : ""}` : ""}${yes(k.page_url) ? "" : " (no page yet)"}`).join("; ")}`);
   } else L.push("- Target keywords: not on file");
   const rv = arr(src.reviews).filter((r: any) => r?.cache && typeof r.cache.rating === "number");
   if (rv.length) L.push(`- Google reviews: ${rv.map((r: any) => `${cut(r.name, 60)} ${r.cache.rating}★ from ${r.cache.total ?? "?"} (as of ${String(r.cached_at || "").slice(0, 10) || "?"})`).join("; ")}`);
-  const gbpTxt = secText(brain, "gbp_listings", 500);
+  const gbpTxt = secText(brain, "gbp_listings", 350);
   if (gbpTxt) L.push(`- Listings (Brain): ${gbpTxt}`);
   const citations = arr(src.work).filter((w: any) => w.kind === "citation").length;
   const citeItem = itemStatus(d, "beacon", "citations");
@@ -144,13 +144,13 @@ export function buildContextBlock(src: any, opts: { maxChars?: number } = {}) {
   const catItem = itemStatus(d, "beacon", "categories");
   L.push(`- Map pack: ${src.mapPlan ? `plan ${src.mapPlan.status || "draft"}` : "no map pack plan"}${mapItem ? ` · top-3 status ${mapItem}` : " · rank not measured"}${catItem ? ` · categories ${catItem}` : ""}`);
   const comps = arr(d.competitors).filter((c: any) => c?.name);
-  if (comps.length) L.push(`- Competitors: ${comps.slice(0, 8).map((c: any) => `${cut(c.name, 60)}${c.weakness ? ` (gap: ${cut(c.weakness, 90)})` : ""}`).join("; ")}`);
+  if (comps.length) L.push(`- Competitors: ${comps.slice(0, 6).map((c: any) => `${cut(c.name, 50)}${c.weakness ? ` (gap: ${cut(c.weakness, 70)})` : ""}`).join("; ")}`);
   else { const t = secText(brain, "competitors", 500); L.push(t ? `- Competitors (Brain): ${t}` : "- Competitors: not on file"); }
   const blogs = arr(src.work).filter((w: any) => w.kind === "blog");
   if (blogs.length) L.push(`- Blog posts on record: ${blogs.length} (latest: ${blogs.slice(0, 3).map((w: any) => `"${cut(w.title, 70)}"${w.status && w.status !== "live" ? ` [${w.status}]` : ""}`).join("; ")})`);
 
   if (agency) L.push("", "_This is Interstellar Strategies itself (the agency), not a client._");
-  const max = opts.maxChars || 9000;
+  const max = opts.maxChars || 10000;
   let out = clean(L.join("\n"));
   if (out.length > max) out = `${out.slice(0, max - 1)}…`;
   return out;
@@ -165,7 +165,7 @@ export async function getClientContext(db: any, clientId: string, opts: { live?:
   if (!opts.live) {
     const agency = !clientId || clientId === "agency";
     const b = (await list(db.BusinessBrain, agency ? { scope: "interstellar" } : { client_id: clientId }, "-updated_date", 1))[0];
-    if (b?.context_md) return String(b.context_md).slice(0, opts.maxChars || 9000);
+    if (b?.context_md) return String(b.context_md).slice(0, opts.maxChars || 10000);
   }
   return buildClientContext(db, clientId, opts).catch(() => "");
 }
