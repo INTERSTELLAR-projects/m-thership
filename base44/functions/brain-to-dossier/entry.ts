@@ -163,7 +163,9 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
   const unmap = (f: string, empty: any) => { if (force && owned(f)) { patch[f] = empty; delete bs.fields[f]; filled.push(`${f} (cleared)`); } };
 
   for (const f of ["dream_outcome", "usp", "tagline", "elevator_pitch", "story", "founded", "team_size"]) {
-    const v = cut(scrub(x?.[f]), f === "story" ? 1500 : 600);
+    let v = cut(scrub(x?.[f]), f === "story" ? 1500 : 600);
+    // A record timestamp is not a founding date.
+    if (f === "founded" && /^\d{4}-\d{2}-\d{2}/.test(v)) v = "";
     if (!v) { unmap(f, ""); continue; }
     if (!has(d[f]) || (owned(f) && newer(f) && v !== d[f])) { patch[f] = v; mark(f); }
   }
@@ -208,7 +210,7 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
   const sa = { ...(d.service_area || {}) };
   let saChanged = false;
   if (MODEL_OK.has(xa.model) && !has(sa.model)) { sa.model = xa.model; saChanged = true; }
-  for (const k of ["primary_city", "radius"]) if (has(xa[k]) && !has(sa[k])) { sa[k] = cut(scrub(xa[k]), 200); saChanged = true; }
+  for (const k of ["primary_city", "radius"]) if (has(xa[k]) && !/^0+$/.test(s(xa[k])) && !has(sa[k])) { sa[k] = cut(scrub(xa[k]), 200); saChanged = true; }
   const xc = arr(xa.cities).filter((c: any) => s(c?.city)).map((c: any) => ({ city: cut(c.city, 80), state: cut(c.state, 30) }));
   if (xc.length && (!has(sa.cities) || (owned("service_area.cities") && newer("service_area.cities")))) {
     sa.cities = xc.map((c: any) => { const old = arr(d.service_area?.cities).find((o: any) => norm(o?.city) === norm(c.city)); return old || { ...c, status: "targeting", page_url: "", priority: "", notes: "From the Business Brain" }; });
