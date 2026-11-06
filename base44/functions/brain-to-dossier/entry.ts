@@ -542,6 +542,8 @@ Deno.serve(async (req) => {
         await sleep(300);
       }
       const finished = st.idx >= st.ids.length;
+      st.chunk_at = null; // this chunk is over: the next call may continue right away
+      await db.AppSettings.update(flag.id, { pageSettings: st }).catch(() => null);
       if (finished && !dry) {
         const failed = st.summary.filter((x: any) => x.error).length;
         const msg = `${st.summary.length} synced (${st.extracted} re-mapped from the Brain), ${failed} failed · ${st.summary.map((x: any) => `${x.client}: ${x.before ?? "–"}→${x.after ?? "–"}`).join(", ")}`;
