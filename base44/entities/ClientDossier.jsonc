@@ -372,6 +372,11 @@
     "usp": {
       "description": "Why choose them over anyone else",
       "type": "string"
+    },
+    "brain_sync": {
+      "additionalProperties": true,
+      "description": "Written by brain-to-dossier: { at, brain_at, fields: { field: { at, section } } }. A field listed here was filled from the Business Brain and may be refreshed from a newer Brain; any field NOT listed was set by Justin or another agent and is never overwritten by the sync.",
+      "type": "object"
     }
   },
   "required": [
