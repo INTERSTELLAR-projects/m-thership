@@ -5,6 +5,7 @@ import { callClaude, AnthropicError, HOUSE_RULES } from "../../shared/anthropic.
 import { AI_MODELS, estimateAiCost, anyStudioOn, studiosOf, monthKey, planUnlocksStudios, type AiTier } from "../../shared/usagePlans.ts";
 import { check, record } from "../../shared/meter.ts";
 import { loadFuelConfig, weightFor } from "../../shared/fuel.ts";
+import { getClientContext, CONTEXT_MARKER } from "../../shared/clientContext.ts";
 
 // AI gateway for Studios. Client AI runs on our own Anthropic key (ANTHROPIC_API_KEY), never Base44 InvokeLLM credits.
 //   { action: "complete", prompt | messages, system?, tier?: "routine"|"long", feature?, studio?,
@@ -56,7 +57,15 @@ Deno.serve(async (req) => {
 
     const tier: AiTier = body?.tier === "long" ? "long" : "routine";
     const feature = clean(body?.feature || "ai", 80);
-    const system = clean(body?.system, 40_000);
+    let system = clean(body?.system, 40_000);
+    // Grounding: every client-scoped call carries the client's shared context block (goals, offers, audience, voice,
+    // SEO footprint; business-facing facts only, no billing or logins). Skipped when the caller already included it,
+    // passes ground: false, or is translating. The block's tokens are not charged to the client's AI-action meter.
+    let groundTokens = 0;
+    if (client?.id && body?.ground !== false && !/translat/i.test(feature) && !system.includes(CONTEXT_MARKER) && !String(body?.prompt || "").includes(CONTEXT_MARKER)) {
+      const block = await getClientContext(db, String(client.id), { maxChars: 7000 }).catch(() => "");
+      if (block) { system = `${block}\n\n${system}`.trim(); groundTokens = Math.ceil(block.length / 4); }
+    }
     const messages = Array.isArray(body?.messages)
       ? body.messages.slice(-40).map((m: any) => ({ role: m?.role === "assistant" ? "assistant" : "user", content: clean(m?.content, MAX_PROMPT_CHARS) })).filter((m: any) => m.content)
       : null;
@@ -87,7 +96,7 @@ Deno.serve(async (req) => {
 
     const out = await callClaude({ key, tier, system: system || undefined, prompt, messages: messages || undefined, schema, max_tokens: body?.max_tokens });
     const est = estimateAiCost(out.model, out.input_tokens, out.output_tokens);
-    const units = weightFor(out.model, out.input_tokens, feature, fuelCfg);
+    const units = weightFor(out.model, Math.max(0, out.input_tokens - groundTokens), feature, fuelCfg);
     if (client) {
       await record(db, client, "ai_action", units, { admin: isAdmin, model: out.model, est_cost_usd: est, feature, user_email: user.email, input_tokens: out.input_tokens, output_tokens: out.output_tokens, calls: 1 });
     } else {
