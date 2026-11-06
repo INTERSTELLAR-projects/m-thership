@@ -61,6 +61,7 @@ const RULES = [
   "Backlink and citation outreach is written from Justin Cowell (justin@interstellar-strategies.com) in a personal tone, on the client's behalf. Outreach emails are drafts until Justin approves each one; never send.",
   "SEO or search changes on a live site are proposals until Justin approves them.",
   "Brand gradient: #ff3c00 → #ff6a00 → #ffaa00. Never gold or yellow.",
+  "Client grounding: before any client work, read the client's shared context block, BusinessBrain.context_md for that client_id in app 69d80bb06c5ad07a795df54e. It holds their goals and targets, offers, audience, voice and SEO footprint (keywords, city and service pages, GBP and reviews, citations, competitors, map pack). Make the work specific to that business and aimed at those goals.",
   "Do not invent time estimates, prices or numbers. If a fact is missing, list it under needs_from_justin.",
 ];
 const laDay = (d = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles" }).format(d);
