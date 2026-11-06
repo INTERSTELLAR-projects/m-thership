@@ -19,6 +19,7 @@ import { requireSecondFactor } from "./twoFactor.ts";
 
 type Row = Record<string, any>;
 
+import { getClientContext } from "./clientContext.ts";
 export const AGENT_NAME = "interstellar_assistant";
 
 export const pick = (o: Row, keys: string[]) => Object.fromEntries(keys.filter((k) => o?.[k] !== undefined && o?.[k] !== null && o?.[k] !== "").map((k) => [k, o[k]]));
@@ -293,6 +294,12 @@ export async function quickFacts(ctx: Ctx, topic: string) {
   if (want("playbook")) {
     const p = portalKit(await ctx.by("IndustryPlaybook", "-version", 20));
     out.playbook = p ? { version: p.version, summary: p.summary || null, details: str(p.body_md, 3000) || null, where: "Playbook tab" } : "No playbook is published to the portal yet.";
+  }
+  if (want("business")) {
+    // The client's own business facts on file (goals + targets, offers, audience, voice, SEO footprint): the same shared
+    // block every agent reads. Business-facing only: no billing, logins or internal notes.
+    const block = await getClientContext(ctx.db, String(ctx.cid)).catch(() => "");
+    out.business = block ? block.replace(/<!--[^>]*-->\s*/g, "") : "No business profile is on file yet.";
   }
   if (want("qr_codes")) out.qr_codes = await qrSummary(ctx);
   if (want("referrals")) out.referrals = await referralSummary(ctx);
