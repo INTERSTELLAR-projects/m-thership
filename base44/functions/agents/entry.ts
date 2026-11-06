@@ -447,6 +447,8 @@ async function ceoContext(db: any, scope: string, clientId?: string) {
     // Shared client context (goals + targets, offers, audience, voice, SEO footprint), the same block every engine reads.
     const cc = await getClientContext(db, clientId).catch(() => "");
     if (cc) parts.push(`CLIENT CONTEXT (goals, criteria, offers, audience, SEO footprint, Constellations dots):\n${cc}`);
+    const dz = (await list(db.ClientDossier, { client_id: clientId }, "-updated_date", 1))[0];
+    if (dz?.health_score != null) parts.push(`CONSTELLATIONS: health ${dz.health_score} (scored ${String(dz.scored_at || "").slice(0, 10)}) · pillars ${JSON.stringify(dz.pillar_scores || {})}`);
     if (b) parts.push(`BRAIN open questions: ${arr(b.open_questions).filter((q: any) => q.status !== "answered").map((q: any) => q.q).slice(0, 12).join(" / ") || "none"}\nBRAIN open conflicts: ${arr(b.conflicts).filter((c: any) => c.status === "open").map((c: any) => `${c.section}: ${cut(c.why, 120)}`).join(" / ") || "none"}`);
   } else {
     const ib = brains.find((x: any) => x.scope === "interstellar");
