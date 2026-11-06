@@ -374,6 +374,7 @@ function scoreReport(ctx: any) {
 }
 
 const LIVE_WINS = new Set(["review_count", "rating"]);
+const BUDGET_MS = 14000; // stop starting new clients after this; one client takes ~3-15s
 
 // ---------- one client ----------
 async function syncOne(base44: any, db: any, clientId: string, opts: { extract: boolean; force: boolean; dry: boolean }) {
@@ -484,56 +485,71 @@ Deno.serve(async (req) => {
       if (!id) return Response.json({ error: "client_id required (a CRMClient id or \"agency\")" }, { status: 400 });
       return Response.json(await syncOne(base44, db, id, { extract: body?.extract !== false, force: body?.force === true, dry }));
     }
-    // Workflow "Brain → dossier — queued run" (no user): runs only what an admin queued in AppSettings
-    // brain_to_dossier_queue { client_ids[], extract?, force?, requested_at, status: "queued" } within the last hour.
+    // A function call has a hard time limit, so batch work runs in chunks: each call starts clients only while it is
+    // inside BUDGET_MS and leaves the rest for the next call (the nightly workflow calls this step several times).
+    const t0 = Date.now();
+    const inBudget = () => Date.now() - t0 < BUDGET_MS;
+
+    // Workflow "Brain → dossier — queued run" (no user, kept inactive; Run now): runs only what an admin queued in
+    // AppSettings brain_to_dossier_queue { client_ids[], extract?, force?, requested_at, status: "queued" } within the
+    // last hour. Unfinished clients stay queued for the next run.
     if (action === "queued") {
       const row = (await list(db.AppSettings, { key: "brain_to_dossier_queue" }, "-updated_date", 1))[0];
       const q = row?.pageSettings || {};
       const fresh = q.requested_at && Date.now() - new Date(q.requested_at).getTime() < 3600 * 1000;
-      if (!row || q.status !== "queued" || !fresh) return Response.json({ skipped: true, reason: "nothing queued" });
+      if (!row || !["queued", "running"].includes(q.status) || !fresh) return Response.json({ skipped: true, reason: "nothing queued" });
+      if (q.status === "running" && q.started_at && Date.now() - new Date(q.started_at).getTime() < 90 * 1000) return Response.json({ skipped: true, reason: "a run is in progress" });
+      const todo = arr(q.client_ids).map(String);
       await db.AppSettings.update(row.id, { pageSettings: { ...q, status: "running", started_at: nowIso() } });
-      const res: any[] = [];
-      for (const id of arr(q.client_ids).slice(0, 4)) {
-        res.push(await syncOne(base44, db, String(id), { extract: q.extract !== false, force: q.force === true, dry: q.dry_run === true }).catch((e) => ({ client_id: id, error: String(e?.message || e) })));
-        await sleep(400);
+      const res: any[] = [...arr(q.results)];
+      while (todo.length && inBudget()) {
+        const id = todo.shift() as string;
+        res.push(await syncOne(base44, db, id, { extract: q.extract !== false, force: q.force === true, dry: q.dry_run === true }).catch((e) => ({ client_id: id, error: String(e?.message || e) })));
+        await db.AppSettings.update(row.id, { pageSettings: { ...q, client_ids: todo, status: todo.length ? "running" : "done", started_at: nowIso(), results: res } });
+        await sleep(300);
       }
-      await db.AppSettings.update(row.id, { pageSettings: { ...q, status: "done", finished_at: nowIso(), results: res } });
-      return Response.json({ results: res });
+      await db.AppSettings.update(row.id, { pageSettings: { ...q, client_ids: todo, status: todo.length ? "queued" : "done", finished_at: nowIso(), results: res } });
+      return Response.json({ done: res.length, remaining: todo.length });
     }
     if (action === "score") {
       const ids = body?.client_id ? [String(body.client_id)] : [...(await targets(db)), "agency"];
       const res: any[] = [];
-      for (const id of ids) res.push(await syncOne(base44, db, id, { extract: false, force: false, dry }).catch((e) => ({ client_id: id, error: String(e?.message || e) })));
+      for (const id of ids) { if (!inBudget()) { res.push({ client_id: id, skipped: "time budget" }); continue; } res.push(await syncOne(base44, db, id, { extract: false, force: false, dry }).catch((e) => ({ client_id: id, error: String(e?.message || e) }))); }
       return Response.json({ results: res });
     }
+    // nightly: one pass over every active client + Interstellar per Pacific day, in chunks (cursor in AppSettings
+    // brain_to_dossier_nightly). The nightly workflow calls this step several times; a call after the pass is complete
+    // does nothing. "all" (admin) starts a fresh pass now.
     if (action === "all" || action === "nightly") {
-      let flag: any = null;
-      let startedPs: any = {};
-      if (action === "nightly") {
-        flag = (await list(db.AppSettings, { key: "brain_to_dossier_nightly" }, "-updated_date", 1))[0];
-        const ps = flag?.pageSettings || {};
-        const doneAgo = ps.done_at ? Date.now() - new Date(ps.done_at).getTime() : Infinity;
-        const startAgo = ps.started_at ? Date.now() - new Date(ps.started_at).getTime() : Infinity;
-        if (!user && (doneAgo < 8 * 3600 * 1000 || startAgo < 10 * 60 * 1000)) return Response.json({ skipped: true, reason: "ran recently", ...ps });
-        const mark = { key: "brain_to_dossier_nightly", pageSettings: { ...ps, started_at: nowIso() } };
-        if (flag) await db.AppSettings.update(flag.id, mark); else flag = await db.AppSettings.create(mark);
-        startedPs = mark.pageSettings;
-      }
+      let flag = (await list(db.AppSettings, { key: "brain_to_dossier_nightly" }, "-updated_date", 1))[0];
+      let st: any = flag?.pageSettings || {};
+      const night = pacificDay();
+      if (action === "all" || st.night !== night) {
+        if (action === "nightly" && st.night === night) return Response.json({ skipped: true });
+        st = { night, ids: [...(await targets(db)), "agency"], idx: 0, extracted: 0, summary: [], started_at: nowIso() };
+      } else if (st.idx >= arr(st.ids).length) return Response.json({ skipped: true, reason: "tonight's pass is complete", ...st, summary: undefined });
+      else if (st.chunk_at && Date.now() - new Date(st.chunk_at).getTime() < 60 * 1000) return Response.json({ skipped: true, reason: "a chunk is running" });
+      st.chunk_at = nowIso();
+      if (flag) await db.AppSettings.update(flag.id, { pageSettings: st }); else flag = await db.AppSettings.create({ key: "brain_to_dossier_nightly", pageSettings: st });
       const maxExtract = Number(body?.max_extract) || (action === "nightly" ? 6 : 20);
-      const ids = [...(await targets(db)), "agency"];
-      const res: any[] = [];
-      let extracted = 0;
-      for (const id of ids) {
-        const r = await syncOne(base44, db, id, { extract: body?.extract !== false && extracted < maxExtract, force: body?.force === true, dry }).catch((e) => ({ client_id: id, error: String(e?.message || e) }));
-        if (r?.filled || r?.checks_set) extracted++;
-        res.push(r);
-        await sleep(400); // pace the API
+      while (st.idx < st.ids.length && inBudget()) {
+        const id = st.ids[st.idx];
+        const r: any = await syncOne(base44, db, id, { extract: body?.extract !== false && st.extracted < maxExtract, force: body?.force === true, dry }).catch((e) => ({ client_id: id, error: String(e?.message || e) }));
+        if (r?.filled || r?.checks_set) st.extracted++;
+        st.summary.push({ client: r.client || id, before: r.before ?? null, after: r.after ?? null, error: r.error || undefined, remapped: !!(r.filled || r.checks_set) });
+        st.idx++;
+        await db.AppSettings.update(flag.id, { pageSettings: st }).catch(() => null);
+        await sleep(300);
       }
-      const failed = res.filter((r) => r.error).length;
-      const msg = `${res.length} synced (${extracted} re-mapped from the Brain), ${failed} failed · ${res.map((r) => `${r.client || r.client_id}: ${r.before ?? "–"}→${r.after ?? "–"}`).join(", ")}`;
-      if (!dry) await db.AutomationRun.create({ automation_name: "Brain → dossier sync", kind: "other", status: failed ? "failed" : "success", message: cut(msg, 1800), started_at: nowIso(), finished_at: nowIso(), processed: true }).catch(() => null);
-      if (flag?.id) await db.AppSettings.update(flag.id, { pageSettings: { ...startedPs, done_at: nowIso(), last: { synced: res.length, extracted, failed } } }).catch(() => null);
-      return Response.json({ results: res.map((r) => ({ ...r, unchecked: r.unchecked?.length })), extracted, failed });
+      const finished = st.idx >= st.ids.length;
+      if (finished && !dry) {
+        const failed = st.summary.filter((x: any) => x.error).length;
+        const msg = `${st.summary.length} synced (${st.extracted} re-mapped from the Brain), ${failed} failed · ${st.summary.map((x: any) => `${x.client}: ${x.before ?? "–"}→${x.after ?? "–"}`).join(", ")}`;
+        await db.AutomationRun.create({ automation_name: "Brain → dossier sync", kind: "other", status: failed ? "failed" : "success", message: cut(msg, 1800), started_at: st.started_at, finished_at: nowIso(), processed: true }).catch(() => null);
+        st.done_at = nowIso();
+        await db.AppSettings.update(flag.id, { pageSettings: st }).catch(() => null);
+      }
+      return Response.json({ night: st.night, done: st.idx, of: st.ids.length, finished });
     }
     return Response.json({ error: "Unknown action" }, { status: 400 });
   } catch (e) {
