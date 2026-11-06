@@ -261,6 +261,7 @@ function mergeChecks(d: any, checks: any[], allowed: any[], brain: any, brainNor
   const dropped: string[] = [];
   const ok = new Set(allowed.map((a) => `${a.pillar}.${a.item}`));
   for (const c of arr(checks)) {
+    c.item = String(c.item || "").split(".").pop(); // models sometimes answer "pillar.item" in the item field
     const k = `${c.pillar}.${c.item}`;
     if (!ok.has(k) || !["done", "partial", "missing", "na"].includes(c.status)) { dropped.push(`${k}: not assessable`); continue; }
     const ev = norm(c.evidence);
