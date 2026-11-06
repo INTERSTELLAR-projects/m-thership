@@ -279,7 +279,7 @@ function mergeChecks(d: any, checks: any[], allowed: any[], brain: any, brainNor
     const k = `${c.pillar}.${c.item}`;
     if (!ok.has(k) || !["done", "partial", "missing", "na"].includes(c.status)) { dropped.push(`${k}: not assessable`); continue; }
     const ev = norm(c.evidence);
-    if (ev.length < 12 || !quoted(ev, brainNorm)) { dropped.push(`${k}: evidence not verbatim`); continue; } // evidence must be real Brain text
+    if (ev.length < 12 || !quoted(ev, brainNorm)) { dropped.push(`${k}: evidence not verbatim ("${cut(c.evidence, 90)}")`); continue; } // evidence must be real Brain text
     const secAt = String(brain?.sections?.[c.section]?.updated_at || "");
     const cur = pillars?.[c.pillar]?.items?.[c.item];
     // A check Claude saved by hand wins unless the Brain section behind this evidence is newer (by day).
