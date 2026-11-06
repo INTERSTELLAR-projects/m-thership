@@ -21,6 +21,7 @@ import { getSecret } from "../../shared/portalClient.ts";
 import { estimateAiCost } from "../../shared/usagePlans.ts";
 import { weightFor } from "../../shared/fuel.ts";
 import { CLIENT_TEMPLATES, BRAIN_SECTIONS, BRAIN_SECTION_KEYS, brainCompleteness, sectionScore } from "../../shared/agentDefs.js";
+import { getClientContext } from "../../shared/clientContext.ts";
 
 const nowIso = () => new Date().toISOString();
 const DAY = 86400000;
@@ -443,10 +444,16 @@ async function ceoContext(db: any, scope: string, clientId?: string) {
   if (clientId) {
     const b = brains[0];
     parts.push(`CLIENT BRAIN for ${b?.client_name || clientId} (completeness ${b?.completeness ?? 0}%):\n${b ? BRAIN_SECTIONS.map((s) => `## ${s.label}\n${cut(b.sections?.[s.key]?.text || "unknown", 1500)}`).join("\n") : "(no brain yet)"}`);
+    // Shared client context (goals + targets, offers, audience, voice, SEO footprint), the same block every engine reads.
+    const cc = await getClientContext(db, clientId).catch(() => "");
+    if (cc) parts.push(`CLIENT CONTEXT (goals, criteria, offers, audience, SEO footprint, Constellations dots):\n${cc}`);
     if (b) parts.push(`BRAIN open questions: ${arr(b.open_questions).filter((q: any) => q.status !== "answered").map((q: any) => q.q).slice(0, 12).join(" / ") || "none"}\nBRAIN open conflicts: ${arr(b.conflicts).filter((c: any) => c.status === "open").map((c: any) => `${c.section}: ${cut(c.why, 120)}`).join(" / ") || "none"}`);
   } else {
     const ib = brains.find((x: any) => x.scope === "interstellar");
     if (ib?.glance) parts.push(`INTERSTELLAR AT A GLANCE:\n${ib.glance}`);
+    const icc = await getClientContext(db, "agency").catch(() => "");
+    if (icc) parts.push(`INTERSTELLAR CONTEXT (the agency's own goals, offers, audience, SEO footprint):\n${icc}`);
+    if (ib?.constellation?.health_score != null) parts.push(`INTERSTELLAR CONSTELLATIONS: health ${ib.constellation.health_score} · weakest pillar ${ib.constellation.constraint || "?"} · pillars ${JSON.stringify(ib.constellation.pillar_scores || {})}`);
     const byClient: Record<string, any> = {};
     for (const r of registry.filter((x: any) => x.scope === "client")) {
       const k = r.client_name || r.client_id;
