@@ -264,7 +264,7 @@ export const WORKLOG_TYPE: Record<string, string> = {
 };
 
 // AutomationRun names that are bookkeeping, not work (or already counted through another source).
-export const RUN_SKIP = /^(approval policy|send to claude|ui error|process automation runs)/i;
+export const RUN_SKIP = /^(approval policy|send to claude|ui error|process automation runs|brain → dossier sync)/i;
 export function runType(name: string, kind: string): string {
   const n = name.toLowerCase();
   if (/keyword steward/.test(n)) return "keyword_dossier";
