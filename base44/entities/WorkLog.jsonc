@@ -76,6 +76,10 @@
     "portal_visible": {
       "type": "boolean",
       "default": true
+    },
+    "dedupe_key": {
+      "type": "string",
+      "description": "we:<WorkEntry id> when brain-to-dossier mirrored this row from the work ledger. The work-ledger sync skips these rows so they are never counted twice."
     }
   },
   "required": [
