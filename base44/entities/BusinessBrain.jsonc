@@ -93,6 +93,29 @@
     "seeded_at": {
       "format": "date-time",
       "type": "string"
+    },
+    "context_md": {
+      "description": "Shared client context block (base44/shared/clientContext.ts, written by brain-to-dossier): business, goals + targets, offers, audience, voice and SEO footprint. Every agent and AI engine reads this. Business-facing facts only: no billing, logins or credentials.",
+      "type": "string"
+    },
+    "context_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "dossier_synced_at": {
+      "description": "Newest section updated_at that brain-to-dossier has mapped into the ClientDossier",
+      "format": "date-time",
+      "type": "string"
+    },
+    "dossier": {
+      "additionalProperties": true,
+      "description": "Interstellar brain only (scope interstellar, no CRMClient/ClientDossier): the dossier fields brain-to-dossier mapped from this brain, in ClientDossier shape",
+      "type": "object"
+    },
+    "constellation": {
+      "additionalProperties": true,
+      "description": "Interstellar brain only: { health_score, pillar_scores, scored_at, unchecked[] } from the same Constellations scoring",
+      "type": "object"
     }
   },
   "required": [
