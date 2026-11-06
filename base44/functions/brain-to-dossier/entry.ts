@@ -419,7 +419,8 @@ async function syncOne(base44: any, db: any, clientId: string, opts: { extract: 
   if (brain && opts.extract && (opts.force || !brain.dossier_synced_at || brainAt > String(brain.dossier_synced_at))) {
     const text = brainText(brain);
     const bn = norm(text);
-    const allowed = assessable(d, ctx0);
+    // Interstellar's Brain describes the playbooks it makes for clients, not its own: that dot needs its own file.
+    const allowed = assessable(d, ctx0).filter((a) => !(agency && a.item === "playbook"));
     const prompt = [
       `CLIENT: ${client.business}${agency ? " (this is Interstellar Strategies itself, the agency: here its own packages and plans ARE its offers, and its clients are its customers)" : ""}`,
       "", "PILLAR CHECKS you may answer (pillar.item: label [current saved status, if any]):",
