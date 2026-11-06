@@ -1,0 +1,43 @@
+{
+  "name": "Brain \u2192 dossier \u2014 queued run",
+  "description": "Manual helper (kept inactive; use Run now): runs brain-to-dossier for the clients an admin queued in AppSettings brain_to_dossier_queue in the last hour (max 4 per run). Does nothing when nothing is queued. Records only: never sends, publishes or switches anything on.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 3 1 1 *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "do": [
+      {
+        "run_queued": {
+          "call": "invoke_backend_function",
+          "then": "end",
+          "with": {
+            "args": {
+              "action": "queued"
+            },
+            "function_name": "brain-to-dossier"
+          }
+        }
+      }
+    ],
+    "document": {
+      "dsl": "1.0.0",
+      "name": "brain_to_dossier_queued_run",
+      "namespace": "base44",
+      "version": "1.0"
+    }
+  }
+}
