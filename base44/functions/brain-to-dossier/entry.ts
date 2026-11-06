@@ -250,7 +250,8 @@ function mergeChecks(d: any, checks: any[], allowed: any[], brain: any, brainNor
     if (ev.length < 12 || !brainNorm.includes(ev.slice(0, Math.min(ev.length, 80)))) continue; // evidence must be verbatim Brain text
     const secAt = String(brain?.sections?.[c.section]?.updated_at || "");
     const cur = pillars?.[c.pillar]?.items?.[c.item];
-    if (cur?.status && cur.by === "claude" && secAt && String(cur.updated_at || "") >= secAt.slice(0, String(cur.updated_at || "").length)) continue; // Claude's check is as new as the Brain
+    // A check Claude saved by hand wins unless the Brain section behind this evidence is newer (by day).
+    if (cur?.status && cur.by === "claude" && (!secAt || String(cur.updated_at || "").slice(0, 10) >= secAt.slice(0, 10))) continue;
     if (cur?.status === c.status && cur?.by === "brain") continue;
     pillars[c.pillar] = pillars[c.pillar] || { items: {} };
     pillars[c.pillar].items = pillars[c.pillar].items || {};
@@ -453,6 +454,7 @@ Deno.serve(async (req) => {
     }
     if (action === "all" || action === "nightly") {
       let flag: any = null;
+      let startedPs: any = {};
       if (action === "nightly") {
         flag = (await list(db.AppSettings, { key: "brain_to_dossier_nightly" }, "-updated_date", 1))[0];
         const ps = flag?.pageSettings || {};
@@ -461,6 +463,7 @@ Deno.serve(async (req) => {
         if (!user && (doneAgo < 8 * 3600 * 1000 || startAgo < 10 * 60 * 1000)) return Response.json({ skipped: true, reason: "ran recently", ...ps });
         const mark = { key: "brain_to_dossier_nightly", pageSettings: { ...ps, started_at: nowIso() } };
         if (flag) await db.AppSettings.update(flag.id, mark); else flag = await db.AppSettings.create(mark);
+        startedPs = mark.pageSettings;
       }
       const maxExtract = Number(body?.max_extract) || (action === "nightly" ? 6 : 20);
       const ids = [...(await targets(db)), "agency"];
@@ -475,7 +478,7 @@ Deno.serve(async (req) => {
       const failed = res.filter((r) => r.error).length;
       const msg = `${res.length} synced (${extracted} re-mapped from the Brain), ${failed} failed · ${res.map((r) => `${r.client || r.client_id}: ${r.before ?? "–"}→${r.after ?? "–"}`).join(", ")}`;
       if (!dry) await db.AutomationRun.create({ automation_name: "Brain → dossier sync", kind: "other", status: failed ? "failed" : "success", message: cut(msg, 1800), started_at: nowIso(), finished_at: nowIso(), processed: true }).catch(() => null);
-      if (flag?.id) await db.AppSettings.update(flag.id, { pageSettings: { ...(flag.pageSettings || {}), done_at: nowIso(), last: { synced: res.length, extracted, failed } } }).catch(() => null);
+      if (flag?.id) await db.AppSettings.update(flag.id, { pageSettings: { ...startedPs, done_at: nowIso(), last: { synced: res.length, extracted, failed } } }).catch(() => null);
       return Response.json({ results: res.map((r) => ({ ...r, unchecked: r.unchecked?.length })), extracted, failed });
     }
     return Response.json({ error: "Unknown action" }, { status: 400 });
