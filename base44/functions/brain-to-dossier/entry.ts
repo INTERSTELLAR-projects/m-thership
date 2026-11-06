@@ -149,19 +149,22 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
   const patch: any = {};
   const filled: string[] = [];
   const mark = (f: string, section = "") => { bs.fields[f] = { at, brain_at: brainAt, section }; filled.push(f); };
+  // A forced re-map that no longer finds a value clears what the sync itself wrote earlier (never anyone else's value).
+  const unmap = (f: string, empty: any) => { if (force && owned(f)) { patch[f] = empty; delete bs.fields[f]; filled.push(`${f} (cleared)`); } };
 
   for (const f of ["dream_outcome", "usp", "tagline", "elevator_pitch", "story", "founded", "team_size"]) {
     const v = cut(scrub(x?.[f]), f === "story" ? 1500 : 600);
-    if (!v) continue;
+    if (!v) { unmap(f, ""); continue; }
     if (!has(d[f]) || (owned(f) && newer(f) && v !== d[f])) { patch[f] = v; mark(f); }
   }
   for (const f of ["differentiators", "lead_sources", "tools"]) {
     const v = cleanStrs(x?.[f]);
-    if (!v.length) continue;
+    if (!v.length) { unmap(f, []); continue; }
     if (!has(d[f]) || (owned(f) && newer(f) && JSON.stringify(v) !== JSON.stringify(d[f]))) { patch[f] = v; mark(f); }
   }
   // offers
   const xo = arr(x?.offers).filter((o: any) => s(o?.name)).map((o: any) => ({ name: cut(scrub(o.name), 160), kind: KIND_OK.has(o.kind) ? o.kind : "", price: cut(scrub(o.price), 120), promise: cut(scrub(o.promise), 300), guarantee: cut(scrub(o.guarantee), 300), bonuses: cut(scrub(o.bonuses), 300) }));
+  if (!xo.length) unmap("offers", []);
   if (xo.length) {
     if (!has(d.offers) || (owned("offers") && newer("offers"))) { patch.offers = xo; mark("offers", "offer_pricing"); }
     else {
@@ -236,12 +239,14 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
   // KPIs: add keys that aren't there yet
   const kp = { ...(d.kpis || {}) };
   let kpChanged = false;
+  if (force) for (const k of Object.keys(bs.fields)) if (k.startsWith("kpis.")) { delete kp[k.slice(5)]; delete bs.fields[k]; kpChanged = true; }
   for (const k of arr(x?.kpis)) {
     const key = norm(k?.key).replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 40);
     if (!key || /phone|password|token|secret|login|id$/.test(key) || has(kp[key]) || !s(k?.value)) continue;
     const nv = norm(k.value);
     if (Object.values(kp).some((v: any) => norm(v).includes(nv))) continue; // same number already on file under another name
     kp[key] = cut(`${scrub(k.value)}${k.source ? ` (source: ${scrub(k.source)})` : " (source: Business Brain)"}`, 300); kpChanged = true;
+    bs.fields[`kpis.${key}`] = { at, brain_at: brainAt };
   }
   if (kpChanged) { patch.kpis = kp; filled.push("kpis"); }
   patch.brain_sync = { ...bs, at, brain_at: brainAt };
