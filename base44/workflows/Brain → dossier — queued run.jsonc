@@ -1,6 +1,6 @@
 {
   "name": "Brain \u2192 dossier \u2014 queued run",
-  "description": "Manual helper (kept inactive; use Run now): runs brain-to-dossier for the clients an admin queued in AppSettings brain_to_dossier_queue in the last hour (max 4 per run). Does nothing when nothing is queued. Records only: never sends, publishes or switches anything on.",
+  "description": "Manual helper (kept inactive; use Run now): runs brain-to-dossier for the clients an admin queued in AppSettings brain_to_dossier_queue in the last hour, one chunk per step (16 steps). Steps do nothing once the queue is empty. Records only: never sends, publishes or switches anything on.",
   "trigger": {
     "condition": null,
     "config": {
@@ -23,13 +23,193 @@
       {
         "run_queued": {
           "call": "invoke_backend_function",
-          "then": "end",
           "with": {
+            "function_name": "brain-to-dossier",
             "args": {
               "action": "queued"
-            },
-            "function_name": "brain-to-dossier"
-          }
+            }
+          },
+          "then": "run_queued_2"
+        }
+      },
+      {
+        "run_queued_2": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "run_queued_3"
+        }
+      },
+      {
+        "run_queued_3": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "run_queued_4"
+        }
+      },
+      {
+        "run_queued_4": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "run_queued_5"
+        }
+      },
+      {
+        "run_queued_5": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "run_queued_6"
+        }
+      },
+      {
+        "run_queued_6": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "run_queued_7"
+        }
+      },
+      {
+        "run_queued_7": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "run_queued_8"
+        }
+      },
+      {
+        "run_queued_8": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "run_queued_9"
+        }
+      },
+      {
+        "run_queued_9": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "run_queued_10"
+        }
+      },
+      {
+        "run_queued_10": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "run_queued_11"
+        }
+      },
+      {
+        "run_queued_11": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "run_queued_12"
+        }
+      },
+      {
+        "run_queued_12": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "run_queued_13"
+        }
+      },
+      {
+        "run_queued_13": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "run_queued_14"
+        }
+      },
+      {
+        "run_queued_14": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "run_queued_15"
+        }
+      },
+      {
+        "run_queued_15": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "run_queued_16"
+        }
+      },
+      {
+        "run_queued_16": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "queued"
+            }
+          },
+          "then": "end"
         }
       }
     ],
