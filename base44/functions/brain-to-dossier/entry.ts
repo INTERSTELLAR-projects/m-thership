@@ -141,6 +141,8 @@ function assessable(dossier: any, ctx: any) {
   return out;
 }
 
+// Interstellar's own products are never the client's offers or services, whatever the model returns.
+const AGENCY_PRODUCT = /hyper\s*care|gravit[yï]\s*care|[øo]rbit\s*seo|mission\s*(alpha|bravo)|command\s*system|interstellar|manage\+|starship\s*care|brand\s*arsenal/i;
 const KIND_OK = new Set(["attraction", "core", "upsell", "downsell", "continuity"]);
 const MODEL_OK = new Set(["storefront", "service_area", "hybrid", "national", "online"]);
 // Our build platform's name never goes into client-facing data (brand rule).
@@ -169,7 +171,7 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
     if (!has(d[f]) || (owned(f) && newer(f) && JSON.stringify(v) !== JSON.stringify(d[f]))) { patch[f] = v; mark(f); }
   }
   // offers
-  const xo = arr(x?.offers).filter((o: any) => s(o?.name)).map((o: any) => ({ name: cut(scrub(o.name), 160), kind: KIND_OK.has(o.kind) ? o.kind : "", price: cut(scrub(o.price), 120), promise: cut(scrub(o.promise), 300), guarantee: cut(scrub(o.guarantee), 300), bonuses: cut(scrub(o.bonuses), 300) }));
+  const xo = arr(x?.offers).filter((o: any) => s(o?.name) && !AGENCY_PRODUCT.test(`${o.name} ${o.promise || ""}`)).map((o: any) => ({ name: cut(scrub(o.name), 160), kind: KIND_OK.has(o.kind) ? o.kind : "", price: cut(scrub(o.price), 120), promise: cut(scrub(o.promise), 300), guarantee: cut(scrub(o.guarantee), 300), bonuses: cut(scrub(o.bonuses), 300) }));
   if (!xo.length) unmap("offers", []);
   if (xo.length) {
     if (!has(d.offers) || (owned("offers") && newer("offers"))) { patch.offers = xo; mark("offers", "offer_pricing"); }
@@ -187,7 +189,7 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
   }
   // services
   // Service names only: a description is kept only when it is verbatim Brain text.
-  const xs = arr(x?.services).filter((v: any) => s(v?.name)).map((v: any) => ({ name: cut(scrub(v.name), 120), description: s(v.description) && brainNorm.includes(norm(v.description)) ? cut(scrub(v.description), 300) : "" }));
+  const xs = arr(x?.services).filter((v: any) => s(v?.name) && !AGENCY_PRODUCT.test(v.name)).map((v: any) => ({ name: cut(scrub(v.name), 120), description: s(v.description) && brainNorm.includes(norm(v.description)) ? cut(scrub(v.description), 300) : "" }));
   if (xs.length) {
     if (!has(d.services) || (owned("services") && newer("services"))) {
       // keep any page_url / priority already known for the same service
@@ -226,7 +228,7 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
   sub("brand_voice", ["personality", "sample"], ["tone", "say", "never_say"]);
   sub("audience", ["ideal_customer", "demographics"], ["pains", "desires", "objections", "where_they_hang_out"]);
   // competitors
-  const urlInBrain = (u: any) => { const t = norm(String(u || "").replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "")); return t.length > 4 && brainNorm.includes(t) ? cut(u, 300) : ""; };
+  const urlInBrain = (u: any) => { const t = norm(String(u || "").replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "")); return t.length > 4 && t.includes(".") && brainNorm.includes(t) ? cut(u, 300) : ""; };
   const xcomp = arr(x?.competitors).filter((c: any) => s(c?.name)).map((c: any) => ({ name: cut(scrub(c.name), 120), url: urlInBrain(c.url), strength: cut(scrub(c.strength), 300), weakness: cut(scrub(c.weakness), 300) }));
   if (xcomp.length) {
     if (!has(d.competitors) || (owned("competitors") && newer("competitors"))) { patch.competitors = xcomp; mark("competitors", "competitors"); }
@@ -419,7 +421,10 @@ async function syncOne(base44: any, db: any, clientId: string, opts: { extract: 
     ].join("\n");
     const x: any = await llm(base44, { system: EXTRACT_SYSTEM, prompt, schema: EXTRACT_SCHEMA, feature: "agents.brain_to_dossier" });
     const m = mergeExtraction(d, x || {}, brain, brainAt, bn, opts.force);
-    const c = mergeChecks({ ...d, ...m.patch }, x?.checks || [], allowed, brain, bn);
+    // Only dots the merged dossier still can't decide by itself (e.g. dream_outcome is auto-checked once it is filled).
+    const ctxMerged = { ...ctx0, d: { ...d, ...m.patch } };
+    const stillOpen = allowed.filter((a) => { const it = PILLARS.find((p) => p.id === a.pillar)?.items.find((i: any) => i.id === a.item); return it && !autoStatus(it, ctxMerged); });
+    const c = mergeChecks({ ...d, ...m.patch }, x?.checks || [], stillOpen, brain, bn);
     Object.assign(patch, m.patch);
     if (c.set.length) patch.pillars = c.pillars;
     out.filled = m.filled;
