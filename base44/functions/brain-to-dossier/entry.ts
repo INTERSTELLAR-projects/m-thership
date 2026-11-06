@@ -247,6 +247,14 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
   return { patch, filled };
 }
 
+// The evidence (or at least an unbroken run of 7 of its words) must appear word for word in the Brain.
+function quoted(ev: string, brainNorm: string) {
+  const w = ev.split(" ").filter(Boolean);
+  if (w.length <= 7) return brainNorm.includes(w.join(" "));
+  for (let i = 0; i + 7 <= w.length; i++) if (brainNorm.includes(w.slice(i, i + 7).join(" "))) return true;
+  return false;
+}
+
 function mergeChecks(d: any, checks: any[], allowed: any[], brain: any, brainNorm: string) {
   const pillars = structuredClone(d.pillars || {});
   const set: string[] = [];
@@ -256,7 +264,7 @@ function mergeChecks(d: any, checks: any[], allowed: any[], brain: any, brainNor
     const k = `${c.pillar}.${c.item}`;
     if (!ok.has(k) || !["done", "partial", "missing", "na"].includes(c.status)) { dropped.push(`${k}: not assessable`); continue; }
     const ev = norm(c.evidence);
-    if (ev.length < 12 || !brainNorm.includes(ev.slice(0, Math.min(ev.length, 80)))) { dropped.push(`${k}: evidence not verbatim`); continue; } // evidence must be verbatim Brain text
+    if (ev.length < 12 || !quoted(ev, brainNorm)) { dropped.push(`${k}: evidence not verbatim`); continue; } // evidence must be real Brain text
     const secAt = String(brain?.sections?.[c.section]?.updated_at || "");
     const cur = pillars?.[c.pillar]?.items?.[c.item];
     // A check Claude saved by hand wins unless the Brain section behind this evidence is newer (by day).
