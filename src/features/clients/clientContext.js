@@ -43,6 +43,9 @@ export function buildContext(client, raw = {}) {
     projects: raw.projects || [],
     tasks: raw.tasks || [],
     snapshots: snaps,
+    // Shared client context block (goals + targets, offers, audience, voice, SEO footprint) kept on the Business Brain by
+    // the brain-to-dossier backend (base44/shared/clientContext.ts). contextToBrief appends it to every brief.
+    grounding: ((raw.brains || [])[0] || {}).context_md || "",
     packages: {
       plan: (client && client.plan) || "",
       services_managed: (client && client.services_managed) || [],
@@ -58,7 +61,7 @@ export async function loadClientContext(clientOrId) {
   const id = typeof clientOrId === "string" ? clientOrId : clientOrId && clientOrId.id;
   if (!id) throw new Error("loadClientContext needs a client id");
   const f = (entity, sort, limit, q = { client_id: id }) => list(base44.entities[entity].filter(q, sort, limit));
-  const [client, dossiers, flights, intakes, requests, goals, gaps, outreach, kits, playbooks, contentPlans, socialPlans, reviews, audits, files, work, automations, projects, tasks, snapshots] = await Promise.all([
+  const [client, dossiers, flights, intakes, requests, goals, gaps, outreach, kits, playbooks, contentPlans, socialPlans, reviews, audits, files, work, automations, projects, tasks, snapshots, brains] = await Promise.all([
     typeof clientOrId === "object" && clientOrId.business ? clientOrId : base44.entities.CRMClient.get(id).catch(() => null),
     f("ClientDossier", "-updated_date", 1),
     f("OnboardingFlight", "-created_date", 5),
@@ -79,8 +82,9 @@ export async function loadClientContext(clientOrId) {
     f("Project", "-created_date", 50),
     f("Task", "due_date", 300),
     f("PerformanceSnapshot", "-period_end", 12),
+    f("BusinessBrain", "-updated_date", 1),
   ]);
-  return buildContext(client || { id }, { dossiers, flights, intakes, requests, goals, gaps, outreach, kits, playbooks, contentPlans, socialPlans, reviews, audits, files, work, automations, projects, tasks, snapshots });
+  return buildContext(client || { id }, { dossiers, flights, intakes, requests, goals, gaps, outreach, kits, playbooks, contentPlans, socialPlans, reviews, audits, files, work, automations, projects, tasks, snapshots, brains });
 }
 
 // Light contexts for many clients at once (only what the criteria read): one list call per entity.
@@ -199,7 +203,9 @@ const SECTIONS = {
 export function contextToBrief(ctx, { sections = ["profile", "services", "outputs"], level = 2 } = {}) {
   if (!ctx) return "";
   const h = "#".repeat(level);
-  return sections.filter((s) => SECTIONS[s]).map((s) => `${h} ${SECTIONS[s][0]}\n${SECTIONS[s][1](ctx)}`).join("\n\n");
+  const body = sections.filter((s) => SECTIONS[s]).map((s) => `${h} ${SECTIONS[s][0]}\n${SECTIONS[s][1](ctx)}`).join("\n\n");
+  // Every brief carries the same shared client context block the backend engines read.
+  return ctx.grounding ? `${body}\n\n${ctx.grounding}` : body;
 }
 
 export { CRITERIA, evaluateCriteria, outputLabel };
