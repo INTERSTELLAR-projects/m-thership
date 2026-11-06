@@ -242,23 +242,25 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
 function mergeChecks(d: any, checks: any[], allowed: any[], brain: any, brainNorm: string) {
   const pillars = structuredClone(d.pillars || {});
   const set: string[] = [];
+  const dropped: string[] = [];
   const ok = new Set(allowed.map((a) => `${a.pillar}.${a.item}`));
   for (const c of arr(checks)) {
     const k = `${c.pillar}.${c.item}`;
-    if (!ok.has(k) || !["done", "partial", "missing", "na"].includes(c.status)) continue;
+    if (!ok.has(k) || !["done", "partial", "missing", "na"].includes(c.status)) { dropped.push(`${k}: not assessable`); continue; }
     const ev = norm(c.evidence);
-    if (ev.length < 12 || !brainNorm.includes(ev.slice(0, Math.min(ev.length, 80)))) continue; // evidence must be verbatim Brain text
+    if (ev.length < 12 || !brainNorm.includes(ev.slice(0, Math.min(ev.length, 80)))) { dropped.push(`${k}: evidence not verbatim`); continue; } // evidence must be verbatim Brain text
     const secAt = String(brain?.sections?.[c.section]?.updated_at || "");
     const cur = pillars?.[c.pillar]?.items?.[c.item];
     // A check Claude saved by hand wins unless the Brain section behind this evidence is newer (by day).
-    if (cur?.status && cur.by === "claude" && (!secAt || String(cur.updated_at || "").slice(0, 10) >= secAt.slice(0, 10))) continue;
+    if (cur?.status && cur.by === "claude" && (!secAt || String(cur.updated_at || "").slice(0, 10) >= secAt.slice(0, 10))) { dropped.push(`${k}: Claude's check is as new`); continue; }
     if (cur?.status === c.status && cur?.by === "brain") continue;
+    if (cur?.status === c.status && cur?.by === "claude") { dropped.push(`${k}: same as Claude's`); continue; }
     pillars[c.pillar] = pillars[c.pillar] || { items: {} };
     pillars[c.pillar].items = pillars[c.pillar].items || {};
     pillars[c.pillar].items[c.item] = { status: c.status, evidence: cut(c.evidence, 300), note: `From the Business Brain (${c.section || "brain"})${cur?.status ? `; was ${cur.status} by ${cur.by}` : ""}`, by: "brain", updated_at: nowIso() };
     set.push(`${k}=${c.status}`);
   }
-  return { pillars, set };
+  return { pillars, set, dropped };
 }
 
 // ---------- work + files ----------
@@ -390,6 +392,8 @@ async function syncOne(base44: any, db: any, clientId: string, opts: { extract: 
     if (c.set.length) patch.pillars = c.pillars;
     out.filled = m.filled;
     out.checks_set = c.set;
+    out.checks_dropped = c.dropped;
+    out.checks_asked = allowed.length;
     d = { ...d, ...patch };
   } else out.extract = brain ? "skipped (Brain unchanged since last sync)" : "no brain";
 
