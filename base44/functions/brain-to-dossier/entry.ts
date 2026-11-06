@@ -111,11 +111,12 @@ function brainText(brain: any) {
 const EXTRACT_SYSTEM = [
   "You map a client's Business Brain (Interstellar Strategies' knowledge base for that business) into structured dossier fields for the Constellations health web.",
   "RULES:",
+  "- WHOSE FACTS: the dossier describes the CLIENT'S OWN business and ITS customers. Interstellar Strategies is the agency that serves the client: never map Interstellar's services, packages, plans or prices (websites, apps, Command System, Mission ALPHA/BRAVO, HyperCare+, GravïtyCare, Ørbit SEO, retainers) as the client's offers, services, dream outcome, USP, KPIs or goals. offers/services = what the client sells to its customers. dream_outcome = what the client's CUSTOMERS want from the client.",
   "- Use ONLY facts written in the BRAIN text. Never invent, infer, estimate or improve. If a fact is not stated, return an empty string or empty array for it.",
   "- Copy wording closely; light trimming is fine. Prices only exactly as written (or empty). Never write a price the Brain does not state.",
   "- guarantee / bonuses: only when the Brain states a guarantee, warranty, risk reversal, or bonus/value-stack item for that offer. Otherwise empty.",
   "- offers[].kind: attraction (free/low-cost entry offer), core, upsell, downsell, continuity (recurring / membership / maintenance plan). Empty if unclear.",
-  "- kpis: only real numbers the Brain states about THEIR business (leads/month, close rate, average ticket, revenue, review count, rating...), each with its source as written. No targets here, no phone numbers, no IDs.",
+  "- kpis: only real, measured numbers the Brain states about the client's business as it is today (leads/month, close rate, average ticket, actual revenue, review count, rating, daily volume...), each with its source as written. Never targets, needs, budgets, costs, goals, phone numbers or IDs.",
   "- keywords: only search terms the Brain explicitly names as keywords or searches to rank for.",
   "- brand_voice.sample: a verbatim passage from the Brain that is written in the client's own voice (e.g. quoted site copy). Empty if none. Never write a new one.",
   "- Never output passwords, API keys, tokens or login details.",
@@ -140,11 +141,11 @@ const MODEL_OK = new Set(["storefront", "service_area", "hybrid", "national", "o
 const cleanStrs = (v: any, n = 200) => Array.from(new Set(arr(v).map((x: any) => cut(scrub(x), n)).filter(Boolean)));
 
 // ---------- merge Brain extraction into the dossier ----------
-function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm: string) {
+function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm: string, force = false) {
   const at = nowIso();
   const bs = { ...(d.brain_sync || {}), fields: { ...((d.brain_sync || {}).fields || {}) } };
   const owned = (f: string) => !!bs.fields[f];
-  const newer = (f: string) => !bs.fields[f]?.brain_at || String(brainAt) > String(bs.fields[f].brain_at);
+  const newer = (f: string) => force || !bs.fields[f]?.brain_at || String(brainAt) > String(bs.fields[f].brain_at);
   const patch: any = {};
   const filled: string[] = [];
   const mark = (f: string, section = "") => { bs.fields[f] = { at, brain_at: brainAt, section }; filled.push(f); };
@@ -406,7 +407,7 @@ async function syncOne(base44: any, db: any, clientId: string, opts: { extract: 
       "", "BRAIN", text,
     ].join("\n");
     const x: any = await llm(base44, { system: EXTRACT_SYSTEM, prompt, schema: EXTRACT_SCHEMA, feature: "agents.brain_to_dossier" });
-    const m = mergeExtraction(d, x || {}, brain, brainAt, bn);
+    const m = mergeExtraction(d, x || {}, brain, brainAt, bn, opts.force);
     const c = mergeChecks({ ...d, ...m.patch }, x?.checks || [], allowed, brain, bn);
     Object.assign(patch, m.patch);
     if (c.set.length) patch.pillars = c.pillars;
