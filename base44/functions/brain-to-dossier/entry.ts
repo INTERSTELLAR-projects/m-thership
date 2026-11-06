@@ -357,6 +357,8 @@ function scoreReport(ctx: any) {
   return { health: r.health, pillar_scores, constraint: r.constraint?.id || null, unchecked };
 }
 
+const LIVE_WINS = new Set(["review_count", "rating"]);
+
 // ---------- one client ----------
 async function syncOne(base44: any, db: any, clientId: string, opts: { extract: boolean; force: boolean; dry: boolean }) {
   const agency = clientId === "agency";
@@ -397,13 +399,14 @@ async function syncOne(base44: any, db: any, clientId: string, opts: { extract: 
     d = { ...d, ...patch };
   } else out.extract = brain ? "skipped (Brain unchanged since last sync)" : "no brain";
 
-  // 1b. A dot Claude (or this sync) saved by hand that live data now decides (reviews feed, work log, files, goals...):
-  //     let the live check win when it disagrees. Justin's own checks are never touched.
+  // 1b. Review dots Claude (or this sync) saved by hand from old site claims: the live Google reviews feed is measured
+  //     data, so it wins when it disagrees. Justin's own checks are never touched.
   {
     const ctxNow = await scoreCtx(db, client, d, clientId);
     const pillars = structuredClone(d.pillars || {});
     const cleared: string[] = [];
     for (const p of PILLARS) for (const it of p.items) {
+      if (!LIVE_WINS.has(it.id)) continue;
       const sv = pillars?.[p.id]?.items?.[it.id];
       if (!sv?.status || !["claude", "brain"].includes(String(sv.by || ""))) continue;
       const live = autoStatus(it, ctxNow);
