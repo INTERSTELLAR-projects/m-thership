@@ -40,13 +40,17 @@ const SECRET_RE = /(password|passcode|pwd|api[_ -]?key|secret|token)\s*[:=]\s*\S
 const scrub = (v: any) => (typeof v === "string" ? v.replace(SECRET_RE, "[removed]").replace(/®/g, "™") : v);
 const norm = (t: any) => s(t).toLowerCase().replace(/[“”"'’‘`*_]/g, "").replace(/[^a-z0-9$#.%/+@ -]+/g, " ").replace(/\s+/g, " ").trim();
 const tokens = (t: any) => new Set(norm(t).split(" ").filter((w) => w.length > 2));
+// Same thing, named differently? Exact normalized match, or nearly all distinctive words shared (generic words like
+// "tree service" or "coaching" alone never make a match).
+const GENERIC = new Set(["the", "and", "llc", "inc", "co", "company", "service", "services", "tree", "trees", "coaching", "studio", "studios", "group", "of", "for", "with", "your"]);
 function similar(a: any, b: any) {
   const x = norm(a), y = norm(b);
   if (!x || !y) return false;
-  if (x === y || x.includes(y) || y.includes(x)) return true;
-  const A = tokens(a), B = tokens(b);
+  if (x === y) return true;
+  const A = new Set([...tokens(a)].filter((w) => !GENERIC.has(w))), B = new Set([...tokens(b)].filter((w) => !GENERIC.has(w)));
+  if (!A.size || !B.size) return false;
   const inter = [...A].filter((w) => B.has(w)).length;
-  return inter / Math.max(1, Math.min(A.size, B.size)) >= 0.6;
+  return inter / (A.size + B.size - inter) >= 0.8;
 }
 async function list(ent: any, q: any = {}, sort = "-created_date", limit = 500) {
   try { return arr(await ent.filter(q, sort, limit)); } catch { return []; }
@@ -172,7 +176,8 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
     }
   }
   // services
-  const xs = arr(x?.services).filter((v: any) => s(v?.name)).map((v: any) => ({ name: cut(scrub(v.name), 120), description: cut(scrub(v.description), 300) }));
+  // Service names only: a description is kept only when it is verbatim Brain text.
+  const xs = arr(x?.services).filter((v: any) => s(v?.name)).map((v: any) => ({ name: cut(scrub(v.name), 120), description: s(v.description) && brainNorm.includes(norm(v.description)) ? cut(scrub(v.description), 300) : "" }));
   if (xs.length) {
     if (!has(d.services) || (owned("services") && newer("services"))) {
       // keep any page_url / priority already known for the same service
@@ -232,6 +237,8 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
   for (const k of arr(x?.kpis)) {
     const key = norm(k?.key).replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 40);
     if (!key || /phone|password|token|secret|login|id$/.test(key) || has(kp[key]) || !s(k?.value)) continue;
+    const nv = norm(k.value);
+    if (Object.values(kp).some((v: any) => norm(v).includes(nv))) continue; // same number already on file under another name
     kp[key] = cut(`${scrub(k.value)}${k.source ? ` (source: ${scrub(k.source)})` : " (source: Business Brain)"}`, 300); kpChanged = true;
   }
   if (kpChanged) { patch.kpis = kp; filled.push("kpis"); }
