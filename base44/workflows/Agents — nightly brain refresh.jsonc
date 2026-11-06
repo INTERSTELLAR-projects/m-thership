@@ -1,6 +1,6 @@
 {
   "name": "Agents \u2014 nightly brain refresh",
-  "description": "Nightly: seeds any missing Business Brain from M\u00f8thership records, rebuilds every active client's agent instances from real data, and refines up to 5 brains (merges agent/research findings, flags conflicts for Justin, rewrites the at-a-glance summary). Step 2 (brain-to-dossier): maps changed Brains into each ClientDossier, mirrors finished work and brand kits for the Constellations web, re-scores every client and rebuilds the shared client context block agents read. Records only: never sends anything to a client and never changes a client site, package or price.",
+  "description": "Nightly: seeds any missing Business Brain from M\u00f8thership records, rebuilds every active client's agent instances from real data, and refines up to 5 brains (merges agent/research findings, flags conflicts for Justin, rewrites the at-a-glance summary). Steps 2-9 (brain-to-dossier, in chunks so no call hits the time limit): maps changed Brains into each ClientDossier, mirrors finished work and brand kits for the Constellations web, re-scores every client and rebuilds the shared client context block agents read. Records only: never sends anything to a client and never changes a client site, package or price.",
   "trigger": {
     "condition": null,
     "config": {
@@ -51,10 +51,122 @@
               "action": "nightly"
             }
           },
+          "then": "brain_to_dossier_2",
+          "x-base44": {
+            "title": "Brain \u2192 dossier sync (chunk 1 of 8)",
+            "description": "Maps changed Brains into ClientDossier, mirrors work + brand kits, re-scores Constellations, rebuilds context blocks. Each call continues tonight's pass; extra calls do nothing once it is complete."
+          }
+        }
+      },
+      {
+        "brain_to_dossier_2": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "nightly"
+            }
+          },
+          "then": "brain_to_dossier_3",
+          "x-base44": {
+            "title": "Brain \u2192 dossier sync (chunk 2 of 8)",
+            "description": "Maps changed Brains into ClientDossier, mirrors work + brand kits, re-scores Constellations, rebuilds context blocks. Each call continues tonight's pass; extra calls do nothing once it is complete."
+          }
+        }
+      },
+      {
+        "brain_to_dossier_3": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "nightly"
+            }
+          },
+          "then": "brain_to_dossier_4",
+          "x-base44": {
+            "title": "Brain \u2192 dossier sync (chunk 3 of 8)",
+            "description": "Maps changed Brains into ClientDossier, mirrors work + brand kits, re-scores Constellations, rebuilds context blocks. Each call continues tonight's pass; extra calls do nothing once it is complete."
+          }
+        }
+      },
+      {
+        "brain_to_dossier_4": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "nightly"
+            }
+          },
+          "then": "brain_to_dossier_5",
+          "x-base44": {
+            "title": "Brain \u2192 dossier sync (chunk 4 of 8)",
+            "description": "Maps changed Brains into ClientDossier, mirrors work + brand kits, re-scores Constellations, rebuilds context blocks. Each call continues tonight's pass; extra calls do nothing once it is complete."
+          }
+        }
+      },
+      {
+        "brain_to_dossier_5": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "nightly"
+            }
+          },
+          "then": "brain_to_dossier_6",
+          "x-base44": {
+            "title": "Brain \u2192 dossier sync (chunk 5 of 8)",
+            "description": "Maps changed Brains into ClientDossier, mirrors work + brand kits, re-scores Constellations, rebuilds context blocks. Each call continues tonight's pass; extra calls do nothing once it is complete."
+          }
+        }
+      },
+      {
+        "brain_to_dossier_6": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "nightly"
+            }
+          },
+          "then": "brain_to_dossier_7",
+          "x-base44": {
+            "title": "Brain \u2192 dossier sync (chunk 6 of 8)",
+            "description": "Maps changed Brains into ClientDossier, mirrors work + brand kits, re-scores Constellations, rebuilds context blocks. Each call continues tonight's pass; extra calls do nothing once it is complete."
+          }
+        }
+      },
+      {
+        "brain_to_dossier_7": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "nightly"
+            }
+          },
+          "then": "brain_to_dossier_8",
+          "x-base44": {
+            "title": "Brain \u2192 dossier sync (chunk 7 of 8)",
+            "description": "Maps changed Brains into ClientDossier, mirrors work + brand kits, re-scores Constellations, rebuilds context blocks. Each call continues tonight's pass; extra calls do nothing once it is complete."
+          }
+        }
+      },
+      {
+        "brain_to_dossier_8": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brain-to-dossier",
+            "args": {
+              "action": "nightly"
+            }
+          },
           "then": "end",
           "x-base44": {
-            "title": "Brain \u2192 dossier sync + re-score",
-            "description": "Maps changed Brains into ClientDossier, mirrors work + brand kits, re-scores Constellations, rebuilds each client's context block"
+            "title": "Brain \u2192 dossier sync (chunk 8 of 8)",
+            "description": "Maps changed Brains into ClientDossier, mirrors work + brand kits, re-scores Constellations, rebuilds context blocks. Each call continues tonight's pass; extra calls do nothing once it is complete."
           }
         }
       }
