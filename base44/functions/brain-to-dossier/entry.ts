@@ -528,16 +528,17 @@ Deno.serve(async (req) => {
         if (action === "nightly" && st.night === night) return Response.json({ skipped: true });
         st = { night, ids: [...(await targets(db)), "agency"], idx: 0, extracted: 0, summary: [], started_at: nowIso() };
       } else if (st.idx >= arr(st.ids).length) return Response.json({ skipped: true, reason: "tonight's pass is complete", ...st, summary: undefined });
-      else if (st.chunk_at && Date.now() - new Date(st.chunk_at).getTime() < 60 * 1000) return Response.json({ skipped: true, reason: "a chunk is running" });
+      else if (st.chunk_at && Date.now() - new Date(st.chunk_at).getTime() < 40 * 1000) return Response.json({ skipped: true, reason: "a chunk is running" });
       st.chunk_at = nowIso();
       if (flag) await db.AppSettings.update(flag.id, { pageSettings: st }); else flag = await db.AppSettings.create({ key: "brain_to_dossier_nightly", pageSettings: st });
       const maxExtract = Number(body?.max_extract) || (action === "nightly" ? 6 : 20);
       while (st.idx < st.ids.length && inBudget()) {
         const id = st.ids[st.idx];
+        st.idx++; // advance first: a client that ever hits the time limit is not retried forever
+        await db.AppSettings.update(flag.id, { pageSettings: st }).catch(() => null);
         const r: any = await syncOne(base44, db, id, { extract: body?.extract !== false && st.extracted < maxExtract, force: body?.force === true, dry }).catch((e) => ({ client_id: id, error: String(e?.message || e) }));
         if (r?.filled || r?.checks_set) st.extracted++;
         st.summary.push({ client: r.client || id, before: r.before ?? null, after: r.after ?? null, error: r.error || undefined, remapped: !!(r.filled || r.checks_set) });
-        st.idx++;
         await db.AppSettings.update(flag.id, { pageSettings: st }).catch(() => null);
         await sleep(300);
       }
