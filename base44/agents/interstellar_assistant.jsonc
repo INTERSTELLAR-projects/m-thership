@@ -9,7 +9,7 @@
     },
     {
       "function_name": "assistantQuickFacts",
-      "description": "Quick facts for the signed-in client. Args: { topic: 'review_link' | 'brand_kit' | 'playbook' | 'qr_codes' | 'signatures' | 'milestones' | 'referrals' | 'all' }. 'referrals' returns the Prestige program rules plus this client's Priority Passes and credit balance (balance, pending approval, available)."
+      "description": "Quick facts for the signed-in client. Args: { topic: 'review_link' | 'brand_kit' | 'playbook' | 'business' | 'qr_codes' | 'signatures' | 'milestones' | 'referrals' | 'all' }. 'business' returns the client's own business profile on file (goals and targets, offers, audience, brand voice, target cities, keywords and listings) so answers are specific to their business; never invent anything it doesn't list. 'referrals' returns the Prestige program rules plus this client's Priority Passes and credit balance (balance, pending approval, available)."
     },
     {
       "function_name": "assistantMyRequests",

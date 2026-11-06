@@ -299,7 +299,8 @@ export async function quickFacts(ctx: Ctx, topic: string) {
     // The client's own business facts on file (goals + targets, offers, audience, voice, SEO footprint): the same shared
     // block every agent reads. Business-facing only: no billing, logins or internal notes.
     const block = await getClientContext(ctx.db, String(ctx.cid)).catch(() => "");
-    out.business = block ? block.replace(/<!--[^>]*-->\s*/g, "") : "No business profile is on file yet.";
+    // Internal research (competitor notes, raw numbers on file) stays out of the portal.
+    out.business = block ? block.replace(/<!--[^>]*-->\s*/g, "").split("\n").filter((l) => !/^- (Competitors|Numbers on file)/.test(l)).join("\n") : "No business profile is on file yet.";
   }
   if (want("qr_codes")) out.qr_codes = await qrSummary(ctx);
   if (want("referrals")) out.referrals = await referralSummary(ctx);
