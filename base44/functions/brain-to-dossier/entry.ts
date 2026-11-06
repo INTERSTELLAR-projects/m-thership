@@ -343,7 +343,8 @@ async function mirrorWork(db: any, clientId: string, clientName: string, dry: bo
   return creates.map((c) => `${c.kind}: ${cut(c.title, 80)}`);
 }
 
-const firstUrl = (o: any): string => { const m = JSON.stringify(o || {}).match(/https:\/\/[^"\s\\]+/g) || []; return m.find((u) => !/base44/i.test(u)) || ""; };
+// Link to the kit itself (deck / doc / page), never to a single logo image inside it.
+const firstUrl = (o: any): string => { const m = JSON.stringify(o || {}).match(/https:\/\/[^"\s\\]+/g) || []; return m.find((u) => !/base44/i.test(u) && !/\.(png|jpe?g|svg|webp|gif)(\?|$)/i.test(u)) || ""; };
 async function linkBrandKits(db: any, clientId: string, dry: boolean) {
   const [kits, files, entries] = await Promise.all([
     list(db.BrandKit, { client_id: clientId, status: "approved" }, "-version", 20),
