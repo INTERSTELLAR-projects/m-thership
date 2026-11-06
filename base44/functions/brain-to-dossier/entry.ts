@@ -437,7 +437,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = String(body?.action || "sync");
     const db = base44.asServiceRole.entities;
-    if (!user) { if (action !== "nightly") return Response.json({ error: "Unauthorized" }, { status: 401 }); }
+    if (!user) { if (action !== "nightly" && action !== "queued") return Response.json({ error: "Unauthorized" }, { status: 401 }); }
     else if (user.role !== "admin") return Response.json({ error: "Forbidden" }, { status: 403 });
     const dry = body?.dry_run === true;
 
@@ -445,6 +445,22 @@ Deno.serve(async (req) => {
       const id = String(body?.client_id || "");
       if (!id) return Response.json({ error: "client_id required (a CRMClient id or \"agency\")" }, { status: 400 });
       return Response.json(await syncOne(base44, db, id, { extract: body?.extract !== false, force: body?.force === true, dry }));
+    }
+    // Workflow "Brain → dossier — queued run" (no user): runs only what an admin queued in AppSettings
+    // brain_to_dossier_queue { client_ids[], extract?, force?, requested_at, status: "queued" } within the last hour.
+    if (action === "queued") {
+      const row = (await list(db.AppSettings, { key: "brain_to_dossier_queue" }, "-updated_date", 1))[0];
+      const q = row?.pageSettings || {};
+      const fresh = q.requested_at && Date.now() - new Date(q.requested_at).getTime() < 3600 * 1000;
+      if (!row || q.status !== "queued" || !fresh) return Response.json({ skipped: true, reason: "nothing queued" });
+      await db.AppSettings.update(row.id, { pageSettings: { ...q, status: "running", started_at: nowIso() } });
+      const res: any[] = [];
+      for (const id of arr(q.client_ids).slice(0, 4)) {
+        res.push(await syncOne(base44, db, String(id), { extract: q.extract !== false, force: q.force === true, dry: q.dry_run === true }).catch((e) => ({ client_id: id, error: String(e?.message || e) })));
+        await sleep(400);
+      }
+      await db.AppSettings.update(row.id, { pageSettings: { ...q, status: "done", finished_at: nowIso(), results: res } });
+      return Response.json({ results: res });
     }
     if (action === "score") {
       const ids = body?.client_id ? [String(body.client_id)] : [...(await targets(db)), "agency"];
