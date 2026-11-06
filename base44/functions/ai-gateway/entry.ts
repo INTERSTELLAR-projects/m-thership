@@ -63,7 +63,9 @@ Deno.serve(async (req) => {
     // passes ground: false, or is translating. The block's tokens are not charged to the client's AI-action meter.
     let groundTokens = 0;
     if (client?.id && body?.ground !== false && !/translat/i.test(feature) && !system.includes(CONTEXT_MARKER) && !String(body?.prompt || "").includes(CONTEXT_MARKER)) {
-      const block = await getClientContext(db, String(client.id), { maxChars: 10000 }).catch(() => "");
+      let block = await getClientContext(db, String(client.id), { maxChars: 10000 }).catch(() => "");
+      // Portal users: internal research (competitor notes, raw numbers on file) stays out.
+      if (block && !isAdmin) block = block.split("\n").filter((l) => !/^- (Competitors|Numbers on file)/.test(l)).join("\n");
       if (block) { system = `${block}\n\n${system}`.trim(); groundTokens = Math.ceil(block.length / 4); }
     }
     const messages = Array.isArray(body?.messages)
