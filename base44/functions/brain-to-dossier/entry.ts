@@ -441,11 +441,12 @@ async function syncOne(base44: any, db: any, clientId: string, opts: { extract: 
     const pillars = structuredClone(d.pillars || {});
     const cleared: string[] = [];
     for (const p of PILLARS) for (const it of p.items) {
-      if (!LIVE_WINS.has(it.id)) continue;
       const sv = pillars?.[p.id]?.items?.[it.id];
       if (!sv?.status || !["claude", "brain"].includes(String(sv.by || ""))) continue;
+      // This sync's own checks always yield to real data; Claude's only on the measured review dots.
+      if (sv.by === "claude" && !LIVE_WINS.has(it.id)) continue;
       const live = autoStatus(it, ctxNow);
-      if (live && live !== sv.status) { delete pillars[p.id].items[it.id]; cleared.push(`${p.id}.${it.id}: ${sv.status} (${sv.by}) → live ${live}`); }
+      if (live && (sv.by === "brain" || live !== sv.status)) { delete pillars[p.id].items[it.id]; cleared.push(`${p.id}.${it.id}: ${sv.status} (${sv.by}) → live ${live}`); }
     }
     if (cleared.length) { patch.pillars = pillars; d = { ...d, pillars }; out.live_wins = cleared; }
   }
