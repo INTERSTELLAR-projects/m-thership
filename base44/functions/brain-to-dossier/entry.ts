@@ -1,11 +1,14 @@
 // Brain → dossier sync (Møthership > Constellations). Keeps each client's Constellations web fed from what the agency
 // actually knows, and gives every agent one shared client context block.
 //   sync    { client_id | "agency", extract?: true, force?: false, dry_run?: false }   admin. One client (or Interstellar).
-//   all     { extract?: true, force?: false, max_extract?: 20 }                         admin. Every active client + Interstellar.
+//   all     { extract?: true, force?: false, max_extract?: 20 }                         admin. Starts a fresh pass (chunked).
 //   score   { client_id? }                                                              admin. Re-score only (no LLM).
-//   nightly {}   workflow "Agents — nightly brain refresh" step 2 (no user). At most once per 8 hours.
-//                Mirrors work + brand kits, re-scores and rebuilds the context block for every client; re-maps a Brain
-//                into the dossier (LLM) only when a Brain section changed since the last sync (max 6 a night).
+//   nightly {}   workflow "Agents — nightly brain refresh" steps 2-15 (no user). One pass per Pacific day, in chunks
+//                (a function call has a hard time limit): mirrors work + brand kits, re-scores and rebuilds the context
+//                block for every client; re-maps a Brain into the dossier (LLM) only when a Brain section changed since
+//                the last sync (max 4 a night).
+//   queued  {}   workflow "Brain → dossier — queued run" (inactive, Run now): the clients an admin queued in AppSettings
+//                brain_to_dossier_queue, a chunk per run.
 // What one sync does for a client:
 //   1. Maps Business Brain facts into ClientDossier fields (dream outcome, offers incl. guarantee/bonuses/kind, USP,
 //      differentiators, brand identity + voice, tagline, pitch, story, services, service area + cities, keywords,
