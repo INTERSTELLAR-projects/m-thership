@@ -216,7 +216,8 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
   sub("brand_voice", ["personality", "sample"], ["tone", "say", "never_say"]);
   sub("audience", ["ideal_customer", "demographics"], ["pains", "desires", "objections", "where_they_hang_out"]);
   // competitors
-  const xcomp = arr(x?.competitors).filter((c: any) => s(c?.name)).map((c: any) => ({ name: cut(scrub(c.name), 120), url: cut(c.url, 300), strength: cut(scrub(c.strength), 300), weakness: cut(scrub(c.weakness), 300) }));
+  const urlInBrain = (u: any) => { const t = norm(String(u || "").replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "")); return t.length > 4 && brainNorm.includes(t) ? cut(u, 300) : ""; };
+  const xcomp = arr(x?.competitors).filter((c: any) => s(c?.name)).map((c: any) => ({ name: cut(scrub(c.name), 120), url: urlInBrain(c.url), strength: cut(scrub(c.strength), 300), weakness: cut(scrub(c.weakness), 300) }));
   if (xcomp.length) {
     if (!has(d.competitors) || (owned("competitors") && newer("competitors"))) { patch.competitors = xcomp; mark("competitors", "competitors"); }
     else {
