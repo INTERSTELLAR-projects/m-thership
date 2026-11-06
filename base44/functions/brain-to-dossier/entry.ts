@@ -374,7 +374,7 @@ function scoreReport(ctx: any) {
 }
 
 const LIVE_WINS = new Set(["review_count", "rating"]);
-const BUDGET_MS = 14000; // stop starting new clients after this; one client takes ~3-15s
+const BUDGET_MS = 6000; // stop starting new clients after this; one client takes ~3s (no Brain change) to ~30s (Brain re-map)
 
 // ---------- one client ----------
 async function syncOne(base44: any, db: any, clientId: string, opts: { extract: boolean; force: boolean; dry: boolean }) {
