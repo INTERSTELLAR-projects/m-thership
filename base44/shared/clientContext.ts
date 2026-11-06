@@ -13,7 +13,8 @@ const arr = (v: any) => (Array.isArray(v) ? v : []);
 const s = (v: any) => (v == null ? "" : String(v).replace(/\s+/g, " ").trim());
 const cut = (v: any, n: number) => { const t = s(v); return t.length > n ? `${t.slice(0, n - 1)}…` : t; };
 const SECRET_RE = /(password|passcode|pwd|api[_ -]?key|secret|token)\s*[:=]\s*\S+/gi;
-const clean = (t: string) => String(t || "").replace(SECRET_RE, "[removed]").replace(/®/g, "™");
+// Credentials out, ™ not ®, and the build platform's name never reaches a client-facing prompt.
+const clean = (t: string) => String(t || "").replace(SECRET_RE, "[removed]").replace(/®/g, "™").replace(/\bBase44 (website|site|app)/gi, "new $1").replace(/\bBase44\b/gi, "custom platform");
 const yes = (v: any) => (Array.isArray(v) ? v.length > 0 : !!s(v));
 async function list(ent: any, q: any, sort = "-created_date", limit = 200) {
   try { const r = await ent.filter(q, sort, limit); return Array.isArray(r) ? r : (r && r.items) || []; } catch { return []; }

@@ -37,7 +37,9 @@ const cut = (v: any, n: number) => { const t = s(v).replace(/\s+/g, " "); return
 const pacificDay = (d = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles" }).format(d);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const SECRET_RE = /(password|passcode|pwd|api[_ -]?key|secret|token)\s*[:=]\s*\S+/gi;
-const scrub = (v: any) => (typeof v === "string" ? v.replace(SECRET_RE, "[removed]").replace(/®/g, "™") : v);
+const JUNK = /^\s*(unknown|not specified|not stated|n\/a|none|tbd|null|-)\.?\s*$/i;
+// Credentials out, ™ not ®, placeholder words ("unknown", "not specified") become empty.
+const scrub = (v: any) => (typeof v === "string" ? (JUNK.test(v) ? "" : v.replace(SECRET_RE, "[removed]").replace(/®/g, "™")) : v);
 const norm = (t: any) => s(t).toLowerCase().replace(/[“”"'’‘`*_]/g, "").replace(/[^a-z0-9$#.%/+@ -]+/g, " ").replace(/\s+/g, " ").trim();
 const tokens = (t: any) => new Set(norm(t).split(" ").filter((w) => w.length > 2));
 // Same thing, named differently? Exact normalized match, or nearly all distinctive words shared (generic words like
@@ -138,7 +140,8 @@ function assessable(dossier: any, ctx: any) {
 
 const KIND_OK = new Set(["attraction", "core", "upsell", "downsell", "continuity"]);
 const MODEL_OK = new Set(["storefront", "service_area", "hybrid", "national", "online"]);
-const cleanStrs = (v: any, n = 200) => Array.from(new Set(arr(v).map((x: any) => cut(scrub(x), n)).filter(Boolean)));
+// Our build platform's name never goes into client-facing data (brand rule).
+const cleanStrs = (v: any, n = 200) => Array.from(new Set(arr(v).map((x: any) => cut(scrub(x), n)).filter((x: string) => x && !/^base44\b/i.test(x))));
 
 // ---------- merge Brain extraction into the dossier ----------
 function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm: string, force = false) {
