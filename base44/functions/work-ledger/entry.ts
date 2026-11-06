@@ -97,6 +97,8 @@ async function candidates(db: any) {
   // 4. Published work (blogs, posts, edits, listings). A generated blog is not published until verified live.
   for (const w of await all(db.WorkLog, {}, "-date")) {
     if (w.status === "failed" || w.status === "scheduled") continue;
+    // Mirrored from a WorkEntry by brain-to-dossier (so the Constellations web can read it): already on the ledger.
+    if (String(w.dedupe_key || "").startsWith("we:")) continue;
     const blogLike = ["blog", "gbp_post", "project_page", "new_page"].includes(w.kind);
     const live = w.status === "live" && (!blogLike || w.verified_live || !w.url);
     add({
