@@ -42,6 +42,10 @@
     "portal_visible": {
       "type": "boolean",
       "default": true
+    },
+    "dedupe_key": {
+      "type": "string",
+      "description": "Set by brain-to-dossier (bk:<BrandKit id> or we:<WorkEntry id>) so a linked file is never created twice"
     }
   },
   "required": [
