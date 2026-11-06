@@ -149,7 +149,9 @@ const MODEL_OK = new Set(["storefront", "service_area", "hybrid", "national", "o
 const cleanStrs = (v: any, n = 200) => Array.from(new Set(arr(v).map((x: any) => cut(scrub(x), n)).filter((x: string) => x && !/^base44\b/i.test(x))));
 
 // ---------- merge Brain extraction into the dossier ----------
-function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm: string, force = false) {
+function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm: string, force = false, agency = false) {
+  // For Interstellar itself its own products ARE its offers; for a client they never are.
+  const notAgencyProduct = (t: string) => agency || !AGENCY_PRODUCT.test(t);
   const at = nowIso();
   const bs = { ...(d.brain_sync || {}), fields: { ...((d.brain_sync || {}).fields || {}) } };
   const owned = (f: string) => !!bs.fields[f];
@@ -171,7 +173,7 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
     if (!has(d[f]) || (owned(f) && newer(f) && JSON.stringify(v) !== JSON.stringify(d[f]))) { patch[f] = v; mark(f); }
   }
   // offers
-  const xo = arr(x?.offers).filter((o: any) => s(o?.name) && !AGENCY_PRODUCT.test(`${o.name} ${o.promise || ""}`)).map((o: any) => ({ name: cut(scrub(o.name), 160), kind: KIND_OK.has(o.kind) ? o.kind : "", price: cut(scrub(o.price), 120), promise: cut(scrub(o.promise), 300), guarantee: cut(scrub(o.guarantee), 300), bonuses: cut(scrub(o.bonuses), 300) }));
+  const xo = arr(x?.offers).filter((o: any) => s(o?.name) && notAgencyProduct(`${o.name} ${o.promise || ""}`)).map((o: any) => ({ name: cut(scrub(o.name), 160), kind: KIND_OK.has(o.kind) ? o.kind : "", price: cut(scrub(o.price), 120), promise: cut(scrub(o.promise), 300), guarantee: cut(scrub(o.guarantee), 300), bonuses: cut(scrub(o.bonuses), 300) }));
   if (!xo.length) unmap("offers", []);
   if (xo.length) {
     if (!has(d.offers) || (owned("offers") && newer("offers"))) { patch.offers = xo; mark("offers", "offer_pricing"); }
@@ -189,7 +191,7 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
   }
   // services
   // Service names only: a description is kept only when it is verbatim Brain text.
-  const xs = arr(x?.services).filter((v: any) => s(v?.name) && !AGENCY_PRODUCT.test(v.name)).map((v: any) => ({ name: cut(scrub(v.name), 120), description: s(v.description) && brainNorm.includes(norm(v.description)) ? cut(scrub(v.description), 300) : "" }));
+  const xs = arr(x?.services).filter((v: any) => s(v?.name) && notAgencyProduct(v.name)).map((v: any) => ({ name: cut(scrub(v.name), 120), description: s(v.description) && brainNorm.includes(norm(v.description)) ? cut(scrub(v.description), 300) : "" }));
   if (xs.length) {
     if (!has(d.services) || (owned("services") && newer("services"))) {
       // keep any page_url / priority already known for the same service
@@ -414,13 +416,13 @@ async function syncOne(base44: any, db: any, clientId: string, opts: { extract: 
     const bn = norm(text);
     const allowed = assessable(d, ctx0);
     const prompt = [
-      `CLIENT: ${client.business}${agency ? " (this is Interstellar Strategies itself, the agency)" : ""}`,
+      `CLIENT: ${client.business}${agency ? " (this is Interstellar Strategies itself, the agency: here its own packages and plans ARE its offers, and its clients are its customers)" : ""}`,
       "", "PILLAR CHECKS you may answer (pillar.item: label [current saved status, if any]):",
       ...allowed.map((a) => `- ${a.pillar}.${a.item}: ${a.label}${a.saved ? ` [${a.saved}]` : ""}`),
       "", "BRAIN", text,
     ].join("\n");
     const x: any = await llm(base44, { system: EXTRACT_SYSTEM, prompt, schema: EXTRACT_SCHEMA, feature: "agents.brain_to_dossier" });
-    const m = mergeExtraction(d, x || {}, brain, brainAt, bn, opts.force);
+    const m = mergeExtraction(d, x || {}, brain, brainAt, bn, opts.force, agency);
     // Only dots the merged dossier still can't decide by itself (e.g. dream_outcome is auto-checked once it is filled).
     const ctxMerged = { ...ctx0, d: { ...d, ...m.patch } };
     const stillOpen = allowed.filter((a) => { const it = PILLARS.find((p) => p.id === a.pillar)?.items.find((i: any) => i.id === a.item); return it && !autoStatus(it, ctxMerged); });
