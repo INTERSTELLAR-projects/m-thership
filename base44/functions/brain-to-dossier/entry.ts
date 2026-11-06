@@ -531,7 +531,7 @@ Deno.serve(async (req) => {
       else if (st.chunk_at && Date.now() - new Date(st.chunk_at).getTime() < 40 * 1000) return Response.json({ skipped: true, reason: "a chunk is running" });
       st.chunk_at = nowIso();
       if (flag) await db.AppSettings.update(flag.id, { pageSettings: st }); else flag = await db.AppSettings.create({ key: "brain_to_dossier_nightly", pageSettings: st });
-      const maxExtract = Number(body?.max_extract) || (action === "nightly" ? 6 : 20);
+      const maxExtract = Number(body?.max_extract) || (action === "nightly" ? 4 : 20);
       while (st.idx < st.ids.length && inBudget()) {
         const id = st.ids[st.idx];
         st.idx++; // advance first: a client that ever hits the time limit is not retried forever
