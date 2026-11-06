@@ -166,6 +166,9 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
     let v = cut(scrub(x?.[f]), f === "story" ? 1500 : 600);
     // A record timestamp is not a founding date.
     if (f === "founded" && /^\d{4}-\d{2}-\d{2}/.test(v)) v = "";
+    // The dream outcome is the customer's, and models confuse it with the owner's goals: only take it when the Brain
+    // names one explicitly.
+    if (f === "dream_outcome" && !/dream outcome/.test(brainNorm)) v = "";
     if (!v) { unmap(f, ""); continue; }
     if (!has(d[f]) || (owned(f) && newer(f) && v !== d[f])) { patch[f] = v; mark(f); }
   }
@@ -254,7 +257,7 @@ function mergeExtraction(d: any, x: any, brain: any, brainAt: string, brainNorm:
   if (force) for (const k of Object.keys(bs.fields)) if (k.startsWith("kpis.")) { delete kp[k.slice(5)]; delete bs.fields[k]; kpChanged = true; }
   for (const k of arr(x?.kpis)) {
     const key = norm(k?.key).replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 40);
-    if (!key || /phone|password|token|secret|login|id$/.test(key) || has(kp[key]) || !s(k?.value)) continue;
+    if (!key || /phone|password|token|secret|login|id$|required|target|goal|need|budget|cost|workflow|sync|plan/.test(key) || has(kp[key]) || !s(k?.value)) continue;
     const nv = norm(k.value);
     if (Object.values(kp).some((v: any) => norm(v).includes(nv))) continue; // same number already on file under another name
     kp[key] = cut(`${scrub(k.value)}${k.source ? ` (source: ${scrub(k.source)})` : " (source: Business Brain)"}`, 300); kpChanged = true;
