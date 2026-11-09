@@ -113,7 +113,7 @@ export async function runPolicySweep({ by = "claude", force = false } = {}) {
     }
     const rows = (await base44.entities.AppSettings.filter({ key: POLICY_KEY }, "-updated_date", 1).catch(() => [])) || [];
     if (rows[0]) {
-      await base44.entities.AppSettings.update(rows[0].id, { pageSettings: { ...(rows[0].pageSettings || {}), last_sweep: { at: out.at, by, cleared: out.cleared.length, engines: out.engines, errors: out.errors.length } } }).catch(() => null);
+      await base44.entities.AppSettings.update(rows[0].id, { pageSettings: { ...(rows[0].pageSettings || {}), last_sweep: { at: out.at, by, cleared: out.cleared.length, engines: out.engines, errors: out.errors.length, error_list: out.errors.slice(0, 5).map((e) => String(e).slice(0, 300)) } } }).catch(() => null);
     }
     return out;
   })();
