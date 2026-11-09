@@ -70,11 +70,13 @@ async function list(ent: any, q: any = {}, sort = "-created_date", limit = 500) 
 // failing. Writes are not paced (they are not on that budget).
 const READ_GAP_MS = 250;
 let nextReadAt = 0;
+const readStats = { reads: 0, waited_ms: 0, rate_limited: 0 };
 async function readSlot() {
+  readStats.reads++;
   const now = Date.now();
   const at = Math.max(now, nextReadAt);
   nextReadAt = at + READ_GAP_MS;
-  if (at > now) await sleep(at - now);
+  if (at > now) { readStats.waited_ms += at - now; await sleep(at - now); }
 }
 async function pacedRead(fn: () => Promise<any>) {
   for (let attempt = 0; ; attempt++) {
@@ -83,6 +85,7 @@ async function pacedRead(fn: () => Promise<any>) {
       const m = RL_RE.exec(String((e as Error)?.message || e));
       const wait = m ? (Number(m[1]) + 1) * 1000 : 0;
       if (!m || attempt >= 2 || wait > 20000) throw e;
+      readStats.rate_limited++;
       await sleep(wait);
     }
   }
@@ -450,6 +453,7 @@ async function syncOne(base44: any, db: any, clientId: string, opts: { extract: 
   const brain = agency ? (await list(db.BusinessBrain, { scope: "interstellar" }, "-updated_date", 1))[0] : (await list(db.BusinessBrain, { client_id: clientId }, "-updated_date", 1))[0];
   let dossierRec = agency ? null : (await list(db.ClientDossier, { client_id: clientId }, "-updated_date", 1))[0] || null;
   let d: any = agency ? { ...(brain?.dossier || {}), client_id: "agency" } : dossierRec ? { ...dossierRec } : { client_id: clientId, client_name: client.business };
+  const t0 = Date.now(), r0 = { ...readStats };
   const out: any = { client_id: clientId, client: client.business, stored_before: agency ? brain?.constellation?.health_score ?? null : dossierRec?.health_score ?? null };
 
   const ctx0 = await scoreCtx(db, client, d, clientId);
@@ -523,6 +527,7 @@ async function syncOne(base44: any, db: any, clientId: string, opts: { extract: 
   const src = await loadContextSources(db, clientId);
   const block = buildContextBlock({ ...src, dossier: d });
   out.context_chars = block.length;
+  out.timing = { ms: Date.now() - t0, reads: readStats.reads - r0.reads, read_wait_ms: readStats.waited_ms - r0.waited_ms, rate_limited: readStats.rate_limited - r0.rate_limited };
   if (opts.dry) { out.dry_run = true; out.patch_fields = Object.keys(patch); return out; }
 
   if (agency) {
