@@ -742,6 +742,9 @@ export const isSocialPlanJob = (job) => !!(job && job.kind === "social_plan" && 
 export const socialPlanFromJob = (job) => normalizeSocialPlan(job && job.result_data);
 
 // Called from approveJob: archive the previous version, save the approved one (hidden from the portal).
+const BODY_MAX = 8000;
+const fitBody = (s) => (s && s.length <= BODY_MAX ? s : "");
+
 export async function saveApprovedSocialPlan(job) {
   if (!job.client_id) return null;
   const plan = socialPlanFromJob(job);
@@ -758,7 +761,9 @@ export async function saveApprovedSocialPlan(job) {
     version,
     summary: job.result_summary || plan.summary || "",
     plan,
-    body_md: job.result_body || socialPlanToMarkdown(plan, job.client_name || ""),
+    // body_md is only a fallback (the view renders from `plan`). The entity API rejects long text fields
+    // ("Field 'body_md' exceeds the maximum allowed size"), which made every approval of a full plan fail.
+    body_md: fitBody(job.result_body || socialPlanToMarkdown(plan, job.client_name || "")),
     direction: job.extra || "",
     source_job_id: job.id,
     generated_by: job.context && job.context.quick_draft ? "quick_draft" : "claude_queue",
