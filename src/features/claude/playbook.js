@@ -540,7 +540,8 @@ export async function saveApprovedPlaybook(job) {
     version,
     summary: job.result_summary || playbook.summary || "",
     playbook,
-    body_md: job.result_body || playbookToMarkdown(playbook, job.client_name || ""),
+    // Fallback text only (the view renders from `playbook`); long text fields are rejected by the entity API.
+    body_md: ((s) => (s && s.length <= 8000 ? s : ""))(job.result_body || playbookToMarkdown(playbook, job.client_name || "")),
     source_job_id: job.id,
     generated_by: job.context && job.context.quick_draft ? "quick_draft" : "claude_queue",
     approved_at: new Date().toISOString(),
