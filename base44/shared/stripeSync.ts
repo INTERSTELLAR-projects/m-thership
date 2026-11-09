@@ -58,7 +58,8 @@ export async function syncFromStripe(base44: any, key: string) {
     t.customers.add(s.customer.id);
     s.lines.forEach((l: any) => {
       // Named exactly as the product is in Stripe (LABEL kept only as a short display alias).
-      t.lines.push({ id: l.id, name: l.name, short: LABEL(l.plan, l.name), price: l.monthly, stripe: true, stripe_price_id: l.price_id, stripe_product_id: l.product_id, subscription_id: s.id, interval: l.interval, discontinued: DISCONTINUED.test(l.name), status: s.status });
+      // ® → ™ (Interstellar's marks are not registered), so a Stripe product still named with ® never lands in Møthership.
+      t.lines.push({ id: l.id, name: String(l.name || "").replace(/®/g, "™"), short: LABEL(l.plan, l.name), price: l.monthly, stripe: true, stripe_price_id: l.price_id, stripe_product_id: l.product_id, subscription_id: s.id, interval: l.interval, discontinued: DISCONTINUED.test(l.name), status: s.status });
       t.plans.add(s.plan);
     });
     touched.set(client.id, t);
