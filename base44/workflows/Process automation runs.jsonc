@@ -2,7 +2,7 @@
   "name": "Process automation runs",
   "description": "When an automation reports a run, update that automation's health, log the work for the client, and check the URL is actually live.",
   "trigger": {
-    "condition": null,
+    "condition": "${ .trigger.data.processed != true }",
     "config": {
       "trigger_type": "entity",
       "events": [
