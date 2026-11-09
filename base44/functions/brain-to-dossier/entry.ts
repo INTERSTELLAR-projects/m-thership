@@ -619,7 +619,7 @@ Deno.serve(async (req) => {
         const ids = [...(await targets(db)), "agency"];
         if (ids.length < 2) return Response.json({ error: "No active clients read; not starting a pass" }, { status: 503 });
         st = { night, ids, idx: 0, extracted: 0, summary: [], started_at: nowIso() };
-      } else if (st.idx >= arr(st.ids).length) return Response.json({ skipped: true, reason: "tonight's pass is complete", ...st, summary: undefined });
+      } else if (st.idx >= arr(st.ids).length) return Response.json({ skipped: true, reason: "tonight's pass is complete", night: st.night, done: st.idx, of: arr(st.ids).length }); // no client ids to an anonymous caller
       else if (st.chunk_at && Date.now() - new Date(st.chunk_at).getTime() < 90 * 1000) return Response.json({ skipped: true, reason: "a chunk is running" });
       st.chunk_at = nowIso();
       if (flag) await db.AppSettings.update(flag.id, { pageSettings: st }); else flag = await db.AppSettings.create({ key: "brain_to_dossier_nightly", pageSettings: st });
