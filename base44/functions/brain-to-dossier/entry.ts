@@ -611,8 +611,8 @@ Deno.serve(async (req) => {
       const night = pacificDay();
       if (action === "all" || st.night !== night) {
         if (action === "nightly" && st.night === night) return Response.json({ skipped: true });
-        const ids = body?.client_ids ? arr(body.client_ids).map(String) : [...(await targets(db)), "agency"];
-        if (ids.length < 2 && !body?.client_ids) return Response.json({ error: "No active clients read; not starting a pass" }, { status: 503 });
+        const ids = [...(await targets(db)), "agency"];
+        if (ids.length < 2) return Response.json({ error: "No active clients read; not starting a pass" }, { status: 503 });
         st = { night, ids, idx: 0, extracted: 0, summary: [], started_at: nowIso() };
       } else if (st.idx >= arr(st.ids).length) return Response.json({ skipped: true, reason: "tonight's pass is complete", ...st, summary: undefined });
       else if (st.chunk_at && Date.now() - new Date(st.chunk_at).getTime() < 90 * 1000) return Response.json({ skipped: true, reason: "a chunk is running" });
