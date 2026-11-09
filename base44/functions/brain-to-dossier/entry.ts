@@ -57,8 +57,51 @@ function similar(a: any, b: any) {
   const inter = [...A].filter((w) => B.has(w)).length;
   return inter / (A.size + B.size - inter) >= 0.8;
 }
+// A rate-limited read must never pass for "no rows": that made the nightly pass lose its cursor and its client list
+// (Nov 6-9, 2026: every step started a fresh one-client pass and re-synced only Interstellar) and could score a
+// client on empty data. Other read errors (e.g. an entity that does not exist) still read as empty.
+const RL_RE = /rate limit exceeded[\s\S]*?retry after (\d+)\s*s/i;
 async function list(ent: any, q: any = {}, sort = "-created_date", limit = 500) {
-  try { return arr(await ent.filter(q, sort, limit)); } catch { return []; }
+  try { return arr(await ent.filter(q, sort, limit)); } catch (e) { if (RL_RE.test(String((e as Error)?.message || e))) throw e; return []; }
+}
+
+// Reads share one budget with every other backend function (entity_list: 350 per 60s per service token). Space this
+// function's reads out (at most ~240 a minute, leaving room for everything else) and wait out a rate limit instead of
+// failing. Writes are not paced (they are not on that budget).
+const READ_GAP_MS = 250;
+let nextReadAt = 0;
+async function readSlot() {
+  const now = Date.now();
+  const at = Math.max(now, nextReadAt);
+  nextReadAt = at + READ_GAP_MS;
+  if (at > now) await sleep(at - now);
+}
+async function pacedRead(fn: () => Promise<any>) {
+  for (let attempt = 0; ; attempt++) {
+    await readSlot();
+    try { return await fn(); } catch (e) {
+      const m = RL_RE.exec(String((e as Error)?.message || e));
+      const wait = m ? (Number(m[1]) + 1) * 1000 : 0;
+      if (!m || attempt >= 2 || wait > 20000) throw e;
+      await sleep(wait);
+    }
+  }
+}
+function paced(db: any) {
+  return new Proxy(db, {
+    get(t: any, name: any) {
+      const ent = t[name];
+      if (!ent || typeof ent !== "object") return ent;
+      return new Proxy(ent, {
+        get(e: any, m: any) {
+          const f = e[m];
+          if (typeof f !== "function") return f;
+          if (m === "filter" || m === "list" || m === "get") return (...a: any[]) => pacedRead(() => f.apply(e, a));
+          return f.bind(e);
+        },
+      });
+    },
+  });
 }
 
 // ---------- LLM ----------
@@ -446,7 +489,7 @@ async function syncOne(base44: any, db: any, clientId: string, opts: { extract: 
   // 1b. Review dots Claude (or this sync) saved by hand from old site claims: the live Google reviews feed is measured
   //     data, so it wins when it disagrees. Justin's own checks are never touched.
   {
-    const ctxNow = await scoreCtx(db, client, d, clientId);
+    const ctxNow = { ...ctx0, d }; // same rows as ctx0; only the dossier changed
     const pillars = structuredClone(d.pillars || {});
     const cleared: string[] = [];
     for (const p of PILLARS) for (const it of p.items) {
@@ -467,7 +510,8 @@ async function syncOne(base44: any, db: any, clientId: string, opts: { extract: 
   }
 
   // 3. score
-  const ctx1 = await scoreCtx(db, client, d, clientId);
+  // Re-read only when steps 2 added rows; otherwise ctx0's rows are still current (saves ~7 reads a client).
+  const ctx1 = (out.worklog_added?.length || out.files_added?.length) ? await scoreCtx(db, client, d, clientId) : { ...ctx0, d };
   const after = scoreReport(ctx1);
   out.after = after.health;
   out.pillar_scores = after.pillar_scores;
@@ -493,9 +537,18 @@ async function syncOne(base44: any, db: any, clientId: string, opts: { extract: 
 }
 
 async function targets(db: any) {
-  const clients = await list(db.CRMClient, { status: "Active" }, "business", 200);
+  const clients = arr(await db.CRMClient.filter({ status: "Active" }, "business", 200)); // strict: a failed read throws
   return clients.filter((c: any) => c.plan_status !== "inactive").map((c: any) => c.id);
 }
+
+// Would this client's sync re-map its Brain (an LLM call of up to ~30s)?
+async function needsRemap(db: any, id: string) {
+  const b = (await list(db.BusinessBrain, id === "agency" ? { scope: "interstellar" } : { client_id: id }, "-updated_date", 1))[0];
+  if (!b) return false;
+  const at = Object.values(b.sections || {}).map((v: any) => String(v?.updated_at || "")).sort().pop() || "";
+  return !b.dossier_synced_at || at > String(b.dossier_synced_at);
+}
+const CHUNK_BUDGET_MS = 20000; // nightly: start clients for up to 20s a call (paced reads make one client ~6-8s)
 
 Deno.serve(async (req) => {
   try {
@@ -503,7 +556,7 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me().catch(() => null);
     const body = await req.json().catch(() => ({}));
     const action = String(body?.action || "sync");
-    const db = base44.asServiceRole.entities;
+    const db = paced(base44.asServiceRole.entities);
     if (!user) { if (action !== "nightly" && action !== "queued") return Response.json({ error: "Unauthorized" }, { status: 401 }); }
     else if (user.role !== "admin") return Response.json({ error: "Forbidden" }, { status: 403 });
     const dry = body?.dry_run === true;
@@ -549,22 +602,31 @@ Deno.serve(async (req) => {
     // brain_to_dossier_nightly). The nightly workflow calls this step several times; a call after the pass is complete
     // does nothing. "all" (admin) starts a fresh pass now.
     if (action === "all" || action === "nightly") {
-      let flag = (await list(db.AppSettings, { key: "brain_to_dossier_nightly" }, "-updated_date", 1))[0];
+      // Strict read: if the cursor can't be read, stop (never start a new pass on a failed read).
+      const flags = arr(await db.AppSettings.filter({ key: "brain_to_dossier_nightly" }, "-updated_date", 25));
+      let flag = flags[0];
+      // Tidy the duplicate cursor rows the old bug created (one per step per night); the newest row is the cursor.
+      if (flags.length > 1 && !dry) for (const r of flags.slice(1)) await db.AppSettings.delete(r.id).catch(() => null);
       let st: any = flag?.pageSettings || {};
       const night = pacificDay();
       if (action === "all" || st.night !== night) {
         if (action === "nightly" && st.night === night) return Response.json({ skipped: true });
-        st = { night, ids: [...(await targets(db)), "agency"], idx: 0, extracted: 0, summary: [], started_at: nowIso() };
+        const ids = body?.client_ids ? arr(body.client_ids).map(String) : [...(await targets(db)), "agency"];
+        if (ids.length < 2 && !body?.client_ids) return Response.json({ error: "No active clients read; not starting a pass" }, { status: 503 });
+        st = { night, ids, idx: 0, extracted: 0, summary: [], started_at: nowIso() };
       } else if (st.idx >= arr(st.ids).length) return Response.json({ skipped: true, reason: "tonight's pass is complete", ...st, summary: undefined });
-      else if (st.chunk_at && Date.now() - new Date(st.chunk_at).getTime() < 40 * 1000) return Response.json({ skipped: true, reason: "a chunk is running" });
+      else if (st.chunk_at && Date.now() - new Date(st.chunk_at).getTime() < 90 * 1000) return Response.json({ skipped: true, reason: "a chunk is running" });
       st.chunk_at = nowIso();
       if (flag) await db.AppSettings.update(flag.id, { pageSettings: st }); else flag = await db.AppSettings.create({ key: "brain_to_dossier_nightly", pageSettings: st });
       const maxExtract = Number(body?.max_extract) || (action === "nightly" ? 4 : 20);
-      while (st.idx < st.ids.length && inBudget()) {
+      while (st.idx < st.ids.length && Date.now() - t0 < CHUNK_BUDGET_MS) {
         const id = st.ids[st.idx];
+        const mayExtract = body?.extract !== false && st.extracted < maxExtract;
+        // A Brain re-map only starts early in a call (inBudget); a client that needs one waits to open the next chunk.
+        if (!inBudget() && mayExtract && (body?.force === true || await needsRemap(db, id).catch(() => true))) break;
         st.idx++; // advance first: a client that ever hits the time limit is not retried forever
         await db.AppSettings.update(flag.id, { pageSettings: st }).catch(() => null);
-        const r: any = await syncOne(base44, db, id, { extract: body?.extract !== false && st.extracted < maxExtract, force: body?.force === true, dry }).catch((e) => ({ client_id: id, error: String(e?.message || e) }));
+        const r: any = await syncOne(base44, db, id, { extract: mayExtract && inBudget(), force: body?.force === true, dry }).catch((e) => ({ client_id: id, error: String(e?.message || e) }));
         if (r?.filled || r?.checks_set) st.extracted++;
         st.summary.push({ client: r.client || id, before: r.before ?? null, after: r.after ?? null, error: r.error || undefined, remapped: !!(r.filled || r.checks_set) });
         await db.AppSettings.update(flag.id, { pageSettings: st }).catch(() => null);
