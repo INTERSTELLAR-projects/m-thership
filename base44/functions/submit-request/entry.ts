@@ -1,5 +1,27 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 
+// Rate limiting (security hardening Nov 2026): per-minute + per-day windows per caller IP, stored in
+// RateLimitBucket (admin-only RLS; only the service role writes it). Fails open on storage errors.
+const callerIp = (req: any) => String(req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown").split(",")[0].trim().slice(0, 64);
+async function rateLimit(base44: any, req: any, name: any, perMin = 30, perDay = 500) {
+  const key = `${name}:${callerIp(req)}`;
+  const minute = new Date(Math.floor(Date.now() / 60000) * 60000).toISOString();
+  const day = minute.slice(0, 10);
+  try {
+    const rl = base44.asServiceRole.entities.RateLimitBucket;
+    const row = ((await rl.filter({ key }, "-updated_date", 1)) || [])[0];
+    if (!row) { await rl.create({ key, window_start: minute, count: 1, day, day_count: 1 }); return null; }
+    const count = row.window_start === minute ? (Number(row.count) || 0) + 1 : 1;
+    const dayCount = row.day === day ? (Number(row.day_count) || 0) + 1 : 1;
+    if (count > perMin || dayCount > perDay) {
+      return Response.json({ error: "Too many requests. Please wait a moment and try again." }, { status: 429, headers: { "Retry-After": count > perMin ? "60" : "3600" } });
+    }
+    await rl.update(row.id, { window_start: minute, count, day, day_count: dayCount });
+  } catch (_e) { /* fail open */ }
+  return null;
+}
+
+
 // Public request intake. Client websites / apps POST here so every request funnels into Møthership.
 //   GET  /functions/submit-request?form=<RequestForm id>&key=<form_key>      → form definition (fields) for rendering
 //   POST /functions/submit-request { form_id, key, values, contact_name?, contact_email?, source? } → creates the ClientRequest
@@ -13,9 +35,14 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   try {
     const base44 = createClientFromRequest(req);
+    const __limited = await rateLimit(base44, req, "submit-request", 10, 100);
+    if (__limited) return __limited;
     const db = base44.asServiceRole.entities;
     const url = new URL(req.url);
     const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
+    // Bot trap + size cap (security hardening Nov 2026): a hidden field real visitors never fill; oversized payloads refused.
+    if (req.method === "POST" && String(body.company_website_hp || "").trim()) return json({ ok: true });
+    if (req.method === "POST" && JSON.stringify(body.values || {}).length > 50000) return json({ error: "Submission too large" }, 413);
     const formId = String(body.form_id || url.searchParams.get("form") || "");
     const key = String(body.key || url.searchParams.get("key") || "");
     if (!formId || !key) return json({ error: "form and key required" }, 400);

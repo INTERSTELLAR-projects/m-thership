@@ -22,6 +22,9 @@ Deno.serve(async (req) => {
   for (let attempt = 1; ; attempt++) {
     try {
       const results = await processPendingRuns(base44.asServiceRole.entities);
+      // Trimmed for anyone but an admin: workflow triggers only need the count (security hardening Nov 2026).
+      const caller = await base44.auth.me().catch(() => null);
+      if (caller?.role !== "admin") return Response.json({ processed: results.length });
       return Response.json({ processed: results.length, results, attempts: attempt, waited_ms: waited });
     } catch (e) {
       const msg = (e as Error)?.message || String(e);

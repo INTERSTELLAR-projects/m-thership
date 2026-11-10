@@ -46,7 +46,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    return Response.json({ success: true, user });
+    // Only what the caller needs, never the full user record (security hardening Nov 2026).
+    return Response.json({ success: true, user: { id: user.id, email: user.email, role: user.role } });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

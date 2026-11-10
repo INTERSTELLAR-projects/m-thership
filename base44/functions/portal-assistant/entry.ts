@@ -5,6 +5,28 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import { resolvePortalClient, gatherBriefing, json, today } from "../../shared/portalAssistant.ts";
 import { check, record } from "../../shared/meter.ts";
 
+// Rate limiting (security hardening Nov 2026): per-minute + per-day windows per caller IP, stored in
+// RateLimitBucket (admin-only RLS; only the service role writes it). Fails open on storage errors.
+const callerIp = (req: any) => String(req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown").split(",")[0].trim().slice(0, 64);
+async function rateLimit(base44: any, req: any, name: any, perMin = 30, perDay = 500) {
+  const key = `${name}:${callerIp(req)}`;
+  const minute = new Date(Math.floor(Date.now() / 60000) * 60000).toISOString();
+  const day = minute.slice(0, 10);
+  try {
+    const rl = base44.asServiceRole.entities.RateLimitBucket;
+    const row = ((await rl.filter({ key }, "-updated_date", 1)) || [])[0];
+    if (!row) { await rl.create({ key, window_start: minute, count: 1, day, day_count: 1 }); return null; }
+    const count = row.window_start === minute ? (Number(row.count) || 0) + 1 : 1;
+    const dayCount = row.day === day ? (Number(row.day_count) || 0) + 1 : 1;
+    if (count > perMin || dayCount > perDay) {
+      return Response.json({ error: "Too many requests. Please wait a moment and try again." }, { status: 429, headers: { "Retry-After": count > perMin ? "60" : "3600" } });
+    }
+    await rl.update(row.id, { window_start: minute, count, day, day_count: dayCount });
+  } catch (_e) { /* fail open */ }
+  return null;
+}
+
+
 // Voice is metered like any Nøva AI action (1 unit per transcription, 1 per spoken reply; feature "nova_voice"
 // so it runs on every plan, Studios or not). Admin previews are logged but never charged to the client.
 async function meterVoice(ctx: any, feature: string) {
@@ -44,6 +66,8 @@ function bytesToB64(bytes: Uint8Array) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const __limited = await rateLimit(base44, req, "portal-assistant", 20, 400);
+    if (__limited) return __limited;
     const body = await req.json().catch(() => ({}));
     const ctx = await resolvePortalClient(base44, body, req);
     if ("error" in ctx) return ctx.error;

@@ -1,5 +1,27 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 
+// Rate limiting (security hardening Nov 2026): per-minute + per-day windows per caller IP, stored in
+// RateLimitBucket (admin-only RLS; only the service role writes it). Fails open on storage errors.
+const callerIp = (req: any) => String(req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown").split(",")[0].trim().slice(0, 64);
+async function rateLimit(base44: any, req: any, name: any, perMin = 30, perDay = 500) {
+  const key = `${name}:${callerIp(req)}`;
+  const minute = new Date(Math.floor(Date.now() / 60000) * 60000).toISOString();
+  const day = minute.slice(0, 10);
+  try {
+    const rl = base44.asServiceRole.entities.RateLimitBucket;
+    const row = ((await rl.filter({ key }, "-updated_date", 1)) || [])[0];
+    if (!row) { await rl.create({ key, window_start: minute, count: 1, day, day_count: 1 }); return null; }
+    const count = row.window_start === minute ? (Number(row.count) || 0) + 1 : 1;
+    const dayCount = row.day === day ? (Number(row.day_count) || 0) + 1 : 1;
+    if (count > perMin || dayCount > perDay) {
+      return Response.json({ error: "Too many requests. Please wait a moment and try again." }, { status: 429, headers: { "Retry-After": count > perMin ? "60" : "3600" } });
+    }
+    await rl.update(row.id, { window_start: minute, count, day, day_count: dayCount });
+  } catch (_e) { /* fail open */ }
+  return null;
+}
+
+
 // Public redirect for dynamic QR codes (Møthership Studio / QR Codes).
 //   GET https://interstellar-mothership.com/functions/qr?c=<short_code>
 // Looks the code up, logs one anonymous scan (time, device class, OS family, referrer host, country header;
@@ -62,6 +84,8 @@ Deno.serve(async (req) => {
     if (!CODE_RE.test(code)) return page("Lost in space", "This QR link isn't valid. Check the code and try again.", 404);
 
     const base44 = createClientFromRequest(req);
+    const __limited = await rateLimit(base44, req, "qr", 120, 5000);
+    if (__limited) return __limited;
     const db = base44.asServiceRole.entities;
     const found = await db.QrCode.filter({ short_code: code }, "-created_date", 1).catch(() => []);
     const qr = (found || [])[0] as Record<string, unknown> | undefined;
