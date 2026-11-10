@@ -1,0 +1,112 @@
+{
+  "name": "AdHookLab",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string",
+      "description": "Short code used in ad names, e.g. HL7 -> HL7-H01-M2-C3"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "\"\" = Interstellar's own ads"
+    },
+    "goal": {
+      "type": "string",
+      "description": "What the ads should get (e.g. booked strategy calls from roofers)"
+    },
+    "offer_key": {
+      "type": "string"
+    },
+    "audience": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "meta",
+        "tiktok",
+        "youtube",
+        "google",
+        "all"
+      ],
+      "default": "meta"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planning",
+        "recording",
+        "testing",
+        "iterating",
+        "archived"
+      ],
+      "default": "planning"
+    },
+    "step": {
+      "type": "number",
+      "default": 1
+    },
+    "round": {
+      "type": "number",
+      "default": 1
+    },
+    "hooks": {
+      "type": "array",
+      "description": "{ id, n, text, style, round, status: draft|keep|cut|testing|winner|loser|control, shot, spend, impressions, views3s, clicks, leads, note }",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "meats": {
+      "type": "array",
+      "description": "{ id, n, kind: education|belief|demo, title, script, shot }",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "ctas": {
+      "type": "array",
+      "description": "{ id, n, text, shot }",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "control_hook_id": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
