@@ -1,0 +1,105 @@
+{
+  "description": "One security-audit check for one app (Nov 2026 hardening pass). Upsert by app_id + check_key.",
+  "name": "SecurityCheck",
+  "properties": {
+    "app_id": {
+      "type": "string"
+    },
+    "app_kind": {
+      "enum": [
+        "website",
+        "system",
+        "portal",
+        "internal"
+      ],
+      "type": "string"
+    },
+    "app_name": {
+      "type": "string"
+    },
+    "check_key": {
+      "type": "string"
+    },
+    "check_label": {
+      "type": "string"
+    },
+    "checked_at": {
+      "format": "date",
+      "type": "string"
+    },
+    "checkpoint": {
+      "description": "Name of the Base44 checkpoint that holds the fix (not yet published)",
+      "type": "string"
+    },
+    "client_id": {
+      "description": "CRMClient id, or 'agency' for Interstellar's own apps",
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "finding": {
+      "type": "string"
+    },
+    "fix": {
+      "type": "string"
+    },
+    "group": {
+      "enum": [
+        "prelaunch",
+        "attack",
+        "rate_limit",
+        "privacy",
+        "testing"
+      ],
+      "type": "string"
+    },
+    "severity": {
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "pass",
+        "fixed",
+        "fail",
+        "needs_justin",
+        "n_a"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "app_id",
+    "check_key",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

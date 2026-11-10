@@ -1,0 +1,51 @@
+{
+  "name": "RateLimitBucket",
+  "properties": {
+    "count": {
+      "description": "calls in this minute",
+      "type": "number"
+    },
+    "day": {
+      "description": "YYYY-MM-DD (UTC) the daily count belongs to",
+      "type": "string"
+    },
+    "day_count": {
+      "description": "calls today",
+      "type": "number"
+    },
+    "key": {
+      "description": "bucket name + caller IP",
+      "type": "string"
+    },
+    "window_start": {
+      "description": "ISO minute the per-minute count belongs to",
+      "type": "string"
+    }
+  },
+  "required": [
+    "key"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}
