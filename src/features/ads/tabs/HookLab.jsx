@@ -28,7 +28,6 @@ const STEPS = [
   { n: 9, t: "Beat the control", d: "New hooks built to beat the best one. Repeat." },
 ];
 
-const HOOK_TONE = { draft: "default", keep: "ok", cut: "blocked", testing: "active", winner: "pass", loser: "info", control: "executed" };
 const pct = (v) => (v == null ? "—" : `${(v * 100).toFixed(1)}%`);
 const money = (v) => (v == null ? "—" : `$${v.toFixed(2)}`);
 
@@ -50,7 +49,7 @@ export default function HookLab({ clientId = "", readOnly = false }) {
     if (pick && pick.id !== lab?.id) setLab(pick);
     if (!pick) setLab(null);
     if (pick && !activeId) setActiveId(pick.id);
-  }, [labs, activeId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [labs, activeId]);
 
   const save = async (patch) => {
     const next = { ...lab, ...patch };
