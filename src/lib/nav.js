@@ -20,6 +20,7 @@ import { Wand2 as SmplStudioIcon } from "lucide-react";
 import { Chrome as ChromeWorkspaceIcon } from "lucide-react";
 import { Inbox as ApprovalsIcon, Crown as CommanderIcon, BookOpenCheck as SopsIcon, Globe as PortalIcon } from "lucide-react";
 import { GraduationCap as TrainingIcon } from "lucide-react";
+import { ShieldCheck as SecurityIcon } from "lucide-react";
 
 export const LOGO_URL =
   "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/536102fbf_interstellar-mark-v2.webp";
@@ -84,6 +85,7 @@ export const NAV_GROUPS = [
       { label: "Content Plans", icon: ContentPlansIcon, path: "/content-plans" },
       { label: "Backlinks & Citations", icon: BacklinksIcon, path: "/backlinks" },
       { label: "Stärboard reviews", icon: Star, path: "/reviews" },
+      { label: "Security", icon: SecurityIcon, path: "/security" },
     ],
   },
   {
