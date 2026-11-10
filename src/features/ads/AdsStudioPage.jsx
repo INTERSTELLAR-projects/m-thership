@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, BookOpen, Image, Inbox as InboxIcon, Layers, Plug, ShieldCheck, Target } from "lucide-react";
+import { BarChart3, BookOpen, FlaskConical, Image, Inbox as InboxIcon, Layers, Plug, ShieldCheck, Target } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { KEYS, inScope, listRecs } from "./lib/adsApi";
 import { Tabs } from "./ui";
@@ -12,6 +12,7 @@ import Policy from "./tabs/Policy";
 import Connections from "./tabs/Connections";
 import Learnings from "./tabs/Learnings";
 import Goals from "./tabs/Goals";
+import HookLab from "./tabs/HookLab";
 
 // Ads Studio (admin). One place to read ad performance, build on-brand creatives, policy-check them, and approve
 // what the optimisation agent proposes. Built for per-client use later: every view takes a clientId scope
@@ -21,6 +22,7 @@ const TABS = [
   { key: "overview", label: "Overview", icon: BarChart3 },
   { key: "inbox", label: "Approvals", icon: InboxIcon },
   { key: "campaigns", label: "Campaigns", icon: Layers },
+  { key: "hooklab", label: "Hook Lab", icon: FlaskConical },
   { key: "creatives", label: "Creatives", icon: Image },
   { key: "policy", label: "Policy guard", icon: ShieldCheck },
   { key: "connections", label: "Connections", icon: Plug },
@@ -45,6 +47,7 @@ export default function AdsStudioPage({ clientId = "", readOnly = false }) {
         {tab === "overview" && <Overview {...props} />}
         {tab === "inbox" && <Inbox {...props} />}
         {tab === "campaigns" && <Campaigns {...props} />}
+        {tab === "hooklab" && <HookLab {...props} />}
         {tab === "creatives" && <Creatives {...props} />}
         {tab === "policy" && <Policy {...props} />}
         {tab === "connections" && <Connections {...props} />}
