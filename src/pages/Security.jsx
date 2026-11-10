@@ -1,8 +1,29 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ShieldCheck, AlertTriangle, ChevronDown, ChevronRight, Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ShieldCheck, AlertTriangle, ChevronDown, ChevronRight, Loader2, RefreshCw } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 import { useList } from "@/lib/useData";
 import { cn } from "@/lib/utils";
+import { buildRows, AUDIT_VERSION } from "@/features/security/auditData";
+
+const SYNC_FIELDS = ["client_id", "client_name", "app_name", "app_kind", "check_label", "group", "status", "severity", "finding", "fix", "checkpoint", "checked_at"];
+
+// Upsert the audit file into SecurityCheck (match on app_id + check_key). Admin-only entity, so this only
+// succeeds for Justin; anyone else simply sees nothing.
+async function syncAudit(existing) {
+  const byKey = new Map(existing.map((r) => [`${r.app_id}|${r.check_key}`, r]));
+  const toCreate = [];
+  const toUpdate = [];
+  for (const r of buildRows()) {
+    const cur = byKey.get(`${r.app_id}|${r.check_key}`);
+    if (!cur) { toCreate.push(r); continue; }
+    if (SYNC_FIELDS.some((k) => (cur[k] ?? "") !== (r[k] ?? ""))) toUpdate.push([cur.id, r]);
+  }
+  for (let i = 0; i < toCreate.length; i += 50) await base44.entities.SecurityCheck.bulkCreate(toCreate.slice(i, i + 50));
+  for (const [id, r] of toUpdate) await base44.entities.SecurityCheck.update(id, r);
+  return toCreate.length + toUpdate.length;
+}
 
 // Security scoreboard: one SecurityCheck row per app per check (written by the Nov 2026 hardening pass).
 // Fixes live in each app's Base44 checkpoints; nothing here is published until Justin publishes the app.
@@ -95,8 +116,21 @@ function AppCard({ app }) {
 }
 
 export default function Security() {
-  const { data: all = [], isLoading } = useList("SecurityCheck", { sort: "app_name", limit: 2000 });
+  const { data: all = [], isLoading, isFetched } = useList("SecurityCheck", { sort: "app_name", limit: 2000 });
   const [client, setClient] = useState("all");
+  const [syncing, setSyncing] = useState(false);
+  const synced = useRef(false);
+  const qc = useQueryClient();
+  const runSync = async () => {
+    setSyncing(true);
+    try { const n = await syncAudit(all); if (n) qc.invalidateQueries({ queryKey: ["SecurityCheck"] }); } catch (e) { console.warn("security sync", e?.message); } finally { setSyncing(false); }
+  };
+  useEffect(() => {
+    if (!isFetched || synced.current) return;
+    synced.current = true;
+    runSync();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFetched]);
 
   const clients = useMemo(() => {
     const m = new Map();
@@ -136,13 +170,16 @@ export default function Security() {
             <span>{apps.length} apps · {total.total} checks</span><span className="text-[15px] font-semibold text-ink">{total.score}%</span>
           </div>
           <div className="mt-1.5"><ProgressBar c={total} /></div>
+          <button type="button" onClick={runSync} disabled={syncing} className="mt-2 inline-flex items-center gap-1.5 font-mono text-[10.5px] text-ink/45 hover:text-[#ff3c00] disabled:opacity-60">
+            <RefreshCw className={cn("h-3 w-3", syncing && "animate-spin")} /> {syncing ? "Syncing audit…" : `Audit ${AUDIT_VERSION}`}
+          </button>
         </div>
       </div>
 
       {isLoading ? (
         <p className="flex items-center gap-2 text-[13px] text-ink/55"><Loader2 className="h-4 w-4 animate-spin" /> Loading checks…</p>
       ) : !all.length ? (
-        <p className="rounded-sm bg-ink/[0.04] px-3 py-2.5 text-[13px] text-ink/60">No security checks recorded yet.</p>
+        <p className="flex items-center gap-2 rounded-sm bg-ink/[0.04] px-3 py-2.5 text-[13px] text-ink/60">{syncing && <Loader2 className="h-4 w-4 animate-spin" />}{syncing ? "Loading the latest audit into Security checks…" : "No security checks recorded yet."}</p>
       ) : (
         <>
           {needs.length > 0 && (
