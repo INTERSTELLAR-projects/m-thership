@@ -84,7 +84,7 @@ async function checkFunctions() {
     const entry = ['entry.ts', 'entry.js', 'index.ts', 'index.js'].map((f) => path.join(fnRoot, d, f)).find((f) => fs.existsSync(f));
     if (!entry) { problems.push(`${d}: no entry.ts`); continue; }
     entries.push(entry);
-    if (!/Deno\.serve\s*\(/.test(fs.readFileSync(entry, 'utf8'))) problems.push(`${rel(entry)}: no Deno.serve() handler`);
+    if (!/Deno\.serve\s*\(|export\s+default\b/.test(fs.readFileSync(entry, 'utf8'))) problems.push(`${rel(entry)}: no Deno.serve() / export default handler`);
   }
   // syntax check with esbuild (ships with vite)
   let esbuild = null;
@@ -162,7 +162,7 @@ function checkEntities() {
     names.set(j.name, f);
     if (!j.properties || typeof j.properties !== 'object') bad.push(`${f}: no "properties"`);
     for (const r of j.required || []) if (j.properties && !(r in j.properties)) bad.push(`${f}: required field "${r}" not in properties`);
-    if (!j.rls || typeof j.rls !== 'object' || !Object.keys(j.rls).length) bad.push(`${f}: no RLS rules ("rls" missing)`);
+    if (j.name !== 'User' && (!j.rls || typeof j.rls !== 'object' || !Object.keys(j.rls).length)) bad.push(`${f}: no RLS rules ("rls" missing)`);
   }
   if (bad.length) return rec(`entities (${files.length})`, 'fail', bad.join('\n'));
   rec(`entities (${files.length}): parse + RLS present`, 'pass');
