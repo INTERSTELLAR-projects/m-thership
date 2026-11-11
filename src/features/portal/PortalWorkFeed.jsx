@@ -12,7 +12,26 @@ const CAT = {
 // Group by month so a long feed reads like a story of the relationship.
 const monthOf = (d) => (d ? new Date(`${d}T12:00:00`).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "Earlier");
 
-export default function PortalWorkFeed({ items = [], business }) {
+// "12 things done for you this month · 47 since we started" plus a by-category line. Counts only, never time.
+// counts = work_counts from functions/portal (client-visible, finished work only); older responses without it show nothing.
+export function workCountLines(counts) {
+  if (!counts || !(Number(counts.all_time) > 0)) return null;
+  const things = (n) => `${n} ${n === 1 ? "thing" : "things"}`;
+  const month = Number(counts.this_month) || 0;
+  const all = Number(counts.all_time) || 0;
+  const headline = month > 0 ? `${things(month)} done for you this month` : `${things(all)} done for you since we started`;
+  const since = month > 0 && all > month ? `${all} since we started` : "";
+  const byLabel = new Map();
+  for (const [k, n] of Object.entries(counts.by_category_this_month || {})) {
+    const label = (CAT[k] || CAT.website)[0];
+    if (Number(n) > 0) byLabel.set(label, (byLabel.get(label) || 0) + Number(n));
+  }
+  const cats = [...byLabel.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([label, n]) => ({ label, n }));
+  return { headline, since, cats };
+}
+
+export default function PortalWorkFeed({ items = [], business, counts = null }) {
+  const lines = items.length ? workCountLines(counts) : null;
   const [all, setAll] = useState(false);
   const list = all ? items : items.slice(0, 8);
   const groups = [];
@@ -40,6 +59,16 @@ export default function PortalWorkFeed({ items = [], business }) {
         </div>
       ) : (
         <div>
+          {lines && (
+            <div className="border-b border-hair px-4 py-3 md:px-5" data-work-counts>
+              <p className="text-[14px] font-semibold tracking-[-0.01em]"><span className="text-[#ff3c00]">{lines.headline}</span>{lines.since ? <span className="font-normal text-ink/55"> · {lines.since}</span> : null}</p>
+              {lines.cats.length > 0 && (
+                <p className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[12px] text-ink/55">
+                  {lines.cats.map((c, i) => <span key={c.label}>{i > 0 && <span className="mr-2 text-ink/30">·</span>}{c.label} <b className="font-semibold tabular-nums text-ink/75">{c.n}</b></span>)}
+                </p>
+              )}
+            </div>
+          )}
           {groups.map((g) => (
             <div key={g.month}>
               <p className="border-b border-hair bg-ink/[0.025] px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-ink/45 md:px-5">{g.month}</p>
