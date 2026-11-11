@@ -64,7 +64,7 @@ export default function PortalWorkFeed({ items = [], business, counts = null }) 
               <p className="text-[14px] font-semibold tracking-[-0.01em]"><span className="text-[#ff3c00]">{lines.headline}</span>{lines.since ? <span className="font-normal text-ink/55"> · {lines.since}</span> : null}</p>
               {lines.cats.length > 0 && (
                 <p className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[12px] text-ink/55">
-                  {lines.cats.map((c, i) => <span key={c.label}>{i > 0 && <span className="mr-2 text-ink/30">·</span>}{c.label} <b className="font-semibold tabular-nums text-ink/75">{c.n}</b></span>)}
+                  {lines.cats.map((c, i) => <span key={c.label} className="whitespace-nowrap">{c.label} <b className="font-semibold tabular-nums text-ink/75">{c.n}</b>{i < lines.cats.length - 1 && <span className="ml-2 text-ink/30">·</span>}</span>)}
                 </p>
               )}
             </div>
