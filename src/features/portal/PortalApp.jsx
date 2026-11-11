@@ -303,7 +303,7 @@ function HomeView({ d, go, call, previewId, openAudit }) {
 
       <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr] [&>*]:min-w-0">
         {/* "Work we did" from the work ledger (client-safe copy only). Older portals without work_feed fall back to WorkLog. */}
-        {Array.isArray(d.work_feed) ? <PortalWorkFeed items={d.work_feed} business={d.client.business} /> : (
+        {Array.isArray(d.work_feed) ? <PortalWorkFeed items={d.work_feed} business={d.client.business} counts={d.work_counts} /> : (
         <Panel label="Latest" title="Work feed">
           {d.work.length === 0 ? <Empty>Your work feed fills up as we publish for you.</Empty> : (
             <ul className="divide-y divide-hair">
