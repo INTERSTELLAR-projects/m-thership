@@ -109,7 +109,8 @@ export default function MyTime() {
 
   const baselines = useMemo(() => cfg.data?.rows || [], [cfg.data]);
   const all = useMemo(() => prepare(q.data || []), [q.data]);
-  const now = useMemo(() => new Date(), [q.dataUpdatedAt]); // eslint-disable-line react-hooks/exhaustive-deps
+  const today = dayKey(new Date());
+  const now = useMemo(() => new Date(), [today, q.dataUpdatedAt]);
 
   const tiles = useMemo(() => {
     const r = (id) => rangeFor(id, now);
