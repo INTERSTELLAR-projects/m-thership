@@ -1,6 +1,7 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 import { requireSecondFactor } from "../../shared/twoFactor.ts";
 import { BANNED as LEDGER_BANNED, isClientSafeUrl } from "../../shared/workLedger.ts";
+import { workCounts } from "../../shared/workCounts.ts";
 
 // Client portal API. Every table is admin-only, so portal users never touch entities directly:
 // this function finds the client their login belongs to and returns only that client's
@@ -131,15 +132,27 @@ Deno.serve(async (req) => {
       const ledger = (await by("WorkEntry", "-completed_at", 400).catch(() => [])) as Record<string, unknown>[];
       const covered = new Set(ledger.filter((e) => e.source_type === "work_log").map((e) => String(e.source_id)));
       const KIND_CAT: Record<string, string> = { blog: "content", gbp_post: "gbp", citation: "citations", press: "citations", mention: "citations", backlink: "citations", schema: "seo", search_console: "seo", bing: "seo", analytics: "seo" };
+      // The rows a client may see. The feed below and the task counts (work_counts) are both built from these two lists,
+      // so nothing internal, unfinished or unpublished is ever counted.
+      const ledgerShown = ledger.filter((e) => e.visibility === "client" && e.status === "done" && e.client_title);
+      const legacyShown = work.filter(visible).filter((w: Record<string, unknown>) => w.status === "live" && !covered.has(String(w.id)) && !LEDGER_BANNED.test(String(w.title || "")));
       const workFeed = [
-        ...ledger.filter((e) => e.visibility === "client" && e.status === "done" && e.client_title).map((e) => ({
+        ...ledgerShown.map((e) => ({
           id: e.id, title: e.client_title, summary: e.client_summary || "", category: e.category || "website",
           date: e.completed_at ? String(e.completed_at).slice(0, 10) : null, url: isClientSafeUrl(e.link) ? e.link : "",
         })),
-        ...work.filter(visible).filter((w: Record<string, unknown>) => w.status === "live" && !covered.has(String(w.id)) && !LEDGER_BANNED.test(String(w.title || ""))).map((w: Record<string, unknown>) => ({
+        ...legacyShown.map((w: Record<string, unknown>) => ({
           id: `wl_${w.id}`, title: w.title, summary: "", category: KIND_CAT[String(w.kind)] || "website", date: w.date || null, url: isClientSafeUrl(w.url) ? w.url : "",
         })),
       ].sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 120);
+      // Task counts for the feed header ("12 things done for you this month"): counts only, never time. Pacific calendar.
+      let workCountsOut: unknown = null;
+      try {
+        workCountsOut = workCounts([
+          ...ledgerShown.map((e) => ({ at: e.completed_at, category: e.category || "website" })),
+          ...legacyShown.map((w: Record<string, unknown>) => ({ at: w.date, category: KIND_CAT[String(w.kind)] || "website" })),
+        ]);
+      } catch { workCountsOut = null; }
       const groupUnread = await myGroups().then((gs) => Promise.all(gs.map(async (g) => groupUnreadCount(await groupMsgs(g.id as string))))).then((n) => n.reduce((a, b) => a + b, 0)).catch(() => 0);
       return Response.json({
         client: pick(client, SAFE_CLIENT),
@@ -160,6 +173,7 @@ Deno.serve(async (req) => {
         future: (await by("Project")).filter((p: Record<string, unknown>) => p.portal_visible !== false && ["proposed", "backlog", "planning", "in_progress", "review"].includes(String(p.status))).map((p: Record<string, unknown>) => pick(p, ["id", "title", "type", "status", "description", "progress", "due_date"])),
         unread: msgs.filter((m: Record<string, unknown>) => m.sender_role === "admin" && !m.read_at).length + groupUnread,
         work_feed: workFeed,
+        work_counts: workCountsOut,
       });
     }
 
