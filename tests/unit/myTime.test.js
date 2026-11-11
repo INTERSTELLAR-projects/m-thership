@@ -133,8 +133,8 @@ describe('needs your minutes', () => {
     row('2026-11-11T13:00:00Z', 'agency', 0, { done_by: 'agent' }),
     row('2026-11-11T12:00:00Z', 'c1', 30), // has real minutes
     row('2026-11-11T11:00:00Z', 'c1', 20, { notes: `${est} ${CONFIRM_MARK} 2026-11-11.` }), // already confirmed
-    row('2026-10-28T20:00:00Z', 'c1', 0), // 14 days back (Oct 28) is the last day in the window
-    row('2026-10-28T06:00:00Z', 'c1', 0), // Oct 27 Pacific: too old
+    row('2026-10-29T20:00:00Z', 'c1', 0), // Oct 29 is the 14th day back, counting today: still in the window
+    row('2026-10-29T06:00:00Z', 'c1', 0), // Oct 28 Pacific: too old
     row('2026-11-11T10:00:00Z', 'c1', 0, { status: 'cancelled' }),
   ]);
 
