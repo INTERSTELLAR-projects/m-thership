@@ -7,7 +7,7 @@ import { QA_SOCIAL, qaSocialInvoke } from "@/features/social/qaFixtures";
 import { qaUsageInvoke } from "@/features/usage/qaFixtures";
 import { qaFuelInvoke } from "@/features/fuel/qaFixtures";
 import { demo, demoInvoke, warmDemo } from "@/lib/demoData";
-import { QA_LEDGER, qaLedgerInvoke, qaWorkFeed } from "@/features/output/qaFixtures";
+import { QA_LEDGER, qaLedgerInvoke, qaWorkFeed, qaWorkCounts } from "@/features/output/qaFixtures";
 import { qaTrainingInvoke } from "@/features/training/qaFixtures";
 
 const host = typeof window !== "undefined" ? window.location.hostname : "";
@@ -161,7 +161,7 @@ export function installQa(base44) {
           client: rows("CRMClient").find((c) => c.id === cid), user: { email: QA_USER.email, is_admin_preview: true },
           work: of("WorkLog"), automations: of("Automation").filter((a) => a.status === "active"), requests: of("ClientRequest"),
           goals: of("ClientGoal"), gaps: of("ClientGap"), snapshots: of("PerformanceSnapshot"), upcoming: of("Task").filter((t) => t.portal_visible),
-          files: of("ClientFile"), future: of("Project"), unread: 1, work_feed: qaWorkFeed(cid),
+          files: of("ClientFile"), future: of("Project"), unread: 1, work_feed: qaWorkFeed(cid), work_counts: qaWorkCounts(cid),
         } };
       }
       return { data: {} };
