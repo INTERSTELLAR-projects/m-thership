@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { derive, emptyAgg, groupBy, money, pct, ratio, sum } from '@/features/ads/lib/metrics';
 import { buildUrl, isHttps, slug } from '@/features/ads/lib/utm';
 import { fmtClock, fmtMinutes, itemMinutes, splitMinutes, toMinutes, withEstimate } from '@/features/tasks/lib/estimate';
-import { contrastRatio, ensureContrast, isHex, luminance, scannability } from '@/features/qr/lib/contrast';
+import { autoFix, contrastRatio, ensureContrast, isHex, luminance, scannability } from '@/features/qr/lib/contrast';
 
 describe('ads metrics', () => {
   const rows = [
@@ -107,5 +107,10 @@ describe('QR scannability', () => {
     expect(levels({})).not.toContain('error');
     expect(levels({ foreground: '#ffffff', background: '#000000' })).toContain('error');
     expect(levels({ foreground: '#eeeeee' })).toContain('error');
+  });
+  it('autoFix turns an unreadable style into a scannable one', () => {
+    const fixed = autoFix({ foreground: '#ffffff', background: '#000000', corner_color: '#eeeeee', logo_url: 'x', logo_size: 40 });
+    expect(scannability(fixed).level).not.toBe('error');
+    expect(fixed.logo_size).toBe(26);
   });
 });
