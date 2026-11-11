@@ -90,17 +90,22 @@ async function checkFunctions() {
   let esbuild = null;
   try { esbuild = await import('esbuild'); } catch { /* optional */ }
   const files = [...walk(fnRoot), ...walk(path.join(ROOT, 'base44', 'shared'))].filter((f) => /\.(m?[jt]sx?)$/.test(f));
-  if (esbuild) {
-    for (const f of files) {
-      try {
-        esbuild.transformSync(fs.readFileSync(f, 'utf8'), { loader: f.endsWith('x') ? (f.endsWith('tsx') ? 'tsx' : 'jsx') : f.endsWith('.ts') ? 'ts' : 'js', format: 'esm', sourcefile: rel(f) });
-      } catch (e) {
-        problems.push(`${rel(f)}: syntax error: ${strip(String(e.message)).split('\n').slice(0, 3).join(' ')}`);
-      }
+  let viteMod = null;
+  if (!esbuild) { try { viteMod = await import('vite'); } catch { /* optional */ } }
+  const lang = (f) => (f.endsWith('tsx') ? 'tsx' : f.endsWith('jsx') ? 'jsx' : /\.m?ts$/.test(f) ? 'ts' : 'js');
+  for (const f of files) {
+    const code = fs.readFileSync(f, 'utf8');
+    try {
+      if (esbuild) esbuild.transformSync(code, { loader: lang(f), format: 'esm', sourcefile: rel(f) });
+      else if (viteMod?.transformWithOxc) await viteMod.transformWithOxc(code, f, { lang: lang(f) });
+      else if (viteMod?.transformWithEsbuild) await viteMod.transformWithEsbuild(code, f, { loader: lang(f) });
+    } catch (e) {
+      problems.push(`${rel(f)}: syntax error: ${strip(String(e.message)).split('\n').slice(0, 3).join(' ')}`);
     }
   }
+  const parser = esbuild ? 'esbuild' : viteMod?.transformWithOxc ? 'oxc' : viteMod?.transformWithEsbuild ? 'esbuild' : null;
   if (problems.length) return rec(`backend functions (${dirs.length})`, 'fail', problems.join('\n'));
-  rec(`backend functions: syntax (${dirs.length} functions, ${files.length} files)`, esbuild ? 'pass' : 'warn', esbuild ? '' : 'esbuild not found; syntax not checked');
+  rec(`backend functions: syntax (${dirs.length} functions, ${files.length} files)`, parser ? 'pass' : 'warn', parser ? `parsed with ${parser}` : 'no parser found; syntax not checked');
 
   // type/resolve check with deno (blocking only on real-bug codes)
   const hasDeno = spawnSync('deno', ['--version'], { encoding: 'utf8' }).status === 0;
@@ -121,7 +126,7 @@ async function checkFunctions() {
     if (m) {
       const at = lines.slice(i, i + 12).find((l) => /^\s+at file:\/\//.test(l)) || '';
       const loc = at.trim().replace(/^at file:\/\//, '').replace(ROOT + '/', '');
-      if (BLOCKING_TS.has(m[1])) blocking.push(`${m[1]} ${m[2]} @ ${loc}`);
+      if (BLOCKING_TS.has(m[1]) || /^TS1\d{3}$/.test(m[1])) blocking.push(`${m[1]} ${m[2]} @ ${loc}`);
       else other++;
     } else if (/^error: /.test(lines[i]) && !/Type checking failed/.test(lines[i])) {
       const msg = lines[i] + ' ' + (lines[i + 1] || '').trim();
@@ -260,6 +265,12 @@ function routes() {
     for (const m of s.matchAll(/path=\{?\s*["'`]([^"'`]+)["'`]/g)) add(m[1]);
     for (const m of s.matchAll(/\bpath:\s*["'`](\/[^"'`]*)["'`]/g)) add(m[1]);
   }
+  for (const f of ['src/App.jsx', 'src/App.tsx']) {
+    if (exists(f)) for (const m of read(f).matchAll(/\[\s*["'`](\/[^"'`]*)["'`]\s*,/g)) add(m[1]);
+  }
+  if (exists('public/sitemap.xml')) {
+    for (const m of read('public/sitemap.xml').matchAll(/<loc>\s*https?:\/\/[^/<]+(\/[^<\s]*)?\s*<\/loc>/g)) add(m[1] || '/');
+  }
   if (exists('src/pages.config.js')) {
     const s = read('src/pages.config.js');
     const block = (s.match(/PAGES\s*=\s*\{([\s\S]*?)\}/) || [])[1] || '';
@@ -309,9 +320,67 @@ async function checkRoutes() {
       if (exists('public/' + f)) { const res = await fetch(`${base}/${f}`); if (res.status !== 200) bad.push(`/${f} -> ${res.status}`); }
     }
     rec(`route smoke (${list.length} routes, ${assets.length} assets via vite preview)`, bad.length ? 'fail' : 'pass', bad.join('\n'));
+    await browserSmoke(base);
   } finally {
     try { process.kill(-srv.pid, 'SIGKILL'); } catch { try { srv.kill('SIGKILL'); } catch { /* gone */ } }
   }
+}
+
+// ---------- 9. headless browser smoke (Playwright, provisioned on demand in /tmp) ----------
+// Default: on for kind 'website', off for logged-in apps (they only render the Base44 login).
+async function loadPlaywright() {
+  const dir = path.join(os.tmpdir(), 'release-check-pw');
+  const mod = path.join(dir, 'node_modules', 'playwright-core', 'index.mjs');
+  const sh = (cmd, args, t = 300000) => spawnSync(cmd, args, { cwd: dir, encoding: 'utf8', timeout: t, env: { ...process.env, PLAYWRIGHT_BROWSERS_PATH: path.join(dir, 'browsers') } });
+  process.env.PLAYWRIGHT_BROWSERS_PATH = path.join(dir, 'browsers');
+  if (!fs.existsSync(mod)) {
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'package.json'), '{"name":"rc-pw","private":true}');
+    if (sh('npm', ['i', '--no-audit', '--no-fund', 'playwright-core@1.49.1']).status !== 0) throw new Error('npm install playwright-core failed');
+  }
+  if (!fs.existsSync(path.join(dir, 'browsers')) || !fs.readdirSync(path.join(dir, 'browsers')).some((d) => d.startsWith('chromium_headless_shell'))) {
+    if (sh('npx', ['playwright-core', 'install', 'chromium-headless-shell']).status !== 0) throw new Error('chromium download failed');
+  }
+  const { chromium } = await import(mod);
+  try { await (await chromium.launch()).close(); } catch {
+    spawnSync('apt-get', ['update'], { timeout: 200000 });
+    if (sh('npx', ['playwright-core', 'install-deps', 'chromium-headless-shell'], 400000).status !== 0) throw new Error('system libraries for chromium could not be installed');
+  }
+  return chromium;
+}
+async function browserSmoke(base) {
+  const on = CFG.browserSmoke ?? CFG.kind === 'website';
+  if (!on || ARGS.has('--fast') || process.env.RELEASE_SKIP_BROWSER) return rec('browser smoke (Playwright)', 'skip', on ? 'disabled (--fast)' : 'not enabled for this app (login-gated pages)');
+  let chromium;
+  const t = Date.now();
+  try { chromium = await loadPlaywright(); } catch (e) { return rec('browser smoke (Playwright)', 'warn', `could not provision headless Chromium: ${e.message}`); }
+  const pages = CFG.browserPages || routes().filter((r) => !r.includes('release-check-test')).slice(0, 3);
+  const browser = await chromium.launch();
+  const bad = [];
+  const notes = [];
+  try {
+    for (const p of pages) {
+      const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+      const errors = [];
+      page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 160)));
+      const res = await page.goto(base + p, { waitUntil: 'load', timeout: 30000 });
+      await page.waitForTimeout(2500);
+      const info = await page.evaluate(() => ({
+        rootKids: document.getElementById('root')?.children.length || 0,
+        text: (document.body?.innerText || '').trim().length,
+        h1: document.querySelectorAll('h1').length,
+        hScroll: document.documentElement.scrollWidth > window.innerWidth + 2,
+        title: document.title,
+      }));
+      if (!res || res.status() !== 200) bad.push(`${p}: HTTP ${res && res.status()}`);
+      if (errors.length) bad.push(`${p}: uncaught JS error: ${errors[0]}`);
+      if (!info.rootKids || info.text < 40) bad.push(`${p}: page rendered blank (${info.text} chars of text)`);
+      if (CFG.kind === 'website' && !info.h1) notes.push(`${p}: no <h1>`);
+      if (info.hScroll) notes.push(`${p}: horizontal scroll at 390px width`);
+      await page.close();
+    }
+  } finally { await browser.close(); }
+  rec(`browser smoke (Playwright, ${pages.length} pages, ${((Date.now() - t) / 1000).toFixed(0)}s)`, bad.length ? 'fail' : notes.length ? 'warn' : 'pass', [...bad, ...notes].join('\n'));
 }
 
 // ---------- main ----------
