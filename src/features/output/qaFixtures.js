@@ -43,6 +43,15 @@ export const QA_LEDGER = [
   row(1700, "c1", "claude_session", "translation", "Spanish version of the Summit site", vis("We added a Spanish version of your website", "Spanish-speaking homeowners can now read every page in their language.")),
 ];
 
+// Shape of work_counts from functions/portal (client-visible, finished rows only; counts, never time).
+export function qaWorkCounts(cid) {
+  const rows = QA_LEDGER.filter((e) => e.client_id === cid && e.visibility === "client" && e.status === "done" && e.client_title);
+  const within = (days) => rows.filter((e) => Date.now() - new Date(e.completed_at).getTime() <= days * 864e5);
+  const by_category_this_month = {};
+  for (const e of within(30)) by_category_this_month[e.category] = (by_category_this_month[e.category] || 0) + 1;
+  return { this_week: within(7).length, this_month: within(30).length, last_month: within(60).length - within(30).length, all_time: rows.length, by_category_this_month };
+}
+
 export function qaLedgerInvoke(args = {}) {
   if (args.action === "config") return { rows: DEFAULT_BASELINES, hourly_rate: DEFAULT_RATE, updated_at: null };
   if (args.action === "sync") return { created: 0, updated: 0, processed: { copy_generated: 0 } };
