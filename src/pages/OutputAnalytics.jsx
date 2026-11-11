@@ -11,7 +11,12 @@ import { TASK_STATUSES, OPEN_STATUSES, TASK_TYPES, PROJECT_TYPES, PROJECT_STATUS
 import { TIMER_CHANGED, totalSeconds } from "@/features/tasks/lib/timer";
 import { TASKS_CHANGED } from "@/features/tasks/lib/clients";
 import OutputLedger from "@/features/output/OutputLedger";
-import { Layers } from "lucide-react";
+import MyTime from "@/features/output/MyTime";
+import { Layers, Timer } from "lucide-react";
+
+// Time Intelligence is hidden from Output (Justin doesn't use it). Its code and data (TimeEntry, the task clock) are
+// untouched: set this to true to bring the tab back.
+const SHOW_TIME_INTELLIGENCE = false;
 
 // Output = one source of truth: the Task engine (Task), Projects (Project) and the task clock (TimeEntry).
 
@@ -219,7 +224,7 @@ function TasksAnalytics({ data }) {
             </BarChart>
           </ResponsiveContainer>
           {!m.weeks.some((w) => w.hours) && (
-            <p className="text-ink/[0.45] text-[11px] text-center mt-2">Start the clock on a task (Tasks or a project) and the hours show up here and in Time Intelligence.</p>
+            <p className="text-ink/[0.45] text-[11px] text-center mt-2">Start the clock on a task (Tasks or a project) and the hours show up here.</p>
           )}
         </ChartPanel>
       </div>
@@ -393,16 +398,21 @@ export default function OutputAnalytics() {
   const data = useOutputData();
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command / Output" rightText="Work ledger · estimates" />
+      <PageHeader breadcrumb="Command / Output" rightText="Work ledger · my time" />
       <div className="px-4 md:px-8 py-6">
         <Tabs defaultValue="ledger" className="w-full">
           <TabsList className="no-scrollbar mb-6 h-auto max-w-full justify-start overflow-x-auto border border-ink/[0.13] bg-card">
             <TabsTrigger value="ledger" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58] gap-2">
               <Layers className="w-3.5 h-3.5" /> Work ledger
             </TabsTrigger>
-            <TabsTrigger value="time" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58] gap-2">
-              <Clock className="w-3.5 h-3.5" /> Time Intelligence
+            <TabsTrigger value="my-time" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58] gap-2">
+              <Timer className="w-3.5 h-3.5" /> My time
             </TabsTrigger>
+            {SHOW_TIME_INTELLIGENCE && (
+              <TabsTrigger value="time" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58] gap-2">
+                <Clock className="w-3.5 h-3.5" /> Time Intelligence
+              </TabsTrigger>
+            )}
             <TabsTrigger value="tasks" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-500 text-ink/[0.58] gap-2">
               <BarChart3 className="w-3.5 h-3.5" /> Task Output
             </TabsTrigger>
@@ -413,9 +423,14 @@ export default function OutputAnalytics() {
           <TabsContent value="ledger">
             <OutputLedger />
           </TabsContent>
-          <TabsContent value="time">
-            <TimeIntelligence />
+          <TabsContent value="my-time">
+            <MyTime />
           </TabsContent>
+          {SHOW_TIME_INTELLIGENCE && (
+            <TabsContent value="time">
+              <TimeIntelligence />
+            </TabsContent>
+          )}
           <TabsContent value="tasks">{data.loading ? <Loading /> : <TasksAnalytics data={data} />}</TabsContent>
           <TabsContent value="projects">{data.loading ? <Loading /> : <ProjectsAnalytics data={data} />}</TabsContent>
         </Tabs>
