@@ -12,7 +12,8 @@ export default function PageHeader({ breadcrumb = "", rightText, title, children
   const section = here ? here.hub.label : fallback;
   const name = title || parts[parts.length - 1] || "";
   const words = name.split(" ");
-  const last = words.length > 1 ? words.pop() : null;
+  // Titles may already mark the accent word ("Client /Requests"); strip that slash so it isn't doubled.
+  const last = words.length > 1 ? words.pop().replace(/^\//, "") : null;
 
   return (
     <div className="relative border-b border-hair px-5 pb-6 pt-7 md:px-8">
