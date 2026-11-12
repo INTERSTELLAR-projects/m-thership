@@ -65,6 +65,7 @@ import AgentsPage from '@/features/agents/AgentsPage';
 import IntelligencePage from '@/features/oracle/IntelligencePage';
 import LaunchPage from '@/features/launch/LaunchPage';
 import OracleTopicPage from '@/features/oracle/TopicPage';
+import More from './pages/More';
 
 // Branded sign-in routes. They render without a session. While the platform's hosted login owns /login for this
 // private app (custom auth not enrolled), the server answers these paths itself; the page takes over as soon as
@@ -126,6 +127,14 @@ const AuthenticatedApp = () => {
       <Route path="/r/:id" element={<PublicRequest />} />
       <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
+        {/* Hub shortcuts (see src/lib/nav.js and docs/cleanup-2026-11-12.md). Every older route below is unchanged. */}
+        <Route path="/today" element={<Navigate to="/" replace />} />
+        <Route path="/clients" element={<Navigate to="/crm" replace />} />
+        <Route path="/work" element={<Navigate to="/tasks" replace />} />
+        <Route path="/marketing" element={<Navigate to="/performance" replace />} />
+        <Route path="/sales" element={<Navigate to="/pipeline" replace />} />
+        <Route path="/money" element={<Navigate to="/financial" replace />} />
+        <Route path="/more" element={<ProtectedRoute><More /></ProtectedRoute>} />
         <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
         <Route path="/financial" element={<ProtectedRoute><Financial /></ProtectedRoute>} />
         <Route path="/legal" element={<ProtectedRoute><Legal /></ProtectedRoute>} />
