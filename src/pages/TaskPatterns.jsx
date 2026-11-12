@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Brain, Play, Repeat, Sparkles } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "@/components/PageHeader";
-import TasksNav from "@/features/tasks/components/TasksNav";
 import PatternRow from "@/features/tasks/components/PatternRow";
 import EmptyState from "@/features/tasks/ui-kit/EmptyState";
 import RollButton from "@/features/tasks/ui-kit/RollButton";
@@ -94,7 +93,6 @@ export default function TaskPatterns() {
         </button>
         <RollButton label="Detect patterns" icon={Sparkles} onClick={detect} disabled={busy} />
       </PageHeader>
-      <TasksNav />
 
       <div className="space-y-6 px-5 py-6 md:px-8">
         <p className="max-w-2xl text-[13px] leading-relaxed text-ink/60">

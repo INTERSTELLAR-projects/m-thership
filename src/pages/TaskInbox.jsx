@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Inbox as InboxIcon, Mic } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "@/components/PageHeader";
-import TasksNav from "@/features/tasks/components/TasksNav";
 import InboxCard from "@/features/tasks/components/InboxCard";
 import Panel from "@/features/tasks/ui-kit/Panel";
 import EmptyState from "@/features/tasks/ui-kit/EmptyState";
@@ -66,7 +65,6 @@ export default function TaskInbox() {
           </Link>
         )}
       </PageHeader>
-      <TasksNav />
 
       <div className="grid gap-6 px-5 py-6 md:px-8 xl:grid-cols-[1.4fr_1fr]">
         <div className="space-y-3.5">

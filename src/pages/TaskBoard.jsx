@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import { Mic, MousePointerClick, RefreshCw } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "@/components/PageHeader";
-import TasksNav from "@/features/tasks/components/TasksNav";
 import TaskFilters from "@/features/tasks/components/TaskFilters";
 import TaskTable from "@/features/tasks/components/TaskTable";
 import TaskRail from "@/features/tasks/components/TaskRail";
@@ -315,7 +314,6 @@ function TaskBoardInner({ withDock = false }) {
         </button>
         {assistant ? <RollButton label="Talk to the core" icon={Mic} onClick={assistant.startListening} /> : null}
       </PageHeader>
-      <TasksNav />
 
       <div className="space-y-6 px-5 py-6 md:px-8">
         <div>

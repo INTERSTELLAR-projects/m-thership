@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "@/components/PageHeader";
-import TasksNav from "@/features/tasks/components/TasksNav";
 import ProjectCard from "@/features/tasks/components/ProjectCard";
 import ProjectFormDialog from "@/features/tasks/components/ProjectFormDialog";
 import EmptyState from "@/features/tasks/ui-kit/EmptyState";
@@ -92,7 +91,6 @@ export default function Projects() {
       <PageHeader breadcrumb="Command / Projects" title="Projects" rightText={live.length + " in flight · " + money(pipeline)}>
         <RollButton label="New project" icon={Plus} onClick={() => setDialogOpen(true)} />
       </PageHeader>
-      <TasksNav />
 
       <div className="space-y-5 px-5 py-6 md:px-8">
         {loading && !projects.length ? null : (

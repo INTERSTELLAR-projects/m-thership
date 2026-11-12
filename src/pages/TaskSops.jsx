@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { ArrowDown, ArrowUp, ArrowUpRight, BookOpen, Check, Clock, Pencil, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "@/components/PageHeader";
-import TasksNav from "@/features/tasks/components/TasksNav";
 import EmptyState from "@/features/tasks/ui-kit/EmptyState";
 import RollButton from "@/features/tasks/ui-kit/RollButton";
 import CategoryChip, { CategoryMix } from "@/features/tasks/ui-kit/CategoryChip";
@@ -366,7 +365,6 @@ export default function TaskSops() {
       <PageHeader breadcrumb="Command / Tasks" title="SOP Library" rightText={templates.length + " procedures"}>
         <RollButton label="New SOP" icon={Plus} onClick={() => { setMode("new"); setSelectedId(null); }} />
       </PageHeader>
-      <TasksNav />
 
       <div className="px-5 py-6 md:px-8">
         {loading && !templates.length ? (
