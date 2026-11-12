@@ -281,9 +281,13 @@ function ClientCard({ client, onClick, onDelete }) {
   const gbpOverdue = isOverdue(client.gbpNextDue);
 
   return (
-    <button
+    // A div acting as a button: the card holds its own delete button, and a <button> inside a <button> is invalid HTML.
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      className="card-hover text-left game-panel p-5 space-y-4 w-full"
+      onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onClick(); } }}
+      className="card-hover text-left game-panel p-5 space-y-4 w-full cursor-pointer"
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
@@ -364,7 +368,7 @@ function ClientCard({ client, onClick, onDelete }) {
           </span>
         </div>
       )}
-    </button>
+    </div>
   );
 }
 
