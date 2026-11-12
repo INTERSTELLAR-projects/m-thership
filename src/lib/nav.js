@@ -2,7 +2,7 @@ import {
   LayoutDashboard, FileText, DollarSign, Scale, Users, Lightbulb, ListTodo, MessageSquare, TrendingUp, ClipboardList,
   Crown, Activity, Settings, FolderKanban, Star, PenLine, Presentation, Route, Sparkles, Target, QrCode, Link2,
   CalendarRange, Zap, Megaphone, BadgeDollarSign, Mail, UserPlus, Gauge, Fuel, Store, Orbit, Rocket, Radar, Wand2,
-  Chrome, Inbox, BookOpenCheck, Globe, GraduationCap, ShieldCheck, Package, Repeat, Sun, Briefcase, Wallet, LayoutGrid,
+  Chrome, Inbox, BookOpenCheck, Globe, GraduationCap, ShieldCheck, Package, Repeat, Sun, Briefcase, Wallet, LayoutGrid, Landmark,
 } from "lucide-react";
 import { PACKAGES, packagePath } from "@/features/packages/registry";
 
@@ -93,6 +93,7 @@ export const HUBS = [
     hint: "Win new work and grow existing clients",
     tabs: [
       { label: "Pipeline", icon: Target, path: "/pipeline", hint: "Leads from first contact to signed" },
+      { label: "Financing", icon: Landmark, path: "/financing", badge: "financingLate", hint: "Client payment plans, short and long term: who's paid, who's due, who's late" },
       { label: "Prestige", icon: Crown, path: "/prestige", hint: "Prestige referral program: members, referrals and rewards" },
       { label: "Upgrade Store", icon: Store, path: "/upgrades", hint: "Add-ons clients can buy on top of their plan" },
       { label: "Decks", icon: Presentation, path: "/presentations/projects", match: ["/presentations"], hint: "Pitch and client presentations" },
