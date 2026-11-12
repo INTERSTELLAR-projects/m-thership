@@ -80,7 +80,8 @@ export default function ProjectsHero({ projects, taskTime, counts, doneCounts, t
         count: list.length,
         statuses: byStatus(list),
         active: list.filter((p) => ACTIVE.includes(p.status)).length,
-        value: list.reduce((sum, p) => sum + num(p.contract_value), 0),
+        // Contract total for the type. Kept off `value`, which is the type key the tile filters by.
+        amount: list.reduce((sum, p) => sum + num(p.contract_value), 0),
         done,
         total,
         progress: pct(done, total)
@@ -214,7 +215,7 @@ export default function ProjectsHero({ projects, taskTime, counts, doneCounts, t
                 </div>
                 <p className={cn("mt-1.5 text-[24px] font-semibold leading-none tracking-[-0.04em]", empty ? "text-ink/25" : "text-ink")}>{t.count}</p>
                 <p className="mt-1 truncate text-[10.5px] text-ink/45">
-                  {empty ? "No projects yet" : t.active + " active" + (t.value ? " · " + money(t.value) : "")}
+                  {empty ? "No projects yet" : t.active + " active" + (t.amount ? " · " + money(t.amount) : "")}
                 </p>
                 <div className="mt-2.5">
                   <StatusBar rows={t.statuses} total={t.count} />
