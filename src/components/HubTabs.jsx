@@ -3,7 +3,7 @@ import { hubFor } from "@/lib/nav";
 import { useNavBadges } from "@/components/navBadges";
 
 // The tab bar every hub page shares (Today, Clients, Work, Marketing, Sales, Money, Agents, More).
-// Sits under the time-zone bar, stays put while the page scrolls, and carries the open tab's purpose line,
+// Sits under the time-zone bar (not sticky, so it never covers a page's own sticky toolbars) and carries the open tab's purpose line,
 // so every page says what it is for in the same place. Pages outside a hub (Settings) render without it.
 export default function HubTabs() {
   const location = useLocation();
@@ -13,7 +13,7 @@ export default function HubTabs() {
   const { hub, tab } = here;
 
   return (
-    <div data-no-trail data-hub-tabs={hub.id} className="sticky top-[38px] z-[19] border-b border-hair bg-canvas/95 backdrop-blur">
+    <div data-no-trail data-hub-tabs={hub.id} className="relative z-[15] border-b border-hair bg-canvas/95">
       <nav className="no-scrollbar flex items-center gap-0.5 overflow-x-auto px-3 md:px-6" aria-label={`${hub.label} pages`}>
         <span className="mono-label mr-2 hidden shrink-0 items-center gap-1.5 text-[9.5px] text-ink/45 sm:flex">
           <hub.icon className="h-3 w-3 text-[#ff3c00]" strokeWidth={2} />
