@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar";
 import TimeZoneBar from "./TimeZoneBar";
+import HubTabs from "./HubTabs";
 import CommandPalette from "./CommandPalette";
 import GridTrail from "./GridTrail";
 import BrandLockup from "@/components/brand/BrandLockup";
@@ -48,6 +49,7 @@ export default function Layout() {
       <Sidebar onOpenCommand={() => setCmdOpen(true)} open={mobileOpen} onClose={() => setMobileOpen(false)} />
       <main data-trail className="grid-canvas relative z-10 flex-1 overflow-y-auto pt-12 md:pt-0">
         <TimeZoneBar />
+        <ErrorBoundary compact where="hub tabs"><HubTabs /></ErrorBoundary>
         <div key={location.pathname} data-trail className="page-enter relative z-10">
           <ErrorBoundary where="admin route" resetKey={location.pathname}>
             <Outlet />
