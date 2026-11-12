@@ -1,0 +1,146 @@
+{
+  "name": "ClientFinancing",
+  "type": "object",
+  "description": "A payment plan for a client: what they bought on terms, the schedule, and every payment received. Short-term (a few installments) or long-term (months/years).",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "CRMClient business name at the time (kept so the row reads even if the client is renamed)"
+    },
+    "title": {
+      "type": "string",
+      "description": "What is financed, e.g. 'Website build' or 'Command Center app'"
+    },
+    "term_type": {
+      "type": "string",
+      "enum": [
+        "short",
+        "long"
+      ],
+      "default": "short",
+      "description": "short = up to 12 months, long = longer"
+    },
+    "financed_by": {
+      "type": "string",
+      "enum": [
+        "in_house",
+        "third_party"
+      ],
+      "default": "in_house",
+      "description": "in_house = the client pays Interstellar directly; third_party = a lender pays Interstellar and the client repays them"
+    },
+    "lender": {
+      "type": "string",
+      "description": "Lender or platform name when third_party (e.g. Affirm, a bank)"
+    },
+    "total_price": {
+      "type": "number",
+      "description": "Full price of what was sold"
+    },
+    "down_payment": {
+      "type": "number",
+      "default": 0
+    },
+    "interest_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "APR percent; 0 for interest-free"
+    },
+    "payment_amount": {
+      "type": "number",
+      "description": "Amount per installment"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "weekly",
+        "biweekly",
+        "monthly",
+        "quarterly"
+      ],
+      "default": "monthly"
+    },
+    "num_payments": {
+      "type": "integer",
+      "description": "Total number of scheduled installments"
+    },
+    "first_due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "grace_days": {
+      "type": "integer",
+      "default": 3,
+      "description": "Days after a due date before it counts as late"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "paid_off",
+        "defaulted",
+        "cancelled"
+      ],
+      "default": "active"
+    },
+    "payments": {
+      "type": "array",
+      "description": "Payments received, newest last",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "method": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_name",
+    "title",
+    "payment_amount",
+    "num_payments",
+    "first_due_date"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
