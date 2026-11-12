@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Loader2, TrendingUp, DollarSign, Rocket, CalendarClock } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
-function fmtMoney(n) { return `$${Math.round(n).toLocaleString()}`; }
+import { fmtMoney } from "@/lib/format";
 function daysUntil(d) { if (!d) return null; const diff = new Date(d + "T00:00:00") - new Date(new Date().toDateString()); return Math.round(diff / 86400000); }
 
 export default function ProjectionWidget() {

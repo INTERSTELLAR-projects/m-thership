@@ -8,7 +8,7 @@ import { usePins } from "@/components/navPrefs";
 // ⌘K / "Jump to…" palette: pages, clients and projects in one list.
 // Light paper styling to match the app (the old dark panel hid its dark text).
 
-const itemsOf = (page) => (Array.isArray(page) ? page : (page && page.items) || []);
+import { itemsOf } from "@/features/tasks/lib/clients";
 
 let cache = null; // { clients, projects } kept for the session so reopening is instant
 

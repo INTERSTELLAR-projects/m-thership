@@ -18,8 +18,7 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const MONTH_COLORS = ["#ff3c00", "#FF8515", "#FF9E33", "#FFB74D", "#FFC964", "#ffaa00", "#FBD94A", "#FDE047", "#FCE766", "#FDEE89", "#FEF3B8", "#FEF7D4"];
 function monthLabel(d) { return `${MONTHS[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`; }
 
-function fmtMoney(n) { return `$${Math.round(n).toLocaleString()}`; }
-function fmtDate(d) { return d ? new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "\u2014"; }
+import { fmtMoney, fmtDate } from "@/lib/format";
 function daysUntil(d) { if (!d) return null; const diff = new Date(d + "T00:00:00") - new Date(new Date().toDateString()); return Math.round(diff / 86400000); }
 
 function ChartTooltip({ active, payload, label }) {
