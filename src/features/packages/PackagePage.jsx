@@ -36,22 +36,28 @@ function StatePill({ state }) {
   );
 }
 
-/* ---------- package switcher (the eight pillars) ---------- */
+/* ---------- package switcher: all nine in one row (subscriptions, then packages) ----------
+   The sidebar used to list each package separately; now Work › Packages is one tab and this row switches. */
 function PackageTabs({ current }) {
-  const group = SUBSCRIPTIONS.some((p) => p.key === current) ? SUBSCRIPTIONS : DELIVERY_PACKAGES;
+  const groups = [["Subscriptions", SUBSCRIPTIONS], ["Packages", DELIVERY_PACKAGES]];
   return (
-    <div className="flex gap-1 overflow-x-auto border-b border-hair px-5 md:px-8">
-      <span className="mono-label mr-2 self-center text-[8.5px] text-ink/40">{group === SUBSCRIPTIONS ? "Subscriptions" : "Packages"}</span>
-      {group.map((p) => {
-        const active = p.key === current;
-        return (
-          <Link key={p.key} to={packagePath(p.key)} className={cn("relative flex shrink-0 items-center gap-2 px-3 py-2.5 text-[12px] transition-colors", active ? "text-ink" : "text-ink/50 hover:text-ink")}>
-            <p.icon className="h-3.5 w-3.5" style={{ color: active ? p.color : undefined }} />
-            {p.label}
-            {active ? <span className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: p.color }} /> : null}
-          </Link>
-        );
-      })}
+    <div className="no-scrollbar flex gap-1 overflow-x-auto border-b border-hair px-5 md:px-8">
+      {groups.map(([label, list], gi) => (
+        <div key={label} className="flex shrink-0 items-center gap-1">
+          {gi > 0 ? <span className="mx-2 h-4 w-px bg-hair" /> : null}
+          <span className="mono-label mr-1 self-center text-[8.5px] text-ink/40">{label}</span>
+          {list.map((p) => {
+            const active = p.key === current;
+            return (
+              <Link key={p.key} to={packagePath(p.key)} className={cn("relative flex shrink-0 items-center gap-2 px-3 py-2.5 text-[12px] transition-colors", active ? "text-ink" : "text-ink/50 hover:text-ink")}>
+                <p.icon className="h-3.5 w-3.5" style={{ color: active ? p.color : undefined }} />
+                {p.label}
+                {active ? <span className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: p.color }} /> : null}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }
