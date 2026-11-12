@@ -139,7 +139,7 @@ export default function Sidebar({ onOpenCommand, open, onClose }) {
           className="flex w-full items-center gap-2.5 border border-hair bg-paper px-3 py-2 text-xs text-ink/50 transition-colors hover:border-ink/40 hover:text-ink"
         >
           <Search className="h-3.5 w-3.5" />
-          <span>Jump to a page or client…</span>
+          <span className="truncate">Jump to page or client</span>
           <kbd className="ml-auto font-mono text-[10px] text-ink/40">⌘K</kbd>
         </button>
       </div>
