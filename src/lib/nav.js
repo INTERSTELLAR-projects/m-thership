@@ -198,9 +198,7 @@ export function hubFor(location) {
       if (s > bestScore) { hit = { hub, tab }; bestScore = s; }
     }
   }
-  // Settings itself (any tab but Portal) is not part of a hub.
-  if (hit && location.pathname.startsWith("/settings") && hit.tab.path !== "/settings?tab=portal") return null;
-  if (hit && location.pathname.startsWith("/settings") && score(location, hit.tab) < 1000) return null;
+  // Settings (other than its Portal tab, which lives in Clients) has no hub: no tab matches it.
   return hit;
 }
 
