@@ -8,11 +8,11 @@ import { PACKAGES, packagePath } from "@/features/packages/registry";
 // Nothing is hidden: if it is not in the sidebar's seven hubs it is here, and ⌘K finds all of it.
 function Section({ hub, items }) {
   return (
-    <section className="border border-hair bg-paper/70">
+    <section className="min-w-0 border border-hair bg-paper/70">
       <header className="flex items-center gap-2 border-b border-hair px-4 py-3">
         <hub.icon className="h-4 w-4 text-[#ff3c00]" strokeWidth={1.75} />
         <h2 className="text-[14px] font-semibold tracking-[-0.01em]">{hub.label}</h2>
-        <span className="truncate text-[11.5px] text-ink/45">{hub.hint}</span>
+        <span className="min-w-0 truncate text-[11.5px] text-ink/45">{hub.hint}</span>
       </header>
       <ul className="divide-y divide-hair/70">
         {items.map((t) => (
