@@ -5,7 +5,6 @@ import { BrowserRouter as Router, Route, Routes, Navigate, useParams, useLocatio
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-import { base44 } from '@/api/base44Client';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
