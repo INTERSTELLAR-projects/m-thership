@@ -1,8 +1,8 @@
-// Per-browser sidebar preferences: pinned pages, collapsed sections, the "Start here" card.
+// Per-browser sidebar preferences: pinned pages.
 // Conveniences only: every read and write is guarded (private windows, blocked storage) and the nav works without them.
 import { useEffect, useState } from "react";
 
-const KEYS = { pins: "ms.nav.pins", collapsed: "ms.nav.collapsed", start: "ms.nav.startHere" };
+const KEYS = { pins: "ms.nav.pins" };
 const EVT = "ms-nav-prefs";
 
 function read(key, fallback) {
@@ -30,6 +30,3 @@ function usePref(name, fallback) {
 }
 
 export const usePins = () => usePref("pins", []);
-// null = never touched (defaults apply); otherwise { [sectionId]: true when collapsed }
-export const useCollapsed = () => usePref("collapsed", null);
-export const useStartHereOpen = () => usePref("start", true);
