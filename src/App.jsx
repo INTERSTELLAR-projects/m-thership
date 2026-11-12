@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useParams, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -50,8 +50,6 @@ import Security from './pages/Security';
 import OutreachPage from '@/features/outreach/OutreachPage';
 import LegacyImportBanner from '@/features/tasks/LegacyImportBanner';
 import PackagePage from '@/features/packages/PackagePage';
-import { Navigate } from 'react-router-dom';
-import { useParams, useLocation } from 'react-router-dom';
 import LoginPage from '@/features/auth/LoginPage';
 import HiringPlanPage from '@/features/hiring/HiringPlanPage';
 import SmplStudioPage from '@/features/studios/SmplStudioPage';
