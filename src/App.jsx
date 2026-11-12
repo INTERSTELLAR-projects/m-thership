@@ -13,6 +13,7 @@ import Financial from './pages/Financial';
 import Legal from './pages/Legal';
 import CRM from './pages/CRM';
 import Pipeline from './pages/Pipeline';
+import Financing from './pages/Financing';
 import Comms from './pages/Comms';
 import OrbitSEO from './pages/OrbitSEO';
 
@@ -137,6 +138,7 @@ const AuthenticatedApp = () => {
         <Route path="/legal" element={<ProtectedRoute><Legal /></ProtectedRoute>} />
         <Route path="/crm" element={<ProtectedRoute><CRM /></ProtectedRoute>} />
         <Route path="/pipeline" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
+        <Route path="/financing" element={<ProtectedRoute><Financing /></ProtectedRoute>} />
         <Route path="/clients/:id" element={<ProtectedRoute><ClientCockpit /></ProtectedRoute>} />
         <Route path="/client-usage" element={<ProtectedRoute><ClientUsagePage /></ProtectedRoute>} />
         <Route path="/fuel-economics" element={<ProtectedRoute><FuelEconomicsPage /></ProtectedRoute>} />
