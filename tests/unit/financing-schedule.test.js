@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { analyze, dueDates, suggestPayment } from "./schedule";
+import { analyze, dueDates, suggestPayment } from "../../src/features/financing/schedule";
 
 const base = { payment_amount: 500, num_payments: 6, frequency: "monthly", first_due_date: "2026-08-15", grace_days: 3, status: "active" };
 

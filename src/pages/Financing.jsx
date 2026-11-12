@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EmptyState, FinanceStyles, KpiTile, Panel } from "@/components/financial/finance/ui";
+import { EmptyState, FinanceStyles, KpiTile } from "@/components/financial/finance/ui";
 import { FREQUENCIES, HEALTH, analyze, fmtDate, freqLabel, startOfDay, suggestPayment, toISODate } from "@/features/financing/schedule";
 
 const money = (v, d = 0) => `$${(Number(v) || 0).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d })}`;
