@@ -1,0 +1,43 @@
+import { Link, useLocation } from "react-router-dom";
+import { hubFor } from "@/lib/nav";
+import { useNavBadges } from "@/components/navBadges";
+
+// The tab bar every hub page shares (Today, Clients, Work, Marketing, Sales, Money, Agents, More).
+// Sits under the time-zone bar, stays put while the page scrolls, and carries the open tab's purpose line,
+// so every page says what it is for in the same place. Pages outside a hub (Settings) render without it.
+export default function HubTabs() {
+  const location = useLocation();
+  const badges = useNavBadges();
+  const here = hubFor(location);
+  if (!here) return null;
+  const { hub, tab } = here;
+
+  return (
+    <div data-no-trail data-hub-tabs={hub.id} className="sticky top-[38px] z-[19] border-b border-hair bg-canvas/95 backdrop-blur">
+      <nav className="no-scrollbar flex items-center gap-0.5 overflow-x-auto px-3 md:px-6" aria-label={`${hub.label} pages`}>
+        <span className="mono-label mr-2 hidden shrink-0 items-center gap-1.5 text-[9.5px] text-ink/45 sm:flex">
+          <hub.icon className="h-3 w-3 text-[#ff3c00]" strokeWidth={2} />
+          {hub.label}
+        </span>
+        {hub.tabs.map((t) => {
+          const on = t.key === tab.key;
+          const n = t.badge ? badges[t.badge] : 0;
+          return (
+            <Link
+              key={t.key}
+              to={t.path}
+              aria-current={on ? "page" : undefined}
+              className={`relative flex shrink-0 items-center gap-1.5 px-3 py-2.5 text-[12.5px] transition-colors ${on ? "font-medium text-ink" : "text-ink/50 hover:text-ink"}`}
+            >
+              <t.icon className={`h-3.5 w-3.5 ${on ? "text-[#ff3c00]" : "text-ink/35"}`} strokeWidth={1.75} />
+              {t.label}
+              {n ? <span className="rounded-sm bg-[#ff3c00]/[0.12] px-1 font-mono text-[9.5px] font-semibold tabular-nums text-[#c24100]">{n > 99 ? "99+" : n}</span> : null}
+              {on ? <span className="absolute inset-x-3 bottom-[-1px] h-[2px] bg-[#ff3c00]" /> : null}
+            </Link>
+          );
+        })}
+      </nav>
+      {tab.hint && <p className="truncate border-t border-hair/60 px-4 py-1.5 text-[11.5px] text-ink/55 md:px-7">{tab.hint}</p>}
+    </div>
+  );
+}
