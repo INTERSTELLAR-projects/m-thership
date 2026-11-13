@@ -163,7 +163,30 @@ pricing rules, calendar write-back of the plan (needs Justin's consent on the co
 
 **Phase 3:** the client fleet, native earpiece companion, multi-user (team members get their own Today).
 
-## 10. Why Ask is a backend function, not a Base44 agent
+## 10. Files
+
+| What | Where |
+|---|---|
+| Engine (snapshot, scores, candidates, plan, proposals, Brain bank, LLM prompts + validation) | `base44/shared/command.js` (browser copy `src/features/command/engine.js`, `npm run sync:command`, guarded by `tests/unit/command.test.js`) |
+| Server helpers (brief generation, calendar, allowlisted record changes, undo, email HTML) | `base44/shared/commandServer.ts` |
+| Functions | `command-brief`, `command-execute`, `command-ask`, `command-brain` in `base44/functions/` |
+| Entities | `DailyBrief`, `ProposedAction`, `AgentAuditLog`, `BrainFact` |
+| UI | `src/features/command/` (CommandHome, MissionBrief, NeedsYou, PillarsView, Constellation, BrainView, WalkMode, AskBar, api, voice, ui) |
+| Shell changes | `src/App.jsx` (`/`, `/classic`, `/pillars`, `/brain`, `/walk`), `src/components/Layout.jsx` (drawer, Ask bar, G-shortcuts), `Sidebar.jsx` (pin), `CommandPalette.jsx` (actions), `src/lib/nav.js` (Today tabs) |
+
+## 11. Verification (2026-11-12)
+
+- `vite build`, `eslint --quiet`, `deno check` on the 4 functions: pass. `vitest`: 78/78 (12 new Command tests).
+- Playwright, QA fake data and Justin's real data (sandbox preview, signed in), 390 and 1440: Today, Needs you, Ask, ⌘K, Pillars,
+  Brain, Walk (start + brief), Classic, All-pages drawer. No page errors, no horizontal scroll.
+- Real run: brief in 6-10 s with LLM wording accepted; re-plan 4 s; Ask answered from live numbers; email card → confirm sheet →
+  test send to justin@interstellar-strategies.com delivered; card skipped. No client email sent, no record approved.
+- Found and fixed while testing: DailyBrief `tomorrow` / `day_after` schema type; the LLM restating a stale countdown
+  (greeting, date and since-yesterday are now locked to rule text); Ask bar covering the send sheet on phones (portal);
+  the empty toast layer swallowing taps on the phone top bar (pre-existing, `pointer-events-none` on the viewport);
+  interruption over a booked call now flagged as a clash; accounting notice moved off the Ask bar.
+
+## 12. Why Ask is a backend function, not a Base44 agent
 
 The Ask bar runs through `command-ask` (InvokeLLM with a JSON intent schema + deterministic executors) rather than a
 `base44/agents/mothership_ceo` agent:
