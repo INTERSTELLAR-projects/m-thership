@@ -247,6 +247,7 @@ async function writeCopy(db: any, base44: any, user: any, rows: any[], otherName
       await db.WorkEntry.update(r.id, { ...(r.visibility_locked ? {} : { visibility: "internal" }), visibility_reason: `Client copy held back: ${problems.join(", ")}`, client_copy_status: "skipped" });
     }
   }
+  if (!copyError && fallback) copyError = `no matching reply (${(items || []).length} items for ${rows.length} rows)`;
   return { generated, fallback, ...(copyError ? { error: copyError } : {}) };
 }
 
