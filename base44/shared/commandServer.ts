@@ -159,4 +159,23 @@ export function emailHtml(body: string) {
 <tr><td height="6" style="height:6px;line-height:6px;font-size:0;background-color:#ffaa00;background-image:linear-gradient(90deg,#ffaa00,#ff6a00,#ff3c00);">&nbsp;</td></tr>
 </table></td></tr></table></body></html>`;
 }
+// ---------------------------------------------------------------- clean-up of a spoken answer
+export async function clientNames(db: any) {
+  const rows = await db.CRMClient.list("-updated_date", 300).catch(() => []);
+  return (rows || []).map((c: any) => String(c.business || "").replace(/\s*\(.*?\)\s*/g, " ").trim()).filter((n: string) => n && !/test/i.test(n));
+}
+// LLM clean-up first, kept only when it is faithful (same numbers, no summarising); else the rule clean-up.
+export async function cleanAnswer(base44: any, raw: string, question: string, names: string[]) {
+  const text = str(raw).trim().slice(0, 4000);
+  try {
+    const out = await invokeJson(base44, C.cleanPrompt(text, question, names), C.CLEAN_SCHEMA, 25000);
+    const st = Array.isArray(out?.statements) ? out.statements.map((x: any) => str(x).trim()).filter(Boolean) : [];
+    if (C.cleanIsFaithful(text, st)) {
+      const about = str(out?.about_client).trim();
+      return { statements: st, source: "llm", about_client: names.find((n) => n.toLowerCase() === about.toLowerCase()) || about.slice(0, 80), pillar_hint: C.PILLAR_IDS.includes(out?.pillar_hint) ? out.pillar_hint : "" };
+    }
+  } catch { /* fall through to rules */ }
+  return { statements: [C.ruleClean(text, names)], source: "rules", about_client: "", pillar_hint: "" };
+}
+
 export const validEmail = (e: string) => /^[^\s@<>,;]+@[^\s@<>,;]+\.[a-z]{2,}$/i.test(str(e).trim());

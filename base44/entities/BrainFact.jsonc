@@ -16,6 +16,8 @@
         "owner"
       ]
     },
+    "raw_text": { "type": "string", "description": "What Justin actually said or typed, before the clean-up (statement is the cleaned version he confirmed)" },
+    "client_name": { "type": "string", "description": "Set when the fact is about one client's business rather than Interstellar itself" },
     "statement": {
       "type": "string"
     },
