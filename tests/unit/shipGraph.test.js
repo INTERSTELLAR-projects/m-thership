@@ -98,7 +98,7 @@ describe("ship graph: edges and directions", () => {
   });
   it("skips department edges where every agent is only planned", () => {
     expect(edge("dept:success>client:c2")).toBeUndefined();
-    expect(edge("dept:marketing>client:c1")).toBeUndefined(); // only a paused blog... paused counts? no: paused is not planned
+    expect(edge("dept:marketing>client:c1")).toBeTruthy(); // a paused agent still hangs off its department
   });
   it("carries results back on the reverse stream", () => {
     expect(edge("brain>dept:marketing").fwd.count).toBe(1); // social publisher ran today
@@ -178,7 +178,7 @@ describe("panel data and filters", () => {
     expect(ship.summary.agentsLive).toBe(5);
     expect(ship.summary.clientsServed).toBe(1);
     expect(ship.summary.ideasWaiting).toBe(4);
-    expect(summaryLine(ship.summary)).toMatch(/^5 agents running for 1 client · \d+ events today · 4 ideas from research waiting · 4 need you$/);
+    expect(summaryLine(ship.summary)).toMatch(/^5 agents running for 1 client · \d+ events today · 4 ideas from research waiting · 3 need you$/);
   });
 });
 
