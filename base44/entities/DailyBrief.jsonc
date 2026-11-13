@@ -55,18 +55,14 @@
       "description": "[{ start: 'HH:MM', end, title, kind: focus|meeting|admin|buffer|life|break|interruption, pillar?, ref? }]"
     },
     "tomorrow": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": true
-      }
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ date, weekday, items: [{ title, time?, pillar?, ref? }] }"
     },
     "day_after": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": true
-      }
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ date, weekday, items: [{ title, time?, pillar?, ref? }] }"
     },
     "gaps": {
       "type": "array",
