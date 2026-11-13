@@ -118,7 +118,7 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
   const [svg, setSvg] = useState(forceSvg);
-  const st = useRef({ orbs: [], pulses: [], flashes: [], acc: {}, geom: {}, fps: 0 });
+  const st = useRef({ orbs: [], pulses: [], flashes: [], acc: {}, geom: {}, fps: 0, q: 1 });
 
   // Geometry for every edge whose two ends are on screen.
   const [liveAnchors, setLiveAnchors] = useState(null);
@@ -199,10 +199,10 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
         streams.forEach(([k, s, color, rev]) => {
           if (!s || !s.rate) return;
           const key = `${e.id}|${k}`;
-          S.acc[key] = (S.acc[key] || Math.random()) + s.rate * density * (dim ? 0.15 : 1) * dt;
+          S.acc[key] = (S.acc[key] || Math.random()) + s.rate * density * S.q * (dim ? 0.15 : 1) * dt;
           while (S.acc[key] >= 1) {
             S.acc[key] -= 1;
-            if (S.orbs.length >= maxOrbs) return;
+            if (S.orbs.length >= maxOrbs * S.q) return;
             S.orbs.push({ id: e.id, g, t: 0, dur: clamp(g.len / (120 + Math.random() * 70), 1.1, 5), rev, color, glow: s.glow * (dim ? 0.25 : 1), size: k === "i" ? 1.25 : rev ? 0.8 : 1 });
           }
         });
@@ -221,7 +221,9 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
       const cs = Math.cos(rot); const sn = Math.sin(rot);
       const tilt = 0.35;
       const sp = [sprite("#ffb27a", "#ffffff"), sprite("#ff6a00", "#ffd9b8"), sprite("#b18cff", "#ffffff"), sprite("#38c8ff", "#ffffff")];
-      for (const p of sphere) {
+      const step = S.q < 0.75 ? 2 : 1;
+      for (let i = 0; i < sphere.length; i += step) {
+        const p = sphere[i];
         const x = p.x * cs + p.z * sn; const z = -p.x * sn + p.z * cs;
         const y = p.y * Math.cos(tilt) - z * Math.sin(tilt); const zz = p.y * Math.sin(tilt) + z * Math.cos(tilt);
         const depth = (zz + 1) / 2;
@@ -274,7 +276,7 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
           if (g.box.x1 < view.x0 || g.box.x0 > view.x1 || g.box.y1 < view.y0 || g.box.y0 > view.y1) return;
           const dim = dimEdge(e); const hi = hiEdge(e);
           const base = 0.16 + 0.3 * (e.fwd ? e.fwd.glow : 0.4);
-          const a = dim ? 0.03 : hi ? 0.95 : base * (S.focusIds ? 0.55 : 1);
+          const a = dim ? 0.03 : hi ? 0.95 : base * (S.focusIds ? 0.55 : 1) * (e.kind === "serve" ? 0.5 : 1);
           const path = g.p2 || (g.p2 = new Path2D(g.d));
           const col = e.color || COLORS.command;
           lctx.strokeStyle = hexA(col, a * 0.22);
@@ -363,7 +365,10 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
       });
 
       frames++;
-      if (now - fpsAt > 1000) { S.fps = Math.round((frames * 1000) / (now - fpsAt)); frames = 0; fpsAt = now; try { window.__shipFps = S.fps; cv.dataset.fps = String(S.fps); } catch { /* ignore */ } }
+      if (now - fpsAt > 1000) {
+        S.fps = Math.round((frames * 1000) / (now - fpsAt));
+        // Adaptive quality: fewer particles and orbs on slow machines, back up when there's headroom.
+        S.q = S.fps < 42 ? Math.max(0.5, S.q - 0.15) : S.fps > 56 ? Math.min(1, S.q + 0.1) : S.q; frames = 0; fpsAt = now; try { window.__shipFps = S.fps; cv.dataset.fps = String(S.fps); } catch { /* ignore */ } }
     };
 
     if (reduced) {
