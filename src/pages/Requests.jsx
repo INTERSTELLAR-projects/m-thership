@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDeepLinkFocus } from "@/lib/deepLink";
 import { Search, Play, Check, X, ExternalLink, Inbox, FileText } from "lucide-react";
