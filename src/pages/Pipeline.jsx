@@ -34,6 +34,7 @@ function LeadCard({ c, onOpen, onMove, provided, dragging }) {
       ref={provided.innerRef}
       {...provided.draggableProps}
       {...provided.dragHandleProps}
+      data-record-id={c.id}
       onClick={() => onOpen(c)}
       className={cn("cursor-pointer rounded-md border bg-paper p-3 transition-shadow", dragging ? "border-[#ff3c00] shadow-lg" : "border-hair hover:border-ink/30", overdue && "border-l-2 border-l-red-600")}
     >

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useDeepLinkFocus } from "@/lib/deepLink";
 import { Search, Play, Check, X, ExternalLink, Inbox, FileText } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import { base44 } from "@/api/base44Client";
@@ -88,6 +89,9 @@ export default function Requests() {
   const [kind, setKind] = useState("all");
   const [clientF, setClientF] = useState("all");
   const [open, setOpen] = useState(null);
+  const linkedReq = params.get("request") || "";
+  useEffect(() => { if (linkedReq && !open) { const r = (reqs.data || []).find((x) => x.id === linkedReq); if (r) setOpen(r); } }, [linkedReq, reqs.data]); // eslint-disable-line react-hooks/exhaustive-deps
+  useDeepLinkFocus(linkedReq, [(reqs.data || []).length]);
   const [formClient, setFormClient] = useState(null);
 
   const rows = useMemo(() => (reqs.data || []).filter((r) => {
@@ -159,7 +163,7 @@ export default function Requests() {
                   </header>
                   <ul className="flex-1 space-y-2 p-2">
                     {list.map((r) => (
-                      <li key={r.id} className="card-hover cursor-pointer border border-hair bg-paper p-3" onClick={() => setOpen(r)}>
+                      <li key={r.id} data-record-id={r.id} className="card-hover cursor-pointer border border-hair bg-paper p-3" onClick={() => setOpen(r)}>
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className="mono-label text-[9px] text-ink/45">{kindLabel(r.kind)}</span>
                           {r.priority === "urgent" && <Tag tone="red">Urgent</Tag>}
