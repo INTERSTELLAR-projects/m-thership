@@ -209,7 +209,7 @@ async function writeCopy(db: any, base44: any, user: any, rows: any[], otherName
   if (!rows.length) return { generated: 0, fallback: 0 };
   const prompt = copyPrompt(rows);
   let items: any[] | null = null;
-  let copyError = "";
+  let copyError = ""; // surfaced as copy_errors so an unattended run never fails silently
   // Preferred path: the ai-gateway (house rules, metering, model per the prompting standard) as the signed-in admin.
   if (user?.role === "admin") {
     try {
