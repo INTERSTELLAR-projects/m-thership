@@ -693,7 +693,8 @@ export function ruleProposals(s, scores) {
   for (const i of s.mineDue.filter((x) => x.kind === "question").slice(0, 2)) {
     P({ kind: "question", pillar: launchPillar(i) === "delivery" ? "owner" : launchPillar(i), priority: 55, title: short(i.title, 120), rationale: `Road to Dec 31, week ${i.week}. Your answer unblocks the work behind it.`, payload: { question: i.title, launch_item_id: i.id, question_key: `launch.${i.key || i.id}` }, source_ref: ref("LaunchItem", i.id, i.title, "/launch"), dedupe_key: `launchq:${i.id}` });
   }
-  const q = nextQuestion(s.facts, scores, s.actions.filter((a) => a.kind === "question").map((a) => a.payload && a.payload.question_key));
+  const brainPending = s.actions.some((a) => a.kind === "question" && a.source === "brain" && a.status === "pending");
+  const q = brainPending ? null : nextQuestion(s.facts, scores, s.actions.filter((a) => a.kind === "question").map((a) => a.payload && a.payload.question_key));
   if (q) P({ kind: "question", pillar: q.pillar, priority: 35, source: "brain", title: q.q, rationale: q.why, payload: { question: q.q, question_key: q.key }, dedupe_key: `brain:${q.key}` });
   return out;
 }
@@ -729,7 +730,7 @@ export const BRAIN_QUESTIONS = [
   { key: "owner.goal_2027", pillar: "owner", q: "What is the one goal for 2027, in a sentence?", why: "Every score rolls up to it." },
 ];
 export function nextQuestion(facts, scores, skipKeys = []) {
-  const known = new Set((facts || []).filter((f) => f.status !== "superseded").map((f) => f.question_key).filter(Boolean));
+  const known = new Set((facts || []).filter((f) => f.status !== "superseded").flatMap((f) => [f.question_key, ...((f.data && f.data.covers) || [])]).filter(Boolean));
   const skip = new Set((skipKeys || []).filter(Boolean));
   const open = BRAIN_QUESTIONS.filter((q) => !known.has(q.key) && !skip.has(q.key));
   if (!open.length) return null;
