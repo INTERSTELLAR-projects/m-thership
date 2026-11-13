@@ -9,7 +9,7 @@ import {
 import "../agents.css";
 import "./ship.css";
 import { useShipData } from "./useShipData";
-import { buildShip, litNodes, breadcrumb, eventsOf, freshEvents, eventPath, summaryLine, hqDeptOf, COLORS } from "./graph";
+import { buildShip, litNodes, breadcrumb, eventsOf, freshEvents, eventPath, summaryLine, hqDeptOf, recordPath, COLORS } from "./graph";
 import FlowCanvas from "./FlowCanvas";
 import ShipPanel from "./ShipPanel";
 import { StatusDot, relTime, Spinner, STATUS_META } from "../ui";
@@ -461,7 +461,7 @@ export default function ShipView({ onClassic }) {
       <div ref={stageRef} className="shp-stage relative min-h-0 flex-1">
         <FlowCanvas ref={canvasApi} anchors={anchors} edges={ship.edges} scrollRef={scrollRef} mode={mode} lit={lit} focusIds={chain} hoverEdge={hover?.type === "edge" ? hover.edge.id : null} reduced={reduced} density={density} forceSvg={forceSvg} />
         <div ref={scrollRef} className="shp-scroll absolute inset-0 overflow-y-auto overflow-x-hidden" onMouseMove={onMove} onMouseLeave={() => setHover(null)} onClick={onStageClick} style={{ cursor: hover ? "pointer" : "default" }}>
-          <div ref={contentRef} className={`relative ${panelOpen && mode === "cols" ? "md:pr-[440px]" : ""}`}>
+          <div ref={contentRef} className="relative">
             {mode === "cols" ? (
               <div className="shp-cols">
                 <div className="shp-lanes">{laneCards}</div>
@@ -493,7 +493,7 @@ export default function ShipView({ onClassic }) {
             <ul className="space-y-0.5">
               {ticker.slice(0, width < 700 ? 2 : 5).map((t) => (
                 <li key={t.key} className={t.fresh ? "shp-tick rounded" : ""}>
-                  <Link to={eventHref(t)} className="flex items-center gap-2 rounded px-1 py-0.5 text-[11.5px] hover:bg-white/5">
+                  <Link to={recordPath(t.entity, t.id, t.rec)} className="flex items-center gap-2 rounded px-1 py-0.5 text-[11.5px] hover:bg-white/5">
                     <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: EVENT_COLOR[t.type], boxShadow: `0 0 6px ${EVENT_COLOR[t.type]}` }} />
                     <span className="min-w-0 flex-1 truncate text-[var(--ink-d)]">{t.label}</span>
                     <span className="mono shrink-0 text-[9.5px] text-[var(--ink-s)]">{relTime(new Date(t.at).toISOString())}</span>
@@ -512,7 +512,3 @@ export default function ShipView({ onClassic }) {
   );
 }
 
-function eventHref(t) {
-  const map = { AutomationRun: "/automations", WorkEntry: `/output-analytics?entry=${t.id}`, ClaudeJob: `/claude?job=${t.id}`, ResearchNote: `/agents?note=${t.id}` };
-  return map[t.entity] || "/";
-}
