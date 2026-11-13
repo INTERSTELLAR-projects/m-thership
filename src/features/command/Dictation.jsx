@@ -82,7 +82,7 @@ export function AnswerReview({ raw, question, questionKey, dark = false, onSave,
   }, [raw, question, questionKey]);
   const save = async (statements, exact = false) => {
     setBusy(true); setErr("");
-    try { await onSave(statements.map((x) => x.trim()).filter(Boolean), { exact, about: state.about }); } catch (e) { setErr(errMsg(e)); }
+    try { await onSave(statements.map((x) => x.trim()).filter(Boolean), { exact, about: state.about, pillar: state.pillar }); } catch (e) { setErr(errMsg(e)); }
     setBusy(false);
   };
   const box = dark ? "border-white/20 bg-white/[0.05] text-white" : "border-hair bg-white text-ink";

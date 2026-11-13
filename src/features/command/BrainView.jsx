@@ -30,9 +30,11 @@ export default function BrainView() {
   }, [q, voiceOn]);
 
   const toReview = (e) => { e?.preventDefault(); if (dict.listening) { dict.stop(); return; } if (dict.text.trim()) setReview(dict.text.trim()); };
-  const saveReviewed = async (statements, { about }) => {
+  const saveReviewed = async (statements, { about, pillar }) => {
     setBusy("save");
-    const r = await brain("answer", { question_key: q.key, question: q.q, pillar: q.pillar, statements, raw_text: review, client_name: about || undefined });
+    const r = await brain("answer", q
+      ? { question_key: q.key, question: q.q, pillar: q.pillar, statements, raw_text: review, client_name: about || undefined }
+      : { question_key: null, question: "Something else the Brain should know", pillar: pillar || "owner", statements, raw_text: review, client_name: about || undefined });
     setBusy("");
     if (!r) throw new Error("Couldn't save. Try again.");
     setSaved(r.saved_all?.length > 1 ? r.saved_all.map((x) => x.statement).join(" ") : r.saved?.statement || statements.join(" "));
@@ -85,7 +87,22 @@ export default function BrainView() {
                 )}
               </div>
             </div>
-          ) : <p className="mt-4 text-[18px] text-white">That's every question in the bank. The Brain will ask again as the business changes.</p>}
+          ) : (
+            <div className="mt-4">
+              <h2 className="text-[22px] font-semibold leading-snug tracking-[-0.02em] text-white md:text-[28px]">Tell the Brain something else</h2>
+              <p className="mt-2 text-[13px] text-white/55">You've answered every question in the bank. Add anything new it should plan with; I'll file it under the right pillar.</p>
+              <div className="mt-5">
+                {review ? (
+                  <AnswerReview dark raw={review} question="Something else the Brain should know" onSave={saveReviewed} onBack={() => { dict.setText(review); setReview(null); }} />
+                ) : (
+                  <form onSubmit={toReview}>
+                    <DictationBox dict={dict} dark micSize={64} placeholder={dict.supported ? "Tap the mic and talk as long as you like, then tap stop. Or type." : "Type it."} />
+                    <button type="submit" disabled={!dict.text.trim() && !dict.listening} className="mt-3 inline-flex h-12 items-center gap-2 bg-[#ff3c00] px-5 text-[15px] font-medium text-white hover:bg-white hover:text-ink disabled:opacity-40"><Check className="h-4 w-4" />{dict.listening ? "Stop & review" : "Review & save"}</button>
+                  </form>
+                )}
+              </div>
+            </div>
+          )}
           {saved && !review && <p className="mt-4 border-l-2 border-[#1f8a5b] pl-3 text-[13px] text-white/75" role="status">Learned: {saved}</p>}
           {err && <p className="mt-3 text-[13px] text-[#ffaa00]" role="alert">{err}</p>}
         </div>
