@@ -3,6 +3,7 @@ import {
   Crown, Activity, Settings, FolderKanban, Star, PenLine, Presentation, Route, Sparkles, Target, QrCode, Link2,
   CalendarRange, Zap, Megaphone, BadgeDollarSign, Mail, UserPlus, Gauge, Fuel, Store, Orbit, Rocket, Radar, Wand2,
   Chrome, Inbox, BookOpenCheck, Globe, GraduationCap, ShieldCheck, Package, Repeat, Sun, Briefcase, Wallet, LayoutGrid, Landmark,
+  Brain,
 } from "lucide-react";
 import { PACKAGES, packagePath } from "@/features/packages/registry";
 
@@ -30,12 +31,16 @@ export const HUBS = [
     icon: Sun,
     path: "/",
     hint: "Start here every morning, left to right",
+    // Møthership Command (docs/command/01-vision-and-architecture.md): Today is the home; Mission Control moved to /classic.
     tabs: [
-      { label: "Mission Control", icon: LayoutDashboard, path: "/", hint: "Revenue, live operations and what to focus on now" },
+      { label: "Command", icon: Sun, path: "/", hint: "Your brief, the plan for today and what needs your yes" },
+      { label: "Pillars", icon: Orbit, path: "/pillars", hint: "The 8 business pillars, scored from live records, with why and what to do" },
+      { label: "Brain", icon: Brain, path: "/brain", hint: "Teach the Business Brain, one question at a time" },
       { label: "Road to Dec 31", icon: Rocket, path: "/launch", badge: "justinMoves", hint: "Your launch moves: calls, payments, logins and final OKs" },
       { label: "Approvals", icon: Inbox, path: "/launch?tab=approvals", badge: "approvals", hint: "Only the items that truly need your yes" },
       { label: "Commander brief", icon: Crown, path: "/agents?ceo=1", hint: "What the agents did overnight and what matters today" },
       { label: "Output", icon: Activity, path: "/output-analytics", hint: "Work done and hours saved this week" },
+      { label: "Classic", icon: LayoutDashboard, path: "/classic", hint: "Mission Control: the original widget dashboard, unchanged" },
     ],
   },
   {
