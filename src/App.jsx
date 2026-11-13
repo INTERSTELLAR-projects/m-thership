@@ -64,6 +64,10 @@ import IntelligencePage from '@/features/oracle/IntelligencePage';
 import LaunchPage from '@/features/launch/LaunchPage';
 import OracleTopicPage from '@/features/oracle/TopicPage';
 import More from './pages/More';
+import CommandHome from '@/features/command/CommandHome';
+import PillarsView from '@/features/command/PillarsView';
+import BrainView from '@/features/command/BrainView';
+import WalkMode from '@/features/command/WalkMode';
 
 // Branded sign-in routes. They render without a session. While the platform's hosted login owns /login for this
 // private app (custom auth not enrolled), the server answers these paths itself; the page takes over as soon as
@@ -123,8 +127,14 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route path="/portal/:clientId" element={<PortalPreview />} />
       <Route path="/r/:id" element={<PublicRequest />} />
+      {/* Walk Mode is full-screen, outside the layout (docs/command/01-vision-and-architecture.md). */}
+      <Route path="/walk" element={<ProtectedRoute><WalkMode /></ProtectedRoute>} />
       <Route element={<Layout />}>
-        <Route path="/" element={<Dashboard />} />
+        {/* Møthership Command is the home; the old Mission Control dashboard lives at /classic. */}
+        <Route path="/" element={<CommandHome />} />
+        <Route path="/classic" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/pillars" element={<ProtectedRoute><PillarsView /></ProtectedRoute>} />
+        <Route path="/brain" element={<ProtectedRoute><BrainView /></ProtectedRoute>} />
         {/* Hub shortcuts (see src/lib/nav.js and docs/cleanup-2026-11-12.md). Every older route below is unchanged. */}
         <Route path="/today" element={<Navigate to="/" replace />} />
         <Route path="/clients" element={<Navigate to="/crm" replace />} />
