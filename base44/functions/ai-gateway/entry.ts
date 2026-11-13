@@ -1,7 +1,7 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { requireSecondFactor } from "../../shared/twoFactor.ts";
 import { resolveClient, getSecret } from "../../shared/portalClient.ts";
-import { callClaude, AnthropicError, HOUSE_RULES } from "../../shared/anthropic.ts";
+import { callClaude, invokeBase44, AnthropicError } from "../../shared/anthropic.ts";
 import { AI_MODELS, estimateAiCost, anyStudioOn, studiosOf, monthKey, planUnlocksStudios, type AiTier } from "../../shared/usagePlans.ts";
 import { check, record } from "../../shared/meter.ts";
 import { loadFuelConfig, weightFor } from "../../shared/fuel.ts";
@@ -16,7 +16,7 @@ import { getClientContext, CONTEXT_MARKER } from "../../shared/clientContext.ts"
 // Portal users: always act for their own client (client_id ignored), only when at least one Studio is switched on
 // for that client (and, when `studio` is given, that Studio), and within the plan's monthly AI-action cap.
 // Admin (Justin): never capped; recorded against client_id when given (by_admin, not counted toward the cap).
-// No key: client calls get 503 { code: "ai_not_configured" }; admin calls fall back to Base44 InvokeLLM.
+// No key (the normal case): every call, admin or client, runs on the built-in InvokeLLM. The key is optional, never required.
 // AI actions are weighted by model (Fuel economics settings, pending Justin's approval): Haiku call = 1, Sonnet call
 // = 3, agent / brain run with a large context = 5. tier "routine" = Haiku drafts, "long" = Sonnet long work.
 // Studios (and so this gateway, for portal users) are HyperCare+ only; other plans get 403 studios_locked.
@@ -86,14 +86,17 @@ Deno.serve(async (req) => {
     }
 
     if (!key) {
-      if (!isAdmin) return Response.json({ error: "AI isn't configured yet. Interstellar has been notified.", code: "ai_not_configured" }, { status: 503 });
-      // Justin's own usage only: fall back to Base44 InvokeLLM so admin Studios keep working without the key.
-      const fullPrompt = [HOUSE_RULES, system, messages ? messages.map((m: any) => `${m.role.toUpperCase()}: ${m.content}`).join("\n\n") : prompt].filter(Boolean).join("\n\n");
-      const out = await base44.integrations.Core.InvokeLLM({ prompt: fullPrompt, ...(schema ? { response_json_schema: schema } : {}) });
-      const json = schema ? (typeof out === "string" ? JSON.parse(out) : out) : null;
-      const text = schema ? JSON.stringify(json) : (typeof out === "string" ? out : JSON.stringify(out));
-      if (client) await record(db, client, "ai_action", 1, { admin: true, model: "base44-invokellm", feature, user_email: user.email, calls: 1 });
-      return Response.json({ text, json, model: "base44-invokellm", fallback: true, input_tokens: 0, output_tokens: 0, est_cost_usd: 0, meter });
+      // The normal path: no Anthropic key is ever needed. Everyone (admin and portal clients) runs on the built-in
+      // InvokeLLM integration, with the same house rules, grounding, caps and meter as the key path.
+      const out = await invokeBase44(base44, { system: system || undefined, prompt, messages: messages || undefined, schema, service: !isAdmin });
+      const units = expected;
+      if (client) await record(db, client, "ai_action", units, { admin: isAdmin, model: out.model, est_cost_usd: 0, feature, user_email: user.email, calls: 1 });
+      const used = meter ? meter.used + (isAdmin ? 0 : units) : null;
+      return Response.json({
+        text: out.text, json: out.json, model: out.model, fallback: true, strict_json: false, stop_reason: null,
+        input_tokens: 0, output_tokens: 0, est_cost_usd: 0, units,
+        meter: meter ? { used, cap: meter.cap, remaining: meter.cap == null ? null : Math.max(0, meter.cap - (used || 0)), pct: meter.cap ? (used || 0) / meter.cap : null, plan: meter.plan_label, wallet: meter.wallet } : null,
+      });
     }
 
     const out = await callClaude({ key, tier, system: system || undefined, prompt, messages: messages || undefined, schema, max_tokens: body?.max_tokens });
@@ -116,8 +119,8 @@ Deno.serve(async (req) => {
     if (e instanceof AnthropicError) {
       console.error("ai-gateway anthropic", e.status, e.type);
       const status = e.status === 429 || e.status === 529 ? 503 : e.status === 401 || e.status === 403 ? 503 : 502;
-      const msg = e.status === 401 || e.status === 403 ? "AI isn't configured correctly yet." : e.status === 429 || e.status === 529 ? "The AI is busy right now. Try again in a minute." : e.message;
-      return Response.json({ error: msg, code: e.status === 401 || e.status === 403 ? "ai_not_configured" : "ai_error" }, { status });
+      const msg = e.status === 401 || e.status === 403 || e.status === 429 || e.status === 529 ? "The AI is busy right now. Try again in a minute." : e.message;
+      return Response.json({ error: msg, code: "ai_error" }, { status });
     }
     console.error("ai-gateway", (e as Error)?.message);
     return Response.json({ error: (e as Error)?.message || "AI request failed" }, { status: 500 });
