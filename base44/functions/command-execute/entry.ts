@@ -133,17 +133,22 @@ Deno.serve(async (req) => {
           break;
         }
         case "question": {
-          const answer = str(body?.answer).trim();
+          const answer = str(body?.raw_text || body?.answer).trim();
           if (!answer) throw new Error("Type or say an answer");
+          const statements = (Array.isArray(body?.statements) && body.statements.length ? body.statements : [answer]).map((x: any) => str(x).trim().slice(0, 1000)).filter(Boolean).slice(0, 3);
           const pillar = C.PILLAR_IDS.includes(pa.pillar) ? pa.pillar : "owner";
           const key = str(payload.question_key) || null;
           if (key) {
             const old = await db.BrainFact.filter({ question_key: key, status: "active" }, "-created_date", 20).catch(() => []);
             for (const f of old || []) await db.BrainFact.update(f.id, { status: "superseded" }).catch(() => null);
           }
-          const data = key === "owner.hours" || key === "owner.lunch" ? C.parseHours(answer) : null;
-          const fact = await db.BrainFact.create({ pillar, statement: answer.slice(0, 1000), question: str(payload.question).slice(0, 400), question_key: key, source: "interview", confidence: "high", date: C.zonedParts(new Date(), C.TZ_DEFAULT).date, status: "active", ...(data ? { data } : {}) });
-          await audit(db, { actor, action: "fact_saved", entity: "BrainFact", record_id: fact.id, summary: `[${pillar}] ${answer.slice(0, 160)}`, proposed_action_id: pa.id, undo: { entity: "BrainFact", id: fact.id, patch: { status: "superseded" } } });
+          const data = C.factData(key, answer, statements.join(" "));
+          const clientName = str(body?.client_name || payload.client_name).slice(0, 120);
+          let fact: any = null;
+          for (const statement of statements) {
+            fact = await db.BrainFact.create({ pillar, statement, raw_text: answer.slice(0, 4000), question: str(payload.question).slice(0, 400), question_key: key, source: "interview", confidence: "high", date: C.zonedParts(new Date(), C.TZ_DEFAULT).date, status: "active", ...(clientName ? { client_name: clientName } : {}), ...(data ? { data } : {}) });
+            await audit(db, { actor, action: "fact_saved", entity: "BrainFact", record_id: fact.id, summary: `[${pillar}] ${statement.slice(0, 160)}`, proposed_action_id: pa.id, undo: { entity: "BrainFact", id: fact.id, patch: { status: "superseded" } } });
+          }
           if (payload.launch_item_id) await applyChanges(db, [{ entity: "LaunchItem", id: payload.launch_item_id, label: pa.title, patch: { answer: answer.slice(0, 2000), answered_at: "$now" } }], actor, pa.id).catch(() => null);
           status = "answered";
           result = { fact_id: fact.id };

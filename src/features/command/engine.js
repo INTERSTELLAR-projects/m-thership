@@ -230,6 +230,19 @@ export function parseLifeBlocks(text) {
   }
   return out;
 }
+// Structured data saved with a fact so the planner can use it: hours + work days, or fixed life blocks.
+export function factData(key, raw, statement) {
+  if (key === "owner.hours" || key === "owner.lunch") {
+    const h = parseHours(raw) || parseHours(statement);
+    const days = parseWorkDays(`${raw} ${statement}`);
+    return h || days ? { ...(h || {}), ...(days ? { days } : {}) } : null;
+  }
+  if (key === "owner.fixed_life") {
+    const blocks = parseLifeBlocks(statement).length ? parseLifeBlocks(statement) : parseLifeBlocks(raw);
+    return blocks.length ? { blocks } : null;
+  }
+  return null;
+}
 export function dayConfig(facts) {
   const f = (key) => (facts || []).find((x) => x.question_key === key && x.status !== "superseded");
   const hours = f("owner.hours");
