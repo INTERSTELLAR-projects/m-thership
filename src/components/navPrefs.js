@@ -2,7 +2,7 @@
 // Conveniences only: every read and write is guarded (private windows, blocked storage) and the nav works without them.
 import { useEffect, useState } from "react";
 
-const KEYS = { pins: "ms.nav.pins" };
+const KEYS = { pins: "ms.nav.pins", sidebarPinned: "ms.nav.sidebarPinned" };
 const EVT = "ms-nav-prefs";
 
 function read(key, fallback) {
@@ -30,3 +30,5 @@ function usePref(name, fallback) {
 }
 
 export const usePins = () => usePref("pins", []);
+// Møthership Command: the sidebar is an "All pages" drawer by default; pin it to keep it open on desktop.
+export const useSidebarPinned = () => usePref("sidebarPinned", false);
