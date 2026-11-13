@@ -1,0 +1,136 @@
+{
+  "name": "ProposedAction",
+  "description": "M\u00f8thership Command 'Needs you' stream: something the agent prepared and Justin approves, edits, skips or snoozes. Executed only by command-execute after approval; every run writes AgentAuditLog. Never moves money, never deletes. Admin only.",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "send_email",
+        "send_sms",
+        "record_change",
+        "create_task",
+        "log_expense",
+        "client_note",
+        "choice",
+        "question"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "executed",
+        "skipped",
+        "snoozed",
+        "failed",
+        "answered",
+        "cancelled"
+      ],
+      "default": "pending"
+    },
+    "pillar": {
+      "type": "string",
+      "enum": [
+        "sales",
+        "marketing",
+        "delivery",
+        "finance",
+        "clients",
+        "team",
+        "systems",
+        "owner"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "rationale": {
+      "type": "string",
+      "description": "Why the agent proposes this, tied to real records"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "send_email {to, subject, body, client_id}; send_sms {phone, body}; record_change {changes:[{entity, id, patch, label}]}; create_task {task}; log_expense {expense}; client_note {client_id, text}; choice {options:[{label, effect}]}; question {question, question_key}"
+    },
+    "risk": {
+      "type": "string",
+      "enum": [
+        "internal",
+        "external",
+        "money"
+      ],
+      "default": "internal"
+    },
+    "priority": {
+      "type": "number",
+      "default": 50,
+      "description": "Higher shows first"
+    },
+    "snooze_until": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string",
+      "description": "brief | ask | brain | rules"
+    },
+    "source_ref": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ entity, id, label, path }"
+    },
+    "dedupe_key": {
+      "type": "string"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "executed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "error": {
+      "type": "string"
+    },
+    "answer": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
