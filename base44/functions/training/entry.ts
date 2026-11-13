@@ -28,7 +28,7 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { requireSecondFactor } from "../../shared/twoFactor.ts";
 import { resolveClient, getSecret } from "../../shared/portalClient.ts";
 import { planUnlocksStudios, studioState } from "../../shared/usagePlans.ts";
-import { callClaude, AnthropicError } from "../../shared/anthropic.ts";
+import { callAI, AnthropicError } from "../../shared/anthropic.ts";
 import { check, record } from "../../shared/meter.ts";
 import { estimateAiCost, monthKey, AI_MODELS } from "../../shared/usagePlans.ts";
 import { loadFuelConfig, weightFor } from "../../shared/fuel.ts";
@@ -79,17 +79,18 @@ async function ai(base44: any, db: any, user: any, client: any, args: { tier: "r
     if (status >= 500 && data?.code) throw Object.assign(new Error(data?.error || e.message), { status, code: data.code });
   }
   // Fallback: identical rules, in process.
-  const key = getSecret("ANTHROPIC_API_KEY");
-  if (!key) throw Object.assign(new Error("Drafting isn't configured yet. Interstellar has been notified."), { status: 503, code: "ai_not_configured" });
+  // No key needed: callAI uses the built-in InvokeLLM when ANTHROPIC_API_KEY is absent (the normal case).
+  const key = getSecret("ANTHROPIC_API_KEY") || null;
   const isAdmin = user.role === "admin";
   const cfg = await loadFuelConfig(db);
   if (client) {
     const c = await check(db, client, "ai_action", weightFor(args.tier === "long" ? AI_MODELS.long.id : AI_MODELS.routine.id, 0, args.feature, cfg), { admin: isAdmin, feature: args.feature });
     if (!c.ok) throw Object.assign(new Error(c.reason || "Out of fuel"), { status: 429, code: c.code, meter: c });
   }
-  const out = await callClaude({ key, tier: args.tier, system: args.system, prompt: args.prompt, schema: args.schema, max_tokens: args.max_tokens });
-  const est = estimateAiCost(out.model, out.input_tokens, out.output_tokens);
-  const units = weightFor(out.model, out.input_tokens, args.feature, cfg);
+  const out = await callAI(base44, { key, tier: args.tier, system: args.system, prompt: args.prompt, schema: args.schema, max_tokens: args.max_tokens, service: !isAdmin });
+  const viaKey = out.model !== "base44-invokellm";
+  const est = viaKey ? estimateAiCost(out.model, out.input_tokens, out.output_tokens) : 0;
+  const units = weightFor(viaKey ? out.model : (args.tier === "long" ? AI_MODELS.long.id : AI_MODELS.routine.id), out.input_tokens, args.feature, cfg);
   if (client) await record(db, client, "ai_action", units, { admin: isAdmin, model: out.model, est_cost_usd: est, feature: args.feature, user_email: user.email, input_tokens: out.input_tokens, output_tokens: out.output_tokens, calls: 1 });
   else await db.UsageLedger.create({ client_id: "agency", client_name: "Interstellar (admin)", month: monthKey(), kind: "ai_action", units, calls: 1, model: out.model, est_cost_usd: est, feature: args.feature, user_email: user.email, by_admin: true, input_tokens: out.input_tokens, output_tokens: out.output_tokens, created_at: new Date().toISOString() }).catch(() => null);
   return { json: out.json, meter: null };
