@@ -101,6 +101,8 @@ export default function WalkMode() {
   };
 
   handler.current = (t) => {
+    // Ignore what the microphone hears while the phone is talking (it would hear itself on a speaker).
+    if (typeof window !== "undefined" && window.speechSynthesis?.speaking && parseSpoken(t) !== "stop") return;
     if (phase === "answer") {
       const cmd = parseSpoken(t);
       if (cmd === "stop" || cmd === "skip") { setPhase("card"); return; }
