@@ -1,0 +1,77 @@
+{
+  "name": "AgentAuditLog",
+  "description": "M\u00f8thership Command audit log: one row per agent action (brief generated, task created, record changed, email sent, fact saved, undo). before/after hold only the changed fields; undo is the recipe to reverse it. Admin only.",
+  "type": "object",
+  "properties": {
+    "at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actor": {
+      "type": "string",
+      "description": "agent | justin email"
+    },
+    "action": {
+      "type": "string",
+      "description": "brief_generated | task_created | record_changed | email_sent | sms_handoff | fact_saved | expense_logged | note_added | plan_changed | undo | skipped | snoozed"
+    },
+    "entity": {
+      "type": "string"
+    },
+    "record_id": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "before": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "after": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "proposed_action_id": {
+      "type": "string"
+    },
+    "undo": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ entity, id, patch } to restore, or null when not reversible"
+    },
+    "undone_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ok": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "action"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
