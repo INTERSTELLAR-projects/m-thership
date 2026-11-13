@@ -1,6 +1,7 @@
 // Voice for Møthership Command: browser speech recognition (Chrome, Edge, Safari 14.5+), speech synthesis,
 // a soft chime and the screen wake lock. Everything degrades to typing and reading when a browser lacks it.
 import { useCallback, useEffect, useRef, useState } from "react";
+import * as D from "./dictation";
 
 const SR = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
 export const canListen = () => Boolean(SR);
@@ -103,6 +104,98 @@ export function useListener({ onFinal, continuous = false, lang = "en-US" } = {}
 
   useEffect(() => () => { wantOn.current = false; try { rec.current?.abort(); } catch { /* none */ } }, []);
   return { listening, interim, error, start, stop, supported: Boolean(SR) };
+}
+
+// Dictation like Claude's: tap once to start, it keeps listening through pauses (auto-restarts the browser session)
+// until you tap stop. Never submits anything; the text stays for review. onStop(text) fires once when it stops.
+export function useDictation({ initial = "", lang = "en-US", onStop } = {}) {
+  const S = useRef(D.initialState(initial));
+  const [, setV] = useState(0);
+  const bump = () => setV((x) => x + 1);
+  const [listening, setListening] = useState(false);
+  const [error, setError] = useState("");
+  const [elapsed, setElapsed] = useState(0);
+  const on = useRef(false);
+  const rec = useRef(null);
+  const started = useRef(0);
+  const restarts = useRef([]);
+  const stopCb = useRef(onStop);
+  stopCb.current = onStop;
+  const finishTimer = useRef(null);
+
+  const finish = useCallback(() => {
+    clearTimeout(finishTimer.current);
+    if (!listeningRef.current) return;
+    listeningRef.current = false;
+    S.current = D.endSession(S.current);
+    setListening(false);
+    bump();
+    stopCb.current?.(D.textOf(S.current));
+  }, []);
+  const listeningRef = useRef(false);
+
+  const spawn = useCallback(() => {
+    if (!SR) return;
+    const r = new SR();
+    r.lang = lang;
+    r.continuous = true;
+    r.interimResults = true;
+    r.maxAlternatives = 1;
+    r.onresult = (e) => { if (rec.current !== r) return; S.current = D.applyResults(S.current, e.results); bump(); };
+    r.onerror = (e) => {
+      if (D.FATAL.has(e.error)) { on.current = false; setError(D.ERROR_TEXT[e.error] || "The microphone stopped. Type instead."); }
+    };
+    r.onend = () => {
+      if (rec.current !== r) return;
+      S.current = D.endSession(S.current); // commit this session's words exactly once
+      bump();
+      if (on.current) {
+        // Restart through pauses and blips; back off if the browser keeps ending immediately.
+        const now = Date.now();
+        restarts.current = restarts.current.filter((t) => now - t < 4000).concat(now);
+        const wait = restarts.current.length > 6 ? 1200 : 120;
+        setTimeout(() => { if (on.current) { try { spawn(); } catch { on.current = false; finish(); } } }, wait);
+      } else finish();
+    };
+    rec.current = r;
+    try { r.start(); } catch { /* already started; onend will follow */ }
+  }, [lang, finish]);
+
+  const start = useCallback(() => {
+    if (!SR) { setError(D.ERROR_TEXT.unsupported); return false; }
+    if (on.current) return true;
+    setError("");
+    stopSpeaking();
+    on.current = true;
+    listeningRef.current = true;
+    started.current = Date.now();
+    restarts.current = [];
+    setElapsed(0);
+    setListening(true);
+    spawn();
+    return true;
+  }, [spawn]);
+
+  const stop = useCallback(() => {
+    if (!on.current && !listeningRef.current) return;
+    on.current = false;
+    try { rec.current?.stop(); } catch { /* not running */ }
+    // If the browser never fires onend, finish anyway.
+    finishTimer.current = setTimeout(finish, 1500);
+  }, [finish]);
+
+  const setText = useCallback((t) => { if (!on.current) { S.current = D.initialState(t); bump(); } }, []);
+  useEffect(() => {
+    if (!listening) return undefined;
+    const t = setInterval(() => setElapsed((Date.now() - started.current) / 1000), 500);
+    return () => clearInterval(t);
+  }, [listening]);
+  useEffect(() => () => { on.current = false; try { rec.current?.abort(); } catch { /* none */ } clearTimeout(finishTimer.current); }, []);
+
+  return {
+    text: D.textOf(S.current), committed: D.committedText(S.current), interim: S.current.interim,
+    listening, error, elapsed, start, stop, toggle: () => (on.current ? stop() : start()), setText, supported: Boolean(SR),
+  };
 }
 
 export function useWakeLock(active) {
