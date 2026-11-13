@@ -324,10 +324,10 @@ export const recordPath = (entity, id, rec = {}) => {
 };
 
 // Every record that moves through the ship, newest first, with its type.
-export function eventsOf(data, { from = 0 } = {}) {
+export function eventsOf(data, { from = 0, to = Date.now() + 10 * 60e3 } = {}) {
   const d = data || {};
   const out = [];
-  const push = (type, entity, list, at, label) => arr(list).forEach((r) => { const t = ts(at(r)); if (Number.isFinite(t) && t >= from) out.push({ key: `${entity}:${r.id}`, type, entity, id: r.id, at: t, label: label(r), rec: r }); });
+  const push = (type, entity, list, at, label) => arr(list).forEach((r) => { const t = ts(at(r)); if (Number.isFinite(t) && t >= from && t <= to) out.push({ key: `${entity}:${r.id}`, type, entity, id: r.id, at: t, label: label(r), rec: r }); });
   push("run", "AutomationRun", d.runs, when.run, (r) => `${r.automation_name || r.title || "Run"}${r.client_name ? ` · ${r.client_name}` : ""}${r.status === "failed" ? " · failed" : ""}`);
   push("work", "WorkEntry", arr(d.work).filter((w) => w.status === "done" || w.status === "awaiting_approval"), when.work, (w) => `${w.title || "Work"}${w.client_name && w.client_id !== "agency" ? ` · ${w.client_name}` : ""}`);
   push("job", "ClaudeJob", d.jobs, when.job, (j) => `${j.title || "Claude job"} · ${String(j.status || "").replace(/_/g, " ")}`);
