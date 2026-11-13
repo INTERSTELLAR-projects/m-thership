@@ -244,7 +244,6 @@ export function buildShip(data, { now = new Date(), focus = "" } = {}) {
       link(`client:${c.id}`, `cagents:${c.id}`, "app", stream(cRuns), stream(cWorkToday.length, { base: 0.03 }), { color: accent, backColor: COLORS.result });
     } else {
       groups.forEach((g) => {
-        if (!g.agents.length && g.key === "mothership") return;
         const gid = `cgroup:${c.id}:${g.key}`;
         const gRuns = g.agents.reduce((s, a) => s + agentRunsToday(a), 0);
         add({ id: gid, type: "cgroup", clientId: c.id, label: g.label, appId: g.appId, appKind: g.appKind || null, color: accent, agents: g.agents, status: g.agents.length ? rollStatus(g.agents) : "planned", metrics: { agents: g.agents.length, runsToday: gRuns, synced: maxIso(g.agents.map((a) => a.synced_at)) } });
