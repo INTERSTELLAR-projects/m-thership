@@ -84,7 +84,7 @@ export default function AskBar() {
         )}
         {(dict.listening || dict.error) && <div className="mb-1.5 bg-paper/95 px-3 py-1.5 backdrop-blur"><ListeningStatus dict={dict} /></div>}
         <form onSubmit={(e) => { e.preventDefault(); if (dict.listening) dict.stop(); else submit(); }} className="flex items-center gap-2 border border-ink/15 bg-paper/95 p-1.5 pl-2 shadow-[0_14px_40px_-18px_rgba(26,26,26,0.55)] backdrop-blur">
-          {dict.supported ? <span onClickCapture={(e) => { e.stopPropagation(); e.preventDefault(); toggleMic(); }}><MicToggle dict={{ ...dict, toggle: toggleMic }} size={46} label="Dictate to Møthership" /></span> : null}
+          {dict.supported ? <MicToggle dict={{ ...dict, toggle: toggleMic }} size={46} label="Dictate to Møthership" /> : null}
           <input
             ref={inputRef}
             value={dict.listening ? dict.text : text}
