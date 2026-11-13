@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
       let hook = "";
       try { hook = `${String(settings.portal_url || "https://interstellar-mothership.com").replace(/\/+$/, "")}/functions/email-bulk?hook=${await sesHookToken()}`; } catch { hook = ""; }
       return Response.json({
-        secrets: Object.fromEntries(["ANTHROPIC_API_KEY", "AWS_SES_ACCESS_KEY_ID", "AWS_SES_SECRET_ACCESS_KEY", "AWS_SES_REGION"].map((n) => [n, hasSecret(n)])),
+        secrets: Object.fromEntries(["AWS_SES_ACCESS_KEY_ID", "AWS_SES_SECRET_ACCESS_KEY", "AWS_SES_REGION"].map((n) => [n, hasSecret(n)])),
         models: { routine: AI_MODELS.routine, long: AI_MODELS.long },
         ses_feedback_webhook: hook,
         checked_at: new Date().toISOString(),
