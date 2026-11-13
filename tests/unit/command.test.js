@@ -101,7 +101,11 @@ describe("command engine", () => {
     const { rule } = BE.computeAll(src(), NOW, { interruptions: [it2] });
     const block = rule.plan_today.find((b) => b.kind === "interruption");
     expect(block).toMatchObject({ start: "09:00", end: "11:00" });
-    expect(rule.plan_today.filter((b) => BE.toMin(b.start) < 660 && BE.toMin(b.end) > 540 && b !== block)).toHaveLength(0);
+    const fixedKinds = ["meeting", "interruption", "break"];
+    expect(rule.plan_today.filter((b) => !fixedKinds.includes(b.kind) && BE.toMin(b.start) < 660 && BE.toMin(b.end) > 540)).toHaveLength(0);
+    const call = rule.plan_today.find((b) => b.kind === "meeting");
+    expect(call.conflict).toBe(true);
+    expect(call.title).toMatch(/clashes with/);
   });
 
   it("uses the owner's hours from the Brain", () => {
