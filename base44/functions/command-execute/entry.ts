@@ -118,6 +118,12 @@ Deno.serve(async (req) => {
           if (!opt) throw new Error("Pick an option");
           const eff = opt.effect || { type: "none" };
           if (eff.type === "record_change") result = { changed: await applyChanges(db, eff.changes || [], actor, pa.id) };
+          else if (eff.type === "create_task") {
+            const t = eff.task || {};
+            const created = await db.Task.create({ title: str(t.title).slice(0, 200) || "Untitled task", status: "next", priority: Number(t.priority) || 3, due_date: t.due_date || null, client_id: t.client_id || null, client_name: t.client_name || null, category: t.category || "ops", source: "voice", notes: "Placed from a Needs-you card" });
+            const log = await audit(db, { actor, action: "task_created", entity: "Task", record_id: created.id, summary: `Task: ${created.title}`, proposed_action_id: pa.id, undo: { entity: "Task", id: created.id, patch: { status: "done", labels: ["undone"] } } });
+            result = { task_id: created.id, changed: [{ entity: "Task", id: created.id, audit_id: log?.id }] };
+          }
           else if (eff.type === "plan_block" && eff.day === "today") {
             const out = await generateBrief(base44, user, { useLlm: false, reason: "block added", extraBlock: { title: eff.title, minutes: eff.minutes, pillar: eff.pillar, kind: "admin" } });
             result = { replanned: true, version: out.brief.version };

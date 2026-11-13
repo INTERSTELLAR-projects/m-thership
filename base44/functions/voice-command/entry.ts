@@ -43,6 +43,25 @@ const IDEA_ANALYSIS_PROMPT = (idea: any) =>
     "Category: " + idea.category
   ].join("\n");
 
+// Voice inbox retired (2026-11-12): a command the assistant isn't sure about becomes a Needs-you card on the Command
+// home ("Where should this go?") with one-tap choices, instead of an InboxItem nobody sees. Old InboxItem rows stay.
+async function parkInNeedsYou(base44: any, o: { transcript: string; speech: string; c: any; clientId: string | null; clientName: string | null; today: string }) {
+  const title = String(o.c.task_title || o.c.project_title || o.transcript).slice(0, 140);
+  const task = { title, client_id: o.clientId || null, client_name: o.clientName || null, category: o.c.category || "ops", priority: o.c.priority || 3, due_date: o.c.due_date || null };
+  const tomorrow = new Date(Date.parse(o.today + "T12:00:00Z") + 864e5).toISOString().slice(0, 10);
+  return await base44.asServiceRole.entities.ProposedAction.create({
+    kind: "choice", status: "pending", source: "ask", priority: 62, pillar: o.clientId ? "delivery" : "owner",
+    title: `Where should this go? "${o.transcript.slice(0, 90)}"`,
+    rationale: `${o.speech} I was ${Math.round((Number(o.c.confidence) || 0) * 100)}% sure, so I'm asking first.`,
+    payload: { transcript: o.transcript, options: [
+      { label: `Add it as a task: ${title.slice(0, 70)}${o.clientName ? ` (${o.clientName})` : ""}`, effect: { type: "create_task", task } },
+      { label: "Add it as a task for tomorrow", effect: { type: "create_task", task: { ...task, due_date: tomorrow } } },
+      { label: "Discard it", effect: { type: "none" } },
+    ] },
+    source_ref: { entity: "Voice", id: "", label: o.transcript.slice(0, 90), path: "/" },
+  });
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -112,31 +131,8 @@ Deno.serve(async (req) => {
     };
 
     if (shouldQueue && (c.task_title || transcript.length > 3)) {
-      const queued = await base44.entities.InboxItem.create({
-        raw_text: transcript,
-        source: "voice",
-        status: "needs_review",
-        assistant_note: speech,
-        confidence: c.confidence,
-        suggested_kind: c.intent === "create_client" ? "client" : c.project_title ? "project" : "task",
-        suggested_title: c.task_title || c.project_title || transcript.slice(0, 80),
-        suggested_category: c.category || "ops",
-        suggested_priority: c.priority || 3,
-        suggested_due_date: c.due_date || null,
-        suggested_estimated_days: c.estimated_days || 0,
-        suggested_project_title: c.project_title || null,
-        suggested_project_type: c.project_type || null,
-        suggested_project_value: c.project_value || 0,
-        suggested_client_name: clientLabel(c.client_id) || c.client_name || null,
-        captured_on: TODAY
-      });
-      return Response.json({
-        queued: true,
-        filed: false,
-        kind: "inbox",
-        id: queued.id,
-        speech: speech + " It is waiting in your inbox for placement."
-      });
+      const queued = await parkInNeedsYou(base44, { transcript, speech, c, clientId: c.client_id, clientName: clientLabel(c.client_id) || c.client_name || null, today: TODAY });
+      return Response.json({ queued: true, filed: false, kind: "needs_you", id: queued.id, speech: speech + " I put it in Needs you on your Command home so you can choose where it goes." });
     }
 
     if (c.intent === "query" || c.intent === "brief") {
@@ -297,25 +293,8 @@ Deno.serve(async (req) => {
       return Response.json({ queued: false, filed: true, kind: "task", id: first.id || null, title: first.title, count: docs.length, speech });
     }
 
-    const queued = await base44.entities.InboxItem.create({
-      raw_text: transcript,
-      source: "voice",
-      status: "needs_review",
-      assistant_note: speech,
-      confidence: c.confidence,
-      suggested_title: c.task_title || transcript.slice(0, 80),
-      suggested_category: c.category || "ops",
-      suggested_priority: c.priority || 3,
-      suggested_client_name: clientLabel(c.client_id) || c.client_name || null,
-      captured_on: TODAY
-    });
-    return Response.json({
-      queued: true,
-      filed: false,
-      kind: "inbox",
-      id: queued.id,
-      speech: speech + " I parked it in your inbox so you can place it."
-    });
+    const queued = await parkInNeedsYou(base44, { transcript, speech, c, clientId: c.client_id, clientName: clientLabel(c.client_id) || c.client_name || null, today: TODAY });
+    return Response.json({ queued: true, filed: false, kind: "needs_you", id: queued.id, speech: speech + " I put it in Needs you on your Command home so you can choose where it goes." });
   } catch (error) {
     return Response.json({ error: (error as Error).message }, { status: 500 });
   }
