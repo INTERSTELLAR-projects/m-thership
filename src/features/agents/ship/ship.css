@@ -1,0 +1,57 @@
+/* Constellation v2: the whole ship. Scoped under .agx.shp (reuses the classic tokens in ../agents.css). The stage is always
+   dark, whatever the surrounding theme. */
+.agx.shp { background: radial-gradient(1400px 900px at 22% 55%, #120d16 0%, #07080d 50%, #030407 100%); }
+.agx.shp .shp-stage { background: radial-gradient(900px 600px at 18% 60%, rgba(255, 90, 20, 0.07), transparent 70%), radial-gradient(800px 600px at 45% 50%, rgba(140, 100, 255, 0.06), transparent 70%); }
+.agx.shp .shp-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.14) transparent; overscroll-behavior: contain; }
+.agx.shp .shp-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.agx.shp .shp-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 4px; }
+
+/* Layouts */
+.agx.shp .shp-cols { display: grid; grid-template-columns: minmax(170px, .85fr) minmax(190px, .95fr) minmax(215px, 1fr) minmax(420px, 2.15fr); column-gap: clamp(40px, 4.4vw, 104px); row-gap: 30px; padding: 22px 28px 140px; align-items: center; }
+.agx.shp .shp-cols .shp-lanes { grid-column: 1 / 4; display: flex; gap: 10px; align-self: end; }
+.agx.shp .shp-cols .shp-lanes > * { flex: 1 1 0; min-width: 0; }
+.agx.shp .shp-cols .shp-ideas { grid-column: 4 / 5; align-self: end; max-width: 360px; justify-self: end; width: 100%; }
+.agx.shp .shp-cols .shp-clients { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: clamp(36px, 3.6vw, 84px); row-gap: 8px; align-items: center; }
+.agx.shp .shp-col { display: flex; flex-direction: column; gap: 10px; justify-content: center; min-width: 0; }
+
+.agx.shp .shp-stack { display: flex; flex-direction: column; gap: 26px; padding: 16px 16px 150px; }
+.agx.shp .shp-stack .shp-lanes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.agx.shp .shp-stack .shp-lanes > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+.agx.shp .shp-stack .shp-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 34px; align-items: center; }
+.agx.shp .shp-stack .shp-depts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.agx.shp .shp-stack .shp-clients { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.agx.shp .shp-stack .shp-crow { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+@media (min-width: 700px) {
+  .agx.shp .shp-stack .shp-lanes { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .agx.shp .shp-stack .shp-lanes > :last-child:nth-child(odd) { grid-column: auto; }
+  .agx.shp .shp-stack .shp-depts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .agx.shp .shp-stack .shp-crow { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: center; }
+}
+
+/* Cards */
+.agx.shp .shp-card { position: relative; border-radius: 12px; border: 1px solid rgba(255,255,255,.09); background: linear-gradient(180deg, rgba(20, 21, 31, .86), rgba(11, 12, 18, .9)); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: border-color .2s, box-shadow .25s, opacity .25s, transform .2s; text-align: left; width: 100%; min-width: 0; }
+.agx.shp button.shp-card { cursor: pointer; }
+.agx.shp .shp-card:hover { border-color: rgba(255, 140, 70, .45); }
+.agx.shp .shp-card:focus-visible { outline: 2px solid #ff6a00; outline-offset: 2px; }
+.agx.shp .shp-card.sel { border-color: rgba(255, 140, 70, .85); box-shadow: 0 0 0 1px rgba(255, 106, 0, .35), 0 0 34px -6px rgba(255, 90, 0, .55); }
+.agx.shp .shp-card.dim { opacity: .22; }
+.agx.shp .shp-card .edge-glow { position: absolute; inset: -1px; border-radius: 12px; pointer-events: none; opacity: .0; transition: opacity .3s; }
+.agx.shp .shp-card.sel .edge-glow { opacity: 1; }
+.agx.shp .shp-tint { position: absolute; left: 0; top: 10px; bottom: 10px; width: 2px; border-radius: 2px; }
+.agx.shp .shp-row { display: flex; width: 100%; align-items: center; gap: 8px; border-radius: 8px; padding: 6px 8px; text-align: left; transition: background .15s; }
+.agx.shp .shp-row:hover { background: rgba(255,255,255,.045); }
+.agx.shp .shp-row.on { background: rgba(255, 60, 0, .14); box-shadow: inset 0 0 0 1px rgba(255, 106, 0, .45); }
+.agx.shp .shp-orbs { display: flex; flex-wrap: wrap; gap: 4px; }
+.agx.shp .shp-orbs i { width: 7px; height: 7px; border-radius: 99px; display: block; }
+.agx.shp .shp-sel { height: 34px; border-radius: 8px; border: 1px solid var(--hair-d2); background: rgba(255,255,255,.03); color: var(--ink-d); font-size: 12.5px; padding: 0 8px; outline: none; max-width: 170px; }
+.agx.shp .shp-sel:focus { border-color: rgba(255, 106, 0, .7); }
+.agx.shp .shp-sel option { background: #11131b; color: #f4efe9; }
+.agx.shp .live-dot { width: 7px; height: 7px; border-radius: 99px; background: #2ee6c5; box-shadow: 0 0 10px #2ee6c5; animation: shp-live 2s ease-in-out infinite; }
+@keyframes shp-live { 50% { opacity: .35; } }
+.agx.shp .shp-tick { animation: shp-tick .7s cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes shp-tick { from { transform: translateY(8px); opacity: 0; background: rgba(46, 230, 197, .25); } to { transform: none; opacity: 1; } }
+.agx.shp .shp-dash { animation: shp-dash 2.4s linear infinite; }
+@keyframes shp-dash { to { stroke-dashoffset: -56; } }
+.agx.shp .shp-bar { height: 3px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; }
+.agx.shp .shp-bar > span { display: block; height: 100%; border-radius: 3px; }
+@media (prefers-reduced-motion: reduce) { .agx.shp .live-dot, .agx.shp .shp-tick, .agx.shp .shp-dash { animation: none; } .agx.shp .shp-card { transition: none; } }
