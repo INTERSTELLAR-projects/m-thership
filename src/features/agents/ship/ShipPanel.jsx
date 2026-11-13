@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight, ExternalLink, Network, Zap, Bot, Inbox, PlugZap } from "lucide-react";
 import PanelShell from "../panels/PanelShell";
 import { StatusPill, StatusDot, Stat, Section, Empty, Title, relTime, KIND_LABELS, AUTONOMY } from "../ui";
-import { activitiesFor, waitingFor, COLORS, LANES } from "./graph";
+import { activitiesFor, waitingFor, appName, COLORS, LANES } from "./graph";
 import { PILLARS } from "./pillars";
 
 const TYPE_COLOR = { run: COLORS.command, work: COLORS.result, job: COLORS.claude, research: COLORS.intel, fact: COLORS.brain };
@@ -71,7 +71,7 @@ export default function ShipPanel({ selId, noteId, ship, data, registry, onClose
       ["Schedule", agent.schedule || "—"],
       ["Autonomy", AUTONOMY[agent.autonomy] || "—"],
     ];
-    if (agent.kind === "client_app_workflow") stats.push(["Lives in", agent.owner_app || "Client app"], ["Synced", relTime(agent.synced_at)]);
+    if (agent.kind === "client_app_workflow") stats.push(["Lives in", appName(agent.owner_app)], ["Synced", relTime(agent.synced_at)]);
     const classic = agent.scope === "client" ? `/agents?v=classic&web=clients&client=${agent.client_id}&agent=${encodeURIComponent(agent.key)}` : `/agents?v=classic&agent=${encodeURIComponent(agent.key)}`;
     actions = [
       agent.open_url ? { label: "Open", href: agent.open_url, icon: ExternalLink, primary: true } : null,
@@ -82,7 +82,7 @@ export default function ShipPanel({ selId, noteId, ship, data, registry, onClose
     body = (
       <p className="px-5 pb-1 text-[11.5px] leading-relaxed text-[var(--ink-s)]">
         {agent.kind === "claude_scheduled_task" ? "Runs as a Claude scheduled task: pause or resume it in Claude (Scheduled tasks). Never run from here."
-          : agent.kind === "client_app_workflow" ? `Runs inside ${agent.owner_app || "the client's app"}. Møthership reads its status through the nightly registry sync; pause or edit it in that app.`
+          : agent.kind === "client_app_workflow" ? `Runs inside ${agent.owner_app ? appName(agent.owner_app) : "the client's app"}. Møthership reads its status through the nightly registry sync; pause or edit it in that app.`
             : "Pause, resume or change it from the page it lives on (Open)."}
       </p>
     );

@@ -110,6 +110,8 @@ export const hqDeptOf = (a) => (!a ? null : a.scope === "client" ? CLIENT_TO_HQ[
 const statusRank = { broken: 4, live: 3, paused: 2, planned: 1 };
 const rollStatus = (list) => arr(list).reduce((best, a) => ((statusRank[a.status] || 0) > (statusRank[best] || 0) ? a.status : best), "planned");
 const maxIso = (list) => arr(list).filter(Boolean).sort((x, y) => ts(y) - ts(x))[0] || null;
+// Registry rows can carry the build platform in an app's name ("Rein storefront (Base44)"): never show it.
+export const appName = (s) => String(s || "").replace(/\s*[([]?\bbase44\b[)\]]?/gi, "").replace(/\s{2,}/g, " ").trim() || "Client app";
 const hashHue = (id) => CLIENT_HUES[[...String(id)].reduce((s, ch) => (s * 31 + ch.charCodeAt(0)) >>> 0, 7) % CLIENT_HUES.length];
 
 // ---------------------------------------------------------------- the ship
@@ -212,7 +214,7 @@ export function buildShip(data, { now = new Date(), focus = "" } = {}) {
     if (c.ops_app_id) apps.push({ id: c.ops_app_id, label: "Ops / Command app", kind: "ops" });
     mine.filter((a) => a.kind === "client_app_workflow" && a.owner_app_id).forEach((a) => {
       const hit = apps.find((x) => x.id === a.owner_app_id);
-      if (hit) hit.label = a.owner_app || hit.label; else apps.push({ id: a.owner_app_id, label: a.owner_app || "Client app", kind: "app" });
+      if (hit) hit.label = a.owner_app ? appName(a.owner_app) : hit.label; else apps.push({ id: a.owner_app_id, label: appName(a.owner_app), kind: "app" });
     });
     const groups = [{ key: "mothership", label: "Run from Møthership", appId: null, agents: mine.filter((a) => a.kind !== "client_app_workflow") }];
     apps.forEach((app) => groups.push({ key: `app:${app.id}`, label: app.label, appId: app.id, appKind: app.kind, agents: mine.filter((a) => a.kind === "client_app_workflow" && a.owner_app_id === app.id) }));
@@ -267,7 +269,7 @@ export function breadcrumb(ship, sel, registry) {
     if (a.scope === "client") {
       const c = ship.nodes[`client:${a.client_id}`];
       if (c) out.push({ id: c.id, label: c.label });
-      if (a.kind === "client_app_workflow" && a.owner_app) out.push({ id: `cgroup:${a.client_id}:app:${a.owner_app_id}`, label: a.owner_app });
+      if (a.kind === "client_app_workflow" && a.owner_app) out.push({ id: `cgroup:${a.client_id}:app:${a.owner_app_id}`, label: appName(a.owner_app) });
     } else {
       const dep = ship.nodes[`dept:${a.department}`];
       if (dep) out.push({ id: dep.id, label: dep.label });

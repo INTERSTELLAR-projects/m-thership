@@ -190,3 +190,12 @@ describe("time helpers", () => {
     expect(new Date(dayStart(NOW)).toISOString()).toBe("2026-11-12T08:00:00.000Z");
   });
 });
+
+describe("app names", () => {
+  it("never shows the build platform in a client app's name", async () => {
+    const { appName } = await import("@/features/agents/ship/graph");
+    expect(appName("Rein storefront (Base44)")).toBe("Rein storefront");
+    expect(appName("PowerLift ops app")).toBe("PowerLift ops app");
+    expect(appName("")).toBe("Client app");
+  });
+});
