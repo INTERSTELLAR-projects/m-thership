@@ -1,0 +1,86 @@
+{
+  "name": "BrainFact",
+  "description": "M\u00f8thership Command Business Brain: one fact about Interstellar Strategies the agent can plan with, tagged by pillar. From the Teach-the-Brain interview, the Ask bar, or seeded from AgencyKnowledge / the Interstellar BusinessBrain. Never store passwords or credentials. Admin only.",
+  "type": "object",
+  "properties": {
+    "pillar": {
+      "type": "string",
+      "enum": [
+        "sales",
+        "marketing",
+        "delivery",
+        "finance",
+        "clients",
+        "team",
+        "systems",
+        "owner"
+      ]
+    },
+    "statement": {
+      "type": "string"
+    },
+    "question_key": {
+      "type": "string",
+      "description": "Interview question this answers, e.g. owner.hours"
+    },
+    "question": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "description": "interview | ask | seed:agency_knowledge | seed:business_brain | seed:revenue_goal | manual"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "superseded"
+      ],
+      "default": "active"
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Structured value when useful, e.g. { start: '08:00', end: '17:30' }"
+    }
+  },
+  "required": [
+    "pillar",
+    "statement"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
