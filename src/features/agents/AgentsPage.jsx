@@ -12,6 +12,7 @@ import CeoPanel from "./panels/CeoPanel";
 import BrainPanel from "./panels/BrainPanel";
 import { DeptPanel, ClientPanel } from "./panels/DeptPanel";
 import { KIND_SHORT, AUTONOMY, StatusDot, STATUS_META, relTime, Spinner } from "./ui";
+import ShipView from "./ship/ShipView";
 
 const STATUSES = ["live", "paused", "planned", "broken"];
 const KINDS = Object.keys(KIND_SHORT);
@@ -52,7 +53,7 @@ function FilterGroup({ title, items, set, onToggle, render }) {
   );
 }
 
-export default function AgentsPage() {
+function ClassicAgentsPage({ onShip }) {
   const { data, isLoading, error } = useAgentsData();
   const refresh = useRefreshAgents();
   const [params, setParams] = useSearchParams();
@@ -208,6 +209,7 @@ export default function AgentsPage() {
             <h1 className="mt-1.5 text-[30px] font-semibold leading-[0.95] tracking-[-0.045em] text-white md:text-[40px]">Agent <span className="text-[#ff3c00]">/Constellation</span></h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <button type="button" className="btn-d" onClick={onShip} aria-label="Open the ship view (Constellation v2)"><Orbit className="h-3.5 w-3.5" />Ship view</button>
             <Toggle label="Which web" value={web} onChange={(v) => setParams(new URLSearchParams(v === "clients" ? { web: "clients", view } : { view }))} options={[["interstellar", "Interstellar", Orbit], ["clients", "Clients", Users]]} />
             <Toggle label="View" value={view} onChange={(v) => setP({ view: v === "list" ? "list" : null })} options={[["map", "Map", Network], ["list", "List", LayoutList]]} />
           </div>
