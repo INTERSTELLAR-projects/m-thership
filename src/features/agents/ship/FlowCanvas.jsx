@@ -57,6 +57,16 @@ function distToCurve(g, x, y) {
   return best;
 }
 
+function computeGeom(anchors, edges, mode) {
+  const out = {};
+  if (!anchors) return out;
+  edges.forEach((e) => {
+    const a = anchors[e.from]; const b = anchors[e.to];
+    if (a && b) out[e.id] = { e, g: edgeCurve(a, b, e.kind, mode) };
+  });
+  return out;
+}
+
 // ---------------------------------------------------------------- sprites
 const spriteCache = {};
 function sprite(color, core = "#ffffff") {
@@ -111,16 +121,12 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
   const st = useRef({ orbs: [], pulses: [], flashes: [], acc: {}, geom: {}, fps: 0 });
 
   // Geometry for every edge whose two ends are on screen.
-  const geom = useMemo(() => {
-    const out = {};
-    if (!anchors) return out;
-    edges.forEach((e) => {
-      const a = anchors[e.from]; const b = anchors[e.to];
-      if (a && b) out[e.id] = { e, g: edgeCurve(a, b, e.kind, mode) };
-    });
-    return out;
-  }, [anchors, edges, mode]);
+  const [liveAnchors, setLiveAnchors] = useState(null);
+  const geom = useMemo(() => computeGeom(liveAnchors || anchors, edges, mode), [anchors, liveAnchors, edges, mode]);
+  useEffect(() => { setLiveAnchors(null); }, [anchors]);
   st.current.geom = geom;
+  st.current.edges = edges;
+  st.current.mode = mode;
   st.current.lit = lit;
   st.current.focusIds = focusIds;
   st.current.hoverEdge = hoverEdge;
@@ -136,6 +142,12 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
   };
 
   useImperativeHandle(ref, () => ({
+    // Cheap position update while scrolling (sticky columns move): no React render on the canvas path.
+    setAnchors(a) {
+      st.current.anchors = a;
+      st.current.geom = computeGeom(a, st.current.edges || [], st.current.mode);
+      if (svg) setLiveAnchors(a);
+    },
     fire(path) {
       if (!path || reduced) return;
       const hops = path.hops.map((h) => ({ ...h, g: st.current.geom[h.edge]?.g })).filter((h) => h.g);
@@ -258,15 +270,19 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
       Object.values(S.geom).forEach(({ e, g }) => {
         if (g.box.x1 < view.x0 || g.box.x0 > view.x1 || g.box.y1 < view.y0 || g.box.y0 > view.y1) return;
         const dim = dimEdge(e); const hi = hiEdge(e);
-        const base = 0.07 + 0.2 * (e.fwd ? e.fwd.glow : 0.4);
-        const a = dim ? 0.025 : hi ? 0.85 : base;
+        const base = 0.16 + 0.3 * (e.fwd ? e.fwd.glow : 0.4);
+        const a = dim ? 0.03 : hi ? 0.95 : base * (S.focusIds ? 0.55 : 1);
         const path = g.p2 || (g.p2 = new Path2D(g.d));
+        const col = e.color || COLORS.command;
         ctx.globalAlpha = 1;
-        ctx.strokeStyle = hexA(e.color || COLORS.command, a * 0.35);
-        ctx.lineWidth = hi ? 6 : 4;
+        ctx.strokeStyle = hexA(col, a * 0.22);
+        ctx.lineWidth = hi ? 9 : 6;
         ctx.stroke(path);
-        ctx.strokeStyle = hexA(e.color || COLORS.command, a);
-        ctx.lineWidth = hi ? 1.6 : 1;
+        ctx.strokeStyle = hexA(col, a * 0.5);
+        ctx.lineWidth = hi ? 3.2 : 2.2;
+        ctx.stroke(path);
+        ctx.strokeStyle = hexA(col, Math.min(1, a * 1.4));
+        ctx.lineWidth = hi ? 1.4 : 0.9;
         ctx.stroke(path);
       });
 
@@ -294,7 +310,7 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
         const p = pointAt(g, o.rev ? 1 - o.t : o.t);
         if (p.x < view.x0 || p.x > view.x1 || p.y < view.y0 || p.y > view.y1) continue;
         const fade = Math.min(1, o.t * 6, (1 - o.t) * 6);
-        const s = (7 + o.glow * 8) * o.size;
+        const s = (10 + o.glow * 12) * o.size;
         ctx.globalAlpha = fade * (0.45 + o.glow * 0.55);
         ctx.drawImage(sprite(o.color), p.x - s / 2, p.y - s / 2, s, s);
       }
