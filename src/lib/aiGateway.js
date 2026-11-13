@@ -1,4 +1,4 @@
-// Frontend helper for the ai-gateway backend function (Anthropic on our own key, metered in UsageLedger).
+// Frontend helper for the ai-gateway backend function (built-in InvokeLLM, no key needed; metered in UsageLedger).
 // Drop-in for base44.integrations.Core.InvokeLLM({ prompt, response_json_schema }) in Justin's admin Studios:
 // returns the parsed JSON when a schema is given, else the text. For admin callers, any gateway failure (no key,
 // API error, unparseable JSON) falls back to InvokeLLM, so existing admin flows never break.
