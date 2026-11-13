@@ -454,6 +454,11 @@ export function rulePlan(s, outcomes, cands, opts = {}) {
   const lunch = s.day.lunch;
   if (toMin(lunch.start) >= cursor) fixed.push({ start: lunch.start, end: lunch.end, title: "Lunch, away from the screen", kind: "break" });
   fixed.sort((a, b) => toMin(a.start) - toMin(b.start));
+  // Fixed blocks can genuinely clash (an interruption over a booked call). Flag it; never hide either one.
+  for (let i = 1; i < fixed.length; i++) {
+    const prev = fixed.slice(0, i).find((p) => toMin(p.end) > toMin(fixed[i].start));
+    if (prev) { fixed[i].conflict = true; fixed[i].title = `${fixed[i].title} (clashes with ${short(prev.title, 40)}: decide which one moves)`; }
+  }
 
   const flex = [];
   if (cursor < startDay + 60) flex.push({ title: "Brief + Needs you (approvals)", kind: "admin", minutes: 15 });
