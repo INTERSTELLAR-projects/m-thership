@@ -1,7 +1,8 @@
 // Output: the work ledger at a glance. Every finished piece of work (agents, scheduled tasks, Claude sessions,
 // Justin by hand), what it saved against the time-saved estimates, by client and by agent, plus the live feed where
 // Justin can hide or edit anything before a client sees it.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useDeepLinkParam, useDeepLinkFocus } from "@/lib/deepLink";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
@@ -171,6 +172,8 @@ export default function OutputLedger() {
       .filter((e) => filters.range === "all" || counted(e));
   }, [rows, filters]);
   const [limit, setLimit] = useState(40);
+  // ?entry=<WorkEntry id> (from Command): make sure that row is shown, then focus it.
+  const linkedEntry = useDeepLinkParam("entry");
 
   const sync = async () => {
     setSyncing(true); setNote("");

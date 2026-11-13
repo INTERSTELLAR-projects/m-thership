@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useDeepLinkParam, useDeepLinkFocus } from "@/lib/deepLink";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, CalendarClock, ChevronDown, Edit, HandCoins, Landmark, Loader2, Plus, Receipt, Trash2, Wallet } from "lucide-react";
 import { base44 } from "@/api/base44Client";
@@ -36,15 +37,18 @@ export default function Financing() {
     queryFn: () => base44.entities.CRMClient.list("business", 500).then((r) => (Array.isArray(r) ? r : [])),
     staleTime: 300_000,
   });
-  const [filter, setFilter] = useState("attention");
+  // ?plan=<id> (from Command): show every plan, open that one and focus it.
+  const linkedPlan = useDeepLinkParam("plan");
+  const [filter, setFilter] = useState(linkedPlan ? "all" : "attention");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [paying, setPaying] = useState(null);
   const [toDelete, setToDelete] = useState(null);
-  const [open, setOpen] = useState(() => new Set());
+  const [open, setOpen] = useState(() => new Set(linkedPlan ? [linkedPlan] : []));
 
   const now = useMemo(() => new Date(), []);
   const plans = plansQ.data || [];
+  useDeepLinkFocus(linkedPlan, [plans.length]);
   const rows = useMemo(() => plans.map((p) => ({ plan: p, a: analyze(p, now) })), [plans, now]);
 
   const live = rows.filter((r) => !["paid_off", "cancelled"].includes(r.a.health));
@@ -188,7 +192,7 @@ function PlanCard({ plan, a, expanded, onToggle, onPay, onEdit, onDelete, onRemo
         : "No installments scheduled";
 
   return (
-    <article className={`fin-rise rounded-md border bg-card ${a.health === "late" ? "border-[#ff3c00]/50" : "border-hair"}`}>
+    <article data-record-id={plan.id} className={`fin-rise rounded-md border bg-card ${a.health === "late" ? "border-[#ff3c00]/50" : "border-hair"}`}>
       <div className="flex flex-wrap items-start gap-4 p-4">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
