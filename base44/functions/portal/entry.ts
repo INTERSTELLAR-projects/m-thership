@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
       const KIND_CAT: Record<string, string> = { blog: "content", gbp_post: "gbp", citation: "citations", press: "citations", mention: "citations", backlink: "citations", schema: "seo", search_console: "seo", bing: "seo", analytics: "seo" };
       // The rows a client may see. The feed below and the task counts (work_counts) are both built from these two lists,
       // so nothing internal, unfinished or unpublished is ever counted.
-      const ledgerShown = ledger.filter((e) => e.visibility === "client" && e.status === "done" && e.client_title);
+      const ledgerShown = ledger.filter((e) => e.visibility === "client" && e.status === "done" && e.client_title && e.client_copy_status !== "skipped");
       const legacyShown = work.filter(visible).filter((w: Record<string, unknown>) => w.status === "live" && !covered.has(String(w.id)) && !LEDGER_BANNED.test(String(w.title || "")));
       const workFeed = [
         ...ledgerShown.map((e) => ({
