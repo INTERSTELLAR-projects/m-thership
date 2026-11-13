@@ -9,8 +9,6 @@ import TaskTable from "@/features/tasks/components/TaskTable";
 import TaskRail from "@/features/tasks/components/TaskRail";
 import TaskFormDialog from "@/features/tasks/components/TaskFormDialog";
 import ClientSwitcher from "@/features/tasks/components/ClientSwitcher";
-import AssistantDock from "@/features/tasks/assistant/AssistantDock";
-import { AssistantProvider, useAssistant } from "@/features/tasks/assistant/AssistantContext";
 import RollButton from "@/features/tasks/ui-kit/RollButton";
 import { statusPatch } from "@/features/tasks/lib/constants";
 import { settleTimer } from "@/features/tasks/lib/timer";
@@ -79,8 +77,7 @@ async function fetchOpenTasks() {
   return out;
 }
 
-function TaskBoardInner({ withDock = false }) {
-  const assistant = useAssistant();
+function TaskBoardInner() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState(() => ({
     search: "",
@@ -324,7 +321,8 @@ function TaskBoardInner({ withDock = false }) {
           <RefreshCw className="h-3.5 w-3.5" />
           Refresh
         </button>
-        {assistant ? <RollButton label="Talk to the core" icon={Mic} onClick={assistant.startListening} /> : null}
+        {/* The old voice dock is replaced by the Command Ask bar (on every page). */}
+        <RollButton label="Say a task" icon={Mic} onClick={() => window.dispatchEvent(new CustomEvent("command:ask", { detail: { text: "Add task: " } }))} />
       </PageHeader>
 
       <div className="space-y-6 px-5 py-6 md:px-8">
@@ -411,19 +409,10 @@ function TaskBoardInner({ withDock = false }) {
         }}
       />
 
-      {withDock ? <AssistantDock /> : null}
     </div>
   );
 }
 
-// If a global AssistantProvider (+ global AssistantDock) is mounted later, the page reuses it and
-// does not render a second dock. Otherwise it scopes a provider and the dock to this page.
 export default function TaskBoard() {
-  const ctx = useAssistant();
-  if (ctx) return <TaskBoardInner />;
-  return (
-    <AssistantProvider>
-      <TaskBoardInner withDock />
-    </AssistantProvider>
-  );
+  return <TaskBoardInner />;
 }

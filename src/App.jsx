@@ -39,7 +39,6 @@ import OutputAnalytics from './pages/OutputAnalytics';
 import ClientCockpit from './pages/ClientCockpit';
 import PortalApp from '@/features/portal/PortalApp';
 import TaskBoard from './pages/TaskBoard';
-import TaskInbox from './pages/TaskInbox';
 import TaskPatterns from './pages/TaskPatterns';
 import TaskSops from './pages/TaskSops';
 import FlightPlan from './pages/FlightPlan';
@@ -186,7 +185,8 @@ const AuthenticatedApp = () => {
         <Route path="/presentations/projects" element={<ProtectedRoute><PresentationProjects /></ProtectedRoute>} />
         <Route path="/todo" element={<Navigate to="/tasks" replace />} />
         <Route path="/tasks" element={<ProtectedRoute><LegacyImportBanner /><TaskBoard /></ProtectedRoute>} />
-        <Route path="/tasks/inbox" element={<ProtectedRoute><TaskInbox /></ProtectedRoute>} />
+        {/* Voice inbox retired: the Command Ask bar replaces it; unsure commands land in Needs you. */}
+        <Route path="/tasks/inbox" element={<Navigate to="/" replace />} />
         <Route path="/tasks/patterns" element={<ProtectedRoute><TaskPatterns /></ProtectedRoute>} />
         <Route path="/tasks/sops" element={<ProtectedRoute><TaskSops /></ProtectedRoute>} />
         <Route path="/flight-plan" element={<ProtectedRoute><FlightPlan /></ProtectedRoute>} />

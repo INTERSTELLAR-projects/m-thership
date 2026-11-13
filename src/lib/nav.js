@@ -65,7 +65,6 @@ export const HUBS = [
     hint: "Delivery: tasks, projects and the packages they belong to",
     tabs: [
       { label: "Tasks", icon: ListTodo, path: "/tasks", hint: "The task matrix: what is due, for whom, and what to do next" },
-      { label: "Voice inbox", icon: Inbox, path: "/tasks/inbox", hint: "Spoken commands the assistant was unsure about, waiting for you to place" },
       { label: "Projects", icon: FolderKanban, path: "/projects", hint: "Every project in flight, with its tasks, time and value" },
       { label: "Packages", icon: Package, path: "/packages/orbit-seo", match: ["/packages", "/orbit-seo"], hint: "All nine packages and subscriptions, one orb rail per client" },
       { label: "Claude Queue", icon: Sparkles, path: "/claude", hint: "Jobs handed to Claude and their results" },

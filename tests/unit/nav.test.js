@@ -37,7 +37,7 @@ describe("navigation", () => {
     const expected = {
       "/": "today", "/launch": "today", "/launch?tab=approvals": "today", "/agents?ceo=1": "today", "/output-analytics": "today",
       "/crm": "clients", "/clients/abc": "clients", "/flight-plan": "clients", "/requests": "clients", "/comms": "clients", "/settings?tab=portal": "clients",
-      "/tasks": "work", "/tasks/inbox": "work", "/tasks/patterns": "work", "/tasks/sops": "work", "/projects": "work", "/projects/x": "work",
+      "/tasks": "work", "/tasks/patterns": "work", "/tasks/sops": "work", "/projects": "work", "/projects/x": "work",
       "/packages/gravitycare": "work", "/packages/orbit-seo/abc": "work", "/orbit-seo/manage": "work", "/claude": "work",
       "/performance": "marketing", "/content-plans": "marketing", "/backlinks": "marketing", "/reviews": "marketing", "/security": "marketing",
       "/social": "marketing", "/social/p1": "marketing", "/email": "marketing", "/ads": "marketing",
@@ -60,7 +60,7 @@ describe("navigation", () => {
   });
 
   it("old shortcut and hub URLs are routed", () => {
-    for (const p of ["/todo", "/orbit-seo", "/packages", "/growth", "/studios/simple-social", "/today", "/clients", "/work", "/marketing", "/sales", "/money"]) {
+    for (const p of ["/tasks/inbox", "/todo", "/orbit-seo", "/packages", "/growth", "/studios/simple-social", "/today", "/clients", "/work", "/marketing", "/sales", "/money"]) {
       expect(routeExists(p), p).toBe(true);
     }
   });
