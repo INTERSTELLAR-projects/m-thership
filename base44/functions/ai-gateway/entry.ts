@@ -7,7 +7,7 @@ import { check, record } from "../../shared/meter.ts";
 import { loadFuelConfig, weightFor } from "../../shared/fuel.ts";
 import { getClientContext, CONTEXT_MARKER } from "../../shared/clientContext.ts";
 
-// AI gateway for Studios. Client AI runs on our own Anthropic key (ANTHROPIC_API_KEY), never Base44 InvokeLLM credits.
+// AI gateway for Studios. Runs on the built-in InvokeLLM; an Anthropic key is optional and never required.
 //   { action: "complete", prompt | messages, system?, tier?: "routine"|"long", feature?, studio?,
 //     response_json_schema?, max_tokens?, client_id? }
 //     -> { text, json?, model, input_tokens, output_tokens, est_cost_usd, meter: { used, cap, remaining, pct } }
