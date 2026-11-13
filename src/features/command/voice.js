@@ -122,6 +122,7 @@ export function useDictation({ initial = "", lang = "en-US", onStop } = {}) {
   const stopCb = useRef(onStop);
   stopCb.current = onStop;
   const finishTimer = useRef(null);
+  const listeningRef = useRef(false);
 
   const finish = useCallback(() => {
     clearTimeout(finishTimer.current);
@@ -132,7 +133,6 @@ export function useDictation({ initial = "", lang = "en-US", onStop } = {}) {
     bump();
     stopCb.current?.(D.textOf(S.current));
   }, []);
-  const listeningRef = useRef(false);
 
   const spawn = useCallback(() => {
     if (!SR) return;
