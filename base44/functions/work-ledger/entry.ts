@@ -243,8 +243,10 @@ async function writeCopy(db: any, base44: any, user: any, rows: any[], otherName
       await db.WorkEntry.update(r.id, { client_title: ft, client_summary: fs, client_copy_status: "fallback" });
       fallback++;
     } else {
-      // The draft broke a rule (AI/tool names, money, ids, another client): keep it off the portal until Justin edits it.
-      await db.WorkEntry.update(r.id, { ...(r.visibility_locked ? {} : { visibility: "internal" }), visibility_reason: `Client copy held back: ${problems.join(", ")}`, client_copy_status: "skipped" });
+      // The writer judged it internal-only, or the draft broke a rule (AI/tool names, money, ids, another client): keep
+      // it off the portal until Justin edits it. Any earlier title is cleared, since the portal shows rows with a title.
+      const why = it?.client_safe === false ? "Writer judged it internal-only" : `Client copy held back: ${problems.join(", ")}`;
+      await db.WorkEntry.update(r.id, { ...(r.visibility_locked ? {} : { visibility: "internal" }), visibility_reason: why, client_copy_status: "skipped", client_title: "", client_summary: "" });
     }
   }
   if (!copyError && fallback) copyError = `no matching reply (${(items || []).length} items for ${rows.length} rows)`;
