@@ -1,7 +1,7 @@
 // Road to Dec 31 (/launch): the launch command center. Countdown, overall %, workstreams, client readiness,
 // Justin's thin list (ordered by what it unblocks), Claude's queue, questions, the 9-week plan and the 2027 lane.
 // Data: LaunchItem (audit records), CRMClient, User, EngineStart, completeness meter, approvals inbox.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDeepLinkFocus } from "@/lib/deepLink";
 import { useQuery } from "@tanstack/react-query";
@@ -290,6 +290,13 @@ export default function LaunchPage() {
         <div key={tab} className="page-enter pt-6">
           {tab === "mission" && !q.isLoading && (
             <>
+              {focusItem && (
+                <Section id="linked" label="Opened from Command" title="This" accent="item" right={<button type="button" onClick={() => { const n = new URLSearchParams(params); n.delete("item"); setParams(n, { replace: true }); }} className="text-[12px] text-ink/50 hover:text-ink">Close</button>}>
+                  {focusItem.kind === "question"
+                    ? <ul><Question item={focusItem} onAnswer={m.answer} /></ul>
+                    : <ul><Move item={focusItem} s={s} onToggle={m.setDone} focus /></ul>}
+                </Section>
+              )}
               <EngineHoldGate items={q.data || []} />
               <Section label="Progress" title="Workstreams" accent="status"><Workstreams s={s} /></Section>
               <div className="grid gap-x-8 xl:grid-cols-2">
