@@ -1,22 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { Download, SkipForward, Check, Volume2, VolumeX } from "lucide-react";
-import { Mono, Meter, PillarChip, MicOrb, useMicGesture, PILLAR_COLOR } from "./ui";
+import { Mono, Meter, PillarChip, PILLAR_COLOR } from "./ui";
+import { DictationBox, AnswerReview } from "./Dictation";
 import { PILLARS } from "./engine";
 import { brain, errMsg } from "./api";
-import { useListener, speak, stopSpeaking, canSpeak, getSpeakPref, setSpeakPref } from "./voice";
+import { useDictation, speak, stopSpeaking, canSpeak, getSpeakPref, setSpeakPref } from "./voice";
 
 // Teach the Brain: one question at a time, by voice or text. Answers become BrainFacts the planner uses.
 export default function BrainView() {
   const [st, setSt] = useState(null);
-  const [answer, setAnswer] = useState("");
+  const [review, setReview] = useState(null); // the raw answer being reviewed, or null while composing
   const [skip, setSkip] = useState([]);
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [saved, setSaved] = useState("");
   const [voiceOn, setVoiceOn] = useState(getSpeakPref());
   const lastSpoken = useRef("");
-  const voice = useListener({ onFinal: (t) => setAnswer((x) => (x ? x + " " : "") + t) });
-  const mic = useMicGesture({ listening: voice.listening, start: voice.start, stop: voice.stop });
+  // Tap to start, tap to stop. Stopping with words heard goes straight to the review step; nothing saves on its own.
+  const dict = useDictation({ onStop: (t) => { if (t.trim()) setReview(t.trim()); } });
 
   const load = async (action = "next", args = {}) => {
     setErr("");
@@ -28,20 +29,23 @@ export default function BrainView() {
     if (voiceOn && q?.q && lastSpoken.current !== q.key) { lastSpoken.current = q.key; speak(q.q); }
   }, [q, voiceOn]);
 
-  const submit = async (e) => {
-    e?.preventDefault();
-    if (!q || !answer.trim() || busy) return;
-    voice.stop();
+  const toReview = (e) => { e?.preventDefault(); if (dict.listening) { dict.stop(); return; } if (dict.text.trim()) setReview(dict.text.trim()); };
+  const saveReviewed = async (statements, { about }) => {
     setBusy("save");
-    const r = await load("answer", { question_key: q.key, question: q.q, pillar: q.pillar, text: answer.trim() });
-    if (r?.saved) { setSaved(r.saved.statement); setAnswer(""); }
+    const r = await brain("answer", { question_key: q.key, question: q.q, pillar: q.pillar, statements, raw_text: review, client_name: about || undefined });
     setBusy("");
+    if (!r) throw new Error("Couldn't save. Try again.");
+    setSaved(r.saved_all?.length > 1 ? r.saved_all.map((x) => x.statement).join(" ") : r.saved?.statement || statements.join(" "));
+    setSt(r);
+    setReview(null);
+    dict.setText("");
   };
   const doSkip = async () => {
     if (!q) return;
     const next = [...skip, q.key];
     setSkip(next);
-    setAnswer("");
+    setReview(null);
+    dict.setText("");
     await load("next", { skip: next });
   };
   const seed = async () => { setBusy("seed"); const r = await load("seed"); if (r) setSaved(r.seeded ? `Imported ${r.seeded} facts Møthership already had.` : r.note || ""); setBusy(""); };
@@ -64,21 +68,25 @@ export default function BrainView() {
             </div>
           </div>
           {!st ? <div className="mt-4 h-24 animate-pulse bg-white/5 motion-reduce:animate-none" /> : q ? (
-            <form onSubmit={submit} className="mt-4">
+            <div className="mt-4">
               <h2 className="text-[22px] font-semibold leading-snug tracking-[-0.02em] text-white md:text-[28px]">{q.q}</h2>
               <p className="mt-2 text-[13px] text-white/55">Why I'm asking: {q.why}</p>
-              <div className="mt-5 flex items-start gap-3">
-                <textarea value={voice.interim ? `${answer} ${voice.interim}` : answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }} rows={3} placeholder={voice.supported ? "Hold the mic and talk, or type. Enter saves." : "Type your answer. Enter saves."} className="min-h-[96px] min-w-0 flex-1 border border-white/20 bg-white/[0.04] p-3 text-[15px] leading-relaxed text-white outline-none placeholder:text-white/35 focus:border-[#ff6a00]" aria-label="Your answer" />
-                {voice.supported && <MicOrb size={64} dark listening={voice.listening} {...mic} label="Answer by voice" />}
+              <div className="mt-5">
+                {review ? (
+                  <AnswerReview dark raw={review} question={q.q} questionKey={q.key} onSave={saveReviewed} onBack={() => { dict.setText(review); setReview(null); }} />
+                ) : (
+                  <form onSubmit={toReview}>
+                    <DictationBox dict={dict} dark micSize={64} placeholder={dict.supported ? "Tap the mic and talk as long as you like, then tap stop. Or type." : "Type your answer."} />
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button type="submit" disabled={!dict.text.trim() && !dict.listening} className="inline-flex h-12 items-center gap-2 bg-[#ff3c00] px-5 text-[15px] font-medium text-white hover:bg-white hover:text-ink disabled:opacity-40"><Check className="h-4 w-4" />{dict.listening ? "Stop & review" : "Review & save"}</button>
+                      <button type="button" onClick={doSkip} disabled={dict.listening} className="inline-flex h-12 items-center gap-2 border border-white/25 px-4 text-[13px] text-white/80 hover:border-white disabled:opacity-40"><SkipForward className="h-4 w-4" />Ask me later</button>
+                    </div>
+                  </form>
+                )}
               </div>
-              {voice.error && <p className="mt-2 text-[12.5px] text-[#ffaa00]">{voice.error}</p>}
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button type="submit" disabled={!answer.trim() || !!busy} className="inline-flex h-12 items-center gap-2 bg-[#ff3c00] px-5 text-[15px] font-medium text-white hover:bg-white hover:text-ink disabled:opacity-40"><Check className="h-4 w-4" />{busy === "save" ? "Saving…" : "Save answer"}</button>
-                <button type="button" onClick={doSkip} className="inline-flex h-12 items-center gap-2 border border-white/25 px-4 text-[13px] text-white/80 hover:border-white"><SkipForward className="h-4 w-4" />Ask me later</button>
-              </div>
-            </form>
+            </div>
           ) : <p className="mt-4 text-[18px] text-white">That's every question in the bank. The Brain will ask again as the business changes.</p>}
-          {saved && <p className="mt-4 border-l-2 border-[#1f8a5b] pl-3 text-[13px] text-white/75" role="status">Learned: {saved}</p>}
+          {saved && !review && <p className="mt-4 border-l-2 border-[#1f8a5b] pl-3 text-[13px] text-white/75" role="status">Learned: {saved}</p>}
           {err && <p className="mt-3 text-[13px] text-[#ffaa00]" role="alert">{err}</p>}
         </div>
       </section>
