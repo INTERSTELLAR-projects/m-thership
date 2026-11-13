@@ -406,7 +406,8 @@ export function activitiesFor(nodeId, ship, data, registry, n = 10) {
   } else if (nodeId.startsWith("lane:")) {
     const key = nodeId.slice(5);
     const map = { search_intel: ["SeoIntel", d.intel, when.intel, (x) => x.title], oracle: ["OracleFinding", [...arr(d.findings), ...arr(d.opps)], when.oracle, (x) => x.headline || x.title], ideas: ["Idea", d.ideas, when.idea, (x) => x.title], research: ["ResearchNote", d.research, when.research, (x) => `${x.topic || x.summary}${x.client_name ? ` · ${x.client_name}` : ""}`], learnings: ["AgentLearning", d.learnings, when.learning, (x) => x.learning] }[key];
-    if (map) list = arr(map[1]).map((x) => ({ key: `${map[0]}:${x.id}`, type: key, entity: x.headline !== undefined && map[0] === "OracleFinding" ? "OracleFinding" : x.why_now !== undefined ? "OracleOpportunity" : map[0], id: x.id, at: ts(map[2](x)), label: map[3](x) || "Item", rec: x, status: x.status })).filter((e) => Number.isFinite(e.at)).sort((a, b) => b.at - a.at);
+    const entityOf = (x) => (key === "oracle" ? (x.headline !== undefined ? "OracleFinding" : "OracleOpportunity") : map[0]);
+    if (map) list = arr(map[1]).map((x) => ({ key: `${entityOf(x)}:${x.id}`, type: key, entity: entityOf(x), id: x.id, at: ts(map[2](x)), label: map[3](x) || "Item", rec: x, status: x.status })).filter((e) => Number.isFinite(e.at)).sort((a, b) => b.at - a.at);
   } else if (node && node.type === "dept") {
     const agents = node.agents;
     list = all.filter((e) => (e.type === "run" && agents.some((a) => runMatchesAgent(e.rec, a))) || (e.type === "work" && (!e.rec.client_id || e.rec.client_id === "agency") && (agents.some((a) => a.key === e.rec.agent_key) || CATEGORY_TO_HQ[e.rec.category] === node.key)));
