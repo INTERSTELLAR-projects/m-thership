@@ -414,7 +414,7 @@ export function candidates(s, scores) {
   for (const t of s.dueToday) add({ id: `task:${t.id}`, title: short(t.title, 90), why: `Due today${t.client_name ? " for " + t.client_name : ""}.`, pillar: taskPillar(t), weight: 74 - (num(t.priority) || 3) * 3, minutes: Math.max(30, Math.min(120, num(t.estimated_minutes) || 60)), ref: ref("Task", t.id, t.title, taskPath(t)) });
   if (s.billsOverdue.length) {
     const total = s.billsOverdue.reduce((t, b) => t + b.s.amount, 0);
-    add({ id: "bills:overdue", title: `Check ${plural(s.billsOverdue.length, "overdue bill")} (${money(total)})`, why: `${s.billsOverdue.map((b) => b.e.platform).join(", ")} show unpaid this cycle.`, pillar: "finance", weight: 72, minutes: 15, ref: ref("Expense", s.billsOverdue[0].e.id, s.billsOverdue[0].e.platform, "/financial") });
+    add({ id: "bills:overdue", title: `Check ${plural(s.billsOverdue.length, "overdue bill")} (${money(total)})`, why: `${s.billsOverdue.map((b) => (b.e.platform || b.e.name)).join(", ")} show unpaid this cycle.`, pillar: "finance", weight: 72, minutes: 15, ref: ref("Expense", s.billsOverdue[0].e.id, (s.billsOverdue[0].e.platform || s.billsOverdue[0].e.name), "/financial") });
   }
   if (s.staleJobs.length) add({ id: "claude:stale", title: `Clear the Claude queue (${s.jobs.length} waiting)`, why: `${plural(s.staleJobs.length, "job")} waiting more than 3 days; the oldest since ${prettyDate(isoIn(s.staleJobs[s.staleJobs.length - 1].created_date, s.tz))}.`, pillar: "delivery", weight: 62, minutes: 30, ref: ref("ClaudeJob", s.staleJobs[0].id, "Claude queue", "/claude") });
   if (s.ledger.length) add({ id: "ledger:waiting", title: `Approve the work ledger (${s.ledger.length} waiting)`, why: "Approved work shows in Output and, when client-visible, in the portal.", pillar: "delivery", weight: 56, minutes: 30, ref: ref("WorkEntry", s.ledger[0].id, "Work ledger", "/output-analytics") });
@@ -659,7 +659,7 @@ export function ruleProposals(s, scores) {
   const out = [];
   const P = (x) => out.push({ status: "pending", source: "brief", priority: 50, risk: "internal", ...x });
   for (const { e, s: st } of s.billsOverdue) {
-    P({ kind: "record_change", pillar: "finance", risk: "money", priority: 70, title: `Mark ${e.platform} (${money(st.amount)}) as paid?`, rationale: `Due ${prettyDate(st.due)} and still unpaid in Financial. Only say yes if the charge went through. Nothing is paid from here.`, payload: { changes: [{ entity: "Expense", id: e.id, label: e.platform, patch: { paidCycles: [...(e.paidCycles || []), st.cycle] } }] }, source_ref: ref("Expense", e.id, e.platform, "/financial"), dedupe_key: `bill:${e.id}:${st.cycle}` });
+    P({ kind: "record_change", pillar: "finance", risk: "money", priority: 70, title: `Mark ${e.platform || e.name} (${money(st.amount)}) as paid?`, rationale: `Due ${prettyDate(st.due)} and still unpaid in Financial. Only say yes if the charge went through. Nothing is paid from here.`, payload: { changes: [{ entity: "Expense", id: e.id, label: e.platform || e.name, patch: { paidCycles: [...(e.paidCycles || []), st.cycle] } }] }, source_ref: ref("Expense", e.id, e.platform || e.name, "/financial"), dedupe_key: `bill:${e.id}:${st.cycle}` });
   }
   const emailOf = (id) => { const c = s.clients.find((x) => x.id === id); return c ? { email: (c.emails || [])[0] || "", phone: (c.phones || [])[0] || "", contact: c.contact || c.business } : { email: "", phone: "", contact: "" }; };
   for (const { p, s: st } of s.latePlans) {
@@ -796,7 +796,7 @@ export function askPrompt(text, s, scores, brief, facts) {
     "Open tasks: " + JSON.stringify(tasks),
     "Today's outcomes: " + JSON.stringify((brief && brief.outcomes) || []),
     "Pillar scores: " + JSON.stringify(Object.fromEntries(PILLARS.map((p) => [p.id, { score: scores[p.id].score, why: scores[p.id].why }]))),
-    `Money: MRR ${money(s.mrr)}; overdue bills ${s.billsOverdue.map((b) => `${b.e.platform} ${money(b.s.amount)}`).join(", ") || "none"}; late payment plans ${s.latePlans.length}.`,
+    `Money: MRR ${money(s.mrr)}; overdue bills ${s.billsOverdue.map((b) => `${(b.e.platform || b.e.name)} ${money(b.s.amount)}`).join(", ") || "none"}; late payment plans ${s.latePlans.length}.`,
     `Pipeline: ${s.leads.length} open leads, ${s.leadsOverdue.length} overdue follow-ups. Work ledger waiting: ${s.ledger.length}. Claude jobs waiting: ${s.jobs.length}.`,
     "Brain facts: " + JSON.stringify((facts || []).slice(0, 30).map((f) => short(f.statement, 140))),
     "",
@@ -829,7 +829,7 @@ export function answerFromSnapshot(text, s, scores, brief) {
   const weakest = PILLARS.map((p) => scores[p.id]).filter((x) => x.score != null).sort((a, b) => a.score - b.score)[0];
   if (/mrr|revenue|money|cash|income/.test(low)) return `Monthly recurring revenue is ${money(s.mrr)} across ${plural(s.onPlan.length, "client")} on a plan${s.neededMrr ? `; the goal needs ${money(s.neededMrr)} a month` : ""}. ${s.billsOverdue.length ? plural(s.billsOverdue.length, "bill") + " show overdue." : "No bills overdue."}`;
   if (/lead|pipeline|sales|prospect/.test(low)) return `${plural(s.leads.length, "open lead")}, ${s.leadsOverdue.length} with an overdue follow-up, ${plural(s.newLeads30.length, "new lead")} in the last 30 days.`;
-  if (/bill|expense|subscription/.test(low)) return s.billsOverdue.length ? `Overdue: ${s.billsOverdue.map((b) => `${b.e.platform} ${money(b.s.amount)}`).join(", ")}.` : "No bills overdue this cycle.";
+  if (/bill|expense|subscription/.test(low)) return s.billsOverdue.length ? `Overdue: ${s.billsOverdue.map((b) => `${(b.e.platform || b.e.name)} ${money(b.s.amount)}`).join(", ")}.` : "No bills overdue this cycle.";
   if (/score|pillar|weak|constraint/.test(low)) return weakest ? `Weakest pillar: ${weakest.name} at ${weakest.score}. ${weakest.why}` : "No pillar has enough data to score yet.";
   if (/ledger|approv/.test(low)) return `${plural(s.ledger.length, "work entry", "work entries")} wait for approval, and ${plural(s.jobs.length, "Claude job")}.`;
   const o = (brief && brief.outcomes) || [];
