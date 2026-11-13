@@ -414,7 +414,7 @@ export function candidates(s, scores) {
   for (const t of s.dueToday) add({ id: `task:${t.id}`, title: short(t.title, 90), why: `Due today${t.client_name ? " for " + t.client_name : ""}.`, pillar: taskPillar(t), weight: 74 - (num(t.priority) || 3) * 3, minutes: Math.max(30, Math.min(120, num(t.estimated_minutes) || 60)), ref: ref("Task", t.id, t.title, taskPath(t)) });
   if (s.billsOverdue.length) {
     const total = s.billsOverdue.reduce((t, b) => t + b.s.amount, 0);
-    add({ id: "bills:overdue", title: `Check ${plural(s.billsOverdue.length, "overdue bill")} (${money(total)})`, why: `${s.billsOverdue.map((b) => (b.e.platform || b.e.name)).join(", ")} show unpaid this cycle.`, pillar: "finance", weight: 72, minutes: 15, ref: ref("Expense", s.billsOverdue[0].e.id, (s.billsOverdue[0].e.platform || s.billsOverdue[0].e.name), "/financial") });
+    add({ id: "bills:overdue", title: `Check ${plural(s.billsOverdue.length, "overdue bill")} (${money(total)})`, why: `Unpaid this cycle: ${s.billsOverdue.map((b) => (b.e.platform || b.e.name)).join(", ")}.`, pillar: "finance", weight: 72, minutes: 15, ref: ref("Expense", s.billsOverdue[0].e.id, (s.billsOverdue[0].e.platform || s.billsOverdue[0].e.name), "/financial") });
   }
   if (s.staleJobs.length) add({ id: "claude:stale", title: `Clear the Claude queue (${s.jobs.length} waiting)`, why: `${plural(s.staleJobs.length, "job")} waiting more than 3 days; the oldest since ${prettyDate(isoIn(s.staleJobs[s.staleJobs.length - 1].created_date, s.tz))}.`, pillar: "delivery", weight: 62, minutes: 30, ref: ref("ClaudeJob", s.staleJobs[0].id, "Claude queue", "/claude") });
   if (s.ledger.length) add({ id: "ledger:waiting", title: `Approve the work ledger (${s.ledger.length} waiting)`, why: "Approved work shows in Output and, when client-visible, in the portal.", pillar: "delivery", weight: 56, minutes: 30, ref: ref("WorkEntry", s.ledger[0].id, "Work ledger", "/output-analytics") });
@@ -827,7 +827,7 @@ export function fallbackIntent(text) {
 export function answerFromSnapshot(text, s, scores, brief) {
   const low = str(text).toLowerCase();
   const weakest = PILLARS.map((p) => scores[p.id]).filter((x) => x.score != null).sort((a, b) => a.score - b.score)[0];
-  if (/mrr|revenue|money|cash|income/.test(low)) return `Monthly recurring revenue is ${money(s.mrr)} across ${plural(s.onPlan.length, "client")} on a plan${s.neededMrr ? `; the goal needs ${money(s.neededMrr)} a month` : ""}. ${s.billsOverdue.length ? plural(s.billsOverdue.length, "bill") + " show overdue." : "No bills overdue."}`;
+  if (/mrr|revenue|money|cash|income/.test(low)) return `Monthly recurring revenue is ${money(s.mrr)} across ${plural(s.onPlan.length, "client")} on a plan${s.neededMrr ? `; the goal needs ${money(s.neededMrr)} a month` : ""}. ${s.billsOverdue.length ? plural(s.billsOverdue.length, "bill") + " overdue." : "No bills overdue."}`;
   if (/lead|pipeline|sales|prospect/.test(low)) return `${plural(s.leads.length, "open lead")}, ${s.leadsOverdue.length} with an overdue follow-up, ${plural(s.newLeads30.length, "new lead")} in the last 30 days.`;
   if (/bill|expense|subscription/.test(low)) return s.billsOverdue.length ? `Overdue: ${s.billsOverdue.map((b) => `${(b.e.platform || b.e.name)} ${money(b.s.amount)}`).join(", ")}.` : "No bills overdue this cycle.";
   if (/score|pillar|weak|constraint/.test(low)) return weakest ? `Weakest pillar: ${weakest.name} at ${weakest.score}. ${weakest.why}` : "No pillar has enough data to score yet.";
