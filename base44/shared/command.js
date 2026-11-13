@@ -80,7 +80,6 @@ export async function loadSources(E) {
       return [];
     }
   };
-  const OPEN = { $in: ["todo", "in_progress", "waiting"] };
   const [clients, tasks, tasksDone, financing, expenses, ledgerWaiting, ledgerRecent, launch, projects, claudeJobs, requests, research, brains, goals, automations, hiring, training, facts, actions, ceo] = await Promise.all([
     q("clients", "CRMClient", (e) => e.list("-updated_date", 300)),
     q("tasks", "Task", (e) => e.filter({ status: { $ne: "done" } }, "due_date", 500)),
@@ -103,7 +102,6 @@ export async function loadSources(E) {
     q("proposed actions", "ProposedAction", (e) => e.filter({ status: { $in: ["pending", "snoozed"] } }, "-priority", 200)),
     q("CEO brief", "CeoBrief", (e) => e.list("-date", 2)),
   ]);
-  void OPEN;
   return { clients, tasks, tasksDone, financing, expenses, ledgerWaiting, ledgerRecent, launch, projects, claudeJobs, requests, research, brains, goals, automations, hiring, training, facts, actions, ceo, errors };
 }
 
