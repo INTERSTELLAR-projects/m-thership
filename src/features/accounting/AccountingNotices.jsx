@@ -37,7 +37,7 @@ export default function AccountingNotices() {
   const due = alert.due_date ? new Date(`${alert.due_date}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-[min(360px,calc(100vw-32px))] overflow-hidden rounded-md border border-ink bg-ink text-white shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)]">
+    <div className="fixed right-4 top-14 z-50 md:bottom-[88px] md:top-auto w-[min(360px,calc(100vw-32px))] overflow-hidden rounded-md border border-ink bg-ink text-white shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)]">
       <div className="h-[3px] flame-bg" />
       <div className="flex items-start gap-3 p-4">
         <Bell className="mt-0.5 h-4 w-4 shrink-0 text-[#ff6a00]" />
