@@ -282,17 +282,43 @@ export default function ShipView({ onClassic }) {
 
   // Card positions (content coordinates) for the flow layer.
   const reg = useCallback((id) => (el) => { if (el) els.current[id] = el; else delete els.current[id]; }, []);
-  const measure = useCallback(() => {
+  const read = useCallback(() => {
     const c = contentRef.current;
-    if (!c) return;
+    if (!c) return null;
     const base = c.getBoundingClientRect();
     const out = {};
     Object.entries(els.current).forEach(([id, el]) => {
       const r = el.getBoundingClientRect();
       if (r.width || r.height) out[id] = { x: Math.round(r.left - base.left), y: Math.round(r.top - base.top), w: Math.round(r.width), h: Math.round(r.height) };
     });
-    setAnchors((prev) => (prev && JSON.stringify(prev) === JSON.stringify(out) ? prev : out));
+    return out;
   }, []);
+  const measure = useCallback(() => {
+    const out = read();
+    if (out) setAnchors((prev) => (prev && JSON.stringify(prev) === JSON.stringify(out) ? prev : out));
+  }, [read]);
+  // Sticky columns move while the client list scrolls: update the flow layer every frame, sync React state after.
+  useEffect(() => {
+    const sc = scrollRef.current;
+    if (!sc) return undefined;
+    let raf = 0; let idle = 0;
+    const on = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => { const out = read(); if (out) canvasApi.current?.setAnchors(out); });
+      clearTimeout(idle);
+      idle = setTimeout(measure, 180);
+    };
+    sc.addEventListener("scroll", on, { passive: true });
+    return () => { sc.removeEventListener("scroll", on); cancelAnimationFrame(raf); clearTimeout(idle); };
+  }, [read, measure, isLoading]);
+  const [stageH, setStageH] = useState(600);
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return undefined;
+    const ro = new ResizeObserver(([e]) => setStageH(Math.round(e.contentRect.height)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isLoading]);
   useLayoutEffect(() => { measure(); }, [measure, ship, mode, focus, width]);
   useEffect(() => {
     const c = contentRef.current;
@@ -461,14 +487,14 @@ export default function ShipView({ onClassic }) {
       <div ref={stageRef} className="shp-stage relative min-h-0 flex-1">
         <FlowCanvas ref={canvasApi} anchors={anchors} edges={ship.edges} scrollRef={scrollRef} mode={mode} lit={lit} focusIds={chain} hoverEdge={hover?.type === "edge" ? hover.edge.id : null} reduced={reduced} density={density} forceSvg={forceSvg} />
         <div ref={scrollRef} className="shp-scroll absolute inset-0 overflow-y-auto overflow-x-hidden" onMouseMove={onMove} onMouseLeave={() => setHover(null)} onClick={onStageClick} style={{ cursor: hover ? "pointer" : "default" }}>
-          <div ref={contentRef} className="relative">
+          <div ref={contentRef} className="relative" style={{ "--stage-h": `${stageH}px` }}>
             {mode === "cols" ? (
               <div className="shp-cols">
                 <div className="shp-lanes">{laneCards}</div>
                 <div className="shp-ideas"><IdeasCard node={N.ideas_out} reg={reg} sel={sel === "ideas_out"} onClick={() => select("ideas_out")} /></div>
-                <div className="shp-col"><ClaudeCard node={N.claude} reg={reg} sel={sel === "claude"} onClick={() => select("claude")} /></div>
-                <div className="shp-col"><BrainCard node={N.brain} reg={reg} sel={sel === "brain"} onClick={() => select("brain")} /></div>
-                <div className="shp-col">{deptCards}</div>
+                <div className="shp-col shp-sticky"><ClaudeCard node={N.claude} reg={reg} sel={sel === "claude"} onClick={() => select("claude")} /></div>
+                <div className="shp-col shp-sticky"><BrainCard node={N.brain} reg={reg} sel={sel === "brain"} onClick={() => select("brain")} /></div>
+                <div className="shp-col shp-sticky">{deptCards}</div>
                 <div className="shp-clients">{clients.map(clientRow)}</div>
               </div>
             ) : (
