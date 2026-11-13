@@ -25,6 +25,9 @@ const catColor = (i) => CAT_COLORS[i % CAT_COLORS.length];
 const money2 = (v) => money(v, 2);
 
 export default function ExpensesTab({ expenses, categories, now, finance, onAdd, onUpdate, onDelete, onMarkPaid }) {
+  // ?expense=<id> (from Command): focus that bill.
+  const linkedExpense = useDeepLinkParam("expense");
+  useDeepLinkFocus(linkedExpense, [expenses.length]);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [toDelete, setToDelete] = useState(null);
