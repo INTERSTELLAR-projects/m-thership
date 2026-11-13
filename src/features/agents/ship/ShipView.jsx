@@ -435,23 +435,22 @@ export default function ShipView({ onClassic }) {
   return (
     <div ref={fillRef} className="agx shp flex flex-col overflow-hidden" style={{ height: height || "calc(100dvh - 48px)" }} data-testid="ship-view">
       {/* Header */}
-      <header className="relative z-20 border-b border-[var(--hair-d)] px-4 pb-3 pt-4 md:px-6">
-        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-          <div className="min-w-0">
-            <p className="eyebrow flex items-center gap-2"><span className="live-dot" />(The whole ship)</p>
-            <h1 className="mt-1.5 text-[30px] font-semibold leading-[0.95] tracking-[-0.045em] text-white md:text-[40px]">Agent <span className="text-[#ff3c00]">/Constellation</span></h1>
+      <header className="relative z-20 border-b border-[var(--hair-d)] px-4 pb-2.5 pt-3 md:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-4 gap-y-1">
+            <h1 className="text-[26px] font-semibold leading-[0.95] tracking-[-0.045em] text-white md:text-[30px]">Agent <span className="text-[#ff3c00]">/Constellation</span></h1>
+            <p className="flex min-w-0 items-center gap-2 text-[13px] text-[var(--ink-d)]" data-testid="ship-summary"><span className="live-dot shrink-0" />{summaryLine(ship.summary)}</p>
           </div>
           <div className="seg" role="tablist" aria-label="Constellation view">
             <button type="button" role="tab" aria-selected className="on"><Orbit className="h-3.5 w-3.5" />Ship</button>
             <button type="button" role="tab" aria-selected={false} onClick={onClassic}><Network className="h-3.5 w-3.5" />Classic</button>
           </div>
         </div>
-        <p className="mt-2.5 text-[13.5px] text-[var(--ink-d)]" data-testid="ship-summary">{summaryLine(ship.summary)}</p>
-        <div className="mono mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] uppercase tracking-[.12em] text-[var(--ink-s)]">
+        <div className="mono mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[9.5px] uppercase tracking-[.12em] text-[var(--ink-s)]">
           {[["orders out", COLORS.command], ["results back", COLORS.result], ["research in", COLORS.intel], ["ideas out", COLORS.idea], ["Claude", COLORS.claude]].map(([l, c]) => <span key={l} className="flex items-center gap-1.5"><i className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: c, boxShadow: `0 0 6px ${c}` }} />{l}</span>)}
-          {liveAt ? <span>· updated {relTime(new Date(liveAt).toISOString())}</span> : null}
+          {liveAt ? <span>· live · updated {relTime(new Date(liveAt).toISOString())}</span> : null}
         </div>
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <nav aria-label="Breadcrumb" className="flex min-w-0 flex-wrap items-center gap-1.5 text-[12.5px]" data-testid="ship-breadcrumb">
             {crumbs.map((c, i) => (
               <span key={`${c.id}-${i}`} className="flex items-center gap-1.5">
