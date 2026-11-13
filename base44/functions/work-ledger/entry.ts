@@ -290,12 +290,16 @@ async function logEntries(db: any, list: any[]) {
     const key = clip(e.dedupe_key, 200) || `api:${(cid || "agency")}:${clip(e.title, 120).toLowerCase().replace(/[^a-z0-9]+/g, "-")}:${String(e.completed_at || new Date().toISOString()).slice(0, 10)}`;
     const ex = arr(await db.WorkEntry.filter({ dedupe_key: key }, "-created_date", 1).catch(() => []))[0];
     if (ex) { out.push({ id: ex.id, dedupe_key: key, duplicate: true }); continue; }
+    // Auto-approve: logged work is finished work. Only a real "failed" or "in_progress" from the caller is kept;
+    // anything else (including awaiting_approval) lands as done, so Justin never has to approve ledger rows.
+    const status = e.status === "failed" || e.status === "in_progress" ? e.status : "done";
+    const realClient = !!cid && cid !== "agency" && clients.some((c: any) => c.id === cid);
     const row: any = {
       client_id: cid || "agency", client_name: cid ? clients.find((c: any) => c.id === cid)?.business || "" : "Interstellar",
       title: clip(e.title, 300), notes: clip(e.notes || e.summary, 1500), evidence: clip(e.evidence, 800), link: isClientSafeUrl(e.link) ? e.link : "",
       task_type: clip(e.task_type, 40) || "other", category: CATEGORIES.includes(e.category) ? e.category : undefined,
       done_by: DONE_BY.includes(e.done_by) ? e.done_by : "claude_session", agent_key: clip(e.agent_key, 120), agent_name: clip(e.agent_name, 120),
-      manual_minutes: Math.max(0, Number(e.manual_minutes) || 0), status: ["done", "in_progress", "awaiting_approval", "failed"].includes(e.status) ? e.status : "done",
+      manual_minutes: Math.max(0, Number(e.manual_minutes) || 0), status,
       completed_at: iso(e.completed_at) || new Date().toISOString(), source_type: clip(e.source_type, 40) || "api", source_id: clip(e.source_id, 120),
       dedupe_key: key, processed: true, client_copy_status: e.client_title ? "edited" : "pending",
       ...(e.client_title ? { client_title: clip(e.client_title, 120), client_summary: clip(e.client_summary, 400) } : {}),
@@ -304,8 +308,30 @@ async function logEntries(db: any, list: any[]) {
     };
     Object.assign(row, normalize(row, cfg));
     if (CATEGORIES.includes(e.category)) row.category = e.category; // an explicit category from the caller wins
+    // Visibility default: a real client's finished work is client-visible; Interstellar's own work is internal. Locked
+    // so a later re-normalize doesn't pull it back by category. Guards that still apply: a money / security title stays
+    // internal, the copy writer's client_safe=false and copyProblems checks keep the row's copy off the portal
+    // (client_copy_status "skipped", no client_title), and the portal only shows rows with a client_title.
+    if (!(e.visibility === "internal" || e.visibility === "client")) {
+      const sensitive = sensitiveTitle(row.title);
+      if (!realClient) Object.assign(row, { visibility: "internal", visibility_reason: "Interstellar's own work", visibility_locked: true });
+      else if (sensitive || status !== "done") Object.assign(row, { visibility: "internal", visibility_reason: sensitive || "Not finished yet" });
+      else Object.assign(row, { visibility: "client", visibility_reason: "Client work, auto-approved when logged", visibility_locked: true });
+    }
+    // Minutes: given minutes count as confirmed; missing ones get Justin's directing/review estimate for the task type
+    // (by-hand rows keep the full baseline from normalize; agent / scheduled runs take none of Justin's time).
+    if (Number(e.manual_minutes) > 0) {
+      row.notes = withConfirmMark(row.notes);
+    } else if (row.done_by === "claude_session" || row.done_by === "team") {
+      const est = directingMinutes(row.task_type, row.minutes_baseline);
+      row.manual_minutes = est;
+      row.notes = withConfirmMark(`${row.notes ? `${row.notes} ` : ""}Directing time auto-filled from the task type (${est} min).`);
+    } else {
+      row.notes = withConfirmMark(row.notes);
+    }
+    row.minutes_saved_estimate = savedMinutes(row);
     const created = await db.WorkEntry.create(row);
-    out.push({ id: created.id, dedupe_key: key, visibility: row.visibility, minutes_saved_estimate: row.minutes_saved_estimate });
+    out.push({ id: created.id, dedupe_key: key, status: row.status, visibility: row.visibility, manual_minutes: row.manual_minutes, minutes_saved_estimate: row.minutes_saved_estimate });
   }
   return out;
 }
