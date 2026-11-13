@@ -186,6 +186,20 @@ pricing rules, calendar write-back of the plan (needs Justin's consent on the co
   the empty toast layer swallowing taps on the phone top bar (pre-existing, `pointer-events-none` on the viewport);
   interruption over a booked call now flagged as a clash; accounting notice moved off the Ask bar.
 
+### Follow-up fixes (2026-11-12, later)
+
+- Deep links: every brief / Needs-you / pillar ref uses `recordPath()` (`/launch?item=`, `/tasks?task=`, `/pipeline?lead=`, ...);
+  target pages open, highlight and focus the exact record (`src/lib/deepLink.js`). Playwright on real data: each of today's
+  top 3 opened its LaunchItem in view, focused, `data-record-id` matching.
+- No Anthropic key, ever: `callAI` / `invokeBase44` in `base44/shared/anthropic.ts`. ai-gateway (admin and portal clients),
+  training, work-ledger copy, brain-to-dossier, accounting and agents all run on the built-in InvokeLLM when the key is absent.
+  No `ai_not_configured` anywhere; the key is gone from settings, usage, Fuel, launch week notes and secret checks.
+- Work ledger `log`: status `done` unless the caller sends `failed` / `in_progress`; a real client's row is client-visible
+  (locked), agency rows internal; money/security titles stay internal; minutes confirmed (`Minutes confirmed by Justin <date>.`),
+  missing minutes filled from `DIRECTING_MINUTES` (Justin's directing time). Held-back copy (`skipped`) clears its title and the
+  portal skips `skipped` rows.
+- Voice inbox retired: `/tasks/inbox` redirects to `/`; unsure voice commands become a Needs-you "Where should this go?" card.
+
 ## 12. Why Ask is a backend function, not a Base44 agent
 
 The Ask bar runs through `command-ask` (InvokeLLM with a JSON intent schema + deterministic executors) rather than a
