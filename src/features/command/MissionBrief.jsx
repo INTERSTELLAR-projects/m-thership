@@ -116,7 +116,7 @@ export default function MissionBrief({ brief, busy, onReplan, onInterrupt, stale
   const nowMin = useNowMin();
   if (!brief) return null;
   const outcomes = brief.outcomes || [];
-  const genAt = brief.generated_at ? new Date(brief.generated_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "";
+  const genAt = brief.generated_at ? new Date(brief.generated_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: brief.tz || TZ_DEFAULT }) + " PT" : "";
   return (
     <div className="space-y-4">
       <section className="band-dark grain px-5 pb-6 pt-5 md:px-8 md:pb-8 md:pt-7" aria-label="Mission brief">
