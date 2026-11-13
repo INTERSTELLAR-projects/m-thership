@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, X, Users, FolderKanban, CornerDownLeft } from "lucide-react";
+import { Search, X, Users, FolderKanban, CornerDownLeft, Sparkles, RefreshCw, Zap, Brain, Headphones, Orbit, Sun, LayoutDashboard, ListPlus, Receipt, Mail } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { ALL_NAV } from "@/lib/nav";
 import { usePins } from "@/components/navPrefs";
@@ -11,6 +11,21 @@ import { usePins } from "@/components/navPrefs";
 import { itemsOf } from "@/features/tasks/lib/clients";
 
 let cache = null; // { clients, projects } kept for the session so reopening is instant
+
+// Møthership Command actions: the palette is the primary navigation, so it also does things, not just opens pages.
+const askWith = (text, send = false) => window.dispatchEvent(new CustomEvent("command:ask", { detail: { text, send } }));
+const ACTIONS = [
+  { key: "a:today", label: "Today (Command home)", hint: "G T", icon: Sun, path: "/" },
+  { key: "a:replan", label: "Re-plan my day", hint: "Rebuild today's plan now", icon: RefreshCw, path: "/", after: () => window.dispatchEvent(new Event("command:replan")) },
+  { key: "a:cameup", label: "Something came up…", hint: "Re-plan around an interruption", icon: Zap, run: () => askWith("Something came up: ") },
+  { key: "a:task", label: "New task…", hint: "Say or type it", icon: ListPlus, run: () => askWith("Add task: ") },
+  { key: "a:email", label: "Draft an email…", hint: "Waits for your OK before sending", icon: Mail, run: () => askWith("Draft an email to ") },
+  { key: "a:expense", label: "Log an expense…", hint: "Waits for your OK", icon: Receipt, run: () => askWith("Log an expense: ") },
+  { key: "a:brain", label: "Teach the Brain", hint: "G B", icon: Brain, path: "/brain" },
+  { key: "a:pillars", label: "Pillars compass", hint: "G P", icon: Orbit, path: "/pillars" },
+  { key: "a:walk", label: "Walk mode", hint: "G W · hands-free brief", icon: Headphones, path: "/walk" },
+  { key: "a:classic", label: "Classic dashboard", hint: "G C · Mission Control", icon: LayoutDashboard, path: "/classic" },
+].map((a) => ({ ...a, group: "Actions" }));
 
 async function loadRecords() {
   if (cache) return cache;
@@ -47,12 +62,14 @@ export default function CommandPalette({ open, onClose }) {
     const match = (s) => !q || String(s || "").toLowerCase().includes(q);
     // Pages match on their name or their section ("studios", "finance"…); pinned pages lead when nothing is typed.
     const pinned = (pins || []).map((k) => ALL_NAV.find((c) => c.key === k)).filter(Boolean);
+    const actions = ACTIONS.filter((a) => match(a.label) || match(a.hint));
+    const askItem = q ? [{ key: "a:ask", group: "Actions", label: `Ask Møthership: “${query.trim()}”`, hint: "Enter", icon: Sparkles, run: () => askWith(query.trim(), true) }] : [];
     const pages = ALL_NAV.filter((c) => match(c.label) || match(c.group)).map((c) => ({
       key: "p:" + c.key, group: "Pages", label: c.label, hint: c.group, icon: c.icon, path: c.path,
     }));
     if (!q) {
       const pin = pinned.map((c) => ({ key: "pin:" + c.key, group: "Pinned", label: c.label, hint: c.group, icon: c.icon, path: c.path }));
-      return [...pin, ...pages.filter((p) => !pinned.some((c) => "p:" + c.key === p.key))];
+      return [...ACTIONS.slice(0, 3), ...pin, ...pages.filter((p) => !pinned.some((c) => "p:" + c.key === p.key)), ...ACTIONS.slice(3)];
     }
     const clients = records.clients
       .filter((c) => match(c.business) || match(c.contact))
@@ -68,7 +85,8 @@ export default function CommandPalette({ open, onClose }) {
         key: "j:" + p.id, group: "Projects", label: p.name || p.title || "Project",
         hint: p.client_name || "", icon: FolderKanban, path: "/projects/" + p.id,
       }));
-    return [...pages, ...clients, ...projects];
+    const found = [...actions, ...pages, ...clients, ...projects];
+    return found.length ? [...found, ...askItem] : askItem;
   }, [query, records, pins]);
 
   useEffect(() => {
@@ -76,9 +94,12 @@ export default function CommandPalette({ open, onClose }) {
     el?.scrollIntoView({ block: "nearest" });
   }, [selected]);
 
-  const go = (path) => {
-    navigate(path);
+  const go = (r) => {
+    const item = typeof r === "string" ? { path: r } : r;
     onClose();
+    if (item.path) navigate(item.path);
+    if (item.run) setTimeout(item.run, 30);
+    if (item.after) setTimeout(item.after, 400);
   };
 
   const handleKey = (e) => {
@@ -89,7 +110,7 @@ export default function CommandPalette({ open, onClose }) {
       e.preventDefault();
       setSelected((s) => Math.max(s - 1, 0));
     } else if (e.key === "Enter") {
-      if (results[selected]) go(results[selected].path);
+      if (results[selected]) go(results[selected]);
     } else if (e.key === "Escape") {
       onClose();
     }
@@ -115,7 +136,7 @@ export default function CommandPalette({ open, onClose }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKey}
-            placeholder="Jump to a page, client or project…"
+            placeholder="Jump anywhere, or ask Møthership…"
             className="flex-1 bg-transparent text-sm text-[#1a1a1a] outline-none placeholder:text-black/40"
           />
           {query && (
@@ -128,10 +149,10 @@ export default function CommandPalette({ open, onClose }) {
 
         <div ref={listRef} className="max-h-[60vh] overflow-y-auto py-1.5">
           {results.length === 0 ? (
-            <p className="py-6 text-center text-sm text-black/45">Nothing matches “{query}”</p>
+            <p className="py-6 text-center text-sm text-black/45">Type something to search or ask</p>
           ) : (
             results.map((r, i) => {
-              const header = (query.trim() || r.group === "Pinned" || lastGroup === "Pinned") && r.group !== lastGroup ? r.group : null;
+              const header = r.group !== lastGroup && (query.trim() || r.group === "Pinned" || r.group === "Actions" || lastGroup === "Pinned" || lastGroup === "Actions") ? r.group : null;
               lastGroup = r.group;
               const Icon = r.icon;
               const active = selected === i;
@@ -142,7 +163,7 @@ export default function CommandPalette({ open, onClose }) {
                   )}
                   <button
                     data-index={i}
-                    onClick={() => go(r.path)}
+                    onClick={() => go(r)}
                     onMouseEnter={() => setSelected(i)}
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
                       active ? "bg-[#ff3c00]/10 text-[#1a1a1a]" : "text-black/70 hover:text-black"
