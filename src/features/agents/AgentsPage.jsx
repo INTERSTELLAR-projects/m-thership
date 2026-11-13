@@ -210,7 +210,7 @@ function ClassicAgentsPage({ onShip }) {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" className="btn-d" onClick={onShip} aria-label="Open the ship view (Constellation v2)"><Orbit className="h-3.5 w-3.5" />Ship view</button>
-            <Toggle label="Which web" value={web} onChange={(v) => setParams(new URLSearchParams(v === "clients" ? { web: "clients", view } : { view }))} options={[["interstellar", "Interstellar", Orbit], ["clients", "Clients", Users]]} />
+            <Toggle label="Which web" value={web} onChange={(v) => setParams(new URLSearchParams(v === "clients" ? { v: "classic", web: "clients", view } : { v: "classic", view }))} options={[["interstellar", "Interstellar", Orbit], ["clients", "Clients", Users]]} />
             <Toggle label="View" value={view} onChange={(v) => setP({ view: v === "list" ? "list" : null })} options={[["map", "Map", Network], ["list", "List", LayoutList]]} />
           </div>
         </div>
