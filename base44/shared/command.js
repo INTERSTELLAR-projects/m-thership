@@ -218,6 +218,7 @@ export function parseLifeBlocks(text) {
   const t = str(text);
   const re = /(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*(?:to|-|–|until|till)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/gi;
   let m;
+  let lastEnd = 0;
   while ((m = re.exec(t))) {
     let a = Number(m[1]) * 60 + Number(m[2] || 0);
     let b = Number(m[4]) * 60 + Number(m[5] || 0);
@@ -226,7 +227,8 @@ export function parseLifeBlocks(text) {
     if (bp === "pm" && b < 720) b += 720;
     if (!ap && bp === "pm" && a + 720 < b) a += 720;
     if (b <= a || b - a > 360) continue;
-    const before = t.slice(0, m.index).replace(/\b(happens?|is|are|from|at|between|every ?day|daily)\b/gi, " ").replace(/[^\p{L}\s&/+'-]/gu, " ").replace(/\s+/g, " ").trim();
+    const before = t.slice(lastEnd, m.index).replace(/^\s*(,|and|&|plus)\s*/i, "").replace(/\b(happens?|is|are|from|at|between|every ?day|daily)\b/gi, " ").replace(/[^\p{L}\s&/+'-]/gu, " ").replace(/\s+/g, " ").trim();
+    lastEnd = m.index + m[0].length;
     out.push({ start: fromMin(a), end: fromMin(b), title: before ? before.charAt(0).toUpperCase() + before.slice(1) : "Life block" });
   }
   return out;

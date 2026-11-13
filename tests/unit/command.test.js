@@ -188,6 +188,6 @@ describe("command engine", () => {
     expect(BE.cleanIsFaithful("i work 9am-6pm", ["I work 9am to 6pm."])).toBe(true);
     expect(BE.cleanIsFaithful("i work 9am-6pm", ["I work 10am to 6pm."])).toBe(false); // changed a number
     expect(BE.cleanIsFaithful("a typical client pays 2500 for a site and 500 a month for care and maintenance work", ["Clients pay."])).toBe(false); // summarised away
-    expect(BE.parseLifeBlocks("School run 3pm-3:45pm and gym 6-7am")).toEqual([{ start: "15:00", end: "15:45", title: "School run" }, { start: "06:00", end: "07:00", title: "And gym" }]);
+    expect(BE.parseLifeBlocks("School run 3pm-3:45pm and gym 6-7am")).toEqual([{ start: "15:00", end: "15:45", title: "School run" }, { start: "06:00", end: "07:00", title: "Gym" }]);
   });
 });
