@@ -174,6 +174,13 @@ export default function OutputLedger() {
   const [limit, setLimit] = useState(40);
   // ?entry=<WorkEntry id> (from Command): make sure that row is shown, then focus it.
   const linkedEntry = useDeepLinkParam("entry");
+  useEffect(() => {
+    if (!linkedEntry || !rows.length) return;
+    const idx = feed.findIndex((e) => e.id === linkedEntry);
+    if (idx < 0 && rows.some((e) => e.id === linkedEntry)) setFilters((f) => ({ ...f, range: "all", client: "", by: "", cat: "", vis: "", q: "" }));
+    else if (idx >= limit) setLimit(idx + 10);
+  }, [linkedEntry, rows, feed, limit]);
+  useDeepLinkFocus(linkedEntry, [feed.length, limit]);
 
   const sync = async () => {
     setSyncing(true); setNote("");
@@ -299,7 +306,7 @@ export default function OutputLedger() {
               const mins = e.done_by === "justin_manual" ? manualMin(e) : savedMin(e);
               const off = !counted(e);
               return (
-                <li key={e.id} className={`flex items-start gap-3 px-4 py-3 md:px-5 ${off ? "opacity-55" : ""}`}>
+                <li key={e.id} data-record-id={e.id} className={`flex items-start gap-3 px-4 py-3 md:px-5 ${off ? "opacity-55" : ""}`}>
                   <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ background: who.color }} title={who.label} />
                   <div className="min-w-0 flex-1">
                     <p className="text-[13.5px] font-medium leading-snug">{e.title}</p>

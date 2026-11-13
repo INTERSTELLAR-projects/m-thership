@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useDeepLinkParam, useDeepLinkFocus } from "@/lib/deepLink";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AlertTriangle, CalendarClock, Check, Crown, Edit, Flame, Layers, Loader2, Percent, PieChart as PieIcon, Plus, Receipt, Search, Sparkles, Trash2, TrendingUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -321,7 +322,7 @@ function UpcomingPanel({ items, now, paying, onMarkPaid, className }) {
             const d = daysUntil(e.dueDate, now);
             const b = dueBadge(d);
             return (
-              <div key={e.id} className={`card-hover fin-rise flex items-center gap-3 rounded-md border p-3 ${d < 0 ? "border-ink/40" : "border-hair"} bg-card`} style={{ animationDelay: `${i * 35}ms` }}>
+              <div key={e.id} data-record-id={e.id} className={`card-hover fin-rise flex items-center gap-3 rounded-md border p-3 ${d < 0 ? "border-ink/40" : "border-hair"} bg-card`} style={{ animationDelay: `${i * 35}ms` }}>
                 <VendorMark name={e.platform} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink/85">{e.platform}</p>
@@ -497,7 +498,7 @@ function AllExpenses({ items, categories, now, paying, onMarkPaid, onEdit, onDel
                     const d = daysUntil(e.dueDate, now);
                     const b = dueBadge(d);
                     return (
-                      <tr key={e.id} className={`group border-b border-hair last:border-0 transition-colors hover:bg-[#ff3c00]/[0.025] ${e.status === "Paid" ? "opacity-60" : ""}`}>
+                      <tr key={e.id} data-record-id={e.id} className={`group border-b border-hair last:border-0 transition-colors hover:bg-[#ff3c00]/[0.025] ${e.status === "Paid" ? "opacity-60" : ""}`}>
                         <td className="px-3 py-2.5"><div className="flex items-center gap-2.5"><VendorMark name={e.platform} size="h-7 w-7" /><span className="font-medium text-ink/85">{e.platform}</span></div></td>
                         <td className="px-3 py-2.5"><span className="rounded-full border border-hair px-2 py-0.5 text-[10.5px] text-ink/60">{e.category || "—"}</span></td>
                         <td className="px-3 py-2.5"><span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${FREQ_CHIP[e.frequency] || FREQ_CHIP.Monthly}`}>{e.frequency}</span></td>
@@ -523,7 +524,7 @@ function AllExpenses({ items, categories, now, paying, onMarkPaid, onEdit, onDel
               {rows.map((e) => {
                 const b = dueBadge(daysUntil(e.dueDate, now));
                 return (
-                  <div key={e.id} className={`rounded-md border border-hair bg-card p-3 ${e.status === "Paid" ? "opacity-60" : ""}`}>
+                  <div key={e.id} data-record-id={e.id} className={`rounded-md border border-hair bg-card p-3 ${e.status === "Paid" ? "opacity-60" : ""}`}>
                     <div className="flex items-start gap-3">
                       <VendorMark name={e.platform} />
                       <div className="min-w-0 flex-1">
