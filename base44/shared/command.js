@@ -492,7 +492,7 @@ export function rulePlan(s, outcomes, cands, opts = {}) {
       const cont = need < item.minutes;
       blocks.push({ start: fromMin(cursor), end: fromMin(cursor + take), title: cont ? `${item.title} (cont.)` : item.title, kind: item.kind, pillar: item.pillar, ref: item.ref, cand: item.cand, cands: item.cands });
       cursor += take;
-      need -= take;
+      need = BUFFER_KINDS.includes(item.kind) ? 0 : need - take;
     }
     if (need === item.minutes && item.kind === "focus") overflow.push(item);
   }
