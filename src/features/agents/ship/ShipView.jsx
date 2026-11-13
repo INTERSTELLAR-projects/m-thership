@@ -486,6 +486,18 @@ export default function ShipView({ onClassic }) {
         </div>
       </header>
 
+      {/* Live ticker: the real records behind the pulses, newest first */}
+      <div className="shp-ticker relative z-20" data-testid="ship-ticker" aria-label="Live through the ship">
+        <span className="eyebrow flex shrink-0 items-center gap-2 !text-[9px]"><span className="live-dot" />Live</span>
+        {ticker.length ? ticker.slice(0, 8).map((t) => (
+          <Link key={t.key} to={recordPath(t.entity, t.id, t.rec)} className={`flex shrink-0 items-center gap-1.5 rounded px-1.5 py-0.5 text-[11.5px] hover:bg-white/5 ${t.fresh ? "shp-tick" : ""}`}>
+            <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: EVENT_COLOR[t.type], boxShadow: `0 0 6px ${EVENT_COLOR[t.type]}` }} />
+            <span className="max-w-[300px] truncate text-[var(--ink-d)]">{t.label}</span>
+            <span className="mono text-[9.5px] text-[var(--ink-s)]">{relTime(new Date(t.at).toISOString())}</span>
+          </Link>
+        )) : <span className="text-[11.5px] text-[var(--ink-s)]">Waiting for the next run, result or research note…</span>}
+      </div>
+
       {/* Stage */}
       <div ref={stageRef} className="shp-stage relative min-h-0 flex-1">
         <FlowCanvas ref={canvasApi} anchors={anchors} edges={ship.edges} scrollRef={scrollRef} mode={mode} lit={lit} focusIds={chain} hoverEdge={hover?.type === "edge" ? hover.edge.id : null} reduced={reduced} density={density} forceSvg={forceSvg} />
@@ -514,24 +526,6 @@ export default function ShipView({ onClassic }) {
             )}
           </div>
         </div>
-
-        {/* Live ticker: the real events behind the pulses */}
-        {ticker.length ? (
-          <div className={`glass pointer-events-auto absolute bottom-3 left-3 z-20 w-[min(360px,calc(100%-24px))] rounded-xl px-3 py-2.5 ${panelOpen ? "hidden md:block" : ""}`} data-testid="ship-ticker">
-            <p className="eyebrow mb-1.5 flex items-center gap-2 !text-[9px]"><span className="live-dot" />Live through the ship</p>
-            <ul className="space-y-0.5">
-              {ticker.slice(0, width < 700 ? 2 : 5).map((t) => (
-                <li key={t.key} className={t.fresh ? "shp-tick rounded" : ""}>
-                  <Link to={recordPath(t.entity, t.id, t.rec)} className="flex items-center gap-2 rounded px-1 py-0.5 text-[11.5px] hover:bg-white/5">
-                    <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: EVENT_COLOR[t.type], boxShadow: `0 0 6px ${EVENT_COLOR[t.type]}` }} />
-                    <span className="min-w-0 flex-1 truncate text-[var(--ink-d)]">{t.label}</span>
-                    <span className="mono shrink-0 text-[9.5px] text-[var(--ink-s)]">{relTime(new Date(t.at).toISOString())}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
 
         {tooltip ? <div className="glass pointer-events-none fixed z-50 max-w-[300px] rounded-lg px-3 py-2" style={{ left: Math.min(hover.x + 14, window.innerWidth - 310), top: hover.y + 14 }} data-testid="ship-tooltip">{tooltip}</div> : null}
 
