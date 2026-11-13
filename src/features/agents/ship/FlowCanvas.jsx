@@ -135,6 +135,8 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
     const L = st.current.lit;
     return L ? !(L.has(e.from) && L.has(e.to)) : false;
   };
+  // On phones and tablets the department -> client fan would run down the whole list: show it only for the selected branch.
+  const hideEdge = (e) => st.current.mode === "stack" && e.kind === "serve" && !hiEdge(e);
   const hiEdge = (e) => {
     const F = st.current.focusIds;
     return st.current.hoverEdge === e.id || (F && F.has(e.from) && F.has(e.to));
@@ -194,6 +196,7 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
 
     const spawn = (dt) => {
       Object.values(S.geom).forEach(({ e, g }) => {
+        if (hideEdge(e)) return;
         const dim = dimEdge(e);
         const streams = [["f", e.fwd, e.color || COLORS.command, false], ["b", e.back, e.backColor || COLORS.result, true], ["i", e.idea, COLORS.idea, false]];
         streams.forEach(([k, s, color, rev]) => {
@@ -274,6 +277,7 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
         lctx.globalCompositeOperation = "lighter";
         Object.values(S.geom).forEach(({ e, g }) => {
           if (g.box.x1 < view.x0 || g.box.x0 > view.x1 || g.box.y1 < view.y0 || g.box.y0 > view.y1) return;
+          if (hideEdge(e)) return;
           const dim = dimEdge(e); const hi = hiEdge(e);
           const base = 0.16 + 0.3 * (e.fwd ? e.fwd.glow : 0.4);
           const a = dim ? 0.03 : hi ? 0.95 : base * (S.focusIds ? 0.55 : 1) * (e.kind === "serve" ? 0.5 : 1);
