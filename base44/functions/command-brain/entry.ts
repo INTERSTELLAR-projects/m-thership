@@ -78,8 +78,16 @@ Deno.serve(async (req) => {
       for (const f of facts || []) {
         if (f.raw_text || str(f.source).startsWith("seed:")) continue;
         const q = C.BRAIN_QUESTIONS.find((x: any) => x.key === f.question_key);
-        const c = await cleanAnswer(base44, f.statement, q?.q || f.question || "", names);
-        const after = c.statements.join(" ");
+        const override = body?.overrides && typeof body.overrides[f.id] === "string" ? String(body.overrides[f.id]).trim() : "";
+        const c = override ? { statements: [override], source: "reviewed", about_client: "", pillar_hint: "" } : await cleanAnswer(base44, f.statement, q?.q || f.question || "", names);
+        let after = c.statements.join(" ");
+        // Existing facts were already distilled once: keep an AI clean-up only if it stays close to the stored wording
+        // and voice; otherwise use the rule clean-up so the meaning can't drift.
+        const words = (t: string) => new Set(String(t).toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter(Boolean));
+        const A = words(f.statement), B = words(after);
+        const sim = [...A].filter((w) => B.has(w)).length / Math.max(1, new Set([...A, ...B]).size);
+        const voiceFlip = !/^i\b/i.test(String(f.statement).trim()) && /^i\b/i.test(after.trim());
+        if (c.source === "llm" && (sim < 0.75 || voiceFlip)) { after = C.ruleClean(f.statement, names); (c as any).source = "rules (kept close to the original)"; }
         const row = { id: f.id, pillar: f.pillar, before: f.statement, after, source: c.source, about_client: c.about_client, pillar_hint: c.pillar_hint, misfiled: Boolean(c.pillar_hint && c.pillar_hint !== f.pillar) || Boolean(c.about_client && f.pillar === "owner") };
         out.push(row);
         if (!body?.dry_run) {
