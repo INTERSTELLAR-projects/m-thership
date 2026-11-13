@@ -177,6 +177,8 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
     const sphere = makeSphere(density < 1 ? 160 : 340);
     const mesh = makeMesh(density < 1 ? 40 : 64);
     const maxOrbs = density < 1 ? 160 : 420;
+    const lines = document.createElement("canvas");
+    const lctx = lines.getContext("2d");
     let raf = 0; let last = performance.now(); let frames = 0; let fpsAt = last; let W = 0; let H = 0; let dpr = 1;
 
     const resize = () => {
@@ -259,31 +261,41 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
       const sc = scrollRef.current;
       const sx = sc ? sc.scrollLeft : 0; const sy = sc ? sc.scrollTop : 0;
       const view = { x0: sx - 40, x1: sx + W + 40, y0: sy - 40, y1: sy + H + 40 };
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Paths: drawn into a cached layer, redrawn only when layout, scroll, filters or highlight change.
+      const key = `${W}x${H}|${sx},${sy}|${dpr}`;
+      if (S.lineKey !== key || S.lineGeom !== S.geom || S.lineLit !== S.lit || S.lineFocus !== S.focusIds || S.lineHover !== S.hoverEdge) {
+        S.lineKey = key; S.lineGeom = S.geom; S.lineLit = S.lit; S.lineFocus = S.focusIds; S.lineHover = S.hoverEdge;
+        if (lines.width !== cv.width || lines.height !== cv.height) { lines.width = cv.width; lines.height = cv.height; }
+        lctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        lctx.clearRect(0, 0, W, H);
+        lctx.translate(-sx, -sy);
+        lctx.globalCompositeOperation = "lighter";
+        Object.values(S.geom).forEach(({ e, g }) => {
+          if (g.box.x1 < view.x0 || g.box.x0 > view.x1 || g.box.y1 < view.y0 || g.box.y0 > view.y1) return;
+          const dim = dimEdge(e); const hi = hiEdge(e);
+          const base = 0.16 + 0.3 * (e.fwd ? e.fwd.glow : 0.4);
+          const a = dim ? 0.03 : hi ? 0.95 : base * (S.focusIds ? 0.55 : 1);
+          const path = g.p2 || (g.p2 = new Path2D(g.d));
+          const col = e.color || COLORS.command;
+          lctx.strokeStyle = hexA(col, a * 0.22);
+          lctx.lineWidth = hi ? 9 : 6;
+          lctx.stroke(path);
+          lctx.strokeStyle = hexA(col, a * 0.5);
+          lctx.lineWidth = hi ? 3.2 : 2.2;
+          lctx.stroke(path);
+          lctx.strokeStyle = hexA(col, Math.min(1, a * 1.4));
+          lctx.lineWidth = hi ? 1.4 : 0.9;
+          lctx.stroke(path);
+        });
+      }
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.globalCompositeOperation = "source-over";
-      ctx.clearRect(0, 0, W, H);
+      ctx.globalAlpha = 1;
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(lines, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.translate(-sx, -sy);
       ctx.globalCompositeOperation = "lighter";
-
-      // Paths.
-      Object.values(S.geom).forEach(({ e, g }) => {
-        if (g.box.x1 < view.x0 || g.box.x0 > view.x1 || g.box.y1 < view.y0 || g.box.y0 > view.y1) return;
-        const dim = dimEdge(e); const hi = hiEdge(e);
-        const base = 0.16 + 0.3 * (e.fwd ? e.fwd.glow : 0.4);
-        const a = dim ? 0.03 : hi ? 0.95 : base * (S.focusIds ? 0.55 : 1);
-        const path = g.p2 || (g.p2 = new Path2D(g.d));
-        const col = e.color || COLORS.command;
-        ctx.globalAlpha = 1;
-        ctx.strokeStyle = hexA(col, a * 0.22);
-        ctx.lineWidth = hi ? 9 : 6;
-        ctx.stroke(path);
-        ctx.strokeStyle = hexA(col, a * 0.5);
-        ctx.lineWidth = hi ? 3.2 : 2.2;
-        ctx.stroke(path);
-        ctx.strokeStyle = hexA(col, Math.min(1, a * 1.4));
-        ctx.lineWidth = hi ? 1.4 : 0.9;
-        ctx.stroke(path);
-      });
 
       // Core + brain.
       drawCore(t, S.anchors && S.anchors["slot:claude"], still);
