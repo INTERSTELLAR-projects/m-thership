@@ -12,6 +12,8 @@
 .agx.shp .shp-cols .shp-lanes > * { flex: 1 1 0; min-width: 0; }
 .agx.shp .shp-cols .shp-ideas { grid-column: 4 / 5; align-self: end; max-width: 360px; justify-self: end; width: 100%; }
 .agx.shp .shp-cols .shp-clients { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: clamp(36px, 3.6vw, 84px); row-gap: 8px; align-items: center; }
+.agx.shp .shp-cols .shp-sticky { position: sticky; top: 10px; align-self: start; min-height: calc(var(--stage-h, 640px) - 118px); }
+.agx.shp .shp-cols .shp-clients { align-self: start; }
 .agx.shp .shp-col { display: flex; flex-direction: column; gap: 10px; justify-content: center; min-width: 0; }
 
 .agx.shp .shp-stack { display: flex; flex-direction: column; gap: 26px; padding: 16px 16px 150px; }
