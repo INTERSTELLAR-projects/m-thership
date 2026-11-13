@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useDeepLinkFocus } from "@/lib/deepLink";
 import ReactMarkdown from "react-markdown";
 import { Sparkles, Check, RotateCcw, X, Copy, ArrowUpRight, Loader2, Plus, AlertTriangle } from "lucide-react";
 import { useList, timeAgo } from "@/lib/useData";
@@ -237,6 +238,7 @@ export default function ClaudeQueue() {
   const list = data.filter((j) => TABS.find((t) => t.key === tab).match.includes(j.status));
   const selected = data.find((j) => j.id === selectedId) || list[0];
 
+  useDeepLinkFocus(selectedId, [data.length]);
   // Opening a link to a specific job jumps to its tab.
   useEffect(() => {
     const j = data.find((x) => x.id === selectedId);
@@ -297,7 +299,7 @@ export default function ClaudeQueue() {
           ) : (
             <ul className="divide-y divide-hair">
               {list.map((j) => (
-                <li key={j.id}>
+                <li key={j.id} data-record-id={j.id}>
                   <button type="button" onClick={() => setParams({ job: j.id })}
                     className={cn("block w-full px-4 py-3 text-left hover:bg-[#ff3c00]/[0.035]", selected?.id === j.id && "bg-[#ff3c00]/[0.06]")}>
                     <div className="flex items-center justify-between gap-2">

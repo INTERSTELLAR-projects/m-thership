@@ -39,6 +39,5 @@ export function useDeepLinkFocus(id, deps = []) {
     };
     timer = setTimeout(tick, 60);
     return () => { dead = true; clearTimeout(timer); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, ...deps]);
 }

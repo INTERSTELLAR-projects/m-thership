@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Headphones, Brain, Orbit, LayoutDashboard, Undo2 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import MissionBrief from "./MissionBrief";
@@ -73,6 +73,8 @@ function AgentLog({ rows, onUndo }) {
 
 export default function CommandHome() {
   const { user } = useAuth();
+  const [params] = useSearchParams();
+  const linkedCard = params.get("card") || "";
   const [brief, setBrief] = useState(null);
   const [state, setState] = useState({ loading: true, busy: false, stale: false, error: "" });
   const [actions, setActions] = useState([]);
@@ -130,7 +132,7 @@ export default function CommandHome() {
       {state.loading && !brief ? <Skeleton /> : (
         <div className="space-y-4">
           {brief ? (
-            <MissionBrief brief={brief} busy={state.busy} stale={state.stale} error={state.error} onReplan={() => load(true)} onInterrupt={onInterrupt} between={<NeedsYou items={actions} loading={actionsLoading} onChanged={loadActions} />} />
+            <MissionBrief brief={brief} busy={state.busy} stale={state.stale} error={state.error} onReplan={() => load(true)} onInterrupt={onInterrupt} between={<NeedsYou items={actions} loading={actionsLoading} onChanged={loadActions} focusId={linkedCard} />} />
           ) : (
             <>
               <div className="border border-hair bg-paper p-6"><p className="text-[15px]">The brief couldn't load: {state.error}</p><button type="button" onClick={() => load(true)} className="mt-3 h-10 bg-ink px-4 text-[13px] text-white">Try again</button></div>

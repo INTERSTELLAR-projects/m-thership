@@ -27,7 +27,7 @@ function SimpleCard({ job, open, onToggle, renderDetail }) {
   };
 
   return (
-    <li className={cn("rounded-md border bg-card", job.status === "needs_approval" ? "border-[#ff3c00]/40" : "border-hair")}>
+    <li data-record-id={job.id} className={cn("rounded-md border bg-card", job.status === "needs_approval" ? "border-[#ff3c00]/40" : "border-hair")}>
       <div className="flex flex-col gap-3 p-3.5 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">

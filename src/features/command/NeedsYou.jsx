@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useDeepLinkFocus } from "@/lib/deepLink";
 import { Link } from "react-router-dom";
 import { Check, Pencil, SkipForward, Clock, ChevronLeft, ChevronRight, Send, MessageSquare, ArrowUpRight, Undo2, FlaskConical, X } from "lucide-react";
 import { PillarChip, Mono } from "./ui";
@@ -133,7 +134,7 @@ function QuestionAnswer({ card, onDone }) {
   );
 }
 
-export default function NeedsYou({ items, loading, onChanged, compact = false }) {
+export default function NeedsYou({ items, loading, onChanged, compact = false, focusId = "" }) {
   const [idx, setIdx] = useState(0);
   const [editing, setEditing] = useState(false);
   const [edit, setEdit] = useState({});
@@ -147,6 +148,14 @@ export default function NeedsYou({ items, loading, onChanged, compact = false })
   const start = useRef(null);
   const list = useMemo(() => items || [], [items]);
   const card = list[Math.min(idx, Math.max(0, list.length - 1))];
+  // ?card=<ProposedAction id>: start the stack on that card and focus it.
+  const focused = useRef("");
+  useEffect(() => {
+    if (!focusId || focused.current === focusId) return;
+    const k = list.findIndex((a) => a.id === focusId);
+    if (k >= 0) { focused.current = focusId; setIdx(k); }
+  }, [focusId, list]);
+  useDeepLinkFocus(focusId && card?.id === focusId ? focusId : "", [card?.id]);
 
   useEffect(() => { setEditing(false); setEdit({}); setAnswer(""); setOption(null); setErr(""); }, [card?.id]);
   useEffect(() => { if (idx > list.length - 1) setIdx(Math.max(0, list.length - 1)); }, [list.length, idx]);
@@ -243,6 +252,7 @@ export default function NeedsYou({ items, loading, onChanged, compact = false })
       ) : (
         <div
           key={card.id}
+          data-record-id={card.id}
           className="cmd-card touch-pan-y px-4 py-5 md:px-6 md:py-6"
           style={drag.on ? { transform: `translate(${drag.x}px, ${Math.min(0, drag.y)}px) rotate(${drag.x / 40}deg)`, transition: "none" } : undefined}
           onPointerDown={onPointerDown}
