@@ -196,3 +196,8 @@
 @keyframes orb-ring { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(1.9); opacity: 0; } }
 .orb-breathe { animation: orb-breathe 2.2s ease-in-out infinite; }
 .orb-ring { animation: orb-ring 1.8s ease-out infinite; }
+
+/* Deep-linked record (?item=, ?task=, ?lead= …): outlined and pulsed twice so the eye lands on it. */
+@keyframes deeplink-pulse { 0% { box-shadow: 0 0 0 0 rgba(255,60,0,.45); } 100% { box-shadow: 0 0 0 14px rgba(255,60,0,0); } }
+.deeplink-hit { outline: 2px solid #ff3c00 !important; outline-offset: 2px; animation: deeplink-pulse 1.4s ease-out 2; scroll-margin: 120px; }
+@media (prefers-reduced-motion: reduce) { .deeplink-hit { animation: none; } }

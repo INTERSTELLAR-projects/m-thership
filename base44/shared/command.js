@@ -138,7 +138,13 @@ export function researchPillar(r) {
   if (d === "people" || d === "team") return "team";
   return r.client_name ? "clients" : "delivery";
 }
-const taskPath = (t) => (t.client_id ? `/clients/${t.client_id}?tab=tasks` : "/tasks");
+// Every link opens the exact record (pages read these params, see src/lib/deepLink.js).
+const taskPath = (t) => `/tasks?task=${t.id}`;
+export const recordPath = (entity, id) => ({
+  LaunchItem: `/launch?item=${id}`, Task: `/tasks?task=${id}`, CRMClient: `/pipeline?lead=${id}`, ClientRequest: `/requests?request=${id}`,
+  ClientFinancing: `/financing?plan=${id}`, Expense: `/financial?tab=overview&expense=${id}`, ClaudeJob: `/claude?job=${id}`,
+  WorkEntry: `/output-analytics?entry=${id}`, ProposedAction: `/?card=${id}`, ResearchNote: `/agents?note=${id}`,
+}[entity] || "/");
 const ref = (entity, id, label, path) => ({ entity, id: str(id), label: short(label, 90), path });
 
 // ---------------------------------------------------------------- financing + expenses (same rules as the Financing / Financial pages)
@@ -450,25 +456,25 @@ export function scorePillars(s) {
 export function candidates(s, scores) {
   const c = [];
   const add = (x) => c.push({ minutes: 60, ...x, weight: x.weight + (scores && scores[x.pillar] && scores[x.pillar].score != null ? (100 - scores[x.pillar].score) * 0.15 : 5) });
-  for (const { c: lead, time } of s.callsToday) add({ id: `call:${lead.id}`, title: `Call with ${lead.business || lead.contact}${time ? " at " + clock12(time) : ""}`, why: "A booked strategy call is today. Prep the offer before you dial.", pillar: "sales", weight: 100, minutes: 60, fixedAt: time, ref: ref("CRMClient", lead.id, lead.business, "/pipeline") });
-  for (const r of s.urgent) add({ id: `req:${r.id}`, title: `Urgent: ${short(r.title, 60)} (${r.client_name || "client"})`, why: "A client marked this request urgent.", pillar: "clients", weight: 92, minutes: 45, ref: ref("ClientRequest", r.id, r.title, r.client_id ? `/clients/${r.client_id}?tab=requests` : "/requests") });
-  for (const { p, s: st } of s.latePlans) add({ id: `fin:${p.id}`, title: `Collect ${money(st.behind)} from ${p.client_name}`, why: `${p.title}: ${plural(st.late, "installment")} past due since ${prettyDate(st.firstLate)}.`, pillar: "finance", weight: 90, minutes: 20, ref: ref("ClientFinancing", p.id, `${p.client_name}: ${p.title}`, "/financing") });
+  for (const { c: lead, time } of s.callsToday) add({ id: `call:${lead.id}`, title: `Call with ${lead.business || lead.contact}${time ? " at " + clock12(time) : ""}`, why: "A booked strategy call is today. Prep the offer before you dial.", pillar: "sales", weight: 100, minutes: 60, fixedAt: time, ref: ref("CRMClient", lead.id, lead.business, recordPath("CRMClient", lead.id)) });
+  for (const r of s.urgent) add({ id: `req:${r.id}`, title: `Urgent: ${short(r.title, 60)} (${r.client_name || "client"})`, why: "A client marked this request urgent.", pillar: "clients", weight: 92, minutes: 45, ref: ref("ClientRequest", r.id, r.title, recordPath("ClientRequest", r.id)) });
+  for (const { p, s: st } of s.latePlans) add({ id: `fin:${p.id}`, title: `Collect ${money(st.behind)} from ${p.client_name}`, why: `${p.title}: ${plural(st.late, "installment")} past due since ${prettyDate(st.firstLate)}.`, pillar: "finance", weight: 90, minutes: 20, ref: ref("ClientFinancing", p.id, `${p.client_name}: ${p.title}`, recordPath("ClientFinancing", p.id)) });
   for (const i of s.mineDue) {
     const late = i.week < s.week;
-    add({ id: `launch:${i.id}`, title: short(i.title, 90), why: `${late ? "Overdue on" : "Due this week on"} the Road to Dec 31 (week ${i.week}${i.blocking_launch ? ", blocks launch" : ""}). Only you can do it.`, pillar: launchPillar(i) === "delivery" && /question/.test(i.kind || "") ? "owner" : launchPillar(i), weight: (i.blocking_launch ? 84 : 66) + (late ? 4 : 0) + (4 - Math.min(4, num(i.priority) || 3)) * 3, minutes: Math.max(30, Math.min(120, Math.round(num(i.effort_hours) * 60) || 45)), ref: ref("LaunchItem", i.id, i.title, "/launch") });
+    add({ id: `launch:${i.id}`, title: short(i.title, 90), why: `${late ? "Overdue on" : "Due this week on"} the Road to Dec 31 (week ${i.week}${i.blocking_launch ? ", blocks launch" : ""}). Only you can do it.`, pillar: launchPillar(i) === "delivery" && /question/.test(i.kind || "") ? "owner" : launchPillar(i), weight: (i.blocking_launch ? 84 : 66) + (late ? 4 : 0) + (4 - Math.min(4, num(i.priority) || 3)) * 3, minutes: Math.max(30, Math.min(120, Math.round(num(i.effort_hours) * 60) || 45)), ref: ref("LaunchItem", i.id, i.title, recordPath("LaunchItem", i.id)) });
   }
-  for (const l of s.leadsOverdue) add({ id: `lead:${l.id}`, title: `Follow up with ${l.business || l.contact}`, why: `${l.next_step || "Next step"} was due ${prettyDate(str(l.next_step_at).slice(0, 10))}.`, pillar: "sales", weight: 82, minutes: 20, ref: ref("CRMClient", l.id, l.business, "/pipeline") });
+  for (const l of s.leadsOverdue) add({ id: `lead:${l.id}`, title: `Follow up with ${l.business || l.contact}`, why: `${l.next_step || "Next step"} was due ${prettyDate(str(l.next_step_at).slice(0, 10))}.`, pillar: "sales", weight: 82, minutes: 20, ref: ref("CRMClient", l.id, l.business, recordPath("CRMClient", l.id)) });
   for (const t of s.overdue) add({ id: `task:${t.id}`, title: short(t.title, 90), why: `Overdue since ${prettyDate(str(t.due_date).slice(0, 10))}${t.client_name ? " for " + t.client_name : ""}.`, pillar: taskPillar(t), weight: 80 - (num(t.priority) || 3) * 4, minutes: Math.max(30, Math.min(120, num(t.estimated_minutes) || num(t.estimated_hours) * 60 || 60)), ref: ref("Task", t.id, t.title, taskPath(t)) });
   for (const t of s.dueToday) add({ id: `task:${t.id}`, title: short(t.title, 90), why: `Due today${t.client_name ? " for " + t.client_name : ""}.`, pillar: taskPillar(t), weight: 74 - (num(t.priority) || 3) * 3, minutes: Math.max(30, Math.min(120, num(t.estimated_minutes) || 60)), ref: ref("Task", t.id, t.title, taskPath(t)) });
   if (s.billsOverdue.length) {
     const total = s.billsOverdue.reduce((t, b) => t + b.s.amount, 0);
-    add({ id: "bills:overdue", title: `Check ${plural(s.billsOverdue.length, "overdue bill")} (${money(total)})`, why: `Unpaid this cycle: ${s.billsOverdue.map((b) => (b.e.platform || b.e.name)).join(", ")}.`, pillar: "finance", weight: 72, minutes: 15, ref: ref("Expense", s.billsOverdue[0].e.id, (s.billsOverdue[0].e.platform || s.billsOverdue[0].e.name), "/financial") });
+    add({ id: "bills:overdue", title: `Check ${plural(s.billsOverdue.length, "overdue bill")} (${money(total)})`, why: `Unpaid this cycle: ${s.billsOverdue.map((b) => (b.e.platform || b.e.name)).join(", ")}.`, pillar: "finance", weight: 72, minutes: 15, ref: ref("Expense", s.billsOverdue[0].e.id, (s.billsOverdue[0].e.platform || s.billsOverdue[0].e.name), recordPath("Expense", s.billsOverdue[0].e.id)) });
   }
-  if (s.staleJobs.length) add({ id: "claude:stale", title: `Clear the Claude queue (${s.jobs.length} waiting)`, why: `${plural(s.staleJobs.length, "job")} waiting more than 3 days; the oldest since ${prettyDate(isoIn(s.staleJobs[s.staleJobs.length - 1].created_date, s.tz))}.`, pillar: "delivery", weight: 62, minutes: 30, ref: ref("ClaudeJob", s.staleJobs[0].id, "Claude queue", "/claude") });
-  if (s.ledger.length) add({ id: "ledger:waiting", title: `Approve the work ledger (${s.ledger.length} waiting)`, why: "Approved work shows in Output and, when client-visible, in the portal.", pillar: "delivery", weight: 56, minutes: 30, ref: ref("WorkEntry", s.ledger[0].id, "Work ledger", "/output-analytics") });
+  if (s.staleJobs.length) add({ id: "claude:stale", title: `Clear the Claude queue (${s.jobs.length} waiting)`, why: `${plural(s.staleJobs.length, "job")} waiting more than 3 days; the oldest since ${prettyDate(isoIn(s.staleJobs[s.staleJobs.length - 1].created_date, s.tz))}.`, pillar: "delivery", weight: 62, minutes: 30, ref: ref("ClaudeJob", s.staleJobs[0].id, "Claude queue", recordPath("ClaudeJob", s.staleJobs[0].id)) });
+  if (s.ledger.length) add({ id: "ledger:waiting", title: `Approve the work ledger (${s.ledger.length} waiting)`, why: "Approved work shows in Output and, when client-visible, in the portal.", pillar: "delivery", weight: 56, minutes: 30, ref: ref("WorkEntry", s.ledger[0].id, "Work ledger", recordPath("WorkEntry", s.ledger[0].id)) });
   for (const t of s.focus.filter((x) => !s.overdue.includes(x) && !s.dueToday.includes(x))) add({ id: `task:${t.id}`, title: short(t.title, 90), why: `On your focus list${t.client_name ? " for " + t.client_name : ""}.`, pillar: taskPillar(t), weight: 54 - (num(t.priority) || 3) * 2, minutes: 90, ref: ref("Task", t.id, t.title, taskPath(t)) });
   const hiR = s.researchNew.filter((r) => r.relevance === "high");
-  if (hiR.length) add({ id: "research:new", title: `Read ${plural(hiR.length, "high-relevance research note")}`, why: `Newest: ${short(hiR[0].topic, 80)}`, pillar: researchPillar(hiR[0]), weight: 38, minutes: 20, ref: ref("ResearchNote", hiR[0].id, hiR[0].topic, "/agents") });
+  if (hiR.length) add({ id: "research:new", title: `Read ${plural(hiR.length, "high-relevance research note")}`, why: `Newest: ${short(hiR[0].topic, 80)}`, pillar: researchPillar(hiR[0]), weight: 38, minutes: 20, ref: ref("ResearchNote", hiR[0].id, hiR[0].topic, recordPath("ResearchNote", hiR[0].id)) });
   // de-duplicate by id, keep the strongest
   const by = new Map();
   for (const x of c) if (!by.has(x.id) || by.get(x.id).weight < x.weight) by.set(x.id, x);
@@ -573,13 +579,13 @@ function dayList(s, which, overflow, cands, used) {
   if (off) return { date: d, weekday: weekdayName(d), off: true, items: [{ title: "Day off. Nothing booked.", kind: "life" }] };
   const out = [];
   for (const e of (s.events || []).filter((x) => x.date === d)) out.push({ title: e.title, time: e.start, kind: "meeting" });
-  for (const { c, time } of calls) out.push({ title: `Call with ${c.business || c.contact}`, time, kind: "meeting", pillar: "sales", ref: ref("CRMClient", c.id, c.business, "/pipeline") });
+  for (const { c, time } of calls) out.push({ title: `Call with ${c.business || c.contact}`, time, kind: "meeting", pillar: "sales", ref: ref("CRMClient", c.id, c.business, recordPath("CRMClient", c.id)) });
   for (const t of tasks) out.push({ title: short(t.title, 80), pillar: taskPillar(t), ref: ref("Task", t.id, t.title, taskPath(t)), cand: `task:${t.id}` });
   const pool = [...overflow, ...cands.filter((x) => !used.has(x.id) && !x.fixedAt)];
   for (const x of pool) { if (out.length >= 5) break; if (used.has(x.cand || x.id)) continue; used.add(x.cand || x.id); out.push({ title: x.title, pillar: x.pillar, ref: x.ref, cand: x.cand || x.id }); }
   if (which === "day_after" && out.length < 5) {
     const nextWeek = s.mine.filter((i) => i.week === s.week + 1).slice(0, 5 - out.length);
-    for (const i of nextWeek) out.push({ title: short(i.title, 80), pillar: launchPillar(i), ref: ref("LaunchItem", i.id, i.title, "/launch"), note: `week ${i.week}` });
+    for (const i of nextWeek) out.push({ title: short(i.title, 80), pillar: launchPillar(i), ref: ref("LaunchItem", i.id, i.title, recordPath("LaunchItem", i.id)), note: `week ${i.week}` });
   }
   return { date: d, weekday: weekdayName(d), items: out.slice(0, 6) };
 }
@@ -718,21 +724,21 @@ export function ruleProposals(s, scores) {
   const out = [];
   const P = (x) => out.push({ status: "pending", source: "brief", priority: 50, risk: "internal", ...x });
   for (const { e, s: st } of s.billsOverdue) {
-    P({ kind: "record_change", pillar: "finance", risk: "money", priority: 70, title: `Mark ${e.platform || e.name} (${money(st.amount)}) as paid?`, rationale: `Due ${prettyDate(st.due)} and still unpaid in Financial. Only say yes if the charge went through. Nothing is paid from here.`, payload: { changes: [{ entity: "Expense", id: e.id, label: e.platform || e.name, patch: { paidCycles: [...(e.paidCycles || []), st.cycle] } }] }, source_ref: ref("Expense", e.id, e.platform || e.name, "/financial"), dedupe_key: `bill:${e.id}:${st.cycle}` });
+    P({ kind: "record_change", pillar: "finance", risk: "money", priority: 70, title: `Mark ${e.platform || e.name} (${money(st.amount)}) as paid?`, rationale: `Due ${prettyDate(st.due)} and still unpaid in Financial. Only say yes if the charge went through. Nothing is paid from here.`, payload: { changes: [{ entity: "Expense", id: e.id, label: e.platform || e.name, patch: { paidCycles: [...(e.paidCycles || []), st.cycle] } }] }, source_ref: ref("Expense", e.id, e.platform || e.name, recordPath("Expense", e.id)), dedupe_key: `bill:${e.id}:${st.cycle}` });
   }
   const emailOf = (id) => { const c = s.clients.find((x) => x.id === id); return c ? { email: (c.emails || [])[0] || "", phone: (c.phones || [])[0] || "", contact: c.contact || c.business } : { email: "", phone: "", contact: "" }; };
   for (const { p, s: st } of s.latePlans) {
     const who = emailOf(p.client_id);
     const body = `Hi ${firstName(who.contact)},\n\nA quick note on your ${p.title} plan: the installment of ${money(st.amt)} that was due ${prettyDate(st.firstLate)} hasn't come through yet${st.late > 1 ? ` (${st.late} installments, ${money(st.behind)} in total)` : ""}. If it's already on its way, thank you and please ignore this. If anything has changed on your side, reply and we'll work it out together.\n\n${sign}`;
-    if (who.email) P({ kind: "send_email", pillar: "finance", risk: "external", priority: 80, title: `Payment reminder to ${p.client_name}`, rationale: `${p.title}: ${plural(st.late, "installment")} late, ${money(st.behind)} behind.`, payload: { to: who.email, subject: `${p.title}: payment reminder`, body, client_id: p.client_id }, source_ref: ref("ClientFinancing", p.id, p.client_name, "/financing"), dedupe_key: `fin:${p.id}:${st.firstLate}` });
-    else if (who.phone) P({ kind: "send_sms", pillar: "finance", risk: "external", priority: 78, title: `Text a payment reminder to ${p.client_name}`, rationale: `${plural(st.late, "installment")} late. No email on file, so this is a text draft.`, payload: { phone: who.phone, body: `Hi ${firstName(who.contact)}, quick note: the ${money(st.amt)} installment for ${p.title} due ${prettyDate(st.firstLate)} hasn't come through yet. If it's on its way, thank you! - Justin, Interstellar` }, source_ref: ref("ClientFinancing", p.id, p.client_name, "/financing"), dedupe_key: `fin:${p.id}:${st.firstLate}` });
+    if (who.email) P({ kind: "send_email", pillar: "finance", risk: "external", priority: 80, title: `Payment reminder to ${p.client_name}`, rationale: `${p.title}: ${plural(st.late, "installment")} late, ${money(st.behind)} behind.`, payload: { to: who.email, subject: `${p.title}: payment reminder`, body, client_id: p.client_id }, source_ref: ref("ClientFinancing", p.id, p.client_name, recordPath("ClientFinancing", p.id)), dedupe_key: `fin:${p.id}:${st.firstLate}` });
+    else if (who.phone) P({ kind: "send_sms", pillar: "finance", risk: "external", priority: 78, title: `Text a payment reminder to ${p.client_name}`, rationale: `${plural(st.late, "installment")} late. No email on file, so this is a text draft.`, payload: { phone: who.phone, body: `Hi ${firstName(who.contact)}, quick note: the ${money(st.amt)} installment for ${p.title} due ${prettyDate(st.firstLate)} hasn't come through yet. If it's on its way, thank you! - Justin, Interstellar` }, source_ref: ref("ClientFinancing", p.id, p.client_name, recordPath("ClientFinancing", p.id)), dedupe_key: `fin:${p.id}:${st.firstLate}` });
   }
   for (const l of s.leadsOverdue.slice(0, 5)) {
     const email = (l.emails || [])[0];
     const phone = (l.phones || [])[0];
     const step = l.next_step ? l.next_step.replace(/\.$/, "").toLowerCase() : "our conversation";
-    if (email) P({ kind: "send_email", pillar: "sales", risk: "external", priority: 75, title: `Follow-up email to ${l.business || l.contact}`, rationale: `Next step "${l.next_step || "follow up"}" was due ${prettyDate(str(l.next_step_at).slice(0, 10))}.`, payload: { to: email, subject: `Following up, ${firstName(l.contact || l.business)}`, body: `Hi ${firstName(l.contact || l.business)},\n\nFollowing up on ${step}. Do you have 15 minutes this week to pick it back up? Reply with a time that works and I'll send an invite.\n\n${sign}`, client_id: l.id }, source_ref: ref("CRMClient", l.id, l.business, "/pipeline"), dedupe_key: `lead:${l.id}:${str(l.next_step_at).slice(0, 10)}` });
-    else if (phone) P({ kind: "send_sms", pillar: "sales", risk: "external", priority: 74, title: `Follow-up text to ${l.business || l.contact}`, rationale: `Next step was due ${prettyDate(str(l.next_step_at).slice(0, 10))}. No email on file.`, payload: { phone, body: `Hi ${firstName(l.contact || l.business)}, it's Justin from Interstellar. Following up on ${step}. Got 15 minutes this week?` }, source_ref: ref("CRMClient", l.id, l.business, "/pipeline"), dedupe_key: `lead:${l.id}:${str(l.next_step_at).slice(0, 10)}` });
+    if (email) P({ kind: "send_email", pillar: "sales", risk: "external", priority: 75, title: `Follow-up email to ${l.business || l.contact}`, rationale: `Next step "${l.next_step || "follow up"}" was due ${prettyDate(str(l.next_step_at).slice(0, 10))}.`, payload: { to: email, subject: `Following up, ${firstName(l.contact || l.business)}`, body: `Hi ${firstName(l.contact || l.business)},\n\nFollowing up on ${step}. Do you have 15 minutes this week to pick it back up? Reply with a time that works and I'll send an invite.\n\n${sign}`, client_id: l.id }, source_ref: ref("CRMClient", l.id, l.business, recordPath("CRMClient", l.id)), dedupe_key: `lead:${l.id}:${str(l.next_step_at).slice(0, 10)}` });
+    else if (phone) P({ kind: "send_sms", pillar: "sales", risk: "external", priority: 74, title: `Follow-up text to ${l.business || l.contact}`, rationale: `Next step was due ${prettyDate(str(l.next_step_at).slice(0, 10))}. No email on file.`, payload: { phone, body: `Hi ${firstName(l.contact || l.business)}, it's Justin from Interstellar. Following up on ${step}. Got 15 minutes this week?` }, source_ref: ref("CRMClient", l.id, l.business, recordPath("CRMClient", l.id)), dedupe_key: `lead:${l.id}:${str(l.next_step_at).slice(0, 10)}` });
   }
   for (const t of s.overdue.filter((x) => (num(x.priority) || 3) <= 2).slice(0, 3)) {
     P({ kind: "choice", pillar: taskPillar(t), priority: 60, title: `"${short(t.title, 60)}" is overdue`, rationale: `Due ${prettyDate(str(t.due_date).slice(0, 10))}${t.client_name ? " for " + t.client_name : ""}. Pick what happens to it.`, payload: { options: [
@@ -746,16 +752,16 @@ export function ruleProposals(s, scores) {
   Object.entries(byClient).sort((a, b) => b[1].length - a[1].length).slice(0, 3).forEach(([name, list]) => {
     const batch = list.slice(0, 6);
     const visible = batch.filter((w) => w.visibility === "client").length;
-    P({ kind: "record_change", pillar: "delivery", priority: 40, title: `Approve ${plural(batch.length, "work entry", "work entries")} for ${name}`, rationale: `Waiting in the work ledger${visible ? `; ${visible} will show in ${name}'s portal once approved` : ""}. Check the titles below.`, payload: { changes: batch.map((w) => ({ entity: "WorkEntry", id: w.id, label: short(w.title, 110), patch: { status: "done" } })) }, source_ref: ref("WorkEntry", batch[0].id, "Work ledger", "/output-analytics"), dedupe_key: `ledger:${batch.map((w) => w.id).sort().join(",").slice(0, 120)}` });
+    P({ kind: "record_change", pillar: "delivery", priority: 40, title: `Approve ${plural(batch.length, "work entry", "work entries")} for ${name}`, rationale: `Waiting in the work ledger${visible ? `; ${visible} will show in ${name}'s portal once approved` : ""}. Check the titles below.`, payload: { changes: batch.map((w) => ({ entity: "WorkEntry", id: w.id, label: short(w.title, 110), patch: { status: "done" } })) }, source_ref: ref("WorkEntry", batch[0].id, "Work ledger", recordPath("WorkEntry", batch[0].id)), dedupe_key: `ledger:${batch.map((w) => w.id).sort().join(",").slice(0, 120)}` });
   });
   if (s.staleJobs.length) P({ kind: "choice", pillar: "delivery", priority: 45, title: `${plural(s.jobs.length, "Claude job")} waiting for your OK`, rationale: `${plural(s.staleJobs.length, "job")} older than 3 days (intel audits, profile enrichments, launch prep).`, payload: { options: [
     { label: "Block 30 min today to review them", effect: { type: "plan_block", day: "today", title: `Review the Claude queue (${s.jobs.length})`, minutes: 30, pillar: "delivery" } },
     { label: "First thing tomorrow", effect: { type: "plan_block", day: "tomorrow", title: `Review the Claude queue (${s.jobs.length})`, minutes: 30, pillar: "delivery" } },
     { label: "Not this week", effect: { type: "none" } },
-  ] }, source_ref: ref("ClaudeJob", s.staleJobs[0].id, "Claude queue", "/claude"), dedupe_key: `claude:${s.today}` });
+  ] }, source_ref: ref("ClaudeJob", s.staleJobs[0].id, "Claude queue", recordPath("ClaudeJob", s.staleJobs[0].id)), dedupe_key: `claude:${s.today}` });
   for (const i of s.mineDue.filter((x) => x.kind === "question").slice(0, 2)) {
     const aboutClient = i.client_name || (/^Client:\s*(.+)$/i.exec(str(i.workstream)) || [])[1] || "";
-    P({ kind: "question", pillar: aboutClient || /Client apps|Brand/i.test(str(i.workstream)) ? "delivery" : launchPillar(i), priority: 55, title: short(i.title, 120), rationale: `Road to Dec 31, week ${i.week}. Your answer unblocks the work behind it.`, payload: { question: i.title, launch_item_id: i.id, question_key: `launch.${i.key || i.id}`, client_name: aboutClient || null }, source_ref: ref("LaunchItem", i.id, i.title, "/launch"), dedupe_key: `launchq:${i.id}` });
+    P({ kind: "question", pillar: aboutClient || /Client apps|Brand/i.test(str(i.workstream)) ? "delivery" : launchPillar(i), priority: 55, title: short(i.title, 120), rationale: `Road to Dec 31, week ${i.week}. Your answer unblocks the work behind it.`, payload: { question: i.title, launch_item_id: i.id, question_key: `launch.${i.key || i.id}`, client_name: aboutClient || null }, source_ref: ref("LaunchItem", i.id, i.title, recordPath("LaunchItem", i.id)), dedupe_key: `launchq:${i.id}` });
   }
   const brainPending = s.actions.some((a) => a.kind === "question" && a.source === "brain" && a.status === "pending");
   const q = brainPending ? null : nextQuestion(s.facts, scores, s.actions.filter((a) => a.kind === "question").map((a) => a.payload && a.payload.question_key));
