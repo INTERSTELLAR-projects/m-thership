@@ -161,4 +161,33 @@ describe("command engine", () => {
     expect(BE.fallbackIntent("Remember: Fridays are off")).toMatchObject({ type: "brain_fact" });
     expect(BE.fallbackIntent("how is money")).toMatchObject({ type: "answer" });
   });
+
+  it("uses the Brain's hours, work days and fixed life blocks (Mon-Fri 9-6, gym/food 7:30-9)", () => {
+    const facts = [
+      { question_key: "owner.hours", statement: "I work Monday to Friday, 9am to 6pm, with weekends off.", status: "active", pillar: "owner", data: BE.factData("owner.hours", "i work Monday-Friday 9am-6pm and weekends off", "") },
+      { question_key: "owner.fixed_life", statement: "Gym and food happen from 7:30am-9am.", status: "active", pillar: "owner" },
+    ];
+    expect(facts[0].data).toEqual({ start: "09:00", end: "18:00", days: [1, 2, 3, 4, 5] });
+    const thu = BE.computeAll({ ...src(), facts }, new Date("2026-11-12T15:00:00Z"), {}); // Thu 7:00am PT
+    const plan = thu.rule.plan_today;
+    expect(plan[0]).toMatchObject({ start: "07:30", end: "09:00", title: "Gym and food", kind: "life" });
+    expect(plan[plan.length - 1].end).toBe("18:00");
+    expect(plan.filter((b) => b.kind === "focus").every((b) => BE.toMin(b.start) >= 540)).toBe(true);
+    expect(thu.rule.gaps.join(" ")).not.toMatch(/default/);
+    expect(thu.rule.day_after).toMatchObject({ off: true }); // Saturday
+    const sat = BE.computeAll({ ...src(), facts }, new Date("2026-11-14T18:00:00Z"), {}); // Sat 10am PT
+    expect(sat.s.dayOff).toBe(true);
+    expect(sat.rule.plan_today).toHaveLength(1);
+    expect(sat.rule.plan_today[0].title).toMatch(/Day off/);
+  });
+
+  it("cleans dictated answers by rule when the AI is unavailable, and only trusts faithful AI clean-ups", () => {
+    expect(BE.ruleClean("i work Monday-Friday 9am-6pm and weekends off")).toBe("I work Monday-Friday 9am-6pm and weekends off.");
+    expect(BE.ruleClean("um they should use ebay and tcg   to check prices")).toBe("They should use eBay and TCG to check prices.");
+    expect(BE.ruleClean("the mothership is great. i'm happy")).toBe("The Møthership is great. I'm happy.");
+    expect(BE.cleanIsFaithful("i work 9am-6pm", ["I work 9am to 6pm."])).toBe(true);
+    expect(BE.cleanIsFaithful("i work 9am-6pm", ["I work 10am to 6pm."])).toBe(false); // changed a number
+    expect(BE.cleanIsFaithful("a typical client pays 2500 for a site and 500 a month for care and maintenance work", ["Clients pay."])).toBe(false); // summarised away
+    expect(BE.parseLifeBlocks("School run 3pm-3:45pm and gym 6-7am")).toEqual([{ start: "15:00", end: "15:45", title: "School run" }, { start: "06:00", end: "07:00", title: "And gym" }]);
+  });
 });
