@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Mic, Square } from "lucide-react";
 import { PILLAR_BY_ID } from "./engine";
 
@@ -64,17 +65,17 @@ export function MicOrb({ listening, onPressStart, onPressEnd, size = 52, dark = 
 
 // Press-vs-tap logic for MicOrb: a press longer than 350ms is push-to-talk; a short tap toggles.
 export function useMicGesture({ listening, start, stop, onRelease }) {
-  let t0 = 0;
+  const t0 = useRef(0);
   return {
     onPressStart: () => {
-      t0 = Date.now();
-      if (listening) { stop(); onRelease?.(); t0 = 0; return; }
+      if (listening) { stop(); onRelease?.(); t0.current = 0; return; }
+      t0.current = Date.now();
       start();
     },
     onPressEnd: () => {
-      if (!t0) return;
-      if (Date.now() - t0 > 350) { stop(); onRelease?.(); }
-      t0 = 0;
+      if (!t0.current) return;
+      if (Date.now() - t0.current > 350) { stop(); onRelease?.(); }
+      t0.current = 0;
     },
   };
 }
