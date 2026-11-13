@@ -260,7 +260,7 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
         const dim = dimEdge(e); const hi = hiEdge(e);
         const base = 0.07 + 0.2 * (e.fwd ? e.fwd.glow : 0.4);
         const a = dim ? 0.025 : hi ? 0.85 : base;
-        const path = new Path2D(g.d);
+        const path = g.p2 || (g.p2 = new Path2D(g.d));
         ctx.globalAlpha = 1;
         ctx.strokeStyle = hexA(e.color || COLORS.command, a * 0.35);
         ctx.lineWidth = hi ? 6 : 4;
