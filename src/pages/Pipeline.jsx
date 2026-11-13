@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useDeepLinkFocus } from "@/lib/deepLink";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { AlertTriangle, CalendarClock, CircleDollarSign, Inbox, Loader2, PhoneCall, Target, Trophy, UserPlus } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
@@ -82,7 +83,8 @@ export default function Pipeline() {
   const { toast } = useToast();
   const [overrides, setOverrides] = useState({});
   const [source, setSource] = useState("all");
-  const [openId, setOpenId] = useState(null);
+  const [openId, setOpenId] = useState(() => params.get("lead") || null);
+  useDeepLinkFocus(params.get("lead") || "");
   const [wonLead, setWonLead] = useState(null);
   const [lostLead, setLostLead] = useState(null);
   const [newOpen, setNewOpen] = useState(params.get("new") === "1");

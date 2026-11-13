@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useDeepLinkFocus } from "@/lib/deepLink";
 import { Mic, MousePointerClick, RefreshCw } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "@/components/PageHeader";
@@ -302,6 +303,17 @@ function TaskBoardInner({ withDock = false }) {
     setEditing(task);
     setDialogOpen(true);
   };
+
+  // ?task=<id> (from Command): open that task's editor and highlight its row.
+  const linkedTask = searchParams.get("task") || "";
+  useEffect(() => {
+    if (!linkedTask) return;
+    let live = true;
+    base44.entities.Task.get(linkedTask).then((t) => { if (live && t) openEditor(t); }).catch(() => {});
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkedTask]);
+  useDeepLinkFocus(linkedTask, [tasks.length]);
 
   const scopeText = selected === ALL ? "everything" : selectedLabel;
 

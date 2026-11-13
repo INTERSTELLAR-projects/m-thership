@@ -32,6 +32,7 @@ export default function TaskTable({ tasks = [], onEdit, onStatus, onFocus, onDel
           return (
             <div
               key={task.id}
+              data-record-id={task.id}
               className={cn("group grid grid-cols-[28px_minmax(0,1fr)] items-start gap-3 px-4 py-3 transition-colors hover:bg-[#ff3c00]/[0.035] lg:items-center", COLS)}
             >
               <button
