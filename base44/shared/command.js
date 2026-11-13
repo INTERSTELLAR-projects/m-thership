@@ -535,7 +535,7 @@ export function sinceYesterday(s) {
   if (s.leadsNew.length) out.push(`${plural(s.leadsNew.length, "new lead")}: ${s.leadsNew.slice(0, 3).map((c) => c.business || c.contact).join(", ")}.`);
   if (s.paymentsIn.length) out.push(`${plural(s.paymentsIn.length, "payment")} recorded on payment plans (${money(s.paymentsIn.reduce((t, x) => t + num(x.p.amount), 0))}).`);
   if (s.researchFresh.length) out.push(`${plural(s.researchFresh.length, "research note")} added.`);
-  if (s.ceo && s.ceo.headline && s.ceo.date >= addDays(s.today, -1)) out.push(`Commander brief: ${short(s.ceo.headline, 110)}`);
+  if (s.ceo && s.ceo.headline && s.ceo.date >= addDays(s.today, -1)) out.push(`${s.ceo.date === s.today ? "Today's" : "Yesterday's"} Commander brief: ${short(s.ceo.headline, 110)}`);
   if (!out.length) out.push("Quiet day in the records: no new work, leads or payments logged in the last 24 hours.");
   return out;
 }
@@ -576,7 +576,6 @@ export const BRIEF_SCHEMA = {
   type: "object",
   properties: {
     greeting: { type: "string" },
-    since_yesterday: { type: "array", items: { type: "string" } },
     outcomes: { type: "array", items: { type: "object", properties: { candidate_id: { type: "string" }, title: { type: "string" }, why: { type: "string" } }, required: ["candidate_id", "title", "why"] } },
     plan_today: { type: "array", items: { type: "object", properties: { start: { type: "string" }, end: { type: "string" }, title: { type: "string" }, kind: { type: "string", enum: ["focus", "meeting", "admin", "buffer", "life", "break", "interruption"] }, candidate_id: { type: "string" } }, required: ["start", "end", "title", "kind"] } },
     tomorrow: { type: "array", items: { type: "object", properties: { title: { type: "string" }, candidate_id: { type: "string" } }, required: ["title"] } },
@@ -602,9 +601,8 @@ export function briefPrompt(s, scores, rule, facts) {
     "Default plan (rules) you may improve: " + JSON.stringify(rule.plan_today.map((b) => ({ start: b.start, end: b.end, title: b.title, kind: b.kind, candidate_id: b.cand || undefined }))),
     "",
     "Return JSON:",
-    "- greeting: one or two short sentences, warm and direct, no emoji, no exclamation marks.",
-    "- since_yesterday: up to 5 short lines that restate the since-yesterday facts plainly. No new numbers.",
-    "- outcomes: exactly 3 picks from the candidates (different pillars when sensible, weaker pillars first when the stakes are close). title: an outcome phrased as done ('Palm Shore site pass approved and published'). why: one sentence tied to the candidate's reason.",
+    "- greeting: ONE short sentence (under 20 words) that sets today's focus, warm and direct. No numbers, no dates, no emoji, no exclamation marks. (The name, date and countdown are added for you.)",
+    "- outcomes: exactly 3 picks from the candidates (different pillars when sensible, weaker pillars first when the stakes are close). title: the outcome phrased as done, keeping the record's own action verb (publish, approve, answer, call, send, pay) and its names ('Palm Shore site pass approved and published'); never change what the work is. why: one sentence tied to the candidate's reason.",
     `- plan_today: time blocks HH:MM (24h) from ${fromMin(Math.max(toMin(s.day.start), Math.ceil(s.nowMin / 15) * 15))} to ${s.day.end}, no overlaps, keep every fixed block, put the 3 outcomes in focus blocks with their candidate_id, keep at least 20% of the time as kind buffer/life/break for life and the unplanned, end with a short shutdown block.`,
     "- tomorrow and day_after: up to 5 items each, from the candidates you did not fit today (with candidate_id) or the default plan's tomorrow.",
   ].join("\n");
@@ -617,9 +615,11 @@ export function mergeLlmBrief(rule, llm, s) {
   const out = { ...rule };
   if (!llm || typeof llm !== "object") return { brief: out, source: "rules", accepted, rejected: ["no LLM output"] };
   const cands = new Map(rule.cands.map((x) => [x.id, x]));
-  if (typeof llm.greeting === "string" && llm.greeting.trim() && llm.greeting.length <= 220) { out.greeting = llm.greeting.trim(); accepted.push("greeting"); } else rejected.push("greeting");
-  const allowed = new Set(rule.since_yesterday.flatMap(digitsIn));
-  if (Array.isArray(llm.since_yesterday) && llm.since_yesterday.length && llm.since_yesterday.length <= 5 && llm.since_yesterday.every((x) => typeof x === "string" && x.length <= 220 && digitsIn(x).every((d) => allowed.has(d)))) { out.since_yesterday = llm.since_yesterday.map((x) => x.trim()); accepted.push("since_yesterday"); } else if (llm.since_yesterday) rejected.push("since_yesterday");
+  // The greeting's name, date and countdown and the since-yesterday facts always stay as the rules wrote them;
+  // the LLM may only add one number-free focus sentence.
+  const g = typeof llm.greeting === "string" ? llm.greeting.trim() : "";
+  if (g && g.length <= 160 && !digitsIn(g).length) { out.greeting = `${rule.greeting} ${g}`; accepted.push("greeting"); } else rejected.push("greeting");
+  if (llm.since_yesterday) rejected.push("since_yesterday");
   const oc = Array.isArray(llm.outcomes) ? llm.outcomes : [];
   if (oc.length >= 1 && oc.length <= 3 && oc.every((o) => o && cands.has(o.candidate_id) && str(o.title).length <= 140 && str(o.why).length <= 260) && new Set(oc.map((o) => o.candidate_id)).size === oc.length) {
     out.outcomes = oc.map((o) => { const c = cands.get(o.candidate_id); return { id: c.id, title: str(o.title).trim() || c.title, why: str(o.why).trim() || c.why, pillar: c.pillar, ref: c.ref }; });
