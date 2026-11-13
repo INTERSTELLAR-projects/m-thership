@@ -124,13 +124,12 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
   const [liveAnchors, setLiveAnchors] = useState(null);
   const geom = useMemo(() => computeGeom(liveAnchors || anchors, edges, mode), [anchors, liveAnchors, edges, mode]);
   useEffect(() => { setLiveAnchors(null); }, [anchors]);
-  st.current.geom = geom;
+  if (st.current.memoGeom !== geom) { st.current.memoGeom = geom; st.current.geom = geom; st.current.anchors = liveAnchors || anchors; }
   st.current.edges = edges;
   st.current.mode = mode;
   st.current.lit = lit;
   st.current.focusIds = focusIds;
   st.current.hoverEdge = hoverEdge;
-  st.current.anchors = anchors;
 
   const dimEdge = (e) => {
     const L = st.current.lit;
