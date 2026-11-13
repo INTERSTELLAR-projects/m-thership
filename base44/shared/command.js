@@ -29,7 +29,7 @@ const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 const str = (v) => (v == null ? "" : String(v));
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many || one + "s"}`;
-export const money = (n) => "$" + Math.round(num(n)).toLocaleString("en-US");
+export const money = (n) => { const v = num(n); return "$" + (Math.abs(v) < 1000 && v % 1 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); };
 const short = (s, n = 70) => { const t = str(s).trim(); return t.length > n ? t.slice(0, n - 1).trimEnd() + "…" : t; };
 const firstName = (s) => str(s).split(/[\s(&,]/)[0] || "there";
 
@@ -464,10 +464,15 @@ export function rulePlan(s, outcomes, cands, opts = {}) {
   if (o2) flex.push({ title: o2.title, kind: "focus", minutes: Math.max(30, o2.minutes), pillar: o2.pillar, ref: o2.ref, cand: o2.id });
   if (o3) flex.push({ title: o3.title, kind: "focus", minutes: Math.max(30, o3.minutes), pillar: o3.pillar, ref: o3.ref, cand: o3.id });
   flex.push({ title: "Life / unplanned buffer", kind: "buffer", minutes: 30 });
+  for (const x of opts.extraBlocks || []) flex.push({ title: x.title, kind: x.kind || "admin", minutes: num(x.minutes) || 30, pillar: x.pillar });
   const small = cands.filter((x) => !outcomes.includes(x) && !x.fixedAt && x.minutes <= 30).slice(0, 4);
   if (small.length) flex.push({ title: `Quick wins: ${small.map((x) => short(x.title, 40)).join(" · ")}`, kind: "admin", minutes: Math.min(60, small.reduce((t, x) => t + x.minutes, 0)), pillar: small[0].pillar, cands: small.map((x) => x.id) });
-  for (const x of opts.extraBlocks || []) flex.push({ title: x.title, kind: x.kind || "admin", minutes: num(x.minutes) || 30, pillar: x.pillar });
   flex.push({ title: "Life / unplanned buffer", kind: "buffer", minutes: 30 });
+  // Then the next-ranked bigger items, each followed by a buffer, while the day has room.
+  for (const x of cands.filter((k) => !outcomes.includes(k) && !k.fixedAt && k.minutes > 30).slice(0, 2)) {
+    flex.push({ title: x.title, kind: "focus", minutes: Math.min(90, x.minutes), pillar: x.pillar, ref: x.ref, cand: x.id, optional: true });
+    flex.push({ title: "Life / unplanned buffer", kind: "buffer", minutes: 30, optional: true });
+  }
 
   const blocks = [...past];
   const overflow = [];
@@ -484,11 +489,12 @@ export function rulePlan(s, outcomes, cands, opts = {}) {
       const gap = wall - cursor;
       if (gap < 15) { if (gap > 0) blocks.push({ start: fromMin(cursor), end: fromMin(wall), title: "Breather", kind: "buffer" }); cursor = wall; continue; }
       const take = Math.min(need, gap);
-      blocks.push({ start: fromMin(cursor), end: fromMin(cursor + take), title: item.title, kind: item.kind, pillar: item.pillar, ref: item.ref, cand: item.cand, cands: item.cands, ...(take < item.minutes && need === item.minutes ? { part: true } : {}) });
+      const cont = need < item.minutes;
+      blocks.push({ start: fromMin(cursor), end: fromMin(cursor + take), title: cont ? `${item.title} (cont.)` : item.title, kind: item.kind, pillar: item.pillar, ref: item.ref, cand: item.cand, cands: item.cands });
       cursor += take;
       need -= take;
     }
-    if (need > 0 && item.kind === "focus") overflow.push(item);
+    if (need === item.minutes && item.kind === "focus") overflow.push(item);
   }
   while (nextFixed()) { const f = fixed[fi++]; if (toMin(f.start) < endDay) blocks.push(f); cursor = Math.max(cursor, toMin(f.end)); }
   if (cursor < endDay) {
@@ -543,6 +549,8 @@ export function ruleBrief(s, scores, opts = {}) {
   const outcomes = pickOutcomes(cands, 3);
   const plan = rulePlan(s, outcomes, cands, opts);
   const used = new Set(outcomes.map((o) => o.id));
+  for (const b of plan.blocks) { if (b.cand) used.add(b.cand); for (const id of b.cands || []) used.add(id); }
+  for (const o of plan.overflow) used.delete(o.cand);
   const name = opts.name ? `, ${firstName(opts.name)}` : "";
   const hello = s.nowMin < 720 ? "Good morning" : s.nowMin < 1020 ? "Good afternoon" : "Good evening";
   return {
