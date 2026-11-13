@@ -130,11 +130,13 @@ export default function CommandHome() {
       {state.loading && !brief ? <Skeleton /> : (
         <div className="space-y-4">
           {brief ? (
-            <MissionBrief brief={brief} busy={state.busy} stale={state.stale} error={state.error} onReplan={() => load(true)} onInterrupt={onInterrupt} />
+            <MissionBrief brief={brief} busy={state.busy} stale={state.stale} error={state.error} onReplan={() => load(true)} onInterrupt={onInterrupt} between={<NeedsYou items={actions} loading={actionsLoading} onChanged={loadActions} />} />
           ) : (
-            <div className="border border-hair bg-paper p-6"><p className="text-[15px]">The brief couldn't load: {state.error}</p><button type="button" onClick={() => load(true)} className="mt-3 h-10 bg-ink px-4 text-[13px] text-white">Try again</button></div>
+            <>
+              <div className="border border-hair bg-paper p-6"><p className="text-[15px]">The brief couldn't load: {state.error}</p><button type="button" onClick={() => load(true)} className="mt-3 h-10 bg-ink px-4 text-[13px] text-white">Try again</button></div>
+              <NeedsYou items={actions} loading={actionsLoading} onChanged={loadActions} />
+            </>
           )}
-          <NeedsYou items={actions} loading={actionsLoading} onChanged={loadActions} />
           <PillarStrip scores={brief?.pillar_scores} />
           <AgentLog rows={audit} onUndo={onUndo} />
         </div>
