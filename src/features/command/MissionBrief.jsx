@@ -112,7 +112,8 @@ function DayCard({ title, day }) {
   );
 }
 
-export default function MissionBrief({ brief, busy, onReplan, onInterrupt, stale, error }) {
+// `between` renders right after the brief's hero (Today puts the Needs-you stack there: decisions before the timeline).
+export default function MissionBrief({ brief, busy, onReplan, onInterrupt, stale, error, between = null }) {
   const nowMin = useNowMin();
   if (!brief) return null;
   const outcomes = brief.outcomes || [];
@@ -164,6 +165,8 @@ export default function MissionBrief({ brief, busy, onReplan, onInterrupt, stale
           </div>
         </div>
       </section>
+
+      {between}
 
       <section className="border border-hair bg-paper/80" aria-label="Today's plan">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-hair px-4 py-3 md:px-6">
