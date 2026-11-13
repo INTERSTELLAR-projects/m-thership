@@ -15,7 +15,7 @@ What exists before the Command build. Restore point: checkpoint **"Before Møthe
 | Source | Entity | Count / state | Pillar |
 |---|---|---|---|
 | Clients + leads | `CRMClient` | 19 rows: 14 active clients, leads via `pipeline_stage` / `next_step_at` / `booked_call_at` (0 open leads right now; 1 test lead marked lost) | Sales, Clients |
-| MRR | `CRMClient.services[]` (Stripe-synced) | ~$7.9k/mo active monthly services | Finance |
+| MRR | `CRMClient.services[]` (Stripe-synced) | ~$7.1k/mo in active monthly services on active clients | Finance |
 | Revenue goal | `RevenueGoal` | 1: "$1M in 2027" (annual_revenue, starts 2027-01-01) | Owner, Finance |
 | Tasks | `Task` | 39 open (1 overdue: Monthly books close Oct; "Get 100 reviews" due today; 6 focus) | all, by category |
 | Client financing | `ClientFinancing` | 0 plans yet (tracker built today) | Finance |
