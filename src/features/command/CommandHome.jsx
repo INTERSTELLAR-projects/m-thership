@@ -60,7 +60,7 @@ function AgentLog({ rows, onUndo }) {
       <ul className="divide-y divide-hair/70 border-t border-hair">
         {rows.map((r) => (
           <li key={r.id} className="flex items-start gap-3 px-4 py-2.5 md:px-6">
-            <span className="w-[54px] shrink-0 pt-0.5 font-mono text-[10.5px] text-ink/40">{r.at ? new Date(r.at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : ""}</span>
+            <span className="w-[54px] shrink-0 pt-0.5 font-mono text-[10.5px] text-ink/40">{r.at ? new Date(r.at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" }) : ""}</span>
             <span className="min-w-0 flex-1 text-[12.5px] leading-snug text-ink/75"><span className="mr-1.5 font-mono text-[10px] uppercase text-ink/40">{String(r.action).replace(/_/g, " ")}</span>{r.summary}</span>
             {r.undo && !r.undone_at && <button type="button" onClick={() => onUndo(r.id)} className="inline-flex shrink-0 items-center gap-1 text-[11.5px] text-ink/55 hover:text-[#ff3c00]"><Undo2 className="h-3 w-3" />Undo</button>}
             {r.undone_at && <span className="shrink-0 font-mono text-[10px] text-ink/35">undone</span>}
@@ -122,9 +122,9 @@ export default function CommandHome() {
         <Mono className="text-ink/50">(Today) · Møthership Command</Mono>
         <nav className="flex flex-wrap gap-1.5" aria-label="Command modes">
           <Link to="/walk" className="inline-flex h-9 items-center gap-1.5 bg-ink px-3 text-[12.5px] text-white hover:bg-[#ff3c00]"><Headphones className="h-3.5 w-3.5" />Walk mode</Link>
-          <Link to="/pillars" className="inline-flex h-9 items-center gap-1.5 border border-hair px-3 text-[12.5px] text-ink/75 hover:border-ink"><Orbit className="h-3.5 w-3.5" />Pillars</Link>
-          <Link to="/brain" className="inline-flex h-9 items-center gap-1.5 border border-hair px-3 text-[12.5px] text-ink/75 hover:border-ink"><Brain className="h-3.5 w-3.5" />Teach the Brain</Link>
-          <Link to="/classic" className="inline-flex h-9 items-center gap-1.5 px-2 text-[12.5px] text-ink/50 hover:text-ink"><LayoutDashboard className="h-3.5 w-3.5" />Classic</Link>
+          <Link to="/pillars" className="hidden h-9 items-center sm:inline-flex gap-1.5 border border-hair px-3 text-[12.5px] text-ink/75 hover:border-ink"><Orbit className="h-3.5 w-3.5" />Pillars</Link>
+          <Link to="/brain" className="hidden h-9 items-center sm:inline-flex gap-1.5 border border-hair px-3 text-[12.5px] text-ink/75 hover:border-ink"><Brain className="h-3.5 w-3.5" />Teach the Brain</Link>
+          <Link to="/classic" className="hidden h-9 items-center sm:inline-flex gap-1.5 px-2 text-[12.5px] text-ink/50 hover:text-ink"><LayoutDashboard className="h-3.5 w-3.5" />Classic</Link>
         </nav>
       </div>
       {state.loading && !brief ? <Skeleton /> : (
