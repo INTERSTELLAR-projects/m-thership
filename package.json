@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:unit": "vitest run",
+    "sync:command": "node scripts/sync-command.mjs",
     "test:release": "npm run test:unit && node scripts/release-check.mjs"
   },
   "dependencies": {
