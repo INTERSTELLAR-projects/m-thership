@@ -209,6 +209,7 @@ async function writeCopy(db: any, base44: any, user: any, rows: any[], otherName
   if (!rows.length) return { generated: 0, fallback: 0 };
   const prompt = copyPrompt(rows);
   let items: any[] | null = null;
+  let copyError = "";
   // Preferred path: the ai-gateway (house rules, metering, model per the prompting standard) as the signed-in admin.
   if (user?.role === "admin") {
     try {
@@ -223,7 +224,8 @@ async function writeCopy(db: any, base44: any, user: any, rows: any[], otherName
       const out = await callAI(base44, { key: getSecret("ANTHROPIC_API_KEY") || null, tier: "routine", system: COPY_SYSTEM, prompt, schema: COPY_SCHEMA, max_tokens: 4000 });
       items = arr(out.json?.items);
       await db.UsageLedger.create({ client_id: "agency", client_name: "Interstellar (admin)", month: monthKey(), kind: "ai_action", units: 1, calls: 1, model: out.model, feature: "work_ledger_copy", by_admin: true, input_tokens: out.input_tokens, output_tokens: out.output_tokens, created_at: new Date().toISOString() }).catch(() => null);
-    } catch (e) { console.error("work-ledger copy", (e as Error)?.message); items = null; }
+      if (!items.length) copyError = `empty reply: ${JSON.stringify(out.json || out.text || "").slice(0, 200)}`;
+    } catch (e) { copyError = String((e as Error)?.message || e).slice(0, 300); console.error("work-ledger copy", copyError); items = null; }
   }
   let generated = 0, fallback = 0;
   for (const r of rows) {
@@ -245,7 +247,7 @@ async function writeCopy(db: any, base44: any, user: any, rows: any[], otherName
       await db.WorkEntry.update(r.id, { ...(r.visibility_locked ? {} : { visibility: "internal" }), visibility_reason: `Client copy held back: ${problems.join(", ")}`, client_copy_status: "skipped" });
     }
   }
-  return { generated, fallback };
+  return { generated, fallback, ...(copyError ? { error: copyError } : {}) };
 }
 
 async function processPending(db: any, base44: any, user: any, { ids, limit = 48 }: { ids?: string[]; limit?: number } = {}) {
@@ -271,11 +273,13 @@ async function processPending(db: any, base44: any, user: any, { ids, limit = 48
   }
   const needCopy = rows.filter((r) => r.visibility === "client" && r.status === "done" && (ids?.length ? true : !r.client_title || r.client_copy_status === "pending") && r.client_copy_status !== "edited").slice(0, limit);
   let generated = 0, fallback = 0;
+  const errors: string[] = [];
   for (let i = 0; i < needCopy.length; i += 12) {
-    const res = await writeCopy(db, base44, user, needCopy.slice(i, i + 12), otherNames);
+    const res: any = await writeCopy(db, base44, user, needCopy.slice(i, i + 12), otherNames);
     generated += res.generated; fallback += res.fallback;
+    if (res.error && !errors.includes(res.error)) errors.push(res.error);
   }
-  return { normalized, copy_generated: generated, copy_fallback: fallback, copy_left: Math.max(0, rows.filter((r) => r.visibility === "client" && r.status === "done" && !r.client_title).length - needCopy.length) };
+  return { normalized, copy_generated: generated, copy_fallback: fallback, ...(errors.length ? { copy_errors: errors } : {}), copy_left: Math.max(0, rows.filter((r) => r.visibility === "client" && r.status === "done" && !r.client_title).length - needCopy.length) };
 }
 
 // ---------------------------------------------------------------- log (Claude sessions, scripts, other apps)
