@@ -110,3 +110,31 @@ export async function callClaude(opts: {
     output_tokens: Number(data?.usage?.output_tokens || 0),
   };
 }
+
+// Base44 InvokeLLM path. Møthership never needs ANTHROPIC_API_KEY: every AI call works without it. When the key is
+// absent (the normal case) the call runs on the built-in InvokeLLM integration with the same house rules, and returns
+// the same shape as callClaude so callers never branch.
+export async function invokeBase44(base44: any, opts: {
+  system?: string; prompt?: string; messages?: Msg[]; schema?: Record<string, unknown> | null; house_rules?: boolean; service?: boolean;
+}) {
+  const convo = opts.messages?.length ? opts.messages.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n\n") : String(opts.prompt || "");
+  const prompt = [opts.house_rules === false ? "" : HOUSE_RULES, opts.system || "", convo].filter(Boolean).join("\n\n");
+  const core = opts.service === false ? base44.integrations.Core : (base44.asServiceRole?.integrations?.Core || base44.integrations.Core);
+  const out = await core.InvokeLLM({ prompt, ...(opts.schema ? { response_json_schema: opts.schema } : {}) });
+  let json: any = null;
+  if (opts.schema) {
+    json = typeof out === "string" ? parseJsonLoose(out) : out;
+    if (json == null) throw new AnthropicError(502, "bad_json", "The model's reply wasn't valid JSON. Try again.");
+  }
+  const text = opts.schema ? JSON.stringify(json) : (typeof out === "string" ? out : JSON.stringify(out));
+  return { text, json, strict: false, model: "base44-invokellm", stop_reason: null, input_tokens: 0, output_tokens: 0 };
+}
+
+// One entry point: the key if one happens to be set, otherwise InvokeLLM. Never throws "not configured".
+export async function callAI(base44: any, opts: {
+  key?: string | null; tier?: AiTier; system?: string; prompt?: string; messages?: Msg[];
+  schema?: Record<string, unknown> | null; max_tokens?: number; house_rules?: boolean; service?: boolean;
+}) {
+  if (opts.key) return callClaude({ ...opts, key: opts.key });
+  return invokeBase44(base44, opts);
+}
