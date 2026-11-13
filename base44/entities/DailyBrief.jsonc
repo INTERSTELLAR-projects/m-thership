@@ -1,0 +1,135 @@
+{
+  "name": "DailyBrief",
+  "description": "M\u00f8thership Command: the Mission Brief for one day (Pacific time). Written by the command-brief function from real records (rules first, LLM wording second). One row per date; re-plans bump version. Admin only.",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "YYYY-MM-DD in the owner's time zone"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ready",
+        "error"
+      ],
+      "default": "ready"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "llm",
+        "rules"
+      ],
+      "default": "rules",
+      "description": "llm = wording/order from the LLM, validated against real ids; rules = rule-based fallback"
+    },
+    "greeting": {
+      "type": "string"
+    },
+    "since_yesterday": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "outcomes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "[{ id, title, why, pillar, ref: { entity, id, label, path } }]"
+    },
+    "plan_today": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "[{ start: 'HH:MM', end, title, kind: focus|meeting|admin|buffer|life|break|interruption, pillar?, ref? }]"
+    },
+    "tomorrow": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "day_after": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What the brief could not see (missing data, unconnected sources)"
+    },
+    "pillar_scores": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "facts": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Snapshot counts the brief was built from"
+    },
+    "interruptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "[{ at, text, minutes }]"
+    },
+    "llm_error": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "generated_by": {
+      "type": "string"
+    },
+    "tz": {
+      "type": "string",
+      "default": "America/Los_Angeles"
+    }
+  },
+  "required": [
+    "date"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
