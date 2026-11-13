@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LogOut, Search, X, Pin, PinOff } from "lucide-react";
+import { LogOut, Search, X, Pin, PinOff, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { HUBS, MORE_HUB, SETTINGS_ITEM, ALL_NAV, activeKey, hubFor } from "@/lib/nav";
@@ -87,7 +87,7 @@ function PinnedItem({ item, active, onClose, onPin }) {
   );
 }
 
-export default function Sidebar({ onOpenCommand, open, onClose }) {
+export default function Sidebar({ onOpenCommand, open, onClose, pinned = false, onTogglePin }) {
   const { user } = useAuth();
   const location = useLocation();
   const email = user?.email || "";
@@ -119,7 +119,7 @@ export default function Sidebar({ onOpenCommand, open, onClose }) {
     <aside
       className={`fixed inset-y-0 left-0 z-50 flex w-[264px] max-w-[86vw] flex-col border-r border-hair bg-canvas transition-transform duration-300 ${
         open ? "translate-x-0" : "-translate-x-full"
-      } md:static md:w-[236px] md:min-w-[236px] md:translate-x-0`}
+      } ${pinned ? "md:static md:w-[236px] md:min-w-[236px] md:translate-x-0" : ""}`}
       data-sidebar
     >
       {/* Brand */}
@@ -127,9 +127,16 @@ export default function Sidebar({ onOpenCommand, open, onClose }) {
         <Link to="/" onClick={onClose} className="flex min-w-0 items-center" aria-label="Møthership by Interstellar — home">
           <BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={20} />
         </Link>
-        <button onClick={onClose} className="p-1.5 text-ink/50 hover:text-ink md:hidden" aria-label="Close menu">
-          <X className="h-4 w-4" />
-        </button>
+        <div className="flex items-center">
+          {onTogglePin && (
+            <button onClick={onTogglePin} className="hidden p-1.5 text-ink/45 hover:text-ink md:block" aria-label={pinned ? "Unpin the sidebar (use it as a drawer)" : "Pin the sidebar open"} title={pinned ? "Unpin: use as a drawer" : "Pin open on desktop"}>
+              {pinned ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+            </button>
+          )}
+          <button onClick={onClose} className={`p-1.5 text-ink/50 hover:text-ink ${pinned ? "md:hidden" : ""}`} aria-label="Close menu">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Quick navigate */}
