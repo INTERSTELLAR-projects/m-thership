@@ -1,7 +1,6 @@
-// Every Presentation Creator AI call goes through the ai-gateway backend function: Anthropic on Interstellar's own
-// key, metered as Fuel (UsageLedger) against the client the deck is for, gated to HyperCare+ clients with the
-// Presentations Studio switched on. With no key configured, admin calls fall back to Base44 InvokeLLM inside the
-// gateway (house rules still applied); client calls get a clear "not configured" error.
+// Every Presentation Creator AI call goes through the ai-gateway backend function (built-in InvokeLLM, no key
+// needed), metered as Fuel (UsageLedger) against the client the deck is for, gated to HyperCare+ clients with the
+// Presentations Studio switched on.
 import { base44 } from "@/api/base44Client";
 
 const unwrap = (r) => (r && r.data !== undefined ? r.data : r);
@@ -10,7 +9,6 @@ function friendly(e) {
   const d = (e && e.response && e.response.data) || {};
   if (d.code === "studios_locked") return "Presentations are included with HyperCare+.";
   if (d.code === "studio_off") return "The Presentations Studio isn't switched on for this account yet.";
-  if (d.code === "ai_not_configured") return "AI isn't configured yet. Interstellar has been notified.";
   if (d.code && /fuel|cap|limit/i.test(String(d.code))) return d.error || "You're out of Fuel for this month. Refuel to keep building decks.";
   return d.error || (e && e.message) || "The AI request failed. Try again.";
 }

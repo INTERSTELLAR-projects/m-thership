@@ -9,7 +9,7 @@ export const LAUNCH_END = new Date("2026-12-31T23:59:59-08:00");
 
 // Week 1 starts the day the plan was written (Wed Nov 4); weeks 2-9 run Monday to Sunday.
 export const WEEKS = [
-  { n: 1, from: "2026-11-04", to: "2026-11-08", label: "Nov 4–8", theme: "Unblock", note: "Answer the questions, add the Anthropic key, approve North Woods stage 1, card-number cleanup." },
+  { n: 1, from: "2026-11-04", to: "2026-11-08", label: "Nov 4–8", theme: "Unblock", note: "Answer the questions, approve North Woods stage 1, card-number cleanup." },
   { n: 2, from: "2026-11-09", to: "2026-11-15", label: "Nov 9–15", theme: "Clean slate", note: "Claude QA pass on Møthership + portal; you clear the approvals inbox and publish Møthership." },
   { n: 3, from: "2026-11-16", to: "2026-11-22", label: "Nov 16–22", theme: "Portal live", note: "Invites go out; first engines start (Mow Masters, Palm Shore, Velocity, Arcane Ink); first two site moves ready." },
   { n: 4, from: "2026-11-23", to: "2026-11-29", label: "Nov 23–29", theme: "Thanksgiving week", note: "Light week for you: two cutovers (North Woods, PowerLift). Claude writes the Spanish site." },

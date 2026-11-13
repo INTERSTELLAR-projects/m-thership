@@ -478,7 +478,7 @@ function demoUsage(args, rows) {
       ses: { from_email: `news@${c.domain}`, from_name: c.business, reply_to: c.emails[0], domain: c.domain, verified: i % 4 !== 3 }, usage: u };
   });
   if (args.action === "overview") return { month, truncated: false, agency: { est_cost_usd: 61.4 }, clients: list };
-  if (args.action === "config") return { secrets: { ANTHROPIC_API_KEY: true, AWS_SES_ACCESS_KEY_ID: true, AWS_SES_SECRET_ACCESS_KEY: true, AWS_SES_REGION: true }, models: { routine: { id: "claude-haiku-5-5" }, long: { id: "claude-sonnet-5-5" } }, ses_feedback_webhook: "https://interstellar-mothership.com/functions/email-bulk?hook=DEMO", checked_at: new Date().toISOString() };
+  if (args.action === "config") return { secrets: { AWS_SES_ACCESS_KEY_ID: true, AWS_SES_SECRET_ACCESS_KEY: true, AWS_SES_REGION: true }, models: { routine: { id: "claude-haiku-5-5" }, long: { id: "claude-sonnet-5-5" } }, ses_feedback_webhook: "https://interstellar-mothership.com/functions/email-bulk?hook=DEMO", checked_at: new Date().toISOString() };
   if (args.action === "summary") { const c = list.find((x) => x.id === (args.client_id || "c1")) || list[0]; return { visible: true, month, plan: c.plan, plan_label: c.plan_label, caps: c.caps, usage: c.usage, admin_usage: {}, est_cost_usd: c.usage.est_cost_usd, unlimited: false, custom: false, studios: c.studios }; }
   return {};
 }

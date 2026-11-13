@@ -110,7 +110,7 @@ function Economics({ month }) {
               <p className="font-medium">Per client (Nøva messages, daily briefing card, ads analysis, 1:1 email)</p>
               <p className="mt-1 text-ink/65">Light ≈ {d.base44_credits.per_client_monthly_estimate.light} · typical ≈ {d.base44_credits.per_client_monthly_estimate.typical} · heavy ≈ {d.base44_credits.per_client_monthly_estimate.heavy} credits / month.</p>
               <p className="mt-2 text-ink/65">This month: {num(d.base44_credits.nova_messages_this_month)} Nøva messages ≈ {num(d.base44_credits.nova_credits_this_month)} credits.</p>
-              <p className="mt-2 text-[11px] text-ink/45">Rates: {d.base44_credits.source}. Studio AI on the Anthropic key, SES email and Stripe use no Base44 credits.</p>
+              <p className="mt-2 text-[11px] text-ink/45">Rates: {d.base44_credits.source}. SES email and Stripe use no credits.</p>
             </div>
           </div>
         </Panel>

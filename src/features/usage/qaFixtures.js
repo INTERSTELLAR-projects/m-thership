@@ -20,7 +20,7 @@ const CLIENTS = [
 export function qaUsageInvoke(args = {}) {
   if (args.action === "overview") return { month, truncated: false, agency: { est_cost_usd: 0.84 }, clients: CLIENTS };
   if (args.action === "config") return {
-    secrets: { ANTHROPIC_API_KEY: true, AWS_SES_ACCESS_KEY_ID: false, AWS_SES_SECRET_ACCESS_KEY: false, AWS_SES_REGION: false },
+    secrets: { AWS_SES_ACCESS_KEY_ID: false, AWS_SES_SECRET_ACCESS_KEY: false, AWS_SES_REGION: false },
     models: { routine: { id: "claude-haiku-5-5" }, long: { id: "claude-sonnet-5-5" } },
     ses_feedback_webhook: "https://interstellar-mothership.com/functions/email-bulk?hook=QA_SAMPLE_TOKEN", checked_at: new Date().toISOString(),
   };

@@ -42,7 +42,6 @@ function StateSwitch({ value, onChange, disabled }) {
 function SecretsStrip() {
   const q = useConfig();
   const s = q.data?.secrets || {};
-  const ai = s.ANTHROPIC_API_KEY;
   const ses = s.AWS_SES_ACCESS_KEY_ID && s.AWS_SES_SECRET_ACCESS_KEY && s.AWS_SES_REGION;
   const Pill = ({ ok, label }) => (
     <span className={`inline-flex items-center gap-1.5 px-2 py-1 text-[11.5px] font-medium ${ok ? "bg-green-600/10 text-green-800" : "bg-amber-500/15 text-amber-800"}`}>
@@ -51,7 +50,6 @@ function SecretsStrip() {
   );
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Pill ok={ai} label="Anthropic" />
       <Pill ok={ses} label="Amazon SES" />
       <Link to="/settings?tab=integrations" className="inline-flex items-center gap-1 text-[11.5px] text-ink/55 hover:text-[#ff3c00]">Setup <ExternalLink className="h-3 w-3" /></Link>
     </div>
