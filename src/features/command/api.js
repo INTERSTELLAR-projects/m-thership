@@ -86,7 +86,7 @@ async function localAct(action, id, extra) {
   if (pa.kind === "send_email" && extra.test) return { ok: true, test: true, to: E.TEST_EMAIL };
   const result = pa.kind === "send_sms" ? { sms_url: `sms:${String(pa.payload?.phone || "").replace(/[^\d+]/g, "")}?&body=${encodeURIComponent(pa.payload?.body || "")}` } : { qa: true };
   await base44.entities.ProposedAction.update(id, { status: pa.kind === "question" ? "answered" : "executed", executed_at: new Date().toISOString(), result, answer: extra.answer });
-  if (pa.kind === "question" && extra.answer) await base44.entities.BrainFact.create({ pillar: pa.pillar, statement: extra.answer, question_key: pa.payload?.question_key, source: "interview", status: "active", date: E.zonedParts(new Date()).date });
+  if (pa.kind === "question" && (extra.answer || extra.raw_text)) for (const st of extra.statements?.length ? extra.statements : [extra.answer]) await base44.entities.BrainFact.create({ pillar: pa.pillar, statement: st, raw_text: extra.raw_text || extra.answer, question_key: pa.payload?.question_key, source: "interview", status: "active", date: E.zonedParts(new Date()).date });
   return { ok: true, status: "executed", result };
 }
 export async function undo(auditId) {
@@ -114,15 +114,19 @@ export async function ask(user, text) {
 
 // ---------------------------------------------------------------- Brain
 export async function brain(action, args = {}) {
-  if (!IS_QA) return call("command-brain", { action, ...args });
+  if (!IS_QA) {
+    try { return await call("command-brain", { action, ...args }); }
+    catch (e) { if (action === "clean") return { statements: [E.ruleClean(args.text)], source: "rules" }; throw e; }
+  }
+  if (action === "clean") return { statements: [E.ruleClean(args.text)], source: "rules", about_client: "", pillar_hint: "" };
   const { s, scores } = await localCompute(null);
-  if (action === "answer") await base44.entities.BrainFact.create({ pillar: args.pillar, statement: args.text, question_key: args.question_key, source: "interview", status: "active", date: s.today });
+  if (action === "answer") for (const st of args.statements?.length ? args.statements : [args.text]) await base44.entities.BrainFact.create({ pillar: args.pillar, statement: st, raw_text: args.raw_text || args.text, question_key: args.question_key, source: "interview", status: "active", date: s.today, data: E.factData(args.question_key, args.raw_text || "", st) });
   const facts = rows(await base44.entities.BrainFact.list("-created_date", 300)).filter((f) => f.status !== "superseded");
   const factsBy = Object.fromEntries(E.PILLAR_IDS.map((id) => [id, facts.filter((f) => f.pillar === id).length]));
   return {
     question: E.nextQuestion(facts, scores, args.skip || []),
     coverage: Object.fromEntries(E.PILLARS.map((p) => [p.id, { name: p.name, facts: factsBy[p.id], confidence: scores[p.id].confidence, score: scores[p.id].score }])),
     total_questions: E.BRAIN_QUESTIONS.length, answered: facts.filter((f) => f.question_key).length, facts,
-    ...(action === "answer" ? { saved: { statement: args.text, pillar: args.pillar } } : {}),
+    ...(action === "answer" ? { saved: { statement: (args.statements || [args.text]).join(" "), pillar: args.pillar } } : {}),
   };
 }

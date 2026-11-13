@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { Check, Pencil, SkipForward, Clock, ChevronLeft, ChevronRight, Send, MessageSquare, ArrowUpRight, Undo2, FlaskConical, X } from "lucide-react";
-import { PillarChip, Mono, MicOrb, useMicGesture } from "./ui";
-import { useListener } from "./voice";
+import { PillarChip, Mono } from "./ui";
+import { useDictation } from "./voice";
+import { DictationBox, AnswerReview } from "./Dictation";
 import { act, undo, errMsg } from "./api";
 import { TEST_EMAIL } from "./engine";
 
@@ -113,16 +114,21 @@ function ConfirmSend({ card, payload, onClose, onDone }) {
   );
 }
 
-function QuestionInput({ value, setValue, onSubmit }) {
-  const voice = useListener({ onFinal: (t) => setValue((x) => (x ? x + " " : "") + t) });
-  const mic = useMicGesture({ listening: voice.listening, start: voice.start, stop: voice.stop });
+// Question cards: dictate (tap to start, tap to stop), then review the cleaned-up wording before it is saved.
+function QuestionAnswer({ card, onDone }) {
+  const [review, setReview] = useState(null);
+  const dict = useDictation({ onStop: (t) => { if (t.trim()) setReview(t.trim()); } });
+  if (review) {
+    return (
+      <AnswerReview raw={review} question={card.payload?.question || card.title} questionKey={card.payload?.question_key}
+        onBack={() => { dict.setText(review); setReview(null); }}
+        onSave={async (statements, { about }) => { const res = await act("approve", card.id, { raw_text: review, answer: review, statements, client_name: about || card.payload?.client_name || undefined }); onDone(res, "Saved to the Brain"); }} />
+    );
+  }
   return (
     <div>
-      <div className="flex items-start gap-2">
-        <textarea rows={3} value={voice.interim ? `${value} ${voice.interim}` : value} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); onSubmit(); } }} placeholder="Say it or type it. Plain words are fine." className="min-h-[84px] min-w-0 flex-1 border border-hair bg-white p-3 text-[14.5px] leading-relaxed outline-none focus:border-ink" aria-label="Your answer" />
-        {voice.supported && <MicOrb size={48} listening={voice.listening} {...mic} label="Answer by voice" />}
-      </div>
-      {voice.error && <p className="mt-1 text-[12px] text-[#c22a00]">{voice.error}</p>}
+      <DictationBox dict={dict} rows={3} micSize={52} placeholder="Tap the mic and say it, or type it. Plain words are fine." />
+      <button type="button" onClick={() => (dict.listening ? dict.stop() : dict.text.trim() && setReview(dict.text.trim()))} disabled={!dict.text.trim() && !dict.listening} className="mt-1 inline-flex h-11 items-center gap-2 bg-ink px-4 text-[14px] font-medium text-white hover:bg-[#ff3c00] disabled:opacity-40"><Check className="h-4 w-4" />{dict.listening ? "Stop & review" : "Review answer"}</button>
     </div>
   );
 }
@@ -159,7 +165,7 @@ export default function NeedsYou({ items, loading, onChanged, compact = false })
     setErr("");
     if (card.kind === "send_email" || card.kind === "send_sms") { setConfirm(true); return; }
     if (card.kind === "choice" && option == null) { setErr("Pick one of the options first (1, 2 or 3)."); return; }
-    if (card.kind === "question" && !answer.trim()) { setErr("Type or say an answer first."); return; }
+    if (card.kind === "question") { setErr("Answer above, then tap Review answer."); return; }
     setBusy("approve");
     try {
       const res = await act("approve", card.id, { edits: Object.keys(edit).length ? edit : undefined, option: option ?? undefined, answer: answer || undefined });
@@ -267,14 +273,14 @@ export default function NeedsYou({ items, loading, onChanged, compact = false })
                 ))}
               </div>
             )}
-            {card.kind === "question" && <QuestionInput value={answer} setValue={setAnswer} onSubmit={approve} />}
+            {card.kind === "question" && <QuestionAnswer card={card} onDone={finish} />}
           </div>
 
           {err && <p className="mt-3 text-[13px] text-[#c22a00]" role="alert">{err}</p>}
 
           <div className="mt-5 grid grid-cols-4 gap-2 md:flex md:flex-wrap">
             <button type="button" onClick={approve} disabled={!!busy} className="col-span-4 inline-flex h-12 items-center justify-center gap-2 bg-ink px-5 text-[15px] font-medium text-white transition-colors hover:bg-[#ff3c00] disabled:opacity-50 md:col-span-1 md:min-w-[170px]">
-              <Check className="h-4 w-4" />{busy === "approve" ? "Working…" : card.kind === "question" ? "Save answer" : card.kind === "send_email" ? "Approve & review send" : card.kind === "send_sms" ? "Approve text" : "Approve"}
+              <Check className="h-4 w-4" />{busy === "approve" ? "Working…" : card.kind === "question" ? "Answer above" : card.kind === "send_email" ? "Approve & review send" : card.kind === "send_sms" ? "Approve text" : "Approve"}
               <kbd className="ml-1 hidden font-mono text-[10px] text-white/50 md:inline">A</kbd>
             </button>
             {canEdit && <button type="button" onClick={() => setEditing((x) => !x)} className="inline-flex h-12 items-center justify-center gap-1.5 border border-hair px-3 text-[13px] text-ink/75 hover:border-ink"><Pencil className="h-3.5 w-3.5" />{editing ? "Done" : "Edit"}<kbd className="hidden font-mono text-[10px] text-ink/35 md:inline">E</kbd></button>}
