@@ -30,7 +30,7 @@ function cardScript(c, i, n) {
   if (c.kind === "send_email") s += ` To ${c.payload?.to || "no recipient yet"}. Say yes to review it on screen.`;
   else if (c.kind === "send_sms") s += " Say yes to get it ready for Messages.";
   else if (c.kind === "choice") s += " " + (c.payload?.options || []).map((o, k) => `Option ${k + 1}: ${o.label}.`).join(" ") + " Say one, two or three.";
-  else if (c.kind === "question") s += " Say yes, then your answer.";
+  else if (c.kind === "question") s += " Say yes, then tap the mic and answer. Tap stop when you're done.";
   else s += " Say yes, no, skip, or repeat.";
   return s;
 }
