@@ -53,6 +53,31 @@ export const DEFAULT_BASELINES: { key: string; label: string; category: string; 
 ];
 export const DEFAULT_HOURLY_RATE = 75;
 
+// Justin's own directing + review time per task type when work is logged without minutes (Claude session or team
+// did the work; Justin briefed it and checked it). Not the by-hand baseline above. Types not listed: 15% of the
+// baseline, rounded to 5, between 5 and 60.
+export const DIRECTING_MINUTES: Record<string, number> = {
+  blog_post: 20, gbp_post: 5, gbp_update: 5, social_post: 5, social_plan: 20, email_campaign: 15, site_fix: 10,
+  site_page: 15, site_feature: 30, site_migration: 60, site_build: 90, site_qa: 20, translation: 30, copy_edit: 10,
+  content_plan: 15, seo_setup: 20, keyword_dossier: 15, site_audit: 15, map_pack_plan: 15, audit: 30, citation: 5,
+  outreach: 5, app_feature: 20, app_build_stage: 45, app_qa: 30, integration: 20, automation_setup: 20, brand_asset: 20,
+  brand_kit: 30, brain_fill: 15, research_brief: 15, report: 10, security_fix: 15, data_cleanup: 10, client_request: 10,
+  agent_run: 5, ops_task: 10, training_track: 20, training_complete: 0, billing_task: 5, decision: 10, other: 10,
+};
+export function directingMinutes(taskType: string, baseline: number) {
+  if (taskType in DIRECTING_MINUTES) return DIRECTING_MINUTES[taskType];
+  return Math.max(5, Math.min(60, Math.round(((Number(baseline) || 30) * 0.15) / 5) * 5));
+}
+// Same text the Output > My time screen writes (src/features/output/myTime.js CONFIRM_MARK); takes a row off
+// "Needs your minutes".
+export const CONFIRM_MARK = "Minutes confirmed by Justin";
+export function withConfirmMark(notes: string, now = new Date()) {
+  const n = String(notes || "").trim();
+  if (n.includes(CONFIRM_MARK)) return n;
+  const day = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+  return `${n ? `${n} ` : ""}${CONFIRM_MARK} ${day}.`;
+}
+
 export async function loadConfig(db: any) {
   const row = ((await db.AppSettings.filter({ key: "work_baselines" }, "-updated_date", 1).catch(() => [])) || [])[0];
   const saved = (row?.pageSettings?.rows || []) as any[];
@@ -74,6 +99,12 @@ const INTERNAL_CATS = new Set(["security", "billing", "research", "ops"]);
 const VISIBLE_TYPES = new Set(["audit", "keyword_dossier", "automation_setup", "client_request"]);
 const MONEY = /(\$\s?\d|\bprice|\bpricing\b|\bcosts?\b|\binvoic|\bpayment|\bbilling\b|\bsubscription|\brefund|\bfees?\b|\brevenue\b|\bstripe\b|\bcredit card|\bmrr\b)/i;
 const SECRETISH = /(\bsecret|\bpassword|\bapi key|\btoken\b|\bcredential|\blogin\b|\bvulnerab|\bleak)/i;
+// Money or security detail in a title keeps a row internal whatever else applies.
+export function sensitiveTitle(title: string): string {
+  if (MONEY.test(String(title || ""))) return "Mentions money";
+  if (SECRETISH.test(String(title || ""))) return "Security detail";
+  return "";
+}
 export function defaultVisibility(e: any): { visibility: "client" | "internal"; reason: string } {
   if (!e.client_id || e.client_id === "agency") return { visibility: "internal", reason: "Interstellar's own work" };
   if (e.status && e.status !== "done") return { visibility: "internal", reason: "Not finished yet" };
