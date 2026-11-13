@@ -75,7 +75,7 @@ function Card({ id, reg, sel, dim, onClick, className = "", children, label, tin
 function ClaudeCard({ node, reg, sel, onClick }) {
   const m = node.metrics;
   return (
-    <Card id="claude" reg={reg} sel={sel} onClick={onClick} label="Claude, the engine" className="overflow-hidden px-4 pb-3.5 pt-3">
+    <Card id="claude" reg={reg} sel={sel} onClick={onClick} label="Claude, the engine" className="shp-clear overflow-hidden px-4 pb-3.5 pt-3">
       <p className="eyebrow flex items-center gap-1.5 !text-[9.5px]"><Sparkles className="h-3 w-3 text-[#ffb27a]" />Claude · engine</p>
       <div ref={reg("slot:claude")} className="mx-auto my-1 aspect-square w-full max-w-[170px]" />
       <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
@@ -92,7 +92,7 @@ function BrainCard({ node, reg, sel, onClick }) {
   const scores = Object.values(ps).map((p) => p?.score).filter((v) => Number.isFinite(v));
   const avg = scores.length ? Math.round(scores.reduce((s, v) => s + v, 0) / scores.length) : null;
   return (
-    <Card id="brain" reg={reg} sel={sel} onClick={onClick} label="Møthership Brain" className="overflow-hidden px-4 pb-3.5 pt-3">
+    <Card id="brain" reg={reg} sel={sel} onClick={onClick} label="Møthership Brain" className="shp-clear overflow-hidden px-4 pb-3.5 pt-3">
       <p className="eyebrow flex items-center gap-1.5 !text-[9.5px]"><Brain className="h-3 w-3 text-[#b18cff]" />Main brain</p>
       <p className="mt-1 text-[17px] font-semibold tracking-[-0.02em] text-white">Møthership <span style={{ color: COLORS.brain }}>Brain</span></p>
       <div ref={reg("slot:brain")} className="my-1 h-[84px] w-full" />
@@ -268,7 +268,8 @@ export default function ShipView({ onClassic }) {
   const ship = useMemo(() => (data ? buildShip(data, { now: new Date(), focus }) : null), [data, focus]);
   const lit = useMemo(() => (ship ? litNodes(ship, registry, { q, client: fClient, dept: fDept, status: fStatus }) : null), [ship, registry, q, fClient, fDept, fStatus]);
   const chain = useMemo(() => chainOf(sel, ship, registry), [sel, ship, registry]);
-  const mode = width >= 1120 ? "cols" : "stack";
+  const mode = width >= 1180 ? "cols" : "stack";
+  const [showFilters, setShowFilters] = useState(false);
   const density = width < 700 ? 0.5 : 1;
 
   // Stage width -> layout mode.
@@ -446,7 +447,7 @@ export default function ShipView({ onClassic }) {
             <button type="button" role="tab" aria-selected={false} onClick={onClassic}><Network className="h-3.5 w-3.5" />Classic</button>
           </div>
         </div>
-        <div className="mono mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[9.5px] uppercase tracking-[.12em] text-[var(--ink-s)]">
+        <div className="mono mt-1.5 hidden flex-wrap items-center gap-x-3 sm:flex gap-y-1 text-[9.5px] uppercase tracking-[.12em] text-[var(--ink-s)]">
           {[["orders out", COLORS.command], ["results back", COLORS.result], ["research in", COLORS.intel], ["ideas out", COLORS.idea], ["Claude", COLORS.claude]].map(([l, c]) => <span key={l} className="flex items-center gap-1.5"><i className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: c, boxShadow: `0 0 6px ${c}` }} />{l}</span>)}
           {liveAt ? <span>· live · updated {relTime(new Date(liveAt).toISOString())}</span> : null}
         </div>
@@ -460,11 +461,13 @@ export default function ShipView({ onClassic }) {
             ))}
           </nav>
           <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-            <label className="relative min-w-0 flex-1 sm:w-56 sm:flex-none">
+            <label className="relative min-w-0 flex-1 basis-[60%] sm:w-56 sm:flex-none sm:basis-auto">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--ink-s)]" />
               <input className="inp w-full !pl-8" placeholder="Search agents, clients" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search agents and clients" />
               {q ? <button type="button" aria-label="Clear search" onClick={() => setQ("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--ink-s)] hover:text-white"><X className="h-3.5 w-3.5" /></button> : null}
             </label>
+            <button type="button" className="btn-d sm:!hidden" aria-expanded={showFilters} onClick={() => setShowFilters((v) => !v)}>Filters{fClient || fDept || fStatus ? ` · ${[fClient, fDept, fStatus].filter(Boolean).length}` : ""}</button>
+            <div className={`${showFilters ? "grid" : "hidden"} w-full grid-cols-3 gap-2 sm:flex sm:w-auto`}>
             <select className="shp-sel" aria-label="Filter by client" value={fClient} onChange={(e) => setFClient(e.target.value)}>
               <option value="">All clients</option>
               {clients.map((c) => <option key={c.clientId} value={c.clientId}>{c.label}</option>)}
@@ -477,6 +480,7 @@ export default function ShipView({ onClassic }) {
               <option value="">Any status</option>
               {["live", "paused", "planned", "broken"].map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
             </select>
+            </div>
             {filtering ? <button type="button" className="text-[12px] text-[var(--ink-s)] hover:text-white" onClick={() => { setQ(""); setFClient(""); setFDept(""); setFStatus(""); }}>Clear</button> : null}
           </div>
         </div>
