@@ -123,6 +123,8 @@ describe("command engine", () => {
     expect(bad.brief.outcomes).toEqual(rule.outcomes);
     const good = BE.mergeLlmBrief(rule, { greeting: "Morning.", outcomes: rule.cands.slice(0, 3).map((c) => ({ candidate_id: c.id, title: c.title + " done", why: c.why })), plan_today: rule.plan_today.map((b) => ({ ...b, candidate_id: b.cand })) }, s);
     expect(good.source).toBe("llm");
+    expect(good.brief.greeting).toBe(rule.greeting);
+    expect(good.brief.focus).toBe("Morning.");
     expect(good.brief.outcomes[0].ref).toEqual(rule.cands[0].ref);
     const invented = BE.mergeLlmBrief(rule, { greeting: "x", outcomes: [], plan_today: [], since_yesterday: ["We closed 99 deals."] }, s);
     expect(invented.rejected).toContain("since_yesterday");

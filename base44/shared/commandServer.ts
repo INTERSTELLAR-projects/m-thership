@@ -82,7 +82,7 @@ export async function generateBrief(base44: any, user: any, opts: { tz?: string;
   const b = merged.brief;
   const doc = {
     date: today, version: (Number(existing?.version) || 0) + 1, status: "ready", source: merged.source,
-    greeting: b.greeting, since_yesterday: b.since_yesterday, outcomes: b.outcomes, plan_today: b.plan_today,
+    greeting: b.greeting, focus: b.focus || "", since_yesterday: b.since_yesterday, outcomes: b.outcomes, plan_today: b.plan_today,
     tomorrow: b.tomorrow, day_after: b.day_after, gaps: b.gaps, pillar_scores: compactScores(scores, rule.cands),
     facts: { ...C.factsSummary(s), after_hours: !!b.after_hours, llm_accepted: merged.accepted, llm_rejected: merged.rejected, calendar: events ? events.length : null },
     interruptions, extra_blocks: extra, llm_error: llmError, generated_at: nowIso(), generated_by: user?.email || "agent", tz,

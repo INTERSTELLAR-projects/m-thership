@@ -135,6 +135,7 @@ export default function MissionBrief({ brief, busy, onReplan, onInterrupt, stale
             <p className="mt-3 inline-flex items-center gap-2 text-[12.5px] text-[#ffaa00]"><AlertTriangle className="h-3.5 w-3.5" />{error ? `Showing the last good brief (${error}).` : "Showing the last good brief."} <button type="button" onClick={onReplan} className="underline underline-offset-2">Retry</button></p>
           )}
           <h1 className="mt-4 max-w-[30ch] text-[27px] font-semibold leading-[1.08] tracking-[-0.035em] text-white md:text-[38px]">{brief.greeting}</h1>
+          {brief.focus ? <p className="mt-3 max-w-[56ch] text-[15px] leading-snug text-white/75 md:text-[17px]">{brief.focus}</p> : null}
           {brief.since_yesterday?.length ? (
             <div className="mt-5">
               <Mono className="text-white/45">Since yesterday</Mono>

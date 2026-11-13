@@ -29,6 +29,7 @@
       "default": "rules",
       "description": "llm = wording/order from the LLM, validated against real ids; rules = rule-based fallback"
     },
+    "focus": { "type": "string", "description": "One number-free focus sentence from the LLM (optional)" },
     "greeting": {
       "type": "string"
     },

@@ -617,7 +617,7 @@ export function mergeLlmBrief(rule, llm, s) {
   // The greeting's name, date and countdown and the since-yesterday facts always stay as the rules wrote them;
   // the LLM may only add one number-free focus sentence.
   const g = typeof llm.greeting === "string" ? llm.greeting.trim() : "";
-  if (g && g.length <= 160 && !digitsIn(g).length) { out.greeting = `${rule.greeting} ${g}`; accepted.push("greeting"); } else rejected.push("greeting");
+  if (g && g.length <= 160 && !digitsIn(g).length) { out.focus = g; accepted.push("focus"); } else rejected.push("focus");
   if (llm.since_yesterday) rejected.push("since_yesterday");
   const oc = Array.isArray(llm.outcomes) ? llm.outcomes : [];
   if (oc.length >= 1 && oc.length <= 3 && oc.every((o) => o && cands.has(o.candidate_id) && str(o.title).length <= 140 && str(o.why).length <= 260) && new Set(oc.map((o) => o.candidate_id)).size === oc.length) {

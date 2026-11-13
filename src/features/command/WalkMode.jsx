@@ -14,7 +14,7 @@ import { Mono } from "./ui";
 
 function briefScript(b) {
   if (!b) return "I couldn't load today's brief.";
-  const lines = [b.greeting];
+  const lines = [b.greeting, b.focus].filter(Boolean);
   if (b.since_yesterday?.length) lines.push(`Since yesterday: ${b.since_yesterday.slice(0, 2).join(" ")}`);
   (b.outcomes || []).forEach((o, i) => lines.push(`${["First", "Second", "Third"][i] || "Next"}: ${o.title}.`));
   const p = zonedParts(new Date(), TZ_DEFAULT);
