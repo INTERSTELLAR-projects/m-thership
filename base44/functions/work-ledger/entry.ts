@@ -15,7 +15,7 @@
 //   summary {}                         Admin or key: totals (week / month / all time) for briefs.
 // deno-lint-ignore-file no-explicit-any
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
-import { callClaude } from "../../shared/anthropic.ts";
+import { callAI } from "../../shared/anthropic.ts";
 import { getSecret } from "../../shared/portalClient.ts";
 import { monthKey } from "../../shared/usagePlans.ts";
 import {
@@ -215,16 +215,14 @@ async function writeCopy(db: any, base44: any, user: any, rows: any[], otherName
       items = arr((r?.data || r)?.json?.items);
     } catch { items = null; }
   }
-  // Unattended (hourly workflow) or gateway unavailable: same shared Anthropic call the gateway uses, logged to UsageLedger.
+  // Unattended (hourly workflow) or gateway unavailable: the same house rules in process. No key needed: callAI runs
+  // on the built-in InvokeLLM (service role) when ANTHROPIC_API_KEY is absent, which is the normal case.
   if (!items?.length) {
-    const key = getSecret("ANTHROPIC_API_KEY");
-    if (key) {
-      try {
-        const out = await callClaude({ key, tier: "routine", system: COPY_SYSTEM, prompt, schema: COPY_SCHEMA, max_tokens: 4000 });
-        items = arr(out.json?.items);
-        await db.UsageLedger.create({ client_id: "agency", client_name: "Interstellar (admin)", month: monthKey(), kind: "ai_action", units: 1, calls: 1, model: out.model, feature: "work_ledger_copy", by_admin: true, input_tokens: out.input_tokens, output_tokens: out.output_tokens, created_at: new Date().toISOString() }).catch(() => null);
-      } catch { items = null; }
-    }
+    try {
+      const out = await callAI(base44, { key: getSecret("ANTHROPIC_API_KEY") || null, tier: "routine", system: COPY_SYSTEM, prompt, schema: COPY_SCHEMA, max_tokens: 4000 });
+      items = arr(out.json?.items);
+      await db.UsageLedger.create({ client_id: "agency", client_name: "Interstellar (admin)", month: monthKey(), kind: "ai_action", units: 1, calls: 1, model: out.model, feature: "work_ledger_copy", by_admin: true, input_tokens: out.input_tokens, output_tokens: out.output_tokens, created_at: new Date().toISOString() }).catch(() => null);
+    } catch (e) { console.error("work-ledger copy", (e as Error)?.message); items = null; }
   }
   let generated = 0, fallback = 0;
   for (const r of rows) {
