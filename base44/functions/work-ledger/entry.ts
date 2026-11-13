@@ -21,6 +21,7 @@ import { monthKey } from "../../shared/usagePlans.ts";
 import {
   loadConfig, normalize, savedMinutes, copyProblems, COPY_SCHEMA, COPY_SYSTEM, copyPrompt, fallbackCopy, isClientSafeUrl,
   launchItemType, launchItemDoneBy, CLAUDE_JOB_TYPE, WORKLOG_TYPE, RUN_SKIP, runType, DEFAULT_BASELINES, CATEGORIES, DONE_BY,
+  sensitiveTitle, directingMinutes, withConfirmMark,
 } from "../../shared/workLedger.ts";
 
 const arr = (v: any) => (Array.isArray(v) ? v : (v && v.items) || []);
