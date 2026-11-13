@@ -92,6 +92,14 @@
       },
       "description": "[{ at, text, minutes }]"
     },
+    "extra_blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "Blocks Justin chose to add to today (from a Needs-you choice): [{ title, minutes, pillar, kind }]"
+    },
     "llm_error": {
       "type": "string"
     },
