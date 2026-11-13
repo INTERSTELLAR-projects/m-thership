@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { Check, Pencil, SkipForward, Clock, ChevronLeft, ChevronRight, Send, MessageSquare, ArrowUpRight, Undo2, FlaskConical, X } from "lucide-react";
 import { PillarChip, Mono, MicOrb, useMicGesture } from "./ui";
@@ -80,7 +81,8 @@ function ConfirmSend({ card, payload, onClose, onDone }) {
     } catch (e) { setErr(errMsg(e)); setBusy(""); }
   };
   const v = { ...(card.payload || {}), ...payload };
-  return (
+  // Portal: the page wrapper animates (a transform = its own stacking context), which would trap this sheet under the Ask bar.
+  return createPortal(
     <div className="fixed inset-0 z-[120] flex items-end justify-center bg-ink/50 backdrop-blur-sm md:items-center" role="dialog" aria-modal="true" aria-label="Confirm send" onClick={onClose}>
       <div className="cmd-sheet w-full max-w-lg border border-hair bg-paper p-5 shadow-2xl md:p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-3">
@@ -106,7 +108,8 @@ function ConfirmSend({ card, payload, onClose, onDone }) {
           <button type="button" onClick={onClose} className="h-12 px-3 text-[13px] text-ink/55 hover:text-ink">Cancel</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
