@@ -133,7 +133,9 @@ export default function WalkMode() {
   );
 
   return (
-    <div className="band-dark grain fixed inset-0 z-[150] flex flex-col overflow-y-auto text-white" role="application" aria-label="Walk mode">
+    // Outer wrapper is the fixed layer: .band-dark sets position: relative, which would override `fixed`.
+    <div className="fixed inset-0 z-[150] overflow-y-auto bg-ink">
+    <div className="band-dark grain flex min-h-full flex-col text-white" role="application" aria-label="Walk mode">
       <div className="relative z-10 flex items-center justify-between px-5 pt-5">
         <Mono className="text-white/50">Walk mode {wake ? "· screen kept awake" : ""} {listener.listening ? "· listening" : ""}</Mono>
         <Link to="/" onClick={exit} className="p-2 text-white/60 hover:text-white" aria-label="Leave walk mode"><X className="h-5 w-5" /></Link>
@@ -204,6 +206,7 @@ export default function WalkMode() {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }
