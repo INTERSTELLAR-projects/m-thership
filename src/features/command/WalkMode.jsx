@@ -4,7 +4,8 @@ import { X, Check, SkipForward, RotateCcw, ArrowRight, Ban, Send, MessageSquare 
 import { useAuth } from "@/lib/AuthContext";
 import { clock12, toMin, zonedParts, TZ_DEFAULT, PILLAR_BY_ID } from "./engine";
 import { getBrief, listActions, act, errMsg } from "./api";
-import { chime, speak, stopSpeaking, useListener, useWakeLock, parseSpoken, canListen } from "./voice";
+import { chime, speak, stopSpeaking, useListener, useDictation, useWakeLock, parseSpoken, canListen } from "./voice";
+import { DictationBox, AnswerReview } from "./Dictation";
 import { KIND_LABEL } from "./NeedsYou";
 import { Mono } from "./ui";
 
@@ -41,19 +42,22 @@ export default function WalkMode() {
   const [cards, setCards] = useState([]);
   const [i, setI] = useState(0);
   const [heard, setHeard] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [review, setReview] = useState(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const wake = useWakeLock(phase !== "idle" && phase !== "done");
   const card = cards[i];
   const handler = useRef(() => {});
 
+  // Short command recognition (yes / no / skip / next / repeat) for the stream…
   const listener = useListener({ continuous: true, onFinal: (t) => { setHeard(t); handler.current(t); } });
+  // …and full dictation (tap to stop, no cut-offs on pauses) when a question needs a real answer.
+  const dict = useDictation({ onStop: (t) => { if (t.trim()) setReview(t.trim()); } });
 
   const say = useCallback((text, then) => { setNote(""); speak(text, { onend: then }); }, []);
   const next = useCallback((list = cards, k = i + 1) => {
     if (k >= list.length) { setPhase("done"); say("That's everything that needs you. Have a good one."); return; }
-    setI(k); setPhase("card"); setAnswer("");
+    setI(k); setPhase("card"); setReview(null); dict.setText("");
     say(cardScript(list[k], k, list.length));
   }, [cards, i, say]);
 
@@ -80,14 +84,19 @@ export default function WalkMode() {
   const yes = useCallback(() => {
     if (!card || busy) return;
     if (card.kind === "send_email" || card.kind === "send_sms") { setPhase("confirm"); say("Here it is on screen. Tap send if it's right. I won't send it by voice."); return; }
-    if (card.kind === "question") { setPhase("answer"); say("Go ahead."); return; }
+    if (card.kind === "question") {
+      listener.stop();
+      setPhase("answer");
+      say("Go ahead. Tap stop when you're done.", () => dict.start());
+      return;
+    }
     if (card.kind === "choice") { say("Say one, two or three."); return; }
     run(() => act("approve", card.id), "Approved");
   }, [card, busy, run, say]);
   const choose = useCallback((k) => { if (card?.kind === "choice" && card.payload?.options?.[k]) run(() => act("approve", card.id, { option: k }), `Chose: ${card.payload.options[k].label}`); }, [card, run]);
   const skip = useCallback(() => { if (card && !busy) run(() => act("skip", card.id), "Skipped"); }, [card, busy, run]);
   const repeat = useCallback(() => { if (phase === "brief") say(briefScript(brief)); else if (card) say(cardScript(card, i, cards.length)); }, [phase, brief, card, i, cards.length, say]);
-  const exit = () => { stopSpeaking(); listener.stop(); setPhase("done"); };
+  const exit = () => { stopSpeaking(); listener.stop(); dict.stop(); setPhase("done"); };
 
   const sendNow = async () => {
     setBusy(true);
@@ -103,15 +112,7 @@ export default function WalkMode() {
   handler.current = (t) => {
     // Ignore what the microphone hears while the phone is talking (it would hear itself on a speaker).
     if (typeof window !== "undefined" && window.speechSynthesis?.speaking && parseSpoken(t) !== "stop") return;
-    if (phase === "answer") {
-      const cmd = parseSpoken(t);
-      if (cmd === "stop" || cmd === "skip") { setPhase("card"); return; }
-      if (cmd === "yes" && answer) { run(() => act("approve", card.id, { answer }), "Saved to the Brain"); return; }
-      const full = (answer ? answer + " " : "") + t;
-      setAnswer(full);
-      say(`I heard: ${full}. Say yes to save, or keep talking.`);
-      return;
-    }
+    if (phase === "answer") return; // dictation owns the mic while answering
     const cmd = parseSpoken(t);
     if (!cmd) return;
     stopSpeaking();
@@ -167,13 +168,27 @@ export default function WalkMode() {
             {card.rationale && <p className="mt-2 text-[15px] leading-snug text-white/65">{card.rationale}</p>}
             {card.kind === "record_change" && <ul className="mt-4 space-y-1 text-[14px] text-white/75">{(card.payload?.changes || []).slice(0, 6).map((c, k) => <li key={k}>· {c.label}</li>)}</ul>}
             {card.kind === "choice" && <div className="mt-4 grid gap-2">{(card.payload?.options || []).map((o, k) => <button key={k} type="button" onClick={() => choose(k)} className="min-h-[60px] border border-white/20 px-4 text-left text-[16px] active:bg-white/10"><span className="mr-3 font-mono text-[#ff6a00]">{k + 1}</span>{o.label}</button>)}</div>}
-            {phase === "answer" && <div className="mt-5 border border-white/20 bg-white/[0.04] p-4"><Mono className="text-white/45">Your answer</Mono><p className="mt-1 min-h-[2em] text-[17px]">{answer || listener.interim || "Listening…"}</p>{answer && <button type="button" onClick={() => run(() => act("approve", card.id, { answer }), "Saved to the Brain")} className="mt-3 h-12 w-full bg-[#ff3c00] text-[15px] font-medium">Save answer</button>}</div>}
-            <div className="mt-auto grid grid-cols-2 gap-2 pt-8">
+            {phase === "answer" && (
+              <div className="mt-5">
+                {review ? (
+                  <AnswerReview dark raw={review} question={card.payload?.question || card.title} questionKey={card.payload?.question_key}
+                    onBack={() => { dict.setText(review); setReview(null); }}
+                    onSave={async (statements, { about }) => { await act("approve", card.id, { raw_text: review, answer: review, statements, client_name: about || card.payload?.client_name || undefined }); setNote("Saved to the Brain"); if (canListen()) listener.start(); next(); }} />
+                ) : (
+                  <>
+                    <DictationBox dict={dict} dark micSize={64} placeholder="Tap the mic and answer. Pauses are fine; tap stop when you're done." />
+                    <button type="button" onClick={() => (dict.listening ? dict.stop() : dict.text.trim() && setReview(dict.text.trim()))} disabled={!dict.listening && !dict.text.trim()} className="mt-2 h-14 w-full bg-[#ff3c00] text-[16px] font-medium disabled:opacity-40">{dict.listening ? "Stop" : "Review answer"}</button>
+                  </>
+                )}
+              </div>
+            )}
+            {phase !== "answer" && <div className="mt-auto grid grid-cols-2 gap-2 pt-8">
               <Big icon={Check} tone="flame" onClick={yes} disabled={busy}>Yes</Big>
               <Big icon={Ban} onClick={skip} disabled={busy}>No</Big>
               <Big icon={SkipForward} onClick={skip} disabled={busy}>Skip</Big>
               <Big icon={RotateCcw} onClick={repeat}>Repeat</Big>
-            </div>
+            </div>}
+            {phase === "answer" && <button type="button" onClick={() => { dict.stop(); setReview(null); setPhase("card"); if (canListen()) listener.start(); }} className="mt-4 h-11 text-[13px] text-white/55">Back to the card</button>}
           </div>
         )}
 
