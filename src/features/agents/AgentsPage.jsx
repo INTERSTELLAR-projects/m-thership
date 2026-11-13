@@ -323,3 +323,16 @@ function ClassicAgentsPage({ onShip }) {
     </div>
   );
 }
+
+// /agents opens Constellation v2 (the whole ship). The classic constellation stays one click away ("Classic"), and every
+// older deep link (?ceo=1, ?agent=, ?brain=1, ?web=clients ...) still opens it; once in classic, ?v=classic keeps it there.
+const CLASSIC_PARAMS = ["v", "ceo", "brain", "agent", "deptpanel", "clientpanel", "web", "dept", "view", "client"];
+export default function AgentsPage() {
+  const [params, setParams] = useSearchParams();
+  const classic = params.get("v") === "classic" || CLASSIC_PARAMS.slice(1).some((k) => params.has(k));
+  useEffect(() => {
+    if (classic && params.get("v") !== "classic") { const next = new URLSearchParams(params); next.set("v", "classic"); setParams(next, { replace: true }); }
+  }, [classic, params, setParams]);
+  if (classic) return <ClassicAgentsPage onShip={() => setParams(new URLSearchParams())} />;
+  return <ShipView onClassic={() => setParams(new URLSearchParams({ v: "classic" }))} />;
+}
