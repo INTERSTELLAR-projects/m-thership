@@ -279,10 +279,12 @@ export default function NeedsYou({ items, loading, onChanged, compact = false })
           {err && <p className="mt-3 text-[13px] text-[#c22a00]" role="alert">{err}</p>}
 
           <div className="mt-5 grid grid-cols-4 gap-2 md:flex md:flex-wrap">
+            {card.kind !== "question" && (
             <button type="button" onClick={approve} disabled={!!busy} className="col-span-4 inline-flex h-12 items-center justify-center gap-2 bg-ink px-5 text-[15px] font-medium text-white transition-colors hover:bg-[#ff3c00] disabled:opacity-50 md:col-span-1 md:min-w-[170px]">
               <Check className="h-4 w-4" />{busy === "approve" ? "Working…" : card.kind === "question" ? "Answer above" : card.kind === "send_email" ? "Approve & review send" : card.kind === "send_sms" ? "Approve text" : "Approve"}
               <kbd className="ml-1 hidden font-mono text-[10px] text-white/50 md:inline">A</kbd>
             </button>
+            )}
             {canEdit && <button type="button" onClick={() => setEditing((x) => !x)} className="inline-flex h-12 items-center justify-center gap-1.5 border border-hair px-3 text-[13px] text-ink/75 hover:border-ink"><Pencil className="h-3.5 w-3.5" />{editing ? "Done" : "Edit"}<kbd className="hidden font-mono text-[10px] text-ink/35 md:inline">E</kbd></button>}
             <button type="button" onClick={skip} disabled={!!busy} className={`${canEdit ? "" : "col-span-2"} inline-flex h-12 items-center justify-center gap-1.5 border border-hair px-3 text-[13px] text-ink/75 hover:border-ink disabled:opacity-50`}><SkipForward className="h-3.5 w-3.5" />Skip<kbd className="hidden font-mono text-[10px] text-ink/35 md:inline">S</kbd></button>
             <button type="button" onClick={snooze} disabled={!!busy} className={`${canEdit ? "col-span-2" : "col-span-2"} inline-flex h-12 items-center justify-center gap-1.5 border border-hair px-3 text-[13px] text-ink/75 hover:border-ink disabled:opacity-50`}><Clock className="h-3.5 w-3.5" />Snooze 3h<kbd className="hidden font-mono text-[10px] text-ink/35 md:inline">Z</kbd></button>

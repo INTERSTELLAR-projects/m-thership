@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { ArrowUp, Volume2, VolumeX, X, Check, Inbox } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
-import { MicOrb, useMicGesture, Mono } from "./ui";
+import { Mono } from "./ui";
+import { MicToggle, ListeningStatus } from "./Dictation";
 import { ask, errMsg } from "./api";
-import { useListener, speak, stopSpeaking, canSpeak, getSpeakPref, setSpeakPref } from "./voice";
+import { useDictation, speak, stopSpeaking, canSpeak, getSpeakPref, setSpeakPref } from "./voice";
 
 // The Ask bar: on every admin page. Hold the mic and talk (release sends) or tap to start/stop; type otherwise.
 // Questions get answers from the live records; orders become tasks, facts or re-plans right away, and anything
@@ -20,7 +21,6 @@ export default function AskBar() {
   const [busy, setBusy] = useState(false);
   const [voiceOn, setVoiceOn] = useState(getSpeakPref());
   const inputRef = useRef(null);
-  const spoken = useRef("");
   const listRef = useRef(null);
 
   const submit = useCallback(async (raw) => {
@@ -42,15 +42,9 @@ export default function AskBar() {
     setBusy(false);
   }, [text, busy, user, voiceOn]);
 
-  const voice = useListener({ onFinal: (t) => { spoken.current = (spoken.current ? spoken.current + " " : "") + t; setText(spoken.current); } });
-  const wasListening = useRef(false);
-  useEffect(() => {
-    // When the mic stops with something heard, send it.
-    if (wasListening.current && !voice.listening && spoken.current.trim()) { const t = spoken.current; spoken.current = ""; submit(t); }
-    wasListening.current = voice.listening;
-  }, [voice.listening, submit]);
-  const mic = useMicGesture({ listening: voice.listening, start: () => { spoken.current = ""; stopSpeaking(); voice.start(); }, stop: voice.stop });
-
+  // Tap the mic to start, tap again to stop. What you said stays in the box for you to check and send.
+  const dict = useDictation({ onStop: (t) => { setText(t); setTimeout(() => inputRef.current?.focus(), 30); } });
+  const toggleMic = () => { if (!dict.listening) { dict.setText(text); stopSpeaking(); } dict.toggle(); };
   useEffect(() => {
     const h = (e) => {
       if (e.key === "/" && !isTyping(document.activeElement) && !e.metaKey && !e.ctrlKey) { e.preventDefault(); inputRef.current?.focus(); }
@@ -88,22 +82,23 @@ export default function AskBar() {
             </div>
           </div>
         )}
-        <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="flex items-center gap-2 border border-ink/15 bg-paper/95 p-1.5 pl-2 shadow-[0_14px_40px_-18px_rgba(26,26,26,0.55)] backdrop-blur">
-          {voice.supported ? <MicOrb size={46} listening={voice.listening} {...mic} label="Hold to talk to Møthership" disabled={busy} /> : null}
+        {(dict.listening || dict.error) && <div className="mb-1.5 bg-paper/95 px-3 py-1.5 backdrop-blur"><ListeningStatus dict={dict} /></div>}
+        <form onSubmit={(e) => { e.preventDefault(); if (dict.listening) dict.stop(); else submit(); }} className="flex items-center gap-2 border border-ink/15 bg-paper/95 p-1.5 pl-2 shadow-[0_14px_40px_-18px_rgba(26,26,26,0.55)] backdrop-blur">
+          {dict.supported ? <span onClickCapture={(e) => { e.stopPropagation(); e.preventDefault(); toggleMic(); }}><MicToggle dict={{ ...dict, toggle: toggleMic }} size={46} label="Dictate to Møthership" /></span> : null}
           <input
             ref={inputRef}
-            value={voice.listening && voice.interim ? `${text} ${voice.interim}`.trim() : text}
+            value={dict.listening ? dict.text : text}
+            readOnly={dict.listening}
             onChange={(e) => setText(e.target.value)}
             onFocus={() => turns.length && setOpen(true)}
-            placeholder={voice.listening ? "Listening…" : "Ask, tell, or say “something came up”"}
+            placeholder={dict.listening ? "Listening… tap the mic to stop" : "Ask, tell, or say “something came up”"}
             className="h-11 min-w-0 flex-1 bg-transparent px-1 text-[15px] text-ink outline-none placeholder:text-ink/40"
             aria-label="Ask Møthership"
             enterKeyHint="send"
           />
           {canSpeak() && <button type="button" onClick={toggleVoice} className="hidden p-2 text-ink/45 hover:text-ink sm:block" aria-label={voiceOn ? "Turn spoken replies off" : "Turn spoken replies on"} title={voiceOn ? "Spoken replies on" : "Spoken replies off"}>{voiceOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}</button>}
-          <button type="submit" disabled={busy || !text.trim()} className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#ff3c00] text-white transition-colors hover:bg-ink disabled:bg-ink/15" aria-label="Send"><ArrowUp className="h-4 w-4" /></button>
+          <button type="submit" disabled={busy || (!text.trim() && !dict.listening)} className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#ff3c00] text-white transition-colors hover:bg-ink disabled:bg-ink/15" aria-label="Send"><ArrowUp className="h-4 w-4" /></button>
         </form>
-        {voice.error && <p className="mt-1 bg-paper/90 px-2 py-1 text-[12px] text-[#c22a00]">{voice.error}</p>}
       </div>
     </div>
   );
