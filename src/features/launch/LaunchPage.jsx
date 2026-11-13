@@ -3,6 +3,7 @@
 // Data: LaunchItem (audit records), CRMClient, User, EngineStart, completeness meter, approvals inbox.
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useDeepLinkFocus } from "@/lib/deepLink";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Check, ChevronDown, ChevronRight, Lock, Sparkles, User as UserIcon } from "lucide-react";
 import { base44 } from "@/api/base44Client";
@@ -97,12 +98,13 @@ function Workstreams({ s }) {
   );
 }
 
-function Move({ item, s, onToggle }) {
-  const [open, setOpen] = useState(false);
+function Move({ item, s, onToggle, focus = false }) {
+  const [open, setOpen] = useState(focus);
+  useEffect(() => { if (focus) setOpen(true); }, [focus]);
   const blockers = s.blockedBy(item);
   const done = item.status === "done";
   return (
-    <li className={`border border-hair bg-card ${done ? "opacity-60" : ""}`}>
+    <li data-record-id={item.id} className={`border border-hair bg-card ${done ? "opacity-60" : ""}`}>
       <div className="flex items-start gap-3 px-4 py-3">
         <button type="button" onClick={() => onToggle(item, !done)} aria-label={done ? "Mark not done" : "Mark done"} className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border ${done ? "border-[#ff3c00] bg-[#ff3c00] text-white" : "border-ink/30 hover:border-[#ff3c00]"}`}>{done && <Check className="h-3.5 w-3.5" />}</button>
         <button type="button" onClick={() => setOpen(!open)} className="min-w-0 flex-1 text-left" aria-expanded={open}>
@@ -134,7 +136,7 @@ function Question({ item, onAnswer }) {
   const [saving, setSaving] = useState(false);
   const answered = !!item.answer;
   return (
-    <li className={`border bg-card px-4 py-3 ${answered ? "border-hair opacity-70" : "border-[#ff3c00]/35"}`}>
+    <li data-record-id={item.id} className={`border bg-card px-4 py-3 ${answered ? "border-hair opacity-70" : "border-[#ff3c00]/35"}`}>
       <p className="text-[13.5px] font-medium leading-snug">{item.title}</p>
       <p className="mt-0.5 text-[12px] text-ink/55">{item.why_it_matters}{item.unblocks ? ` · unblocks ${item.unblocks}` : ""}</p>
       <div className="mt-2 flex flex-col gap-2 sm:flex-row">
@@ -210,7 +212,7 @@ function ClaudeQueue({ s }) {
             <p className="mono-label border-b border-hair px-4 py-2 text-[10px] text-ink/55">Week {w.n} · {w.label} · {rows.length} items · {fmtHours(rows.reduce((n, i) => n + (Number(i.effort_hours) || 0), 0))}</p>
             <ul>
               {rows.map((i) => (
-                <li key={i.id} className="flex gap-3 border-b border-hair/60 px-4 py-2 last:border-0">
+                <li key={i.id} data-record-id={i.id} className="flex gap-3 border-b border-hair/60 px-4 py-2 last:border-0">
                   <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#ff6a00]" />
                   <div className="min-w-0">
                     <p className="text-[12.5px] font-medium leading-snug">{i.title}{i.client_name && !i.title.includes(i.client_name) ? <span className="font-normal text-ink/45"> · {i.client_name}</span> : null}</p>
@@ -265,6 +267,11 @@ export default function LaunchPage() {
   const items = q.data || [];
   const s = useMemo(() => summarize(items), [items]);
   const [showDone, setShowDone] = useState(false);
+  // ?item=<LaunchItem id> (from Command's Top 3, Needs you and pillar to-dos): open that item and focus it.
+  const focusId = params.get("item") || "";
+  const focusItem = focusId ? items.find((i) => i.id === focusId) : null;
+  useEffect(() => { if (focusItem && focusItem.status === "done") setShowDone(true); }, [focusItem]);
+  useDeepLinkFocus(tab === "mission" && focusItem ? focusId : "", [items.length, showDone]);
   const moves = showDone ? s.moves.concat(items.filter((i) => i.owner === "justin" && i.status === "done" && i.kind !== "question")) : s.moves;
   const wt = waitingTotal(waiting.data);
 
@@ -288,7 +295,7 @@ export default function LaunchPage() {
               <div className="grid gap-x-8 xl:grid-cols-2">
                 <Section id="moves" label="Only what needs you" title="Your" accent="moves" right={<button type="button" onClick={() => setShowDone(!showDone)} className="text-[12px] text-ink/50 hover:text-ink">{showDone ? "Hide done" : "Show done"}</button>}>
                   <p className="mb-3 text-[12.5px] text-ink/60">Ordered by what each one unblocks. Calls, payments, logins, DNS, publishing and final approvals only; everything else is Claude's.</p>
-                  <ul className="space-y-2">{moves.map((i) => <Move key={i.id} item={i} s={s} onToggle={m.setDone} />)}</ul>
+                  <ul className="space-y-2">{moves.map((i) => <Move key={i.id} item={i} s={s} onToggle={m.setDone} focus={i.id === focusId} />)}</ul>
                 </Section>
                 <Section id="questions" label="Unblock autonomous work" title="Questions for" accent="Justin">
                   <p className="mb-3 text-[12.5px] text-ink/60">Short answers are enough. Each one lets Claude run something on its own.</p>
@@ -301,7 +308,7 @@ export default function LaunchPage() {
               <Section label="After launch" title="The 2027" accent="lane">
                 <div className="grid gap-px border border-hair bg-hair sm:grid-cols-2 xl:grid-cols-3">
                   {s.later.map((i) => (
-                    <div key={i.id} className="bg-card px-4 py-3">
+                    <div key={i.id} data-record-id={i.id} className="bg-card px-4 py-3">
                       <p className="text-[13px] font-medium">{i.title}</p>
                       <p className="text-[11.5px] text-ink/50">{i.why_it_matters}</p>
                       <p className="mono-label mt-1 text-[9.5px] text-ink/40">{streamOf(i)}{i.client_name ? ` · ${i.client_name}` : ""}</p>
