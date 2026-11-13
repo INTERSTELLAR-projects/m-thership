@@ -318,6 +318,8 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
       // Event pulses: one bright comet per real event along its true path.
       const keepP = [];
       for (const p of S.pulses) {
+        p.hops.forEach((h) => { const g2 = S.geom[h.edge]?.g; if (g2) h.g = g2; });
+        p.total = p.hops.reduce((s, h) => s + h.g.len, 0);
         p.s += dt * 430;
         if (p.s >= p.total) {
           const lastHop = p.hops[p.hops.length - 1];
