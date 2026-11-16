@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:unit": "vitest run",
     "sync:command": "node scripts/sync-command.mjs",
+    "sync:launchweek": "node scripts/sync-launchweek.mjs",
     "test:release": "npm run test:unit && node scripts/release-check.mjs"
   },
   "dependencies": {

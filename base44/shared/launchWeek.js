@@ -163,8 +163,8 @@ export async function lwSetStatus(db, id, status) {
   const row = await db.LaunchQuestion.get(id);
   if (!row) throw new Error("Question not found");
   const patch = { status };
-  if (status === "open" && row.brain_fact_ids?.length) {
-    for (const fid of row.brain_fact_ids) await db.BrainFact.update(fid, { status: "superseded" }).catch(() => null);
+  if (status !== "answered" && row.status === "answered") {
+    for (const fid of row.brain_fact_ids || []) await db.BrainFact.update(fid, { status: "superseded" }).catch(() => null);
     Object.assign(patch, { answer: "", raw_text: "", brain_fact_ids: [] });
   }
   await db.LaunchQuestion.update(id, patch);
