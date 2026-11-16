@@ -28,7 +28,6 @@ export const pillarFor = (area) => AREA_PILLAR[String(area || "").toLowerCase()]
 
 // Anti-spoofing for key-authenticated pushes: every command system shares COMMAND_SYSTEM_SYNC_KEY, so the key alone
 // proves nothing about WHICH client is sending. A push is accepted for a client only when the sending app id is the
-// one registered on that client (CRMClient.command_app_id). Returns "" when allowed, else the reason.
 // Every app a client has registered with Møthership: its command system (command_app_id) plus any second
 // ops app kept in other_app_ids (e.g. an onboarding form or a project tracker). Order: command app first.
 export function registeredAppIds(client) {
@@ -39,7 +38,7 @@ export function registeredAppIds(client) {
   return [...new Set(ids)];
 }
 
-// The client an app is registered on (command_app_id first, then other_app_ids). Null when none / ambiguous-free.
+// The client an app is registered on (command_app_id first, then other_app_ids), or null.
 export function findClientForApp(clients, appId) {
   const id = String(appId || "").trim();
   if (!id) return null;
@@ -49,6 +48,9 @@ export function findClientForApp(clients, appId) {
     || null;
 }
 
+// Anti-spoofing for key-authenticated pushes: every command system shares COMMAND_SYSTEM_SYNC_KEY, so the key alone
+// proves nothing about WHICH client is sending. A push is accepted for a client only when the sending app id is one
+// registered on that client (CRMClient.command_app_id or other_app_ids). Returns "" when allowed, else the reason.
 export function appAuthError(client, appId) {
   const id = String(appId || "").trim();
   if (!id) return "app_id is required";
