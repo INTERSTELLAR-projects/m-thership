@@ -49,7 +49,7 @@ export function rootOf(brands) {
   const list = arr(brands).filter((b) => !s(b.parent_brand_id)).sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0));
   return list[0] || null;
 }
-export const childBrands = (brands, root) => arr(brands).filter((b) => b && (!root || b.id !== root.id) && (s(b.parent_brand_id) || !root)).sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0) || s(a.name).localeCompare(s(b.name)));
+export const childBrands = (brands, root) => arr(brands).filter((b) => b && (!root || b.id !== root.id)).sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0) || s(a.name).localeCompare(s(b.name)));
 
 // Which brand a client belongs to: its brand_id when that brand exists (and is not the root), else Interstellar direct (null).
 export function brandIdOfClient(client, brands, root) {
