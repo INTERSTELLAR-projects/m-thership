@@ -42,6 +42,9 @@ const s = (v) => (v == null ? "" : String(v)).trim();
 const arr = (v) => (Array.isArray(v) ? v : v == null || v === "" ? [] : [v]);
 const rowsOf = (r) => (Array.isArray(r) ? r : (r && r.items) || []);
 const bool = (v) => v === true || v === "true" || v === 1 || v === "yes";
+// Audit text is shown in the app: drop the audit's own screenshot note and never show the builder platform's name.
+export const lwUiText = (v) => s(v).replace(/\s*Screenshots skipped \([^)]*\)\.?/gi, "").replace(/\byour Base44 /gi, "your ").replace(/\bBase44\b/gi, "the app platform").replace(/®/g, "™").trim();
+const u = lwUiText;
 
 export const lwQuestionId = (slug, id, i = 0) => {
   let raw = s(id) || `q${i + 1}`;
@@ -68,8 +71,8 @@ export function lwNormalize(json, slug, client, { now = new Date().toISOString()
   const status = {
     slug, client_id: client.client_id, client_name: client.client_name, app_id: client.app_id, logo_url: client.logo_url || "",
     preview_url: s(json?.preview_url), launch_readiness_pct: Math.max(0, Math.min(100, Math.round(Number(json?.launch_readiness_pct) || 0))),
-    status_summary: s(json?.status_summary).slice(0, 2000), done: arr(json?.done).map(s).filter(Boolean).slice(0, 60),
-    blocking: arr(json?.blocking).map(s).filter(Boolean).slice(0, 60), screenshots: arr(screenshots ?? []).map(s).filter((u) => /^https?:\/\//.test(u)).slice(0, 8),
+    status_summary: u(json?.status_summary).slice(0, 2000), done: arr(json?.done).map(u).filter(Boolean).slice(0, 60),
+    blocking: arr(json?.blocking).map(u).filter(Boolean).slice(0, 60), screenshots: arr(screenshots ?? []).map(s).filter((u) => /^https?:\/\//.test(u)).slice(0, 8),
     order: LW_SLUGS.includes(slug) ? LW_SLUGS.indexOf(slug) : Number(json?.order) || 0, imported_at: now,
   };
   const seen = new Set();
@@ -82,14 +85,14 @@ export function lwNormalize(json, slug, client, { now = new Date().toISOString()
     seen.add(question_id);
     const def = lwCrossOf(q);
     if (def) {
-      cross.push({ key: def.key, cover: { slug, client_id: client.client_id, client_name: client.client_name, app_id: client.app_id, question_id, question: s(q.question).slice(0, 1000), apply_to: s(Array.isArray(q.apply_to) ? q.apply_to.join(", ") : q.apply_to).slice(0, 300), blocks_launch: bool(q.blocks_launch) } });
+      cross.push({ key: def.key, cover: { slug, client_id: client.client_id, client_name: client.client_name, app_id: client.app_id, question_id, question: u(q.question).slice(0, 1000), apply_to: u(Array.isArray(q.apply_to) ? q.apply_to.join(", ") : q.apply_to).slice(0, 300), blocks_launch: bool(q.blocks_launch) } });
       return;
     }
     questions.push({
       question_id, source_id: s(q.id) || `q${i + 1}`, slug, client_id: client.client_id, client_name: client.client_name, app_id: client.app_id,
-      question: s(q.question).slice(0, 1000), default_answer: s(q.default_answer).slice(0, 1000),
-      options: arr(q.options).map(s).filter(Boolean).slice(0, 8), blocks_launch: bool(q.blocks_launch), category: s(q.category).slice(0, 60),
-      apply_to: s(Array.isArray(q.apply_to) ? q.apply_to.join(", ") : q.apply_to).slice(0, 300), order: i, imported_at: now,
+      question: u(q.question).slice(0, 1000), default_answer: u(q.default_answer).slice(0, 1000),
+      options: arr(q.options).map(u).filter(Boolean).slice(0, 8), blocks_launch: bool(q.blocks_launch), category: s(q.category).slice(0, 60),
+      apply_to: u(Array.isArray(q.apply_to) ? q.apply_to.join(", ") : q.apply_to).slice(0, 300), order: i, imported_at: now,
     });
   });
   return { status, questions, cross };
