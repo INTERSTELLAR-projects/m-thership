@@ -214,7 +214,7 @@ export function brainComponent(d) {
 // points once every question is answered). Used by scoreAll and by client-brain ingest (from the stored
 // pillar_scores), so both always agree.
 export function blendHealth(pillarScores, brain) {
-  const vals = Object.values(pillarScores || {}).map(Number).filter((v) => Number.isFinite(v));
+  const vals = Object.values(pillarScores || {}).filter((v) => v != null && v !== "").map(Number).filter((v) => Number.isFinite(v)); // unscored pillars (null) don't count
   if (!vals.length) return null; // never score a client on the brain alone
   const b = brain && Number.isFinite(brain.score) ? brain.score : null;
   const sum = vals.reduce((s, v) => s + v, 0) + (b == null ? 0 : b);
