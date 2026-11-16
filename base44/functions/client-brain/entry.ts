@@ -17,7 +17,6 @@
 // Records only: never sends, publishes or changes anything in the client's app.
 // deno-lint-ignore-file no-explicit-any
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
-import { getSecret } from "../../shared/portalClient.ts";
 import { planUpsert, factError, mergeClientBrain, getClientBrain, appAuthError, SOURCE } from "../../shared/clientBrain.js";
 import { brainComponent, blendHealth } from "../../shared/constellations.js";
 import { buildClientContext } from "../../shared/clientContext.ts";
