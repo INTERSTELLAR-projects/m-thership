@@ -166,7 +166,7 @@ export default function BrandDashboard() {
         {/* Real numbers only */}
         <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Stat label={isRoot ? "Direct clients" : "Clients"} value={active.length || "0"} hint={active.length ? `${roll.reporting} with an app brain reporting` : "No clients yet"} />
-          <Stat label="Open leads" value={openLeads.length || "0"} hint={openLeads.length ? `${leads.length} leads on record` : "No leads yet"} />
+          <Stat label="Open leads" value={openLeads.length || "0"} hint={openLeads.length ? `${leads.length} ${leads.length === 1 ? "lead" : "leads"} on record` : "No leads yet"} />
           <Stat label="Pipeline value" value={pipelineValue > 0 ? money(pipelineValue) : "—"} hint={pipelineValue > 0 ? "Sum of open lead values" : "No lead values on record"} />
           <Stat label="Monthly recurring" value={mrr > 0 ? money(mrr) : "—"} hint={mrr > 0 ? "From active clients' service lines" : "No billing on record yet"} />
         </div>
