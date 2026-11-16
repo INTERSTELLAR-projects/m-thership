@@ -187,7 +187,7 @@ const INTEGRATIONS = [
   { group: "Payments", name: "Stripe API", secret: "STRIPE_SECRET_KEY", uses: "Financial revenue, subscriptions, product list, billing sync" },
   { group: "Payments", name: "Stripe webhook", secret: "STRIPE_WEBHOOK_SECRET", uses: "Live billing sync when subscriptions or invoices change" },
   { group: "Inbound", name: "Lead intake", secret: "LEAD_INTAKE_KEY", uses: "Website + Interstellar Booking funnel leads into the Pipeline" },
-  { group: "Inbound", name: "External run reporting", secret: "MOTHERSHIP_INGEST_KEY", uses: "Outside automations report runs to Live Ops (log-activity)" },
+  { group: "Inbound", name: "External run reporting", secret: "MOTHERSHIP_INGEST_KEY", uses: "Outside automations report runs to Live Ops (log-activity); client apps log work and push their Business Brain answers (client-brain). Set the same value in each client app." },
   { group: "Google", name: "Google Places", secret: "GOOGLE_PLACES_API_KEY", uses: "Stärboard reviews feed on client sites" },
   { group: "Google", name: "PageSpeed Insights", secret: "PAGESPEED_API_KEY", uses: "Site audits (optional: raises Google's quota)", optional: true },
   { group: "AI", name: "OpenAI", secret: "OPENAI_API_KEY", uses: "Voice Core transcription + speech (optional: falls back to the browser)", optional: true },
