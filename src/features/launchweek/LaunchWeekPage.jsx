@@ -65,7 +65,7 @@ function Composer({ q, onSaved, onCancel }) {
   );
 }
 
-function QuestionCard({ q, open, onOpen, onClose, onAnswer, onStatus }) {
+function QuestionCard({ q, open, onOpen, onClose, onAnswer, onStatus, noAsk = false }) {
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [changing, setChanging] = useState(false);
@@ -128,7 +128,7 @@ function QuestionCard({ q, open, onOpen, onClose, onAnswer, onStatus }) {
             ) : (
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <button type="button" onClick={onOpen} className="inline-flex h-10 items-center gap-1.5 border border-hair bg-white px-3 text-[13px] hover:border-ink"><Mic className="h-3.5 w-3.5" />Say or type it</button>
-                {q.status !== "ask_client" && <button type="button" disabled={!!busy} onClick={() => run("ask", () => onStatus(q, "ask_client"))} className="inline-flex h-10 items-center gap-1.5 border border-hair bg-white px-3 text-[13px] hover:border-[#ff6a00] disabled:opacity-40"><MessageSquareText className="h-3.5 w-3.5" />Ask client</button>}
+                {!noAsk && q.status !== "ask_client" && <button type="button" disabled={!!busy} onClick={() => run("ask", () => onStatus(q, "ask_client"))} className="inline-flex h-10 items-center gap-1.5 border border-hair bg-white px-3 text-[13px] hover:border-[#ff6a00] disabled:opacity-40"><MessageSquareText className="h-3.5 w-3.5" />Ask client</button>}
                 {q.status !== "skipped" && <button type="button" disabled={!!busy} onClick={() => run("skip", () => onStatus(q, "skipped"))} className="inline-flex h-10 items-center gap-1.5 px-2 text-[12.5px] text-ink/50 hover:text-ink disabled:opacity-40"><SkipForward className="h-3.5 w-3.5" />Skip</button>}
                 {changing && <button type="button" onClick={() => setChanging(false)} className="h-10 px-2 text-[12.5px] text-ink/50 hover:text-ink">Keep {answered ? "answer" : "as is"}</button>}
               </div>
@@ -278,9 +278,11 @@ export default function LaunchWeekPage() {
 
   const byClient = useMemo(() => {
     const m = {};
-    for (const q of board?.questions || []) (m[q.slug] = m[q.slug] || []).push(q);
+    for (const q of board?.questions || []) if (q.slug !== "all") (m[q.slug] = m[q.slug] || []).push(q);
     return m;
   }, [board]);
+  const crossRows = useMemo(() => (board?.questions || []).filter((q) => q.slug === "all"), [board]);
+  const [crossOpen, setCrossOpen] = useState(null);
   const clients = useMemo(() => {
     const list = [...(board?.clients || [])].sort((a, b) => (a.order || 0) - (b.order || 0));
     // Questions whose status row has not landed yet still get a column.
@@ -303,20 +305,23 @@ export default function LaunchWeekPage() {
     const next = rows.find((x) => x.id !== q.id && (!x.status || x.status === "open"));
     if (next) setTimeout(() => document.getElementById(`lq-${next.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
   };
-  const afterJob = async (job, name) => {
-    if (job?.created) setNotice(`All blocking questions for ${shortName(name)} are answered. Queued for the agent: Apply launch answers to ${shortName(name)} site.`);
-    if (job) { try { const fresh = await loadBoard(); setBoard((b) => ({ ...b, clients: fresh.clients })); } catch { /* keep */ } }
+  const afterJob = async (r, name) => {
+    const jobs = r?.jobs || (r?.job ? [r.job] : []);
+    const made = jobs.filter((j) => j.created).map((j) => shortName(j.client_name || name));
+    if (made.length) setNotice(made.length === 1 ? `All blocking questions for ${made[0]} are answered. Queued for the agent: Apply launch answers to ${made[0]} site.` : `Queued for the agent: Apply launch answers to ${made.join(", ")}.`);
+    else if (jobs.some((j) => j.refreshed)) setNotice("Added to the agent jobs still waiting in the queue.");
+    if (jobs.length) { try { const fresh = await loadBoard(); setBoard((b) => ({ ...b, clients: fresh.clients })); } catch { /* keep */ } }
   };
   const onAnswer = async (q, statements, raw, mode) => {
     const r = await answerQuestion(q.id, { statements, raw_text: raw, mode });
     merge(r.question);
-    await afterJob(r.job, q.client_name);
+    await afterJob(r, q.client_name);
     scrollNext(q);
   };
   const onStatus = async (q, status) => {
     const r = await setQuestionStatus(q.id, status);
     merge(r.question);
-    await afterJob(r.job, q.client_name);
+    await afterJob(r, q.client_name);
     if (status !== "open") scrollNext(q);
   };
   const refresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
@@ -342,6 +347,18 @@ export default function LaunchWeekPage() {
 
       {notice && <p className="mt-3 flex items-start gap-2 border-l-2 border-[#1f8a5b] bg-white/70 px-3 py-2 text-[13.5px]" role="status"><Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[#ff6a00]" />{notice}</p>}
       {err && <p className="mt-3 text-[13px] text-[#c22a00]" role="alert">{err}</p>}
+
+      {crossRows.length > 0 && (
+        <section className="mt-5" aria-label="Across all sites">
+          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 className="text-[16px] font-semibold tracking-[-0.01em]">Across all {crossRows[0]?.covers?.length || clients.length} sites</h2>
+            <Mono className="text-ink/45">One answer · applied to every site</Mono>
+          </div>
+          <div className="space-y-3">
+            {crossRows.map((q) => <QuestionCard key={q.id} q={q} noAsk open={crossOpen === q.id} onOpen={() => setCrossOpen(q.id)} onClose={() => setCrossOpen(null)} onAnswer={onAnswer} onStatus={onStatus} />)}
+          </div>
+        </section>
+      )}
 
       {!board ? (
         <div className="mt-5 grid gap-4 lg:grid-cols-[290px,1fr]" aria-busy="true"><div className="h-[300px] animate-pulse border border-hair bg-paper/60 motion-reduce:animate-none" /><div className="band-dark h-[300px] animate-pulse motion-reduce:animate-none" /></div>
