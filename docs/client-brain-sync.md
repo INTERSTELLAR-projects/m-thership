@@ -149,7 +149,7 @@ brand template app --(client-brain ingest, brand level)-->  brand brain    (Bran
 
 ### Register a brand app (brand brain)
 
-1. In Møthership: `/brands` → Add brand (or open the brand) and set `template_app_id` to the brand template app id
+1. In Møthership: `/brands` → Add brand with its template app id (an existing brand: set `Brand.template_app_id` on the record)
    (DIALD: `6af56796b57036c616f5fd2d`, already set). Extra brand-owned apps go in `brand_app_ids`.
 2. In the brand app: set the secret `COMMAND_SYSTEM_SYNC_KEY` to the same value as Møthership's.
 3. In the brand app: a sender function posting the payload above to the endpoint with `x-mothership-key`, `app_id` =
