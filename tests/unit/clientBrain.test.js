@@ -130,7 +130,7 @@ describe("health formula", () => {
     const b1 = brainComponent({ client_brain: { total: 45, answered: 1 } });
     expect(b1).toEqual({ score: 2, answered: 1, total: 45 });
     expect(blendHealth(palm, b1)).toBe(30); // (293 + 2) / 10 = 29.5
-    expect(blendHealth(palm, brainComponent({ client_brain: { total: 45, answered: 23 } }))).toBe(35); // (293 + 51) / 10
+    expect(blendHealth(palm, brainComponent({ client_brain: { total: 45, answered: 23 } }))).toBe(34); // (293 + 51) / 10 = 34.4
     expect(blendHealth(palm, brainComponent({ client_brain: { total: 45, answered: 45 } }))).toBe(39); // (293 + 100) / 10
     const series = [0, 10, 20, 30, 40, 45].map((n) => blendHealth(palm, brainComponent({ client_brain: { total: 45, answered: n } })));
     expect([...series].sort((a, b) => a - b)).toEqual(series);
