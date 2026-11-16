@@ -98,6 +98,10 @@
       "description": "Base44 app id of their system",
       "type": "string"
     },
+    "command_app_id": {
+      "description": "App id of this client's command system that may push into M\u00f8thership (client-brain ingest with COMMAND_SYSTEM_SYNC_KEY). A push is accepted for this client only from this app id. docs/client-brain-sync.md",
+      "type": "string"
+    },
     "orbit_client_id": {
       "type": "string"
     },
