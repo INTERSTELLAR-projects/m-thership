@@ -1,6 +1,6 @@
 {
   "name": "LaunchQuestion",
-  "description": "Launch Week board (Nov 16-17, 2026): one question an agent needs Justin to answer before it can finish a client website. Imported from the site-audit JSON files (upsert by question_id = <slug>:<id>, never duplicated). Answering saves a BrainFact tagged with the client, and when every blocks_launch question for a client is answered a ClaudeJob 'Apply launch answers to <client> site' is queued with the answers bundled. status ask_client = waiting on the client (goes on the copyable Ask client list). Admin only.",
+  "description": "Launch Week board (Nov 16-17, 2026): one question an agent needs Justin to answer before it can finish a client website. Imported from the site-audit JSON files (upsert by question_id = <slug>:<id>, never duplicated). Answering saves a BrainFact tagged with the client, and when every blocks_launch question for a client is answered a ClaudeJob 'Apply launch answers to <client> site' is queued with the answers bundled. status ask_client = waiting on the client (goes on the copyable Ask client list). Questions asked in every pack (e.g. GA4) are stored once with slug all / scope all and their answer applies to every site in covers. Admin only.",
   "type": "object",
   "properties": {
     "question_id": {
@@ -13,7 +13,7 @@
     },
     "slug": {
       "type": "string",
-      "description": "powerlift | redline | smallcakes | north-woods | chasing-gains | bobablastic | bulba-bros"
+      "description": "powerlift | redline | smallcakes | north-woods | chasing-gains | bobablastic | bulba-bros, or all for a cross-client question"
     },
     "client_id": {
       "type": "string",
@@ -87,6 +87,48 @@
       "type": "array",
       "items": {
         "type": "string"
+      }
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "client",
+        "all"
+      ],
+      "default": "client",
+      "description": "all = one cross-client question (slug 'all') shown once and applied to every site in covers"
+    },
+    "covers": {
+      "type": "array",
+      "description": "Cross-client rows only: each site the answer applies to, with that pack's own wording and apply_to",
+      "items": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": "string"
+          },
+          "client_name": {
+            "type": "string"
+          },
+          "app_id": {
+            "type": "string"
+          },
+          "question_id": {
+            "type": "string"
+          },
+          "question": {
+            "type": "string"
+          },
+          "apply_to": {
+            "type": "string"
+          },
+          "blocks_launch": {
+            "type": "boolean"
+          }
+        }
       }
     },
     "order": {
