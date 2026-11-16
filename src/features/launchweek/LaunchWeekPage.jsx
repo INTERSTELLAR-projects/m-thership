@@ -168,9 +168,14 @@ function AskClientBox({ client, rows }) {
 function ClientPanel({ client, rows, onAnswer, onStatus }) {
   const [filter, setFilter] = useState("todo");
   const [openId, setOpenId] = useState(null);
+  // Cards settled in this sitting stay in "To answer" (collapsed) so the list doesn't jump under your thumb.
+  const [recent, setRecent] = useState(() => new Set());
+  const keep = (id) => setRecent((s) => new Set(s).add(id));
+  const answer = async (q, ...a) => { await onAnswer(q, ...a); keep(q.id); };
+  const status = async (q, st) => { await onStatus(q, st); keep(q.id); };
   const p = lwProgress(rows);
   const sorted = useMemo(() => [...rows].sort(sortQs), [rows]);
-  const list = filter === "todo" ? sorted.filter((q) => !q.status || q.status === "open" || q.status === "answered" && q._justNow)
+  const list = filter === "todo" ? sorted.filter((q) => !q.status || q.status === "open" || recent.has(q.id))
     : filter === "ask" ? sorted.filter((q) => q.status === "ask_client")
     : filter === "done" ? sorted.filter((q) => q.status === "answered" || q.status === "skipped") : sorted;
   useEffect(() => { setOpenId(null); }, [client.slug]);
@@ -247,7 +252,7 @@ function ClientPanel({ client, rows, onAnswer, onStatus }) {
 
       <div className="space-y-3">
         {list.length ? list.map((q) => (
-          <QuestionCard key={q.id} q={q} open={openId === q.id} onOpen={() => setOpenId(q.id)} onClose={() => setOpenId(null)} onAnswer={onAnswer} onStatus={onStatus} />
+          <QuestionCard key={q.id} q={q} open={openId === q.id} onOpen={() => setOpenId(q.id)} onClose={() => setOpenId(null)} onAnswer={answer} onStatus={status} />
         )) : (
           <p className="border border-dashed border-hair px-4 py-6 text-center text-[14px] text-ink/55">
             {filter === "todo" ? (p.total ? "Nothing left to answer here. Pick the next client." : "No questions for this site.") : "Nothing here."}
