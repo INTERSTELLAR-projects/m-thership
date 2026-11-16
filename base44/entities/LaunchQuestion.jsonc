@@ -1,0 +1,128 @@
+{
+  "name": "LaunchQuestion",
+  "description": "Launch Week board (Nov 16-17, 2026): one question an agent needs Justin to answer before it can finish a client website. Imported from the site-audit JSON files (upsert by question_id = <slug>:<id>, never duplicated). Answering saves a BrainFact tagged with the client, and when every blocks_launch question for a client is answered a ClaudeJob 'Apply launch answers to <client> site' is queued with the answers bundled. status ask_client = waiting on the client (goes on the copyable Ask client list). Admin only.",
+  "type": "object",
+  "properties": {
+    "question_id": {
+      "type": "string",
+      "description": "Unique key <slug>:<id from the audit file>"
+    },
+    "source_id": {
+      "type": "string",
+      "description": "The id exactly as the audit file gave it"
+    },
+    "slug": {
+      "type": "string",
+      "description": "powerlift | redline | smallcakes | north-woods | chasing-gains | bobablastic | bulba-bros"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "app_id": {
+      "type": "string",
+      "description": "The client website's app id"
+    },
+    "question": {
+      "type": "string"
+    },
+    "default_answer": {
+      "type": "string",
+      "description": "What the agent will do if Justin accepts the default"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "blocks_launch": {
+      "type": "boolean",
+      "default": false
+    },
+    "category": {
+      "type": "string"
+    },
+    "apply_to": {
+      "type": "string",
+      "description": "Where the answer is applied (page, section, component)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "answered",
+        "ask_client",
+        "skipped"
+      ],
+      "default": "open"
+    },
+    "answer": {
+      "type": "string",
+      "description": "The confirmed (cleaned) answer"
+    },
+    "raw_text": {
+      "type": "string",
+      "description": "What Justin said or typed before the clean-up"
+    },
+    "answer_mode": {
+      "type": "string",
+      "enum": [
+        "default",
+        "option",
+        "voice",
+        "typed",
+        "exact"
+      ],
+      "description": "How it was answered"
+    },
+    "answered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "brain_fact_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "order": {
+      "type": "number",
+      "default": 0
+    },
+    "imported_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "question_id",
+    "question",
+    "client_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
