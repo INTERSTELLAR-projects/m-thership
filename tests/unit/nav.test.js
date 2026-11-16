@@ -36,7 +36,7 @@ describe("navigation", () => {
   it("every older page still has a hub home", () => {
     const expected = {
       "/": "today", "/launch": "today", "/launch?tab=approvals": "today", "/agents?ceo=1": "today", "/output-analytics": "today",
-      "/crm": "clients", "/clients/abc": "clients", "/flight-plan": "clients", "/requests": "clients", "/comms": "clients", "/settings?tab=portal": "clients",
+      "/crm": "clients", "/clients/abc": "clients", "/brands": "clients", "/brands/diald": "clients", "/flight-plan": "clients", "/requests": "clients", "/comms": "clients", "/settings?tab=portal": "clients",
       "/tasks": "work", "/tasks/patterns": "work", "/tasks/sops": "work", "/projects": "work", "/projects/x": "work",
       "/packages/gravitycare": "work", "/packages/orbit-seo/abc": "work", "/orbit-seo/manage": "work", "/claude": "work",
       "/performance": "marketing", "/content-plans": "marketing", "/backlinks": "marketing", "/reviews": "marketing", "/security": "marketing",
