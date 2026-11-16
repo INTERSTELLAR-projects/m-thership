@@ -12,6 +12,12 @@
 //          supersedes stored facts the app no longer has. Soft only: nothing is deleted). Records the app's counts on
 //          ClientDossier.client_brain, re-blends the stored health score from the stored pillar scores (pillars.js
 //          blendHealth) and refreshes the client's shared context block so agents use the answers right away.
+//          Brand level (House of Brands): an app registered as a brand's template app (Brand.template_app_id) or one
+//          of its brand_app_ids is accepted with the same key; its facts are stored as that BRAND's brain
+//          (BrandBrainFact, source "brand_app") and its counts on Brand.brain_stats. Never as a client's brain.
+//          Optional payload { target: "brand" | "client", brand_id } must match the registration (base44/shared/brandBrain.js).
+//   features { app_id, features: [{ key, name?, state: enabled|added|removed|requested, usage_count?, last_used_at? }] }
+//          Same key + command_app_id check as ingest. Upserts ClientAppFeature rows (source sync) for the client.
 //   get    { client_id }   admin. What Møthership holds for that client (getClientBrain).
 //   status {}              admin. Every client with a reporting app: counts and last sync.
 // Records only: never sends, publishes or changes anything in the client's app.
@@ -20,18 +26,83 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import { planUpsert, factError, mergeClientBrain, getClientBrain, appAuthError, SOURCE } from "../../shared/clientBrain.js";
 import { brainComponent, blendHealth } from "../../shared/constellations.js";
 import { buildClientContext } from "../../shared/clientContext.ts";
+import { resolveIngestTarget, brandForApp, toBrandRow, featureError, planFeatureUpsert } from "../../shared/brandBrain.js";
 
 const arr = (v: any) => (Array.isArray(v) ? v : (v && v.items) || []);
 const s = (v: unknown) => (v == null ? "" : String(v).trim());
 const bareDomain = (x = "") => x.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0].trim();
 
-// Key-authenticated (machine) call: the client is the one whose command_app_id is the sending app. A client_id in the
-// payload must name that same client. Nothing else (domain, ops_app_id) can pick the target.
+const loadBrands = async (db: any) => arr(await db.Brand.list("sort_order", 200).catch(() => []));
+
+// Key-authenticated (machine) call: the target is the record the sending app is registered on. A brand template /
+// brand app writes its brand's brain; a client command system writes its client's brain (a client_id in the payload
+// must name that same client). Nothing else (domain, ops_app_id) can pick the target.
 async function resolveForApp(db: any, b: any) {
   const appId = s(b.app_id);
   const registered = appId ? arr(await db.CRMClient.filter({ command_app_id: appId }, "-updated_date", 2).catch(() => []))[0] || null : null;
-  const target = s(b.client_id) ? await db.CRMClient.get(s(b.client_id)).catch(() => null) : registered;
-  return { client: target, error: appAuthError(target, appId) };
+  const targetClient = s(b.client_id) ? await db.CRMClient.get(s(b.client_id)).catch(() => null) : null;
+  const t = resolveIngestTarget({ appId, payload: b, brands: await loadBrands(db), registeredClient: registered, targetClient });
+  if (t.kind === "brand") return { kind: "brand", brand: t.brand || null, client: null, error: t.error };
+  return { kind: "client", brand: null, client: t.client || null, error: t.error || appAuthError(t.client, appId) };
+}
+
+async function logRejected(db: any, appId: string, recordId: string, reason: string, via: string, entity = "CRMClient") {
+  console.error("client-brain rejected", JSON.stringify({ app_id: appId, record_id: recordId || null, reason, via }));
+  await db.AgentAuditLog.create({ at: new Date().toISOString(), actor: `app:${appId}`.slice(0, 120), action: "client_brain_rejected", entity, record_id: recordId || "", summary: `Rejected a Business Brain push: ${reason}`.slice(0, 500), ok: false }).catch(() => null);
+}
+
+// Brand brain: the brand's own template / brand app. Same upsert rules as a client brain, stored in BrandBrainFact.
+async function ingestBrand(db: any, b: any, brand: any, valid: any[], errors: any[], auth: { via: string }) {
+  const appId = s(b.app_id);
+  const now = new Date().toISOString();
+  const mode = b.mode === "full" ? "full" : "delta";
+  const appName = s(b.app_name).slice(0, 120);
+  const ctx = { app_id: appId, app_name: appName, client_id: "", client_name: "", now };
+  const existing = arr(await db.BrandBrainFact.filter({ source_app_id: appId, brand_id: brand.id }, "-created_date", 2000));
+  const plan = planUpsert(existing, valid, ctx, mode);
+  const creates = plan.creates.map((r: any) => toBrandRow(r, brand));
+  for (let i = 0; i < creates.length; i += 100) await db.BrandBrainFact.bulkCreate(creates.slice(i, i + 100));
+  for (const u of plan.updates) await db.BrandBrainFact.update(u.id, toBrandRow(u.patch, brand));
+  const patched = new Map(plan.updates.map((u: any) => [u.id, u.patch]));
+  const after = [...existing.map((r: any) => ({ ...r, ...(patched.get(r.id) || {}) })), ...creates];
+  const live = after.filter((r: any) => r.status === "active" && !r.data?.test);
+  const lastAnswer = live.map((r: any) => s(r.answered_at)).sort().pop() || "";
+  const prevApp = brand.brain_stats?.apps?.[appId] || null;
+  const stats = b.stats && typeof b.stats === "object" ? b.stats : prevApp || {};
+  const brainStats = mergeClientBrain(brand.brain_stats, appId, appName, stats, { facts_active: live.length, last_answer_at: lastAnswer, synced_at: now });
+  await db.Brand.update(brand.id, { brain_stats: brainStats });
+  return {
+    status: 200,
+    body: {
+      ok: true, level: "brand", brand_id: brand.id, brand_name: brand.name, app_id: appId, mode, auth: auth.via,
+      created: plan.creates.length, updated: plan.updates.length, unchanged: plan.unchanged, superseded: plan.superseded,
+      rejected: errors, facts_active: live.length,
+      brain: { answered: brainStats.answered, total: brainStats.total, score: brainStats.total ? Math.round((100 * brainStats.answered) / brainStats.total) : null },
+    },
+  };
+}
+
+// Feature report from a client's own app (feature intelligence). Client apps only.
+async function ingestFeatures(db: any, b: any, auth: { machine: boolean; via: string }) {
+  const appId = s(b.app_id);
+  if (!/^[A-Za-z0-9_-]{6,64}$/.test(appId)) return { status: 400, body: { error: "app_id is required" } };
+  let client: any = null;
+  if (auth.machine) {
+    const r = await resolveForApp(db, b);
+    if (r.error) { await logRejected(db, appId, s(b.client_id) || r.client?.id || r.brand?.id || "", r.error, auth.via, r.kind === "brand" ? "Brand" : "CRMClient"); return { status: 403, body: { error: "This app is not registered for that client" } }; }
+    if (r.kind === "brand") return { status: 400, body: { error: "Feature reports come from client apps; brand template features are kept in AppFeature" } };
+    client = r.client;
+  } else client = await resolveClient(db, b);
+  if (!client) return { status: 404, body: { error: "No Møthership client matches this app" } };
+  const list = Array.isArray(b.features) ? b.features.slice(0, 500) : [];
+  const errors: any[] = [];
+  const valid = list.filter((f: any, i: number) => { const e = featureError(f); if (e) errors.push({ index: i, key: s(f?.key), error: e }); return !e; });
+  const now = new Date().toISOString();
+  const existing = arr(await db.ClientAppFeature.filter({ client_id: client.id }, "-updated_date", 1000));
+  const plan = planFeatureUpsert(existing, valid, { client_id: client.id, client_name: client.business, brand_id: s(client.brand_id), app_id: appId, now });
+  for (let i = 0; i < plan.creates.length; i += 100) await db.ClientAppFeature.bulkCreate(plan.creates.slice(i, i + 100));
+  for (const u of plan.updates) await db.ClientAppFeature.update(u.id, u.patch);
+  return { status: 200, body: { ok: true, client_id: client.id, created: plan.creates.length, updated: plan.updates.length, unchanged: plan.unchanged, skipped_manual: plan.skippedManual, rejected: errors } };
 }
 
 // Admin call: client_id, else the client whose command / ops / site app is app_id, else the domain.
@@ -64,12 +135,23 @@ async function ingest(db: any, b: any, auth: { machine: boolean; via: string }) 
   if (auth.machine) {
     const r = await resolveForApp(db, b);
     if (r.error) {
-      console.error("client-brain rejected", JSON.stringify({ app_id: appId, client_id: s(b.client_id) || r.client?.id || null, reason: r.error, via: auth.via }));
-      await db.AgentAuditLog.create({ at: new Date().toISOString(), actor: `app:${appId}`.slice(0, 120), action: "client_brain_rejected", entity: "CRMClient", record_id: s(b.client_id) || r.client?.id || "", summary: `Rejected a Business Brain push: ${r.error}`.slice(0, 500), ok: false }).catch(() => null);
-      return { status: 403, body: { error: "This app is not the command system registered for that client" } };
+      await logRejected(db, appId, s(b.client_id) || s(b.brand_id) || r.client?.id || r.brand?.id || "", r.error, auth.via, r.kind === "brand" ? "Brand" : "CRMClient");
+      return { status: 403, body: { error: r.kind === "brand" ? "This app is not the template or brand app registered for that brand" : "This app is not the command system registered for that client" } };
     }
+    if (r.kind === "brand") return ingestBrand(db, b, r.brand, valid, errors, auth);
     client = r.client;
-  } else client = await resolveClient(db, b);
+  } else {
+    // Admin: brand_id / target "brand" picks a brand; otherwise a client; an app that only a brand owns is that brand.
+    const brands = await loadBrands(db);
+    const named = s(b.brand_id) ? brands.find((x: any) => x.id === s(b.brand_id)) || null : null;
+    if (s(b.brand_id) || s(b.target) === "brand") {
+      const brand = named || brandForApp(brands, appId);
+      if (!brand) return { status: 404, body: { error: "No brand matches (send brand_id, or set Brand.template_app_id to the app id)" } };
+      return ingestBrand(db, b, brand, valid, errors, auth);
+    }
+    client = await resolveClient(db, b);
+    if (!client) { const brand = brandForApp(brands, appId); if (brand) return ingestBrand(db, b, brand, valid, errors, auth); }
+  }
   if (!client) return { status: 404, body: { error: "No Møthership client matches this app (set the client's command_app_id to the app id, or send client_id)" } };
   const now = new Date().toISOString();
   const mode = b.mode === "full" ? "full" : "delta";
@@ -136,6 +218,11 @@ Deno.serve(async (req) => {
     if (action === "ingest") {
       if (!keyOk && !isAdmin) return Response.json({ error: "Unauthorized" }, { status: 401 });
       const r = await ingest(db, b, { machine: keyOk, via: via || "admin" });
+      return Response.json(r.body, { status: r.status });
+    }
+    if (action === "features") {
+      if (!keyOk && !isAdmin) return Response.json({ error: "Unauthorized" }, { status: 401 });
+      const r = await ingestFeatures(db, b, { machine: keyOk, via: via || "admin" });
       return Response.json(r.body, { status: r.status });
     }
     if (!isAdmin) return Response.json({ error: user ? "Forbidden" : "Unauthorized" }, { status: user ? 403 : 401 });
