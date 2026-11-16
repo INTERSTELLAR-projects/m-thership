@@ -23,7 +23,7 @@
 // Records only: never sends, publishes or changes anything in the client's app.
 // deno-lint-ignore-file no-explicit-any
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
-import { planUpsert, factError, mergeClientBrain, getClientBrain, appAuthError, SOURCE } from "../../shared/clientBrain.js";
+import { planUpsert, factError, mergeClientBrain, getClientBrain, appAuthError, findClientForApp, SOURCE } from "../../shared/clientBrain.js";
 import { brainComponent, blendHealth } from "../../shared/constellations.js";
 import { buildClientContext } from "../../shared/clientContext.ts";
 import { resolveIngestTarget, brandForApp, toBrandRow, featureError, planFeatureUpsert } from "../../shared/brandBrain.js";
@@ -39,7 +39,10 @@ const loadBrands = async (db: any) => arr(await db.Brand.list("sort_order", 200)
 // must name that same client). Nothing else (domain, ops_app_id) can pick the target.
 async function resolveForApp(db: any, b: any) {
   const appId = s(b.app_id);
-  const registered = appId ? arr(await db.CRMClient.filter({ command_app_id: appId }, "-updated_date", 2).catch(() => []))[0] || null : null;
+  // command_app_id first (indexed filter); a second registered ops app lives in other_app_ids (array), so fall back
+  // to a scan with the same rule the auth check uses (findClientForApp).
+  let registered = appId ? arr(await db.CRMClient.filter({ command_app_id: appId }, "-updated_date", 2).catch(() => []))[0] || null : null;
+  if (appId && !registered) registered = findClientForApp(arr(await db.CRMClient.list("business", 500).catch(() => [])), appId);
   const targetClient = s(b.client_id) ? await db.CRMClient.get(s(b.client_id)).catch(() => null) : null;
   const t = resolveIngestTarget({ appId, payload: b, brands: await loadBrands(db), registeredClient: registered, targetClient });
   if (t.kind === "brand") return { kind: "brand", brand: t.brand || null, client: null, error: t.error };
@@ -114,6 +117,8 @@ async function resolveClient(db: any, b: any) {
       const hit = arr(await db.CRMClient.filter({ [field]: appId }, "-updated_date", 2).catch(() => []))[0];
       if (hit) return hit;
     }
+    const other = findClientForApp(arr(await db.CRMClient.list("business", 500).catch(() => [])), appId);
+    if (other) return other;
   }
   const dom = bareDomain(s(b.domain));
   if (dom) {
