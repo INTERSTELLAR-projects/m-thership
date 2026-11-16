@@ -4,6 +4,7 @@ import { useConstellation } from "./useConstellation";
 import CommandCenter from "./CommandCenter";
 import BriefingDeck from "./BriefingDeck";
 import DossierEditor from "./DossierEditor";
+import ClientBrainCard from "./ClientBrainCard";
 import { defcon } from "./pillars";
 
 export default function ConstellationsTab({ client }) {
@@ -34,6 +35,8 @@ export default function ConstellationsTab({ client }) {
           {con.constraint && <span className="hidden text-ink/50 md:inline">Constraint: <b className="text-ink">{con.constraint.name}</b></span>}
         </div>
       </div>
+
+      {!con.loading ? <ClientBrainCard client={client} stats={con.d?.client_brain} /> : null}
 
       {con.loading ? (
         <div className="grid h-[60vh] place-items-center rounded-2xl bg-[#04131a] font-mono text-[11px] tracking-[.3em] text-[#3df5c8]">INITIALIZING COMMAND CENTER…</div>
