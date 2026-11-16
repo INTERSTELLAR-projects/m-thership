@@ -130,10 +130,32 @@ export default function ShipPanel({ selId, noteId, ship, data, registry, onClose
     status = node.status || c.status;
     stats = node.type === "cgroup"
       ? [["Agents", node.metrics.agents], ["Runs today", node.metrics.runsToday], ["Last synced", node.appId ? relTime(node.metrics.synced) : "live in Møthership"]]
-      : [["Health", c.health == null ? "—" : `${c.health}%`], ["Agents", `${c.metrics.live} live / ${c.metrics.agents}`], ["In their apps", c.metrics.inApp], ["Runs today", c.metrics.runsToday], ["Results today", c.metrics.workToday], ["New research", c.metrics.newResearch]];
+      : [["Health", c.health == null ? "—" : `${c.health}%`], ...(c.clientBrain?.total ? [["Brain answered", `${c.clientBrain.answered}/${c.clientBrain.total}`]] : []), ["Agents", `${c.metrics.live} live / ${c.metrics.agents}`], ["In their apps", c.metrics.inApp], ["Runs today", c.metrics.runsToday], ["Results today", c.metrics.workToday], ["New research", c.metrics.newResearch]];
     const agents = node.type === "cgroup" ? node.agents : (registry || []).filter((a) => a.scope === "client" && a.client_id === node.clientId);
+    const cb = c.clientBrain;
     body = (
       <>
+        {node.type !== "cgroup" && cb ? (
+          <Section title={cb.total ? `Business Brain: ${cb.answered}/${cb.total} answered` : "Business Brain"}>
+            {cb.total ? (
+              <div className="mb-2.5">
+                <span className="shp-bar block"><span style={{ width: `${cb.score || 0}%`, background: `linear-gradient(90deg, ${COLORS.brain}, ${COLORS.command})` }} /></span>
+                <p className="mono mt-1.5 text-[10px] uppercase tracking-[.1em] text-[var(--ink-s)]">{cb.score}% complete · counts toward health{cb.syncedAt ? ` · synced ${relTime(cb.syncedAt)}` : ""}{cb.apps.length ? ` · from ${cb.apps.map((a) => a.name).join(", ")}` : ""}</p>
+              </div>
+            ) : null}
+            {cb.latest.length ? (
+              <div className="space-y-2">
+                {cb.latest.map((f) => (
+                  <div key={f.id} className="min-w-0">
+                    {f.question ? <p className="line-clamp-1 text-[11px] text-[var(--ink-s)]">{f.question}</p> : null}
+                    <p className="line-clamp-3 text-[12.5px] leading-snug text-[var(--ink-d)]">{f.statement}</p>
+                    <p className="mono mt-0.5 text-[10px] uppercase tracking-[.1em] text-[var(--ink-s)]">{f.area || "other"}{f.captured_by_name ? ` · ${f.captured_by_name}` : ""} · {relTime(f.answered_at || f.created_date)}</p>
+                  </div>
+                ))}
+              </div>
+            ) : <Empty>No answers yet.</Empty>}
+          </Section>
+        ) : null}
         {node.type !== "cgroup" ? (
           <Section title="Connected apps">
             {c.apps.length ? (
