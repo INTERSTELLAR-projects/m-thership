@@ -198,7 +198,8 @@ const FlowCanvas = forwardRef(function FlowCanvas({ anchors, edges, scrollRef, m
       Object.values(S.geom).forEach(({ e, g }) => {
         if (hideEdge(e)) return;
         const dim = dimEdge(e);
-        const streams = [["f", e.fwd, e.color || COLORS.command, false], ["b", e.back, e.backColor || COLORS.result, true], ["i", e.idea, COLORS.idea, false]];
+        // fwdColor (optional, House of Brands): orbs going forward in a different color from the line itself.
+        const streams = [["f", e.fwd, e.fwdColor || e.color || COLORS.command, false], ["b", e.back, e.backColor || COLORS.result, true], ["i", e.idea, COLORS.idea, false]];
         streams.forEach(([k, s, color, rev]) => {
           if (!s || !s.rate) return;
           const key = `${e.id}|${k}`;
