@@ -8,6 +8,7 @@ import Constellation from "./Constellation";
 import { Mono, scoreTone, PILLAR_COLOR } from "./ui";
 import { PILLARS } from "./engine";
 import { getBrief, interrupt, listActions, recentAudit, undo, errMsg } from "./api";
+import LaunchWeekCard from "@/features/launchweek/LaunchWeekCard";
 
 function Skeleton() {
   return (
@@ -129,6 +130,7 @@ export default function CommandHome() {
           <Link to="/classic" className="hidden h-9 items-center sm:inline-flex gap-1.5 px-2 text-[12.5px] text-ink/50 hover:text-ink"><LayoutDashboard className="h-3.5 w-3.5" />Classic</Link>
         </nav>
       </div>
+      <LaunchWeekCard />
       {state.loading && !brief ? <Skeleton /> : (
         <div className="space-y-4">
           {brief ? (

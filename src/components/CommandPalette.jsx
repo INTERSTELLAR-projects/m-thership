@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, X, Users, FolderKanban, CornerDownLeft, Sparkles, RefreshCw, Zap, Brain, Headphones, Orbit, Sun, LayoutDashboard, ListPlus, Receipt, Mail } from "lucide-react";
+import { Search, X, Users, FolderKanban, CornerDownLeft, Sparkles, RefreshCw, Zap, Brain, Headphones, Orbit, Sun, LayoutDashboard, ListPlus, Receipt, Mail, Rocket } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { ALL_NAV } from "@/lib/nav";
 import { usePins } from "@/components/navPrefs";
@@ -16,6 +16,7 @@ let cache = null; // { clients, projects } kept for the session so reopening is 
 const askWith = (text, send = false) => window.dispatchEvent(new CustomEvent("command:ask", { detail: { text, send } }));
 const ACTIONS = [
   { key: "a:today", label: "Today (Command home)", hint: "G T", icon: Sun, path: "/" },
+  { key: "a:launchweek", label: "Launch Week · 7 sites", hint: "Answer the launch questions per client", icon: Rocket, path: "/command/launch-week" },
   { key: "a:replan", label: "Re-plan my day", hint: "Rebuild today's plan now", icon: RefreshCw, path: "/", after: () => window.dispatchEvent(new Event("command:replan")) },
   { key: "a:cameup", label: "Something came up…", hint: "Re-plan around an interruption", icon: Zap, run: () => askWith("Something came up: ") },
   { key: "a:task", label: "New task…", hint: "Say or type it", icon: ListPlus, run: () => askWith("Add task: ") },
