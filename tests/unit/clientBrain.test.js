@@ -1,6 +1,6 @@
 // Client-app Business Brain → Møthership: payload mapping, idempotent upsert, superseded handling, health formula.
 import { describe, it, expect } from "vitest";
-import { mapFact, planUpsert, factError, normalizeStats, mergeClientBrain, pillarFor, nsKey, clientBrainLines } from "../../base44/shared/clientBrain.js";
+import { mapFact, planUpsert, factError, normalizeStats, mergeClientBrain, pillarFor, nsKey, clientBrainLines, appAuthError } from "../../base44/shared/clientBrain.js";
 import { brainComponent, blendHealth, scoreAll } from "@/features/constellations/pillars";
 import * as backendPillars from "../../base44/shared/constellations.js";
 import { clientBrainOf } from "@/features/agents/ship/graph";
@@ -45,6 +45,19 @@ describe("payload mapping", () => {
     expect(factError(fact({ source_fact_id: "" }))).toMatch(/source_fact_id/);
     expect(factError(fact({ answer: "  " }))).toMatch(/answer/);
     expect(factError(fact({ status: "deleted" }))).toMatch(/status/);
+  });
+});
+
+describe("anti-spoofing (shared key)", () => {
+  const palm = { id: "c1", command_app_id: "app1" };
+  it("accepts only the app registered on the target client", () => {
+    expect(appAuthError(palm, "app1")).toBe("");
+    expect(appAuthError(palm, "app2")).toMatch(/not the command system registered for client c1/);
+  });
+  it("rejects unregistered apps, clients with no registered app and a missing app id", () => {
+    expect(appAuthError(null, "app9")).toMatch(/not registered/);
+    expect(appAuthError({ id: "c2" }, "app1")).toMatch(/no command_app_id/);
+    expect(appAuthError(palm, "")).toMatch(/app_id is required/);
   });
 });
 
