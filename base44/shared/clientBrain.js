@@ -26,6 +26,19 @@ export const AREA_PILLAR = {
 };
 export const pillarFor = (area) => AREA_PILLAR[String(area || "").toLowerCase()] || "clients";
 
+// Anti-spoofing for key-authenticated pushes: every command system shares COMMAND_SYSTEM_SYNC_KEY, so the key alone
+// proves nothing about WHICH client is sending. A push is accepted for a client only when the sending app id is the
+// one registered on that client (CRMClient.command_app_id). Returns "" when allowed, else the reason.
+export function appAuthError(client, appId) {
+  const id = String(appId || "").trim();
+  if (!id) return "app_id is required";
+  if (!client) return `app ${id} is not registered as a command system on any client (set CRMClient.command_app_id)`;
+  const reg = String(client.command_app_id || "").trim();
+  if (!reg) return `client ${client.id} has no command_app_id registered`;
+  if (reg !== id) return `app ${id} is not the command system registered for client ${client.id}`;
+  return "";
+}
+
 const s = (v) => (v == null ? "" : String(v));
 const cut = (v, n) => { const t = s(v).trim(); return t.length > n ? `${t.slice(0, n - 1)}…` : t; };
 const SECRET_RE = /(password|passcode|pwd|api[_ -]?key|secret|token)\s*[:=]\s*\S+/gi;
