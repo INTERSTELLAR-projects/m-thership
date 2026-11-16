@@ -16,6 +16,11 @@ import StripeServicePicker from "@/features/clients/StripeServicePicker";
 import ClientAnalytics, { serviceKey, serviceLabel } from "@/features/clients/ClientAnalytics";
 import { useCompletenessMap } from "@/features/clients/hooks";
 import CompletenessBadge from "@/features/clients/CompletenessBadge";
+import { useBrands } from "@/features/brands/useHouseData";
+import { brandFieldOptions } from "@/features/brands/graph";
+
+// Radix Select can't hold an empty value: "direct" stands for Interstellar direct (brand_id empty).
+const DIRECT = "direct";
 
 const statusFilters = ["Active", "Lead", "Inactive", "All"];
 
@@ -27,7 +32,8 @@ export default function CRM() {
   const [statusFilter, setStatusFilter] = useState("Active");
   const [selectedId, setSelectedId] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
-  const [newClient, setNewClient] = useState({ business: "", contact: "", phone: "", email: "", website: "", status: "Active" });
+  const [newClient, setNewClient] = useState({ business: "", contact: "", phone: "", email: "", website: "", status: "Active", brand_id: DIRECT });
+  const { data: brands = [] } = useBrands();
   const [bundleFor, setBundleFor] = useState(null); // client being grouped into a package
   const [bundleWith, setBundleWith] = useState("");
   const [bundleName, setBundleName] = useState("");
@@ -72,6 +78,7 @@ export default function CRM() {
       websites: newClient.website ? [newClient.website] : [],
       services: [],
       status: newClient.status,
+      ...(newClient.brand_id && newClient.brand_id !== DIRECT ? { brand_id: newClient.brand_id } : {}),
       notes: [],
       documents: [],
       blogSchedule: [],
@@ -79,7 +86,7 @@ export default function CRM() {
     const created = await base44.entities.CRMClient.create(c);
     setClients([...clients, created]);
     setAddOpen(false);
-    setNewClient({ business: "", contact: "", phone: "", email: "", website: "", status: "Active" });
+    setNewClient({ business: "", contact: "", phone: "", email: "", website: "", status: "Active", brand_id: DIRECT });
   };
 
   const updateClient = async (updated) => {
@@ -306,6 +313,15 @@ export default function CRM() {
                 <SelectTrigger className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-card border-ink/[0.13]">
                   {["Active", "Inactive", "Lead"].map((s) => <SelectItem key={s} value={s} className="text-ink/70">{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div><Label className="text-ink/50 text-xs">Brand</Label>
+              <Select value={newClient.brand_id} onValueChange={(v) => setNewClient({ ...newClient, brand_id: v })}>
+                <SelectTrigger className="bg-ink/[0.03] border-ink/[0.13] text-ink mt-1" aria-label="Brand"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-card border-ink/[0.13]">
+                  <SelectItem value={DIRECT} className="text-ink/70">Interstellar direct</SelectItem>
+                  {brandFieldOptions(brands).map((o) => <SelectItem key={o.value} value={o.value} className="text-ink/70">{o.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
