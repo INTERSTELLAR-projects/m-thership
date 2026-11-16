@@ -74,6 +74,7 @@ export default function ClientCockpit() {
   const save = async (v) => {
     await base44.entities.CRMClient.update(client.id, v);
     qc.invalidateQueries({ queryKey: ["CRMClient"] });
+    qc.invalidateQueries({ queryKey: ["house-of-brands"] });
   };
   // Opens the in-app invite dialog; the portal-invite function does the inviting and logging.
   const invite = () => setInviting(true);
