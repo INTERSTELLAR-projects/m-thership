@@ -184,7 +184,7 @@ export function buildHouse(data) {
 // Clients of one brand (root = Interstellar direct), any status.
 export function clientsOfBrand(clients, brands, brand) {
   const root = rootOf(brands);
-  const isRoot = !brand || (root && brand.id === root.id) || !s(brand.parent_brand_id);
+  const isRoot = !brand || !root || brand.id === root.id;
   return arr(clients).filter((c) => { const id = brandIdOfClient(c, brands, root); return isRoot ? !id : id === brand.id; });
 }
 
