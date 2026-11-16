@@ -138,7 +138,13 @@
       "type": "string"
     },
     "health_score": {
-      "type": "number"
+      "type": "number",
+      "description": "Business health 0-100: mean of the nine pillar scores plus, when a client app reports one, Business Brain completeness as one more component (src/features/constellations/pillars.js blendHealth; docs/client-brain-sync.md)"
+    },
+    "client_brain": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Business Brain completeness reported by the client's own app(s) through client-brain ingest: { total, answered, open, skipped, facts_active, synced_at, apps: { <app_id>: { app_name, total, answered, open, skipped, facts_active, last_answer_at, synced_at } } }. Real counts only."
     },
     "keyword_log": {
       "items": {
