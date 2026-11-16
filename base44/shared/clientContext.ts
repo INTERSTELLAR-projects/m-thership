@@ -6,7 +6,10 @@
 //
 // Business-facing facts only, safe for a client's own Studio: no billing, prices Interstellar charges, logins,
 // credentials, internal notes or open gaps. Nothing is invented: a missing fact shows as "not on file".
+// The owner's own answers from a client app's Business Brain (client-brain ingest, docs/client-brain-sync.md) are
+// included as their own section via shared/clientBrain.js getClientBrain.
 // deno-lint-ignore-file no-explicit-any
+import { getClientBrain, clientBrainLines } from "./clientBrain.js";
 
 export const CONTEXT_MARKER = "<!-- client-context v1 -->";
 const arr = (v: any) => (Array.isArray(v) ? v : []);
@@ -37,7 +40,7 @@ export async function loadContextSources(db: any, clientId: string) {
     ]);
     return { agency, client: { business: "Interstellar Strategies", domain: "interstellar-strategies.com", industry: "Full-stack digital agency" }, brain, dossier: brain?.dossier || {}, goals, work, reviews: [], mapPlan: null, kit: null };
   }
-  const [client, dossier, goals, work, reviews, mapPlan, kit] = await Promise.all([
+  const [client, dossier, goals, work, reviews, mapPlan, kit, clientBrain] = await Promise.all([
     db.CRMClient.get(clientId).catch(() => null),
     list(db.ClientDossier, { client_id: clientId }, "-updated_date", 1).then((r) => r[0] || {}),
     list(db.ClientGoal, { client_id: clientId }, "sort", 30),
@@ -45,8 +48,9 @@ export async function loadContextSources(db: any, clientId: string) {
     list(db.ReviewClient, { crm_client_id: clientId }, "-updated_date", 5),
     list(db.MapPackPlan, { client_id: clientId }, "-updated_date", 1).then((r) => r[0] || null),
     list(db.BrandKit, { client_id: clientId, status: "approved" }, "-version", 1).then((r) => r[0] || null),
+    getClientBrain(db, clientId, { limit: 120 }).catch(() => null),
   ]);
-  return { agency, client: client || { id: clientId }, brain, dossier, goals, work, reviews, mapPlan, kit };
+  return { agency, client: client || { id: clientId }, brain, dossier, goals, work, reviews, mapPlan, kit, clientBrain };
 }
 
 const itemStatus = (d: any, pillar: string, item: string) => {
@@ -117,6 +121,9 @@ export function buildContextBlock(src: any, opts: { maxChars?: number } = {}) {
   if (arr(bi.colors).length || yes(bi.fonts)) L.push(`- Look: ${[arr(bi.colors).length ? `colors ${arr(bi.colors).join(" ")}` : "", yes(bi.fonts) ? `fonts ${cut(bi.fonts, 120)}` : "", yes(bi.style) ? cut(bi.style, 140) : ""].filter(Boolean).join(" · ")}`);
   if (src.kit?.summary) L.push(`- Approved brand kit v${src.kit.version || 1}: ${cut(src.kit.summary, 260)}`);
   if (!arr(v.tone).length && !yes(v.personality)) { const t = secText(brain, "brand", 500); L.push(t ? `- From the Brain: ${t}` : "- Voice: not on file"); }
+
+  // 5b. The owner's own answers (client app Business Brain): how they price, word estimates, approve and talk.
+  if (src.clientBrain) L.push(...clientBrainLines(src.clientBrain, 2500));
 
   // 6. SEO footprint
   L.push("", "### SEO footprint");
