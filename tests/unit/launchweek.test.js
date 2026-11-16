@@ -138,6 +138,37 @@ describe("Launch Week job", () => {
   });
 });
 
+describe("Launch Week cross-client questions", () => {
+  const pack = (name, appId, ga4) => ({ client_name: name, app_id: appId, preview_url: "https://p.test", launch_readiness_pct: 50,
+    questions: [{ id: "x-q1", question: "Hours?", default_answer: "9-5", blocks_launch: true, category: "hours" }, { id: "x-q2", question: ga4, default_answer: "Yes", options: ["Yes", "Skip"], blocks_launch: false, category: "seo", apply_to: `gtag on ${name}` }] });
+  it("stores the GA4 question once, applies the answer to every site and rides along in each job", async () => {
+    const { db, store } = fakeDb();
+    await L.lwImport(db, pack("PowerLift Doors of Oregon", "a1", "No GA4 tag on the site. Set up a GA4 property?"), "powerlift");
+    await L.lwImport(db, pack("Redline Visuals", "a2", "Set up an Interstellar-owned GA4 property?"), "redline");
+    await L.lwImport(db, pack("Redline Visuals", "a2", "Set up an Interstellar-owned GA4 property?"), "redline"); // re-import: no duplicates
+    const all = store.LaunchQuestion.filter((q) => q.slug === "all");
+    expect(all).toHaveLength(1);
+    expect(all[0]).toMatchObject({ question_id: "all:ga4", scope: "all", client_name: "All 2 sites", blocks_launch: false });
+    expect(all[0].covers.map((c) => [c.slug, c.question_id, c.apply_to])).toEqual([["powerlift", "powerlift:x-q2", "gtag on PowerLift Doors of Oregon"], ["redline", "redline:x-q2", "gtag on Redline Visuals"]]);
+    expect(store.LaunchQuestion.filter((q) => q.slug === "powerlift").map((q) => q.question_id)).toEqual(["powerlift:x-q1"]);
+    // "powerlift-q1" style ids are normalised, never double-prefixed
+    expect(L.lwQuestionId("powerlift", "powerlift-q1")).toBe("powerlift:q1");
+
+    const r = await L.lwAnswer(db, all[0].id, { statements: ["Yes, Interstellar-owned GA4 on all of them"], mode: "option" });
+    expect(r.question.status).toBe("answered");
+    expect(store.BrainFact.map((f) => f.client_name)).toEqual(["PowerLift Doors of Oregon", "Redline Visuals"]);
+    expect(store.BrainFact[0].statement).toMatch(/same answer for all 2 launch sites/);
+    expect(r.jobs).toHaveLength(0); // the blocking questions are still open
+    const pl = store.LaunchQuestion.find((q) => q.question_id === "powerlift:x-q1");
+    const j = await L.lwAnswer(db, pl.id, { statements: ["9-5"], mode: "default" });
+    expect(j.job).toMatchObject({ created: true });
+    const job = store.ClaudeJob[0];
+    expect(job.instructions).toMatch(/one answer for every launch site/);
+    expect(job.instructions).toMatch(/Apply to: gtag on PowerLift Doors of Oregon/);
+    expect(job.context.answers.find((a) => a.all_sites)).toMatchObject({ answer: "Yes, Interstellar-owned GA4 on all of them" });
+  });
+});
+
 describe("Launch Week core copy", () => {
   it("the browser copy matches the backend copy", () => {
     const MARK = "// ---- shared body below (keep identical) ----";
