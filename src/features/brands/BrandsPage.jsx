@@ -282,9 +282,9 @@ export default function BrandsPage() {
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
           <div className="min-w-0">
             <h1 className="text-[24px] font-semibold leading-[0.95] tracking-[-0.045em] text-white sm:text-[28px] md:text-[30px]">House <span className="text-[#ff3c00]">/of Brands</span></h1>
-            <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-[12.5px] text-[var(--ink-d)]" data-testid="brands-summary">
-              <span className="live-dot shrink-0" />
-              {S.brands} {S.brands === 1 ? "brand" : "brands"} under Interstellar · {S.clients} active clients ({S.direct} direct) · {S.reporting + S.brandsReporting} {S.reporting + S.brandsReporting === 1 ? "brain" : "brains"} reporting
+            <p className="mt-1.5 flex items-start gap-2 text-[12.5px] leading-snug text-[var(--ink-d)]" data-testid="brands-summary">
+              <span className="live-dot mt-[5px] shrink-0" />
+              <span>{S.brands} {S.brands === 1 ? "brand" : "brands"} under Interstellar · {S.clients} active clients ({S.direct} direct) · {S.reporting + S.brandsReporting} {S.reporting + S.brandsReporting === 1 ? "brain" : "brains"} reporting</span>
             </p>
           </div>
           <div className="flex items-center gap-2">

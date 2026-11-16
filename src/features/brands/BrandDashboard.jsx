@@ -26,7 +26,7 @@ function Panel({ title, icon: Icon, right, children, className = "" }) {
     </section>
   );
 }
-const Empty = ({ children }) => <p className="rounded-xl border border-dashed border-white/12 px-3 py-3 text-[12.5px] leading-snug text-[var(--ink-s)]">{children}</p>;
+const Empty = ({ children }) => <p className="rounded-xl border border-dashed border-white/10 px-3 py-3 text-[12.5px] leading-snug text-[var(--ink-s)]">{children}</p>;
 function Stat({ label, value, hint }) {
   return (
     <div className="hb-panel !py-3.5">
