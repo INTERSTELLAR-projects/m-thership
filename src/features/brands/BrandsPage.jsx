@@ -2,7 +2,7 @@
 // direct clients hanging off the root and each brand's clients off their brand. Brain-flow orbs move UP (client ->
 // brand -> Interstellar); template orbs move down. Same visual language as the /agents ship (FlowCanvas, ship.css).
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, ExternalLink, Brain, Users, LayoutGrid, Orbit, ChevronRight } from "lucide-react";
 import "@/features/agents/agents.css";
 import "@/features/agents/ship/ship.css";
@@ -155,7 +155,9 @@ export default function BrandsPage() {
   const [width, setWidth] = useState(1280);
   const [stageH, setStageH] = useState(640);
   const [hover, setHover] = useState(null);
-  const [adding, setAdding] = useState(false);
+  const [params, setParams] = useSearchParams();
+  const adding = params.get("add") === "1";
+  const setAdding = (on) => { const next = new URLSearchParams(params); if (on) next.set("add", "1"); else next.delete("add"); setParams(next, { replace: true }); };
   const leaveT = useRef(0);
 
   const house = useMemo(() => (data ? buildHouse(data) : null), [data]);
