@@ -77,7 +77,7 @@ function QuestionCard({ q, open, onOpen, onClose, onAnswer, onStatus }) {
   const options = (q.options || []).filter((o) => o && o.trim().toLowerCase() !== String(q.default_answer || "").trim().toLowerCase());
 
   return (
-    <article id={`lq-${q.id}`} className={`scroll-mt-24 border bg-paper/90 ${answered && !changing ? "border-hair/70" : waiting ? "border-[#ff6a00]/50" : "border-hair"}`} aria-label={q.question}>
+    <article id={`lq-${q.id}`} className={`scroll-mt-28 border bg-paper/90 ${answered && !changing ? "border-hair/70" : waiting ? "border-[#ff6a00]/50" : "border-hair"}`} aria-label={q.question}>
       <div className="p-4 md:p-5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           {q.blocks_launch && <span className="inline-flex items-center gap-1 bg-[#ff3c00] px-1.5 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.12em] text-white"><AlertTriangle className="h-3 w-3" />Blocks launch</span>}
@@ -293,7 +293,7 @@ export default function LaunchWeekPage() {
     || clients.find((c) => { const p = lwProgress(byClient[c.slug]); return p.blocking_answered < p.blocking_total; })
     || clients[0];
 
-  const pick = (slug, scroll = true) => { const next = new URLSearchParams(params); next.set("client", slug); setParams(next, { replace: true }); if (scroll) window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const pick = (slug, scroll = true) => { const next = new URLSearchParams(params); next.set("client", slug); setParams(next, { replace: true }); if (scroll) (document.querySelector("main[data-trail]") || window).scrollTo({ top: 0, behavior: "smooth" }); };
   // Pin the first pick in the URL so finishing a client never swaps the panel out from under you.
   useEffect(() => { if (sel && sel.slug !== selSlug) pick(sel.slug, false); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [sel?.slug, selSlug]);
 
@@ -323,13 +323,13 @@ export default function LaunchWeekPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1320px] px-4 pb-36 pt-4 md:px-8 md:pt-8">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Mono className="text-ink/50">(Launch Week) · Mon Nov 16 – Tue Nov 17 · {clients.length || 7} sites</Mono>
           <h1 className="mt-2 text-[30px] font-semibold leading-[1] tracking-[-0.04em] md:text-[40px]">Launch <span className="text-[#ff3c00]">/Week</span></h1>
           <p className="mt-2 max-w-[62ch] text-[14px] leading-snug text-ink/60">Answer what the agents need to finish each site. Tap the default or an option, or say it. Every answer goes into that client's Brain; when a site's blocking questions are done, the agent gets the job.</p>
         </div>
-        <button type="button" onClick={refresh} disabled={refreshing} className="inline-flex h-9 items-center gap-1.5 border border-hair px-3 text-[12.5px] text-ink/70 hover:border-ink disabled:opacity-50"><RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin motion-reduce:animate-none" : ""}`} />Refresh</button>
+        <button type="button" onClick={refresh} disabled={refreshing} aria-label="Refresh" className="inline-flex h-9 items-center gap-1.5 border border-hair px-2.5 text-[12.5px] text-ink/70 hover:border-ink disabled:opacity-50 md:px-3"><RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin motion-reduce:animate-none" : ""}`} /><span className="hidden md:inline">Refresh</span></button>
       </div>
 
       <section className="mt-5 border border-hair bg-paper/80 px-4 py-3 md:px-5" aria-label="Overall progress">
@@ -352,7 +352,7 @@ export default function LaunchWeekPage() {
         </div>
       ) : (
         <div className="mt-5 lg:grid lg:grid-cols-[290px,minmax(0,1fr)] lg:items-start lg:gap-6">
-          <nav aria-label="Clients" className="lg:sticky lg:top-4">
+          <nav aria-label="Clients" className="lg:sticky lg:top-[100px]">
             <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0">
               {clients.map((c) => <ClientTab key={c.slug} c={c} p={lwProgress(byClient[c.slug])} active={sel?.slug === c.slug} onPick={() => pick(c.slug)} />)}
             </div>
