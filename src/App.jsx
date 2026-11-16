@@ -68,6 +68,8 @@ import PillarsView from '@/features/command/PillarsView';
 import BrainView from '@/features/command/BrainView';
 import WalkMode from '@/features/command/WalkMode';
 import LaunchWeekPage from '@/features/launchweek/LaunchWeekPage';
+import BrandsPage from '@/features/brands/BrandsPage';
+import BrandDashboard from '@/features/brands/BrandDashboard';
 
 // Branded sign-in routes. They render without a session. While the platform's hosted login owns /login for this
 // private app (custom auth not enrolled), the server answers these paths itself; the page takes over as soon as
@@ -151,6 +153,9 @@ const AuthenticatedApp = () => {
         <Route path="/pipeline" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
         <Route path="/financing" element={<ProtectedRoute><Financing /></ProtectedRoute>} />
         <Route path="/clients/:id" element={<ProtectedRoute><ClientCockpit /></ProtectedRoute>} />
+        {/* House of Brands: Interstellar + its niche brands (DIALD first). */}
+        <Route path="/brands" element={<ProtectedRoute><BrandsPage /></ProtectedRoute>} />
+        <Route path="/brands/:slug" element={<ProtectedRoute><BrandDashboard /></ProtectedRoute>} />
         <Route path="/client-usage" element={<ProtectedRoute><ClientUsagePage /></ProtectedRoute>} />
         <Route path="/fuel-economics" element={<ProtectedRoute><FuelEconomicsPage /></ProtectedRoute>} />
         <Route path="/upgrades" element={<ProtectedRoute><UpgradeStorePage /></ProtectedRoute>} />
