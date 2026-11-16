@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import BrandSwitcher from "@/features/brands/BrandSwitcher";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const ZONES = [
   { label: "HI", tz: "Pacific/Honolulu" },
@@ -20,6 +22,8 @@ export default function TimeZoneBar() {
 
   return (
     <div data-no-trail className="sticky top-0 z-20 flex h-[38px] items-center overflow-x-auto border-b border-hair bg-canvas/95 px-3 backdrop-blur no-scrollbar md:px-6">
+      {/* House of Brands: switch between brand dashboards (Interstellar, DIALD, ...). */}
+      <ErrorBoundary compact where="brand switcher"><BrandSwitcher /></ErrorBoundary>
       <span className="mono-label mr-3 flex items-center gap-2 text-[10px] text-ink/50">
         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#ff3c00]" /> Systems live
       </span>
