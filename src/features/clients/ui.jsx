@@ -82,7 +82,7 @@ export function Field({ f, value, onChange }) {
   if (f.type === "select")
     return (
       <select className={inputCls} value={value ?? ""} onChange={(e) => set(e.target.value)}>
-        {!f.required && <option value="">—</option>}
+        {!f.required && <option value="">{f.emptyLabel || "—"}</option>}
         {f.options.map((o) => (typeof o === "string" ? <option key={o} value={o}>{o.replace(/_/g, " ")}</option> : <option key={o.value} value={o.value}>{o.label}</option>))}
       </select>
     );
