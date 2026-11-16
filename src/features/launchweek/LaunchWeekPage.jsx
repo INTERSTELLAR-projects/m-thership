@@ -293,7 +293,9 @@ export default function LaunchWeekPage() {
     || clients.find((c) => { const p = lwProgress(byClient[c.slug]); return p.blocking_answered < p.blocking_total; })
     || clients[0];
 
-  const pick = (slug) => { const next = new URLSearchParams(params); next.set("client", slug); setParams(next, { replace: true }); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const pick = (slug, scroll = true) => { const next = new URLSearchParams(params); next.set("client", slug); setParams(next, { replace: true }); if (scroll) window.scrollTo({ top: 0, behavior: "smooth" }); };
+  // Pin the first pick in the URL so finishing a client never swaps the panel out from under you.
+  useEffect(() => { if (sel && sel.slug !== selSlug) pick(sel.slug, false); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [sel?.slug, selSlug]);
 
   const merge = (q) => setBoard((b) => ({ ...b, questions: b.questions.map((x) => (x.id === q.id ? { ...x, ...q } : x)) }));
   const scrollNext = (q) => {
