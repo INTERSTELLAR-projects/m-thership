@@ -46,7 +46,7 @@ export function lwNormalize(json, slug, client, { now = new Date().toISOString()
     preview_url: s(json?.preview_url), launch_readiness_pct: Math.max(0, Math.min(100, Math.round(Number(json?.launch_readiness_pct) || 0))),
     status_summary: s(json?.status_summary).slice(0, 2000), done: arr(json?.done).map(s).filter(Boolean).slice(0, 60),
     blocking: arr(json?.blocking).map(s).filter(Boolean).slice(0, 60), screenshots: arr(screenshots ?? []).map(s).filter((u) => /^https?:\/\//.test(u)).slice(0, 8),
-    order: Math.max(0, LW_SLUGS.indexOf(slug)), imported_at: now,
+    order: LW_SLUGS.includes(slug) ? LW_SLUGS.indexOf(slug) : Number(json?.order) || 0, imported_at: now,
   };
   const seen = new Set();
   const questions = [];
@@ -81,8 +81,8 @@ export function lwPlanUpsert(existing, incoming) {
   return { create, update };
 }
 
-export async function lwImport(db, json, slug, { clients = [], now, screenshots } = {}) {
-  if (!LW_SLUGS.includes(slug)) throw new Error(`Unknown launch-week client: ${slug}`);
+export async function lwImport(db, json, slug, { clients = [], now, screenshots, anySlug = false } = {}) {
+  if (!anySlug && !LW_SLUGS.includes(slug)) throw new Error(`Unknown launch-week client: ${slug}`);
   const client = lwResolveClient(json, slug, clients);
   const { status, questions } = lwNormalize(json, slug, client, { now, screenshots });
   const existing = rowsOf(await db.LaunchQuestion.filter({ slug }, "order", 500));
