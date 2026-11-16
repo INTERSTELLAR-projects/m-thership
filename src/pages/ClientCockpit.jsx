@@ -27,6 +27,8 @@ import { ClientRecentEmails, emailClientPath } from "@/features/email/ClientEmai
 import { ClientUsageCard } from "@/features/usage/ClientUsagePage";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import EngineChecklist from "@/features/launch/EngineChecklist";
+import { useBrands } from "@/features/brands/useHouseData";
+import { brandFieldOptions } from "@/features/brands/graph";
 
 const TABS = [
   ["overview", "Overview"], ["constellations", "✧ Constellations"], ["claude", "✦ Claude"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
@@ -41,6 +43,8 @@ const PROFILE_FIELDS = [
   { name: "phones", label: "Phones", type: "list" },
   { name: "domain", label: "Primary domain", type: "text", placeholder: "example.com" },
   { name: "industry", label: "Industry", type: "text" },
+  // House of Brands: options filled from the Brand records at render. Empty = Interstellar direct.
+  { name: "brand_id", label: "Brand", type: "select", options: [], emptyLabel: "Interstellar direct", help: "Which brand this client was sold through. Its brain rolls up to that brand." },
   { name: "location", label: "Location", type: "text" },
   { name: "plan", label: "Plan", type: "text", placeholder: "ALPHA + HyperCare+ Local" },
   { name: "services_managed", label: "What we manage", type: "multi", options: Object.entries(SERVICE_LABELS).map(([value, label]) => ({ value, label })) },
@@ -62,6 +66,7 @@ export default function ClientCockpit() {
   const [starting, setStarting] = useState(false);
   const qc = useQueryClient();
   const industries = useOptionList("client_industries").labels;
+  const { data: brands = [] } = useBrands();
 
   if (isLoading) return <div className="px-8 py-16 text-center text-ink/50">Loading…</div>;
   if (!client) return <div className="px-8 py-16 text-center text-ink/50">Client not found. <Link className="text-[#ff3c00]" to="/crm">Back to clients</Link></div>;
@@ -155,7 +160,7 @@ export default function ClientCockpit() {
 
       <StartServiceDialog open={starting} client={client} onClose={() => setStarting(false)} />
       <PortalInviteDialog open={inviting} client={client} onClose={() => setInviting(false)} onEditClient={() => setEditing(true)} />
-      <FormDialog open={editing} title="Edit client" fields={PROFILE_FIELDS.map((f) => (f.name === "industry" ? { ...f, suggestions: industries, placeholder: "Category · detail" } : f))} initial={client} onClose={() => setEditing(false)} onSubmit={save} />
+      <FormDialog open={editing} title="Edit client" fields={PROFILE_FIELDS.map((f) => (f.name === "industry" ? { ...f, suggestions: industries, placeholder: "Category · detail" } : f.name === "brand_id" ? { ...f, options: brandFieldOptions(brands, client.brand_id) } : f))} initial={client} onClose={() => setEditing(false)} onSubmit={save} />
     </div>
   );
 }
