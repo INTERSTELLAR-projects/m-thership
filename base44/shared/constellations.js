@@ -222,6 +222,7 @@ export function blendHealth(pillarScores, brain) {
 }
 
 export function scoreAll(ctx) {
+  /** @type {Record<string, any>} */
   const by = {};
   for (const p of PILLARS) by[p.id] = scorePillar(p, ctx);
   const brain = brainComponent(ctx.d);
