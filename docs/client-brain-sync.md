@@ -109,3 +109,89 @@ Same secret name everywhere, one registration per client, done:
 5. **First run:** `action: "backfill"` (or let the hourly run), then check the client's node in the Constellation.
 
 Nothing goes live until both apps are published.
+
+## House of Brands: three levels (client app → brand → Møthership)
+
+Interstellar Strategies is the root brand (any industry, mostly referrals). Each niche brand (DIALD first: competition
+bodybuilding coaches) sells the same 45-day rebuild into one industry, and each of its clients gets their own app built
+from the brand's template app. Brains flow upward:
+
+```
+client's own app  --(client-brain ingest, client level)-->  client brain   (BrainFact source client_app, ClientDossier.client_brain)
+                                                                 |  CRMClient.brand_id
+brand template app --(client-brain ingest, brand level)-->  brand brain    (BrandBrainFact source brand_app, Brand.brain_stats)
+                                                                 |  Brand.parent_brand_id (empty = root)
+                                                            Møthership    (/brands roll-up; Interstellar's own brain stays BrainFact)
+```
+
+- Data: `Brand` (name, slug, tagline, niche, parent_brand_id, status, website_url, template_app_id, brand_app_ids,
+  colors {primary, accent, background}, logo_url, offer_summary, sort_order, notes, brain_stats),
+  `CRMClient.brand_id` (empty = Interstellar direct), `BrandBrainFact`, `AppFeature`, `ClientAppFeature`.
+- Same endpoint, same secret: `COMMAND_SYSTEM_SYNC_KEY`. The target is always the record the sending app id is
+  registered on (`base44/shared/brandBrain.js` `resolveIngestTarget`):
+  - app id = `Brand.template_app_id` or in `Brand.brand_app_ids` → that brand's brain;
+  - app id = `CRMClient.command_app_id` → that client's brain (unchanged);
+  - anything else, a `brand_id` that is not the app's brand, `target: "brand"` from a client app or a `client_id` from a
+    brand app → 403 + `AgentAuditLog` row (`action: client_brain_rejected`, entity `Brand` or `CRMClient`).
+- Response for a brand push: `{ ok, level: "brand", brand_id, brand_name, created, updated, unchanged, superseded,
+  rejected[], facts_active, brain: { answered, total, score } }`. Same payload contract as above; optional
+  `target: "brand"` and `brand_id` must match the registration.
+- Why a separate `BrandBrainFact` entity instead of a `brand_id` on `BrainFact`: `BrainFact` is read in ~16 places
+  (Command, `/brain`, agents' context, the ship) as "Interstellar's own brain, minus `source: client_app`". A third kind
+  of row in it would leak brand facts into the agency brain everywhere. A separate entity keeps the three levels apart
+  by construction, reuses the same upsert code (`planUpsert` + `toBrandRow`) and keeps history the same way
+  (superseded, never deleted).
+- Roll-up (`src/features/brands/graph.js`): a brand's brain view shows its own facts and `brain_stats`, plus a summary of
+  its clients' brain completeness (`ClientDossier.client_brain`). The Interstellar root rolls up everything: its own
+  brain (BrainFact + BusinessBrain completeness), every brand brain and every client brain.
+- Privacy: brand apps send **business** facts only (for DIALD: the coach business, never athlete records, weights,
+  photos, health samples or check-ins). Møthership never reads a brand or client app directly.
+
+### Register a brand app (brand brain)
+
+1. In Møthership: `/brands` → Add brand (or open the brand) and set `template_app_id` to the brand template app id
+   (DIALD: `6af56796b57036c616f5fd2d`, already set). Extra brand-owned apps go in `brand_app_ids`.
+2. In the brand app: set the secret `COMMAND_SYSTEM_SYNC_KEY` to the same value as Møthership's.
+3. In the brand app: a sender function posting the payload above to the endpoint with `x-mothership-key`, `app_id` =
+   the template app id, `mode: "full"`, the coach-business facts and real `stats`. Optional `target: "brand"`.
+4. Publish the brand app. Check `/brands/<slug>` → Brand brain.
+
+### Register a client app (client brain), for a brand's client
+
+1. Create or edit the client in Møthership and set its **Brand** (client form) so it rolls up to that brand.
+2. Set `CRMClient.command_app_id` to that client's own app id (an app built from the brand template).
+3. Same secret `COMMAND_SYSTEM_SYNC_KEY` in the client's app; same sender, with `app_id` = the client app id.
+4. Publish. The client shows under its brand on `/brands` with its brain completeness.
+
+A template app id and a client app id must never be the same app: register each app once, on one record.
+
+## Feature intelligence (scaffold)
+
+Goal: see which features clients keep, add, remove, request and use across every app, so each brand template improves.
+
+- `AppFeature`: the features in a brand template (`in_template: true`). DIALD's 31 are seeded from the template app's
+  routes and pages (read-only). Nothing invented.
+- `ClientAppFeature`: one row per client + feature: `state` enabled | added | removed | requested, optional
+  `usage_count` / `last_used_at`, `source` manual | sync. No rows until a client app reports; the panels on
+  `/brands/<slug>` (most added / removed / requested / used) show an empty state until then. The root rolls up every brand.
+- How a client app reports (later; no senders are built yet): `POST /functions/client-brain` with the same
+  `x-mothership-key` and
+
+```json
+{
+  "action": "features",
+  "app_id": "the client app id (= CRMClient.command_app_id)",
+  "features": [
+    { "key": "peak_week", "state": "enabled", "usage_count": 42, "last_used_at": "2026-11-16T20:00:00Z" },
+    { "key": "posing_log", "name": "Posing log", "state": "added" },
+    { "key": "community", "state": "removed" },
+    { "key": "stripe_billing", "name": "Stripe billing", "state": "requested" }
+  ]
+}
+```
+
+  Same anti-spoofing as ingest (only the client's registered command app; brand apps get 400). Upserts one row per
+  client + `key` (idempotent); rows Justin set by hand (`source: manual`) are never overwritten. Use the template's
+  `AppFeature.key` for template features; any other key is a client-specific addition. Usage counts are optional and
+  must be real counts from the app. Response: `{ ok, client_id, created, updated, unchanged, skipped_manual, rejected[] }`.
+- Tests: `tests/unit/brandsGraph.test.js`.
