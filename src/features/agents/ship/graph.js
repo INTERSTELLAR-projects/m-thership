@@ -114,6 +114,19 @@ const maxIso = (list) => arr(list).filter(Boolean).sort((x, y) => ts(y) - ts(x))
 export const appName = (s) => String(s || "").replace(/\s*[([]?\bbase44\b[)\]]?/gi, "").replace(/\s{2,}/g, " ").trim() || "Client app";
 const hashHue = (id) => CLIENT_HUES[[...String(id)].reduce((s, ch) => (s * 31 + ch.charCodeAt(0)) >>> 0, 7) % CLIENT_HUES.length];
 
+// Business Brain in the client's own app (client-brain ingest): counts from ClientDossier.client_brain, the latest
+// active answers from the client-tagged BrainFacts. null when no app reports one. Test facts never show.
+export function clientBrainOf(dossier, facts, clientId) {
+  const st = dossier && dossier.client_brain;
+  const mine = arr(facts).filter((f) => f.source === "client_app" && f.client_id === clientId && f.status !== "superseded" && !(f.data && f.data.test))
+    .sort((a, b) => String(b.answered_at || b.created_date || "").localeCompare(String(a.answered_at || a.created_date || "")));
+  if (!(st && st.total) && !mine.length) return null;
+  const total = Number(st && st.total) || 0;
+  const answered = Math.min(total, Number(st && st.answered) || 0);
+  const apps = Object.entries((st && st.apps) || {}).map(([id, a]) => ({ id, name: appName(a.app_name), answered: a.answered || 0, total: a.total || 0, syncedAt: a.synced_at || null }));
+  return { answered, total, score: total ? Math.round((answered / total) * 100) : null, factsActive: mine.length, latest: mine.slice(0, 5), apps, syncedAt: (st && st.synced_at) || null };
+}
+
 // ---------------------------------------------------------------- the ship
 // data: { registry, runs, jobs, work, research, learnings, intel, findings, opps, ideas, actions, facts, brains, clients, dossiers, brief, usage }
 export function buildShip(data, { now = new Date(), focus = "" } = {}) {
@@ -320,7 +333,7 @@ export const recordPath = (entity, id, rec = {}) => {
     case "OracleFinding": case "OracleOpportunity": return "/intelligence";
     case "Idea": return "/idea-vault";
     case "CRMClient": return `/clients/${id}`;
-    case "BrainFact": return "/brain";
+    case "BrainFact": return rec.source === "client_app" && rec.client_id ? `/clients/${rec.client_id}?tab=constellations` : "/brain";
     case "AgentLearning": return rec.link || "/agents?v=classic";
     default: return "/";
   }
