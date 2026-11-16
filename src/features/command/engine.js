@@ -97,7 +97,8 @@ export async function loadSources(E) {
     q("automations", "Automation", (e) => e.list("-updated_date", 200)),
     q("hiring plan", "HiringPlan", (e) => e.list("-updated_date", 20)),
     q("training", "TrainingAssignment", (e) => e.list("-updated_date", 50)),
-    q("brain facts", "BrainFact", (e) => e.filter({ status: "active" }, "-created_date", 400)),
+    // Interstellar's own Brain only: client-app answers (source client_app, docs/client-brain-sync.md) live on the client.
+    q("brain facts", "BrainFact", (e) => e.filter({ status: "active" }, "-created_date", 600).then((r) => (Array.isArray(r) ? r : (r && r.items) || []).filter((f) => f.source !== "client_app").slice(0, 400))),
     q("proposed actions", "ProposedAction", (e) => e.filter({ status: { $in: ["pending", "snoozed"] } }, "-priority", 200)),
     q("CEO brief", "CeoBrief", (e) => e.list("-date", 2)),
   ]);
