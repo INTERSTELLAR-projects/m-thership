@@ -19,7 +19,8 @@ main brain node) leaves client-app facts out so its numbers stay about the agenc
 | Piece | Where |
 | --- | --- |
 | Endpoint | `POST https://interstellar-mothership.com/functions/client-brain` (`base44/functions/client-brain`) |
-| Auth | header `x-mothership-key` = secret `MOTHERSHIP_INGEST_KEY` (same key as `log-activity` and `work-ledger` `log`), or an admin session |
+| Auth | header `x-mothership-key` = secret `COMMAND_SYSTEM_SYNC_KEY` (one key shared by every client command system), or an admin session. `MOTHERSHIP_INGEST_KEY` is accepted as a temporary fallback only; it belongs to other incoming data and is never set in a client app |
+| Anti-spoofing | the sending app's `app_id` must equal `CRMClient.command_app_id` of the client it writes to; anything else gets 403 and an `AgentAuditLog` row (`action: client_brain_rejected`) |
 | Logic | `base44/shared/clientBrain.js` (mapping, upsert plan, counts, `getClientBrain`, context lines) |
 | Health | `src/features/constellations/pillars.js` `brainComponent` + `blendHealth` (backend copy `base44/shared/constellations.js`, keep identical) |
 | Agents | `base44/shared/clientContext.ts` loads `getClientBrain(db, clientId)` into the context block ("The owner's own answers") |
@@ -58,7 +59,10 @@ Every push sends the full list, so a missed push is repaired by the next one.
 }
 ```
 
-- Client match: `client_id`, else the `CRMClient` whose `ops_app_id` or `site_app_id` is `app_id`, else `domain`.
+- Client match (key calls): the `CRMClient` whose `command_app_id` is `app_id`. A `client_id`, if sent, must be that
+  same client. A shared key alone can never write into another client's brain: an unregistered app, a client with no
+  `command_app_id`, or a mismatch is rejected with 403 and logged. (Admin calls may also match by `client_id`,
+  `ops_app_id`, `site_app_id` or `domain`.)
 - `stats.total` excludes skipped questions. Send real counts only.
 - `mode: "full"` = the facts list is everything the app has: stored active facts it no longer contains become
   `superseded`. `"delta"` = only the facts sent are touched.
@@ -88,15 +92,20 @@ re-blends the stored `health_score` from the stored `pillar_scores` right away; 
 cockpit re-score with the same code. Example (Palm Shore, Nov 16 2026): pillars sum 293 over 9 → 33 before;
 with 2/46 answered (4) → round(297 / 10) = 30.
 
-## Add another client app (Muscle Mentor, Arcane Studio, Redline, a DIALD-style app…)
+## The standard for every command system (Palm Shore, Muscle Mentor, DIALD, Arcane, Redline, …)
 
-1. In Møthership, make sure the client's `CRMClient.ops_app_id` (or `site_app_id`) is the app's id, or plan to send
-   `client_id`.
-2. In the client app, set the secret `MOTHERSHIP_INGEST_KEY` to the same value as Møthership's.
-3. Copy Palm Shore's `base44/functions/mothershipBrainSync/entry.ts`; change `APP_ID`, `APP_NAME`, `DOMAIN`, and
-   map the app's own fact / question entities into the payload above (keep `mode: "full"`).
-4. Add the workflows: on create/update of the fact entity, on create/update of the question entity, and hourly.
-   Return 200 from the function even when not configured or rejected (failing runs switch a workflow off).
-5. Call it once (`action: "backfill"`) and check the client's node in the Constellation.
+Same secret name everywhere, one registration per client, done:
+
+1. **Secret (once, Justin):** create one key value yourself and set it as `COMMAND_SYSTEM_SYNC_KEY` in Møthership.
+   Then set the same value as `COMMAND_SYSTEM_SYNC_KEY` in each client command system app. Never paste it into code,
+   chat, records or docs. Do not reuse or change `MOTHERSHIP_INGEST_KEY`.
+2. **Register the app on the client:** set `CRMClient.command_app_id` to the command system's app id
+   (Palm Shore: `6abb58e697456bf5c1066b00`). This is what lets that app, and only that app, write that client's brain.
+3. **Copy the sender:** Palm Shore's `base44/functions/mothershipBrainSync/entry.ts`. Change `APP_ID` and `APP_NAME`,
+   map the app's own fact / question entities into the payload above (keep `mode: "full"`), read the key with
+   `Deno.env.get("COMMAND_SYSTEM_SYNC_KEY")`. With no key it logs one line and returns 200 (skips quietly); a rejected
+   push also returns 200 so the workflows are never switched off by failures.
+4. **Workflows:** on create/update of the fact entity, on create/update of the question entity, and hourly.
+5. **First run:** `action: "backfill"` (or let the hourly run), then check the client's node in the Constellation.
 
 Nothing goes live until both apps are published.
