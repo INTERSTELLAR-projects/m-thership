@@ -74,10 +74,10 @@ function RootCard({ node, brands, reg, onOpen, reduced, compact }) {
     <div ref={reg(ROOT_ID)} data-node={ROOT_ID} className="shp-card shp-clear hb-root" data-testid="house-root">
       <p className="eyebrow flex items-center justify-center gap-1.5 !text-[9.5px]"><Orbit className="h-3 w-3 text-[#ff6a00]" />Mother brand</p>
       <div className="hb-orbit" style={compact ? { maxWidth: 210 } : null}>
-        <div className="hb-ring" style={{ "--dur": reduced ? "0s" : "80s" }} aria-hidden="true">
+        <div className="hb-ring" style={reduced ? { animation: "none" } : { "--dur": "80s" }} aria-hidden="true">
           {planets.map((p) => <span key={p.id} className="hb-planet" style={{ left: p.left, top: p.top, "--c": p.color }} title={p.label}><i /></span>)}
         </div>
-        <div className="hb-ring r2" style={{ "--dur": "120s" }} aria-hidden="true" />
+        <div className="hb-ring r2" style={reduced ? { animation: "none" } : { "--dur": "120s" }} aria-hidden="true" />
         <div ref={reg("slot:claude")} className="hb-core" />
       </div>
       <button type="button" onClick={onOpen} className="group mx-auto block text-center" aria-label="Open the Interstellar Strategies dashboard">
@@ -134,7 +134,7 @@ function BrandPopup({ hover, onKeep, onLeave }) {
         <div><dt className="k">Client brains</dt><dd className="mt-0.5 text-white/90">{node.rollup.reporting ? `${pctText(node.rollup.score)} · ${node.rollup.reporting} reporting` : "None yet"}</dd></div>
       </dl>
       <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/10 pt-2.5">
-        {tpl ? <a href={`https://app.base44.com/apps/${tpl}/editor/preview`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] text-white/75 hover:text-white">Template app <ExternalLink className="h-3 w-3" /></a> : <span className="text-[12px] text-white/40">No template app yet</span>}
+        {tpl ? <a href={templateAppUrl(tpl)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] text-white/75 hover:text-white">Template app <ExternalLink className="h-3 w-3" /></a> : <span className="text-[12px] text-white/40">No template app yet</span>}
         <span className="mono text-[9.5px] uppercase tracking-[.12em] text-white/45">click to open</span>
       </div>
     </div>
