@@ -1,6 +1,6 @@
 // Client-app Business Brain → Møthership: payload mapping, idempotent upsert, superseded handling, health formula.
 import { describe, it, expect } from "vitest";
-import { mapFact, planUpsert, factError, normalizeStats, mergeClientBrain, pillarFor, nsKey, clientBrainLines, appAuthError } from "../../base44/shared/clientBrain.js";
+import { mapFact, planUpsert, factError, normalizeStats, mergeClientBrain, pillarFor, nsKey, clientBrainLines, appAuthError, registeredAppIds, findClientForApp } from "../../base44/shared/clientBrain.js";
 import { brainComponent, blendHealth, scoreAll } from "@/features/constellations/pillars";
 import * as backendPillars from "../../base44/shared/constellations.js";
 import { clientBrainOf } from "@/features/agents/ship/graph";
@@ -58,6 +58,36 @@ describe("anti-spoofing (shared key)", () => {
     expect(appAuthError(null, "app9")).toMatch(/not registered/);
     expect(appAuthError({ id: "c2" }, "app1")).toMatch(/no command_app_id/);
     expect(appAuthError(palm, "")).toMatch(/app_id is required/);
+  });
+});
+
+describe("registered apps (command_app_id + other_app_ids)", () => {
+  const smallcakes = { id: "c3", command_app_id: "cmdA", other_app_ids: ["onbB", "cmdA", ""] };
+  const smpl = { id: "c4", command_app_id: "projC" };
+  const bare = { id: "c5", other_app_ids: ["lonely"] };
+  const clients = [smallcakes, smpl, bare];
+  it("lists the command app first, then the extra apps, without blanks or duplicates", () => {
+    expect(registeredAppIds(smallcakes)).toEqual(["cmdA", "onbB"]);
+    expect(registeredAppIds(smpl)).toEqual(["projC"]);
+    expect(registeredAppIds(null)).toEqual([]);
+  });
+  it("resolves every registered app id to its client", () => {
+    expect(findClientForApp(clients, "cmdA")).toBe(smallcakes);
+    expect(findClientForApp(clients, "onbB")).toBe(smallcakes);
+    expect(findClientForApp(clients, "projC")).toBe(smpl);
+    expect(findClientForApp(clients, "lonely")).toBe(bare);
+    expect(findClientForApp(clients, "nope")).toBeNull();
+    expect(findClientForApp(clients, "")).toBeNull();
+  });
+  it("prefers a command_app_id match over an other_app_ids match", () => {
+    const dupe = { id: "c6", other_app_ids: ["projC"] };
+    expect(findClientForApp([dupe, smpl], "projC")).toBe(smpl);
+  });
+  it("accepts pushes from any registered app of the client and still rejects others", () => {
+    expect(appAuthError(smallcakes, "onbB")).toBe("");
+    expect(appAuthError(smallcakes, "cmdA")).toBe("");
+    expect(appAuthError(smallcakes, "projC")).toMatch(/not the command system registered for client c3/);
+    expect(appAuthError(bare, "lonely")).toBe("");
   });
 });
 
