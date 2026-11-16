@@ -165,7 +165,7 @@ export async function lwSetStatus(db, id, status) {
   const patch = { status };
   if (status === "open" && row.brain_fact_ids?.length) {
     for (const fid of row.brain_fact_ids) await db.BrainFact.update(fid, { status: "superseded" }).catch(() => null);
-    Object.assign(patch, { answer: "", raw_text: "", answer_mode: null, answered_at: null, brain_fact_ids: [] });
+    Object.assign(patch, { answer: "", raw_text: "", brain_fact_ids: [] });
   }
   await db.LaunchQuestion.update(id, patch);
   const job = status === "skipped" ? await lwMaybeQueueJob(db, row.slug, {}) : null;
