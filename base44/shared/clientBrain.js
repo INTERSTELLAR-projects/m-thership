@@ -89,21 +89,13 @@ export function planUpsert(existing, incoming, ctx, mode = "delta") {
   const recs = new Map();
   for (const f of incoming || []) recs.set(s(f.source_fact_id), mapFact(f, ctx)); // last one wins for a repeated id
 
-  // Newest active answer per question key wins (free-form facts have their own key per fact).
-  const winner = new Map();
-  for (const [id, r] of recs) {
-    if (r.status !== "active") continue;
-    const w = winner.get(r.question_key);
-    if (!w || r.answered_at > recs.get(w).answered_at) winner.set(r.question_key, id);
-  }
-  for (const r of rows) {
-    if (r.status !== "active" || recs.has(s(r.source_fact_id))) continue;
-    const w = winner.get(s(r.question_key));
-    if (!w || s(r.answered_at) > recs.get(w).answered_at) {
-      if (mode !== "full") winner.set(s(r.question_key), `row:${s(r.source_fact_id)}`); // a stored newer answer stays
-    }
-  }
-  for (const [id, r] of recs) if (r.status === "active" && winner.get(r.question_key) !== id) r.status = "superseded";
+  // Newest active answer per question key wins (free-form facts have their own key per fact). Candidates: the
+  // incoming active facts and, on a delta push, stored active rows the payload doesn't mention.
+  const winner = new Map(); // question_key -> { id, at }
+  const consider = (key, id, at) => { const w = winner.get(key); if (!w || at > w.at) winner.set(key, { id, at }); };
+  for (const [id, r] of recs) if (r.status === "active") consider(r.question_key, id, r.answered_at);
+  if (mode !== "full") for (const r of rows) if (r.status === "active" && !recs.has(s(r.source_fact_id))) consider(s(r.question_key), `row:${s(r.source_fact_id)}`, s(r.answered_at));
+  for (const [id, r] of recs) if (r.status === "active" && winner.get(r.question_key).id !== id) r.status = "superseded";
 
   const creates = [];
   const updates = [];
@@ -118,7 +110,7 @@ export function planUpsert(existing, incoming, ctx, mode = "delta") {
   for (const r of rows) {
     if (r.status !== "active" || recs.has(s(r.source_fact_id))) continue;
     const key = s(r.question_key);
-    const lost = winner.has(key) && winner.get(key) !== `row:${s(r.source_fact_id)}`;
+    const lost = winner.has(key) && winner.get(key).id !== `row:${s(r.source_fact_id)}`;
     if (lost || mode === "full") updates.push({ id: r.id, patch: { status: "superseded", synced_at: ctx.now } });
   }
   return { creates, updates, unchanged, superseded: updates.filter((u) => u.patch.status === "superseded").length + creates.filter((c) => c.status === "superseded").length };
