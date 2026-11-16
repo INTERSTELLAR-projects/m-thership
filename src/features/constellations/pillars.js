@@ -191,19 +191,42 @@ export function scorePillar(pillar, ctx) {
   return { score, items, gaps, penalty, done: items.filter((i) => i.status === "done").length, total: items.filter((i) => i.status !== "na").length, unknown };
 }
 
+// Business Brain completeness: how many of the owner questions in the client's own app (e.g. Palm Shore Ops) are
+// answered. Reported by the app through client-brain ingest into ClientDossier.client_brain (real counts, summed over
+// the client's apps). Skipped questions are left out of the total. null when no app reports one.
+//   brain = round(100 * answered / total)
+export function brainComponent(d) {
+  const cb = d && d.client_brain;
+  const total = Math.max(0, Math.floor(Number(cb && cb.total) || 0));
+  if (!total) return null;
+  const answered = Math.min(total, Math.max(0, Math.floor(Number(cb.answered) || 0)));
+  return { score: Math.round((answered / total) * 100), answered, total };
+}
+
+// Business health = the mean of the components that have a score: the nine pillar scores and, when the client has a
+// reporting app, Business Brain completeness as one more equal-weight component.
+//   health = round( (sum of scored pillar scores + brain) / (number of scored pillars + 1) )   with a client-app brain
+//   health = round(  sum of scored pillar scores          /  number of scored pillars       )   without one
+// So each answered question raises health by 100 / (total questions x 10) points (about 0.2 for 45 questions, 10
+// points once every question is answered). Used by scoreAll and by client-brain ingest (from the stored
+// pillar_scores), so both always agree.
+export function blendHealth(pillarScores, brain) {
+  const vals = Object.values(pillarScores || {}).map(Number).filter((v) => Number.isFinite(v));
+  if (!vals.length) return null; // never score a client on the brain alone
+  const b = brain && Number.isFinite(brain.score) ? brain.score : null;
+  const sum = vals.reduce((s, v) => s + v, 0) + (b == null ? 0 : b);
+  return Math.round(sum / (vals.length + (b == null ? 0 : 1)));
+}
+
 export function scoreAll(ctx) {
   const by = {};
-  let sum = 0, n = 0;
-  for (const p of PILLARS) {
-    const r = scorePillar(p, ctx);
-    by[p.id] = r;
-    if (r.score != null) { sum += r.score; n++; }
-  }
-  const health = n ? Math.round(sum / n) : null;
+  for (const p of PILLARS) by[p.id] = scorePillar(p, ctx);
+  const brain = brainComponent(ctx.d);
+  const health = blendHealth(Object.fromEntries(PILLARS.map((p) => [p.id, by[p.id].score])), brain);
   const ranked = PILLARS.filter((p) => by[p.id].score != null).sort((a, b) => by[a.id].score - by[b.id].score);
   const constraint = ranked[0] || null; // Hormozi: fix the weakest link first
   // Next moves: highest-weight breaches across the weakest sectors.
   const moves = ranked.flatMap((p) => by[p.id].items.filter((i) => i.status !== "done" && i.status !== "na").map((i) => ({ pillar: p, item: i, rank: (100 - by[p.id].score) * i.weight * (i.status === "missing" ? 1 : 0.5) })))
     .sort((a, b) => b.rank - a.rank).slice(0, 5);
-  return { by, health, constraint, moves };
+  return { by, health, constraint, moves, brain };
 }
