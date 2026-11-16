@@ -29,13 +29,33 @@ export const pillarFor = (area) => AREA_PILLAR[String(area || "").toLowerCase()]
 // Anti-spoofing for key-authenticated pushes: every command system shares COMMAND_SYSTEM_SYNC_KEY, so the key alone
 // proves nothing about WHICH client is sending. A push is accepted for a client only when the sending app id is the
 // one registered on that client (CRMClient.command_app_id). Returns "" when allowed, else the reason.
+// Every app a client has registered with Møthership: its command system (command_app_id) plus any second
+// ops app kept in other_app_ids (e.g. an onboarding form or a project tracker). Order: command app first.
+export function registeredAppIds(client) {
+  if (!client) return [];
+  const ids = [client.command_app_id, ...(Array.isArray(client.other_app_ids) ? client.other_app_ids : [])]
+    .map((v) => String(v || "").trim())
+    .filter(Boolean);
+  return [...new Set(ids)];
+}
+
+// The client an app is registered on (command_app_id first, then other_app_ids). Null when none / ambiguous-free.
+export function findClientForApp(clients, appId) {
+  const id = String(appId || "").trim();
+  if (!id) return null;
+  const list = Array.isArray(clients) ? clients : [];
+  return list.find((c) => String(c?.command_app_id || "").trim() === id)
+    || list.find((c) => registeredAppIds(c).includes(id))
+    || null;
+}
+
 export function appAuthError(client, appId) {
   const id = String(appId || "").trim();
   if (!id) return "app_id is required";
   if (!client) return `app ${id} is not registered as a command system on any client (set CRMClient.command_app_id)`;
-  const reg = String(client.command_app_id || "").trim();
-  if (!reg) return `client ${client.id} has no command_app_id registered`;
-  if (reg !== id) return `app ${id} is not the command system registered for client ${client.id}`;
+  const regs = registeredAppIds(client);
+  if (!String(client.command_app_id || "").trim() && !regs.length) return `client ${client.id} has no command_app_id registered`;
+  if (!regs.includes(id)) return `app ${id} is not the command system registered for client ${client.id}`;
   return "";
 }
 
