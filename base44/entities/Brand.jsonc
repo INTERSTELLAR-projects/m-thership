@@ -1,0 +1,117 @@
+{
+  "name": "Brand",
+  "description": "House of Brands: Interstellar Strategies (the root, parent_brand_id empty) and its niche brands (DIALD first). Each niche brand sells the same 45-day business rebuild (website + custom command system + SEO) into one industry; each of its clients gets their own app built from the brand template app. Brain flow: client app -> brand -> Møthership. See docs/client-brain-sync.md. Admin only.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Brand name, e.g. DIALD"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL key (/brands/<slug>), lowercase a-z 0-9 and dashes, unique"
+    },
+    "tagline": {
+      "type": "string"
+    },
+    "niche": {
+      "type": "string",
+      "description": "The one industry this brand sells into; the root takes any industry"
+    },
+    "parent_brand_id": {
+      "type": "string",
+      "description": "Brand id of the parent. Empty = this is the Interstellar root"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "building",
+        "planned",
+        "paused"
+      ],
+      "default": "planned"
+    },
+    "website_url": {
+      "type": "string"
+    },
+    "template_app_id": {
+      "type": "string",
+      "description": "App id of the brand product / template app. Accepted by client-brain ingest (COMMAND_SYSTEM_SYNC_KEY) as this BRAND brain, never a client one"
+    },
+    "brand_app_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Other apps owned by the brand itself (not client apps). Also accepted as the brand brain"
+    },
+    "colors": {
+      "type": "object",
+      "properties": {
+        "primary": {
+          "type": "string",
+          "description": "hex"
+        },
+        "accent": {
+          "type": "string",
+          "description": "hex"
+        },
+        "background": {
+          "type": "string",
+          "description": "hex"
+        }
+      },
+      "additionalProperties": true
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "logo_dark_url": {
+      "type": "string",
+      "description": "Logo for dark backgrounds, if different"
+    },
+    "offer_summary": {
+      "type": "string",
+      "description": "What the brand sells, in plain words. Real offer only"
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0
+    },
+    "notes": {
+      "type": "string"
+    },
+    "brain_stats": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Set by client-brain ingest from the brand app(s): { total, answered, open, skipped, facts_active, synced_at, apps: { <app_id>: {...} } }"
+    }
+  },
+  "required": [
+    "name",
+    "slug"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "name": "BrandBrainFact",
+  "description": "A brand-level Business Brain fact pushed by a brand template / brand app (client-brain ingest, source brand_app). Kept apart from BrainFact so the Interstellar brain and the client brains never mix with brand facts. Business facts only: never athlete / end-customer records. Admin only.",
+  "type": "object",
+  "properties": {
+    "brand_id": {
+      "type": "string",
+      "description": "Brand id"
+    },
+    "brand_name": {
+      "type": "string"
+    },
+    "pillar": {
+      "type": "string",
+      "enum": [
+        "sales",
+        "marketing",
+        "delivery",
+        "finance",
+        "clients",
+        "team",
+        "systems",
+        "owner"
+      ]
+    },
+    "statement": {
+      "type": "string"
+    },
+    "raw_text": {
+      "type": "string"
+    },
+    "question": {
+      "type": "string"
+    },
+    "question_key": {
+      "type": "string",
+      "description": "Namespaced client:<app_id>:<key> (same scheme as client facts)"
+    },
+    "source": {
+      "type": "string",
+      "description": "brand_app"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "high"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "superseded"
+      ],
+      "default": "active"
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "source_app_id": {
+      "type": "string"
+    },
+    "source_app_name": {
+      "type": "string"
+    },
+    "source_fact_id": {
+      "type": "string",
+      "description": "Upsert key with source_app_id"
+    },
+    "source_question_key": {
+      "type": "string"
+    },
+    "area": {
+      "type": "string"
+    },
+    "capture_source": {
+      "type": "string"
+    },
+    "captured_by_name": {
+      "type": "string"
+    },
+    "answered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "brand_id",
+    "pillar",
+    "statement"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

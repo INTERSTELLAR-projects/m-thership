@@ -1,0 +1,88 @@
+{
+  "name": "ClientAppFeature",
+  "description": "Per-client state of one feature in that client's own app (feature intelligence): what each client keeps, adds, removes, requests and uses, so the brand template improves. Written by hand or by the client-brain function (action features, same COMMAND_SYSTEM_SYNC_KEY + command_app_id check). Real data only. Admin only.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "brand_id": {
+      "type": "string",
+      "description": "Brand id (empty = Interstellar direct)"
+    },
+    "feature_key": {
+      "type": "string",
+      "description": "AppFeature.key"
+    },
+    "feature_name": {
+      "type": "string",
+      "description": "Name as the client app reports it, for features not in the template"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "enabled",
+        "added",
+        "removed",
+        "requested"
+      ]
+    },
+    "usage_count": {
+      "type": "number",
+      "description": "Optional: uses in the reporting window, as reported by the app"
+    },
+    "last_used_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "sync"
+      ],
+      "default": "manual"
+    },
+    "source_app_id": {
+      "type": "string"
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id",
+    "feature_key",
+    "state"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

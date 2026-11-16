@@ -32,7 +32,7 @@
         "active",
         "inactive"
       ],
-      "description": "Set by the Stripe sync. inactive = the client's HyperCare+/Grav\u00eftyCare subscription was canceled or ended and no off-Stripe care line remains: Studios lock and the portal shows a friendly 'plan inactive, contact us' screen. Data is kept."
+      "description": "Set by the Stripe sync. inactive = the client's HyperCare+/GravïtyCare subscription was canceled or ended and no off-Stripe care line remains: Studios lock and the portal shows a friendly 'plan inactive, contact us' screen. Data is kept."
     },
     "plan_inactive_at": {
       "type": "string",
@@ -99,8 +99,12 @@
       "type": "string"
     },
     "command_app_id": {
-      "description": "App id of this client's command system that may push into M\u00f8thership (client-brain ingest with COMMAND_SYSTEM_SYNC_KEY). A push is accepted for this client only from this app id. docs/client-brain-sync.md",
+      "description": "App id of this client's command system that may push into Møthership (client-brain ingest with COMMAND_SYSTEM_SYNC_KEY). A push is accepted for this client only from this app id. docs/client-brain-sync.md",
       "type": "string"
+    },
+    "brand_id": {
+      "type": "string",
+      "description": "Brand id (House of Brands) this client was sold through. Empty = Interstellar direct. See /brands"
     },
     "orbit_client_id": {
       "type": "string"
@@ -112,7 +116,7 @@
       "type": "array"
     },
     "plan": {
-      "description": "e.g. ALPHA + \u00d8rbit Local",
+      "description": "e.g. ALPHA + Ørbit Local",
       "type": "string"
     },
     "portal_emails": {
@@ -231,7 +235,7 @@
     },
     "studios": {
       "type": "object",
-      "description": "Client portal Studio states per client: off (hidden), preview (visible, locked; default), on (usable). Missing key = preview. Set in M\u00f8thership > Client usage.",
+      "description": "Client portal Studio states per client: off (hidden), preview (visible, locked; default), on (usable). Missing key = preview. Set in Møthership > Client usage.",
       "properties": {
         "social": {
           "type": "string",

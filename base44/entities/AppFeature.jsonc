@@ -1,0 +1,64 @@
+{
+  "name": "AppFeature",
+  "description": "A feature in a brand template app (feature intelligence). in_template = ships in the brand template every client app starts from. Seeded from the template app routes; never invented. Admin only.",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Stable feature key, unique per brand, e.g. peak_week"
+    },
+    "name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "description": "e.g. coaching, nutrition, training, contest, comms, sales, command, athlete_app, integrations"
+    },
+    "brand_id": {
+      "type": "string",
+      "description": "Brand id"
+    },
+    "in_template": {
+      "type": "boolean",
+      "default": true
+    },
+    "description": {
+      "type": "string"
+    },
+    "route": {
+      "type": "string",
+      "description": "Where it lives in the template app (internal)"
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "key",
+    "name",
+    "brand_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
