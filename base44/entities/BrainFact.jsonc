@@ -16,8 +16,14 @@
         "owner"
       ]
     },
-    "raw_text": { "type": "string", "description": "What Justin actually said or typed, before the clean-up (statement is the cleaned version he confirmed)" },
-    "client_name": { "type": "string", "description": "Set when the fact is about one client's business rather than Interstellar itself" },
+    "raw_text": {
+      "type": "string",
+      "description": "What Justin actually said or typed, before the clean-up (statement is the cleaned version he confirmed)"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Set when the fact is about one client's business rather than Interstellar itself"
+    },
     "statement": {
       "type": "string"
     },
@@ -57,6 +63,45 @@
       "type": "object",
       "additionalProperties": true,
       "description": "Structured value when useful, e.g. { start: '08:00', end: '17:30' }"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when the fact is about one client (set on every client-app fact)"
+    },
+    "source_app_id": {
+      "type": "string",
+      "description": "Client app the fact came from (source = client_app). Upsert key with source_fact_id. See docs/client-brain-sync.md"
+    },
+    "source_app_name": {
+      "type": "string"
+    },
+    "source_fact_id": {
+      "type": "string",
+      "description": "The fact's record id in the client app"
+    },
+    "source_question_key": {
+      "type": "string",
+      "description": "The client app's own question key (question_key here is namespaced client:<app_id>:<key>)"
+    },
+    "area": {
+      "type": "string",
+      "description": "The client app's business area, e.g. materials, pricing, labor (pillar is mapped from it)"
+    },
+    "capture_source": {
+      "type": "string",
+      "description": "Where the client app captured it, e.g. owner call, dictation"
+    },
+    "captured_by_name": {
+      "type": "string"
+    },
+    "answered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time client-brain ingest wrote this row"
     }
   },
   "required": [
