@@ -7,7 +7,7 @@ import "@/features/agents/agents.css";
 import "./brands.css";
 import { Spinner, relTime } from "@/features/agents/ui";
 import { clientRows, money } from "@/components/financial/finance/metrics";
-import { buildHouse, clientsOfBrand, clientBrainStats, featureStats, rollupClients, rootOf, themeVars, brandTheme, STATUS_LABEL, ROOT_ID } from "./graph";
+import { buildHouse, clientsOfBrand, clientBrainStats, featureStats, rollupClients, rootOf, themeVars, brandTheme, STATUS_LABEL } from "./graph";
 import { useHouseData } from "./useHouseData";
 import { templateAppUrl } from "./BrandsPage";
 import AddBrandDialog from "./AddBrandDialog";
@@ -256,7 +256,6 @@ export default function BrandDashboard() {
             </dl>
           </div>
         </Panel>
-        {node && node.id === ROOT_ID ? null : null}
       </div>
       <AddBrandDialog open={adding} brands={brands} onClose={() => setAdding(false)} onCreated={(b) => b?.slug && navigate(`/brands/${b.slug}`)} />
     </div>
