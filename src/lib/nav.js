@@ -51,6 +51,7 @@ export const HUBS = [
     hint: "Every client, from onboarding to day-to-day contact",
     tabs: [
       { label: "Clients", icon: Users, path: "/crm", match: ["/clients"], hint: "Every client record; open one for its hub with projects, tasks, work log, files and email" },
+      { label: "Brands", icon: Orbit, path: "/brands", hint: "House of Brands: Interstellar and its niche brands, their clients and brains flowing up" },
       { label: "Onboarding", icon: Route, path: "/flight-plan", hint: "Flight Plan: every purchase, every stage, every SOP step until it is delivered" },
       { label: "Requests", icon: ClipboardList, path: "/requests", hint: "What clients have asked for through their forms and portal" },
       { label: "Messages", icon: MessageSquare, path: "/comms", hint: "Client chats in one inbox" },
