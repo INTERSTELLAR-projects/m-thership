@@ -32,7 +32,7 @@ export function lwCrossRow(def, covers, now = new Date().toISOString()) {
   return {
     question_id: `${LW_ALL}:${def.key}`, source_id: def.key, slug: LW_ALL, scope: "all", client_id: "", client_name: `All ${n} sites`, app_id: "",
     question: def.question, default_answer: def.default_answer, options: def.options, category: def.category,
-    blocks_launch: covers.some((c) => c.blocks_launch), apply_to: `Every site: ${covers.map((c) => c.client_name).join(", ")}`.slice(0, 300),
+    blocks_launch: covers.some((c) => c.blocks_launch), apply_to: covers.map((c) => c.client_name).join(", ").slice(0, 300),
     covers, order: -1, imported_at: now,
   };
 }
