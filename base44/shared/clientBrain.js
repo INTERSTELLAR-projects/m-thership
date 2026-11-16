@@ -26,8 +26,6 @@ export const AREA_PILLAR = {
 };
 export const pillarFor = (area) => AREA_PILLAR[String(area || "").toLowerCase()] || "clients";
 
-// Anti-spoofing for key-authenticated pushes: every command system shares COMMAND_SYSTEM_SYNC_KEY, so the key alone
-// proves nothing about WHICH client is sending. A push is accepted for a client only when the sending app id is the
 // Every app a client has registered with Møthership: its command system (command_app_id) plus any second
 // ops app kept in other_app_ids (e.g. an onboarding form or a project tracker). Order: command app first.
 export function registeredAppIds(client) {
