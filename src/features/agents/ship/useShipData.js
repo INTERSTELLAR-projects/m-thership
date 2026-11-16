@@ -25,7 +25,8 @@ async function loadStructure() {
     safe(E.AgentLearning.list("-created_date", 200)),
   ]);
   // Client dossiers carry a lot of text; keep only what the ship reads.
-  const slim = dossiers.map((x) => ({ id: x.id, client_id: x.client_id, health_score: x.health_score }));
+  // client_brain = Business Brain counts reported by the client's own app (client-brain ingest).
+  const slim = dossiers.map((x) => ({ id: x.id, client_id: x.client_id, health_score: x.health_score, pillar_scores: x.pillar_scores, client_brain: x.client_brain || null }));
   return { registry, clients, brains, dossiers: slim, facts, brief: briefs[0] || null, intel, findings, opps, ideas, learnings };
 }
 
