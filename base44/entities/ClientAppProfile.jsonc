@@ -1,0 +1,213 @@
+{
+  "name": "ClientAppProfile",
+  "description": "Digital footprint: one record per client app or website (command system, website, onboarding form, other), so M\u00f8thership knows how each client's systems work. Loaded from the agent inventory (source agent_inventory). No customer personal data; secret NAMES only, never values. Admin only.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "app_id": {
+      "type": "string",
+      "description": "Base44 app id. Unique per record"
+    },
+    "app_name": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "command",
+        "website",
+        "onboarding",
+        "other"
+      ]
+    },
+    "combined": {
+      "type": "boolean",
+      "default": false,
+      "description": "True when one app is both the website and the command system (e.g. The Bulba Bros)"
+    },
+    "framework": {
+      "type": "string"
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "routes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "entities_summary": {
+      "type": "array",
+      "description": "[{ name, count }] record counts only (no record contents)",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "functions": {
+      "type": "array",
+      "description": "[{ name, description }]",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "automations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "integrations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "secret_names_present": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Names only, never values"
+    },
+    "secrets_missing_notes": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "domain_attached": {
+      "type": "boolean",
+      "description": "The domain is attached as a Base44 custom domain on this app"
+    },
+    "domain_notes": {
+      "type": "string"
+    },
+    "published_url": {
+      "type": "string"
+    },
+    "publish_state": {
+      "type": "string",
+      "enum": [
+        "published",
+        "published_with_unpublished_changes",
+        "not_published",
+        "unknown"
+      ]
+    },
+    "latest_checkpoint": {
+      "type": "string"
+    },
+    "has_brain": {
+      "type": "boolean"
+    },
+    "has_sync": {
+      "type": "string",
+      "enum": [
+        "yes",
+        "partial",
+        "no"
+      ]
+    },
+    "sync_notes": {
+      "type": "string"
+    },
+    "has_portal": {
+      "type": "boolean"
+    },
+    "demo_data_present": {
+      "type": "boolean"
+    },
+    "demo_data_notes": {
+      "type": "string"
+    },
+    "design_notes": {
+      "type": "string"
+    },
+    "website_details": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Websites: blog_post_count, schema_types, analytics presence, og_image, forms, booking_links, footer_credit, command_app_connection, services/location pages"
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "feature_keys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "AppFeature keys this app has (mirrors the ClientAppFeature rows)"
+    },
+    "inventoried_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "agent_inventory",
+        "manual"
+      ],
+      "default": "agent_inventory"
+    }
+  },
+  "required": [
+    "client_id",
+    "app_id",
+    "kind"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
