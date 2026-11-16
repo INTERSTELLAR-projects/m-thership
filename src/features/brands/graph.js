@@ -58,6 +58,16 @@ export function brandIdOfClient(client, brands, root) {
   return arr(brands).some((b) => b.id === id) ? id : null;
 }
 
+// Client form Brand selector: every niche brand (the empty option is "Interstellar direct"). A brand_id that points at a
+// brand no longer listed stays selectable so saving the form never silently moves the client.
+export function brandFieldOptions(brands, currentId) {
+  const root = rootOf(brands);
+  const opts = childBrands(brands, root).map((b) => ({ value: b.id, label: `${b.name}${b.niche ? ` · ${b.niche}` : ""}` }));
+  const cur = s(currentId);
+  if (cur && !opts.some((o) => o.value === cur) && !(root && root.id === cur)) opts.push({ value: cur, label: "Unknown brand (kept)" });
+  return opts;
+}
+
 export function brandTheme(brand) {
   const c = (brand && brand.colors) || {};
   const isRoot = brand && !s(brand.parent_brand_id);
