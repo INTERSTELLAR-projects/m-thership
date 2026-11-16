@@ -121,7 +121,7 @@ export async function brain(action, args = {}) {
   if (action === "clean") return { statements: [E.ruleClean(args.text)], source: "rules", about_client: "", pillar_hint: "" };
   const { s, scores } = await localCompute(null);
   if (action === "answer") for (const st of args.statements?.length ? args.statements : [args.text]) await base44.entities.BrainFact.create({ pillar: args.pillar, statement: st, raw_text: args.raw_text || args.text, question_key: args.question_key, source: "interview", status: "active", date: s.today, data: E.factData(args.question_key, args.raw_text || "", st) });
-  const facts = rows(await base44.entities.BrainFact.list("-created_date", 300)).filter((f) => f.status !== "superseded");
+  const facts = rows(await base44.entities.BrainFact.list("-created_date", 500)).filter((f) => f.status !== "superseded" && f.source !== "client_app").slice(0, 300);
   const factsBy = Object.fromEntries(E.PILLAR_IDS.map((id) => [id, facts.filter((f) => f.pillar === id).length]));
   return {
     question: E.nextQuestion(facts, scores, args.skip || []),
