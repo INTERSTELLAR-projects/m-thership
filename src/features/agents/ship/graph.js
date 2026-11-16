@@ -150,7 +150,8 @@ export function buildShip(data, { now = new Date(), focus = "" } = {}) {
     arr(d.work).filter((w) => w.status === "awaiting_approval").length;
   const aiCallsToday = arr(d.usage).filter((u) => u.kind === "ai_action" && since(u.created_at || u.created_date, today)).reduce((s, u) => s + (Number(u.calls) || 1), 0);
   const claudeRunsToday = hq.filter((a) => a.kind === "claude_scheduled_task" && since(a.last_run_at, today)).length + jobsToday.length;
-  const factsActive = arr(d.facts).filter((f) => f.status !== "superseded").length;
+  // The main brain is Interstellar's own; client-app answers (source client_app) show on their client node.
+  const factsActive = arr(d.facts).filter((f) => f.status !== "superseded" && f.source !== "client_app").length;
   const learned7d = arr(d.facts).filter((f) => since(when.fact(f), week)).length + arr(d.learnings).filter((l) => since(when.learning(l), week)).length;
   const eventsToday = runsToday.length + workToday.length + jobsToday.length + researchToday.length;
   const summary = { agentsLive: live.length, clientsServed: clientsServed.size, eventsToday, ideasWaiting, needsYou, aiCallsToday, claudeRunsToday, factsActive, learned7d, runsToday: runsToday.length, workToday: workToday.length };
@@ -209,6 +210,7 @@ export function buildShip(data, { now = new Date(), focus = "" } = {}) {
     const brain = arr(d.brains).find((b) => b.client_id === c.id) || null;
     const dossier = dossierBy[c.id] || null;
     const health = dossier && Number.isFinite(Number(dossier.health_score)) && dossier.health_score !== null ? Math.round(Number(dossier.health_score)) : brain ? Math.round(brain.completeness || 0) : null;
+    const clientBrain = clientBrainOf(dossier, arr(d.facts), c.id);
     const apps = [];
     if (c.site_app_id) apps.push({ id: c.site_app_id, label: "Website", kind: "site" });
     if (c.ops_app_id) apps.push({ id: c.ops_app_id, label: "Ops / Command app", kind: "ops" });
@@ -225,7 +227,7 @@ export function buildShip(data, { now = new Date(), focus = "" } = {}) {
     const waiting = arr(d.jobs).filter((j) => j.client_id === c.id && j.status === "needs_approval").length + arr(d.work).filter((w) => w.client_id === c.id && w.status === "awaiting_approval").length;
     add({
       id: `client:${c.id}`, type: "client", clientId: c.id, label: c.business, sub: c.industry || c.domain || "", color: accent, logo: c.logo_url || null, client: c,
-      status: mine.length ? rollStatus(mine) : "planned", apps, groups, health, brain,
+      status: mine.length ? rollStatus(mine) : "planned", apps, groups, health, brain, clientBrain,
       metrics: { agents: mine.length, live: mine.filter((a) => a.status === "live").length, inApp: mine.filter((a) => a.kind === "client_app_workflow").length, runsToday: cRuns, workToday: cWorkToday.length, newResearch, waiting, lastRun: maxIso(mine.map((a) => a.last_run_at)) },
     });
     // Department -> client: one edge per Møthership department that commands at least one of this client's agents.
@@ -402,7 +404,7 @@ export function activitiesFor(nodeId, ship, data, registry, n = 10) {
   let list = [];
   if (nodeId === "claude") list = all.filter((e) => e.type === "job" || (e.type === "run" && /claude|research|search|keyword|digest|queue/i.test(e.label)));
   else if (nodeId === "brain") {
-    list = arr(d.facts).map((f) => ({ key: `BrainFact:${f.id}`, type: "fact", entity: "BrainFact", id: f.id, at: ts(when.fact(f)), label: f.statement || f.question || "Fact", rec: f })).filter((e) => Number.isFinite(e.at));
+    list = arr(d.facts).filter((f) => f.source !== "client_app").map((f) => ({ key: `BrainFact:${f.id}`, type: "fact", entity: "BrainFact", id: f.id, at: ts(when.fact(f)), label: f.statement || f.question || "Fact", rec: f })).filter((e) => Number.isFinite(e.at));
     list = [...list, ...all.filter((e) => e.type === "research")].sort((a, b) => b.at - a.at);
   } else if (nodeId.startsWith("lane:")) {
     const key = nodeId.slice(5);
@@ -415,6 +417,8 @@ export function activitiesFor(nodeId, ship, data, registry, n = 10) {
   } else if (node && (node.type === "client" || node.type === "cagents" || node.type === "cgroup")) {
     const cid = node.clientId;
     list = all.filter((e) => e.rec && e.rec.client_id === cid);
+    // Answers the owner gave in their own app (client-brain ingest).
+    if (node.type !== "cgroup") list = [...list, ...arr(d.facts).filter((f) => f.source === "client_app" && f.client_id === cid && !(f.data && f.data.test)).map((f) => ({ key: `BrainFact:${f.id}`, type: "fact", entity: "BrainFact", id: f.id, at: ts(f.answered_at || when.fact(f)), label: `Brain: ${f.question ? `${f.question} → ` : ""}${f.statement}`, rec: f }))].filter((e) => Number.isFinite(e.at)).sort((a, b) => b.at - a.at);
     if (node.type === "cgroup") list = list.filter((e) => e.type !== "run" || node.agents.some((a) => runMatchesAgent(e.rec, a)));
   } else if (nodeId.startsWith("agent:")) {
     const a = arr(registry).find((x) => x.key === nodeId.slice(6));
