@@ -169,9 +169,10 @@ function structurePrompt(cp: any, ctx: any) {
     ...TYPE_RULES[type],
     "Turn his notes into a call plan. Rules:",
     "- goal: ONE sentence, what must be true when the call ends.",
-    type === "client"
-      ? "- Agenda order: open with the goal (1-2 min, purpose inform), then every DECISION item, then show items, then asks, then informs. Close with"
-      : "- Agenda order: follow the call-type rules above (open with the goal in one line), and close with", a final item 'Recap, next steps, next call date' (2-3 min, purpose decide) that confirms owners and dates.",
+    (type === "client"
+      ? "- Agenda order: open with the goal (1-2 min, purpose inform), then every DECISION item, then show items, then asks, then informs."
+      : "- Agenda order: follow the call-type rules above (state the goal in the first item).")
+      + " Close with a final item 'Recap, next steps, next call date' (2-3 min, purpose decide) that confirms owners and dates.",
     "- If OPEN ACTION ITEMS FROM LAST CALLS are given, add an early item 'Follow-ups from last call' covering only those, briefly.",
     `- Timebox every item in whole minutes. Total = ${Number(cp.timebox_minutes) || 25} minutes unless his notes clearly need less (default range 20-30). Never exceed 30 unless he asked for longer.`,
     "- talking_points: short, concrete, from his notes or the context. questions: exact questions to ask the client. decision_needed: the yes/no or choice to get, for decide items.",
