@@ -169,12 +169,14 @@ function structurePrompt(cp: any, ctx: any) {
     ...TYPE_RULES[type],
     "Turn his notes into a call plan. Rules:",
     "- goal: ONE sentence, what must be true when the call ends.",
-    "- Agenda order: open with the goal (1-2 min, purpose inform), then every DECISION item, then show items, then asks, then informs. Close with a final item 'Recap, next steps, next call date' (2-3 min, purpose decide) that confirms owners and dates.",
+    type === "client"
+      ? "- Agenda order: open with the goal (1-2 min, purpose inform), then every DECISION item, then show items, then asks, then informs. Close with"
+      : "- Agenda order: follow the call-type rules above (open with the goal in one line), and close with", a final item 'Recap, next steps, next call date' (2-3 min, purpose decide) that confirms owners and dates.",
     "- If OPEN ACTION ITEMS FROM LAST CALLS are given, add an early item 'Follow-ups from last call' covering only those, briefly.",
     `- Timebox every item in whole minutes. Total = ${Number(cp.timebox_minutes) || 25} minutes unless his notes clearly need less (default range 20-30). Never exceed 30 unless he asked for longer.`,
     "- talking_points: short, concrete, from his notes or the context. questions: exact questions to ask the client. decision_needed: the yes/no or choice to get, for decide items.",
     "- prep_checklist: things Justin should have open before the call (specific pages, URLs, numbers, files) drawn from the notes and context.",
-    "- asks_from_client: what to get from the client (assets, approvals, numbers).",
+    "- asks_from_client: what to get from them (assets, approvals, numbers, decisions).",
     "- risks: things that could derail the call or the project; keep it to real ones.",
     "- conflicts: anything in his notes that disagrees with STORED FACTS, dossier, CRM notes or the site, or anything his notes say is inconsistent with itself (e.g. two different numbers for the same thing). Quote both sides. Empty if none.",
     "- Never repeat why former clients left, or anything personal about anyone, on a call plan.",
@@ -249,11 +251,31 @@ Deno.serve(async (req) => {
 
     let cp: any = null;
     if (b.call_prep_id) cp = await db.CallPrep.get(s(b.call_prep_id)).catch(() => null);
-    if (!cp && mode === "structure" && b.client_id) {
-      const client = await db.CRMClient.get(s(b.client_id)).catch(() => null);
-      if (!client) return Response.json({ ok: false, error: "Client not found" }, { status: 404 });
+    if (mode === "pitch") {
+      const pos = await loadPositioning(db);
+      if (!pos.length) return Response.json({ ok: false, error: "No positioning facts yet (BrainFact source = positioning)" }, { status: 400 });
+      const r: any = await llm([
+        "Write Justin Cowell's pitch for Interstellar Strategies in three lengths, spoken in first person as Justin, plain and confident, no hype words, no emoji.",
+        "Use ONLY the positioning facts below. Do not invent statistics, client names, results, prices or guarantees beyond what the facts say. Never mention why any client left or anything personal; the retention fact may be used only as 'only three clients lost since starting'.",
+        "pitch_30s: about 70-80 words. pitch_2min: about 280-320 words, structured as problem, what Interstellar is, proof, the model, where it's going, the ask (leave the ask as a bracketed placeholder like [the ask]). pitch_10min: a talk track of about 1,200-1,500 words with short headed sections in markdown and [placeholders] where Justin must add specifics he hasn't given (examples, numbers).",
+        `POSITIONING FACTS:\n${pos.map((f: any) => `- ${s(f.statement)}`).join("\n")}`,
+      ].join("\n\n"), { type: "object", properties: { pitch_30s: { type: "string" }, pitch_2min: { type: "string" }, pitch_10min: { type: "string" } }, required: ["pitch_30s", "pitch_2min", "pitch_10min"] });
+      const body = { key: "interstellar", pitch_30s: s(r?.pitch_30s), pitch_2min: s(r?.pitch_2min), pitch_10min: s(r?.pitch_10min), facts_used: pos.map((f: any) => f.id), generated_at: now() };
+      const existing = arr(await safe(db.PitchScript.filter({ key: "interstellar" }, "-updated_date", 1), []))[0];
+      const rec = existing ? await db.PitchScript.update(existing.id, body) : await db.PitchScript.create(body);
+      return Response.json({ ok: true, pitch: { ...(existing || {}), ...body, id: existing?.id || rec?.id } });
+    }
+
+    if (!cp && mode === "structure" && (b.client_id || b.contact_name || b.company)) {
+      const call_type = TYPES.includes(b.call_type) ? b.call_type : "client";
+      let client: any = null;
+      if (b.client_id) {
+        client = await db.CRMClient.get(s(b.client_id)).catch(() => null);
+        if (!client) return Response.json({ ok: false, error: "Client not found" }, { status: 404 });
+      }
       cp = await db.CallPrep.create({
-        client_id: client.id, client_name: s(client.business), title: s(b.title), scheduled_for: b.scheduled_for || undefined, status: "draft",
+        call_type, client_id: client?.id || "", client_name: s(client?.business) || s(b.company) || (call_type === "internal" ? "Interstellar Strategies" : ""),
+        contact_name: s(b.contact_name), company: s(b.company), title: s(b.title), scheduled_for: b.scheduled_for || undefined, status: "draft",
         raw_notes: s(b.raw_notes), timebox_minutes: Number(b.timebox_minutes) || 25, created_at: now(),
       });
     }
@@ -263,14 +285,14 @@ Deno.serve(async (req) => {
       if (b.raw_notes != null && s(b.raw_notes) !== s(cp.raw_notes)) cp = { ...cp, raw_notes: s(b.raw_notes) };
       if (b.timebox_minutes) cp = { ...cp, timebox_minutes: Number(b.timebox_minutes) };
       if (s(cp.raw_notes).length < 5) return Response.json({ ok: false, error: "Say or type what the call needs to cover first" }, { status: 400 });
-      const ctx = await loadContext(db, cp.client_id, cp.id);
+      const ctx = await loadContext(db, s(cp.client_id), cp.id, cp);
       const r: any = await llm(structurePrompt(cp, ctx), STRUCTURE_SCHEMA);
       const st = cleanStructure(r, cp);
       if (!st.agenda.length) return Response.json({ ok: false, error: "The planner returned no agenda; try again" }, { status: 502 });
       const patch: any = {
         ...st, raw_notes: cp.raw_notes, follow_ups: ctx.followUps, status: cp.status === "done" ? "done" : "ready", generated_at: now(),
         client_name: s(ctx.client?.business) || cp.client_name,
-        context_summary: `${ctx.facts.length} brain facts · ${ctx.work.length} recent work · ${ctx.openTasks.length} open tasks · ${ctx.posts.length} site posts · ${ctx.apps.length} systems · ${ctx.prior.length} earlier calls${ctx.dossier ? " · dossier" : ""}`,
+        context_summary: `${ctx.positioning.length ? `${ctx.positioning.length} positioning facts · ` : ""}${ctx.facts.length} brain facts · ${ctx.work.length} recent work · ${ctx.openTasks.length} open tasks · ${ctx.posts.length} site posts · ${ctx.apps.length} systems · ${ctx.prior.length} earlier calls${ctx.dossier ? " · dossier" : ""}`,
       };
       patch.structure = toMarkdown({ ...cp, ...patch });
       const saved = await db.CallPrep.update(cp.id, patch);
@@ -280,7 +302,7 @@ Deno.serve(async (req) => {
     if (mode === "debrief") {
       const outcomes = s(b.outcomes ?? cp.outcomes);
       if (outcomes.length < 5) return Response.json({ ok: false, error: "Say or type what happened on the call first" }, { status: 400 });
-      const ctx = await loadContext(db, cp.client_id, cp.id);
+      const ctx = await loadContext(db, s(cp.client_id), cp.id, cp);
       const r: any = await llm(debriefPrompt(cp, ctx, outcomes), DEBRIEF_SCHEMA);
       const action_items = arr(r?.action_items).map((a: any) => ({ text: clip(a?.text, 300), owner: a?.owner === "client" ? "client" : "justin", due: clip(a?.due, 60), done: false })).filter((a: any) => a.text).slice(0, 20);
       const keep = arr(cp.brain_facts_proposed).filter((f: any) => f.status !== "proposed");
@@ -307,6 +329,8 @@ Deno.serve(async (req) => {
       if (f.status === "accepted" && f.brain_fact_id) return Response.json({ ok: true, call_prep: cp, note: "Already in the brain" });
       if (decision === "accepted") {
         if (SENSITIVE.test(s(f.fact))) return Response.json({ ok: false, error: "That looks personal or sensitive, so it can't go in the brain" }, { status: 400 });
+        // Internal calls feed Interstellar's own brain (no client_id). Other calls need a CRM record so facts land on the right client.
+        if (!cp.client_id && cp.call_type !== "internal") return Response.json({ ok: false, error: "Link this call to a client in the CRM first (add them as a Lead), so the fact lands on the right brain" }, { status: 400 });
         const rec = await db.BrainFact.create({
           pillar: PILLARS.includes(f.pillar) ? f.pillar : "clients", statement: s(f.fact), raw_text: s(f.quote), client_id: cp.client_id, client_name: s(cp.client_name),
           source: "call", capture_source: `call: ${s(cp.title) || "client call"}`, confidence: "high", date: now().slice(0, 10), status: "active", data: { call_prep_id: cp.id },
