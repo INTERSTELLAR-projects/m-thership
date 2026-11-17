@@ -1,0 +1,74 @@
+{
+  "name": "PlaybookArea",
+  "description": "Playbooks: one kind of work (Website build, App / Command System build, Map pack & citations ...). Holds the live foundation prompt pointer and the packages it serves. Admin only.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string",
+      "description": "Stable key, e.g. website-build"
+    },
+    "icon": {
+      "type": "string",
+      "description": "lucide icon name"
+    },
+    "description": {
+      "type": "string"
+    },
+    "order": {
+      "type": "number"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "website",
+        "app",
+        "brand",
+        "account",
+        "mappack",
+        "other"
+      ],
+      "default": "other",
+      "description": "Which standards matrix this area's standards land in"
+    },
+    "linked_packages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Package keys from src/features/packages/registry.js (orbit-seo = HyperCare+, gravitycare, intel-briefing, custom-website, command-system, ops-command, brand-arsenal, launch-grid, transmission)"
+    },
+    "current_prompt_id": {
+      "type": "string",
+      "description": "FoundationPrompt id of the live (approved, all-industries) prompt"
+    }
+  },
+  "required": [
+    "name",
+    "slug"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

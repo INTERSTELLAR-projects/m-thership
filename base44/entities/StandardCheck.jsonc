@@ -1,0 +1,77 @@
+{
+  "name": "StandardCheck",
+  "description": "One client site/app x one FoundationStandard: pass | fail | unknown | not_applicable. Seeded as unknown (never guessed). Drives the standards matrix and sweep list. Admin only.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "app_or_site": {
+      "type": "string",
+      "description": "App id of the site/app, or 'client' for business-level standards"
+    },
+    "app_name": {
+      "type": "string"
+    },
+    "app_kind": {
+      "type": "string",
+      "enum": [
+        "site",
+        "app",
+        "business"
+      ],
+      "default": "site"
+    },
+    "standard_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "unknown",
+        "not_applicable"
+      ],
+      "default": "unknown"
+    },
+    "checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "note": {
+      "type": "string"
+    },
+    "checked_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "standard_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

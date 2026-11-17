@@ -1,0 +1,96 @@
+{
+  "name": "FoundationPrompt",
+  "description": "Versioned copy-paste foundation prompt for a PlaybookArea, optionally an industry variant. Only status approved is live; drafts wait in the Playbooks approve queue for Justin. Never auto-approved. Admin only.",
+  "type": "object",
+  "properties": {
+    "area_id": {
+      "type": "string",
+      "description": "PlaybookArea id"
+    },
+    "industry": {
+      "type": "string",
+      "description": "Blank = all industries. Otherwise a CRMClient industry group, e.g. 'Home services'"
+    },
+    "version": {
+      "type": "number"
+    },
+    "title": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string",
+      "description": "Markdown: the copy-paste prompt"
+    },
+    "changelog": {
+      "type": "string",
+      "description": "What changed vs the previous version"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved",
+        "retired"
+      ],
+      "default": "draft"
+    },
+    "source_pattern_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "PromptPattern ids folded into this version"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "based_on_id": {
+      "type": "string",
+      "description": "FoundationPrompt id this version was drafted from"
+    },
+    "drafted_by": {
+      "type": "string",
+      "enum": [
+        "claude",
+        "prompt_agent",
+        "justin"
+      ],
+      "default": "prompt_agent"
+    },
+    "rejected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reject_note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "area_id",
+    "title",
+    "body"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

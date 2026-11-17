@@ -1,0 +1,75 @@
+{
+  "name": "FoundationStandard",
+  "description": "A must-have for every site or app (seeded or approved from a PromptPattern). Checked per client in StandardCheck. Retire instead of deleting. Admin only.",
+  "type": "object",
+  "properties": {
+    "area_id": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "website",
+        "app",
+        "brand",
+        "account",
+        "mappack",
+        "other"
+      ],
+      "default": "website"
+    },
+    "title": {
+      "type": "string"
+    },
+    "rule": {
+      "type": "string"
+    },
+    "how_to_check": {
+      "type": "string"
+    },
+    "industry": {
+      "type": "string",
+      "description": "Blank = all. Otherwise a CRMClient industry group, e.g. 'Coaching & fitness'"
+    },
+    "added_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "origin_pattern_id": {
+      "type": "string"
+    },
+    "order": {
+      "type": "number"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "title",
+    "rule"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

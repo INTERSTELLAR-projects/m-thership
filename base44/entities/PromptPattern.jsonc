@@ -1,0 +1,99 @@
+{
+  "name": "PromptPattern",
+  "description": "A request Justin repeats. Clustered from PromptLogs by the promptAgent function. Proposed when seen 3+ times or across 2+ clients; becomes a FoundationStandard only when Justin approves. Admin only.",
+  "type": "object",
+  "properties": {
+    "area_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "rule": {
+      "type": "string",
+      "description": "The standard in one sentence"
+    },
+    "example_quotes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "count": {
+      "type": "number"
+    },
+    "clients": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Client names"
+    },
+    "first_seen": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_seen": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "watching",
+        "proposed",
+        "standard",
+        "rejected"
+      ],
+      "default": "watching"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "website",
+        "app",
+        "brand",
+        "account",
+        "mappack",
+        "other"
+      ],
+      "default": "other"
+    },
+    "how_to_check": {
+      "type": "string"
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "standard_id": {
+      "type": "string",
+      "description": "FoundationStandard created on approval"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
