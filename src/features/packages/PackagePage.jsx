@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowUpRight, ExternalLink, RefreshCw, Satellite } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, BookOpenCheck, ExternalLink, RefreshCw, Satellite } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import Panel from "@/features/tasks/ui-kit/Panel";
 import CategoryChip from "@/features/tasks/ui-kit/CategoryChip";
@@ -310,6 +310,10 @@ export default function PackagePage() {
             Built on {pkg.arch} <span className="text-[#ff3c00]">{pkg.version}</span>
           </span>
         ) : null}
+        <Link to={"/playbooks?package=" + pkg.key} className={btnGhost} title="Foundation prompts and standards for this package">
+          <BookOpenCheck className="h-3.5 w-3.5" />
+          Playbook
+        </Link>
         <button type="button" onClick={reload} className={btnGhost}>
           <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
           Refresh
