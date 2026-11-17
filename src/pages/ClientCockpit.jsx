@@ -15,6 +15,7 @@ import BrandKitTab from "@/features/clients/BrandKitTab";
 import PlaybookTab from "@/features/clients/PlaybookTab";
 import SocialPlanTab from "@/features/clients/SocialPlanTab";
 import ResourcesTab from "@/features/clients/ResourcesTab";
+import SystemsTab from "@/features/clients/SystemsTab";
 import ContentPlanTab from "@/features/clients/ContentPlanTab";
 import MapPackTab from "@/features/clients/MapPackTab";
 import { ClientGbpTab } from "@/features/gbp/GbpPanel";
@@ -32,7 +33,7 @@ import { brandFieldOptions } from "@/features/brands/graph";
 
 const TABS = [
   ["overview", "Overview"], ["constellations", "✧ Constellations"], ["claude", "✦ Claude"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
-  ["performance", "Performance"], ["gbp", "Google Business"], ["mappack", "Map pack"], ["citations", "Citations & PR"], ["goals", "Goals & Gaps"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["social", "Social plan"], ["content", "Content plan"], ["resources", "Portal resources"], ["files", "Files & Brand"], ["audit", "Intake Audit"], ["messages", "Messages"], ["billing", "Billing & Notes"],
+  ["performance", "Performance"], ["gbp", "Google Business"], ["mappack", "Map pack"], ["citations", "Citations & PR"], ["goals", "Goals & Gaps"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["social", "Social plan"], ["content", "Content plan"], ["resources", "Portal resources"], ["systems", "Systems"], ["files", "Files & Brand"], ["audit", "Intake Audit"], ["messages", "Messages"], ["billing", "Billing & Notes"],
 ];
 
 const PROFILE_FIELDS = [
@@ -50,6 +51,7 @@ const PROFILE_FIELDS = [
   { name: "services_managed", label: "What we manage", type: "multi", options: Object.entries(SERVICE_LABELS).map(([value, label]) => ({ value, label })) },
   { name: "site_app_id", label: "Website — Base44 app id", type: "text" },
   { name: "ops_app_id", label: "System — Base44 app id", type: "text" },
+  { name: "command_app_id", label: "Command app — Base44 app id (brain sync)", type: "text" },
   { name: "started_on", label: "Client since", type: "date" },
   { name: "portal_enabled", label: "Client portal", type: "checkbox", hint: "Let this client log in to their portal" },
   { name: "portal_emails", label: "Portal login emails", type: "list", help: "Each email gets portal access to this client once invited" },
@@ -144,6 +146,7 @@ export default function ClientCockpit() {
         {tab === "playbook" && <PlaybookTab client={client} />}
         {tab === "social" && <SocialPlanTab client={client} />}
         {tab === "resources" && <ResourcesTab client={client} go={go} />}
+        {tab === "systems" && <ErrorBoundary compact where="systems"><SystemsTab client={client} /></ErrorBoundary>}
         {tab === "content" && <ContentPlanTab client={client} onEdit={() => setEditing(true)} />}
         {tab === "files" && <FilesTab client={client} />}
         {tab === "audit" && <AuditTab client={client} />}
