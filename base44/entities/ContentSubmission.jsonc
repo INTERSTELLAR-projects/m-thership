@@ -89,6 +89,21 @@
       },
       "description": "Processed photos: [{ source_url, src, w, h, bytes, type, hash, exif_stripped, compressed, role }]"
     },
+    "image_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photos that were skipped and why"
+    },
+    "prior_images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "Processed photos from the previous version, reused on a resubmit when the same file comes back"
+    },
     "image_cursor": {
       "type": "number",
       "default": 0,
