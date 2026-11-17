@@ -104,7 +104,7 @@ function Lightbox({ profile, assets, pages, index, setIndex }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [pages.length, setIndex]);
   return (
-    <div className="shi-lb agx" role="dialog" aria-label={`${page.file_name}.jpg`} onMouseDown={() => setIndex(-1)}>
+    <div className="shi-lb" role="dialog" aria-label={`${page.file_name}.jpg`} onMouseDown={() => setIndex(-1)}>
       <div className="w-full max-w-[1200px]" onMouseDown={(e) => e.stopPropagation()}>
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className="mono flex-1 truncate text-[12.5px] text-[var(--ink-d)]">{page.file_name}.jpg <span className="text-[var(--ink-s)]">· 1200 × 630 · {index + 1} of {pages.length}</span></span>
