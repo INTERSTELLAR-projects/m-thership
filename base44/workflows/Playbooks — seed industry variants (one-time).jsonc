@@ -1,0 +1,607 @@
+{
+  "name": "Playbooks \u2014 seed industry variants (one-time)",
+  "description": "Manual helper (kept inactive; use Run now): drafts a generic v1 for every Playbooks area without a prompt, then an industry version of all 12 areas for 7 industries, 3 at a time. Everything is status draft and waits in the Playbooks Approve queue; nothing is approved. The function refuses once the seed is complete. Function: promptAgent / seed_variants.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 3 1 1 *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "playbooks_seed_industry_variants",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "seed_1": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_2",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 1 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_2": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_3",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 2 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_3": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_4",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 3 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_4": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_5",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 4 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_5": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_6",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 5 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_6": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_7",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 6 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_7": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_8",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 7 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_8": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_9",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 8 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_9": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_10",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 9 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_10": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_11",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 10 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_11": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_12",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 11 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_12": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_13",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 12 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_13": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_14",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 13 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_14": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_15",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 14 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_15": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_16",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 15 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_16": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_17",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 16 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_17": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_18",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 17 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_18": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_19",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 18 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_19": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_20",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 19 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_20": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_21",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 20 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_21": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_22",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 21 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_22": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_23",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 22 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_23": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_24",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 23 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_24": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_25",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 24 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_25": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_26",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 25 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_26": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_27",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 26 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_27": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_28",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 27 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_28": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_29",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 28 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_29": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_30",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 29 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_30": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_31",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 30 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_31": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_32",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 31 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_32": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_33",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 32 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_33": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_34",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 33 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_34": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_35",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 34 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_35": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "seed_36",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 35 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      },
+      {
+        "seed_36": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "seed_variants"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Draft foundation prompts (batch 36 of 36)",
+            "description": "Drafts up to 3 prompts (generic v1 for empty areas first, then industry versions). Does nothing once the seed is complete."
+          }
+        }
+      }
+    ]
+  }
+}
