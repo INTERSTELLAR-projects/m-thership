@@ -112,8 +112,19 @@ export async function processSubmission(base44: any, sub: any, deadline: number)
           if (claim.ok) break;
           feedback = claim.unsupported.map((x: string) => `- ${x}`).join("\n");
         }
-        if (!output?.title || !output?.overview) return stop(base44, db, sub, client, "failed", "The writer returned an empty draft", { claim_check: claim });
-        if (!claim.ok) return stop(base44, db, sub, client, "needs_info", `Some details couldn't be confirmed from your submission: ${claim.unsupported.slice(0, 3).join("; ")}. Add them to the description if they're true.`, { claim_check: claim, writer_output: output });
+        // Two drafts that still carry an unconfirmed claim: post the client's own words instead (never invented), with
+        // search fields built from them. The writer's category / type / service picks are kept (validated lists).
+        if (!claim?.ok || !output?.title || !output?.overview) {
+          const own = s(n.overview).replace(/\s+/g, " ");
+          const brand = ` | ${site.name}`;
+          output = buildAlbumRecord(site, n, {
+            ...(output || {}), title: n.title, slug: n.title, overview: own,
+            seo_title: `${n.title}${brand}`.length <= 60 ? `${n.title}${brand}` : n.title,
+            seo_description: own.length <= 155 ? own : `${own.slice(0, 152).replace(/\s+\S*$/, "")}…`,
+          }, arr(sub.images), catalog, !!sub.is_test);
+          claim = { ...(claim || {}), ok: true, fallback: "client_words", note: `Writer drafts had unconfirmed claims (${(claim?.unsupported || []).slice(0, 3).join("; ")}), so the client's own description was used` };
+        }
+        if (!output?.title || !output?.overview) return stop(base44, db, sub, client, "needs_info", "Add a title and a description of the shoot.");
         output.catalog_from = catalog.from;
       } else {
         const t = normalizeTestimonial(sub.raw);
