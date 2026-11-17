@@ -106,7 +106,7 @@ function DraftCard({ d, areas, prompts, refresh }) {
         {editing ? (
           <>
             <button type="button" className="btn-d" onClick={() => { setEditing(false); setBody(d.body || ""); setChangelog(d.changelog || ""); }}>Cancel</button>
-            <button type="button" className="btn-d" disabled={!!busy || !body.trim()} onClick={() => act("save", async () => { await updateEntity("FoundationPrompt", d.id, { body: body.replace(/®/g, "™"), changelog, drafted_by: d.drafted_by === "prompt_agent" ? "prompt_agent" : "justin" }); setEditing(false); })}>{busy === "save" ? <Spinner size={12} /> : null}Save edits</button>
+            <button type="button" className="btn-d" disabled={!!busy || !body.trim()} onClick={() => act("save", async () => { await updateEntity("FoundationPrompt", d.id, { body, changelog, drafted_by: d.drafted_by === "prompt_agent" ? "prompt_agent" : "justin" }); setEditing(false); })}>{busy === "save" ? <Spinner size={12} /> : null}Save edits</button>
           </>
         ) : (
           <>
