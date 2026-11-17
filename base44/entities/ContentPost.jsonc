@@ -1,0 +1,109 @@
+{
+  "name": "ContentPost",
+  "type": "object",
+  "description": "Content pipeline log (docs/content-pipeline.md): one row per page or testimonial the pipeline put on a client website, with every action taken on it (publish, edit, unpublish, republish), the live check and the IndexNow result. Never hard-deleted. Admin only.",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "submission_id": {
+      "type": "string",
+      "description": "ContentSubmission id"
+    },
+    "site_app_id": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "project",
+        "testimonial"
+      ]
+    },
+    "target_entity": {
+      "type": "string"
+    },
+    "target_record_id": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "live",
+        "unpublished",
+        "failed"
+      ],
+      "default": "live"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "unpublished_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_action_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verify": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ ok, http_status, title_ok, jsonld_ok, sitemap_ok, ms, checked_at, note }"
+    },
+    "indexnow": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ status: sent|not_supported|failed, http_status, note, at }"
+    },
+    "work_entry_id": {
+      "type": "string"
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "[{ at, action, by, ok, note }] newest last"
+    }
+  },
+  "required": [
+    "submission_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
