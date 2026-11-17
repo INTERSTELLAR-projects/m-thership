@@ -27,12 +27,13 @@ import PortalInviteDialog from "@/features/clients/PortalInviteDialog";
 import { ClientRecentEmails, emailClientPath } from "@/features/email/ClientEmails";
 import { ClientUsageCard } from "@/features/usage/ClientUsagePage";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import ClientCallsTab from "@/features/calls/ClientCallsTab";
 import EngineChecklist from "@/features/launch/EngineChecklist";
 import { useBrands } from "@/features/brands/useHouseData";
 import { brandFieldOptions } from "@/features/brands/graph";
 
 const TABS = [
-  ["overview", "Overview"], ["constellations", "✧ Constellations"], ["claude", "✦ Claude"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
+  ["overview", "Overview"], ["constellations", "✧ Constellations"], ["claude", "✦ Claude"], ["calls", "Calls"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
   ["performance", "Performance"], ["gbp", "Google Business"], ["mappack", "Map pack"], ["citations", "Citations & PR"], ["goals", "Goals & Gaps"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["social", "Social plan"], ["content", "Content plan"], ["resources", "Portal resources"], ["systems", "Systems"], ["files", "Files & Brand"], ["audit", "Intake Audit"], ["messages", "Messages"], ["billing", "Billing & Notes"],
 ];
 
@@ -133,6 +134,7 @@ export default function ClientCockpit() {
         {tab === "overview" && <><ErrorBoundary compact where="engine checklist"><EngineChecklist client={client} /></ErrorBoundary><OverviewTab client={client} onEdit={() => setEditing(true)} go={go} /><ErrorBoundary compact where="recent emails"><ClientRecentEmails client={client} /></ErrorBoundary><ErrorBoundary compact where="usage card"><ClientUsageCard client={client} /></ErrorBoundary></>}
         {tab === "constellations" && <ConstellationsTab client={client} />}
         {tab === "claude" && <ClientClaudeTab client={client} />}
+        {tab === "calls" && <ErrorBoundary compact where="calls"><ClientCallsTab client={client} /></ErrorBoundary>}
         {tab === "work" && <WorkTab client={client} />}
         {tab === "tasks" && <TasksTab client={client} />}
         {tab === "requests" && <RequestsTab client={client} />}

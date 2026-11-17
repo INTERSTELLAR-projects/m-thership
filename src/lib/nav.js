@@ -3,7 +3,7 @@ import {
   Crown, Activity, Settings, FolderKanban, Star, PenLine, Presentation, Route, Sparkles, Target, QrCode, Link2,
   CalendarRange, Zap, Megaphone, BadgeDollarSign, Mail, UserPlus, Gauge, Fuel, Store, Orbit, Rocket, Radar, Wand2,
   Chrome, Inbox, BookOpenCheck, Globe, GraduationCap, ShieldCheck, Package, Repeat, Sun, Briefcase, Wallet, LayoutGrid, Landmark,
-  Brain, Images,
+  Brain, Images, PhoneCall,
 } from "lucide-react";
 import { PACKAGES, packagePath } from "@/features/packages/registry";
 
@@ -55,6 +55,7 @@ export const HUBS = [
       { label: "Onboarding", icon: Route, path: "/flight-plan", hint: "Flight Plan: every purchase, every stage, every SOP step until it is delivered" },
       { label: "Requests", icon: ClipboardList, path: "/requests", hint: "What clients have asked for through their forms and portal" },
       { label: "Client posts", icon: Globe, path: "/client-posts", hint: "Projects and testimonials clients sent that went live on their websites, with Unpublish and Edit" },
+      { label: "Calls", icon: PhoneCall, path: "/calls", hint: "Structure a client call: say what it needs to cover, get a timeboxed plan, run it, debrief into the client brain" },
       { label: "Share images", icon: Images, path: "/share-images", hint: "1200x630 social sharing images for every client site: one per page or page group, download as a ZIP" },
       { label: "Messages", icon: MessageSquare, path: "/comms", hint: "Client chats in one inbox" },
       { label: "Portal", icon: Globe, path: "/settings?tab=portal", hint: "Which clients have a portal and what it shows them" },
