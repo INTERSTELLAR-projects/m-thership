@@ -218,7 +218,9 @@ const DEBRIEF_SCHEMA = {
 
 function debriefPrompt(cp: any, ctx: any, outcomes: string) {
   return [
-    "You turn Justin's after-call notes into action items and brain facts for one client.",
+    cp?.call_type === "internal"
+      ? "You turn Justin's notes from an internal meeting about Interstellar Strategies into action items and brain facts about Interstellar itself."
+      : "You turn Justin's after-call notes into action items and brain facts for the business he spoke with.",
     "action_items: every concrete next step that was said. owner 'justin' (Justin / Interstellar) or 'client'. due only if a date or day was said (write it as said); otherwise empty.",
     "brain_facts: durable facts about the CLIENT'S BUSINESS that were actually said in the notes (prices, lead times, preferences, approvals, decisions, numbers, goals). Rules:",
     "- Only what the notes say. Never infer, never generalize, never add numbers. quote = the words in the notes it comes from.",
