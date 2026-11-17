@@ -54,6 +54,7 @@ export const HUBS = [
       { label: "Brands", icon: Orbit, path: "/brands", hint: "House of Brands: Interstellar and its niche brands, their clients and brains flowing up" },
       { label: "Onboarding", icon: Route, path: "/flight-plan", hint: "Flight Plan: every purchase, every stage, every SOP step until it is delivered" },
       { label: "Requests", icon: ClipboardList, path: "/requests", hint: "What clients have asked for through their forms and portal" },
+      { label: "Client posts", icon: Globe, path: "/client-posts", hint: "Projects and testimonials clients sent that went live on their websites, with Unpublish and Edit" },
       { label: "Messages", icon: MessageSquare, path: "/comms", hint: "Client chats in one inbox" },
       { label: "Portal", icon: Globe, path: "/settings?tab=portal", hint: "Which clients have a portal and what it shows them" },
     ],
