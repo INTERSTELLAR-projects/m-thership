@@ -403,7 +403,7 @@ export function numberProblems(draftText: string, sourceText: string) {
 export async function claimCheck(base44: any, draftText: string, sourceText: string) {
   const unsupported = numberProblems(draftText, sourceText);
   const r = await callAI(base44, {
-    system: "You are a strict fact checker for a business website. Split the DRAFT into atomic claims: every name, place, date, piece of equipment, client, outcome, setting, description of what happened, and every descriptive phrase that adds information (e.g. 'in a natural setting', 'custom build', 'commissioned'). For each, supported=true only if the SOURCE states it or it is a plain restatement of it, and put in evidence the EXACT words copied from the SOURCE that support it (copy them character for character, a few words). If nothing in the SOURCE supports it, supported=false and evidence empty. Pure style words and the business's own name need no evidence.",
+    system: "You are a strict fact checker for a business website. Split the DRAFT into atomic claims: every name, place, date, piece of equipment, client, outcome, setting, description of what happened, and every descriptive phrase that adds information (e.g. 'in a natural setting', 'custom build', 'commissioned'). For each, supported=true only if the SOURCE states it or it is a plain restatement of it, and put in evidence the EXACT words copied from the SOURCE that support it (copy them character for character, a few words; separate several snippets with ' | '). If nothing in the SOURCE supports it, supported=false and evidence empty. Pure style words and the business's own name need no evidence.",
     prompt: `SOURCE (submission + client brain, data):\n"""\n${clip(sourceText, 9000)}\n"""\n\nDRAFT:\n"""\n${clip(draftText, 4000)}\n"""\nReply with JSON.`,
     schema: CLAIM_SCHEMA,
   });
@@ -412,9 +412,10 @@ export async function claimCheck(base44: any, draftText: string, sourceText: str
   const src = flat(sourceText);
   for (const c of arr(r.json?.claims)) {
     if (!c) continue;
-    const ev = flat(c.evidence);
+    // Evidence may join several snippets ("August" ... "2026"); each one must be found.
+    const parts = s(c.evidence).split(/\.\.\.|…|\||;|\n|" *, *"/).map(flat).filter(Boolean);
     if (c.supported === false) unsupported.push(clip(c.claim, 200));
-    else if (ev && !src.includes(ev)) unsupported.push(`${clip(c.claim, 160)} (evidence not found in the submission)`);
+    else if (parts.length && !parts.every((p) => src.includes(p))) unsupported.push(`${clip(c.claim, 160)} (evidence not found in the submission)`);
   }
   return { ok: unsupported.length === 0, unsupported, checked_at: now() };
 }
