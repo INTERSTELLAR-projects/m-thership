@@ -327,7 +327,7 @@ export async function runGates(db: any, sub: any, client: any, site: SiteConfig 
   }
   const failed = results.filter((r) => !r.ok);
   const hard = failed.find((r) => /profanity|spam|duplicate|active|set up|Supported/i.test(r.check));
-  return { results, fatal: hard ? "rejected" : failed.length ? "needs_info" : "", detail: failed.map((r) => r.note).filter(Boolean).join(" ") };
+  return { results, fatal: hard ? "rejected" : failed.length ? "needs_info" : "", detail: failed.map((r) => r.note).filter(Boolean).map((n) => (/[.!?]$/.test(n) ? n : `${n}.`)).join(" ") };
 }
 
 // ---------------------------------------------------------------- AI: moderation, writer, claim check
@@ -403,11 +403,19 @@ export function numberProblems(draftText: string, sourceText: string) {
 export async function claimCheck(base44: any, draftText: string, sourceText: string) {
   const unsupported = numberProblems(draftText, sourceText);
   const r = await callAI(base44, {
-    system: "You are a strict fact checker for a business website. List every factual claim in the DRAFT (names, places, dates, equipment, clients, outcomes, descriptions of what happened, superlatives presented as fact). supported=true only if the SOURCE states it or it is a plain restatement of it. Inferences, labels, purposes or qualities the SOURCE does not state (for example calling something 'custom', 'commissioned', 'award-winning', 'luxury') are unsupported. Pure style words and the business's own name are fine. Be strict about anything added.",
+    system: "You are a strict fact checker for a business website. Split the DRAFT into atomic claims: every name, place, date, piece of equipment, client, outcome, setting, description of what happened, and every descriptive phrase that adds information (e.g. 'in a natural setting', 'custom build', 'commissioned'). For each, supported=true only if the SOURCE states it or it is a plain restatement of it, and put in evidence the EXACT words copied from the SOURCE that support it (copy them character for character, a few words). If nothing in the SOURCE supports it, supported=false and evidence empty. Pure style words and the business's own name need no evidence.",
     prompt: `SOURCE (submission + client brain, data):\n"""\n${clip(sourceText, 9000)}\n"""\n\nDRAFT:\n"""\n${clip(draftText, 4000)}\n"""\nReply with JSON.`,
     schema: CLAIM_SCHEMA,
   });
-  for (const c of arr(r.json?.claims)) if (c && c.supported === false) unsupported.push(clip(c.claim, 200));
+  // The model's "supported" is not trusted on its own: its evidence must really appear in the source.
+  const flat = (t: string) => s(t).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const src = flat(sourceText);
+  for (const c of arr(r.json?.claims)) {
+    if (!c) continue;
+    const ev = flat(c.evidence);
+    if (c.supported === false) unsupported.push(clip(c.claim, 200));
+    else if (ev && !src.includes(ev)) unsupported.push(`${clip(c.claim, 160)} (evidence not found in the submission)`);
+  }
   return { ok: unsupported.length === 0, unsupported, checked_at: now() };
 }
 
