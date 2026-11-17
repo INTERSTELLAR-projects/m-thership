@@ -145,7 +145,7 @@ export function buildHouse(data) {
   const clientNode = (c, parentId, color) => {
     const brain = clientBrainStats(dossierBy[c.id]);
     const enabled = arr(cfBy[c.id]).filter((f) => f.state !== "removed" && f.state !== "requested").length;
-    const n = { id: `client:${c.id}`, type: "client", clientId: c.id, parent: parentId, label: c.business || "Client", sub: c.industry || c.domain || "", color: hex(c.accent, color), logo: c.logo_url || null, brain, hasApp: !!(c.command_app_id || c.ops_app_id || (Array.isArray(c.other_app_ids) && c.other_app_ids.length)), connected: connectionSummary(c, d.facts, d.profiles), metrics: { features: enabled } };
+    const n = { id: `client:${c.id}`, type: "client", clientId: c.id, parent: parentId, label: c.business || "Client", sub: c.industry || c.domain || "", color: hex(c.accent, color), logo: c.logo_url || null, brain, hasApp: !!(c.command_app_id || c.ops_app_id || (Array.isArray(c.other_app_ids) && c.other_app_ids.length)), connected: connectionSummary(c, d.appFacts || d.facts, d.profiles), metrics: { features: enabled } };
     nodes[n.id] = n;
     link(n.id, parentId, "client", brain ? brain.factsActive || brain.answered : 0, enabled, color);
     return n;
