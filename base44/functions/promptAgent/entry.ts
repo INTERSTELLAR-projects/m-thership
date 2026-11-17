@@ -16,7 +16,7 @@
 // Workflow "Playbooks — weekly prompt agent" (no signed-in user): weekly_sync, weekly_cluster, weekly_draft, each at most once per 5 days.
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { arr, cut, nowIso, industryGroup, checkKindFor, listAll, createMany } from "../../shared/playbooks.ts";
-import { SEED_INDUSTRIES, AREA_BRIEFS, SEED_HOUSE } from "../../shared/playbookSeed.ts";
+import { SEED_INDUSTRIES, AREA_BRIEFS, SEED_HOUSE, CONTACT_STANDARD_ID, CONTACT_MARKER, CONTACT_SECTION_BUILD, CONTACT_SECTION_POLISH, foldSection } from "../../shared/playbookSeed.ts";
 
 // Apps that are never part of the standards matrix (Justin, Nov 17 2026): onboarding forms and side tools.
 const EXCLUDED_APP_IDS = new Set(["6adff43533bf116e5c3f014b" /* Smallcakes Onboarding */, "6abec94ea33d526bb1fcffd1" /* SMPL Projects */]);
@@ -347,6 +347,38 @@ async function seedVariants(base44: any, db: any, max = 3) {
   return { created, remaining: pending.length - created, errors, batch: batch.map((x) => `${x.area.name}${x.industry ? ` · ${x.industry}` : ""}`) };
 }
 
+// ---------- one-time: fold Justin's contact-flow standard (Nov 17, 2026) into the website prompts ----------
+// Approved prompts are never edited: each gets a v+1 DRAFT with the section added (Approve queue). Existing drafts
+// (the seeded industry versions) get the section in place. Checks for the standard are added as unknown.
+async function foldContactStandard(db: any) {
+  const [areas, prompts] = await Promise.all([listAll(db.PlaybookArea, {}, "order", 100), listAll(db.FoundationPrompt, {}, "-version", 2000)]);
+  const checks = await syncChecks(db, CONTACT_STANDARD_ID);
+  let drafted = 0, updated = 0;
+  for (const slug of ["website-build", "website-polish-launch"]) {
+    const area = areas.find((a: any) => a.slug === slug);
+    if (!area) continue;
+    const section = slug === "website-build" ? CONTACT_SECTION_BUILD : CONTACT_SECTION_POLISH;
+    const mine = prompts.filter((p: any) => p.area_id === area.id && p.status !== "retired");
+    for (const p of mine.filter((x: any) => x.status === "draft" && !String(x.body || "").includes(CONTACT_MARKER))) {
+      await db.FoundationPrompt.update(p.id, { body: foldSection(p.body, section), changelog: `${String(p.changelog || "").trim()} Adds Justin's one-question-at-a-time contact flow standard (Nov 17, 2026).`.trim() });
+      updated++;
+    }
+    for (const live of mine.filter((x: any) => x.status === "approved" && !String(x.body || "").includes(CONTACT_MARKER))) {
+      const ind = live.industry || "";
+      if (mine.some((x: any) => x.status === "draft" && (x.industry || "") === ind && x.based_on_id === live.id && String(x.body || "").includes(CONTACT_MARKER))) continue;
+      const version = Math.max(0, ...prompts.filter((v: any) => v.area_id === area.id && (v.industry || "") === ind).map((v: any) => Number(v.version) || 0)) + 1;
+      await db.FoundationPrompt.create({
+        area_id: area.id, industry: ind, version, status: "draft", drafted_by: "claude", based_on_id: live.id, source_pattern_ids: [],
+        title: `${area.name}${ind ? ` (${ind})` : ""} \u2014 foundation v${version}`,
+        body: foldSection(live.body, section),
+        changelog: `v${version}: adds Justin's one-question-at-a-time contact flow standard (single centered card, Step X of N, tap chips, contact details last, server-to-server into the Command System, booking into its calendar). Everything else unchanged from v${live.version}.`,
+      });
+      drafted++;
+    }
+  }
+  return { drafted, updated, checks_created: checks.created };
+}
+
 // ---------- approvals ----------
 async function approvePattern(db: any, b: any) {
   const p = await db.PromptPattern.get(String(b.pattern_id || ""));
@@ -387,7 +419,9 @@ Deno.serve(async (req) => {
     if (!user) {
       // Scheduled path: the weekly workflow only, each step at most once per 6 days.
       const { ps } = await getState(db);
-      if (action === "seed_variants") {
+      if (action === "fold_contact_standard") {
+        if (ps.contact_standard_folded) return Response.json({ ok: true, skipped: "already folded" });
+      } else if (action === "seed_variants") {
         // One-time seed run from the "Playbooks — seed industry variants" workflow; refuses once the seed is complete.
         if (ps.seed_variants_done) return Response.json({ ok: true, skipped: "seed already complete" });
       } else if (!["weekly_sync", "weekly_cluster", "weekly_draft"].includes(action)) return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -397,6 +431,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    if (action === "fold_contact_standard") {
+      const r = await foldContactStandard(db);
+      const { row, ps } = await getState(db);
+      await saveState(db, row, { ...ps, contact_standard_folded: nowIso() });
+      await recordRun(db, "fold_contact_standard", `Contact-flow standard: ${r.checks_created} checks, ${r.drafted} new drafts, ${r.updated} drafts updated`);
+      return Response.json({ ok: true, ...r });
+    }
     if (action === "seed_variants") {
       const r = await seedVariants(base44, db, 3);
       const { row, ps } = await getState(db);

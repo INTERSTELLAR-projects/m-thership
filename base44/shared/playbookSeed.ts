@@ -113,3 +113,32 @@ export const SEED_HOUSE = `Interstellar house standards that apply everywhere:
 - Alive, modern, professional; motion that respects prefers-reduced-motion; styles switch by company type at the same quality bar.
 - Footer credit on every site: "Web design by Interstellar Strategies" → https://interstellar-strategies.com.
 - Work done is logged to Møthership so it shows in the client's work feed.`;
+
+// Website standard added by Justin on Nov 17, 2026 (reference: one-question-at-a-time contact form video).
+export const CONTACT_STANDARD_ID = "6afcd678ebaa48384180dbbb";
+export const CONTACT_MARKER = "<!-- std:one-question-contact -->";
+export const CONTACT_SECTION_BUILD = `## Contact & inquiry flow: one question at a time (Interstellar standard)
+${CONTACT_MARKER}
+- Replace the classic long contact form with a guided flow: a single centered card, "Step X of N" progress, ONE short question per screen.
+- Tap-chip answers wherever a choice works (service type, project size, timeline, budget range); typed fields only where they must be typed.
+- Contact details (name, phone/text number, email) come LAST, after the visitor has invested in the answers. Optional steps are skippable.
+- Calm success state at the end (a check mark and one line, e.g. "Done, your quote is on its way"), no page reload or jarring redirect.
+- Tailor the questions to how [CLIENT] sells: [QUESTIONS, e.g. what do you need done, where, when, how big, best way to reach you].
+- Submissions post server-to-server with a key (secret name only, set by Justin) straight into the client's Command System: a lead AND a client record are created automatically. No email-only forms.
+- Where the business books calls or appointments, the last step books directly into the Command System calendar: live availability, conflict-safe, confirmation shown in the success state.
+- Mobile first, keyboard friendly, back button on every step, answers kept if the visitor goes back; test sends only to justin@interstellar-strategies.com.`;
+export const CONTACT_SECTION_POLISH = `## Contact & inquiry flow check (Interstellar standard)
+${CONTACT_MARKER}
+- On a phone, the contact page is one question at a time: single centered card, "Step X of N" progress, one short question per screen, tap chips wherever a choice works, contact details last, optional steps skippable, calm success state.
+- The questions match how [CLIENT] actually sells (service, location, timeline, size), not a generic form.
+- A test inquiry (to justin@interstellar-strategies.com only) arrives server-to-server in the Command System as a new lead AND client; where calls are booked, the last step books into the Command System calendar with live availability and no double-booking.
+- Report pass / fixed / needs Justin for this flow like every other line.`;
+
+// Put the section before the closing "Do not" / "Report" / "Finish" heading, else at the end. Idempotent via the marker.
+export function foldSection(body: string, section: string) {
+  if (!body || body.includes(CONTACT_MARKER)) return body;
+  const lines = body.split("\n");
+  const idx = lines.findIndex((l) => /^#{2,3}\s.*\b(do not|don't|report|finish)\b/i.test(l));
+  if (idx === -1) return `${body.trimEnd()}\n\n${section}\n`;
+  return [...lines.slice(0, idx), section, "", ...lines.slice(idx)].join("\n");
+}
