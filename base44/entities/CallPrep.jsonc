@@ -1,0 +1,217 @@
+{
+  "name": "CallPrep",
+  "description": "Structure call: one planned client call. Justin dictates what he needs to cover (raw_notes, verbatim); the callPrepAgent function turns it into a goal, a timeboxed agenda (decisions first), a prep checklist, asks and risks, with open action items from the last calls rolled forward. After the call he dictates outcomes; the debrief proposes action items and brain facts, and each fact is written as a BrainFact on the client only after he accepts it. Admin only.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "scheduled_for": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready",
+        "done"
+      ],
+      "default": "draft"
+    },
+    "raw_notes": {
+      "type": "string",
+      "description": "What Justin said or typed, verbatim"
+    },
+    "goal": {
+      "type": "string",
+      "description": "One sentence: what must be true when the call ends"
+    },
+    "structure": {
+      "type": "string",
+      "description": "The call plan as clean markdown (Copy for call)"
+    },
+    "agenda": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "string"
+          },
+          "minutes": {
+            "type": "number"
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "decide",
+              "inform",
+              "ask",
+              "show"
+            ]
+          },
+          "talking_points": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "decision_needed": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "timebox_minutes": {
+      "type": "number",
+      "default": 25
+    },
+    "prep_checklist": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "asks_from_client": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Things in raw_notes that disagree with stored facts, flagged by the agent"
+    },
+    "follow_ups": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Open action items rolled forward from earlier calls"
+    },
+    "outcomes": {
+      "type": "string",
+      "description": "After-call notes, verbatim"
+    },
+    "action_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string",
+            "enum": [
+              "justin",
+              "client"
+            ]
+          },
+          "due": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "brain_facts_proposed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fact": {
+            "type": "string"
+          },
+          "pillar": {
+            "type": "string"
+          },
+          "quote": {
+            "type": "string",
+            "description": "The words in the outcomes it comes from"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "accepted",
+              "rejected"
+            ]
+          },
+          "brain_fact_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "context_summary": {
+      "type": "string",
+      "description": "What the agent read for this client (counts), for transparency"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
