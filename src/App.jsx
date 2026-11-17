@@ -61,6 +61,7 @@ import UpgradeStorePage from '@/features/addons/UpgradeStorePage';
 import AgentsPage from '@/features/agents/AgentsPage';
 import PlaybooksPage from '@/features/playbooks/PlaybooksPage';
 import ContentPipelinePage from '@/features/content/ContentPipelinePage';
+import ShareImagesPage from '@/features/shareImages/ShareImagesPage';
 import IntelligencePage from '@/features/oracle/IntelligencePage';
 import LaunchPage from '@/features/launch/LaunchPage';
 import OracleTopicPage from '@/features/oracle/TopicPage';
@@ -181,6 +182,7 @@ const AuthenticatedApp = () => {
         <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
         <Route path="/reviews" element={<ProtectedRoute><Reviews /></ProtectedRoute>} />
         <Route path="/client-posts" element={<ProtectedRoute><ContentPipelinePage /></ProtectedRoute>} />
+        <Route path="/share-images" element={<ProtectedRoute><ShareImagesPage /></ProtectedRoute>} />
         <Route path="/signatures" element={<ProtectedRoute><SignaturesPage /></ProtectedRoute>} />
         <Route path="/signatures/templates/:id" element={<ProtectedRoute><SignatureEditor mode="template" /></ProtectedRoute>} />
         <Route path="/signatures/new" element={<ProtectedRoute><SignatureEditor /></ProtectedRoute>} />
