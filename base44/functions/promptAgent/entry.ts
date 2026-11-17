@@ -179,11 +179,15 @@ ${HOUSE}`;
 }
 
 // ---------- drafting ----------
-const DRAFT_SCHEMA = {
-  type: "object",
-  properties: { title: { type: "string" }, body: { type: "string" }, changelog: { type: "string" } },
-  required: ["body", "changelog"],
-};
+// Prompts come back in a plain-text envelope, not JSON: long markdown full of quotes breaks JSON output.
+const ENVELOPE = `\n\nKeep the body under 1,800 words. Reply in EXACTLY this format and nothing else:\n<<<TITLE>>>\n(title)\n<<<CHANGELOG>>>\n(changelog)\n<<<BODY>>>\n(the complete markdown prompt)\n<<<END>>>`;
+async function llmPrompt(base44: any, prompt: string, label: string) {
+  const res: any = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt: prompt + ENVELOPE, model: MODEL });
+  const text = typeof res === "string" ? res : String(res?.response || res?.text || res?.content || "");
+  const m = text.match(/<<<TITLE>>>\s*([\s\S]*?)\s*<<<CHANGELOG>>>\s*([\s\S]*?)\s*<<<BODY>>>\s*([\s\S]*?)\s*<<<END>>>/);
+  if (!m) throw new Error(`Incomplete output for ${label} (${text.length} chars)`);
+  return { title: m[1].trim(), changelog: m[2].trim(), body: m[3].trim() };
+}
 
 async function draftFor(base44: any, db: any, area: any, opts: { industry?: string; patterns: any[]; base: any; versions: any[]; standards: any[]; note?: string }) {
   const industry = opts.industry || "";
@@ -203,10 +207,9 @@ STANDARDS FOR THIS AREA (must stay covered):
 ${opts.standards.map((s: any) => `- ${s.title}: ${s.rule}${s.industry ? ` [${s.industry} only]` : ""}`).join("\n") || "(none)"}
 ${opts.note ? `\nEXTRA INSTRUCTION: ${opts.note}\n` : ""}
 Write the next version (v${nextVersion}). Keep the existing structure and everything still true; fold each approved pattern into the right section as a concrete instruction; tighten wording; never drop a standard.${industry ? ` Adapt design direction, page set, schema types and local-search structure to the ${industry} industry.` : ""}
-Return: title ("${area.name}${industry ? ` (${industry})` : ""} — foundation v${nextVersion}"), body (markdown, the complete ready-to-paste prompt), changelog (2-5 short lines: what changed vs the current version and why).
+Title: "${area.name}${industry ? ` (${industry})` : ""} — foundation v${nextVersion}". Body: the complete ready-to-paste markdown prompt. Changelog: 2-5 short lines on what changed vs the current version and why.
 ${HOUSE}`;
-  const res: any = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, model: MODEL, response_json_schema: DRAFT_SCHEMA });
-  const out = typeof res === "string" ? JSON.parse(res) : res || {};
+  const out = await llmPrompt(base44, prompt, `${area.name}${industry ? ` (${industry})` : ""}`);
   if (!out.body) throw new Error("The model returned no prompt body");
   return db.FoundationPrompt.create({
     area_id: area.id, industry, version: nextVersion, title: cut(out.title || `${area.name} — foundation v${nextVersion}`, 160),
@@ -295,13 +298,7 @@ Rules for the industry version:
 - Only include what is relevant to this area (${area.name}). Keep [PLACEHOLDERS] for client facts.
 Title: "${area.name} (${industry}) — foundation v1". Changelog: one line on what this industry version changes vs the base.`;
   }
-  // Plain-text envelope instead of JSON: long markdown with quotes breaks JSON output.
-  prompt += `\n\nKeep the body under 1,800 words. Reply in EXACTLY this format and nothing else:\n<<<TITLE>>>\n(title)\n<<<CHANGELOG>>>\n(one line)\n<<<BODY>>>\n(the complete markdown prompt)\n<<<END>>>`;
-  const res: any = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, model: MODEL });
-  const text = typeof res === "string" ? res : String(res?.response || res?.text || res?.content || "");
-  const m = text.match(/<<<TITLE>>>\s*([\s\S]*?)\s*<<<CHANGELOG>>>\s*([\s\S]*?)\s*<<<BODY>>>\s*([\s\S]*?)\s*<<<END>>>/);
-  if (!m) throw new Error(`Incomplete output for ${area.name} ${industry || "(all)"} (${text.length} chars)`);
-  const out = { title: m[1].trim(), changelog: m[2].trim(), body: m[3].trim() };
+  const out = await llmPrompt(base44, prompt, `${area.name} ${industry || "(all)"}`);
   if (!seedComplete(out)) throw new Error(`Output failed checks for ${area.name} ${industry || "(all)"}`);
   const rec = {
     title: cut(out.title || `${area.name}${industry ? ` (${industry})` : ""} — foundation v1`, 160),
