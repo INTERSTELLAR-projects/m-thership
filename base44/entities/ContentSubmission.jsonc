@@ -1,0 +1,196 @@
+{
+  "name": "ContentSubmission",
+  "type": "object",
+  "description": "Content pipeline queue (docs/content-pipeline.md): one row per client submission (a project or a testimonial) sent from a client's Command System to content-intake. The writer checks it, writes it and publishes it to the client's website with no review step. Upsert key: source_app_id + source_record_id. Never hard-deleted. Admin only.",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "source_app_id": {
+      "type": "string",
+      "description": "Command app that sent it (must be the client's command_app_id)"
+    },
+    "source_record_id": {
+      "type": "string",
+      "description": "Record id in the sending app (upsert key with source_app_id)"
+    },
+    "source_entity": {
+      "type": "string",
+      "description": "Entity name in the sending app, e.g. Submission"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "project",
+        "testimonial"
+      ],
+      "default": "project"
+    },
+    "submitted_by": {
+      "type": "string",
+      "description": "Name or email of the signed-in owner/staff user who submitted it"
+    },
+    "raw": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "The payload exactly as received (latest version)"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "Photos as received: [{ url, name, size, role? }]"
+    },
+    "is_test": {
+      "type": "boolean",
+      "default": false,
+      "description": "Test record: runs every check and the writer, never publishes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "received",
+        "queued",
+        "processing_images",
+        "writing",
+        "publishing",
+        "live",
+        "needs_info",
+        "rejected",
+        "unpublished",
+        "failed",
+        "test_passed"
+      ],
+      "default": "received"
+    },
+    "status_detail": {
+      "type": "string",
+      "description": "Plain words for the client: what happened or what to fix"
+    },
+    "gate_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "[{ check, ok, note }] from the safety checks"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "Processed photos: [{ source_url, src, w, h, bytes, type, hash, exif_stripped, compressed, role }]"
+    },
+    "image_cursor": {
+      "type": "number",
+      "default": 0,
+      "description": "How many photos have been processed (images are done in chunks)"
+    },
+    "writer_output": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "The record as sent to the website"
+    },
+    "claim_check": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ ok, attempts, unsupported: [...], checked_at }"
+    },
+    "target_site_app_id": {
+      "type": "string"
+    },
+    "target_entity": {
+      "type": "string"
+    },
+    "target_record_id": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "published_url": {
+      "type": "string"
+    },
+    "content_post_id": {
+      "type": "string"
+    },
+    "work_entry_id": {
+      "type": "string"
+    },
+    "dedupe_hash": {
+      "type": "string"
+    },
+    "version": {
+      "type": "number",
+      "default": 1,
+      "description": "Bumped on every resubmit or edit"
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "[{ at, action, by, note, raw?, output? }] newest last, capped"
+    },
+    "attempts": {
+      "type": "number",
+      "default": 0
+    },
+    "locked_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Set while a writer run holds the row"
+    },
+    "received_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "unpublished_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "error": {
+      "type": "string",
+      "description": "Internal error detail (Justin only)"
+    }
+  },
+  "required": [
+    "source_app_id",
+    "source_record_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
