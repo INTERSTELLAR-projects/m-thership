@@ -1,0 +1,47 @@
+{
+  "name": "Playbooks \u2014 fold contact-flow standard (one-time)",
+  "description": "Manual helper (kept inactive; use Run now): adds unknown StandardChecks for Justin's one-question-at-a-time contact flow standard on every client website, adds the section to every website draft prompt, and creates a v+1 draft of each approved website prompt with the section folded in (Approve queue). Never approves anything; refuses after its first run. Function: promptAgent / fold_contact_standard.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 3 1 1 *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "playbooks_fold_contact_standard",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "fold": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "fold_contact_standard"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Fold the contact-flow standard",
+            "description": "Checks + website prompt drafts"
+          }
+        }
+      }
+    ]
+  }
+}
