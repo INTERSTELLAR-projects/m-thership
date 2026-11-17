@@ -16,6 +16,10 @@
 // Workflow "Playbooks — weekly prompt agent" (no signed-in user): weekly_sync, weekly_cluster, weekly_draft, each at most once per 5 days.
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { arr, cut, nowIso, industryGroup, checkKindFor, listAll, createMany } from "../../shared/playbooks.ts";
+import { SEED_INDUSTRIES, AREA_BRIEFS, SEED_HOUSE } from "../../shared/playbookSeed.ts";
+
+// Apps that are never part of the standards matrix (Justin, Nov 17 2026): onboarding forms and side tools.
+const EXCLUDED_APP_IDS = new Set(["6adff43533bf116e5c3f014b" /* Smallcakes Onboarding */, "6abec94ea33d526bb1fcffd1" /* SMPL Projects */]);
 
 const MODEL = "claude_sonnet_4_6";
 const STATE_KEY = "playbooks_agent";
@@ -59,6 +63,8 @@ async function syncChecks(db: any, onlyStandardId?: string) {
   for (const p of profiles) {
     const c: any = byClient.get(p.client_id);
     if (!c) continue;
+    // Only websites and command systems are checked; onboarding / other apps never get StandardChecks.
+    if (EXCLUDED_APP_IDS.has(p.app_id) || !(p.kind === "website" || p.kind === "command" || p.combined)) continue;
     const base = { client_id: c.id, client_name: c.business, app_or_site: p.app_id, app_name: p.app_name, industry: industryGroup(c.industry) };
     if (p.kind === "website" || p.combined) targets.push({ ...base, app_kind: "site" });
     if (p.kind === "command") targets.push({ ...base, app_kind: "app" });
@@ -233,6 +239,98 @@ async function draft(base44: any, db: any, onlyArea?: string) {
   return { drafted };
 }
 
+// ---------- one-time seed: generic v1 for empty areas + industry versions of every area (all drafts) ----------
+async function seedOne(base44: any, db: any, x: any, ctx: any) {
+  const { area, industry, ind } = x;
+  const areaPrompts = ctx.prompts.filter((p: any) => p.area_id === area.id);
+  const base = areaPrompts.find((p: any) => p.status === "approved" && !p.industry) || areaPrompts.filter((p: any) => !p.industry && p.status === "draft").sort((a: any, b: any) => (b.version || 0) - (a.version || 0))[0] || null;
+  const standards = ctx.standards.filter((s: any) => s.area_id === area.id && s.active !== false);
+  const brief = AREA_BRIEFS[area.slug] || area.description || "";
+  let prompt: string;
+  if (!industry) {
+    prompt = `You are the Prompt Agent ("prompt CEO") in Møthership for Interstellar Strategies, Justin's full-stack digital agency (web design/dev, SEO incl. AIO/GEO/AEO and local SEO, Google Business Profiles, automation, custom apps).
+Write v1 of the copy-paste FOUNDATION PROMPT for the area "${area.name}". Justin pastes it into an AI agent on day one for a new client so the work comes out at his standard without tweak rounds.
+
+WHAT THIS AREA COVERS (Justin's standards + current best practice):
+${brief}
+
+STANDARDS FOR THIS AREA:
+${standards.map((s: any) => `- ${s.title}: ${s.rule}`).join("\n") || "(none yet)"}
+
+${SEED_HOUSE}
+
+STYLE REFERENCE: an approved foundation prompt from another area (match its structure, tone and completeness, not its content):
+"""
+${cut(ctx.reference?.body, 5000)}
+"""
+
+Write a complete, ready-to-paste prompt in markdown: a title line, a one-paragraph brief with [CLIENT], [INDUSTRY], [CITY, STATE], [DOMAIN] placeholders, numbered sections with concrete instructions and checklists using current best practices, a "Do not" section, and a "Report" section. Do not name specific clients.
+Return: title ("${area.name} — foundation v1"), body, changelog (one line: what this first version establishes).`;
+  } else {
+    const glances = ind.clients.map((n: string) => {
+      const b = ctx.brains.find((br: any) => String(br.client_name || "").toLowerCase() === n.toLowerCase());
+      return b?.glance ? `### ${n}\n${cut(b.glance, 700)}` : "";
+    }).filter(Boolean).join("\n\n");
+    prompt = `You are the Prompt Agent ("prompt CEO") in Møthership for Interstellar Strategies (full-stack digital agency).
+Write the INDUSTRY VERSION of the foundation prompt for "${area.name}", industry: ${industry}.
+
+BASE PROMPT (all industries${base ? `, v${base.version}, ${base.status}` : ""}):
+"""
+${cut(base?.body, 12000)}
+"""
+
+WHAT DIFFERS IN THIS INDUSTRY (Justin's knowledge + current best practice):
+${ind.brief}
+
+AREA NOTES: ${cut(brief, 1500)}
+
+REAL CLIENTS IN THIS INDUSTRY (context only; do not name them in the prompt):
+${glances || "(no brain summaries yet)"}
+
+${SEED_HOUSE}
+
+Rules for the industry version:
+- Output ONE complete, ready-to-paste prompt: keep every base instruction and standard (you may tighten wording, never drop a standard).
+- Focus the changes on what actually differs for ${industry} in this area: structure, page or screen types, schema types, search/map footprint, tone, image style, compliance, integrations. Put the main differences in a section titled "## ${industry}: what's different" near the top, and adjust the specific base lines they affect.
+- Only include what is relevant to this area (${area.name}). Keep [PLACEHOLDERS] for client facts.
+Return: title ("${area.name} (${industry}) — foundation v1"), body, changelog (one line: what this industry version changes vs the base).`;
+  }
+  const res: any = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, model: MODEL, response_json_schema: DRAFT_SCHEMA });
+  const out = typeof res === "string" ? JSON.parse(res) : res || {};
+  if (!out.body) throw new Error(`No body for ${area.name} ${industry || "(all)"}`);
+  const version = Math.max(0, ...areaPrompts.filter((v: any) => (v.industry || "") === industry).map((v: any) => Number(v.version) || 0)) + 1;
+  return db.FoundationPrompt.create({
+    area_id: area.id, industry, version, status: "draft", drafted_by: "prompt_agent", based_on_id: industry ? base?.id || "" : "",
+    title: cut(out.title || `${area.name}${industry ? ` (${industry})` : ""} — foundation v${version}`, 160),
+    body: cut(out.body, 40000).replace(/®/g, "™"), changelog: cut(out.changelog, 1200), source_pattern_ids: [],
+  });
+}
+
+async function seedVariants(base44: any, db: any, max = 3) {
+  const [areas, prompts, standards, brains] = await Promise.all([
+    listAll(db.PlaybookArea, {}, "order", 100), listAll(db.FoundationPrompt, {}, "-version", 2000),
+    listAll(db.FoundationStandard, {}, "order", 1000), listAll(db.BusinessBrain, {}, "-updated_date", 300),
+  ]);
+  const live = (p: any) => p.status !== "retired";
+  const pending: any[] = [];
+  for (const area of areas) if (!prompts.some((p: any) => p.area_id === area.id && !p.industry && live(p))) pending.push({ area, industry: "" });
+  for (const ind of SEED_INDUSTRIES) for (const area of areas) if (!prompts.some((p: any) => p.area_id === area.id && p.industry === ind.key)) pending.push({ area, industry: ind.key, ind });
+  if (!pending.length) return { created: 0, remaining: 0, errors: [] };
+  const genericWaiting = new Set(pending.filter((x) => !x.industry).map((x) => x.area.id));
+  const batch: any[] = [];
+  for (const x of pending) {
+    if (batch.length >= max) break;
+    if (x.industry && genericWaiting.has(x.area.id)) continue; // the base draft comes first
+    batch.push(x);
+  }
+  const reference = prompts.find((p: any) => p.status === "approved" && !p.industry && areas.find((a: any) => a.id === p.area_id)?.slug === "website-polish-launch") || prompts.find((p: any) => p.status === "approved");
+  const ctx = { prompts, standards, brains, reference };
+  const settled = await Promise.allSettled(batch.map((x) => seedOne(base44, db, x, ctx)));
+  const created = settled.filter((s) => s.status === "fulfilled").length;
+  const errors = settled.filter((s) => s.status === "rejected").map((s: any) => cut(s.reason?.message || s.reason, 200));
+  return { created, remaining: pending.length - created, errors, batch: batch.map((x) => `${x.area.name}${x.industry ? ` · ${x.industry}` : ""}`) };
+}
+
 // ---------- approvals ----------
 async function approvePattern(db: any, b: any) {
   const p = await db.PromptPattern.get(String(b.pattern_id || ""));
@@ -272,14 +370,24 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me().catch(() => null);
     if (!user) {
       // Scheduled path: the weekly workflow only, each step at most once per 6 days.
-      if (!["weekly_sync", "weekly_cluster", "weekly_draft"].includes(action)) return Response.json({ error: "Unauthorized" }, { status: 401 });
       const { ps } = await getState(db);
+      if (action === "seed_variants") {
+        // One-time seed run from the "Playbooks — seed industry variants" workflow; refuses once the seed is complete.
+        if (ps.seed_variants_done) return Response.json({ ok: true, skipped: "seed already complete" });
+      } else if (!["weekly_sync", "weekly_cluster", "weekly_draft"].includes(action)) return Response.json({ error: "Unauthorized" }, { status: 401 });
       const last = ps.steps?.[action];
       if (last && Date.now() - new Date(last).getTime() < WEEK) return Response.json({ ok: true, skipped: "ran in the last 5 days" });
     } else if (user.role !== "admin") {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    if (action === "seed_variants") {
+      const r = await seedVariants(base44, db, 3);
+      const { row, ps } = await getState(db);
+      const seed = { ...(ps.seed_variants || {}), last_at: nowIso(), remaining: r.remaining, created_total: (Number(ps.seed_variants?.created_total) || 0) + r.created, errors: [...arr(ps.seed_variants?.errors), ...r.errors].slice(-20) };
+      await saveState(db, row, { ...ps, seed_variants: seed, seed_variants_done: r.remaining === 0 });
+      return Response.json({ ok: true, ...r });
+    }
     if (action === "status") { const { ps } = await getState(db); return Response.json({ ok: true, state: ps }); }
     if (action === "sync_checks" || action === "weekly_sync") {
       const r = await syncChecks(db);
