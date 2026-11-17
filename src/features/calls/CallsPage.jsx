@@ -1,12 +1,13 @@
 // Calls (/calls): every structured client call, split into upcoming, ready, drafts and done.
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Clock, Mic, Plus } from "lucide-react";
 import { Spinner } from "@/features/agents/ui";
 import { Shell, GlideTabs } from "./ui";
-import { E, bucket, fmtWhen, totalMinutes } from "./api";
+import { E, bucket, fmtWhen, totalMinutes, typeLabel, whoOf } from "./api";
+import PitchView from "./PitchView";
 
-const TABS = [["upcoming", "Upcoming"], ["ready", "Ready"], ["draft", "Drafts"], ["done", "Done"], ["all", "All"]];
+const TABS = [["upcoming", "Upcoming"], ["ready", "Ready"], ["draft", "Drafts"], ["done", "Done"], ["all", "All"], ["pitch", "Pitch"]];
 
 export function CallCard({ cp, i = 0 }) {
   const b = bucket(cp);
@@ -16,7 +17,7 @@ export function CallCard({ cp, i = 0 }) {
     <Link to={`/calls/${cp.id}`} className="card rise block p-4" style={{ animationDelay: `${Math.min(i, 16) * 30}ms` }}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="mono text-[10px] uppercase tracking-[.14em] text-[var(--ink-s)]">{cp.client_name || "Client"}</p>
+          <p className="mono text-[10px] uppercase tracking-[.14em] text-[var(--ink-s)]">{whoOf(cp)}{cp.call_type && cp.call_type !== "client" ? ` · ${typeLabel(cp.call_type)}` : ""}</p>
           <p className="mt-1 truncate text-[15px] font-medium text-white">{cp.title || "Untitled call"}</p>
           {cp.goal ? <p className="mt-1 line-clamp-2 text-[12.5px] text-[var(--ink-m)]">{cp.goal}</p> : <p className="mt-1 line-clamp-2 text-[12.5px] text-[var(--ink-s)]">{cp.raw_notes || "No notes yet"}</p>}
         </div>
@@ -35,14 +36,21 @@ export function CallCard({ cp, i = 0 }) {
 export default function CallsPage() {
   const [rows, setRows] = useState(null);
   const [err, setErr] = useState("");
-  const [tab, setTab] = useState("upcoming");
+  const [params, setParams] = useSearchParams();
+  const tab = TABS.some(([k]) => k === params.get("view")) ? params.get("view") : "upcoming";
+  const setTab = (k) => setParams(k === "upcoming" ? {} : { view: k }, { replace: true });
   useEffect(() => { E.CallPrep.list("-created_date", 300).then(setRows).catch((e) => { setErr(e?.message || "Could not load"); setRows([]); }); }, []);
   const counts = useMemo(() => {
     const c = { upcoming: 0, ready: 0, draft: 0, done: 0, all: (rows || []).length };
     (rows || []).forEach((r) => { c[bucket(r)] += 1; });
     return c;
   }, [rows]);
-  useEffect(() => { if (rows && tab === "upcoming" && !counts.upcoming) setTab(counts.ready ? "ready" : counts.draft ? "draft" : "all"); }, [rows, counts, tab]);
+  const [autoPicked, setAutoPicked] = useState(false);
+  useEffect(() => {
+    if (!rows || autoPicked) return;
+    setAutoPicked(true);
+    if (!params.get("view") && !counts.upcoming) setParams({ view: counts.ready ? "ready" : counts.draft ? "draft" : "all" }, { replace: true });
+  }, [rows, counts, autoPicked, params, setParams]);
   const list = (rows || []).filter((r) => tab === "all" || bucket(r) === tab)
     .sort((a, b) => (tab === "upcoming" ? new Date(a.scheduled_for) - new Date(b.scheduled_for) : 0));
 
@@ -50,9 +58,9 @@ export default function CallsPage() {
     <Shell title="Structure" accent="Calls" sub="Say what a client call needs to cover. Get back a tight, timeboxed plan, run the call from it, then dictate what happened so it feeds the client's brain."
       right={<Link to="/calls/new" className="btn-f"><Mic className="h-3.5 w-3.5" />Structure a call</Link>}>
       <div className="flex flex-wrap items-center justify-between gap-3 pt-5">
-        <GlideTabs value={tab} onChange={setTab} label="Call lists" options={TABS.map(([k, l]) => [k, l, null, counts[k] || 0])} />
+        <GlideTabs value={tab} onChange={setTab} label="Call lists" options={TABS.map(([k, l]) => [k, l, null, k === "pitch" ? 0 : counts[k] || 0])} />
       </div>
-      {rows === null ? (
+      {tab === "pitch" ? <PitchView /> : rows === null ? (
         <div className="grid min-h-[40vh] place-items-center"><Spinner size={18} /></div>
       ) : err ? (
         <p className="pt-6 text-[13px] text-[#ff8a7f]">{err}</p>
