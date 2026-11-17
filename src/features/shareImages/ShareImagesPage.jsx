@@ -90,8 +90,6 @@ export default function ShareImagesPage() {
     if (prof) { setDraft(structuredClone(prof)); setSaved(JSON.stringify(pick(prof))); }
     else if (client) { setDraft(newDraft(client)); setSaved(null); }
     setMsg("");
-    // only when the client changes or the list first arrives
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId, clients]);
 
   // Fonts, logo and photo: reload only when their sources change.
@@ -107,7 +105,6 @@ export default function ShareImagesPage() {
       setAssets(a); setLoadingAssets(false);
     }, 250);
     return () => { live = false; clearTimeout(t); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assetKey]);
 
   // Debounced copy of the draft for drawing, so typing stays smooth.
