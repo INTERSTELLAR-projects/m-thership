@@ -14,14 +14,15 @@ function useAct(refresh) {
   return { busy, err, act };
 }
 
-function PatternCard({ p, areas, refresh }) {
+function PatternCard({ p, areas, standards = [], refresh }) {
   const [editing, setEditing] = useState(false);
   const [f, setF] = useState({ title: p.title || "", rule: p.rule || "", how_to_check: p.how_to_check || "", kind: p.kind || "other" });
   const { busy, err, act } = useAct(refresh);
   const area = areas.find((a) => a.id === p.area_id);
+  const covered = p.standard_id ? standards.find((s) => s.id === p.standard_id) : null;
   return (
     <div className="card p-4">
-      <span className="run-border" />
+      {p.status === "proposed" ? <span className="run-border" /> : null}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="eyebrow !text-[9.5px]">Pattern · {area?.name || "No area"} · seen {p.count || 0}× · {(p.clients || []).length} client{(p.clients || []).length === 1 ? "" : "s"}</p>
@@ -45,6 +46,7 @@ function PatternCard({ p, areas, refresh }) {
             <ul className="mt-2 space-y-1 border-l border-[rgba(255,106,0,.35)] pl-3">{p.example_quotes.slice(0, 3).map((q, i) => <li key={i} className="text-[12px] italic text-[var(--ink-m)]">"{q}"</li>)}</ul>
           ) : null}
           {(p.clients || []).length ? <p className="mono mt-2 text-[10px] text-[var(--ink-s)]">{p.clients.join(" · ")} · last {relTime(p.last_seen)}</p> : null}
+          {covered ? <p className="mono mt-2 inline-flex rounded-md border border-[rgba(255,106,0,.35)] px-2 py-0.5 text-[10px] text-[#ffb27a]">Already a standard: {covered.title}</p> : null}
         </div>
       </div>
       <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
@@ -60,7 +62,7 @@ function PatternCard({ p, areas, refresh }) {
             <button type="button" className="btn-d" disabled={!!busy} onClick={() => act("reject", () => agentCall("reject_pattern", { pattern_id: p.id }))}>{busy === "reject" ? <Spinner size={12} /> : <X className="h-3.5 w-3.5" />}Reject</button>
           </>
         )}
-        <button type="button" className="btn-f" disabled={!!busy} onClick={() => act("approve", () => agentCall("approve_pattern", { pattern_id: p.id, ...f }))}>{busy === "approve" ? <Spinner size={12} /> : <Check className="h-3.5 w-3.5" />}Approve as standard</button>
+        <button type="button" className="btn-f" disabled={!!busy} onClick={() => act("approve", () => agentCall("approve_pattern", { pattern_id: p.id, ...f }))}>{busy === "approve" ? <Spinner size={12} /> : <Check className="h-3.5 w-3.5" />}{covered ? "Confirm" : "Approve as standard"}</button>
       </div>
     </div>
   );
@@ -119,10 +121,10 @@ function DraftCard({ d, areas, prompts, refresh }) {
 }
 
 export default function ApproveQueue({ data, refresh }) {
-  const { patterns, prompts, areas } = data;
+  const { patterns, prompts, areas, standards } = data;
   const proposed = patterns.filter((p) => p.status === "proposed").sort((a, b) => (b.count || 0) - (a.count || 0));
   const drafts = prompts.filter((p) => p.status === "draft").sort((a, b) => String(b.created_date).localeCompare(String(a.created_date)));
-  const watching = patterns.filter((p) => (p.status || "watching") === "watching").sort((a, b) => (b.count || 0) - (a.count || 0));
+  const watching = patterns.filter((p) => (p.status || "watching") === "watching" && (p.count || 0) > 0).sort((a, b) => (b.count || 0) - (a.count || 0));
   const [showWatch, setShowWatch] = useState(false);
   return (
     <div className="space-y-6 pt-5">
@@ -132,13 +134,13 @@ export default function ApproveQueue({ data, refresh }) {
       </section>
       <section>
         <p className="eyebrow mb-3">Proposed patterns · {proposed.length}</p>
-        {proposed.length ? <div className="grid gap-3 xl:grid-cols-2">{proposed.map((p) => <PatternCard key={p.id} p={p} areas={areas} refresh={refresh} />)}</div> : <Empty>No patterns proposed. A request becomes a proposal once it shows up 3 times or for 2 clients.</Empty>}
+        {proposed.length ? <div className="grid gap-3 xl:grid-cols-2">{proposed.map((p) => <PatternCard key={p.id} p={p} areas={areas} standards={standards} refresh={refresh} />)}</div> : <Empty>No patterns proposed. A request becomes a proposal once it shows up 3 times or for 2 clients.</Empty>}
       </section>
       <section>
         <button type="button" className="eyebrow mb-3 hover:text-white" onClick={() => setShowWatch((v) => !v)} aria-expanded={showWatch}>{showWatch ? "▾" : "▸"} Watching · {watching.length} (not repeated enough yet)</button>
         {showWatch ? (
           watching.length ? (
-            <div className="grid gap-3 xl:grid-cols-2">{watching.map((p) => <PatternCard key={p.id} p={p} areas={areas} refresh={refresh} />)}</div>
+            <div className="grid gap-3 xl:grid-cols-2">{watching.map((p) => <PatternCard key={p.id} p={p} areas={areas} standards={standards} refresh={refresh} />)}</div>
           ) : <Empty>Nothing being watched yet.</Empty>
         ) : null}
       </section>
