@@ -1,0 +1,36 @@
+{
+  "name": "Content pipeline \u2014 run new submissions",
+  "description": "When a client submission lands in the content queue, run the content writer (checks, photos, writing, publish). content-intake also starts it directly; this is the safety net. docs/content-pipeline.md",
+  "trigger": {
+    "condition": "${ .trigger.data.status == \"queued\" }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "ContentSubmission"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "content_pipeline_run_new",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_writer": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "content-writer",
+            "args": {
+              "action": "drain"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
