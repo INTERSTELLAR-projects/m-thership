@@ -5,6 +5,9 @@
 //   { mode: "debrief", call_prep_id, outcomes? }             proposes action_items + brain_facts_proposed (status done)
 //   { mode: "fact", call_prep_id, index, decision }          decision accepted -> writes a BrainFact on the client; rejected -> marks it
 //   { mode: "context", client_id }                           what the agent would read (for the UI)
+//   { mode: "pitch" }                                       writes PitchScript (30 s / 2 min / 10 min) from the positioning facts
+// call_type changes the structure: client | sales_discovery | sales_close | investor | partner | win_back | internal.
+// Sales, investor, partner, internal and win-back calls also read Interstellar's positioning (BrainFact source = positioning).
 // Never invents facts, prices or promises; flags conflicts with stored facts; nothing personal is ever proposed as a fact.
 // deno-lint-ignore-file no-explicit-any
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
@@ -20,7 +23,25 @@ const SENSITIVE = /\b(health|medical|diagnos|illness|sick|pregnan|therapy|religi
 
 async function safe<T>(p: Promise<T>, fallback: T): Promise<T> { try { return await p; } catch { return fallback; } }
 
-async function loadContext(db: any, clientId: string, excludeId = "") {
+const TYPES = ["client", "sales_discovery", "sales_close", "investor", "partner", "win_back", "internal"];
+const USES_POSITIONING = new Set(["sales_discovery", "sales_close", "investor", "partner", "internal", "win_back"]);
+const TYPE_LABEL: Record<string, string> = { client: "client call", sales_discovery: "sales discovery call", sales_close: "sales close call", investor: "investor call", partner: "partner call", win_back: "win-back call", internal: "internal meeting about Interstellar" };
+
+async function loadPositioning(db: any) {
+  return arr(await safe(db.BrainFact.filter({ source: "positioning", status: "active" }, "question_key", 40), []));
+}
+
+async function loadContext(db: any, clientId: string, excludeId = "", cp: any = null) {
+  const type = TYPES.includes(cp?.call_type) ? cp.call_type : "client";
+  const positioning = USES_POSITIONING.has(type) ? await loadPositioning(db) : [];
+  if (!clientId) {
+    const who = s(cp?.company) || s(cp?.contact_name);
+    const calls = who ? arr(await safe(db.CallPrep.filter(s(cp?.company) ? { company: s(cp.company) } : { contact_name: s(cp.contact_name) }, "-created_date", 6), [])) : [];
+    const prior = calls.filter((c: any) => c.id !== excludeId).slice(0, 3);
+    const followUps: string[] = [];
+    for (const c of prior) for (const a of arr(c.action_items)) if (!a?.done && s(a?.text)) followUps.push(`${s(a.text)} (${a.owner === "client" ? "them" : "Justin"}${a.due ? `, due ${s(a.due)}` : ""}; from "${s(c.title) || "earlier call"}")`);
+    return { client: null, facts: [], dossier: null, work: [], openTasks: [], posts: [], apps: [], prior, followUps, positioning, type, cp };
+  }
   const [client, facts, dossiers, work, tasks, posts, apps, calls] = await Promise.all([
     safe(db.CRMClient.get(clientId), null),
     safe(db.BrainFact.filter({ client_id: clientId, status: "active" }, "-updated_date", 120), []),
@@ -37,14 +58,17 @@ async function loadContext(db: any, clientId: string, excludeId = "") {
   const prior = arr(calls).filter((c: any) => c.id !== excludeId).slice(0, 3);
   const followUps: string[] = [];
   for (const c of prior) for (const a of arr(c.action_items)) if (!a?.done && s(a?.text)) followUps.push(`${s(a.text)} (${a.owner === "client" ? "client" : "Justin"}${a.due ? `, due ${s(a.due)}` : ""}; from "${s(c.title) || "earlier call"}")`);
-  return { client, facts: allFacts, dossier: arr(dossiers)[0] || null, work: arr(work), openTasks, posts: arr(posts), apps: arr(apps), prior, followUps };
+  return { client, facts: allFacts, dossier: arr(dossiers)[0] || null, work: arr(work), openTasks, posts: arr(posts), apps: arr(apps), prior, followUps, positioning, type, cp };
 }
 
 function contextText(ctx: any) {
   const c = ctx.client || {};
   const d = ctx.dossier || {};
   const lines: string[] = [];
-  lines.push(`CLIENT: ${s(c.business)} · contact ${s(c.contact) || "unknown"} · ${s(c.domain)} · status ${s(c.status)} · plan ${s(c.plan) || "unknown"}`);
+  if (ctx.positioning?.length) lines.push(`INTERSTELLAR POSITIONING (Justin's own words; use only these, never add numbers, clients or prices):\n${ctx.positioning.map((f: any) => `- ${s(f.statement)}`).join("\n")}`);
+  if (ctx.client) lines.push(`CLIENT: ${s(c.business)} · contact ${s(ctx.cp?.contact_name) || s(c.contact) || "unknown"} · ${s(c.domain)} · status ${s(c.status)} · plan ${s(c.plan) || "unknown"}`);
+  else if (ctx.type === "internal") lines.push(`MEETING WITH: ${s(ctx.cp?.contact_name) || "unknown"} (internal, about Interstellar itself)`);
+  else lines.push(`CALL WITH: ${s(ctx.cp?.contact_name) || "unknown"}${ctx.cp?.company ? ` at ${s(ctx.cp.company)}` : ""} (not a client yet; nothing on file beyond these notes)`);
   if (c.industry) lines.push(`Industry: ${s(c.industry)}`);
   if (c.location) lines.push(`Location: ${s(c.location)}`);
   if (arr(c.services_managed).length) lines.push(`We manage: ${arr(c.services_managed).join(", ")}`);
@@ -108,9 +132,41 @@ const STRUCTURE_SCHEMA = {
   required: ["goal", "agenda"],
 };
 
+const TYPE_RULES: Record<string, string[]> = {
+  client: [],
+  sales_discovery: [
+    "THIS IS A SALES DISCOVERY CALL. Justin's problem in his words: he 'gets lost in the sauce', shows too much proprietary stuff and has no direction. Fix that:",
+    "- Open on THEIR business and their pains. Ask before showing anything. Most of the time is questions.",
+    "- Map each pain they confirm to ONE outcome Interstellar delivers (from the positioning facts only).",
+    "- Show at most 2-3 proof points, short. Never explain proprietary how-it-works (systems, prompts, internal tools, build methods); talk outcomes, not internals. Add a risk line reminding him of this.",
+    "- End with ONE clear next step (e.g. a proposal call or a close call on a date). No pricing unless his notes give it.",
+  ],
+  sales_close: [
+    "THIS IS A SALES CLOSE CALL. Justin tends to get lost in the sauce and show too much proprietary stuff. Fix that:",
+    "- Open by replaying THEIR pains and what they told him matters (ask them to confirm).",
+    "- Map each pain to one outcome; at most 2-3 proof points; never explain proprietary how-it-works.",
+    "- Present ONE clear offer (only what his notes say; never invent a price or term), handle objections as questions, and ask for the decision.",
+    "- End with one next step: signed agreement / payment / kickoff date.",
+  ],
+  investor: [
+    "THIS IS AN INVESTOR CALL. Lead with the 2-minute story: the problem, what Interstellar is, proof, the model, where it's going, the ask. Build that story only from the positioning facts and his notes. Then go deep only where they ask; leave most of the time for their questions. End with the ask and one next step.",
+  ],
+  partner: [
+    "THIS IS A PARTNER CALL. Lead with the 2-minute story (problem, what Interstellar is, proof, model, where it's going, the ask) from the positioning facts and his notes, then their side: what they need, how a partnership would work. Depth only where they ask. End with one ask and one next step.",
+  ],
+  internal: [
+    "THIS IS AN INTERNAL MEETING about Interstellar (for example with family or a teammate). Lead with the 2-minute story (problem, what Interstellar is, proof, model, where it's going, the ask) from the positioning facts and his notes, then depth only where they ask. Decisions and owners at the end.",
+  ],
+  win_back: [
+    "THIS IS A WIN-BACK CALL with someone who used to be a client. Structure: what changed since they left (from his notes and the positioning), the gift or offer his notes describe (never invent prices), then ONE ask. Short, warm, no pressure. Never mention why other clients left.",
+  ],
+};
+
 function structurePrompt(cp: any, ctx: any) {
+  const type = TYPES.includes(cp?.call_type) ? cp.call_type : "client";
   return [
-    "You are Justin Cowell's call planner. Justin runs Interstellar Strategies, a digital agency. He spends too long on client calls; your job is a tight call that gets more done.",
+    `You are Justin Cowell's call planner. Justin runs Interstellar Strategies, a digital agency. He spends too long on calls; your job is a tight ${TYPE_LABEL[type]} that gets more done.`,
+    ...TYPE_RULES[type],
     "Turn his notes into a call plan. Rules:",
     "- goal: ONE sentence, what must be true when the call ends.",
     "- Agenda order: open with the goal (1-2 min, purpose inform), then every DECISION item, then show items, then asks, then informs. Close with a final item 'Recap, next steps, next call date' (2-3 min, purpose decide) that confirms owners and dates.",
@@ -120,7 +176,8 @@ function structurePrompt(cp: any, ctx: any) {
     "- prep_checklist: things Justin should have open before the call (specific pages, URLs, numbers, files) drawn from the notes and context.",
     "- asks_from_client: what to get from the client (assets, approvals, numbers).",
     "- risks: things that could derail the call or the project; keep it to real ones.",
-    "- conflicts: anything in his notes that disagrees with STORED FACTS, dossier, CRM notes or the site (e.g. two different numbers for the same thing). Quote both sides. Empty if none.",
+    "- conflicts: anything in his notes that disagrees with STORED FACTS, dossier, CRM notes or the site, or anything his notes say is inconsistent with itself (e.g. two different numbers for the same thing). Quote both sides. Empty if none.",
+    "- Never repeat why former clients left, or anything personal about anyone, on a call plan.",
     "- NEVER invent facts, prices, dates, numbers or promises. If something is unknown, make it a question. Do not promise outcomes on Justin's behalf.",
     "- title: short, e.g. 'Pre-launch walkthrough'. Use plain words, no emoji, no hype.",
     "",
