@@ -4,6 +4,7 @@ import React from "react";
 import { renderToString } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 
+globalThis.React = React; // vitest uses the classic JSX transform here
 vi.mock("@/api/base44Client", () => ({ base44: { entities: {}, functions: { invoke: vi.fn() } } }));
 
 const { lineDiff, sweepPrompt, livePrompt, industryGroup, checkKindFor } = await import("@/features/playbooks/data");
