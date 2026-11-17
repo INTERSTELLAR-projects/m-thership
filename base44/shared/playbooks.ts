@@ -20,9 +20,9 @@ const SECRET_PATTERNS: [RegExp, string][] = [
   [/\bxox[abprs]-[A-Za-z0-9-]{10,}/g, "[removed token]"],
   [/\bAIza[A-Za-z0-9_-]{30,}/g, "[removed key]"],
   // "password: x", "api key = x" ...
-  [/((?:password|passwd|pwd|passcode|secret|api[ _-]?key|token|access[ _-]?key|private[ _-]?key|client[ _-]?secret|sync[ _-]?key)\s*(?:=|:|->)\s*)("[^"]*"|'[^']*'|\S+)/gi, "$1[removed]"],
+  [/(\b(?:password|passwd|pwd|passcode|secret|api[ _-]?key|token|access[ _-]?key|private[ _-]?key|client[ _-]?secret|sync[ _-]?key)\s*(?:=|:|->)\s*)("[^"]*"|'[^']*'|\S+)/gi, "$1[removed]"],
   // "the password is Hunter22": only when the value looks like a credential (has a digit or symbol, 6+ chars)
-  [/((?:password|passwd|passcode|pin|login|api[ _-]?key|token|sync[ _-]?key)\s+is\s+)(?=\S*[0-9!@#$%^&*])(\S{6,})/gi, "$1[removed]"],
+  [/(\b(?:password|passwd|passcode|pin|login|api[ _-]?key|token|sync[ _-]?key)\s+is\s+)(?=\S*[0-9!@#$%^&*])(\S{6,})/gi, "$1[removed]"],
 ];
 
 // Strips anything that looks like a credential. Long opaque strings that mix letters and digits (32+ chars) go too.
