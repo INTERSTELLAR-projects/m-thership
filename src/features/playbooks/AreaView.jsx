@@ -51,7 +51,7 @@ export default function AreaView({ area, data, onBack, refresh }) {
   const [cmp, setCmp] = useState(null);
   const [variantState, setVariantState] = useState({ busy: false, msg: "", pick: "" });
 
-  const feeding = patterns.filter((p) => p.area_id === area.id && p.status !== "rejected").sort((a, b) => (b.count || 0) - (a.count || 0));
+  const feeding = patterns.filter((p) => p.area_id === area.id && p.status !== "rejected" && (p.count || 0) > 0).sort((a, b) => (b.count || 0) - (a.count || 0));
   const areaStandards = standards.filter((s) => s.area_id === area.id && s.active !== false);
 
   // "What changed since last client": versions approved after the most recent build started in this area.
@@ -165,6 +165,7 @@ export default function AreaView({ area, data, onBack, refresh }) {
                     </div>
                     <p className="mt-0.5 text-[12px] text-[var(--ink-m)]">{p.rule}</p>
                     {(p.clients || []).length ? <p className="mono mt-1 text-[10px] text-[var(--ink-s)]">{p.clients.join(" · ")}</p> : null}
+                    {p.standard_id ? <p className="mono mt-1 text-[10px] text-[#ffb27a]">Covered by: {standards.find((s) => s.id === p.standard_id)?.title || "a standard"}</p> : null}
                   </li>
                 ))}
               </ul>
