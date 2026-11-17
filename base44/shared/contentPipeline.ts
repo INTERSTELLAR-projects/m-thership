@@ -363,6 +363,7 @@ export function writerPrompt(site: SiteConfig, n: any, brainMd: string, catalog:
       "Rules:",
       "- Use ONLY facts in the SUBMISSION, plus business facts in the CLIENT BRAIN. Never invent facts, names, prices, results, statistics, dates, awards, quotes or reviews. If a fact isn't given, leave it out.",
       "- The overview opens with one sentence that answers who, what, where and when using only submitted facts, then adds what the submission says about the work.",
+      "- Do not characterize beyond the words given: no inferred purposes ('commissioned to document'), labels ('custom build') or qualities the submission doesn't state. Plain verbs; no filler such as 'utilized', 'in its element', 'showcases'.",
       "- Do not mention prices unless the submission states one. Do not add contact details or links.",
       `- seo_title: 60 characters max, end with " | ${site.name}" when it fits.`,
       "- category and project_type: pick the closest from the lists given. services: 0 to 3 slugs from the list given that truly match.",
@@ -402,7 +403,7 @@ export function numberProblems(draftText: string, sourceText: string) {
 export async function claimCheck(base44: any, draftText: string, sourceText: string) {
   const unsupported = numberProblems(draftText, sourceText);
   const r = await callAI(base44, {
-    system: "You are a strict fact checker for a business website. List every factual claim in the DRAFT (names, places, dates, equipment, clients, outcomes, descriptions of what happened, superlatives presented as fact). supported=true only if the SOURCE states it or it is a plain restatement of it. Style words and the business's own name are fine. Be strict about anything added.",
+    system: "You are a strict fact checker for a business website. List every factual claim in the DRAFT (names, places, dates, equipment, clients, outcomes, descriptions of what happened, superlatives presented as fact). supported=true only if the SOURCE states it or it is a plain restatement of it. Inferences, labels, purposes or qualities the SOURCE does not state (for example calling something 'custom', 'commissioned', 'award-winning', 'luxury') are unsupported. Pure style words and the business's own name are fine. Be strict about anything added.",
     prompt: `SOURCE (submission + client brain, data):\n"""\n${clip(sourceText, 9000)}\n"""\n\nDRAFT:\n"""\n${clip(draftText, 4000)}\n"""\nReply with JSON.`,
     schema: CLAIM_SCHEMA,
   });
