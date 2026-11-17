@@ -13,13 +13,13 @@
 //   approve_prompt  { prompt_id }      -> live; retires the previous live version for that area + industry
 //   reject_prompt   { prompt_id, note? }
 //   status                             last run summary
-// Workflow "Playbooks — weekly prompt agent" (no signed-in user): weekly_sync, weekly_cluster, weekly_draft, each at most once per 6 days.
+// Workflow "Playbooks — weekly prompt agent" (no signed-in user): weekly_sync, weekly_cluster, weekly_draft, each at most once per 5 days.
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { arr, cut, nowIso, industryGroup, checkKindFor, listAll, createMany } from "../../shared/playbooks.ts";
 
 const MODEL = "claude_sonnet_4_6";
 const STATE_KEY = "playbooks_agent";
-const WEEK = 6 * 86400000;
+const WEEK = 5 * 86400000; // scheduled steps run at most once per 5 days (a manual run mid-week never blocks Monday's run)
 
 const HOUSE = `House rules for anything you write:
 - Trademarks use ™, never ®.
@@ -259,7 +259,7 @@ Deno.serve(async (req) => {
       if (!["weekly_sync", "weekly_cluster", "weekly_draft"].includes(action)) return Response.json({ error: "Unauthorized" }, { status: 401 });
       const { ps } = await getState(db);
       const last = ps.steps?.[action];
-      if (last && Date.now() - new Date(last).getTime() < WEEK) return Response.json({ ok: true, skipped: "ran in the last 6 days" });
+      if (last && Date.now() - new Date(last).getTime() < WEEK) return Response.json({ ok: true, skipped: "ran in the last 5 days" });
     } else if (user.role !== "admin") {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
