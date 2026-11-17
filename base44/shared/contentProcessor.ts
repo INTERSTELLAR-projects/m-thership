@@ -100,7 +100,8 @@ export async function processSubmission(base44: any, sub: any, deadline: number)
       if (sub.kind === "project") {
         const n = normalizeProject(sub.raw);
         const [catalog, brain] = await Promise.all([siteCatalog(site), brainFor(db, sub.client_id)]);
-        const source = [JSON.stringify(n, null, 1), brain].join("\n\n");
+        const facts = { title: n.title, description: n.overview, client: n.client, location: n.location, month: n.month, year: n.year, camera: n.camera, lenses: n.lenses, other_equipment: n.other_equipment };
+        const source = [Object.entries(facts).filter(([, v]) => s(v)).map(([k, v]) => `${k}: ${v}`).join("\n"), brain].join("\n\n");
         let feedback = "";
         for (let attempt = 1; attempt <= 2; attempt++) {
           const p = writerPrompt(site, n, brain, catalog, feedback);
