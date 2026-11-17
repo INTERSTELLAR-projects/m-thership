@@ -1,0 +1,43 @@
+{
+  "name": "Content pipeline \u2014 hourly drain",
+  "description": "Every hour, finish any content submissions still in the queue (big photo sets are prepared in chunks). Does nothing when the queue is empty. docs/content-pipeline.md",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "17 * * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "do": [
+      {
+        "drain": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "content-writer",
+            "args": {
+              "action": "drain"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ],
+    "document": {
+      "dsl": "1.0.0",
+      "name": "content_pipeline_hourly_drain",
+      "namespace": "base44",
+      "version": "1.0"
+    }
+  }
+}
