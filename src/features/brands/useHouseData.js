@@ -15,7 +15,7 @@ async function loadBrands() {
 
 async function loadHouse() {
   const E = base44.entities;
-  const [brands, clients, dossiers, brandFacts, facts, brains, features, clientFeatures] = await Promise.all([
+  const [brands, clients, dossiers, brandFacts, facts, brains, features, clientFeatures, profiles, appFacts] = await Promise.all([
     loadBrands(),
     safe(E.CRMClient.list("business", 500)),
     safe(E.ClientDossier.list("-updated_date", 300)),
@@ -24,12 +24,17 @@ async function loadHouse() {
     safe(E.BusinessBrain.list("-updated_date", 300)),
     safe(E.AppFeature.list("sort_order", 1000)),
     safe(E.ClientAppFeature.list("-updated_date", 2000)),
+    safe(E.ClientAppProfile.list("client_name", 300)),
+    // Any status: brain_connected means facts have arrived from the app at least once.
+    safe(E.BrainFact.filter({ source: "client_app" }, "-created_date", 1000)),
   ]);
   // Keep only what the house reads (dossiers and brains carry long text).
   const slimDossiers = dossiers.map((x) => ({ id: x.id, client_id: x.client_id, health_score: x.health_score, client_brain: x.client_brain || null }));
   const slimBrains = brains.map((b) => ({ id: b.id, scope: b.scope, client_id: b.client_id, completeness: b.completeness }));
-  const slimFacts = facts.map((f) => ({ id: f.id, status: f.status, source: f.source, client_id: f.client_id }));
-  return { brands, clients, dossiers: slimDossiers, brandFacts, facts: slimFacts, brains: slimBrains, features, clientFeatures, at: Date.now() };
+  const slimFacts = facts.map((f) => ({ id: f.id, status: f.status, source: f.source, client_id: f.client_id, source_app_id: f.source_app_id }));
+  const slimAppFacts = appFacts.map((f) => ({ id: f.id, status: f.status, source: f.source, client_id: f.client_id, source_app_id: f.source_app_id }));
+  const slimProfiles = profiles.map((p) => ({ id: p.id, client_id: p.client_id, app_id: p.app_id, kind: p.kind, has_brain: p.has_brain, has_sync: p.has_sync }));
+  return { brands, clients, dossiers: slimDossiers, brandFacts, facts: slimFacts, appFacts: slimAppFacts, profiles: slimProfiles, brains: slimBrains, features, clientFeatures, at: Date.now() };
 }
 
 export function useHouseData() {
