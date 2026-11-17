@@ -87,6 +87,7 @@ const CLUSTER_SCHEMA = {
     new_patterns: { type: "array", items: { type: "object", properties: {
       ref: { type: "string" }, area_id: { type: "string" }, title: { type: "string" }, rule: { type: "string" },
       kind: { type: "string", enum: ["website", "app", "brand", "account", "mappack", "other"] }, how_to_check: { type: "string" },
+      covered_by: { type: "string", description: "Id of an existing standard that already covers this pattern, else empty" },
     }, required: ["ref", "title", "rule"] } },
     assignments: { type: "array", items: { type: "object", properties: { log_id: { type: "string" }, pattern: { type: "string" } }, required: ["log_id", "pattern"] } },
   },
@@ -103,18 +104,21 @@ async function recount(db: any) {
     const times = mine.map((l: any) => l.said_at || l.created_date).filter(Boolean).sort();
     const quotes = [...new Set(mine.map((l: any) => cut(l.text, 140)))].slice(-5);
     const patch: any = { count: mine.length, clients, example_quotes: quotes, first_seen: times[0] || p.first_seen, last_seen: times[times.length - 1] || p.last_seen };
-    if ((p.status || "watching") === "watching" && (mine.length >= 3 || clients.length >= 2)) { patch.status = "proposed"; proposed++; }
+    // Patterns already covered by an existing standard are tracked but never re-proposed.
+    if ((p.status || "watching") === "watching" && !p.standard_id && (mine.length >= 3 || clients.length >= 2)) { patch.status = "proposed"; proposed++; }
     await db.PromptPattern.update(p.id, patch);
   }
   return proposed;
 }
 
 async function cluster(base44: any, db: any) {
-  const [areas, patterns, logs] = await Promise.all([
+  const [areas, patterns, logs, standards] = await Promise.all([
     listAll(db.PlaybookArea, {}, "order", 100),
     listAll(db.PromptPattern, {}, "-last_seen", 400),
     listAll(db.PromptLog, {}, "-said_at", 3000),
+    listAll(db.FoundationStandard, {}, "order", 1000),
   ]);
+  const stdIds = new Set(standards.map((s: any) => s.id));
   const todo = logs.filter((l: any) => !l.pattern_id).slice(0, 80);
   if (!todo.length) { const proposed = await recount(db); return { clustered: 0, new_patterns: 0, proposed }; }
   const prompt = `You are the Prompt Agent inside Møthership, Justin's agency command app. Justin (Interstellar Strategies) builds client websites and apps.
@@ -126,12 +130,16 @@ ${areas.map((a: any) => `${a.id}: ${a.name} (${a.kind})`).join("\n")}
 EXISTING PATTERNS (id | status | area | title | rule):
 ${patterns.map((p: any) => `${p.id} | ${p.status} | ${p.area_id || "-"} | ${cut(p.title, 80)} | ${cut(p.rule, 160)}`).join("\n") || "(none yet)"}
 
+STANDARDS ALREADY IN PLACE (id | title | rule):
+${standards.filter((s: any) => s.active !== false).map((s: any) => `${s.id} | ${cut(s.title, 60)} | ${cut(s.rule, 140)}`).join("\n") || "(none)"}
+
 NEW REQUESTS (log id | client | phase | area | text):
 ${todo.map((l: any) => `${l.id} | ${l.client_name || "Interstellar"} | ${l.phase || "-"} | ${l.area_id || "-"} | ${cut(l.text, 300)}`).join("\n")}
 
 Instructions:
 - Assign EVERY new request to exactly one pattern: an existing pattern id when it is the same underlying ask (even if worded differently or for another client), or a new pattern ref like "new1".
 - Make new patterns general and reusable (not client-specific): title <= 8 words, rule = the standard in one sentence, how_to_check = one sentence. Pick the best area_id and kind.
+- When a new pattern is already covered by one of the STANDARDS ALREADY IN PLACE, set covered_by to that standard id (it is tracked, not re-proposed).
 - One-off, client-specific requests still get their own pattern (they just won't repeat). Prefer merging into an existing pattern over near-duplicates.
 ${HOUSE}`;
   const res: any = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, model: MODEL, response_json_schema: CLUSTER_SCHEMA });
@@ -143,7 +151,7 @@ ${HOUSE}`;
     if (!np?.ref || !np?.title) continue;
     const area = areaIds.has(np.area_id) ? np.area_id : "";
     const kind = np.kind || areas.find((a: any) => a.id === area)?.kind || "other";
-    const rec = await db.PromptPattern.create({ area_id: area, title: cut(np.title, 120), rule: cut(np.rule, 400), how_to_check: cut(np.how_to_check, 300), kind, status: "watching", count: 0, clients: [], example_quotes: [] });
+    const rec = await db.PromptPattern.create({ area_id: area, title: cut(np.title, 120), rule: cut(np.rule, 400), how_to_check: cut(np.how_to_check, 300), kind, status: "watching", count: 0, clients: [], example_quotes: [], standard_id: stdIds.has(np.covered_by) ? np.covered_by : "" });
     refMap.set(np.ref, rec.id);
     made++;
   }
@@ -206,6 +214,9 @@ async function draft(base44: any, db: any, onlyArea?: string) {
     listAll(db.PlaybookArea, {}, "order", 100), listAll(db.PromptPattern, { status: "standard" }, "-decided_at", 500),
     listAll(db.FoundationPrompt, {}, "-version", 1000), listAll(db.FoundationStandard, {}, "order", 1000),
   ]);
+  const stdById = new Map(standards.map((s: any) => [s.id, s]));
+  // Fold in only patterns Justin approved into a NEW standard (approved patterns already covered by a seeded standard are in the prompt).
+  const foldable = patterns.filter((p: any) => !p.standard_id || (stdById.get(p.standard_id) as any)?.origin_pattern_id === p.id);
   const drafted: any[] = [];
   for (const area of areas) {
     if (onlyArea && area.id !== onlyArea) continue;
@@ -214,7 +225,7 @@ async function draft(base44: any, db: any, onlyArea?: string) {
     const live = versions.find((p: any) => p.status === "approved" && !p.industry) || null;
     const covered = new Set<string>();
     versions.filter((v: any) => v.status === "approved" || (v.status === "draft" && !v.rejected_at)).forEach((v: any) => arr(v.source_pattern_ids).forEach((id: string) => covered.add(id)));
-    const fresh = patterns.filter((p: any) => p.area_id === area.id && !covered.has(p.id));
+    const fresh = foldable.filter((p: any) => p.area_id === area.id && !covered.has(p.id));
     if (!fresh.length) continue;
     const rec = await draftFor(base44, db, area, { patterns: fresh, base: live, versions, standards: standards.filter((s: any) => s.area_id === area.id && s.active !== false) });
     drafted.push({ area: area.name, prompt_id: rec.id, version: rec.version, patterns: fresh.length });
@@ -227,6 +238,11 @@ async function approvePattern(db: any, b: any) {
   const p = await db.PromptPattern.get(String(b.pattern_id || ""));
   if (!p) throw new Error("Pattern not found");
   if (p.status === "standard" && p.standard_id) return { standard_id: p.standard_id, already: true };
+  if (p.standard_id) {
+    // Already covered by an existing standard: confirm it, no duplicate standard.
+    await db.PromptPattern.update(p.id, { status: "standard", decided_at: nowIso() });
+    return { standard_id: p.standard_id, already: true };
+  }
   const area = p.area_id ? await db.PlaybookArea.get(p.area_id).catch(() => null) : null;
   const title = cut(b.title || p.title, 160), rule = cut(b.rule || p.rule || p.title, 600), how = cut(b.how_to_check ?? p.how_to_check ?? "", 400);
   const kind = ["website", "app", "brand", "account", "mappack", "other"].includes(b.kind) ? b.kind : (p.kind && p.kind !== "other" ? p.kind : area?.kind || "other");
