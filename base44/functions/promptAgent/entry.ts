@@ -210,7 +210,7 @@ ${HOUSE}`;
   if (!out.body) throw new Error("The model returned no prompt body");
   return db.FoundationPrompt.create({
     area_id: area.id, industry, version: nextVersion, title: cut(out.title || `${area.name} — foundation v${nextVersion}`, 160),
-    body: cut(out.body, 40000).replace(/®/g, "™"), changelog: cut(out.changelog, 4000), status: "draft", drafted_by: "prompt_agent",
+    body: cut(out.body, 40000), changelog: cut(out.changelog, 4000), status: "draft", drafted_by: "prompt_agent",
     based_on_id: opts.base?.id || "", source_pattern_ids: opts.patterns.map((p: any) => p.id),
   });
 }
@@ -265,7 +265,7 @@ ${cut(ctx.reference?.body, 5000)}
 """
 
 Write a complete, ready-to-paste prompt in markdown: a title line, a one-paragraph brief with [CLIENT], [INDUSTRY], [CITY, STATE], [DOMAIN] placeholders, numbered sections with concrete instructions and checklists using current best practices, a "Do not" section, and a "Report" section. Do not name specific clients.
-Return: title ("${area.name} — foundation v1"), body, changelog (one line: what this first version establishes).`;
+Title: "${area.name} — foundation v1". Changelog: one line on what this first version establishes.`;
   } else {
     const glances = ind.clients.map((n: string) => {
       const b = ctx.brains.find((br: any) => String(br.client_name || "").toLowerCase() === n.toLowerCase());
@@ -293,17 +293,29 @@ Rules for the industry version:
 - Output ONE complete, ready-to-paste prompt: keep every base instruction and standard (you may tighten wording, never drop a standard).
 - Focus the changes on what actually differs for ${industry} in this area: structure, page or screen types, schema types, search/map footprint, tone, image style, compliance, integrations. Put the main differences in a section titled "## ${industry}: what's different" near the top, and adjust the specific base lines they affect.
 - Only include what is relevant to this area (${area.name}). Keep [PLACEHOLDERS] for client facts.
-Return: title ("${area.name} (${industry}) — foundation v1"), body, changelog (one line: what this industry version changes vs the base).`;
+Title: "${area.name} (${industry}) — foundation v1". Changelog: one line on what this industry version changes vs the base.`;
   }
-  const res: any = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, model: MODEL, response_json_schema: DRAFT_SCHEMA });
-  const out = typeof res === "string" ? JSON.parse(res) : res || {};
-  if (!out.body) throw new Error(`No body for ${area.name} ${industry || "(all)"}`);
+  // Plain-text envelope instead of JSON: long markdown with quotes breaks JSON output.
+  prompt += `\n\nKeep the body under 1,800 words. Reply in EXACTLY this format and nothing else:\n<<<TITLE>>>\n(title)\n<<<CHANGELOG>>>\n(one line)\n<<<BODY>>>\n(the complete markdown prompt)\n<<<END>>>`;
+  const res: any = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, model: MODEL });
+  const text = typeof res === "string" ? res : String(res?.response || res?.text || res?.content || "");
+  const m = text.match(/<<<TITLE>>>\s*([\s\S]*?)\s*<<<CHANGELOG>>>\s*([\s\S]*?)\s*<<<BODY>>>\s*([\s\S]*?)\s*<<<END>>>/);
+  if (!m) throw new Error(`Incomplete output for ${area.name} ${industry || "(all)"} (${text.length} chars)`);
+  const out = { title: m[1].trim(), changelog: m[2].trim(), body: m[3].trim() };
+  if (!seedComplete(out)) throw new Error(`Output failed checks for ${area.name} ${industry || "(all)"}`);
+  const rec = {
+    title: cut(out.title || `${area.name}${industry ? ` (${industry})` : ""} — foundation v1`, 160),
+    body: cut(out.body, 40000), changelog: cut(out.changelog, 1200),
+  };
+  if (x.redo) return db.FoundationPrompt.update(x.redo.id, rec); // fix an earlier malformed seed draft in place
   const version = Math.max(0, ...areaPrompts.filter((v: any) => (v.industry || "") === industry).map((v: any) => Number(v.version) || 0)) + 1;
-  return db.FoundationPrompt.create({
-    area_id: area.id, industry, version, status: "draft", drafted_by: "prompt_agent", based_on_id: industry ? base?.id || "" : "",
-    title: cut(out.title || `${area.name}${industry ? ` (${industry})` : ""} — foundation v${version}`, 160),
-    body: cut(out.body, 40000).replace(/®/g, "™"), changelog: cut(out.changelog, 1200), source_pattern_ids: [],
-  });
+  return db.FoundationPrompt.create({ ...rec, area_id: area.id, industry, version, status: "draft", drafted_by: "prompt_agent", based_on_id: industry ? base?.id || "" : "", source_pattern_ids: [] });
+}
+
+// A seeded draft is usable when it has a report section, a real changelog line and no mangled trademark rule.
+function seedComplete(p: any) {
+  const body = String(p?.body || "");
+  return body.length > 1500 && /^#+ .*report/im.test(body) && String(p?.changelog || "").trim().length >= 25 && !/never ™/.test(body);
 }
 
 async function seedVariants(base44: any, db: any, max = 3) {
@@ -313,8 +325,15 @@ async function seedVariants(base44: any, db: any, max = 3) {
   ]);
   const live = (p: any) => p.status !== "retired";
   const pending: any[] = [];
-  for (const area of areas) if (!prompts.some((p: any) => p.area_id === area.id && !p.industry && live(p))) pending.push({ area, industry: "" });
-  for (const ind of SEED_INDUSTRIES) for (const area of areas) if (!prompts.some((p: any) => p.area_id === area.id && p.industry === ind.key)) pending.push({ area, industry: ind.key, ind });
+  // An earlier seed draft that came out malformed is redone in place (never deleted).
+  const slot = (area: any, industry: string) => {
+    const mine = prompts.filter((p: any) => p.area_id === area.id && (p.industry || "") === industry && live(p));
+    if (!mine.length) return { need: true };
+    const bad = mine.find((p: any) => p.status === "draft" && p.drafted_by === "prompt_agent" && !seedComplete(p));
+    return bad && mine.length === 1 ? { need: true, redo: bad } : { need: false };
+  };
+  for (const area of areas) { const s = slot(area, ""); if (s.need) pending.push({ area, industry: "", redo: s.redo }); }
+  for (const ind of SEED_INDUSTRIES) for (const area of areas) { const s = slot(area, ind.key); if (s.need) pending.push({ area, industry: ind.key, ind, redo: s.redo }); }
   if (!pending.length) return { created: 0, remaining: 0, errors: [] };
   const genericWaiting = new Set(pending.filter((x) => !x.industry).map((x) => x.area.id));
   const batch: any[] = [];
