@@ -1,0 +1,160 @@
+{
+  "name": "ShareImageProfile",
+  "description": "One client's 1200x630 social sharing (Open Graph) image set: brand background preset, colors, logo, display font and the list of images (one per standalone page, one per group of related pages, plus home and default). Rendered in the browser on /share-images and downloaded as <file_name>.jpg. Admin-only.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Copy of CRMClient.business for lists"
+    },
+    "site_app_id": {
+      "type": "string",
+      "description": "App id of the client's website (read-only reference)"
+    },
+    "site_domain": {
+      "type": "string",
+      "description": "e.g. oregonpowerlift.com"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Light / white logo used on dark backgrounds (CORS-readable; re-hosted in M\u00f8thership storage when the site blocks it)"
+    },
+    "logo_dark_url": {
+      "type": "string",
+      "description": "Optional dark logo for light backgrounds"
+    },
+    "background_style": {
+      "type": "string",
+      "enum": [
+        "blueprint",
+        "gradient",
+        "asphalt_stripes",
+        "grain_blur",
+        "patina",
+        "starfield",
+        "stone",
+        "photo_blur"
+      ],
+      "default": "gradient",
+      "description": "Procedural background preset"
+    },
+    "colors": {
+      "type": "object",
+      "description": "primary = base/darkest, secondary = second stop, accent = stripes/grid/ticks/highlights, glow = soft light, text = label color",
+      "properties": {
+        "primary": {
+          "type": "string"
+        },
+        "secondary": {
+          "type": "string"
+        },
+        "accent": {
+          "type": "string"
+        },
+        "glow": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string",
+          "default": "#FFFFFF"
+        }
+      }
+    },
+    "background_image_url": {
+      "type": "string",
+      "description": "Optional photo/texture for photo_blur, stone and patina"
+    },
+    "font_family": {
+      "type": "string",
+      "description": "Display font name, e.g. Archivo"
+    },
+    "font_url": {
+      "type": "string",
+      "description": "woff2/ttf on the client's site (CORS-readable). Empty = bundled bold sans"
+    },
+    "font_weight": {
+      "type": "number",
+      "default": 800
+    },
+    "label_case": {
+      "type": "string",
+      "enum": [
+        "upper",
+        "as_typed"
+      ],
+      "default": "upper"
+    },
+    "options": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Layout tuning. home_logo_width (720), home_logo_max_height (300), page_logo_height (104), page_logo_max_width (420), text_max_width (520), grain (0-1), seed (number)"
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "file_name": {
+            "type": "string",
+            "description": "Download name without .jpg, e.g. og-how-it-works"
+          },
+          "label": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "home",
+              "page",
+              "group",
+              "default"
+            ]
+          },
+          "paths_note": {
+            "type": "string",
+            "description": "Which routes use this image"
+          }
+        }
+      }
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
