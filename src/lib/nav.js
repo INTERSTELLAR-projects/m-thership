@@ -125,6 +125,7 @@ export const HUBS = [
     hint: "The agents, the intelligence they gather and the automations they run",
     tabs: [
       { label: "Constellation", icon: Orbit, path: "/agents", hint: "Every agent, what it knows and what it is working on" },
+      { label: "Playbooks", icon: BookOpenCheck, path: "/playbooks", hint: "The prompt agent: copy-paste foundation prompts per service, and the standards every client site and app gets" },
       { label: "Intelligence", icon: Radar, path: "/intelligence", hint: "Market and search changes worth acting on" },
       { label: "Idea Vault", icon: Lightbulb, path: "/idea-vault", hint: "Ideas, scored" },
       { label: "Automations", icon: Zap, path: "/automations", hint: "Every automation and notification, internal and external" },
