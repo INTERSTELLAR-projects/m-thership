@@ -51,6 +51,16 @@ function ClientLogo({ node }) {
   return <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-[12px] font-semibold text-white" style={{ ...ring, background: `${node.color}33` }}>{String(node.label || "?").trim()[0]}</span>;
 }
 
+// Compact "Connected: brain ✓ / sync ✓" line. Brain = BrainFacts have arrived from the client's app; sync = profile has_sync.
+function ConnectedLine({ c }) {
+  const mark = (ok, part) => (ok ? <span className="text-[#3ddc84]">✓</span> : part ? <span className="text-[#ffaa00]">~</span> : <span className="opacity-60">✗</span>);
+  return (
+    <span className="mono block truncate text-[9px] text-[var(--ink-s)]" data-testid="client-connected" title={`Brain ${c.brain ? "connected (facts received)" : "not connected yet"} · sync ${c.sync}`}>
+      brain {mark(c.brain)} / sync {mark(c.sync === "yes", c.sync === "partial")}
+    </span>
+  );
+}
+
 function ClientChip({ node, reg, dim }) {
   return (
     <Link ref={reg(node.id)} data-node={node.id} to={`/clients/${node.clientId}`} className={`shp-card hb-chip flex items-center gap-2.5 ${dim ? "dim" : ""}`} title={`${node.label}: open client`}>
@@ -59,6 +69,7 @@ function ClientChip({ node, reg, dim }) {
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[12.5px] font-medium text-white">{node.label}</span>
         <span className="mono block truncate text-[9.5px] text-[var(--ink-s)]">{node.brain ? `brain ${pctText(node.brain.score)} · ${node.brain.answered}/${node.brain.total}` : node.hasApp ? "app · brain not reporting yet" : "no app brain yet"}</span>
+        {node.connected && node.connected.apps > 0 && <ConnectedLine c={node.connected} />}
       </span>
     </Link>
   );
