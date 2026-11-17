@@ -41,7 +41,7 @@ async function brainFor(db: any, clientId: string) {
 }
 
 // ---------------------------------------------------------------- one step pass
-export async function processSubmission(base44: any, sub: any, deadline: number) {
+export async function processSubmission(base44: any, sub: any, deadline: number): Promise<any> {
   const db = base44.asServiceRole.entities;
   const fresh = await db.ContentSubmission.get(sub.id).catch(() => null);
   if (!fresh || !ACTIVE.includes(fresh.status)) return { id: sub.id, status: fresh?.status || "missing", skipped: true };
@@ -146,7 +146,7 @@ export async function processSubmission(base44: any, sub: any, deadline: number)
 }
 
 // Signed upsert + checks + logging. Used by the first publish, a client resubmit, Justin's edit and a retry.
-export async function publish(base44: any, sub: any, client: any, site: SiteConfig, why: "publish" | "edit") {
+export async function publish(base44: any, sub: any, client: any, site: SiteConfig, why: "publish" | "edit"): Promise<any> {
   const db = base44.asServiceRole.entities;
   const kind = site.kinds[sub.kind];
   const record = { ...sub.writer_output };

@@ -23,7 +23,7 @@ export const s = (v: unknown) => (v == null ? "" : String(v).trim());
 export const clip = (v: unknown, n: number) => { const t = s(v); return t.length > n ? t.slice(0, n) : t; };
 export const words = (t: string) => s(t).split(/\s+/).filter(Boolean).length;
 const hex = (b: ArrayBuffer | Uint8Array) => Array.from(new Uint8Array(b as ArrayBuffer)).map((x) => x.toString(16).padStart(2, "0")).join("");
-export async function sha256(data: string | Uint8Array) { return hex(await crypto.subtle.digest("SHA-256", typeof data === "string" ? enc.encode(data) : data)); }
+export async function sha256(data: string | Uint8Array) { return hex(await crypto.subtle.digest("SHA-256", (typeof data === "string" ? enc.encode(data) : data) as any)); }
 export const now = () => new Date().toISOString();
 export const pushHistory = (h: any, e: any) => [...arr(h), { at: now(), ...e }].slice(-40);
 
@@ -210,7 +210,7 @@ export async function processPhoto(base44: any, photo: any, sourceAppId: string,
   let res = await fetch(url, { signal: AbortSignal.timeout(60000) }).catch(() => null);
   if ((!res || !res.ok) && compressed) { compressed = false; res = await fetch(src, { signal: AbortSignal.timeout(60000) }).catch(() => null); }
   if (!res || !res.ok) return { ok: false, note: `${name}: download failed` };
-  let bytes = new Uint8Array(await res.arrayBuffer());
+  let bytes: any = new Uint8Array(await res.arrayBuffer());
   const outType = sniffType(bytes) || type;
   const hash = (await sha256(bytes)).slice(0, 32);
   let exif = false;
