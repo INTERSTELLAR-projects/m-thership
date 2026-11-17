@@ -84,7 +84,7 @@ export async function processSubmission(base44: any, sub: any, deadline: number)
         }
         i++;
       }
-      await save(db, sub, { images, image_cursor: i, status_detail: `Preparing photos (${i} of ${plan.length})` });
+      await save(db, sub, { images, image_notes: notes.slice(-60), image_cursor: i, status_detail: `Preparing photos (${i} of ${plan.length})` });
       if (i < plan.length) { await save(db, sub, { locked_at: null }); return { id: sub.id, status: sub.status, more: true }; }
       const kind = site?.kinds?.[sub.kind];
       const usable = images.filter((im: any) => im.role !== "cover").length || images.length;
@@ -175,8 +175,13 @@ export async function publish(base44: any, sub: any, client: any, site: SiteConf
     target_entity: kind.entity, target_record_id: s(r.body.id), slug: s(r.body.slug), url, title: clip(title, 200), status: "live",
     published_at: post?.published_at || now(), last_action_at: now(), verify, indexnow,
   };
-  if (post) post = { ...post, ...postPatch, events: [...arr(post.events), event].slice(-60) }, await db.ContentPost.update(post.id, { ...postPatch, events: post.events });
-  else post = await db.ContentPost.create({ ...postPatch, events: [event] });
+  if (post) {
+    const events = [...arr(post.events), event].slice(-60);
+    await db.ContentPost.update(post.id, { ...postPatch, events });
+    post = { ...post, ...postPatch, events };
+  } else {
+    post = await db.ContentPost.create({ ...postPatch, events: [event] });
+  }
   const workId = sub.work_entry_id || (await logWork(db, sub, post, site));
   if (!post.work_entry_id) await db.ContentPost.update(post.id, { work_entry_id: workId });
   await save(db, sub, {
