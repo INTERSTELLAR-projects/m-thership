@@ -45,7 +45,7 @@ function ClientPicker({ clients, profiles, onPick }) {
         const p = byClient.get(c.id);
         const preset = p ? PRESETS[p.background_style] : null;
         return (
-          <button key={c.id} type="button" className="card thumb-in flex items-center gap-3 p-3.5" style={{ animation: `shi-in .5s cubic-bezier(.22,1,.36,1) ${Math.min(i, 20) * 30}ms both` }} onClick={() => onPick(c.id)}>
+          <button key={c.id} type="button" className="card flex items-center gap-3 p-3.5" style={{ animation: `shi-in .5s cubic-bezier(.22,1,.36,1) ${Math.min(i, 20) * 30}ms backwards` }} onClick={() => onPick(c.id)}>
             <span className="h-10 w-16 shrink-0 rounded-md border border-[var(--hair-d2)]" style={{ background: preset ? `linear-gradient(135deg, ${p.colors?.primary || preset.colors.primary}, ${p.colors?.secondary || preset.colors.secondary} 70%, ${p.colors?.accent || preset.colors.accent})` : "rgba(255,255,255,.03)" }} />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[14px] font-medium text-white">{c.business || c.domain}</span>

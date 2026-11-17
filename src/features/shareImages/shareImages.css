@@ -22,7 +22,7 @@
 .agx.shi .preset span { position: absolute; left: 7px; bottom: 5px; font-size: 10.5px; font-weight: 600; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
 
 /* Preview cards */
-.agx.shi .thumb { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,.085); background: #0b0c12; animation: shi-in .55s cubic-bezier(.22,1,.36,1) both; transition: border-color .2s, transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s; }
+.agx.shi .thumb { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,.085); background: #0b0c12; animation: shi-in .55s cubic-bezier(.22,1,.36,1) backwards; transition: border-color .2s, transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s; }
 .agx.shi .thumb:hover { border-color: rgba(255,140,70,.55); transform: translateY(-3px); box-shadow: 0 22px 44px -24px rgba(255,80,0,.6); }
 .agx.shi .thumb canvas { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; cursor: zoom-in; }
 .agx.shi .thumb .meta { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-top: 1px solid var(--hair-d); }
