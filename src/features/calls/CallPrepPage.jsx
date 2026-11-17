@@ -178,7 +178,7 @@ function CallMode({ cp, setAgenda, onSave }) {
   const [elapsed, setElapsed] = useState(0);
   const [itemStart, setItemStart] = useState(0);
   useEffect(() => { if (!running) return undefined; const t = setInterval(() => setElapsed((e) => e + 1), 1000); return () => clearInterval(t); }, [running]);
-  useEffect(() => { setItemStart(elapsed); }, [i]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setItemStart(elapsed); }, [i]);
   const a = agenda[i];
   if (!a) return <p className="pt-6 text-[13px] text-[var(--ink-m)]">No agenda yet. Structure the call first.</p>;
   const left = (Number(a.minutes) || 0) * 60 - (elapsed - itemStart);
