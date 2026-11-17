@@ -39,7 +39,7 @@ function GlideTabs({ value, onChange, options }) {
 function AreaCard({ area, data, highlight, pending, onOpen }) {
   const Icon = iconFor(area.icon);
   const live = livePrompt(data.prompts, area.id);
-  const feeding = data.patterns.filter((p) => p.area_id === area.id && p.status !== "rejected").length;
+  const feeding = data.patterns.filter((p) => p.area_id === area.id && p.status !== "rejected" && (p.count || 0) > 0).length;
   const stds = data.standards.filter((s) => s.area_id === area.id && s.active !== false).length;
   return (
     <div className={`card flex flex-col p-4 ${highlight ? "hl" : ""}`}>
