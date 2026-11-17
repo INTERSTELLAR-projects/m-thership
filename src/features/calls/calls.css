@@ -1,0 +1,38 @@
+/* Structure call: scoped under .agx.cpx, reusing the Agents tokens (../agents/agents.css) and the Playbooks look. */
+.agx.cpx { min-height: calc(100dvh - 48px); background: radial-gradient(1300px 800px at 50% 0%, #140e14 0%, #08090e 55%, #040509 100%); }
+.agx.cpx .cpx-wrap { position: relative; z-index: 2; max-width: 1180px; margin: 0 auto; padding: 0 16px 80px; }
+@media (min-width: 768px) { .agx.cpx .cpx-wrap { padding: 0 28px 96px; } }
+.agx.cpx .card { position: relative; border-radius: 14px; border: 1px solid rgba(255,255,255,.085); background: linear-gradient(180deg, rgba(20,21,31,.82), rgba(11,12,18,.88)); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.agx.cpx a.card, .agx.cpx button.card { text-align: left; transition: border-color .2s, transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s; }
+.agx.cpx a.card:hover, .agx.cpx button.card:hover { border-color: rgba(255,140,70,.5); transform: translateY(-2px); box-shadow: 0 18px 40px -22px rgba(255,80,0,.55); }
+.agx.cpx .inp { width: 100%; }
+.agx.cpx .lbl { display: block; font-size: 11.5px; color: var(--ink-m); margin-bottom: 4px; }
+.agx.cpx .rise { animation: cpx-in .5s cubic-bezier(.22,1,.36,1) backwards; }
+@keyframes cpx-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* Tabs with a sliding highlight (same as Playbooks) */
+.agx.cpx .tabs { position: relative; display: inline-flex; gap: 2px; padding: 3px; border-radius: 11px; border: 1px solid var(--hair-d); background: rgba(255,255,255,.025); }
+.agx.cpx .tabs button { position: relative; z-index: 1; height: 32px; padding: 0 13px; border-radius: 8px; font-size: 12.5px; color: var(--ink-m); display: inline-flex; align-items: center; gap: 6px; transition: color .2s; white-space: nowrap; }
+.agx.cpx .tabs button.on { color: #fff; }
+.agx.cpx .tabs .glide { position: absolute; z-index: 0; top: 3px; bottom: 3px; border-radius: 8px; background: rgba(255,60,0,.16); box-shadow: inset 0 0 0 1px rgba(255,106,0,.55); transition: left .35s cubic-bezier(.22,1,.36,1), width .35s cubic-bezier(.22,1,.36,1); }
+
+/* Big mic */
+.agx .mic { position: relative; display: grid; place-items: center; width: 64px; height: 64px; flex-shrink: 0; border-radius: 999px; color: #fff; background: linear-gradient(135deg, #ff3c00, #ff6a00 60%, #ffaa00); box-shadow: 0 12px 30px -10px rgba(255,60,0,.8); transition: transform .2s; }
+.agx .mic:hover { transform: scale(1.04); }
+.agx .mic .ring { position: absolute; inset: 0; border-radius: inherit; border: 2px solid rgba(255,140,60,.7); opacity: 0; }
+.agx .mic.on .ring { animation: cpx-ring 1.6s ease-out infinite; }
+.agx .mic.on .ring.r2 { animation-delay: .8s; }
+@keyframes cpx-ring { from { transform: scale(1); opacity: .9; } to { transform: scale(1.7); opacity: 0; } }
+
+/* Minute chips and timer */
+.agx.cpx .chipmin { display: inline-flex; align-items: center; height: 26px; border-radius: 999px; border: 1px solid var(--hair-d2); overflow: hidden; font-size: 12px; }
+.agx.cpx .chipmin button { width: 24px; height: 100%; color: var(--ink-m); transition: background .2s, color .2s; }
+.agx.cpx .chipmin button:hover { background: rgba(255,60,0,.15); color: #fff; }
+.agx.cpx .chipmin span { padding: 0 6px; font-family: "JetBrains Mono", ui-monospace, monospace; color: #fff; }
+.agx.cpx .bar { height: 6px; border-radius: 999px; background: rgba(255,255,255,.06); overflow: hidden; }
+.agx.cpx .bar > i { display: block; height: 100%; background: linear-gradient(90deg, #ff3c00, #ff6a00 55%, #ffaa00); transition: width .4s cubic-bezier(.22,1,.36,1); }
+.agx.cpx .bar.over > i { background: #ff4433; }
+.agx.cpx .clock { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.agx.cpx .slide { animation: cpx-slide .4s cubic-bezier(.22,1,.36,1) both; }
+@keyframes cpx-slide { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .agx.cpx .rise, .agx.cpx .slide, .agx .mic.on .ring { animation: none; } }
