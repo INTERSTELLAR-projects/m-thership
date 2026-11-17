@@ -62,7 +62,7 @@ function contextText(ctx: any) {
   return lines.join("\n");
 }
 
-export function toMarkdown(cp: any) {
+function toMarkdown(cp: any) {
   const out: string[] = [];
   const total = arr(cp.agenda).reduce((n: number, a: any) => n + (Number(a.minutes) || 0), 0);
   out.push(`# ${s(cp.title) || "Call"}${cp.client_name ? ` · ${s(cp.client_name)}` : ""}`);
