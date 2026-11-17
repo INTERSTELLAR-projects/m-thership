@@ -1,0 +1,79 @@
+{
+  "name": "Playbooks \u2014 weekly prompt agent",
+  "description": "Mondays 6:17am PT: the Playbooks prompt agent adds an unknown StandardCheck for every new standard x client site/app (never guesses pass/fail), clusters the week's PromptLogs into PromptPatterns and proposes repeats (3+ times or 2+ clients), then drafts new FoundationPrompt versions folding in patterns Justin approved. Never approves anything: every standard and live prompt waits for Justin on the Playbooks page. Records only. Function: promptAgent.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "17 6 * * 1",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "playbooks_weekly_prompt_agent",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "sync_checks": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "weekly_sync"
+            }
+          },
+          "then": "cluster",
+          "x-base44": {
+            "title": "Standards matrix: add missing checks",
+            "description": "New standards and new client sites/apps get an unknown check"
+          }
+        }
+      },
+      {
+        "cluster": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "weekly_cluster"
+            }
+          },
+          "then": "draft",
+          "x-base44": {
+            "title": "Cluster this week's prompts",
+            "description": "PromptLogs -> PromptPatterns, propose repeats for approval"
+          }
+        }
+      },
+      {
+        "draft": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "promptAgent",
+            "args": {
+              "action": "weekly_draft"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Draft upgraded foundation prompts",
+            "description": "Drafts only; Justin approves on the Playbooks page"
+          }
+        }
+      }
+    ]
+  }
+}
