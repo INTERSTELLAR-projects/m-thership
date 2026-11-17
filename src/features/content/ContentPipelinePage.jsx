@@ -196,7 +196,7 @@ export default function ContentPipelinePage() {
         <p className="max-w-3xl text-[13px] text-ink/65">Projects and testimonials clients send from their Command System go live on their website straight away, after the automatic checks pass. Nothing is ever deleted: Unpublish takes a post down and keeps it on file.</p>
         <StatusPanel overview={overview} onRefresh={loadOverview} />
         <div className="flex flex-wrap gap-2">
-          {TABS.map(([k, l]) => <SmallBtn key={k} active={tab === k} onClick={() => setTab(k)}>{l}{overview?.counts ? "" : ""}</SmallBtn>)}
+          {TABS.map(([k, l]) => <SmallBtn key={k} active={tab === k} onClick={() => setTab(k)}>{l}</SmallBtn>)}
           <SmallBtn onClick={() => { loadList(); loadOverview(); }}><RefreshCw className="inline h-3 w-3" /></SmallBtn>
         </div>
         {items === null ? <p className="text-[13px] text-ink/55">Loading…</p> : !items.length ? <Empty>Nothing here yet.</Empty> : (
