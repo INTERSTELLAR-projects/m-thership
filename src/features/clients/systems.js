@@ -1,10 +1,19 @@
 // Digital footprint helpers: a client's registered apps, and whether those apps are really connected.
 // "brain_connected" is computed, never stored: it is true only once BrainFact rows pushed by one of the
 // client's own registered apps (source "client_app") exist in Møthership. Nothing is faked from config.
-import { registeredAppIds } from "../../../base44/shared/clientBrain.js";
 
 const arr = (v) => (Array.isArray(v) ? v : []);
 const str = (v) => String(v || "").trim();
+
+// Mirror of registeredAppIds in base44/shared/clientBrain.js (keep in sync). Inlined Nov 18 2026: the preview dev
+// server refuses imports from base44/ ("outside of Vite serving allow list"), which blanked the whole preview.
+function registeredAppIds(client) {
+  if (!client) return [];
+  const ids = [client.command_app_id, ...(Array.isArray(client.other_app_ids) ? client.other_app_ids : [])]
+    .map((v) => String(v || "").trim())
+    .filter(Boolean);
+  return [...new Set(ids)];
+}
 
 export const CLIENT_APP_SOURCE = "client_app";
 
