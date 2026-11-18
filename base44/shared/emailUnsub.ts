@@ -77,9 +77,18 @@ export async function verifyClientUnsubToken(token: string): Promise<{ client_id
   }
 }
 
-export async function clientUnsubscribeUrl(baseUrl: string, clientId: string, email: string) {
-  return `${String(baseUrl || "https://interstellar-mothership.com").replace(/\/+$/, "")}/functions/email-unsubscribe?t=${encodeURIComponent(await clientUnsubToken(clientId, email))}`;
+// k = optional opaque tracking token (email-track), so the unsubscribe is attributed to the campaign / step.
+export async function clientUnsubscribeUrl(baseUrl: string, clientId: string, email: string, k = "") {
+  return `${String(baseUrl || "https://interstellar-mothership.com").replace(/\/+$/, "")}/functions/email-unsubscribe?t=${encodeURIComponent(await clientUnsubToken(clientId, email))}${k ? `&k=${encodeURIComponent(k)}` : ""}`;
 }
+
+// Purpose-bound key for other signed Email Studio links (tracking, double opt-in, recipient ids). Same root secret,
+// different purpose, so one kind of token can never be replayed as another.
+export async function purposeKey(purpose: string) {
+  return await hmac(await unsubKey(), `derive:${purpose}`);
+}
+
+export const appBaseUrl = (u: string) => String(u || "https://interstellar-mothership.com").replace(/\/+$/, "");
 
 // Purpose-bound token for the SES -> SNS bounce/complaint webhook URL (no extra secret needed).
 export async function sesHookToken() {
