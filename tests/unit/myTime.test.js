@@ -175,13 +175,13 @@ describe('portal task counts (work_counts)', () => {
       { at: null, category: 'website' }, // undated: all time only
       { at: '2026-11-10T12:00:00Z' }, // no category -> website
     ], NOW);
-    expect(c).toEqual({ this_week: 3, this_month: 5, last_month: 2, all_time: 9, by_category_this_month: { website: 3, seo: 1, content: 1 } });
+    expect(c).toEqual({ today: 1, this_week: 3, this_month: 5, last_month: 2, this_year: 8, all_time: 9, by_category_this_month: { website: 3, seo: 1, content: 1 } });
   });
 
   it('handles January (last month is December of the year before) and empty input', () => {
     const c = workCounts([{ at: '2026-12-31T20:00:00Z', category: 'seo' }, { at: '2027-01-01T20:00:00Z', category: 'seo' }], new Date('2027-01-02T20:00:00Z'));
-    expect(c).toMatchObject({ this_month: 1, last_month: 1, all_time: 2 });
-    expect(workCounts([], NOW)).toEqual({ this_week: 0, this_month: 0, last_month: 0, all_time: 0, by_category_this_month: {} });
+    expect(c).toMatchObject({ this_month: 1, last_month: 1, this_year: 1, today: 0, all_time: 2 });
+    expect(workCounts([], NOW)).toEqual({ today: 0, this_week: 0, this_month: 0, last_month: 0, this_year: 0, all_time: 0, by_category_this_month: {} });
     expect(pacificDay('2026-11-11T07:59:00Z')).toBe('2026-11-10');
   });
 });
