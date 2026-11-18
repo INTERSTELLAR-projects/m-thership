@@ -9,10 +9,15 @@
 //   unpublish  { app_id, record_id }  takes the post down (soft: published false, nothing deleted)
 //   republish  { app_id, record_id }
 //   status     { app_id, record_ids?: [] }  status, plain-words detail and live link for the app's submissions
+//              ("manual" rows, which Justin builds by hand, read as "queued" to the client)
+//   app_request { app_id, record_id, request_type: "feature"|"change"|"automation", title, details, priority?,
+//              submitted_by, contact_name?, contact_email?, is_test? }  "Request an app change" from a Command System →
+//              a ClientRequest (kind app_edit, source client_app) on the client's record + an email to Justin.
+//              Same key + app_id rule. Re-sending the same record_id returns the existing request.
 // deno-lint-ignore-file no-explicit-any
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import { appAuthError, findClientForApp } from "../../shared/clientBrain.js";
-import { arr, s, clip, now, pushHistory, dedupeHash, normalizeProject, normalizeTestimonial, audit } from "../../shared/contentPipeline.ts";
+import { arr, s, clip, now, pushHistory, dedupeHash, normalizeProject, normalizeTestimonial, audit, notifyJustin } from "../../shared/contentPipeline.ts";
 import { setPublished, ACTIVE } from "../../shared/contentProcessor.ts";
 
 const safeEqual = (a: string, b: string) => {
@@ -22,7 +27,7 @@ const safeEqual = (a: string, b: string) => {
 };
 const ID_RE = /^[A-Za-z0-9_-]{6,64}$/;
 const publicView = (x: any) => ({
-  id: x.id, record_id: x.source_record_id, kind: x.kind, status: x.status, detail: x.status_detail || "",
+  id: x.id, record_id: x.source_record_id, kind: x.kind, status: x.status === "manual" ? "queued" : x.status, detail: x.status_detail || "",
   url: x.status === "live" ? x.published_url || "" : "", published_at: x.published_at || null, unpublished_at: x.unpublished_at || null, version: x.version || 1,
 });
 
@@ -55,6 +60,31 @@ Deno.serve(async (req) => {
     }
     const action = s(b.action) || "submit";
     const recordId = s(b.record_id);
+
+    if (action === "app_request") {
+      if (!ID_RE.test(recordId)) return Response.json({ error: "record_id is required" }, { status: 400 });
+      const title = clip(b.title, 160);
+      const details = clip(b.details, 6000);
+      if (title.length < 3 || details.length < 10) return Response.json({ error: "Add a short title and describe what you need" }, { status: 400 });
+      const type = ["feature", "change", "automation"].includes(s(b.request_type)) ? s(b.request_type) : "change";
+      const prior = arr(await db.ClientRequest.filter({ client_id: client.id, kind: "app_edit", source: "client_app" }, "-created_date", 100).catch(() => []))
+        .find((x: any) => x?.fields?.source_app_id === appId && x?.fields?.source_record_id === recordId);
+      if (prior) return Response.json({ ok: true, request_id: prior.id, status: prior.status, duplicate: true });
+      const isTest = b.is_test === true;
+      const label = { feature: "New feature", change: "Change", automation: "Automation" }[type];
+      const priority = ["low", "high", "urgent"].includes(s(b.priority)) ? s(b.priority) : "normal";
+      const by = clip(b.submitted_by, 120) || "client app";
+      const row = await db.ClientRequest.create({
+        client_id: client.id, client_name: client.business, kind: "app_edit", title: `${isTest ? "[TEST] " : ""}${label}: ${title}`, details,
+        fields: { request_type: type, source_app_id: appId, source_record_id: recordId, is_test: isTest },
+        status: "received", priority, submitted_by: by, source: "client_app",
+        contact_name: clip(b.contact_name, 120), contact_email: clip(b.contact_email, 200),
+        answers: [{ id: "request_type", label: "Type", type: "short_text", value: label }, { id: "details", label: "What they need", type: "long_text", value: details }],
+      });
+      await audit(db, "app_request_received", row.id, `${client.business}: ${label} — ${title}${isTest ? " [test]" : ""}`, true, `app:${appId}`);
+      await notifyJustin(base44, `${isTest ? "[TEST] " : ""}App request from ${client.business}: ${title}`, [`${by} asked for a ${label.toLowerCase()} in their Command System.`, `${title}`, details, "It's on their client record as a request (kind: app edit)."]);
+      return Response.json({ ok: true, request_id: row.id, status: "received" }, { status: 201 });
+    }
 
     if (action === "status") {
       const ids = arr(b.record_ids).map(s).filter((x: string) => ID_RE.test(x)).slice(0, 200);
