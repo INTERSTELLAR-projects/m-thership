@@ -62,3 +62,33 @@ change at once. The live check therefore only rolls back brand-new URLs.
    field allowlist), set `CONTENT_PUBLISH_KEY` on the site, publish the site once.
 3. Add the site to `base44/shared/contentSites.ts`.
 4. Add the submission page + sender to the client's Command app (see the Redline plan in the content-pipeline folder).
+
+## Manual fallback (Justin, 2026-11-17)
+
+Every submission, for any client, has **Build page manually** on Clients → Client posts: every submitted field and
+the AI draft (title, summary/overview, SEO title and description, alt text) with a copy button each, the photo grid
+(prepared copies with location data removed when they exist, else the originals) with a one-click download-all
+(.zip, built in the browser), and **Mark as posted manually** with the live URL (`content-admin mark_posted`). That
+records it like an automatic post: status `live` + `posted_manually`, a `ContentPost` (target_entity `manual`), the
+`WorkEntry` and the client notice. It needs no site endpoint and no key.
+
+A submission lands in the manual queue (status `manual`, tab **Build manually**, Justin emailed) when:
+- the site's automatic posting is off: `CONTENT_SITES[x].auto_publish` is the default, the **Auto-publish on/off**
+  switch on Client posts overrides it per site (`ContentSiteSetting`);
+- the client's website isn't in `CONTENT_SITES` (the checks still run first);
+- a first publish fails: key not set, endpoint unreachable, the site refuses it, or the live check fails (the row is
+  unpublished on the site again first).
+Command apps see a manual row as `queued` ("Interstellar is building the page"). **Retry automatic publish** sends a
+manual row that already has a draft straight to publishing. Unpublish / Republish don't apply to pages built by hand.
+
+## Profiles
+
+`SiteConfig.profile` picks the writer and record shape: `album` (Redline `Album`, default) or `door_project`
+(PowerLift `ContentProject`: door sizes, system, cladding, use, city/state, month/year copied from the submission;
+the AI writes only title, summary, 1-3 body sections and search fields; an optional customer quote travels verbatim
+with consent and shows on that project page). PowerLift takes projects only: its /reviews page is Google reviews only.
+
+## App change requests
+
+`content-intake` `app_request` (same key + app_id rule): a Command System's "Request an app change" becomes a
+`ClientRequest` (kind `app_edit`, source `client_app`) on the client's record, and Justin is emailed.
