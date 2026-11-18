@@ -45,6 +45,78 @@ const portalKit = (kits: Row[]) => {
   return k && k.portal_visible === true ? k : null;
 };
 
+// ---------------------------------------------------------------------------------------------------------------
+// Portal v2 helpers: Business Brain, "What needs you" and business health. Client-safe fields only.
+// ---------------------------------------------------------------------------------------------------------------
+// Brain sections a client may read back (same list the Presentation Creator uses). Never billing, logins or notes.
+const BRAIN_SECTIONS_FOR_CLIENT: Record<string, string> = { overview: "Your business", offer_pricing: "Offers & pricing", audience: "Your customers", brand: "Brand & voice" };
+const isClosed = (x: Row) => ["answered", "closed", "dismissed", "resolved"].includes(String(x?.status || "").toLowerCase());
+async function clientBrainRow(db: any, cid: string): Promise<Row | null> {
+  const rows = ((await db.BusinessBrain.filter({ client_id: cid }, "-updated_date", 3).catch(() => [])) || []) as Row[];
+  return rows.find((b) => b.scope !== "interstellar") || null;
+}
+async function brainFor(db: any, cid: string) {
+  const [row, facts, dossier] = await Promise.all([
+    clientBrainRow(db, cid),
+    db.BrainFact.filter({ client_id: cid, status: "active" }, "-answered_at", 200).catch(() => []),
+    db.ClientDossier.filter({ client_id: cid }, "-updated_date", 1).then((r: Row[]) => (r || [])[0] || null).catch(() => null),
+  ]);
+  const sections = (row?.sections || {}) as Record<string, Row>;
+  const known = Object.entries(BRAIN_SECTIONS_FOR_CLIENT)
+    .filter(([k]) => String(sections[k]?.text || "").trim())
+    .map(([k, label]) => ({ key: k, label, text: String(sections[k].text).replace(/<!--[^>]*-->/g, "").slice(0, 1600), updated_at: sections[k].updated_at || null }));
+  const own = ((facts || []) as Row[]).filter((f) => !(f.data as Row)?.test || String(f.client_name || "").includes("[TEST]"))
+    .slice(0, 60).map((f) => ({ id: f.id, question: String(f.question || "").slice(0, 300), answer: String(f.statement || "").slice(0, 600), area: f.area || f.pillar || "other", at: f.answered_at || f.date || null, from_app: f.source === "client_app" }));
+  const questions = (((row?.open_questions as Row[]) || []).filter((x) => x?.q && !isClosed(x))).slice(0, 25).map((x) => ({ q: String(x.q).slice(0, 600), section: x.section || "", added_at: x.added_at || null }));
+  const stats = (dossier?.client_brain || null) as Row | null;
+  // Progress toward "the more it knows, the more runs itself": the app's answered/total when a Command System syncs,
+  // otherwise the brain's own completeness score. null = nothing to measure yet (designed empty state).
+  const pct = stats && Number(stats.total) > 0 ? Math.round((Number(stats.answered) / Number(stats.total)) * 100)
+    : typeof row?.completeness === "number" ? Math.max(0, Math.min(100, Math.round(row.completeness as number))) : null;
+  return {
+    exists: !!row || own.length > 0,
+    pct,
+    answered: stats ? Number(stats.answered) || 0 : null,
+    total: stats ? Number(stats.total) || 0 : null,
+    facts_count: own.length + known.length,
+    sections: known,
+    facts: own,
+    questions,
+  };
+}
+
+async function portalV2Extras(db: any, client: Row, cid: string, reqs: Row[], shown: Row[]) {
+  const brain = await brainFor(db, cid).catch(() => null);
+  // What needs you: questions from the brain, requests waiting on the owner's answer, payments due or late.
+  const needsInfo = reqs.filter((r) => r.status === "needs_info").slice(0, 10).map((r) => ({ id: r.id, title: r.title, note: r.client_note || "", kind: r.kind }));
+  const plans = ((await db.ClientFinancing.filter({ client_id: cid }, "-created_date", 20).catch(() => [])) || []) as Row[];
+  const financing = plans.filter((p) => p.status === "active").map((p) => ({
+    id: p.id, title: p.title, payment_amount: p.payment_amount, frequency: p.frequency, num_payments: p.num_payments, first_due_date: p.first_due_date,
+    grace_days: p.grace_days, status: p.status, payments: ((p.payments as Row[]) || []).map((x) => ({ date: x.date, amount: x.amount })),
+  }));
+  // Business health: reviews from the cached Google profile (no live fetch here), listings work we finished, local
+  // keywords being tracked, and whether a Command System is connected. Search numbers come from `snapshots`.
+  const rc = ((await db.ReviewClient.filter({ crm_client_id: cid }).catch(() => [])) || []).filter((r: Row) => r.active !== false && r.slug) as Row[];
+  const reviews = rc.map((r) => {
+    const c = (r.cache || {}) as Row;
+    const name = String(r.name || c.businessName || client.business || "");
+    return { location: name.includes(" — ") ? name.split(" — ").slice(1).join(" — ") : name, rating: typeof c.rating === "number" ? c.rating : null, count: typeof c.total === "number" ? c.total : null, as_of: r.cached_at || null };
+  });
+  const mp = ((await db.MapPackPlan.filter({ client_id: cid }, "-updated_date", 1).catch(() => [])) || [])[0] as Row | undefined;
+  const monthKey = new Date().toISOString().slice(0, 7);
+  const cit = shown.filter((e) => e.category === "citations");
+  return {
+    brain: brain ? { exists: brain.exists, pct: brain.pct, facts_count: brain.facts_count, open: brain.questions.length } : null,
+    needs_you: { questions: brain ? brain.questions.slice(0, 5) : [], requests: needsInfo, financing },
+    health: {
+      reviews,
+      listings: { total: cit.length, this_month: cit.filter((e) => String(e.completed_at || "").slice(0, 7) === monthKey).length },
+      local_keywords: mp && ["approved", "active", "live"].includes(String(mp.status)) ? ((mp.keywords as Row[]) || []).length : 0,
+      command_system: { connected: !!String(client.command_app_id || "").trim(), revenue: null, leads: null },
+    },
+  };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -154,7 +226,11 @@ Deno.serve(async (req) => {
         ]);
       } catch { workCountsOut = null; }
       const groupUnread = await myGroups().then((gs) => Promise.all(gs.map(async (g) => groupUnreadCount(await groupMsgs(g.id as string))))).then((n) => n.reduce((a, b) => a + b, 0)).catch(() => 0);
+      // Portal v2 (Nov 2026): "What needs you", the Business Brain summary and business health. Additive fields only;
+      // each part fails soft to null so the home screen always loads.
+      const v2 = await portalV2Extras(db, client, cid, reqs as Row[], [...ledgerShown, ...legacyShown.map((w: Row) => ({ category: KIND_CAT[String(w.kind)] || "website", completed_at: w.date }))]).catch(() => null);
       return Response.json({
+        ...(v2 || {}),
         client: pick(client, SAFE_CLIENT),
         businesses: await businessesFor().catch(() => []),
         user: { email: user.email, name: user.full_name, is_admin_preview: user.role === "admin" },
@@ -175,6 +251,29 @@ Deno.serve(async (req) => {
         work_feed: workFeed,
         work_counts: workCountsOut,
       });
+    }
+
+    // ---- Your Brain (portal v2): what we know about the business, the questions waiting, and answering them ----
+    if (action === "brain") {
+      const b = await brainFor(db, cid);
+      return Response.json(b);
+    }
+    if (action === "brain_answer") {
+      // The client answers one open question. The answer is queued on the brain as a pending update for the team to
+      // merge (never written straight into a section), and the question is marked answered.
+      const q = String(args.q || "").trim().slice(0, 600);
+      const answer = String(args.answer || "").trim().replace(/(password|passcode|pwd|api[_ -]?key|secret|token)\s*[:=]\s*\S+/gi, "[removed]").slice(0, 4000);
+      if (!q || !answer) return Response.json({ error: "Add your answer first." }, { status: 400 });
+      const row = await clientBrainRow(db, cid);
+      if (!row) return Response.json({ error: "That question isn't open any more." }, { status: 404 });
+      const qs = ((row.open_questions as Row[]) || []);
+      const i = qs.findIndex((x) => String(x?.q || "").trim() === q && !isClosed(x));
+      if (i < 0) return Response.json({ error: "That question isn't open any more." }, { status: 404 });
+      const now = new Date().toISOString();
+      const nextQs = qs.map((x, j) => (j === i ? { ...x, status: "answered", answered_at: now } : x));
+      const pending = [{ id: `portal_${Date.now().toString(36)}`, section: String(qs[i].section || "overview"), text: `Q: ${q}\nA (from the owner, in the portal): ${answer}`, source: "client_portal", by: "client", by_email: user.role === "admin" ? "" : user.email, added_at: now, status: "pending" }, ...(((row.pending_updates as Row[]) || []))].slice(0, 300);
+      if (user.role !== "admin") await db.BusinessBrain.update(row.id as string, { open_questions: nextQs, pending_updates: pending });
+      return Response.json({ ok: true, preview: user.role === "admin" });
     }
 
     // ---- Chats: the client's 1:1 with Interstellar + group chats they belong to ----
