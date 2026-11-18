@@ -187,7 +187,7 @@ Deno.serve(async (req) => {
       return Response.json({
         client: { id: cid, business: client.business },
         readiness: S.readiness(client, settings), dry_run: dry, max_list: MAX_FREE_LIST_SIZE,
-        settings: { ...pick(settings, ["physical_address", "timezone", "review_link", "from_name", "reply_to", "footer_note", "brand", "default_list_id"]), trigger_secret_name: secretName, trigger_configured: hasSecret(secretName) },
+        settings: { ...pick(settings, ["physical_address", "timezone", "review_link", "from_name", "reply_to", "footer_note", "brand", "default_list_id"]), ...(isAdmin ? { trigger_secret_name: secretName } : {}), trigger_configured: hasSecret(secretName), is_admin: isAdmin },
         theme, counts,
         lists: lists.map((l) => ({ ...pick(l, ["id", "name", "description", "created_at", "created_date"]), count: perList[l.id]?.total || 0, subscribed: perList[l.id]?.subscribed || 0 })),
         segments: segments.map((s) => pick(s, ["id", "name", "match", "rules", "last_count", "last_counted_at"])),
@@ -218,7 +218,7 @@ Deno.serve(async (req) => {
       }
       if (isAdmin && p.trigger_secret_name !== undefined && /^[A-Z][A-Z0-9_]{2,80}$/.test(String(p.trigger_secret_name))) patch.trigger_secret_name = p.trigger_secret_name;
       const saved = await db.EmailStudioSettings.update(settings.id, patch);
-      return Response.json({ ok: true, settings: pick(saved, ["physical_address", "timezone", "review_link", "from_name", "reply_to", "footer_note", "brand", "default_list_id", "trigger_secret_name"]), readiness: S.readiness(client, saved), theme: await S.loadTheme(db, client, saved) });
+      return Response.json({ ok: true, settings: pick(saved, ["physical_address", "timezone", "review_link", "from_name", "reply_to", "footer_note", "brand", "default_list_id", ...(isAdmin ? ["trigger_secret_name"] : [])]), readiness: S.readiness(client, saved), theme: await S.loadTheme(db, client, saved) });
     }
 
     /* ---------- lists ---------- */
