@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const o = url.searchParams.get("o");
   const c = url.searchParams.get("c");
-  if (!o && !c) return new Response("not found", { status: 404 });
+  if (!o && !c) return new Response("not found", { status: 404, headers: { "x-email-track": "2" } });
   try {
     const keys = await emailKeys();
     const payload = parseTrackPayload(await verifyToken(keys.track, "t", o || c || ""));
