@@ -64,7 +64,7 @@ export function parseTrackPayload(p) {
 
 const HREF = /href\s*=\s*"([^"]*)"/gi;
 // Links we never wrap: unsubscribe, mailto/tel, anchors, merge tags, the tracking endpoints themselves.
-export const untrackable = (href) => !/^https?:\/\//i.test(href) || /\{\{|email-unsubscribe|email-track|email-signup/i.test(href);
+export const untrackable = (href) => !/^https?:\/\//i.test(href) || /\{\{|email-unsubscribe|email-optout|email-track|email-signup/i.test(href);
 export const decodeAmp = (s) => String(s).replace(/&amp;/g, "&");
 
 export function extractLinks(html) {
