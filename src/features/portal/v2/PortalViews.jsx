@@ -7,7 +7,7 @@ import { fmtDate } from "@/lib/useData";
 import { analyze, freqLabel } from "@/features/financing/schedule";
 import RequestHelpButton from "@/features/studios/RequestHelpButton";
 import FuelMeter from "@/features/fuel/FuelMeter";
-import { inPeriod } from "./PortalHomeV2";
+import { inPeriod } from "./portalMap";
 
 function Title({ eyebrow, children, sub }) {
   return (

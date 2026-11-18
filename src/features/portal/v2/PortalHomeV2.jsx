@@ -11,30 +11,13 @@ import { fmtDate } from "@/lib/useData";
 import { analyze } from "@/features/financing/schedule";
 import NovaBar from "./NovaBar";
 import { EverythingGrid } from "./Everything";
+import { inPeriod, pacificToday } from "./portalMap";
 
 const CAT = {
   website: ["Website", Globe], seo: ["Search", Search], content: ["Content", PenLine], gbp: ["Google profile", MapPin], citations: ["Listings & PR", Link2],
   app_build: ["Your system", LayoutGrid], research: ["Strategy", Search], ops: ["Behind the scenes", LayoutGrid], security: ["Behind the scenes", LayoutGrid], brand: ["Brand", Palette], social: ["Social", Megaphone], email: ["Email", Mail], ads: ["Ads", BadgeDollarSign], reviews: ["Reviews", Star],
 };
 
-// Calendar periods in Pacific time (the same calendar the server's work_counts use).
-const pacificToday = () => {
-  const p = {};
-  for (const x of new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date())) p[x.type] = x.value;
-  return `${p.year}-${p.month}-${p.day}`;
-};
-export function inPeriod(day, period, today = pacificToday()) {
-  if (!day) return false;
-  const d = String(day).slice(0, 10);
-  if (period === "today") return d === today;
-  if (period === "month") return d.slice(0, 7) === today.slice(0, 7);
-  if (period === "year") return d.slice(0, 4) === today.slice(0, 4);
-  const [y, m, dd] = today.split("-").map(Number);
-  const t = Date.UTC(y, m - 1, dd);
-  const start = new Date(t - ((new Date(t).getUTCDay() + 6) % 7) * 864e5).toISOString().slice(0, 10);
-  const end = new Date(Date.parse(`${start}T00:00:00Z`) + 6 * 864e5).toISOString().slice(0, 10);
-  return d >= start && d <= end;
-}
 export const PERIODS = [["today", "Today", "today"], ["week", "This week", "this week"], ["month", "This month", "this month"], ["year", "This year", "this year"]];
 const COUNT_KEY = { today: "today", week: "this_week", month: "this_month", year: "this_year" };
 

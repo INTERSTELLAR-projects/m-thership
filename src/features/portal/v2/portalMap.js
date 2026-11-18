@@ -87,3 +87,22 @@ export function groupsFor(tabKeys, locked = new Set(), lockText = "Soon") {
     items: g.items.filter((i) => has.has(i.k)).map((i) => (locked.has(i.k) ? { ...i, locked: i.k === "studio_smpl" || i.k === "studio_ads" ? "Soon" : lockText } : i)),
   })).filter((g) => g.items.length > 0);
 }
+
+// Calendar periods in Pacific time (the same calendar the server's work_counts use).
+export const pacificToday = () => {
+  const p = {};
+  for (const x of new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date())) p[x.type] = x.value;
+  return `${p.year}-${p.month}-${p.day}`;
+};
+export function inPeriod(day, period, today = pacificToday()) {
+  if (!day) return false;
+  const d = String(day).slice(0, 10);
+  if (period === "today") return d === today;
+  if (period === "month") return d.slice(0, 7) === today.slice(0, 7);
+  if (period === "year") return d.slice(0, 4) === today.slice(0, 4);
+  const [y, m, dd] = today.split("-").map(Number);
+  const t = Date.UTC(y, m - 1, dd);
+  const start = new Date(t - ((new Date(t).getUTCDay() + 6) % 7) * 864e5).toISOString().slice(0, 10);
+  const end = new Date(Date.parse(`${start}T00:00:00Z`) + 6 * 864e5).toISOString().slice(0, 10);
+  return d >= start && d <= end;
+}

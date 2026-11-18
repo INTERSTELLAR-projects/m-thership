@@ -3,13 +3,13 @@
 import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { HEADER_TABS, GROUPS, ALL_TILES, groupsFor, labelFor, STUDIO_KEYS } from "@/features/portal/v2/portalMap";
-import { STUDIOS } from "@/features/portal/PortalStudios";
-import { inPeriod } from "@/features/portal/v2/PortalHomeV2";
+import { HEADER_TABS, GROUPS, ALL_TILES, groupsFor, labelFor, STUDIO_KEYS, inPeriod } from "@/features/portal/v2/portalMap";
 
 const app = fs.readFileSync(path.resolve(__dirname, "../../src/features/portal/PortalApp.jsx"), "utf8");
 const tabsLine = app.match(/const TABS = (\[.*\]);/)[1];
-const PORTAL_TABS = new Set([...JSON.parse(tabsLine).map(([k]) => k), ...STUDIOS.map((s) => s.tab)]);
+const studiosSrc = fs.readFileSync(path.resolve(__dirname, "../../src/features/portal/PortalStudios.jsx"), "utf8");
+const STUDIO_TABS = [...studiosSrc.matchAll(/tab: "(studio_[a-z]+)"/g)].map((m) => m[1]);
+const PORTAL_TABS = new Set([...JSON.parse(tabsLine).map(([k]) => k), ...STUDIO_TABS]);
 
 describe("portal v2 navigation", () => {
   it("keeps the header short (everything else is one tap away)", () => {
@@ -33,7 +33,7 @@ describe("portal v2 navigation", () => {
       expect(ALL_TILES.some((t) => t.k === k), k).toBe(true);
     }
     expect(STUDIO_KEYS.has("studio_ads")).toBe(true);
-    expect(STUDIOS.find((s) => s.key === "ads").comingSoon).toBe(true);
+    expect(/key: "ads", tab: "studio_ads"[^\n]*comingSoon: true/.test(studiosSrc)).toBe(true);
   });
 
   it("only shows tiles for tabs this client has, with lock labels", () => {
