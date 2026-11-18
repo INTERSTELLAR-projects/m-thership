@@ -3,7 +3,7 @@ import { requireSecondFactor } from "../../shared/twoFactor.ts";
 import { BANNED as LEDGER_BANNED, isClientSafeUrl } from "../../shared/workLedger.ts";
 import { workCounts } from "../../shared/workCounts.ts";
 
-// Portal v2 (Nov 2026): + needs_you / brain / health on home, actions brain + brain_answer.
+// Portal v2 (Nov 2026): + needs_you / brain / health on home; actions brain + brain_answer.
 // Client portal API. Every table is admin-only, so portal users never touch entities directly:
 // this function finds the client their login belongs to and returns only that client's
 // portal-visible records. Admins can pass client_id to preview any client's portal.
