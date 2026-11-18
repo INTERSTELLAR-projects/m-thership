@@ -1,0 +1,101 @@
+{
+  "name": "SystemLink",
+  "description": "Systems brain: one connection between two apps (or an app and M\u00f8thership): the mechanism, the secret NAME that guards it, which way data flows and what flows. No secret values. Admin only.",
+  "type": "object",
+  "properties": {
+    "from_app": {
+      "type": "string",
+      "description": "App name that starts the call"
+    },
+    "from_app_id": {
+      "type": "string"
+    },
+    "to_app": {
+      "type": "string",
+      "description": "App name that receives it"
+    },
+    "to_app_id": {
+      "type": "string"
+    },
+    "mechanism": {
+      "type": "string",
+      "description": "e.g. Business Brain sync (mothershipBrainSync -> client-brain)"
+    },
+    "secret_name": {
+      "type": "string",
+      "description": "Secret NAME that guards the link (both sides, or 'from / to' when the names differ). Empty for public feeds."
+    },
+    "header": {
+      "type": "string",
+      "description": "HTTP header the key travels in, e.g. x-mothership-key"
+    },
+    "endpoint": {
+      "type": "string",
+      "description": "Receiving function, e.g. client-brain"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "one_way",
+        "two_way",
+        "pull"
+      ],
+      "default": "one_way",
+      "description": "one_way = from pushes to to; pull = from reads from to; two_way = both"
+    },
+    "what_flows": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "planned",
+        "not_configured",
+        "broken",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "from_app",
+    "to_app",
+    "mechanism"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
