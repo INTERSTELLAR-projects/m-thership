@@ -312,6 +312,7 @@ export async function markPostedManually(base44: any, sub: any, rawUrl: string, 
   let url = "";
   try { const u = new URL(s(rawUrl)); if (u.protocol === "https:" || u.protocol === "http:") url = u.toString(); } catch { /* invalid */ }
   if (!url) return { ok: false, error: "Paste the live page link (starting with https://)" };
+  if (sub.is_test) return { ok: false, error: "Test submissions are never recorded as posted" };
   if (sub.status === "live" && !sub.posted_manually) return { ok: false, error: "This post is already live through the automatic publish. Unpublish it first if you rebuilt it by hand" };
   if (ACTIVE.includes(sub.status) && sub.locked_at && Date.now() - new Date(sub.locked_at).getTime() < LOCK_MS) return { ok: false, error: "It's being processed right now. Try again in a few minutes" };
   const site = siteFor(sub.target_site_app_id || "");
