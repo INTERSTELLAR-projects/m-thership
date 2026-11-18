@@ -54,9 +54,9 @@ function TriggerEditor({ t, set, lists, data }) {
           </div>
         </>
       )}
-      {t.type === "inactive" && <div className="flex items-center gap-2 text-[13.5px]">No opens, clicks or jobs for <input type="number" min={1} max={36} className={`${inputCls} w-20`} value={t.months || 6} onChange={(e) => set({ months: Number(e.target.value) })} /> months</div>}
+      {t.type === "inactive" && <div className="flex items-center gap-2 text-[13.5px]">No opens, clicks or jobs for <input type="number" min={1} max={36} className={`${inputCls} !w-20`} value={t.months || 6} onChange={(e) => set({ months: Number(e.target.value) })} /> months</div>}
       {t.type === "date_field" && <select className={inputCls} value={t.field || "birthday"} onChange={(e) => set({ field: e.target.value })}><option value="birthday">Birthday</option><option value="anniversary">Anniversary / customer since</option></select>}
-      {["inactive", "date_field"].includes(t.type) && <div className="flex items-center gap-2 text-[13.5px]">Send around <select className={`${inputCls} w-28`} value={t.send_hour ?? 9} onChange={(e) => set({ send_hour: Number(e.target.value) })}>{Array.from({ length: 24 }, (_, h) => <option key={h} value={h}>{((h + 11) % 12) + 1}:00 {h < 12 ? "AM" : "PM"}</option>)}</select> your time</div>}
+      {["inactive", "date_field"].includes(t.type) && <div className="flex items-center gap-2 text-[13.5px]">Send around <select className={`${inputCls} !w-28`} value={t.send_hour ?? 9} onChange={(e) => set({ send_hour: Number(e.target.value) })}>{Array.from({ length: 24 }, (_, h) => <option key={h} value={h}>{((h + 11) % 12) + 1}:00 {h < 12 ? "AM" : "PM"}</option>)}</select> your time</div>}
     </div>
   );
 }
@@ -107,8 +107,8 @@ function AutomationEditor({ a, data, call, onBack, onSaved }) {
               <span className={`absolute left-0 top-3 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white ${s.type === "wait" ? "bg-ink/10 text-ink/60" : "bg-[#ff3c00] text-white"}`}>{s.type === "wait" ? <Clock className="h-3.5 w-3.5" /> : <Mail className="h-3.5 w-3.5" />}</span>
               {s.type === "wait" ? (
                 <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-hair bg-white/70 px-4 py-3 text-[13.5px]">
-                  Wait <input type="number" min={1} className={`${inputCls} w-20`} value={s.wait_value} onChange={(e) => setStep(i, { wait_value: Number(e.target.value) })} />
-                  <select className={`${inputCls} w-28`} value={s.wait_unit} onChange={(e) => setStep(i, { wait_unit: e.target.value })}><option value="hours">hours</option><option value="days">days</option></select>
+                  Wait <input type="number" min={1} className={`${inputCls} !w-20`} value={s.wait_value} onChange={(e) => setStep(i, { wait_value: Number(e.target.value) })} />
+                  <select className={`${inputCls} !w-28`} value={s.wait_unit} onChange={(e) => setStep(i, { wait_unit: e.target.value })}><option value="hours">hours</option><option value="days">days</option></select>
                   <button type="button" aria-label="Remove step" onClick={() => setX({ ...x, steps: x.steps.filter((_, j) => j !== i) })} className="ml-auto rounded p-1.5 text-ink/40 hover:text-red-700"><Trash2 className="h-4 w-4" /></button>
                 </div>
               ) : (
