@@ -4,7 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, CalendarClock, Check, FlaskConical, Mail, Rocket, Save, Users } from "lucide-react";
 import { BlocksEditor, EmailPreview, SubjectField, AiDraft } from "./EmailEditor";
 import { Btn, Card, Label, Notice, Segmented, Toggle, inputCls } from "./ui";
-import { errMsg, num, localInput, TIMEZONES, fmtWhen } from "./api";
+import { errMsg, num, localInput, TIMEZONES } from "./api";
+
+// "2026-11-20T09:00" -> "Nov 20, 9:00 AM" (wall clock, no zone conversion).
+const wallLabel = (v) => { const d = new Date(`${v}:00`); return Number.isNaN(d.getTime()) ? "…" : d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); };
 
 const STEPS = [["write", "Write", Mail], ["audience", "Audience", Users], ["send", "Send", Rocket]];
 
@@ -191,7 +194,7 @@ export default function CampaignEditor({ campaign, data, call, onClose, onSaved,
             </ul>
             {!ready && <Notice tone="warn"><span className="font-semibold">Not ready to send yet.</span> {data.readiness?.reason}</Notice>}
             <Btn kind={armed ? "flame" : "ink"} size="lg" className="mt-5 w-full" icon={mode === "now" ? Rocket : CalendarClock} busy={sending} disabled={!canSend} onClick={send}>
-              {armed ? (mode === "now" ? `Yes, send to ${num(sendable)} now` : `Yes, schedule for ${num(sendable)}`) : mode === "now" ? "Send now" : `Schedule for ${fmtWhen(new Date(when).toISOString()) || "…"}`}
+              {armed ? (mode === "now" ? `Yes, send to ${num(sendable)} now` : `Yes, schedule for ${num(sendable)}`) : mode === "now" ? "Send now" : `Schedule for ${wallLabel(when)}`}
             </Btn>
             {armed && <p className="mt-2 text-center text-[12px] text-ink/50">Click once more to confirm. <button type="button" className="underline" onClick={() => setArmed(false)}>Not yet</button></p>}
             {mode === "schedule" && <p className="mt-3 text-[12px] text-ink/50">You can cancel or move it any time before it sends.</p>}
