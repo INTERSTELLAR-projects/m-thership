@@ -41,10 +41,10 @@ async function stop(base44: any, db: any, sub: any, client: any, status: "needs_
 }
 
 // Into the manual queue: nothing is published; Justin builds the page by hand from Client posts.
-export async function toManual(base44: any, db: any, sub: any, reason: string, extra: any = {}) {
+export async function toManual(base44: any, db: any, sub: any, reason: string, extra: any = {}, quiet = false) {
   await save(db, sub, { status: "manual", manual_reason: clip(reason, 500), manual_at: now(), status_detail: "Received. Interstellar is building the page.", locked_at: null, history: pushHistory(sub.history, { action: "to_manual", by: "agent", note: clip(reason, 300) }), ...extra });
   await audit(db, "content_to_manual", sub.id, `${sub.client_name}: ${reason}`, true);
-  if (!sub.is_test) {
+  if (!sub.is_test && !quiet) {
     const title = clip(sub.writer_output?.title || sub.raw?.shoot_title || sub.raw?.title || sub.raw?.customer_name || sub.raw?.name, 100);
     await notifyJustin(base44, `Build by hand: ${sub.client_name} ${sub.kind}${title ? ` "${title}"` : ""}`, [
       `A ${sub.kind} from ${sub.client_name} is waiting in the manual queue.`, `Why: ${reason}`,
@@ -343,7 +343,6 @@ export async function markPostedManually(base44: any, sub: any, rawUrl: string, 
 export async function moveToManual(base44: any, sub: any, by: string) {
   const db = base44.asServiceRole.entities;
   if (sub.status === "live" || sub.status === "manual") return { ok: false, error: sub.status === "live" ? "It's already live" : "It's already in the manual queue" };
-  await toManual(base44, db, { ...sub, is_test: true }, `Moved to the manual queue by ${by}`); // is_test here only skips the email to Justin (he did it)
-  if (!sub.is_test) await db.ContentSubmission.update(sub.id, { status: "manual" });
+  await toManual(base44, db, sub, `Moved to the manual queue by ${by}`, {}, true); // no email: Justin did it himself
   return { ok: true, status: "manual" };
 }
