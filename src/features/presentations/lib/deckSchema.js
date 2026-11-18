@@ -476,6 +476,8 @@ export async function clientFacts(clientId) {
   return factsFromRecords({ client, dossier: dossiers[0], kit: kits[0], brain: brains[0] });
 }
 
+const kitList = (v) => (Array.isArray(v) ? v.map((x) => (typeof x === "string" ? x : x && (x.text || x.claim || x.name))).filter(Boolean).slice(0, 10).join("; ") : typeof v === "string" ? v : "");
+
 export function factsFromRecords({ client, dossier, kit, brain }) {
   if (!client) return null;
   const d = dossier || {};
@@ -510,7 +512,10 @@ export function factsFromRecords({ client, dossier, kit, brain }) {
       ["Service area", d.service_area && (d.service_area.primary_city || d.service_area.radius)],
       ["Competitors", (d.competitors || []).map((c) => c && c.name).filter(Boolean).slice(0, 6).join(", ")],
       ["Brand colours", (bi.colors || palette).join(", ")],
-      ["Brand fonts", bi.fonts]
+      ["Brand fonts", bi.fonts],
+      // Approved brand kit claims and voice: the only marketing claims a deck may make beyond the facts above.
+      ["Approved claims", kitList(kit && kit.kit && (kit.kit.approved_claims || kit.kit.claims || kit.kit.proof_points))],
+      ["Brand voice", kit && kit.kit && (typeof kit.kit.voice === "string" ? kit.kit.voice : kitList(kit.kit.voice && (kit.kit.voice.traits || kit.kit.voice.attributes)))]
     ].filter(([, v]) => v),
     brain: brainLines,
     colors: bi.colors && bi.colors.length ? bi.colors : palette
