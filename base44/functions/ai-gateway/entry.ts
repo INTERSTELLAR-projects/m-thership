@@ -1,13 +1,14 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { requireSecondFactor } from "../../shared/twoFactor.ts";
-import { resolveClient, getSecret } from "../../shared/portalClient.ts";
-import { callClaude, invokeBase44, AnthropicError } from "../../shared/anthropic.ts";
-import { AI_MODELS, estimateAiCost, anyStudioOn, studiosOf, monthKey, planUnlocksStudios, type AiTier } from "../../shared/usagePlans.ts";
+import { resolveClient } from "../../shared/portalClient.ts";
+import { invokeBase44, AnthropicError } from "../../shared/anthropic.ts";
+import { AI_MODELS, anyStudioOn, studiosOf, planUnlocksStudios, type AiTier } from "../../shared/usagePlans.ts";
 import { check, record } from "../../shared/meter.ts";
 import { loadFuelConfig, weightFor } from "../../shared/fuel.ts";
 import { getClientContext, CONTEXT_MARKER } from "../../shared/clientContext.ts";
 
-// AI gateway for Studios. Runs on the built-in InvokeLLM; an Anthropic key is optional and never required.
+// AI gateway for Studios (Presentation Creator, Email Studio drafts, Training, ...). Runs on the built-in InvokeLLM ONLY.
+// Justin's rule (Nov 17 2026, portal v2 cleanup): no Anthropic API key path, even if an ANTHROPIC_API_KEY secret exists.
 //   { action: "complete", prompt | messages, system?, tier?: "routine"|"long", feature?, studio?,
 //     response_json_schema?, max_tokens?, client_id? }
 //     -> { text, json?, model, input_tokens, output_tokens, est_cost_usd, meter: { used, cap, remaining, pct } }
@@ -36,10 +37,9 @@ Deno.serve(async (req) => {
     const action = String(body?.action || "complete");
     const db = base44.asServiceRole.entities;
     const isAdmin = user.role === "admin";
-    const key = getSecret("ANTHROPIC_API_KEY");
-
     if (action === "status") {
-      return Response.json({ configured: !!key, models: { routine: AI_MODELS.routine.id, long: AI_MODELS.long.id } });
+      // configured = an external key is in use. Always false: every call runs on the built-in InvokeLLM.
+      return Response.json({ configured: false, models: { routine: AI_MODELS.routine.id, long: AI_MODELS.long.id } });
     }
     if (action !== "complete") return Response.json({ error: "Unknown action" }, { status: 400 });
 
@@ -85,9 +85,10 @@ Deno.serve(async (req) => {
       if (!meter.ok) return Response.json({ error: meter.reason, code: meter.code, meter }, { status: 429 });
     }
 
-    if (!key) {
-      // The normal path: no Anthropic key is ever needed. Everyone (admin and portal clients) runs on the built-in
-      // InvokeLLM integration, with the same house rules, grounding, caps and meter as the key path.
+    {
+      // The only path: everyone (admin and portal clients) runs on the built-in InvokeLLM integration, with the house
+      // rules, grounding, caps and meter. (groundTokens is kept for the log line below.)
+      void groundTokens;
       const out = await invokeBase44(base44, { system: system || undefined, prompt, messages: messages || undefined, schema, service: !isAdmin });
       const units = expected;
       if (client) await record(db, client, "ai_action", units, { admin: isAdmin, model: out.model, est_cost_usd: 0, feature, user_email: user.email, calls: 1 });
@@ -98,23 +99,6 @@ Deno.serve(async (req) => {
         meter: meter ? { used, cap: meter.cap, remaining: meter.cap == null ? null : Math.max(0, meter.cap - (used || 0)), pct: meter.cap ? (used || 0) / meter.cap : null, plan: meter.plan_label, wallet: meter.wallet } : null,
       });
     }
-
-    const out = await callClaude({ key, tier, system: system || undefined, prompt, messages: messages || undefined, schema, max_tokens: body?.max_tokens });
-    const est = estimateAiCost(out.model, out.input_tokens, out.output_tokens);
-    const units = weightFor(out.model, Math.max(0, out.input_tokens - groundTokens), feature, fuelCfg);
-    if (client) {
-      await record(db, client, "ai_action", units, { admin: isAdmin, model: out.model, est_cost_usd: est, feature, user_email: user.email, input_tokens: out.input_tokens, output_tokens: out.output_tokens, calls: 1 });
-    } else {
-      // Agency-level admin usage (no client): still recorded so the Anthropic bill is explainable.
-      await db.UsageLedger.create({ client_id: "agency", client_name: "Interstellar (admin)", month: monthKey(), kind: "ai_action", units, calls: 1, model: out.model, est_cost_usd: est, feature, user_email: user.email, by_admin: true, input_tokens: out.input_tokens, output_tokens: out.output_tokens, created_at: new Date().toISOString() }).catch(() => null);
-    }
-    const used = meter ? meter.used + (isAdmin ? 0 : units) : null;
-    return Response.json({
-      text: out.text, json: out.json, model: out.model, strict_json: out.strict, stop_reason: out.stop_reason,
-      input_tokens: out.input_tokens, output_tokens: out.output_tokens, est_cost_usd: est,
-      units,
-      meter: meter ? { used, cap: meter.cap, remaining: meter.cap == null ? null : Math.max(0, meter.cap - (used || 0)), pct: meter.cap ? (used || 0) / meter.cap : null, plan: meter.plan_label, wallet: meter.wallet } : null,
-    });
   } catch (e) {
     if (e instanceof AnthropicError) {
       console.error("ai-gateway anthropic", e.status, e.type);
