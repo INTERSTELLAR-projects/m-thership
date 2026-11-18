@@ -20,8 +20,11 @@ export default function VisualBlock({ theme, src, style, logo }) {
       <div style={{ position: 'absolute', right: -60, top: -60, width: 260, height: 260, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.35)' }} />
       <div style={{ position: 'absolute', right: 30, top: 30, width: 120, height: 120, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.25)' }} />
       {logo ? (
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48 }}>
-          <img src={logo} alt="" crossOrigin="anonymous" style={{ maxWidth: '70%', maxHeight: '45%', objectFit: 'contain' }} />
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
+          {/* The logo sits on a canvas-coloured card so it keeps its own colours and contrast on any brand gradient. */}
+          <div style={{ width: '78%', padding: '26px 30px', borderRadius: Math.max(10, (theme.radius || 12) - 2), background: theme.bg, boxShadow: '0 24px 50px -24px rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img src={logo} alt="" crossOrigin="anonymous" style={{ width: '100%', maxHeight: 120, objectFit: 'contain' }} />
+          </div>
         </div>
       ) : null}
     </div>
