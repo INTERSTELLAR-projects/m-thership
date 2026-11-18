@@ -41,7 +41,7 @@ describe("navigation", () => {
       "/packages/gravitycare": "work", "/packages/orbit-seo/abc": "work", "/orbit-seo/manage": "work", "/claude": "work",
       "/performance": "marketing", "/content-plans": "marketing", "/backlinks": "marketing", "/reviews": "marketing", "/security": "marketing",
       "/social": "marketing", "/social/p1": "marketing", "/email": "marketing", "/ads": "marketing",
-      "/pipeline": "sales", "/prestige": "sales", "/upgrades": "sales", "/presentations/projects": "sales", "/presentations/deck/1": "sales",
+      "/pipeline": "sales", "/calls": "sales", "/calls/abc": "sales", "/prestige": "sales", "/upgrades": "sales", "/presentations/projects": "sales", "/presentations/deck/1": "sales",
       "/financial": "money", "/client-usage": "money", "/fuel-economics": "money", "/growth/hiring": "money",
       "/agents": "agents", "/intelligence": "agents", "/intelligence/topic": "agents", "/idea-vault": "agents", "/automations": "agents",
       "/more": "more", "/documents": "more", "/legal": "more", "/training": "more", "/signatures": "more", "/signatures/new": "more",

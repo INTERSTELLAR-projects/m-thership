@@ -19,7 +19,7 @@ export function pacificDay(v: unknown): string | null {
 }
 
 export type CountItem = { at?: unknown; category?: unknown };
-export type WorkCounts = { this_week: number; this_month: number; last_month: number; all_time: number; by_category_this_month: Record<string, number> };
+export type WorkCounts = { today: number; this_week: number; this_month: number; last_month: number; this_year: number; all_time: number; by_category_this_month: Record<string, number> };
 
 export function workCounts(items: CountItem[], now: Date = new Date()): WorkCounts {
   const today = pacificDay(now) as string;
@@ -29,11 +29,13 @@ export function workCounts(items: CountItem[], now: Date = new Date()): WorkCoun
   const weekEnd = new Date(Date.parse(`${weekStart}T00:00:00Z`) + 6 * DAY_MS).toISOString().slice(0, 10);
   const month = today.slice(0, 7);
   const lastMonth = new Date(Date.UTC(y, m - 2, 1)).toISOString().slice(0, 7);
-  const out: WorkCounts = { this_week: 0, this_month: 0, last_month: 0, all_time: 0, by_category_this_month: {} };
+  const out: WorkCounts = { today: 0, this_week: 0, this_month: 0, last_month: 0, this_year: 0, all_time: 0, by_category_this_month: {} };
   for (const it of items || []) {
     out.all_time += 1; // undated items count in all time only
     const day = pacificDay(it?.at);
     if (!day) continue;
+    if (day === today) out.today += 1; // portal v2: Today / This week / This month / This year toggles
+    if (day.slice(0, 4) === today.slice(0, 4)) out.this_year += 1;
     if (day >= weekStart && day <= weekEnd) out.this_week += 1;
     if (day.slice(0, 7) === lastMonth) out.last_month += 1;
     if (day.slice(0, 7) === month) {
