@@ -303,3 +303,47 @@ export async function editPost(base44: any, sub: any, fields: any, by: string) {
   const r = await publish(base44, sub, client, site, "edit");
   return { ok: r.status === "live", ...r };
 }
+
+// "Mark as posted manually" (Client posts → Build page manually): Justin built the page by hand. Works for any client
+// and any status except a page the pipeline itself is holding live, with or without a site endpoint or key.
+// Records it like an automatic post: status live + posted_manually, ContentPost, WorkEntry, client notification.
+export async function markPostedManually(base44: any, sub: any, rawUrl: string, by: string) {
+  const db = base44.asServiceRole.entities;
+  let url = "";
+  try { const u = new URL(s(rawUrl)); if (u.protocol === "https:" || u.protocol === "http:") url = u.toString(); } catch { /* invalid */ }
+  if (!url) return { ok: false, error: "Paste the live page link (starting with https://)" };
+  if (sub.status === "live" && !sub.posted_manually) return { ok: false, error: "This post is already live through the automatic publish. Unpublish it first if you rebuilt it by hand" };
+  if (ACTIVE.includes(sub.status) && sub.locked_at && Date.now() - new Date(sub.locked_at).getTime() < LOCK_MS) return { ok: false, error: "It's being processed right now. Try again in a few minutes" };
+  const site = siteFor(sub.target_site_app_id || "");
+  const client = await db.CRMClient.get(sub.client_id).catch(() => null);
+  const title = clip(s(sub.writer_output?.title || sub.writer_output?.name || sub.raw?.shoot_title || sub.raw?.title || sub.raw?.customer_name || sub.raw?.name) || "Client post", 200);
+  const event = { at: now(), action: "posted_manually", by, ok: true, note: url };
+  let post = sub.content_post_id ? await db.ContentPost.get(sub.content_post_id).catch(() => null) : null;
+  const postPatch = {
+    client_id: sub.client_id, client_name: sub.client_name, submission_id: sub.id, site_app_id: site?.app_id || s(sub.target_site_app_id), kind: sub.kind,
+    target_entity: "manual", target_record_id: "", slug: "", url, title, status: "live",
+    published_at: post?.published_at || now(), last_action_at: now(), verify: { ok: null, manual: true, note: "Built by hand; no automatic live check" }, indexnow: { status: "skipped", note: "Posted by hand", at: now() },
+  };
+  if (post) { await db.ContentPost.update(post.id, { ...postPatch, events: [...arr(post.events), event].slice(-60) }); post = { ...post, ...postPatch }; }
+  else post = await db.ContentPost.create({ ...postPatch, events: [event] });
+  const workId = sub.work_entry_id || (await logWork(db, sub, post, site || ({ name: sub.client_name } as any)));
+  if (!post.work_entry_id) await db.ContentPost.update(post.id, { work_entry_id: workId }).catch(() => null);
+  await save(db, sub, {
+    status: "live", posted_manually: true, status_detail: "Live on your website", published_url: url, published_at: sub.published_at || now(),
+    content_post_id: post.id, work_entry_id: workId, locked_at: null, error: "", history: pushHistory(sub.history, { action: "posted_manually", by, note: url }),
+  });
+  await audit(db, "content_posted_manually", sub.id, `${sub.client_name}: ${title} → ${url}`, true, by);
+  if (!sub.is_test) await notify(base44, client, `New on your website: ${clip(title, 80)}`, [
+    sub.kind === "project" ? `Your project "${title}" is now live on your website.` : `${title}'s testimonial is now on your website, in their own words.`, url,
+  ]);
+  return { ok: true, status: "live", url };
+}
+
+// Any submission can be moved to the manual queue by Justin (e.g. a site that is down).
+export async function moveToManual(base44: any, sub: any, by: string) {
+  const db = base44.asServiceRole.entities;
+  if (sub.status === "live" || sub.status === "manual") return { ok: false, error: sub.status === "live" ? "It's already live" : "It's already in the manual queue" };
+  await toManual(base44, db, { ...sub, is_test: true }, `Moved to the manual queue by ${by}`); // is_test here only skips the email to Justin (he did it)
+  if (!sub.is_test) await db.ContentSubmission.update(sub.id, { status: "manual" });
+  return { ok: true, status: "manual" };
+}
