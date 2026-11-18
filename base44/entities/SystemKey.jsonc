@@ -1,0 +1,134 @@
+{
+  "name": "SystemKey",
+  "description": "Systems brain: one secret NAME on one app in Justin's workspace and what it is for. Never holds a secret value: names, purposes and wiring only (docs/systems-brain.md). Admin only.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The secret's name exactly as it is set on the app, e.g. COMMAND_SYSTEM_SYNC_KEY. Never the value."
+    },
+    "app_id": {
+      "type": "string"
+    },
+    "app_name": {
+      "type": "string"
+    },
+    "purpose": {
+      "type": "string",
+      "description": "Plain words: what this key does"
+    },
+    "used_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Who sends / reads it (app + function)"
+    },
+    "checked_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Who verifies it (app + function), or the outside service it unlocks"
+    },
+    "what_breaks_without_it": {
+      "type": "string"
+    },
+    "pair_with": {
+      "type": "string",
+      "description": "The matching secret in another app (App: NAME), or the outside service that issued it"
+    },
+    "rotate_how": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "unused",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "presence": {
+      "type": "string",
+      "enum": [
+        "set",
+        "referenced_not_set"
+      ],
+      "default": "set",
+      "description": "set = the secret exists on the app; referenced_not_set = the code reads it but it is not set"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "shared_key",
+        "api_key",
+        "signing_secret",
+        "config_value"
+      ],
+      "default": "shared_key"
+    },
+    "delete_safe": {
+      "type": "boolean",
+      "default": false,
+      "description": "Leftover Justin can delete without breaking anything"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the purpose was last verified from the code"
+    },
+    "source_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Files in that app (and its pair) where it is used"
+    },
+    "scan_flag": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "new",
+        "missing"
+      ],
+      "default": "ok",
+      "description": "Re-scan result: new = appeared since the last inventory (purpose unknown), missing = no longer set on the app"
+    },
+    "last_seen_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last re-scan that saw the name on the app"
+    }
+  },
+  "required": [
+    "name",
+    "app_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
