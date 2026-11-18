@@ -18,14 +18,15 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const o = url.searchParams.get("o");
   const c = url.searchParams.get("c");
-  if (!o && !c) return new Response(url.searchParams.get("hn") ? [...req.headers.keys()].join(",") : "not found", { status: 404 });
+  if (!o && !c) return new Response("not found", { status: 404 });
   try {
     const keys = await emailKeys();
     const payload = parseTrackPayload(await verifyToken(keys.track, "t", o || c || ""));
     if (!payload) return o ? gif() : new Response("This link has expired.", { status: 404, headers: { "content-type": "text/plain" } });
     const base44 = createClientFromRequest(req);
     const db = base44.asServiceRole.entities;
-    const ua = String(req.headers.get("user-agent") || "").slice(0, 160);
+    // The platform proxy rewrites user-agent; the reader's real one arrives as x-base44-caller-user-agent.
+    const ua = String(req.headers.get("x-base44-caller-user-agent") || req.headers.get("user-agent") || "").slice(0, 160);
     const machine = SCANNER.test(ua) || !ua;
 
     let clientId = "", target = "", campaignId = "", automationId = "";
