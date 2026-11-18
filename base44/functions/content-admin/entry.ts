@@ -7,14 +7,19 @@
 //   retry { id }                    put a failed / needs_info / rejected row back in the queue and run it
 //   test { client_id }              queue a TEST submission built from the client's latest real Command submission
 //                                   data already in Møthership (never published; ends at test_passed)
+//   Manual fallback (any client, works with no site endpoint or key):
+//   mark_posted { id, url }         Justin built the page by hand: record it live (ContentPost + WorkEntry + notice)
+//   to_manual { id }                move a submission to the manual queue
+//   set_auto_publish { site_app_id, auto_publish }  per-site switch (ContentSiteSetting); off → every post is manual
 // deno-lint-ignore-file no-explicit-any
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import { CONTENT_SITES } from "../../shared/contentSites.ts";
-import { arr, s, clip, now, pushHistory, siteStatus, publishKeyConfigured, audit } from "../../shared/contentPipeline.ts";
-import { setPublished, editPost, processSubmission, ACTIVE, EDITABLE } from "../../shared/contentProcessor.ts";
+import { arr, s, clip, now, pushHistory, siteStatus, publishKeyConfigured, audit, autoPublishFor } from "../../shared/contentPipeline.ts";
+import { setPublished, editPost, processSubmission, ACTIVE, EDITABLE, editableFor, markPostedManually, moveToManual } from "../../shared/contentProcessor.ts";
 
 const TABS: Record<string, string[] | null> = {
   queue: ["received", "queued", "processing_images", "writing", "publishing"],
+  manual: ["manual"],
   live: ["live"],
   problems: ["needs_info", "rejected", "failed"],
   unpublished: ["unpublished"],
@@ -27,6 +32,7 @@ const slim = (x: any) => ({
   published_url: x.published_url || "", received_at: x.received_at, published_at: x.published_at || null, unpublished_at: x.unpublished_at || null,
   submitted_by: x.submitted_by, version: x.version || 1, photos: arr(x.photos).length, images_done: arr(x.images).length, error: x.error || "",
   failed_checks: arr(x.gate_results).filter((g: any) => !g.ok).map((g: any) => g.check),
+  posted_manually: !!x.posted_manually, manual_reason: x.manual_reason || "",
 });
 
 Deno.serve(async (req) => {
@@ -47,7 +53,7 @@ Deno.serve(async (req) => {
       const clients = arr(await db.CRMClient.list("business", 500).catch(() => []));
       const sites = await Promise.all(Object.values(CONTENT_SITES).map(async (site) => {
         const c = clients.find((x: any) => s(x.site_app_id) === site.app_id);
-        return { app_id: site.app_id, name: site.name, origin: site.origin, enabled: site.enabled, key_secret: site.key_secret, key_configured: publishKeyConfigured(site), client_id: c?.id || "", command_app_id: s(c?.command_app_id), indexnow: !!site.indexnow, ...(await siteStatus(site)) };
+        return { app_id: site.app_id, name: site.name, origin: site.origin, enabled: site.enabled, key_secret: site.key_secret, key_configured: publishKeyConfigured(site), client_id: c?.id || "", command_app_id: s(c?.command_app_id), indexnow: !!site.indexnow, profile: site.profile || "album", auto_publish: await autoPublishFor(db, site), auto_publish_default: site.auto_publish !== false, live_check_note: site.live_check_note || "", ...(await siteStatus(site)) };
       }));
       return Response.json({ ok: true, key_configured: Object.values(CONTENT_SITES).some((x) => publishKeyConfigured(x)), sync_key_configured: !!Deno.env.get("COMMAND_SYSTEM_SYNC_KEY"), sites, counts, editable: EDITABLE });
     }
@@ -57,6 +63,16 @@ Deno.serve(async (req) => {
       if (s(b.client_id)) q.client_id = s(b.client_id);
       const rows = arr(await db.ContentSubmission.filter(q, "-updated_date", 200).catch(() => []));
       return Response.json({ ok: true, items: rows.map(slim) });
+    }
+    if (action === "set_auto_publish") {
+      const site = CONTENT_SITES[s(b.site_app_id)];
+      if (!site) return Response.json({ error: "Unknown site" }, { status: 404 });
+      const value = b.auto_publish === true;
+      const row = arr(await db.ContentSiteSetting.filter({ site_app_id: site.app_id }, "-updated_date", 1).catch(() => []))[0];
+      const patch = { site_app_id: site.app_id, site_name: site.name, auto_publish: value, updated_by: user.email, updated_at: now() };
+      if (row) await db.ContentSiteSetting.update(row.id, patch); else await db.ContentSiteSetting.create(patch);
+      await audit(db, "content_auto_publish_set", site.app_id, `${site.name}: automatic posting ${value ? "on" : "off"}`, true, by);
+      return Response.json({ ok: true, auto_publish: value });
     }
     const sub = await getSub();
     if (action === "test") {
@@ -76,7 +92,19 @@ Deno.serve(async (req) => {
     if (!sub) return Response.json({ error: "Not found" }, { status: 404 });
     if (action === "get") {
       const post = sub.content_post_id ? await db.ContentPost.get(sub.content_post_id).catch(() => null) : null;
-      return Response.json({ ok: true, item: { ...sub, raw: sub.raw }, post });
+      const site = CONTENT_SITES[s(sub.target_site_app_id)] || null;
+      // Photos for the manual kit: the prepared copies (metadata removed) when they exist, else the originals as sent.
+      const prepared = arr(sub.images).filter((im: any) => im?.src).map((im: any) => ({ url: im.src, name: im.name || "", w: im.w, h: im.h, role: im.role || "gallery", prepared: true }));
+      const sent = arr(sub.photos).filter((p: any) => p?.url).map((p: any, i: number) => ({ url: p.url, name: p.name || "", role: i === 0 ? "cover" : "gallery", prepared: false }));
+      return Response.json({ ok: true, item: { ...sub, raw: sub.raw }, post, edit_fields: editableFor(sub), site: site ? { name: site.name, origin: site.origin, profile: site.profile || "album" } : null, kit_photos: prepared.length ? prepared : sent });
+    }
+    if (action === "mark_posted") {
+      const r = await markPostedManually(base44, sub, s(b.url), by);
+      return Response.json(r, { status: r.ok ? 200 : 409 });
+    }
+    if (action === "to_manual") {
+      const r = await moveToManual(base44, sub, by);
+      return Response.json(r, { status: r.ok ? 200 : 409 });
     }
     if (action === "unpublish" || action === "republish") {
       const r = await setPublished(base44, sub, action === "republish", by);
@@ -89,7 +117,7 @@ Deno.serve(async (req) => {
     if (action === "retry") {
       if (ACTIVE.includes(sub.status) && sub.locked_at && Date.now() - new Date(sub.locked_at).getTime() < 4 * 60 * 1000) return Response.json({ ok: false, error: "It's being processed right now" }, { status: 409 });
       // A post that got as far as being written keeps its words; everything else starts over from the checks.
-      const restart = sub.writer_output && sub.status === "failed" ? "publishing" : "queued";
+      const restart = sub.writer_output && ["failed", "manual"].includes(sub.status) ? "publishing" : "queued";
       await db.ContentSubmission.update(sub.id, { status: restart, status_detail: "Retrying", attempts: 0, locked_at: null, error: "", ...(restart === "queued" ? { image_cursor: 0, images: [], prior_images: arr(sub.images).length ? sub.images : arr(sub.prior_images) } : {}), history: pushHistory(sub.history, { action: "retry", by }) });
       const deadline = Date.now() + 100_000;
       let r: any = { status: restart };
