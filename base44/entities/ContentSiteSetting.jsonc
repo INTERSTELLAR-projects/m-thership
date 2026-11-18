@@ -1,0 +1,50 @@
+{
+  "name": "ContentSiteSetting",
+  "type": "object",
+  "description": "Content pipeline per-site switches set on Clients \u2192 Client posts. Overrides the defaults in base44/shared/contentSites.ts. auto_publish false (or any failed publish) sends submissions to the manual queue. Admin only.",
+  "properties": {
+    "site_app_id": {
+      "type": "string",
+      "description": "Client website app id (key in CONTENT_SITES)"
+    },
+    "site_name": {
+      "type": "string"
+    },
+    "auto_publish": {
+      "type": "boolean",
+      "description": "true: post automatically after the checks. false: every submission goes to the manual queue."
+    },
+    "updated_by": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "site_app_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
