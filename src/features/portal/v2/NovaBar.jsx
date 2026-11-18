@@ -4,8 +4,8 @@
 // (Nøva's submit-request tool creates the ClientRequest our team works from).
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp, Mic, Square } from "lucide-react";
-import Martian from "@/features/agents/Martian";
-import { KING } from "@/features/agents/kingPalette";
+import Martian from "@/components/comms/Martian";
+import { KING } from "@/components/comms/martianColors";
 
 const SR = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
 
