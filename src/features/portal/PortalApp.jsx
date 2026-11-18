@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, LogOut, Plus, X, ChevronDown, Check, Eye, Gift, PenLine, QrCode, Presentation, UserRound } from "lucide-react";
-import { navFor, DesktopNav, MobileNav, ScheduleCallButton, ScheduleCallModal } from "@/features/portal/PortalNav";
+import { ArrowUpRight, LogOut, Plus, X, ChevronDown, Check, Eye, Gift, PenLine, QrCode, Presentation, UserRound, LayoutGrid, Menu, Palette } from "lucide-react";
+import { ScheduleCallButton, ScheduleCallModal } from "@/features/portal/PortalNav";
+import { HEADER_TABS, STUDIO_KEYS, groupsFor, labelFor } from "@/features/portal/v2/portalMap";
+import { EverythingSheet, PortalV2Motion } from "@/features/portal/v2/Everything";
+import PortalHomeV2 from "@/features/portal/v2/PortalHomeV2";
+import { BrainView, MentionsView, BillingView, StudioDuo, PlaybookPending } from "@/features/portal/v2/PortalViews";
 import { base44 } from "@/api/base44Client";
 import { LOGO_URL } from "@/lib/nav";
 import { WORK_KINDS, SERVICE_LABELS, fmtDate, timeAgo } from "@/lib/useData";
@@ -41,7 +45,8 @@ import PortalPresentations from "@/features/presentations/portal/PortalPresentat
 
 // Tabs this portal can show. Grouping, labels and icons for the header nav live in PortalNav.jsx (NAV);
 // free-for-life bonus tools (Signatures, QR Codes) are tagged there and listed together on Home.
-const TABS = [["home", "Home"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["resources", "Resources"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["upgrades", "Upgrades"], ["referrals", "Referrals"], ["messages", "Messages"], ["account", "Account"]];
+// Portal v2 (Nov 2026): + brain, mentions, billing. Navigation for all of them is the one-tap map in v2/portalMap.js.
+const TABS = [["home", "Home"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["resources", "Resources"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["brain", "Your Brain"], ["mentions", "Mentions & PR"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["upgrades", "Upgrades"], ["billing", "Billing"], ["referrals", "Referrals"], ["messages", "Messages"], ["account", "Account"]];
 
 function usePortal(previewId) {
   const call = async (action, args = {}) => (await base44.functions.invoke("portal", { action, client_id: previewId, ...args })).data;
@@ -65,6 +70,7 @@ export default function PortalApp({ previewId }) {
   const [tab, setTab] = useState(() => (IS_DEMO && new URLSearchParams(window.location.search).get("tab")) || (new URLSearchParams(window.location.search).get("tab") === "upgrades" ? "upgrades" : "home"));
   const [audit, setAudit] = useState(false);
   const [qrOpen, setQrOpen] = useState(null); // a QR code to open on the QR tab (from Google Business)
+  const [novaAsk, setNovaAsk] = useState(null); // Home "Ask or request anything" -> Nøva drawer ({ text, n })
   const qc = useQueryClient();
   const refresh = () => qc.invalidateQueries({ queryKey: ["portal", scopeId] });
   const d = home.data;
@@ -107,7 +113,12 @@ export default function PortalApp({ previewId }) {
   // Upgrade Store: the Upgrades tab exists only when this client has at least one add-on offered (or owned).
   const { addons: upgrades } = useAddonStore(scopeId, { enabled: !!d?.client });
   // The Brand kit tab only exists when an approved, portal-visible kit does.
-  const tabs = [...TABS.filter(([k]) => (k !== "brand" || d?.has_brand_kit) && (k !== "playbook" || d?.has_playbook) && (k !== "upgrades" || upgrades.length > 0)), ...studioTabs(d?.client, fuel).tabs];
+  // Playbook always has a tile (a designed "being written" state until one is published).
+  const tabs = [...TABS.filter(([k]) => (k !== "brand" || d?.has_brand_kit) && (k !== "upgrades" || upgrades.length > 0)), ...studioTabs(d?.client, fuel).tabs];
+  const st = studioTabs(d?.client, fuel);
+  // Do it yourself / Have us do it: the state of the tool on each Studio tab.
+  const duoState = (k) => (k === "signatures" || k === "qr" ? "free" : st.planLocked ? "plan" : STUDIO_BY_TAB[k]?.comingSoon ? "soon" : st.locked.has(k) ? "preview" : "on");
+  const go = (k) => { setQrOpen(null); setTab(k); window.scrollTo({ top: 0 }); };
 
   if (home.isLoading) return <Shell><p className="py-24 text-center text-ink/50">Loading your portal…</p></Shell>;
   // This login has 2-step verification on and this session hasn't passed it yet: nothing loads until it does.
@@ -133,13 +144,19 @@ export default function PortalApp({ previewId }) {
   if (d.plan_inactive) return <PlanInactive d={d} call={call} previewId={previewId} />;
 
   return (
-    <Shell client={d.client} tabs={tabs} tab={tab} setTab={(k) => { setQrOpen(null); setTab(k); }} unread={d.unread} preview={!!previewId} previewId={previewId} scopeId={scopeId} businesses={businesses} onSwitch={switchTo} fuel={fuel} refuelOpen={refuelOpen} setRefuelOpen={setRefuelOpen}>
+    <Shell client={d.client} tabs={tabs} tab={tab} setTab={(k) => { setQrOpen(null); setTab(k); }} unread={d.unread} brainOpen={d.brain?.open || 0} preview={!!previewId} previewId={previewId} scopeId={scopeId} businesses={businesses} onSwitch={switchTo} fuel={fuel} refuelOpen={refuelOpen} setRefuelOpen={setRefuelOpen}>
       {audit ? (
         <IntakeView call={call} onClose={() => { setAudit(false); refresh(); }} />
       ) : (
         <ErrorBoundary where="portal tab" resetKey={`${d.client.id}:${tab}`}>
         <div key={`${d.client.id}:${tab}`} className="page-enter">
-          {tab === "home" && <HomeView d={d} go={setTab} call={call} previewId={scopeId} openAudit={() => setAudit(true)} />}
+          {tab === "home" && <PortalHomeV2 d={d} groups={withBadges(groupsFor(tabs.map(([k]) => k), st.locked, st.planLocked ? "HyperCare+" : "Soon"), d)} go={go} call={call} refresh={refresh} preview={!!previewId} unread={d.unread} onAsk={(text) => setNovaAsk((a) => ({ text, n: (a?.n || 0) + 1 }))} />}
+          {tab === "classic" && <HomeView d={d} go={setTab} call={call} previewId={scopeId} openAudit={() => setAudit(true)} />}
+          {tab === "brain" && <BrainView call={call} scopeId={scopeId} business={d.client.business} preview={!!previewId} />}
+          {tab === "mentions" && <MentionsView d={d} />}
+          {tab === "billing" && <BillingView d={d} fuel={fuel} go={go} scopeId={scopeId} preview={!!previewId} onRefuel={() => setRefuelOpen(true)} />}
+          {tab === "playbook" && !d.has_playbook && <PlaybookPending business={d.client.business} />}
+          {STUDIO_KEYS.has(tab) && tabs.some(([k]) => k === tab) && <div className="mb-6"><StudioDuo label={labelFor(tab)} studio={tab.replace(/^studio_/, "")} state={duoState(tab)} scopeId={scopeId} preview={!!previewId} /></div>}
           {tab === "results" && <ResultsView d={d} previewId={scopeId} admin={!!previewId} />}
           {tab === "gbp" && <PortalGbp call={call} previewId={scopeId} onOpenQr={(code) => { setQrOpen(code.id); setTab("qr"); }} />}
           {tab === "goals" && <GoalsView d={d} />}
@@ -149,6 +166,13 @@ export default function PortalApp({ previewId }) {
                 <p className="label-cross">(Files)</p>
                 <h2 className="mt-2 text-[32px] font-semibold tracking-[-0.04em]">Your deliverables</h2>
               </div>
+              {d.has_brand_kit && (
+                <button type="button" onClick={() => go("brand")} className="card-hover flex w-full items-center gap-3 rounded-md border border-hair bg-card p-4 text-left">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-md flame-bg text-white"><Palette className="h-[18px] w-[18px]" /></span>
+                  <span className="min-w-0 flex-1"><span className="block text-[15px] font-semibold">Your brand kit</span><span className="block text-[12.5px] text-ink/55">Logo rules, colors, fonts and voice</span></span>
+                  <ArrowUpRight className="h-4 w-4 text-ink/40" />
+                </button>
+              )}
               {d.files.length ? <FileGrid files={d.files} /> : <Panel><Empty>Nothing delivered yet. Your brand kit, SOPs, presentations and other finished work will appear here as we hand it over.</Empty></Panel>}
             </div>
           )}
@@ -156,12 +180,7 @@ export default function PortalApp({ previewId }) {
           {tab === "playbook" && d.has_playbook && <PortalPlaybook call={call} previewId={scopeId} business={d.client.business} />}
           {tab === "resources" && <PortalResources call={call} previewId={scopeId} business={d.client.business} go={setTab} />}
           {tab === "requests" && <RequestsView d={d} call={call} refresh={refresh} previewId={scopeId} />}
-          {tab === "signatures" && (
-            <div className="space-y-4">
-              <span className="inline-flex items-center gap-1.5 flame-bg px-3 py-1.5 text-[12px] font-medium text-white"><Gift className="h-3.5 w-3.5" /> Bonus tool · Free for life with Interstellar</span>
-              <PortalSignatures call={call} />
-            </div>
-          )}
+          {tab === "signatures" && <PortalSignatures call={call} />}
           {tab === "qr" && <PortalQr call={call} previewId={scopeId} openId={qrOpen} />}
           {tab === "referrals" && <PortalPrestige call={call} previewId={previewId} />}
           {tab === "messages" && <MessagesView call={call} previewId={previewId} />}
@@ -178,7 +197,7 @@ export default function PortalApp({ previewId }) {
         </div>
         </ErrorBoundary>
       )}
-      {tab !== "assistant" && <ErrorBoundary compact where="portal assistant launcher"><AssistantLauncher key={scopeId || "me"} previewId={scopeId} admin={!!previewId} onOpenFull={() => { setQrOpen(null); setTab("assistant"); }} /></ErrorBoundary>}
+      {tab !== "assistant" && <ErrorBoundary compact where="portal assistant launcher"><AssistantLauncher key={scopeId || "me"} previewId={scopeId} admin={!!previewId} ask={novaAsk} onOpenFull={() => { setQrOpen(null); setTab("assistant"); }} /></ErrorBoundary>}
     </Shell>
   );
 }
