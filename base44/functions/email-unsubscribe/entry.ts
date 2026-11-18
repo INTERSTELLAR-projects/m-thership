@@ -36,7 +36,7 @@ footer{padding:0 24px 28px;max-width:640px;margin:0 auto;width:100%;font-size:11
 </main><footer>Interstellar Strategies &nbsp;&middot;&nbsp; The Future of Business</footer><div class="bar b"></div></body></html>`;
 }
 
-const html = (s: string, status = 200) => new Response(s, { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-robots-tag": "noindex" } });
+const html = (s: string, status = 200) => new Response(s, { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-robots-tag": "noindex", "x-unsub-version": "2" } });
 const formFor = (t: string, op: string, label: string, ghost = false, field = "t") =>
   `<form method="POST"><input type="hidden" name="${field}" value="${esc(t)}"><input type="hidden" name="op" value="${op}"><button class="${ghost ? "ghost" : ""}" type="submit">${label}</button></form>`;
 const bad = () => html(page({ title: "Link", accent: "expired", text: `This unsubscribe link isn't valid. Email <a href="mailto:hello@interstellar-strategies.com">hello@interstellar-strategies.com</a> and we'll take you off the list by hand.` }), 400);
