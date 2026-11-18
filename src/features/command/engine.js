@@ -661,7 +661,8 @@ export function briefPrompt(s, scores, rule, facts) {
     "Candidate work (the ONLY items you may pick; reference them by candidate_id): " + JSON.stringify(cand),
     "Fixed blocks you must keep exactly (meetings, lunch, interruptions, finished blocks): " + JSON.stringify(fixed),
     "Since yesterday (facts): " + JSON.stringify(rule.since_yesterday),
-    "What the owner has told the Brain: " + JSON.stringify((facts || []).slice(0, 40).map((f) => `[${f.pillar}] ${short(f.statement, 160)}`)),
+    // Systems-inventory facts (secret names / app wiring) are left out of the brief; the Ask bar pulls them by relevance.
+    "What the owner has told the Brain: " + JSON.stringify((facts || []).filter((f) => f.source !== "systems inventory").slice(0, 40).map((f) => `[${f.pillar}] ${short(f.statement, 160)}`)),
     "Default plan (rules) you may improve: " + JSON.stringify(rule.plan_today.map((b) => ({ start: b.start, end: b.end, title: b.title, kind: b.kind, candidate_id: b.cand || undefined }))),
     "",
     "Return JSON:",
@@ -921,7 +922,8 @@ export function askPrompt(text, s, scores, brief, facts) {
     "Pillar scores: " + JSON.stringify(Object.fromEntries(PILLARS.map((p) => [p.id, { score: scores[p.id].score, why: scores[p.id].why }]))),
     `Money: MRR ${money(s.mrr)}; overdue bills ${s.billsOverdue.map((b) => `${(b.e.platform || b.e.name)} ${money(b.s.amount)}`).join(", ") || "none"}; late payment plans ${s.latePlans.length}.`,
     `Pipeline: ${s.leads.length} open leads, ${s.leadsOverdue.length} overdue follow-ups. Work ledger waiting: ${s.ledger.length}. Claude jobs waiting: ${s.jobs.length}.`,
-    "Brain facts: " + JSON.stringify((facts || []).slice(0, 30).map((f) => short(f.statement, 140))),
+    // Systems-inventory facts come in through the SYSTEMS BRAIN block (command-ask), matched to the question.
+    "Brain facts: " + JSON.stringify((facts || []).filter((f) => f.source !== "systems inventory").slice(0, 30).map((f) => short(f.statement, 140))),
     "",
     "Return JSON { reply, speak, intents[] }:",
     "- reply: what you say back, 1-4 short sentences, plain text.",
