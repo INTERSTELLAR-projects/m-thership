@@ -40,14 +40,14 @@ function StatusPanel({ overview, onRefresh }) {
     <Panel label="Setup" title="Publishing keys and sites" action={<SmallBtn onClick={onRefresh}><RefreshCw className="mr-1 inline h-3 w-3" />Refresh</SmallBtn>}>
       <div className="grid gap-3 text-[13px] md:grid-cols-2">
         <div className="space-y-1.5">
-          <p><KeyRound className="mr-1 inline h-3.5 w-3.5 text-ink/50" />CONTENT_PUBLISH_KEY in Møthership: {ok(overview.key_configured)} {overview.key_configured ? "set" : "not set (nothing can publish until it is)"}</p>
+          <p className="text-ink/55">Each client site has its own publish key: one Møthership secret per site (named below) and CONTENT_PUBLISH_KEY on that website, same value.</p>
           <p><KeyRound className="mr-1 inline h-3.5 w-3.5 text-ink/50" />COMMAND_SYSTEM_SYNC_KEY in Møthership: {ok(overview.sync_key_configured)} {overview.sync_key_configured ? "set" : "not set"}</p>
           <p className="text-ink/55">Counts: {Object.entries(overview.counts || {}).map(([k, v]) => `${label(k)} ${v}`).join(" · ") || "no submissions yet"}</p>
         </div>
         <div className="space-y-1.5">
           {(overview.sites || []).map((s) => (
             <p key={s.app_id}>
-              <Globe className="mr-1 inline h-3.5 w-3.5 text-ink/50" />{s.name}: endpoint {s.reachable ? "reachable" : "unreachable"}, key {ok(s.configured)} {s.configured ? "set" : "not set on the website"}
+              <Globe className="mr-1 inline h-3.5 w-3.5 text-ink/50" />{s.name}: endpoint {s.reachable ? "reachable" : "unreachable"} · {s.key_secret} in Møthership {ok(s.key_configured)} {s.key_configured ? "set" : "not set"} · on the website {ok(s.configured)} {s.configured ? "set" : "not set"}
               {s.indexnow ? " · IndexNow on" : " · IndexNow not set up"}{s.enabled ? "" : " · switched off"}
             </p>
           ))}

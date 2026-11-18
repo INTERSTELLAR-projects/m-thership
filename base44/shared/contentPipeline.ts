@@ -28,7 +28,9 @@ export const now = () => new Date().toISOString();
 export const pushHistory = (h: any, e: any) => [...arr(h), { at: now(), ...e }].slice(-40);
 
 // ---------------------------------------------------------------- signing (Møthership → website)
-export function publishKeyConfigured() { return !!(Deno.env.get("CONTENT_PUBLISH_KEY") || ""); }
+// Each site has its own key (SiteConfig.key_secret names the Møthership secret). No shared fallback.
+export function siteKey(site: SiteConfig | null | undefined) { return site?.key_secret ? (Deno.env.get(site.key_secret) || "") : ""; }
+export function publishKeyConfigured(site?: SiteConfig | null) { return !!siteKey(site); }
 async function hmacHex(key: string, msg: string) {
   const k = await crypto.subtle.importKey("raw", enc.encode(key), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   return hex(await crypto.subtle.sign("HMAC", k, enc.encode(msg)));
@@ -40,8 +42,8 @@ export async function signedHeaders(body: string, key: string, ts = Date.now()) 
 }
 // One signed call to a site's content-publish function. Fails closed when the key is not set.
 export async function siteCall(site: SiteConfig, action: string, payload: Record<string, unknown> = {}) {
-  const key = Deno.env.get("CONTENT_PUBLISH_KEY") || "";
-  if (!key) return { ok: false, status: 0, not_configured: true, body: { error: "CONTENT_PUBLISH_KEY is not set in Møthership" } as any };
+  const key = siteKey(site);
+  if (!key) return { ok: false, status: 0, not_configured: true, body: { error: `${site.key_secret || "This site's publish key"} is not set in Møthership` } as any };
   const body = JSON.stringify({ action, app_id: site.app_id, host: site.host, ...payload });
   try {
     const res = await fetch(site.endpoint, { method: "POST", headers: await signedHeaders(body, key), body, signal: AbortSignal.timeout(45000) });

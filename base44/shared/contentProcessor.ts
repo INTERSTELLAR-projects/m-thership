@@ -140,7 +140,7 @@ export async function processSubmission(base44: any, sub: any, deadline: number)
     if (sub.status === "publishing") {
       if (!site) return stop(base44, db, sub, client, "rejected", siteError);
       if (sub.is_test) {
-        const ping = publishKeyConfigured() ? await siteCall(site, "ping") : { ok: false, not_configured: true, status: 0 };
+        const ping = publishKeyConfigured(site) ? await siteCall(site, "ping") : { ok: false, not_configured: true, status: 0 };
         await save(db, sub, { status: "test_passed", locked_at: null, status_detail: `Test passed every check and was written, and was not published (test record). Publishing key: ${ping.not_configured ? "not configured yet" : ping.ok ? "working (signed ping OK)" : `ping failed (${ping.status})`}.`, history: pushHistory(sub.history, { action: "test_passed", by: "agent" }) });
         await audit(db, "content_test_passed", sub.id, `${sub.client_name}: test submission passed`);
         return { id: sub.id, status: "test_passed" };
@@ -165,7 +165,7 @@ export async function publish(base44: any, sub: any, client: any, site: SiteConf
   delete record.catalog_from;
   const r = await siteCall(site, "upsert", { kind: sub.kind, source_record_id: sourceKey(sub), submission_id: sub.id, record });
   if (!r.ok) {
-    const detail = r.not_configured ? "Publishing is not configured yet (CONTENT_PUBLISH_KEY is missing in Møthership or on the website)" : `The website refused the post (${r.status}: ${clip(r.body?.error, 200)})`;
+    const detail = r.not_configured ? `Publishing is not configured yet (${site?.key_secret || "the site's key"} in Møthership or CONTENT_PUBLISH_KEY on the website is missing)` : `The website refused the post (${r.status}: ${clip(r.body?.error, 200)})`;
     return stop(base44, db, sub, client, "failed", detail, { error: r.not_configured ? "not_configured" : clip(r.body?.error, 300) });
   }
   const url = s(r.body.url);

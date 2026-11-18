@@ -1,6 +1,8 @@
 // Content pipeline: the client websites it may publish to (docs/content-pipeline.md).
 // One entry per client WEBSITE app. A site is only used when it is listed here with enabled: true AND the client's
-// CRMClient.site_app_id is this app id. Every request to a site is signed with CONTENT_PUBLISH_KEY (contentPipeline.ts).
+// CRMClient.site_app_id is this app id. Every request to a site is signed with that site's OWN key: the Møthership secret
+// named in key_secret (e.g. CONTENT_PUBLISH_KEY_REDLINE) holds the same value as CONTENT_PUBLISH_KEY on that website.
+// One key per client, so a leaked key can only ever reach one site.
 // Nothing here is a secret: the IndexNow key is public by design (it is served as a file on the site).
 // deno-lint-ignore-file no-explicit-any
 
@@ -21,6 +23,7 @@ export type SiteConfig = {
   origin: string;            // https://domain (no trailing slash)
   host: string;              // bare host sent in every signed body
   endpoint: string;          // the site's content-publish function on its live domain
+  key_secret: string;        // NAME of the Møthership secret holding this site's publish key (never the value)
   sitemap: string;           // the live sitemap function
   enabled: boolean;
   footprint: "local" | "regional" | "national" | "hybrid";
@@ -43,6 +46,7 @@ export const CONTENT_SITES: Record<string, SiteConfig> = {
     origin: "https://redline-visuals.com",
     host: "redline-visuals.com",
     endpoint: "https://redline-visuals.com/functions/content-publish",
+    key_secret: "CONTENT_PUBLISH_KEY_REDLINE",
     sitemap: "https://redline-visuals.com/functions/sitemap",
     enabled: true,
     footprint: "national",

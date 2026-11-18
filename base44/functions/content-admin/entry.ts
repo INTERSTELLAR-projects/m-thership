@@ -47,9 +47,9 @@ Deno.serve(async (req) => {
       const clients = arr(await db.CRMClient.list("business", 500).catch(() => []));
       const sites = await Promise.all(Object.values(CONTENT_SITES).map(async (site) => {
         const c = clients.find((x: any) => s(x.site_app_id) === site.app_id);
-        return { app_id: site.app_id, name: site.name, origin: site.origin, enabled: site.enabled, client_id: c?.id || "", command_app_id: s(c?.command_app_id), indexnow: !!site.indexnow, ...(await siteStatus(site)) };
+        return { app_id: site.app_id, name: site.name, origin: site.origin, enabled: site.enabled, key_secret: site.key_secret, key_configured: publishKeyConfigured(site), client_id: c?.id || "", command_app_id: s(c?.command_app_id), indexnow: !!site.indexnow, ...(await siteStatus(site)) };
       }));
-      return Response.json({ ok: true, key_configured: publishKeyConfigured(), sync_key_configured: !!Deno.env.get("COMMAND_SYSTEM_SYNC_KEY"), sites, counts, editable: EDITABLE });
+      return Response.json({ ok: true, key_configured: Object.values(CONTENT_SITES).some((x) => publishKeyConfigured(x)), sync_key_configured: !!Deno.env.get("COMMAND_SYSTEM_SYNC_KEY"), sites, counts, editable: EDITABLE });
     }
     if (action === "list") {
       const statuses = TABS[s(b.tab)] ?? TABS.queue;
