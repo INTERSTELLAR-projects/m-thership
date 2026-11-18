@@ -36,6 +36,7 @@ import PortalUpgrades, { UpgradeSpotlight } from "@/features/addons/PortalUpgrad
 import { useAddonStore } from "@/features/addons/api";
 import PortalWorkFeed from "@/features/portal/PortalWorkFeed";
 import PortalTraining from "@/features/training/PortalTraining";
+import PortalEmailStudio from "@/features/email-studio/PortalEmailStudio";
 
 // Tabs this portal can show. Grouping, labels and icons for the header nav live in PortalNav.jsx (NAV);
 // free-for-life bonus tools (Signatures, QR Codes) are tagged there and listed together on Home.
@@ -168,7 +169,9 @@ export default function PortalApp({ previewId }) {
           {tab === "upgrades" && <PortalUpgrades scopeId={scopeId} preview={!!previewId} call={call} />}
           {/* Training (People): the real workspace once unlocked (HyperCare+ and switched on); otherwise the locked preview below. */}
           {tab === "studio_training" && tabs.some(([k]) => k === tab) && !studioTabs(d.client, fuel).locked.has(tab) && <PortalTraining scopeId={scopeId} business={d.client.business} />}
-          {STUDIO_BY_TAB[tab] && tabs.some(([k]) => k === tab) && !(tab === "studio_training" && !studioTabs(d.client, fuel).locked.has(tab)) && <StudioPreview tab={tab} client={d.client} call={call} preview={!!previewId} previewId={previewId} scopeId={scopeId} fuel={fuel} onRefuel={() => setRefuelOpen(true)} onFuelChanged={refreshFuel} />}
+          {/* Email Studio: the real workspace once unlocked (HyperCare+ and switched on). */}
+          {tab === "studio_email" && tabs.some(([k]) => k === tab) && !studioTabs(d.client, fuel).locked.has(tab) && <PortalEmailStudio scopeId={scopeId} business={d.client.business} preview={!!previewId} />}
+          {STUDIO_BY_TAB[tab] && tabs.some(([k]) => k === tab) && !(["studio_training", "studio_email"].includes(tab) && !studioTabs(d.client, fuel).locked.has(tab)) && <StudioPreview tab={tab} client={d.client} call={call} preview={!!previewId} previewId={previewId} scopeId={scopeId} fuel={fuel} onRefuel={() => setRefuelOpen(true)} onFuelChanged={refreshFuel} />}
         </div>
         </ErrorBoundary>
       )}
