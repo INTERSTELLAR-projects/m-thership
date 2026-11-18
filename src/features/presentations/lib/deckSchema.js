@@ -463,6 +463,8 @@ const safeList = (p) => Promise.resolve(p).then((r) => (Array.isArray(r) ? r : (
 const BRAIN_KEYS = ["overview", "offer_pricing", "audience", "brand", "goals", "competitors"];
 
 // Everything Møthership knows about the client that a deck can use (real facts only).
+// Admin path reads the entities directly; the client portal gets the same records from the deck-client function
+// (portal users can't read these entities) and calls factsFromRecords.
 export async function clientFacts(clientId) {
   if (!clientId) return null;
   const [client, dossiers, kits, brains] = await Promise.all([
@@ -471,13 +473,17 @@ export async function clientFacts(clientId) {
     safeList(base44.entities.BrandKit.filter({ client_id: clientId, status: "approved" }, "-created_date", 1)),
     safeList(base44.entities.BusinessBrain.filter({ client_id: clientId }, "-updated_date", 1))
   ]);
+  return factsFromRecords({ client, dossier: dossiers[0], kit: kits[0], brain: brains[0] });
+}
+
+export function factsFromRecords({ client, dossier, kit, brain }) {
   if (!client) return null;
-  const d = dossiers[0] || {};
-  const kit = kits[0] || null;
+  const d = dossier || {};
+  kit = kit || null;
   const bi = d.brand_identity || {};
   const palette = kit && kit.kit && Array.isArray(kit.kit.palette) ? kit.kit.palette.map((p) => (typeof p === "string" ? p : p && p.hex)).filter(Boolean) : [];
-  const sections = (brains[0] && brains[0].sections) || {};
-  const brain = BRAIN_KEYS.map((k) => {
+  const sections = (brain && brain.sections) || {};
+  const brainLines = BRAIN_KEYS.map((k) => {
     const s = sections[k];
     const text = s && String(s.text || "").trim();
     if (!text || /^(unknown|n\/a|none)\.?$/i.test(text)) return "";
@@ -487,7 +493,7 @@ export async function clientFacts(clientId) {
   const dm = sections.brand && sections.brand.design_md;
   const designText = dm && String(dm.text || "").trim();
   if (designText && !/^(unknown|n\/a|none)\.?$/i.test(designText)) {
-    brain.push(`## design_md [by ${dm.updated_by || "unknown"} · ${String(dm.updated_at || "").slice(0, 10)} · confidence ${dm.confidence || "unknown"}]\n${designText.slice(0, 2500)}`);
+    brainLines.push(`## design_md [by ${dm.updated_by || "unknown"} · ${String(dm.updated_at || "").slice(0, 10)} · confidence ${dm.confidence || "unknown"}]\n${designText.slice(0, 2500)}`);
   }
   return {
     id: client.id,
@@ -506,7 +512,7 @@ export async function clientFacts(clientId) {
       ["Brand colours", (bi.colors || palette).join(", ")],
       ["Brand fonts", bi.fonts]
     ].filter(([, v]) => v),
-    brain,
+    brain: brainLines,
     colors: bi.colors && bi.colors.length ? bi.colors : palette
   };
 }

@@ -171,6 +171,11 @@ export async function clientBrand(clientId) {
     first(base44.entities.BusinessBrain.filter({ client_id: clientId }, "-updated_date", 1)),
     first(base44.entities.ClientDossier.filter({ client_id: clientId }, "-updated_date", 1))
   ]);
+  return brandFromRecords({ client, kit, brain, dossier });
+}
+
+/** Same as clientBrand, from records already loaded (the client portal gets them from the deck-client function). */
+export function brandFromRecords({ client, kit, brain, dossier }) {
   const name = (client && client.business) || "";
   const bi = (dossier && dossier.brand_identity) || {};
   const logo = (client && client.logo_url) || bi.logo_url || "";
