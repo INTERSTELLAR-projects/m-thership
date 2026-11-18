@@ -2,6 +2,7 @@
 // use the tool, or hand the job to the Interstellar team. Creates a ClientRequest through the existing portal
 // request flow (portal function, action create_request), so it lands in Møthership > Requests like any other.
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, Loader2, Send, Sparkles, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
@@ -33,7 +34,7 @@ export default function RequestHelpButton({ studio, studioLabel, scopeId, previe
         <Sparkles className="h-4 w-4 text-[#ff3c00] group-hover:text-white" />
         <span><span className="hidden sm:inline">Want us to do it? </span>Send a request</span>
       </button>
-      {open && (
+      {open && createPortal(
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-ink/40 p-0 sm:items-center sm:p-4" onMouseDown={() => setOpen(false)} role="dialog" aria-modal="true" aria-label="Send a request">
           <form onSubmit={submit} onMouseDown={(e) => e.stopPropagation()} className="w-full max-w-lg rounded-t-2xl bg-white p-5 shadow-2xl sm:rounded-2xl">
             <div className="flex items-start justify-between gap-3">
@@ -62,7 +63,8 @@ export default function RequestHelpButton({ studio, studioLabel, scopeId, previe
               </>
             )}
           </form>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

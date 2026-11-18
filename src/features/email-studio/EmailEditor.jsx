@@ -28,7 +28,7 @@ export function EmailPreview({ subject, blocks, theme, height = 640 }) {
           <p className="truncate text-[11.5px] text-ink/50">From {theme?.business || "you"}</p>
         </div>
         <div className="flex justify-center p-3">
-          <iframe title="Email preview" srcDoc={html} sandbox="" className="rounded-md bg-white transition-all" style={{ width: device === "phone" ? 375 : "100%", maxWidth: "100%", height }} />
+          <iframe key={device} title="Email preview" srcDoc={html} sandbox="allow-same-origin" onLoad={(ev) => { try { const h = ev.currentTarget.contentDocument?.documentElement?.scrollHeight; if (h) ev.currentTarget.style.height = `${Math.min(h + 4, 2400)}px`; } catch { /* cross-origin */ } }} className="rounded-md bg-white transition-all" style={{ width: device === "phone" ? 375 : "100%", maxWidth: "100%", height }} />
         </div>
       </div>
     </div>

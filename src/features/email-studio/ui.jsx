@@ -1,5 +1,6 @@
 // Small UI kit for the client Email Studio (portal look: ink, hairlines, flame accents).
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, Copy, Loader2, X } from "lucide-react";
 
 export const inputCls = "w-full rounded-md border border-hair bg-white px-3 py-2.5 text-[14px] text-ink outline-none transition-colors placeholder:text-ink/35 focus:border-[#ff3c00] focus:ring-2 focus:ring-[#ff3c00]/15";
@@ -98,7 +99,8 @@ export function Drawer({ open, onClose, title, children, wide, footer }) {
     return () => window.removeEventListener("keydown", k);
   }, [open, onClose]);
   if (!open) return null;
-  return (
+  // Portal to <body>: the portal page wrapper animates with a transform, which would trap a fixed overlay.
+  return createPortal(
     <div className="fixed inset-0 z-[70] flex justify-end bg-ink/40" onMouseDown={onClose} role="dialog" aria-modal="true" aria-label={title}>
       <div onMouseDown={(e) => e.stopPropagation()} className={`flex h-full w-full flex-col bg-[#faf9f7] shadow-2xl ${wide ? "md:max-w-3xl" : "md:max-w-lg"}`}>
         <header className="flex items-center justify-between gap-3 border-b border-hair bg-white px-5 py-4">
@@ -108,7 +110,8 @@ export function Drawer({ open, onClose, title, children, wide, footer }) {
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">{children}</div>
         {footer && <footer className="border-t border-hair bg-white px-5 py-3.5">{footer}</footer>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
