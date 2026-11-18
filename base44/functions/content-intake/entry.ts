@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
         .find((x: any) => x?.fields?.source_app_id === appId && x?.fields?.source_record_id === recordId);
       if (prior) return Response.json({ ok: true, request_id: prior.id, status: prior.status, duplicate: true });
       const isTest = b.is_test === true;
-      const label = { feature: "New feature", change: "Change", automation: "Automation" }[type];
+      const label = ({ feature: "New feature", change: "Change", automation: "Automation" } as Record<string, string>)[type];
       const priority = ["low", "high", "urgent"].includes(s(b.priority)) ? s(b.priority) : "normal";
       const by = clip(b.submitted_by, 120) || "client app";
       const row = await db.ClientRequest.create({
