@@ -39,7 +39,7 @@ export async function baseUrl(db) { return appBaseUrl((await inviteSettings(db).
 export async function trackToken(keys, p) { return await core.signToken(keys.track, "t", core.trackPayload(p)); }
 export async function contactUnsubUrl(base, keys, clientId, contactId, p) {
   const tok = await core.signToken(keys.unsub, "u", [clientId, contactId, p.src || "", p.id || "", p.step || ""].map((x) => String(x).replace(/\|/g, "")).join("|"));
-  return `${base}/functions/email-unsubscribe?u=${encodeURIComponent(tok)}`;
+  return `${base}/functions/email-optout?u=${encodeURIComponent(tok)}`;
 }
 
 // Personalize + unsubscribe + tracking for ONE recipient. r = { email, name, first_name, last_name, cid?, vars? }.
