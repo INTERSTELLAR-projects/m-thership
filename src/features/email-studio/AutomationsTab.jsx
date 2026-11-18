@@ -33,7 +33,8 @@ function triggerText(t, lists) {
   if (t.type === "list_join") return `When someone joins ${t.list_id ? `“${lists.find((l) => l.id === t.list_id)?.name || "a list"}”` : "any list"}`;
   if (t.type === "event") return `When your Command System sends “${t.event_name}”`;
   if (t.type === "inactive") return `When a customer has been quiet for ${t.months} months`;
-  return `On their ${t.field}, at ${t.send_hour ?? 9}:00`;
+  const h = Number(t.send_hour ?? 9);
+  return `On their ${t.field}, around ${((h + 11) % 12) + 1}:00 ${h < 12 ? "AM" : "PM"}`;
 }
 
 function TriggerEditor({ t, set, lists, data }) {
