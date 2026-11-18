@@ -1,6 +1,6 @@
 {
   "name": "Studios \u2014 drain bulk email queue",
-  "description": "Every 5 minutes: sends the next queued batches of client Studios marketing email through Amazon SES (rate-limited, one email per recipient, suppression list respected). Does nothing when the queue is empty or SES isn't configured.",
+  "description": "Every 5 minutes (email-drain): releases scheduled Email Studio campaigns whose time has come, sends the next queued batches through Amazon SES (rate-limited, one email per recipient, suppression + unsubscribe + open/click tracking), and runs Email Studio automations (welcome, review request, win-back, birthday/anniversary). Does nothing when nothing is due; real sends wait until SES is configured (test clients run in dry-run mode).",
   "trigger": {
     "condition": null,
     "config": {
@@ -28,7 +28,7 @@
             "args": {
               "action": "drain"
             },
-            "function_name": "email-bulk"
+            "function_name": "email-drain"
           }
         }
       }
