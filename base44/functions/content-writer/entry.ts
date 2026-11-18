@@ -3,6 +3,8 @@
 //   drain {}  Anyone may call it (workflows, content-intake): it only advances rows already queued and returns counts.
 //             Each call works for up to ~100 s, then starts the next call itself if work is left.
 //   run { id }  admin: one submission now, full detail back.
+// Sites, profiles (album / door_project) and the manual queue live in shared/contentSites.ts + contentProcessor.ts.
+// Note: a function is rebuilt when its own entry file is saved; touch this file after changing the shared modules.
 // deno-lint-ignore-file no-explicit-any
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import { processSubmission, ACTIVE } from "../../shared/contentProcessor.ts";
