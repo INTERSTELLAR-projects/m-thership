@@ -90,7 +90,7 @@ export const SEED_SECTIONS = [
     body: [
       "- Every build includes a free Intel Briefing: an audit before the build and a final sweep at the end.",
       "- Mission ALPHA only: the first 45 days of HyperCare+ free. The 45 days start the day Mission ALPHA is purchased (matching the 45-day build) and the HyperCare+ subscription starts on day 46. Separate from the Launch Guarantee (first 3 months of HyperCare+ free if the build is not live in 45 days).",
-      "- Clients get the portal tools for life: email signatures and QR codes (Wørmhole). The AI presentation creator is \"coming soon\".",
+      "- Clients get the portal tools for life: email signatures and QR codes (Wørmhole). The AI Presentation Creator is live in the portal (Studios > Presentations, HyperCare+): one prompt to an on-brand deck, PDF and PowerPoint export.",
       "- Prestige referral program: when a referral books a call the referrer gets a Priority Pass (their next request jumps to the front of the build queue, no dollar value). When a referral pays their first invoice the referrer gets $500 in Interstellar credit added to their account (never a subscription discount, invoice credit or free month). Credits bank and stack with no cap for builds (automations, app upgrades / new features, interactive website features, add-on packages); merch, marketing materials, social posts, videos and ad spend are capped at $500 per redemption, redeemed through Interstellar. Clients request spends from the portal (Referrals > Use my credits) and Justin approves each one. Tier ladder Prestige I to Master unlocks by signed referrals. Referrals are logged by hand.",
     ].join("\n"),
   },
