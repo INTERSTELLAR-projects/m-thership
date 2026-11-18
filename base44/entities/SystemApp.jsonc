@@ -1,0 +1,119 @@
+{
+  "name": "SystemApp",
+  "description": "Systems brain: one app in Justin's Base44 workspace (a node on the Systems map): its role, backend function names, workflow names, connectors (type + connected yes/no only, never the account) and secret NAMES. No values. Admin only.",
+  "type": "object",
+  "properties": {
+    "app_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "mothership",
+        "command",
+        "website",
+        "website_command",
+        "funnel",
+        "brand_template",
+        "personal",
+        "agent",
+        "other"
+      ],
+      "default": "other"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "CRMClient business this app belongs to, if any"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "last_deployed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "functions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "workflows": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "connectors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "connected": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Integration type and whether it is connected. Never the connected account."
+    },
+    "secret_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "referenced_not_set": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Secret names the code reads that are not set on the app"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_scan_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "app_id",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
