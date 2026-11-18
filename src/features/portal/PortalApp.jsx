@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, LogOut, Plus, X, ChevronDown, Check, Eye, Gift, PenLine, QrCode, Presentation, UserRound, LayoutGrid, Menu, Palette } from "lucide-react";
+import { ArrowUpRight, LogOut, X, ChevronDown, Check, Eye, UserRound, LayoutGrid, Menu, Palette } from "lucide-react";
 import { ScheduleCallButton, ScheduleCallModal } from "@/features/portal/PortalNav";
 import { HEADER_TABS, STUDIO_KEYS, groupsFor, labelFor } from "@/features/portal/v2/portalMap";
 import { EverythingSheet, PortalV2Motion } from "@/features/portal/v2/Everything";
@@ -8,7 +8,7 @@ import PortalHomeV2 from "@/features/portal/v2/PortalHomeV2";
 import { BrainView, MentionsView, BillingView, StudioDuo, PlaybookPending } from "@/features/portal/v2/PortalViews";
 import { base44 } from "@/api/base44Client";
 import { LOGO_URL } from "@/lib/nav";
-import { WORK_KINDS, SERVICE_LABELS, fmtDate, timeAgo } from "@/lib/useData";
+import { fmtDate } from "@/lib/useData";
 import { Panel, Empty, Tag, Btn, Field } from "@/features/clients/ui";
 import { PerformanceView, FileGrid } from "@/features/clients/tabsGrowth";
 import PortalChats from "@/features/portal/PortalChats";
@@ -25,7 +25,7 @@ import { KitView } from "@/features/clients/BrandKitTab";
 import PortalPlaybook from "@/features/portal/PortalPlaybook";
 import PortalResources from "@/features/portal/PortalResources";
 import PortalInstagram from "@/features/social/portal/PortalInstagram";
-import { PortalGbp, ReviewLinkQuick } from "@/features/gbp/GbpPanel";
+import { PortalGbp } from "@/features/gbp/GbpPanel";
 import PortalAssistant, { AssistantLauncher } from "@/features/portal/assistant/PortalAssistant";
 import SecurityPanel from "@/features/security/SecurityPanel";
 import StudioPreview, { studioTabs, STUDIO_BY_TAB } from "@/features/portal/PortalStudios";
@@ -36,9 +36,8 @@ import { BusinessDropdown, BusinessPills } from "@/features/portal/BusinessSwitc
 import { useFuel } from "@/features/fuel/useFuel";
 import { FuelBanner, RefuelModal } from "@/features/fuel/FuelPrompts";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import PortalUpgrades, { UpgradeSpotlight } from "@/features/addons/PortalUpgrades";
+import PortalUpgrades from "@/features/addons/PortalUpgrades";
 import { useAddonStore } from "@/features/addons/api";
-import PortalWorkFeed from "@/features/portal/PortalWorkFeed";
 import PortalTraining from "@/features/training/PortalTraining";
 import PortalEmailStudio from "@/features/email-studio/PortalEmailStudio";
 import PortalPresentations from "@/features/presentations/portal/PortalPresentations";
@@ -85,7 +84,7 @@ export default function PortalApp({ previewId }) {
     p.delete("fuel"); p.delete("session_id");
     window.history.replaceState(null, "", `${window.location.pathname}${p.toString() ? `?${p}` : ""}`);
     return () => timers.forEach(clearTimeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
   // Out of fuel: the Refuel modal opens when the client lands on a Studio page.
   useEffect(() => {
@@ -151,8 +150,7 @@ export default function PortalApp({ previewId }) {
         <ErrorBoundary where="portal tab" resetKey={`${d.client.id}:${tab}`}>
         <div key={`${d.client.id}:${tab}`} className="page-enter">
           {tab === "home" && <PortalHomeV2 d={d} groups={withBadges(groupsFor(tabs.map(([k]) => k), st.locked, st.planLocked ? "HyperCare+" : "Soon"), d)} go={go} call={call} refresh={refresh} preview={!!previewId} unread={d.unread} onAsk={(text) => setNovaAsk((a) => ({ text, n: (a?.n || 0) + 1 }))} />}
-          {tab === "classic" && <HomeView d={d} go={setTab} call={call} previewId={scopeId} openAudit={() => setAudit(true)} />}
-          {tab === "brain" && <BrainView call={call} scopeId={scopeId} business={d.client.business} preview={!!previewId} />}
+          {tab === "brain" && <BrainView call={call} scopeId={scopeId} business={d.client.business} preview={!!previewId} openAudit={() => setAudit(true)} />}
           {tab === "mentions" && <MentionsView d={d} />}
           {tab === "billing" && <BillingView d={d} fuel={fuel} go={go} scopeId={scopeId} preview={!!previewId} onRefuel={() => setRefuelOpen(true)} />}
           {tab === "playbook" && !d.has_playbook && <PlaybookPending business={d.client.business} />}
@@ -202,18 +200,27 @@ export default function PortalApp({ previewId }) {
   );
 }
 
-// Header: brand on the left, grouped nav (desktop dropdowns / mobile drawer) and the
-// "Schedule a call" button on the right. Nav config and components live in PortalNav.jsx.
-function Shell({ client, tabs = TABS, tab, setTab, unread, preview, previewId, scopeId, businesses = [], onSwitch, fuel, refuelOpen = false, setRefuelOpen, children }) {
+// Tiles get live badges (unread messages, open Brain questions).
+function withBadges(groups, d) {
+  return groups.map((g) => ({ ...g, items: g.items.map((i) => (i.k === "brain" && d?.brain?.open ? { ...i, badge: d.brain.open } : i)) }));
+}
+
+// Portal v2 header: brand + business on the left; Home, Requests, Messages and the one-tap "Everything" sheet on the
+// right (desktop). Phones get one menu button that opens the same sheet. No dropdowns, no nested menus.
+function Shell({ client, tabs = TABS, tab, setTab, unread, brainOpen = 0, preview, previewId, scopeId, businesses = [], onSwitch, fuel, refuelOpen = false, setRefuelOpen, children }) {
   const multi = businesses.length > 1 && !!onSwitch;
   const [schedOpen, setSchedOpen] = useState(false);
-  const nav = useMemo(() => {
+  const [sheet, setSheet] = useState(false);
+  const groups = useMemo(() => {
     const st = studioTabs(client, fuel);
-    return navFor(tabs.map(([k]) => k), st.locked, st.planLocked ? "HyperCare+" : "Soon");
-  }, [tabs, client, fuel]);
+    return withBadges(groupsFor(tabs.map(([k]) => k), st.locked, st.planLocked ? "HyperCare+" : "Soon"), { brain: { open: brainOpen } });
+  }, [tabs, client, fuel, brainOpen]);
   const openRefuel = setRefuelOpen ? () => setRefuelOpen(true) : undefined;
+  const go = (k) => { setTab(k); window.scrollTo({ top: 0 }); };
+  const current = labelFor(tab);
   return (
-    <div className="grid-canvas min-h-screen text-ink" data-trail>
+    <div className="grid-canvas min-h-screen text-ink" data-trail data-portal-v2>
+      <PortalV2Motion />
       <GridTrail />
       {preview && (
         <div className="relative z-30 flex items-center justify-center gap-2 bg-ink px-4 py-2 text-[12px] text-white">
@@ -221,43 +228,58 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, preview, previewId, s
           <a href={client ? `/clients/${client.id}` : "/"} className="ml-2 underline">Back to Møthership</a>
         </div>
       )}
-      <header className="sticky top-0 z-20 border-b border-hair bg-canvas/95 backdrop-blur">
-        <div className="mx-auto flex h-[60px] max-w-[1280px] items-center gap-3 px-4 md:px-8">
-          <div className="flex min-w-0 shrink-0 items-center gap-3">
+      <header className="sticky top-0 z-20 border-b border-hair bg-canvas/90 backdrop-blur">
+        <div className="mx-auto flex h-[64px] max-w-[1280px] items-center gap-3 px-4 md:px-8">
+          <button type="button" onClick={() => setTab && go("home")} className="flex min-w-0 shrink-0 items-center gap-3" aria-label="Home">
             <BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={18} />
-            <span className="hidden h-7 w-px bg-hair md:block lg:hidden xl:block" aria-hidden="true" />
-            {multi ? (
-              <div className="hidden md:block lg:hidden xl:block"><BusinessDropdown businesses={businesses} currentId={client?.id} onSwitch={onSwitch} /></div>
-            ) : (
-              <p className="hidden max-w-[180px] truncate text-[13px] font-medium tracking-[-0.02em] text-ink/70 md:block lg:hidden xl:block">{client?.business || "Client Portal"}</p>
-            )}
-          </div>
+          </button>
+          <span className="hidden h-7 w-px bg-hair md:block" aria-hidden="true" />
+          {multi ? (
+            <div className="hidden md:block"><BusinessDropdown businesses={businesses} currentId={client?.id} onSwitch={onSwitch} /></div>
+          ) : (
+            <p className="hidden max-w-[220px] truncate text-[13px] font-medium tracking-[-0.02em] text-ink/70 md:block">{client?.business || "Client Portal"}</p>
+          )}
           {setTab ? (
             <>
-              <div className="ml-auto hidden lg:block">
-                <DesktopNav nav={nav} tab={tab} setTab={setTab} unread={unread} fuel={fuel} onRefuel={openRefuel} />
-              </div>
-              <div className="ml-auto flex items-center gap-2 lg:ml-3">
+              <nav aria-label="Portal" className="ml-auto hidden items-center gap-0.5 lg:flex">
+                {HEADER_TABS.map((h) => (
+                  <button key={h.k} type="button" data-tab={h.k} aria-current={tab === h.k ? "page" : undefined} onClick={() => go(h.k)} className={`relative flex h-10 items-center gap-1.5 px-3 text-[13.5px] font-medium ${tab === h.k ? "text-ink" : "text-ink/55 hover:text-ink"}`}>
+                    {h.label}
+                    {h.k === "messages" && unread > 0 && <span className="flex h-4 min-w-4 items-center justify-center bg-[#ff3c00] px-1 font-mono text-[10px] text-white" aria-label={`${unread} unread`}>{unread}</span>}
+                    {tab === h.k && <span className="absolute inset-x-3 -bottom-[13px] h-[2px] bg-[#ff3c00]" aria-hidden="true" />}
+                  </button>
+                ))}
+                <button type="button" data-everything-button onClick={() => setSheet(true)} aria-expanded={sheet} className={`ml-1 flex h-10 items-center gap-2 rounded-md border px-3 text-[13.5px] font-medium ${!["home", ...HEADER_TABS.map((h) => h.k)].includes(tab) ? "border-ink bg-white" : "border-hair bg-card hover:border-ink/30"}`}>
+                  <LayoutGrid className="h-4 w-4" /> Everything
+                  {brainOpen > 0 && <span className="h-2 w-2 rounded-full bg-[#ff3c00]" aria-label="Something needs you" />}
+                </button>
+              </nav>
+              <div className="ml-auto flex items-center gap-2 lg:ml-2">
                 <ScheduleCallButton onClick={() => setSchedOpen(true)} />
-                <MobileNav nav={nav} client={client} tab={tab} setTab={setTab} unread={unread} preview={preview} onSchedule={() => setSchedOpen(true)} fuel={fuel} onRefuel={openRefuel} />
+                <button type="button" data-portal-menu-button onClick={() => setSheet(true)} aria-expanded={sheet} aria-label={`Open menu${current ? `, current page ${current}` : ""}`} className="relative flex h-11 items-center gap-2 rounded-md border border-hair bg-card px-3 text-[13px] font-medium lg:hidden">
+                  <span className="max-w-[96px] truncate sm:max-w-[160px]">{current || "Menu"}</span>
+                  <Menu className="h-5 w-5" aria-hidden="true" />
+                  {(unread > 0 || brainOpen > 0) && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#ff3c00]" aria-hidden="true" />}
+                </button>
                 <div className="hidden items-center lg:flex">
-                  <button type="button" data-tab="account" onClick={() => setTab("account")} aria-current={tab === "account" ? "page" : undefined} className={`flex h-10 w-9 items-center justify-center ${tab === "account" ? "text-[#ff3c00]" : "text-ink/45 hover:text-ink"}`} title="Account & security" aria-label="Account and security">
+                  <button type="button" data-tab="account" onClick={() => go("account")} aria-current={tab === "account" ? "page" : undefined} className={`flex h-10 w-10 items-center justify-center ${tab === "account" ? "text-[#ff3c00]" : "text-ink/45 hover:text-ink"}`} title="Account & security" aria-label="Account and security">
                     <UserRound className="h-4 w-4" />
                   </button>
-                  {!preview && <button type="button" onClick={() => base44.auth.logout()} className="flex h-10 w-8 items-center justify-center text-ink/45 hover:text-[#ff3c00]" title="Log out" aria-label="Log out"><LogOut className="h-4 w-4" /></button>}
+                  {!preview && <button type="button" onClick={() => base44.auth.logout()} className="flex h-10 w-9 items-center justify-center text-ink/45 hover:text-[#ff3c00]" title="Log out" aria-label="Log out"><LogOut className="h-4 w-4" /></button>}
                 </div>
               </div>
               <ScheduleCallModal open={schedOpen} onClose={() => setSchedOpen(false)} previewId={scopeId || previewId} preview={preview} />
+              <EverythingSheet open={sheet} onClose={() => setSheet(false)} groups={groups} tab={tab} onPick={go} unread={unread} client={client} preview={preview} businesses={businesses} onSwitch={onSwitch} onSchedule={() => setSchedOpen(true)} />
             </>
           ) : (
             !preview && <button onClick={() => base44.auth.logout()} className="ml-auto p-2 text-ink/45 hover:text-[#ff3c00]" title="Log out" aria-label="Log out"><LogOut className="h-4 w-4" /></button>
           )}
         </div>
-        {multi && <BusinessPills businesses={businesses} currentId={client?.id} onSwitch={onSwitch} className="md:hidden lg:block xl:hidden" />}
+        {multi && <BusinessPills businesses={businesses} currentId={client?.id} onSwitch={onSwitch} className="md:hidden" />}
       </header>
       {setTab && <FuelBanner fuel={fuel} onOpen={openRefuel} />}
       {setRefuelOpen && <RefuelModal open={refuelOpen} onClose={() => setRefuelOpen(false)} fuel={fuel} scopeId={scopeId || previewId} preview={preview} onUpgrade={() => { setRefuelOpen(false); setSchedOpen(true); }} />}
-      <main className="relative z-10 mx-auto max-w-[1280px] px-4 pb-20 pt-8 md:px-8">{children}</main>
+      <main className="relative z-10 mx-auto max-w-[1280px] px-4 pb-28 pt-6 md:px-8 md:pt-8">{children}</main>
     </div>
   );
 }
@@ -280,184 +302,6 @@ function PlanInactive({ d, call, previewId }) {
       </div>
       {chat && <div className="mx-auto max-w-3xl"><PortalChats call={call} previewId={previewId} /></div>}
     </Shell>
-  );
-}
-
-function Counter({ value, label, total }) {
-  return (
-    <div className="border-b border-r border-hair px-4 py-5 sm:px-5 sm:py-6 lg:border-b-0 lg:last:border-r-0">
-      <p className="text-[34px] font-semibold leading-none tracking-[-0.05em] tabular-nums sm:text-[44px]">{value}</p>
-      <p className="mono-label mt-3 text-[10px] text-ink/55">{label}</p>
-      {total > 0 && <p className="mt-1 text-[12px] text-ink/45">{total} all time</p>}
-    </div>
-  );
-}
-
-function HomeView({ d, go, call, previewId, openAudit }) {
-  const ms = new Date(); ms.setDate(1);
-  const monthStart = ms.toISOString().slice(0, 10);
-  const month = d.work.filter((w) => (w.date || "") >= monthStart);
-  const c = (...k) => month.filter((w) => k.includes(w.kind)).length;
-  const t = (...k) => d.work.filter((w) => k.includes(w.kind) && w.status === "live").length;
-  const monthName = new Date().toLocaleDateString("en-US", { month: "long" });
-  const allTime = d.work.length;
-  // Only the four counted kinds decide between the counters and the getting-started card (a lone audit report shouldn't produce four zeros).
-  const COUNTED = ["blog", "gbp_post", "site_edit", "new_page", "project_page", "deliverable", "citation", "press", "mention", "backlink"];
-  const counted = d.work.filter((w) => COUNTED.includes(w.kind)).length;
-  const openReq = d.requests.filter((r) => !["complete", "declined"].includes(r.status));
-
-  return (
-    <div className="space-y-8">
-      <section>
-        <p className="label-cross">(Your {monthName})</p>
-        <h1 className="mt-3 text-[36px] font-semibold leading-[0.98] tracking-[-0.045em] md:text-[56px]">
-          {counted === 0 ? <>Welcome aboard, <span className="text-[#ff3c00]">{d.client.business}</span>.</> : <>Here&apos;s what we did for <span className="text-[#ff3c00]">{d.client.business}</span>.</>}
-        </h1>
-        <p className="mt-3 max-w-2xl text-[15px] text-ink/60">Every blog, Google post, site update and listing we publish for you shows up here as it happens. {allTime ? `${allTime} ${allTime === 1 ? "piece" : "pieces"} of work logged so far.` : ""}</p>
-        {counted === 0 ? (
-          <FirstMonth go={go} />
-        ) : (
-          <div className="mt-6 grid grid-cols-2 overflow-hidden rounded-md border border-hair bg-card lg:grid-cols-4">
-            <Counter value={c("blog")} total={t("blog")} label={`Blogs published in ${monthName}`} />
-            <Counter value={c("gbp_post")} total={t("gbp_post")} label={`Google posts in ${monthName}`} />
-            <Counter value={c("site_edit", "new_page", "project_page")} total={t("site_edit", "new_page", "project_page", "deliverable")} label={`Website updates in ${monthName}`} />
-            <Counter value={c("citation", "press", "mention", "backlink")} total={t("citation", "press", "mention", "backlink")} label={`Listings & press in ${monthName}`} />
-          </div>
-        )}
-      </section>
-
-      <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr] [&>*]:min-w-0">
-        {/* "Work we did" from the work ledger (client-safe copy only). Older portals without work_feed fall back to WorkLog. */}
-        {Array.isArray(d.work_feed) ? <PortalWorkFeed items={d.work_feed} business={d.client.business} counts={d.work_counts} /> : (
-        <Panel label="Latest" title="Work feed">
-          {d.work.length === 0 ? <Empty>Your work feed fills up as we publish for you.</Empty> : (
-            <ul className="divide-y divide-hair">
-              {d.work.slice(0, 12).map((w) => (
-                <li key={w.id} className="flex items-center gap-3 px-4 py-3">
-                  <Tag tone={w.kind === "blog" || w.kind === "gbp_post" ? "flame" : "muted"}>{WORK_KINDS[w.kind] || w.kind}</Tag>
-                  <span className="min-w-0 flex-1 truncate text-[13.5px] font-medium">{w.title}</span>
-                  <span className="font-mono text-[10.5px] text-ink/45">{fmtDate(w.date)}</span>
-                  {w.url && <a href={w.url} target="_blank" rel="noreferrer" className="text-ink/40 hover:text-[#ff3c00]"><ArrowUpRight className="h-4 w-4" /></a>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
-        )}
-        <div className="space-y-5">
-          <div className="band-dark grain rounded-md p-5">
-            <p className="mono-label text-[10px] text-white/50">Need something?</p>
-            <p className="mt-2 text-[20px] font-semibold leading-tight tracking-[-0.03em]">Website edits, content, Google posts, design, fixes: send a request or a message.</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button onClick={() => go("requests")} className="btn-roll is-flame"><span className="roll"><span>New request</span><span>New request</span></span><span className="box"><Plus className="h-3.5 w-3.5" /></span></button>
-              <button onClick={() => go("messages")} className="h-10 border border-white/25 px-4 text-[13px] text-white hover:bg-white hover:text-ink">Message us</button>
-            </div>
-          </div>
-          <Panel label="Running for you" title="Active services">
-            <ul className="divide-y divide-hair">
-              {(d.client.services_managed || []).map((s) => <li key={s} className="flex items-center gap-2 px-4 py-2.5 text-[13px]"><Check className="h-3.5 w-3.5 text-[#ff3c00]" />{SERVICE_LABELS[s] || s}</li>)}
-              {d.automations.map((a) => (
-                <li key={a.id} className="flex items-center gap-2 px-4 py-2.5 text-[13px]">
-                  <span className="h-2 w-2 rounded-full bg-green-600" /> <span className="flex-1">{a.name}</span>
-                  <span className="text-[11px] text-ink/45">{a.last_run_at ? timeAgo(a.last_run_at) : a.schedule}</span>
-                </li>
-              ))}
-              {!(d.client.services_managed || []).length && !d.automations.length && <li className="px-4 py-4 text-[12.5px] text-ink/50">Your services will be listed here.</li>}
-            </ul>
-          </Panel>
-          {(openReq.length > 0 || d.upcoming.length > 0) && (
-            <Panel label="In motion" title="Coming up">
-              <ul className="divide-y divide-hair">
-                {openReq.slice(0, 4).map((r) => <li key={r.id} className="flex items-center gap-2 px-4 py-2.5 text-[13px]"><Tag tone={r.status === "in_progress" ? "flame" : "muted"}>{r.status.replace("_", " ")}</Tag><span className="truncate">{r.title}</span></li>)}
-                {d.upcoming.slice(0, 4).map((t) => <li key={t.id} className="flex items-center gap-2 px-4 py-2.5 text-[13px]"><Tag>Planned</Tag><span className="flex-1 truncate">{t.title}</span><span className="text-[11px] text-ink/45">{t.due_date ? fmtDate(t.due_date) : ""}</span></li>)}
-              </ul>
-            </Panel>
-          )}
-          <ReviewLinkQuick call={call} previewId={previewId} go={go} />
-          <UpgradeSpotlight scopeId={previewId} go={go} />
-          <BonusTools go={go} />
-          <button onClick={openAudit} className="card-hover w-full rounded-md border border-hair bg-card p-4 text-left">
-            <p className="mono-label text-[9.5px] text-ink/50">Business audit</p>
-            <p className="mt-1 text-[14.5px] font-semibold">Tell us about your business →</p>
-            <p className="text-[12px] text-ink/55">The more we know, the more we can automate for you.</p>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Brand-new clients have no logged work yet: explain what will show up instead of a wall of zeros.
-function FirstMonth({ go }) {
-  const items = [
-    ["Blogs", "Every article we publish on your site, with a link to read it live."],
-    ["Google posts", "Updates and offers we post to your Google Business Profile."],
-    ["Website updates", "Edits, new pages and fixes as they go live."],
-    ["Listings & press", "Directory listings, mentions and links we earn for you."],
-  ];
-  return (
-    <div className="mt-6 overflow-hidden rounded-md border border-hair bg-card">
-      <div className="h-[3px] bg-[linear-gradient(90deg,#ff3c00,#ff6a00,#ffaa00)]" aria-hidden="true" />
-      <div className="px-5 py-5 md:px-6">
-        <p className="mono-label text-[10px] text-[#ff3c00]">Getting started</p>
-        <p className="mt-2 max-w-2xl text-[16px] font-semibold leading-snug tracking-[-0.02em] md:text-[18px]">Your first results land here as we publish them. Nothing to do on your end, but the business audit below helps us move faster.</p>
-      </div>
-      <ul className="grid border-t border-hair sm:grid-cols-2 lg:grid-cols-4">
-        {items.map(([t, s]) => (
-          <li key={t} className="border-b border-hair px-5 py-4 sm:border-r lg:border-b-0 lg:last:border-r-0">
-            <p className="text-[14px] font-semibold">{t}</p>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-ink/55">{s}</p>
-          </li>
-        ))}
-      </ul>
-      <div className="flex flex-wrap gap-2 border-t border-hair px-5 py-4">
-        <button type="button" onClick={() => go("requests")} className="h-10 bg-[#ff3c00] px-4 text-[13px] font-medium text-white hover:bg-ink">Send your first request</button>
-        <button type="button" onClick={() => go("messages")} className="h-10 border border-hair px-4 text-[13px] font-medium hover:border-ink/30">Message us</button>
-      </div>
-    </div>
-  );
-}
-
-// Bonus tools: free for life with Interstellar. The presentation creator is a placeholder (no functionality yet).
-function BonusTools({ go }) {
-  const tools = [
-    { k: "signatures", icon: PenLine, title: "Email signatures", text: "Animated, on-brand signatures for your whole team." },
-    { k: "qr", icon: QrCode, title: "QR codes", text: "Branded, trackable QR codes you can re-point after printing." },
-    { k: "studio_presentations", icon: Presentation, title: "AI Presentation Creator", text: "Decks in your brand from one prompt. Included with HyperCare+." },
-  ];
-  return (
-    <section className="rounded-md border border-hair bg-card">
-      <header className="flex items-center justify-between gap-3 border-b border-hair px-4 py-3">
-        <div>
-          <p className="mono-label text-[9.5px] text-ink/50">Bonus tools</p>
-          <h3 className="text-[15px] font-semibold tracking-[-0.02em]">Free for life with Interstellar</h3>
-        </div>
-        <Gift className="h-4 w-4 text-[#ff3c00]" />
-      </header>
-      <ul className="divide-y divide-hair">
-        {tools.map((t) => {
-          const Icon = t.icon;
-          return (
-            <li key={t.title}>
-              <button
-                type="button"
-                disabled={t.soon}
-                aria-disabled={t.soon}
-                onClick={() => t.k && go(t.k)}
-                className={`flex w-full items-center gap-3 px-4 py-3 text-left ${t.soon ? "cursor-not-allowed opacity-55" : "hover:bg-paper"}`}
-              >
-                <span className={`flex h-8 w-8 shrink-0 items-center justify-center ${t.soon ? "bg-ink/[0.07] text-ink/50" : "flame-bg text-white"}`}><Icon className="h-4 w-4" /></span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[13.5px] font-medium">{t.title}</span>
-                  <span className="block text-[11.5px] text-ink/55">{t.text}</span>
-                </span>
-                {t.soon ? <Tag tone="muted">Coming soon</Tag> : <ArrowUpRight className="h-4 w-4 text-ink/40" />}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
   );
 }
 
