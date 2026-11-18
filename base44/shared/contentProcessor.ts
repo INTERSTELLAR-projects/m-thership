@@ -230,7 +230,6 @@ export async function publish(base44: any, sub: any, client: any, site: SiteConf
   // cache, so they are kept live and flagged instead.
   if (!verify.ok && firstTime && sub.kind === "project" && (verify.http_status !== 200 || !verify.title_ok || verify.sitemap_ok === false)) {
     await siteCall(site, "unpublish", { kind: sub.kind, source_record_id: sourceKey(sub), submission_id: sub.id });
-    await notify(base44, client, `Client post rolled back: ${sub.client_name}`, [`"${title}" was written to the website but the live check failed, so it was unpublished again.`, `Status ${verify.http_status}, title found: ${verify.title_ok}, in sitemap: ${verify.sitemap_ok}.`]);
     return toManual(base44, db, sub, `Posted, but the live check failed (status ${verify.http_status}, title found: ${verify.title_ok}, in sitemap: ${verify.sitemap_ok}), so it was taken down again. Retry after the site is published, or build it by hand`, { target_record_id: s(r.body.id), slug: s(r.body.slug), error: "live_check_failed" });
   }
   const indexnow = sub.kind === "project" ? await pingIndexNow(site, [url]) : { status: "skipped", note: "Testimonials share the /reviews page", at: now() };
@@ -297,6 +296,7 @@ export async function editPost(base44: any, sub: any, fields: any, by: string) {
   if (problems.length) return { ok: false, error: problems.join("; ") };
   const output = { ...sub.writer_output, ...patch };
   await save(db, sub, { writer_output: output, version: (Number(sub.version) || 1) + 1, history: pushHistory(sub.history, { action: "edited", by, note: Object.keys(patch).join(", "), output: patch }) });
+  if (sub.posted_manually) return { ok: true, status: sub.status, note: "Saved here. This page was built by hand, so change it on the website too." };
   if (!sub.published_url) return { ok: true, status: sub.status, note: "Saved. It will be used when the post goes live." };
   const r = await publish(base44, sub, client, site, "edit");
   return { ok: r.status === "live", ...r };
