@@ -85,7 +85,7 @@ export default function ContactsTab({ data, call, refresh }) {
   const [sel, setSel] = useState(null);
   const [newList, setNewList] = useState(null);
   useEffect(() => { const t = setTimeout(() => { setDq(q); setSkip(0); }, 250); return () => clearTimeout(t); }, [q]);
-  const res = useQuery({ queryKey: ["email-contacts", data.client?.id, dq, list, status, skip], queryFn: () => call("contacts", { q: dq, list_id: list, status, skip, limit: 50 }), keepPreviousData: true });
+  const res = useQuery({ queryKey: ["email-contacts", data.client?.id, dq, list, status, skip], queryFn: () => call("contacts", { q: dq, list_id: list, status, skip, limit: 50 }), placeholderData: (prev) => prev });
   const ln = Object.fromEntries((data.lists || []).map((l) => [l.id, l.name]));
   const reload = () => { res.refetch(); refresh(); };
 
