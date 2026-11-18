@@ -3,7 +3,7 @@ import { verifyUnsubToken, verifyClientUnsubToken } from "../../shared/emailUnsu
 import { emailKeys } from "../../shared/emailStudio.ts";
 import { verifyToken, parseTrackPayload } from "../../shared/emailCore.ts";
 
-// Public one-click unsubscribe for Email Studio mass / subscriber emails. No login: the signed token in the link
+// Public one-click unsubscribe for Email Studio mass / subscriber emails (and client Email Studio contacts via ?u=). No login: the signed token in the link
 // (base44/shared/emailUnsub.ts) is the only proof needed, and it can only ever unsubscribe the address it was
 // issued for.
 //   GET  ?t=<token>                 -> branded page with one "Unsubscribe" button (a GET never changes anything,
