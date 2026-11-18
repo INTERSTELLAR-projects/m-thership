@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
 
     {
       // The only path: everyone (admin and portal clients) runs on the built-in InvokeLLM integration, with the house
-      // rules, grounding, caps and meter. (groundTokens is kept for the log line below.)
+      // rules, grounding, caps and meter. (Grounding tokens aren't charged: InvokeLLM reports no token counts.)
       void groundTokens;
       const out = await invokeBase44(base44, { system: system || undefined, prompt, messages: messages || undefined, schema, service: !isAdmin });
       const units = expected;
