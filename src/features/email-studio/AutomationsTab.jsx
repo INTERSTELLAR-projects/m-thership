@@ -195,8 +195,19 @@ export default function AutomationsTab({ data, call, refresh }) {
       {data.settings && (
         <Card className="bg-[#faf9f7]">
           <p className="flex items-center gap-2 text-[14px] font-semibold"><PlugZap className="h-4 w-4 text-[#ff3c00]" /> Command System connection</p>
-          <p className="mt-1 text-[12.5px] text-ink/55">For Interstellar (and your developer): events are posted, signed, to this address.</p>
-          <div className="mt-3 grid gap-3 md:grid-cols-2"><CopyField label="Trigger address" value={data.endpoints?.hook || ""} /><div><Label>Signing key</Label><p className="rounded-md border border-hair bg-white px-3 py-2.5 font-mono text-[12px]">{data.settings.trigger_secret_name} · {data.settings.trigger_configured ? <span className="text-green-700">set</span> : <span className="text-amber-700">not set yet</span>}</p></div></div>
+          {/* The signing key's NAME is admin-only (the email-client function only returns it to admins). Clients see the status. */}
+          {data.settings.trigger_secret_name ? (
+            <>
+              <p className="mt-1 text-[12.5px] text-ink/55">Admin view: events are posted, signed, to this address.</p>
+              <div className="mt-3 grid gap-3 md:grid-cols-2"><CopyField label="Trigger address" value={data.endpoints?.hook || ""} /><div><Label>Signing key</Label><p className="rounded-md border border-hair bg-white px-3 py-2.5 font-mono text-[12px]">{data.settings.trigger_secret_name} · {data.settings.trigger_configured ? <span className="text-green-700">set</span> : <span className="text-amber-700">not set yet</span>}</p></div></div>
+            </>
+          ) : (
+            <p className="mt-2 flex items-center gap-2 text-[13.5px] font-medium">
+              <span className={`h-2 w-2 rounded-full ${data.settings.trigger_configured ? "bg-green-600" : "bg-ink/25"}`} aria-hidden="true" />
+              {data.settings.trigger_configured ? "Connected to your Command System" : "Not connected"}
+              {!data.settings.trigger_configured && <span className="font-normal text-ink/55">· We set this up for you when your Command System goes live.</span>}
+            </p>
+          )}
         </Card>
       )}
     </div>
