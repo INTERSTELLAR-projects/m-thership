@@ -3,6 +3,10 @@
 //   (signed upsert → live check as Googlebot → sitemap → IndexNow → ContentPost + WorkEntry + notification) → live
 // Any failed check stops it at needs_info / rejected with a plain-words reason for the client; nothing is published.
 // is_test rows run every step except the publish and end at test_passed.
+// Manual fallback (Justin, Nov 17): when the site's auto_publish is off, the site isn't set up for automatic posting,
+// or a publish fails (key, endpoint, refusal, live check), the row goes to status "manual" instead of failing and Justin
+// is emailed. Client posts → "Build page manually" has every field, the AI draft and the photos; "Mark as posted
+// manually" with the live URL finishes it (status live, posted_manually true, ContentPost + WorkEntry as usual).
 // Work is time-boxed: a call does as much as fits in its budget, saves progress, and the next drain picks it up.
 // deno-lint-ignore-file no-explicit-any
 import { siteFor, type SiteConfig } from "./contentSites.ts";
@@ -10,6 +14,7 @@ import {
   arr, s, clip, now, pushHistory, targetSite, runGates, moderate, normalizeProject, normalizeTestimonial, photoPlan, processPhoto,
   siteCatalog, writerPrompt, PROJECT_SCHEMA, claimCheck, numberProblems, buildAlbumRecord, normQuote, siteCall, verifyLive,
   pingIndexNow, logWork, notify, audit, publishKeyConfigured,
+  normalizeDoorProject, doorFacts, DOOR_SCHEMA, doorWriterPrompt, buildDoorRecord, autoPublishFor, notifyJustin,
 } from "./contentPipeline.ts";
 import { callAI } from "./anthropic.ts";
 
@@ -35,6 +40,20 @@ async function stop(base44: any, db: any, sub: any, client: any, status: "needs_
   return { id: sub.id, status };
 }
 
+// Into the manual queue: nothing is published; Justin builds the page by hand from Client posts.
+export async function toManual(base44: any, db: any, sub: any, reason: string, extra: any = {}) {
+  await save(db, sub, { status: "manual", manual_reason: clip(reason, 500), manual_at: now(), status_detail: "Received. Interstellar is building the page.", locked_at: null, history: pushHistory(sub.history, { action: "to_manual", by: "agent", note: clip(reason, 300) }), ...extra });
+  await audit(db, "content_to_manual", sub.id, `${sub.client_name}: ${reason}`, true);
+  if (!sub.is_test) {
+    const title = clip(sub.writer_output?.title || sub.raw?.shoot_title || sub.raw?.title || sub.raw?.customer_name || sub.raw?.name, 100);
+    await notifyJustin(base44, `Build by hand: ${sub.client_name} ${sub.kind}${title ? ` "${title}"` : ""}`, [
+      `A ${sub.kind} from ${sub.client_name} is waiting in the manual queue.`, `Why: ${reason}`,
+      "Open Møthership → Clients → Client posts → Build manually. The Build page manually view has every field, the AI draft, copy buttons and a download-all for the photos. When the page is up, use Mark as posted manually with its live URL.",
+    ]);
+  }
+  return { id: sub.id, status: "manual" };
+}
+
 async function brainFor(db: any, clientId: string) {
   const bb = arr(await db.BusinessBrain.filter({ client_id: clientId }, "-updated_date", 1).catch(() => []))[0];
   return clip(bb?.context_md, 8000);
@@ -53,7 +72,9 @@ export async function processSubmission(base44: any, sub: any, deadline: number)
   try {
     // 1. Safety checks (no photos or AI needed), then moderation.
     if (sub.status === "queued") {
-      const g = await runGates(db, sub, client, site, siteError);
+      // No site set up for automatic posting: run the checks, then hand it to Justin to build by hand.
+      const manualOnly = !site && !!client;
+      const g = await runGates(db, sub, client, site, siteError, { manualOnly });
       const text = sub.kind === "project" ? [normalizeProject(sub.raw).title, normalizeProject(sub.raw).overview].join("\n") : normalizeTestimonial(sub.raw).quote;
       let mod = { safe: true, spam: false, reason: "" };
       if (!g.fatal) {
@@ -63,6 +84,7 @@ export async function processSubmission(base44: any, sub: any, deadline: number)
       await save(db, sub, { gate_results: g.results });
       if (g.fatal) return stop(base44, db, sub, client, g.fatal as any, g.detail);
       if (!mod.safe || mod.spam) return stop(base44, db, sub, client, "rejected", `This can't be posted as written. ${mod.reason}`.trim());
+      if (manualOnly) return toManual(base44, db, sub, `${siteError || "No website set up for automatic posting"}. Checks passed; build the page by hand.`);
       await save(db, sub, { status: "processing_images", status_detail: "Checking and preparing photos", image_cursor: 0, images: [], history: pushHistory(sub.history, { action: "checks_passed", by: "agent" }) });
     }
     // 2. Photos: type and size checks, compression, metadata removal, rehosting. Reuses photos already done for an
@@ -97,7 +119,34 @@ export async function processSubmission(base44: any, sub: any, deadline: number)
     if (sub.status === "writing") {
       if (!site) return stop(base44, db, sub, client, "rejected", siteError);
       let output: any, claim: any;
-      if (sub.kind === "project") {
+      if (sub.kind === "project" && site.profile === "door_project") {
+        // PowerLift door projects: size, system, cladding, place, date and testimonial are copied, never written.
+        const n = normalizeDoorProject(sub.raw);
+        const [catalog, brain] = await Promise.all([siteCatalog(site), brainFor(db, sub.client_id)]);
+        const facts: any = doorFacts(n);
+        const source = [Object.entries(facts).filter(([, v]) => s(v)).map(([k, v]) => `${k}: ${v}`).join("\n"), brain].join("\n\n");
+        let feedback = "";
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          const p = doorWriterPrompt(site, n, brain, catalog, feedback);
+          const w = (await callAI(base44, { system: p.system, prompt: p.prompt, schema: DOOR_SCHEMA })).json || {};
+          const body = arr(w.sections).flatMap((x: any) => [s(x?.h), ...arr(x?.p).map(s)]);
+          const draft = [w.title, w.summary, ...body, w.seo_title, w.seo_description].map(s).join("\n");
+          claim = { ...(await claimCheck(base44, draft, `${source}\n${site.name}`)), attempts: attempt };
+          output = buildDoorRecord(site, n, w, arr(sub.images), !!sub.is_test);
+          if (claim.ok && output.title && output.summary) break;
+          feedback = claim.unsupported.map((x: string) => `- ${x}`).join("\n");
+        }
+        if (!claim?.ok || !output?.title || !output?.summary) {
+          const own = s(n.overview).replace(/\s+/g, " ");
+          output = buildDoorRecord(site, n, {
+            title: n.title, slug: n.title, summary: own.length <= 900 ? own : `${own.slice(0, 897).replace(/\s+\S*$/, "")}…`, sections: [{ h: "About this project", p: [own] }],
+            seo_title: n.title, seo_description: own.length <= 155 ? own : `${own.slice(0, 152).replace(/\s+\S*$/, "")}…`,
+          }, arr(sub.images), !!sub.is_test);
+          claim = { ...(claim || {}), ok: true, fallback: "client_words", note: `Writer drafts had unconfirmed claims (${(claim?.unsupported || []).slice(0, 3).join("; ")}), so the team's own story was used` };
+        }
+        if (!output?.title || !output?.summary) return stop(base44, db, sub, client, "needs_info", "Add a title and the story of the job.");
+        output.catalog_from = catalog.from;
+      } else if (sub.kind === "project") {
         const n = normalizeProject(sub.raw);
         const [catalog, brain] = await Promise.all([siteCatalog(site), brainFor(db, sub.client_id)]);
         const facts = { title: n.title, description: n.overview, client: n.client, location: n.location, month: n.month, year: n.year, when: [n.month, n.year].filter(Boolean).join(" "), camera: n.camera, lenses: n.lenses, other_equipment: n.other_equipment };
@@ -145,6 +194,7 @@ export async function processSubmission(base44: any, sub: any, deadline: number)
         await audit(db, "content_test_passed", sub.id, `${sub.client_name}: test submission passed`);
         return { id: sub.id, status: "test_passed" };
       }
+      if (!(await autoPublishFor(db, site))) return toManual(base44, db, sub, "Automatic posting is switched off for this website");
       return await publish(base44, sub, client, site, "publish");
     }
     await save(db, sub, { locked_at: null });
@@ -163,21 +213,25 @@ export async function publish(base44: any, sub: any, client: any, site: SiteConf
   const kind = site.kinds[sub.kind];
   const record = { ...sub.writer_output };
   delete record.catalog_from;
+  delete record.verify_title;
   const r = await siteCall(site, "upsert", { kind: sub.kind, source_record_id: sourceKey(sub), submission_id: sub.id, record });
   if (!r.ok) {
     const detail = r.not_configured ? `Publishing is not configured yet (${site?.key_secret || "the site's key"} in Møthership or CONTENT_PUBLISH_KEY on the website is missing)` : `The website refused the post (${r.status}: ${clip(r.body?.error, 200)})`;
+    // A first publish that can't reach the site falls to the manual queue (Justin is emailed). An edit of a page
+    // that is already live stays live as it was and reports the failure.
+    if (why === "publish" && !sub.published_url) return toManual(base44, db, sub, `Automatic publish failed: ${detail}`, { error: r.not_configured ? "not_configured" : clip(r.body?.error, 300) });
     return stop(base44, db, sub, client, "failed", detail, { error: r.not_configured ? "not_configured" : clip(r.body?.error, 300) });
   }
   const url = s(r.body.url);
   const firstTime = !sub.published_url;
   const title = s(sub.writer_output?.title || sub.writer_output?.name);
-  const verify = await verifyLive(site, url, sub.kind === "project" ? { title, ld: kind.verify_ld } : { text: sub.writer_output?.quote }, { inSitemap: sub.kind === "project", tries: firstTime ? 6 : 2 });
+  const verify = await verifyLive(site, url, sub.kind === "project" ? { title: s(sub.writer_output?.verify_title) || title, ld: kind.verify_ld } : { text: sub.writer_output?.quote }, { inSitemap: sub.kind === "project", tries: firstTime ? 6 : 2 });
   // A brand-new project URL that bots can't see is rolled back. Edits and testimonials can lag behind the bot render
   // cache, so they are kept live and flagged instead.
   if (!verify.ok && firstTime && sub.kind === "project" && (verify.http_status !== 200 || !verify.title_ok || verify.sitemap_ok === false)) {
     await siteCall(site, "unpublish", { kind: sub.kind, source_record_id: sourceKey(sub), submission_id: sub.id });
     await notify(base44, client, `Client post rolled back: ${sub.client_name}`, [`"${title}" was written to the website but the live check failed, so it was unpublished again.`, `Status ${verify.http_status}, title found: ${verify.title_ok}, in sitemap: ${verify.sitemap_ok}.`]);
-    return stop(base44, db, sub, client, "failed", "Live check failed after posting, so it was taken down again", { target_record_id: s(r.body.id), published_url: url, slug: s(r.body.slug) });
+    return toManual(base44, db, sub, `Posted, but the live check failed (status ${verify.http_status}, title found: ${verify.title_ok}, in sitemap: ${verify.sitemap_ok}), so it was taken down again. Retry after the site is published, or build it by hand`, { target_record_id: s(r.body.id), slug: s(r.body.slug), error: "live_check_failed" });
   }
   const indexnow = sub.kind === "project" ? await pingIndexNow(site, [url]) : { status: "skipped", note: "Testimonials share the /reviews page", at: now() };
   const event = { at: now(), action: why === "edit" ? "edited" : firstTime ? "published" : "republished_update", by: "agent", ok: true, note: verify.ok ? "Live check passed" : "Live, check pending (bot render cache)" };
@@ -213,6 +267,7 @@ export async function publish(base44: any, sub: any, client: any, site: SiteConf
 export async function setPublished(base44: any, sub: any, publishFlag: boolean, by: string) {
   const db = base44.asServiceRole.entities;
   const site = siteFor(sub.target_site_app_id);
+  if (sub.posted_manually) return { ok: false, error: "This page was built by hand. Take it down (or put it back) on the website itself, then use Mark as posted manually to record a new link" };
   if (!site || !sub.published_url) return { ok: false, error: "This post isn't on a website yet" };
   const r = await siteCall(site, publishFlag ? "republish" : "unpublish", { kind: sub.kind, source_record_id: sourceKey(sub), submission_id: sub.id });
   if (!r.ok) return { ok: false, error: r.not_configured ? "Publishing is not configured yet" : clip(r.body?.error || `Website returned ${r.status}`, 200) };
