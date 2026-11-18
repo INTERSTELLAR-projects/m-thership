@@ -291,7 +291,7 @@ export async function editPost(base44: any, sub: any, fields: any, by: string) {
   const allowed = editableFor(sub);
   const patch: any = {};
   for (const k of allowed) if (fields && k in fields) patch[k] = k === "services" ? arr(fields[k]).map(s).slice(0, 3) : k === "rating" ? Number(fields[k]) || undefined : clip(fields[k], k === "overview" || k === "summary" ? 1200 : 200);
-  if ("seo_title" in patch && site.profile === "door_project") patch.verify_title = patch.seo_title || output_title(sub, patch);
+  if ("seo_title" in patch && site.profile === "door_project") patch.verify_title = patch.seo_title || patch.title || sub.writer_output.title;
   if (!Object.keys(patch).length) return { ok: false, error: "No editable fields sent" };
   const text = Object.values(patch).filter((v) => typeof v === "string").join("\n");
   const problems = numberProblems(text, `${JSON.stringify(sub.raw)}\n${JSON.stringify(sub.writer_output)}`).filter((p) => !/number/.test(p));
