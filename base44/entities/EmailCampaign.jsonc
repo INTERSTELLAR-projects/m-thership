@@ -1,7 +1,7 @@
 {
   "name": "EmailCampaign",
   "type": "object",
-  "description": "A client Studios bulk email send through Amazon SES. Recipients live in EmailSendBatch rows (500 each); the email-bulk function drains them with rate limiting.",
+  "description": "A client Studios email campaign through Amazon SES. Recipients live in EmailSendBatch rows (500 each); the email-bulk drain job sends them with rate limiting, promotes scheduled batches when due and runs automations. Opens/clicks are EmailEvent rows.",
   "properties": {
     "client_id": {
       "type": "string"
@@ -33,6 +33,8 @@
     "status": {
       "type": "string",
       "enum": [
+        "draft",
+        "scheduled",
         "queued",
         "sending",
         "sent",
@@ -42,7 +44,7 @@
         "paused"
       ],
       "default": "queued",
-      "description": "paused = out of fuel: the campaign waits in place (not metered yet) and resumes automatically after a Refuel or the monthly reset"
+      "description": "draft = being written; scheduled = waits for send_at (batches status scheduled with per-batch not_before); paused = out of fuel (waits in place, resumes after a Refuel or the monthly reset)"
     },
     "fuel_paused_at": {
       "type": "string",
@@ -93,6 +95,81 @@
     },
     "last_error": {
       "type": "string"
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "Client email blocks (base44/shared/clientEmail.ts). html is rendered from these at schedule/send time."
+    },
+    "audience": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ list_ids: [], segment_id, exclude_segment_id }"
+    },
+    "send_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Scheduled send (UTC). For subscriber-time-zone sends: the earliest batch time."
+    },
+    "send_local": {
+      "type": "string",
+      "description": "YYYY-MM-DDTHH:mm wall-clock time chosen by the client"
+    },
+    "send_tz": {
+      "type": "string",
+      "description": "IANA zone the wall-clock time is in (client zone)"
+    },
+    "tz_mode": {
+      "type": "string",
+      "enum": [
+        "fixed",
+        "subscriber"
+      ],
+      "default": "fixed",
+      "description": "subscriber = each batch goes at send_local in the contact time zone"
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tracked link targets; click tokens carry the index. Redirects only ever go to these."
+    },
+    "track": {
+      "type": "boolean",
+      "default": true
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Cached results (email-client campaign_results)"
+    },
+    "stats_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "dry_run": {
+      "type": "boolean",
+      "default": false,
+      "description": "Test client (usage_overrides.email_dry_run): batches are processed but nothing is sent to SES"
+    },
+    "dry_run_sample": {
+      "type": "string",
+      "description": "Last rendered HTML in dry-run mode (QA)"
+    },
+    "cancelled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_by": {
+      "type": "string"
+    },
+    "test": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

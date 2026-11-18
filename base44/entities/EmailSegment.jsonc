@@ -1,0 +1,67 @@
+{
+  "name": "EmailSegment",
+  "type": "object",
+  "description": "Saved segment for a client's Email Studio: rules over contact fields and engagement, evaluated server-side (base44/shared/emailCore.ts matchSegment).",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "match": {
+      "type": "string",
+      "enum": [
+        "all",
+        "any"
+      ],
+      "default": "all"
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "[{ field, op, value, key? }] see SEGMENT_FIELDS in emailCore.ts"
+    },
+    "last_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_counted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "test": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "client_id",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

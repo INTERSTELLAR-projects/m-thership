@@ -1,0 +1,72 @@
+{
+  "name": "EmailStudioSettings",
+  "type": "object",
+  "description": "Per-client Email Studio settings: CAN-SPAM mailing address, time zone, review link, brand overrides and the NAME of the automation trigger secret (value set by Justin in app secrets).",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "physical_address": {
+      "type": "string",
+      "description": "Postal address shown in every email footer (CAN-SPAM)"
+    },
+    "timezone": {
+      "type": "string",
+      "description": "IANA zone for scheduling"
+    },
+    "review_link": {
+      "type": "string",
+      "description": "Used by {{review_link}}"
+    },
+    "from_name": {
+      "type": "string"
+    },
+    "reply_to": {
+      "type": "string"
+    },
+    "footer_note": {
+      "type": "string"
+    },
+    "brand": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ logo_url, primary, accent, text, background, font } overrides; empty = from the brand kit"
+    },
+    "trigger_secret_name": {
+      "type": "string",
+      "description": "App secret NAME holding this client's webhook signing key, e.g. EMAIL_TRIGGER_KEY_SUMMIT"
+    },
+    "default_list_id": {
+      "type": "string"
+    },
+    "test": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

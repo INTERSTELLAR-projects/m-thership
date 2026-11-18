@@ -1,0 +1,86 @@
+{
+  "name": "EmailEvent",
+  "type": "object",
+  "description": "Email Studio engagement: one row per open / click / bounce / complaint / unsubscribe. rid = opaque recipient id (contact id, or a keyed hash of the address). No PII in tracking URLs; email is stored here only.",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "automation_id": {
+      "type": "string"
+    },
+    "step_id": {
+      "type": "string"
+    },
+    "rid": {
+      "type": "string"
+    },
+    "contact_id": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "open",
+        "click",
+        "bounce",
+        "complaint",
+        "unsubscribe"
+      ],
+      "default": "open"
+    },
+    "url": {
+      "type": "string"
+    },
+    "link_index": {
+      "type": "number",
+      "default": -1,
+      "description": "Index into the campaign / step link list"
+    },
+    "machine": {
+      "type": "boolean",
+      "default": false,
+      "description": "Likely a link scanner / proxy, not a person"
+    },
+    "ua": {
+      "type": "string",
+      "description": "Shortened user agent"
+    },
+    "at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "client_id",
+    "type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

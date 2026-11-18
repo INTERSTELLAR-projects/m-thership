@@ -1,0 +1,94 @@
+{
+  "name": "EmailEnrollment",
+  "type": "object",
+  "description": "One contact moving through one EmailAutomation. trigger_key makes enrollment idempotent per automation + contact.",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "automation_id": {
+      "type": "string"
+    },
+    "contact_id": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "step_index": {
+      "type": "number",
+      "default": 0
+    },
+    "next_run_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "done",
+        "exited",
+        "failed"
+      ],
+      "default": "active"
+    },
+    "exit_reason": {
+      "type": "string"
+    },
+    "trigger_key": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Event fields available as merge tags"
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "[{ step_id, at, result }]"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finished_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "test": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "client_id",
+    "automation_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

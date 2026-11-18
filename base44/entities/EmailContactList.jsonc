@@ -1,0 +1,55 @@
+{
+  "name": "EmailContactList",
+  "type": "object",
+  "description": "A client's Email Studio list (audience). Contacts point at lists via EmailContact.list_ids.",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "contact_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Cached count, refreshed by email-client"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "test": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "client_id",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

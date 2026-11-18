@@ -1,0 +1,103 @@
+{
+  "name": "EmailAutomation",
+  "type": "object",
+  "description": "Client Email Studio automation: a trigger plus steps (email / wait). Processed by email-bulk drain (every 5 minutes). Triggers: list_join, event (signed webhook from the client's Command System, see AUTOMATION-TRIGGER-CONTRACT.md), inactive (X months), date_field (birthday / anniversary).",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "description": "welcome | review_request | win_back | birthday | anniversary | custom"
+    },
+    "trigger": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ type: list_join | event | inactive | date_field, list_id?, event_name?, months?, field?: birthday | anniversary, send_hour? }"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "[{ id, type: email | wait, wait_value, wait_unit: hours | days, subject, blocks }]"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "paused"
+      ],
+      "default": "draft"
+    },
+    "reenroll_days": {
+      "type": "number",
+      "default": 0,
+      "description": "0 = once per contact (per year for date triggers)"
+    },
+    "enrolled_count": {
+      "type": "number",
+      "default": 0
+    },
+    "completed_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_scan_day": {
+      "type": "string",
+      "description": "YYYY-MM-DD of the last daily scan (inactive / date triggers)"
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Cached per-step stats { step_id: { sent, opens, unique_opens, clicks, unique_clicks } }"
+    },
+    "stats_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "paused_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "activated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "test": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "client_id",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

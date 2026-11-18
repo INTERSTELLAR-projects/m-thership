@@ -22,14 +22,16 @@
     "status": {
       "type": "string",
       "enum": [
+        "scheduled",
         "pending",
         "sending",
         "done",
         "failed",
-        "held"
+        "held",
+        "cancelled"
       ],
       "default": "pending",
-      "description": "held = the campaign is paused (client out of fuel); set back to pending when it resumes"
+      "description": "scheduled = waits for not_before; held = the campaign is paused (client out of fuel); set back to pending when it resumes; cancelled = campaign cancelled before send"
     },
     "cursor": {
       "type": "number",
@@ -57,6 +59,15 @@
     "locked_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "not_before": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Scheduled batches are promoted to pending at this time"
+    },
+    "tz": {
+      "type": "string",
+      "description": "Time zone this batch was grouped by (subscriber-time-zone sends)"
     }
   },
   "required": [

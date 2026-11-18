@@ -1,0 +1,107 @@
+{
+  "name": "EmailSignupForm",
+  "type": "object",
+  "description": "Embeddable sign-up form for a client's Email Studio list. form_key is the public id in the embed (not a secret). Public submissions go through the email-signup function (rate limited, honeypot, optional double opt-in).",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "list_id": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "double_opt_in": {
+      "type": "boolean",
+      "default": true,
+      "description": "Send a confirm link before the contact is subscribed"
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Extra fields shown: first_name, last_name, phone, birthday, zip"
+    },
+    "heading": {
+      "type": "string"
+    },
+    "intro": {
+      "type": "string"
+    },
+    "button_label": {
+      "type": "string"
+    },
+    "consent_text": {
+      "type": "string",
+      "description": "Shown next to the required consent checkbox"
+    },
+    "success_message": {
+      "type": "string"
+    },
+    "redirect_url": {
+      "type": "string"
+    },
+    "form_key": {
+      "type": "string",
+      "description": "Public form id used in the embed"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused"
+      ],
+      "default": "active"
+    },
+    "submissions": {
+      "type": "number",
+      "default": 0
+    },
+    "confirmations": {
+      "type": "number",
+      "default": 0
+    },
+    "last_submission_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "test": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "client_id",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
