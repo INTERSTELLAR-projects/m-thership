@@ -36,6 +36,13 @@ export type SiteConfig = {
   default_categories: string[];
   default_project_types: string[];
   writer_rules: string[];    // site-specific writing rules added to the writer prompt
+  // Which writer + record shape the site takes: "album" (Redline Album, the default) or "door_project" (PowerLift
+  // ContentProject: door specs, city/state, story, optional verbatim testimonial).
+  profile?: "album" | "door_project";
+  // Default for automatic posting. Justin can override it per site on Møthership → Client posts (ContentSiteSetting).
+  // Off, or any failed publish, puts the submission in the manual queue ("Build page manually") and emails Justin.
+  auto_publish: boolean;
+  live_check_note?: string;  // shown on Client posts next to the site
 };
 
 export const CONTENT_SITES: Record<string, SiteConfig> = {
@@ -64,6 +71,42 @@ export const CONTENT_SITES: Record<string, SiteConfig> = {
       "Redline Visuals is Jacob Mercer's photo and video brand, based in Savannah, GA and positioned as a national and global brand. Angle the copy on the subject (the car, aircraft, event or brand) and the venue, not on 'near me' local wording.",
       "Write in a confident, cinematic, plain-spoken voice. No hype words like 'stunning', 'breathtaking', 'epic' or 'world-class'.",
       "Never state what is visible in the photos (colors, poses, weather, scenery) unless the submission says it: you cannot see the photos.",
+    ],
+    auto_publish: true,
+  },
+  // PowerLift Doors of Oregon. Door install projects at /projects/:slug (ContentProject, merged with the built-in
+  // projects). Projects only: /reviews shows Google Business Profile reviews only, so a customer's quote (verbatim,
+  // consent required) travels with its project and shows on that project page.
+  // Endpoint: the function's platform URL works as soon as the function is saved; the custom-domain URL
+  // (https://oregonpowerlift.com/functions/content-publish) works after the site is published.
+  "6a88eef3dc9768005ce14d52": {
+    app_id: "6a88eef3dc9768005ce14d52",
+    name: "PowerLift Doors of Oregon",
+    origin: "https://oregonpowerlift.com",
+    host: "oregonpowerlift.com",
+    endpoint: "https://base44.app/api/apps/6a88eef3dc9768005ce14d52/functions/content-publish",
+    key_secret: "CONTENT_PUBLISH_KEY_POWERLIFT",
+    sitemap: "https://oregonpowerlift.com/functions/sitemap",
+    enabled: true,
+    footprint: "regional",
+    owner_name: "PowerLift Doors of Oregon",
+    indexnow: null,
+    daily_limit: 5,
+    weekly_limit: 20,
+    profile: "door_project",
+    auto_publish: true,
+    live_check_note: "Project pages and /functions/sitemap need one site publish before the live check can pass",
+    kinds: {
+      project: { entity: "ContentProject", path: (slug) => `/projects/${slug}`, min_words: 12, min_photos: 3, max_photos: 40, needs_feature_ok: true, verify_ld: "CreativeWork" },
+    },
+    default_categories: ["Aircraft Hangar", "Agricultural", "Architectural", "Commercial", "Concealed Cylinder", "Shop & Garage"],
+    default_project_types: ["aviation", "agricultural", "commercial", "residential", "architectural"],
+    writer_rules: [
+      "PowerLift Doors of Oregon designs, builds and installs PowerLift hydraulic doors from its shop in Beavercreek, OR, serving Oregon, Western Idaho and SW Washington. Angle the copy on the door (size, system, use) and the city it was installed in.",
+      "Facts come ONLY from the submission: never invent or estimate door sizes, weights, prices, timelines, install days, wind ratings, building details or results. If the submission doesn't say it, leave it out.",
+      "Never name the customer or describe their property beyond what the story says. Never give a street address.",
+      "Plain, confident, practical voice for hangar, shop and farm owners. No hype words like 'stunning', 'game-changer' or 'world-class'.",
+      "Never state what is visible in the photos unless the submission says it: you cannot see the photos.",
     ],
   },
 };
