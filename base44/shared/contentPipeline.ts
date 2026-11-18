@@ -287,13 +287,15 @@ export async function dedupeHash(clientId: string, kind: string, n: any) {
 }
 
 // All the checks that don't need photos or AI. Returns { results, fatal: "rejected" | "needs_info" | "", detail }.
-export async function runGates(db: any, sub: any, client: any, site: SiteConfig | null, siteError: string) {
+// opts.manualOnly: the client's website isn't set up for automatic posting, so the submission goes to the manual queue
+// ("Build page manually") after these checks: the site checks are skipped instead of rejecting it.
+export async function runGates(db: any, sub: any, client: any, site: SiteConfig | null, siteError: string, opts: { manualOnly?: boolean } = {}) {
   const results: { check: string; ok: boolean; note: string }[] = [];
   const add = (check: string, ok: boolean, note = "") => results.push({ check, ok, note: ok ? "" : note });
   add("Client account active", s(client?.plan_status) !== "inactive", "This client's plan is not active");
-  add("Website set up for automatic posting", !!site, siteError);
+  if (!opts.manualOnly) add("Website set up for automatic posting", !!site, siteError);
   const kind = site?.kinds?.[sub.kind];
-  add("Supported post type", !!kind, "This website doesn't take this kind of post yet");
+  if (!opts.manualOnly) add("Supported post type", !!kind, "This website doesn't take this kind of post yet");
   const raw = sub.raw || {};
   if (sub.kind === "project") {
     const n = normalizeProject(raw);
@@ -305,6 +307,16 @@ export async function runGates(db: any, sub: any, client: any, site: SiteConfig 
     add(`At least ${minP} photos`, count >= minP, `Upload at least ${minP} photos`);
     add(`No more than ${maxP} photos`, count <= maxP, `Upload at most ${maxP} photos per post`);
     for (const r of [...textGate("Title", n.title), ...textGate("Description", n.overview), ...textGate("Client name", n.client)]) results.push(r);
+    if (site?.profile === "door_project") {
+      const d = normalizeDoorProject(raw);
+      add("At least one door size", d.doors.length > 0, "Add the door size (for example 40' x 12')");
+      add("City and state given", !!d.city && !!d.state, "Add the city and state of the install");
+      if (d.testimonial) {
+        add("Customer agreed to have their words posted", d.testimonial.consent, "Tick the box confirming the customer agreed to have their words posted, or remove the quote");
+        add("Customer quote has at least 8 words", words(d.testimonial.quote) >= 8, "The customer's quote needs at least 8 words");
+        for (const r of [...textGate("Customer quote", d.testimonial.quote), ...textGate("Customer name", d.testimonial.name)]) results.push(r);
+      }
+    }
   } else if (sub.kind === "testimonial") {
     const n = normalizeTestimonial(raw);
     const minW = kind?.min_words || 8;
