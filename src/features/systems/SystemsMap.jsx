@@ -99,7 +99,11 @@ export default function SystemsMap({ apps, links, keys, selected, onSelect, stat
       const bend = (idx % 2 ? -1 : 1) * (18 + 26 * Math.ceil(idx / 2)) + (idx === 0 ? -8 : 0);
       const cx = mx + (-dy / len) * bend, cy = my + (dx / len) * bend;
       const lx = 0.25 * a.x + 0.5 * cx + 0.25 * b.x, ly = 0.25 * a.y + 0.5 * cy + 0.25 * b.y;
-      return { l, a, b, d: `M${a.x.toFixed(1)},${a.y.toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${b.x.toFixed(1)},${b.y.toFixed(1)}`, lx, ly };
+      // Start and end on the node rims (not the centres) so the arrowheads stay visible.
+      const trim = (p, toward, r) => { const vx = toward.x - p.x, vy = toward.y - p.y, d = Math.hypot(vx, vy) || 1; return { x: p.x + (vx / d) * r, y: p.y + (vy / d) * r }; };
+      const c = { x: cx, y: cy };
+      const p0 = trim(a, c, a.r + 3), p1 = trim(b, c, b.r + 5);
+      return { l, a, b, d: `M${p0.x.toFixed(1)},${p0.y.toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${p1.x.toFixed(1)},${p1.y.toFixed(1)}`, lx, ly };
     }).filter(Boolean);
   }, [shownLinks, byId]);
   const syncCount = edges.filter((e) => /COMMAND_SYSTEM_SYNC_KEY/.test(e.l.secret_name || "") && /brain/i.test(e.l.mechanism || "")).length;
