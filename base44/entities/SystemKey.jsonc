@@ -1,6 +1,6 @@
 {
   "name": "SystemKey",
-  "description": "Systems brain: one secret NAME on one app in Justin's workspace and what it is for. Never holds a secret value: names, purposes and wiring only (docs/systems-brain.md). Admin only.",
+  "description": "Systems brain: one secret NAME on one app in Justin's workspace and what it is for. Never holds a secret value: names, purposes and wiring only (Agents > Systems; base44/shared/systemsBrain.ts). Admin only.",
   "type": "object",
   "properties": {
     "name": {
