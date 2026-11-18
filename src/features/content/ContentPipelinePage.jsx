@@ -190,8 +190,8 @@ function Detail({ id, editable, onClose, onChanged }) {
             {item.writer_output && (
               <Panel label="Written" title="What was sent to the website">
                 <dl className="space-y-1">
-                  {Object.entries(item.writer_output).filter(([k]) => !["images", "is_test", "unlisted", "catalog_from"].includes(k)).map(([k, v]) => (
-                    <div key={k} className="grid grid-cols-[140px_1fr] gap-2"><dt className="text-ink/50">{label(k)}</dt><dd className="break-words">{Array.isArray(v) ? v.join(", ") : String(v ?? "")}</dd></div>
+                  {Object.entries(item.writer_output).filter(([k]) => !["images", "is_test", "unlisted", "catalog_from", "verify_title"].includes(k)).map(([k, v]) => (
+                    <div key={k} className="grid grid-cols-[140px_1fr] gap-2"><dt className="text-ink/50">{label(k)}</dt><dd className="break-words">{Array.isArray(v) ? v.map((x) => (x && typeof x === "object" ? (x.h || x.p ? `${x.h ? `${x.h}: ` : ""}${(x.p || []).join(" ")}` : JSON.stringify(x)) : x)).join(" · ") : String(v ?? "")}</dd></div>
                   ))}
                 </dl>
               </Panel>
