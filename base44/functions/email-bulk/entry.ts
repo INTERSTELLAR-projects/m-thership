@@ -9,7 +9,7 @@ import { studioState, planUnlocksStudios, MAX_FREE_LIST_SIZE, SES_COST_PER_EMAIL
 import { markOutOfFuel, loadFuelConfig } from "../../shared/fuel.ts";
 import { getSecret } from "../../shared/portalClient.ts";
 
-// Client Studios bulk / marketing email through Amazon SES (our AWS account, each client's own verified domain).
+// Client Studios bulk / marketing email through Amazon SES (engine: base44/shared/emailStudio.ts, Nov 2026) (our AWS account, each client's own verified domain).
 // Base44 SendEmail stays in use for 1:1 and system mail (email-studio, invites, alerts). Nobody ever sees another
 // recipient: one SES SendEmail per recipient.
 //
