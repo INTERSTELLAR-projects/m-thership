@@ -6,6 +6,7 @@ import { Brain, Check, Loader2, Send, ArrowUpRight, Link2, Newspaper, CreditCard
 import { fmtDate } from "@/lib/useData";
 import { analyze, freqLabel } from "@/features/financing/schedule";
 import RequestHelpButton from "@/features/studios/RequestHelpButton";
+import FuelMeter from "@/features/fuel/FuelMeter";
 import { inPeriod } from "./PortalHomeV2";
 
 function Title({ eyebrow, children, sub }) {
@@ -157,13 +158,9 @@ export function BillingView({ d, fuel, go, scopeId, preview, onRefuel }) {
         <Card className="p-5">
           <span className="flex h-9 w-9 items-center justify-center rounded-md flame-bg text-white"><Fuel className="h-4 w-4" /></span>
           <p className="mono-label mt-3 text-[9.5px] text-ink/50">Monthly fuel</p>
-          {fuel && fuel.meter ? (
-            <>
-              <p className="mt-1 text-[19px] font-semibold tracking-[-0.03em]">{fuel.out_of_fuel ? "Out for this month" : "Running"}</p>
-              <p className="mt-1 text-[12.5px] text-ink/55">Studios and Nøva use fuel. It resets each month.</p>
-              {onRefuel && <button type="button" onClick={onRefuel} className="mt-3 h-10 rounded-md border border-hair bg-paper px-3.5 text-[13px] font-medium hover:border-[#ff3c00] hover:text-[#ff3c00]">See fuel &amp; refuel</button>}
-            </>
-          ) : <p className="mt-1 text-[13px] text-ink/55">Your fuel gauge shows here when Studios are switched on.</p>}
+          {fuel ? (
+            <div className="-mx-1 mt-2"><FuelMeter fuel={fuel} compact onRefuel={onRefuel} /></div>
+          ) : <p className="mt-1 text-[13px] text-ink/55">Your fuel gauge shows here once it loads. Studios and Nøva use fuel; it resets each month.</p>}
         </Card>
         <Card className="p-5">
           <span className="flex h-9 w-9 items-center justify-center rounded-md bg-ink text-white"><Store className="h-4 w-4" /></span>
