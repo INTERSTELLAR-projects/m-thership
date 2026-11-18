@@ -58,15 +58,16 @@ async function clientBrainRow(db: any, cid: string): Promise<Row | null> {
 async function brainFor(db: any, cid: string) {
   const [row, facts, dossier] = await Promise.all([
     clientBrainRow(db, cid),
-    db.BrainFact.filter({ client_id: cid, status: "active" }, "-answered_at", 200).catch(() => []),
+    // Only the owner's own answers (synced from their Command System). Facts the team wrote about the client stay internal.
+    db.BrainFact.filter({ client_id: cid, status: "active", source: "client_app" }, "-answered_at", 200).catch(() => []),
     db.ClientDossier.filter({ client_id: cid }, "-updated_date", 1).then((r: Row[]) => (r || [])[0] || null).catch(() => null),
   ]);
   const sections = (row?.sections || {}) as Record<string, Row>;
   const known = Object.entries(BRAIN_SECTIONS_FOR_CLIENT)
     .filter(([k]) => String(sections[k]?.text || "").trim())
     .map(([k, label]) => ({ key: k, label, text: String(sections[k].text).replace(/<!--[^>]*-->/g, "").slice(0, 1600), updated_at: sections[k].updated_at || null }));
-  const own = ((facts || []) as Row[]).filter((f) => !(f.data as Row)?.test || String(f.client_name || "").includes("[TEST]"))
-    .slice(0, 60).map((f) => ({ id: f.id, question: String(f.question || "").slice(0, 300), answer: String(f.statement || "").slice(0, 600), area: f.area || f.pillar || "other", at: f.answered_at || f.date || null, from_app: f.source === "client_app" }));
+  const own = ((facts || []) as Row[]).filter((f) => !(f.data as Row)?.test)
+    .slice(0, 60).map((f) => ({ id: f.id, question: String(f.question || "").slice(0, 300), answer: String(f.statement || "").slice(0, 600), area: f.area || "other", at: f.answered_at || f.date || null }));
   const questions = (((row?.open_questions as Row[]) || []).filter((x) => x?.q && !isClosed(x))).slice(0, 25).map((x) => ({ q: String(x.q).slice(0, 600), section: x.section || "", added_at: x.added_at || null }));
   const stats = (dossier?.client_brain || null) as Row | null;
   // Progress toward "the more it knows, the more runs itself": the app's answered/total when a Command System syncs,
