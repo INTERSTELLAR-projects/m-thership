@@ -55,7 +55,6 @@ export const HUBS = [
       { label: "Onboarding", icon: Route, path: "/flight-plan", hint: "Flight Plan: every purchase, every stage, every SOP step until it is delivered" },
       { label: "Requests", icon: ClipboardList, path: "/requests", hint: "What clients have asked for through their forms and portal" },
       { label: "Client posts", icon: Globe, path: "/client-posts", hint: "Projects and testimonials clients sent that went live on their websites, with Unpublish and Edit" },
-      { label: "Calls", icon: PhoneCall, path: "/calls", hint: "Structure a client call: say what it needs to cover, get a timeboxed plan, run it, debrief into the client brain" },
       { label: "Share images", icon: Images, path: "/share-images", hint: "1200x630 social sharing images for every client site: one per page or page group, download as a ZIP" },
       { label: "Messages", icon: MessageSquare, path: "/comms", hint: "Client chats in one inbox" },
       { label: "Portal", icon: Globe, path: "/settings?tab=portal", hint: "Which clients have a portal and what it shows them" },
@@ -101,6 +100,8 @@ export const HUBS = [
     hint: "Win new work and grow existing clients",
     tabs: [
       { label: "Pipeline", icon: Target, path: "/pipeline", hint: "Leads from first contact to signed" },
+      // Calls moved here from Clients (Nov 2026, portal v2 cleanup) so every hub stays at 8 tabs or fewer.
+      { label: "Calls", icon: PhoneCall, path: "/calls", hint: "Structure a prospect or client call: say what it needs to cover, get a timeboxed plan, run it, debrief into the client brain" },
       { label: "Financing", icon: Landmark, path: "/financing", badge: "financingLate", hint: "Client payment plans, short and long term: who's paid, who's due, who's late" },
       { label: "Prestige", icon: Crown, path: "/prestige", hint: "Prestige referral program: members, referrals and rewards" },
       { label: "Upgrade Store", icon: Store, path: "/upgrades", hint: "Add-ons clients can buy on top of their plan" },
