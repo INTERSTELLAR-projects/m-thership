@@ -8,9 +8,10 @@ import PageHeader from "@/components/PageHeader";
 import { base44 } from "@/api/base44Client";
 import { fmtDate, timeAgo } from "@/lib/useData";
 import { Tag, SmallBtn, Panel, Empty } from "@/features/clients/ui";
+import ManualKit from "@/features/content/ManualKit";
 
-const TABS = [["queue", "In progress"], ["live", "Live"], ["problems", "Needs attention"], ["unpublished", "Unpublished"], ["tests", "Tests"], ["all", "All"]];
-const TONE = { live: "green", queued: "flame", processing_images: "flame", writing: "flame", publishing: "flame", received: "flame", needs_info: "amber", rejected: "red", failed: "red", unpublished: "muted", test_passed: "ink" };
+const TABS = [["queue", "In progress"], ["manual", "Build manually"], ["live", "Live"], ["problems", "Needs attention"], ["unpublished", "Unpublished"], ["tests", "Tests"], ["all", "All"]];
+const TONE = { live: "green", queued: "flame", processing_images: "flame", writing: "flame", publishing: "flame", received: "flame", needs_info: "amber", rejected: "red", failed: "red", unpublished: "muted", test_passed: "ink", manual: "amber" };
 const label = (st) => String(st || "").replace(/_/g, " ");
 
 async function call(action, body = {}) {
@@ -33,6 +34,26 @@ function ConfirmBtn({ children, armed: armedLabel, onConfirm, disabled }) {
   );
 }
 
+// Per-site automatic posting switch. Off (or any failed publish) sends submissions to "Build manually".
+function AutoPublishBtn({ site, onChanged }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const flip = async () => {
+    setBusy(true); setErr("");
+    const r = await call("set_auto_publish", { site_app_id: site.app_id, auto_publish: !site.auto_publish });
+    setBusy(false);
+    if (!r?.ok) setErr(r?.error || "Could not save"); else onChanged();
+  };
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <SmallBtn active={site.auto_publish} onClick={busy ? undefined : flip} title="When off, every submission for this site goes to Build manually">
+        {busy ? "Saving…" : site.auto_publish ? "Auto-publish on" : "Auto-publish off"}
+      </SmallBtn>
+      {err && <span className="text-[12px] text-red-700">{err}</span>}
+    </span>
+  );
+}
+
 function StatusPanel({ overview, onRefresh }) {
   if (!overview) return null;
   const ok = (v) => (v ? <Check className="inline h-3.5 w-3.5 text-green-700" /> : <AlertTriangle className="inline h-3.5 w-3.5 text-amber-600" />);
@@ -49,6 +70,7 @@ function StatusPanel({ overview, onRefresh }) {
             <p key={s.app_id}>
               <Globe className="mr-1 inline h-3.5 w-3.5 text-ink/50" />{s.name}: endpoint {s.reachable ? "reachable" : "unreachable"} · {s.key_secret} in Møthership {ok(s.key_configured)} {s.key_configured ? "set" : "not set"} · on the website {ok(s.configured)} {s.configured ? "set" : "not set"}
               {s.indexnow ? " · IndexNow on" : " · IndexNow not set up"}{s.enabled ? "" : " · switched off"}
+              <span className="mt-1 flex flex-wrap items-center gap-2"><AutoPublishBtn site={s} onChanged={onRefresh} />{s.live_check_note && <span className="text-[12px] text-ink/50">{s.live_check_note}</span>}</span>
             </p>
           ))}
         </div>
@@ -57,8 +79,8 @@ function StatusPanel({ overview, onRefresh }) {
   );
 }
 
-function EditForm({ item, editable, onDone }) {
-  const fields = editable?.[item.kind] || [];
+function EditForm({ item, editable, fields: given, onDone }) {
+  const fields = given?.length ? given : editable?.[item.kind] || [];
   const out = item.writer_output || {};
   const [vals, setVals] = useState(() => Object.fromEntries(fields.map((f) => [f, Array.isArray(out[f]) ? out[f].join(", ") : out[f] ?? ""])));
   const [busy, setBusy] = useState(false);
@@ -82,7 +104,7 @@ function EditForm({ item, editable, onDone }) {
       {fields.map((f) => (
         <label key={f} className="block text-[12px]">
           <span className="text-ink/60">{label(f)}</span>
-          {f === "overview" ? (
+          {f === "overview" || f === "summary" ? (
             <textarea value={vals[f]} onChange={(e) => setVals({ ...vals, [f]: e.target.value })} rows={5} className="mt-1 w-full border border-hair bg-canvas p-2 text-[13px]" />
           ) : (
             <input value={vals[f]} onChange={(e) => setVals({ ...vals, [f]: e.target.value })} className="mt-1 w-full border border-hair bg-canvas p-2 text-[13px]" />
@@ -102,6 +124,7 @@ function Detail({ id, editable, onClose, onChanged }) {
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState("");
   const [editing, setEditing] = useState(false);
+  const [manual, setManual] = useState(false);
   const load = useCallback(async () => setData(await call("get", { id })), [id]);
   useEffect(() => { load(); }, [load]);
   const act = async (action) => {
@@ -112,6 +135,12 @@ function Detail({ id, editable, onClose, onChanged }) {
   };
   const item = data?.item;
   const post = data?.post;
+  const showKit = manual || item?.status === "manual";
+  const markPosted = async (url) => {
+    const r = await call("mark_posted", { id, url });
+    if (r?.ok) { await load(); onChanged(); }
+    return r;
+  };
   return (
     <div role="dialog" className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-ink/40 p-4 pt-[5vh]" onMouseDown={onClose}>
       <div onMouseDown={(e) => e.stopPropagation()} className="w-full max-w-3xl border border-hair bg-canvas shadow-2xl">
@@ -138,11 +167,15 @@ function Detail({ id, editable, onClose, onChanged }) {
               {item.status === "live" && <ConfirmBtn armed="Click again to unpublish" onConfirm={() => act("unpublish")} disabled={!!busy}>Unpublish</ConfirmBtn>}
               {item.status === "unpublished" && <ConfirmBtn armed="Click again to republish" onConfirm={() => act("republish")} disabled={!!busy}>Republish</ConfirmBtn>}
               {item.writer_output && ["live", "unpublished", "needs_info", "failed"].includes(item.status) && <SmallBtn active={editing} onClick={() => setEditing(!editing)}>Edit</SmallBtn>}
-              {["failed", "needs_info", "rejected"].includes(item.status) && <ConfirmBtn armed="Click again to retry" onConfirm={() => act("retry")} disabled={!!busy}>Retry</ConfirmBtn>}
+              {["failed", "needs_info", "rejected", "manual"].includes(item.status) && <ConfirmBtn armed="Click again to retry" onConfirm={() => act("retry")} disabled={!!busy}>{item.status === "manual" ? "Retry automatic publish" : "Retry"}</ConfirmBtn>}
+              {item.status !== "manual" && <SmallBtn active={showKit} onClick={() => setManual(!manual)}>Build page manually</SmallBtn>}
+              {!item.is_test && ["queued", "processing_images", "writing", "publishing", "failed", "needs_info", "rejected", "unpublished"].includes(item.status) && <ConfirmBtn armed="Click again to move it" onConfirm={() => act("to_manual")} disabled={!!busy}>Move to manual queue</ConfirmBtn>}
               {busy && <span className="text-ink/55">Working…</span>}
               {msg && <span className="text-ink/70">{msg}</span>}
             </div>
-            {editing && <EditForm item={item} editable={editable} onDone={() => { setEditing(false); load(); onChanged(); }} />}
+            {item.posted_manually && <p className="text-[12px] text-ink/55">Built by hand and recorded with Mark as posted manually.</p>}
+            {editing && <EditForm item={item} editable={editable} fields={data?.edit_fields} onDone={() => { setEditing(false); load(); onChanged(); }} />}
+            {showKit && <ManualKit data={data} onMark={markPosted} />}
             <Panel label="Checks" title="Automatic safety checks">
               <ul className="space-y-1">
                 {(item.gate_results || []).map((g, i) => <li key={i}>{g.ok ? "✓" : "✗"} {g.check}{g.note ? <span className="text-ink/55"> ({g.note})</span> : null}</li>)}
@@ -193,7 +226,7 @@ export default function ContentPipelinePage() {
     <div>
       <PageHeader breadcrumb="Clients / Client posts" rightText="Client submissions that go live on their websites" title="Client posts" />
       <div className="space-y-5 px-5 py-6 md:px-8">
-        <p className="max-w-3xl text-[13px] text-ink/65">Projects and testimonials clients send from their Command System go live on their website straight away, after the automatic checks pass. Nothing is ever deleted: Unpublish takes a post down and keeps it on file.</p>
+        <p className="max-w-3xl text-[13px] text-ink/65">Projects and testimonials clients send from their Command System go live on their website straight away, after the automatic checks pass. Nothing is ever deleted: Unpublish takes a post down and keeps it on file. Every submission has a Build page manually view, and anything that can't post automatically (auto-publish off, a site that isn't set up, or a failed publish) lands in Build manually and emails you.</p>
         <StatusPanel overview={overview} onRefresh={loadOverview} />
         <div className="flex flex-wrap gap-2">
           {TABS.map(([k, l]) => <SmallBtn key={k} active={tab === k} onClick={() => setTab(k)}>{l}</SmallBtn>)}
@@ -207,7 +240,7 @@ export default function ContentPipelinePage() {
                 {x.is_test && <Tag tone="amber">test</Tag>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[14px] font-medium">{x.title || "(untitled)"}</span>
-                  <span className="block truncate text-[12px] text-ink/55">{x.client_name} · {x.kind} · {x.status_detail || ""}</span>
+                  <span className="block truncate text-[12px] text-ink/55">{x.client_name} · {x.kind} · {x.status === "manual" ? x.manual_reason || "Build by hand" : x.status_detail || ""}{x.posted_manually ? " · posted manually" : ""}</span>
                 </span>
                 <span className="text-[12px] text-ink/45">{timeAgo(x.published_at || x.received_at)}</span>
                 {x.published_url && x.status === "live" && <a href={x.published_url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-[#ff3c00]" aria-label="Open live page"><ExternalLink className="h-3.5 w-3.5" /></a>}
