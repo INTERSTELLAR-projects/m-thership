@@ -262,7 +262,7 @@ function Bubble({ m, speakingId, onSpeak }) {
 }
 
 // ---------------- Panel ----------------
-export default function PortalAssistant({ previewId, admin = !!previewId, variant = "page", onClose, onExpand }) {
+export default function PortalAssistant({ previewId, admin = !!previewId, variant = "page", onClose, onExpand, initialMessage = null }) {
   const ctxQ = useQuery({ queryKey: ["portal-assistant", previewId || "me", "context"], queryFn: () => call({ action: "context", client_id: previewId }), staleTime: 3600 * 1000, retry: false });
   const serverVoice = !!ctxQ.data?.voice;
   const { messages, loading, thinking, error, send, reset, clearError } = useConversation(previewId, admin);
@@ -293,6 +293,15 @@ export default function PortalAssistant({ previewId, admin = !!previewId, varian
     setSpeakingId(m.id);
     readAloud(textOf(m.content), { previewId, serverVoice, onEnd: () => setSpeakingId((id) => (id === m.id ? null : id)) });
   };
+
+  // Portal v2: the Home "Ask or request anything" bar opens Nøva with a message to send once ({ text, n }).
+  const sentInitial = useRef(null);
+  useEffect(() => {
+    if (loading || !initialMessage?.text || sentInitial.current === initialMessage.n) return;
+    sentInitial.current = initialMessage.n;
+    submit(initialMessage.text);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, initialMessage?.n]);
 
   // Scroll to the newest message.
   useEffect(() => { const el = scroller.current; if (el) el.scrollTop = el.scrollHeight; }, [messages, thinking]);
@@ -418,8 +427,10 @@ export default function PortalAssistant({ previewId, admin = !!previewId, varian
 }
 
 // Floating launcher + slide-over drawer (shown on every portal tab except the full Assistant tab).
-export function AssistantLauncher({ previewId, admin = !!previewId, onOpenFull }) {
+export function AssistantLauncher({ previewId, admin = !!previewId, onOpenFull, ask = null }) {
   const [open, setOpen] = useState(false);
+  // Portal v2: a message from the Home Nøva bar opens the drawer and sends it ({ text, n }; n changes per send).
+  useEffect(() => { if (ask?.text) setOpen(true); }, [ask?.n]);
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
@@ -443,7 +454,7 @@ export function AssistantLauncher({ previewId, admin = !!previewId, onOpenFull }
         <div className="fixed inset-0 z-50 flex justify-end">
           <button type="button" aria-label="Close assistant" className="absolute inset-0 bg-ink/30 backdrop-blur-[1px]" onClick={() => setOpen(false)} />
           <div role="dialog" aria-modal="true" aria-label="Nøva" className="page-enter relative flex h-full w-full max-w-[440px] flex-col border-l border-hair bg-canvas shadow-2xl">
-            <PortalAssistant previewId={previewId} admin={admin} variant="drawer" onClose={() => setOpen(false)} onExpand={onOpenFull ? () => { setOpen(false); onOpenFull(); } : undefined} />
+            <PortalAssistant previewId={previewId} admin={admin} variant="drawer" initialMessage={ask} onClose={() => setOpen(false)} onExpand={onOpenFull ? () => { setOpen(false); onOpenFull(); } : undefined} />
           </div>
         </div>
       )}
