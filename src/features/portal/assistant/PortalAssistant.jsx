@@ -262,7 +262,7 @@ function Bubble({ m, speakingId, onSpeak }) {
 }
 
 // ---------------- Panel ----------------
-export default function PortalAssistant({ previewId, admin = !!previewId, variant = "page", onClose, onExpand, initialMessage = null }) {
+export default function PortalAssistant({ previewId, admin = !!previewId, variant = "page", onClose, onExpand, initialMessage = null, onInitialSent }) {
   const ctxQ = useQuery({ queryKey: ["portal-assistant", previewId || "me", "context"], queryFn: () => call({ action: "context", client_id: previewId }), staleTime: 3600 * 1000, retry: false });
   const serverVoice = !!ctxQ.data?.voice;
   const { messages, loading, thinking, error, send, reset, clearError } = useConversation(previewId, admin);
@@ -299,6 +299,7 @@ export default function PortalAssistant({ previewId, admin = !!previewId, varian
   useEffect(() => {
     if (loading || !initialMessage?.text || sentInitial.current === initialMessage.n) return;
     sentInitial.current = initialMessage.n;
+    onInitialSent?.();
     submit(initialMessage.text);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, initialMessage?.n]);
@@ -430,7 +431,9 @@ export default function PortalAssistant({ previewId, admin = !!previewId, varian
 export function AssistantLauncher({ previewId, admin = !!previewId, onOpenFull, ask = null }) {
   const [open, setOpen] = useState(false);
   // Portal v2: a message from the Home Nøva bar opens the drawer and sends it ({ text, n }; n changes per send).
-  useEffect(() => { if (ask?.text) setOpen(true); }, [ask?.n]);
+  // `pending` is cleared once sent, so closing and reopening the drawer never sends it twice.
+  const [pending, setPending] = useState(null);
+  useEffect(() => { if (ask?.text) { setPending(ask); setOpen(true); } }, [ask?.n]);
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
@@ -454,7 +457,7 @@ export function AssistantLauncher({ previewId, admin = !!previewId, onOpenFull, 
         <div className="fixed inset-0 z-50 flex justify-end">
           <button type="button" aria-label="Close assistant" className="absolute inset-0 bg-ink/30 backdrop-blur-[1px]" onClick={() => setOpen(false)} />
           <div role="dialog" aria-modal="true" aria-label="Nøva" className="page-enter relative flex h-full w-full max-w-[440px] flex-col border-l border-hair bg-canvas shadow-2xl">
-            <PortalAssistant previewId={previewId} admin={admin} variant="drawer" initialMessage={ask} onClose={() => setOpen(false)} onExpand={onOpenFull ? () => { setOpen(false); onOpenFull(); } : undefined} />
+            <PortalAssistant previewId={previewId} admin={admin} variant="drawer" initialMessage={pending} onInitialSent={() => setPending(null)} onClose={() => setOpen(false)} onExpand={onOpenFull ? () => { setOpen(false); onOpenFull(); } : undefined} />
           </div>
         </div>
       )}
