@@ -281,15 +281,17 @@ export async function setPublished(base44: any, sub: any, publishFlag: boolean, 
 }
 
 // Justin's edit from the Content page: only the fields he changed, deterministic checks only (he is the reviewer).
-export const EDITABLE = { project: ["title", "overview", "seo_title", "seo_description", "category", "project_type", "services", "client", "location", "year"], testimonial: ["name", "role", "rating"] } as Record<string, string[]>;
+export const EDITABLE = { project: ["title", "overview", "seo_title", "seo_description", "category", "project_type", "services", "client", "location", "year"], testimonial: ["name", "role", "rating"], door_project: ["title", "summary", "seo_title", "seo_description"] } as Record<string, string[]>;
+export const editableFor = (sub: any) => (siteFor(sub?.target_site_app_id || "")?.profile === "door_project" && sub?.kind === "project" ? EDITABLE.door_project : EDITABLE[sub?.kind] || []);
 export async function editPost(base44: any, sub: any, fields: any, by: string) {
   const db = base44.asServiceRole.entities;
   const site = siteFor(sub.target_site_app_id || "");
   const client = await db.CRMClient.get(sub.client_id).catch(() => null);
   if (!site || !sub.writer_output) return { ok: false, error: "Nothing written yet to edit" };
-  const allowed = EDITABLE[sub.kind] || [];
+  const allowed = editableFor(sub);
   const patch: any = {};
-  for (const k of allowed) if (fields && k in fields) patch[k] = k === "services" ? arr(fields[k]).map(s).slice(0, 3) : k === "rating" ? Number(fields[k]) || undefined : clip(fields[k], k === "overview" ? 1200 : 200);
+  for (const k of allowed) if (fields && k in fields) patch[k] = k === "services" ? arr(fields[k]).map(s).slice(0, 3) : k === "rating" ? Number(fields[k]) || undefined : clip(fields[k], k === "overview" || k === "summary" ? 1200 : 200);
+  if ("seo_title" in patch && site.profile === "door_project") patch.verify_title = patch.seo_title || output_title(sub, patch);
   if (!Object.keys(patch).length) return { ok: false, error: "No editable fields sent" };
   const text = Object.values(patch).filter((v) => typeof v === "string").join("\n");
   const problems = numberProblems(text, `${JSON.stringify(sub.raw)}\n${JSON.stringify(sub.writer_output)}`).filter((p) => !/number/.test(p));
