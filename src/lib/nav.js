@@ -3,7 +3,7 @@ import {
   Crown, Activity, Settings, FolderKanban, Star, PenLine, Presentation, Route, Sparkles, Target, QrCode, Link2,
   CalendarRange, Zap, Megaphone, BadgeDollarSign, Mail, UserPlus, Gauge, Fuel, Store, Orbit, Rocket, Radar, Wand2,
   Chrome, Inbox, BookOpenCheck, Globe, GraduationCap, ShieldCheck, Package, Repeat, Sun, Briefcase, Wallet, LayoutGrid, Landmark,
-  Brain, Images, PhoneCall,
+  Brain, Images, PhoneCall, KeyRound,
 } from "lucide-react";
 import { PACKAGES, packagePath } from "@/features/packages/registry";
 
@@ -129,6 +129,7 @@ export const HUBS = [
     tabs: [
       { label: "Constellation", icon: Orbit, path: "/agents", hint: "Every agent, what it knows and what it is working on" },
       { label: "Playbooks", icon: BookOpenCheck, path: "/playbooks", hint: "The prompt agent: copy-paste foundation prompts per service, and the standards every client site and app gets" },
+      { label: "Systems", icon: KeyRound, path: "/systems", hint: "Systems brain: every key on every app, what it does, how the apps connect, and what is left over" },
       { label: "Intelligence", icon: Radar, path: "/intelligence", hint: "Market and search changes worth acting on" },
       { label: "Idea Vault", icon: Lightbulb, path: "/idea-vault", hint: "Ideas, scored" },
       { label: "Automations", icon: Zap, path: "/automations", hint: "Every automation and notification, internal and external" },
