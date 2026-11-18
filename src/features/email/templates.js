@@ -26,7 +26,7 @@ export const SEED_TEMPLATES = [
       { type: "section", title: "What we need from you", text: "Three quick things when you log in:" },
       { type: "steps", items: [
         { title: "Log in", text: "Use the button below and sign in with {{email}}.", foot: "Takes a minute" },
-        { title: "Tell us about your business", text: "Fill in the short business audit on your Home page. It saves as you go.", foot: "On your Home page" },
+        { title: "Tell us about your business", text: "Fill in the short business audit on Your Brain. It saves as you go.", foot: "On Your Brain" },
         { title: "Send your first request", text: "Pick a form under Requests, or just message us.", foot: "Whenever you're ready" },
       ] },
       { type: "button", label: "Log in to your portal", url: "{{portal_url}}/login" },

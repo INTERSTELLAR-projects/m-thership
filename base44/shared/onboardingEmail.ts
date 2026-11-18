@@ -103,7 +103,7 @@ ${emailHeaderRows(`Portal access &nbsp;&middot;&nbsp; ${esc(date)}`)}
       <tr><td class="px" style="padding:26px 40px 14px;">${eyebrow("What we need from you")}
         <div style="padding-top:8px;${F}font-size:15px;line-height:23px;color:#4a4744;">Three quick things when you log in:</div></td></tr>
       ${step("01", "Log in", `Use the button below and sign in with ${mailLink(email, "#ff3c00")}: Google, or Sign up once to set a password.`, "Takes a minute")}
-      ${step("02", "Tell us about your business", "Fill in the short business audit on your Home page. It saves as you go.", "On your Home page")}
+      ${step("02", "Tell us about your business", "Fill in the short business audit on Your Brain. It saves as you go.", "On Your Brain")}
       ${step("03", "Send your first request", "Pick a form under Requests, or just message us.", "Whenever you're ready")}
       <tr><td style="padding:0 0 28px;font-size:0;line-height:0;">&nbsp;</td></tr>
     </table>

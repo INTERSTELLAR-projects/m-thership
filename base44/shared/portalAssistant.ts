@@ -272,7 +272,7 @@ export async function gatherBriefing(ctx: Ctx, days = 30) {
     },
     waiting_on_you: [
       ...reqs.filter((r: Row) => r.status === "needs_info").map((r: Row) => ({ what: `Info needed on request "${r.title}"`, note: r.client_note || null, request_id: r.id })),
-      ...(!intake || intake.status === "in_progress" ? [{ what: "Business audit questionnaire isn't submitted yet (Home > Tell us about your business)", note: null }] : []),
+      ...(!intake || intake.status === "in_progress" ? [{ what: "Business audit questionnaire isn't submitted yet (Your Brain > business audit)", note: null }] : []),
       ...(() => { const n = msgs.filter((m: Row) => m.sender_role === "admin" && !m.read_at).length; return n ? [{ what: `${n} unread message${n === 1 ? "" : "s"} from Justin in Messages`, note: null }] : []; })(),
     ],
   };
