@@ -1,7 +1,8 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { verifyUnsubToken, verifyClientUnsubToken } from "../../shared/emailUnsub.ts";
-import { emailKeys } from "../../shared/emailStudio.ts";
+import { emailKeys, loadSettings, loadTheme } from "../../shared/emailStudio.ts";
 import { verifyToken, parseTrackPayload } from "../../shared/emailCore.ts";
+import { onColor, readable } from "../../shared/clientEmail.ts";
 
 // Public one-click unsubscribe for Email Studio mass / subscriber emails (and client Email Studio contacts via ?u=). No login: the signed token in the link
 // (base44/shared/emailUnsub.ts) is the only proof needed, and it can only ever unsubscribe the address it was
@@ -36,6 +37,20 @@ footer{padding:0 24px 28px;max-width:640px;margin:0 auto;width:100%;font-size:11
 </main><footer>Interstellar Strategies &nbsp;&middot;&nbsp; The Future of Business</footer><div class="bar b"></div></body></html>`;
 }
 
+// Client list emails (email-bulk client sends and ?u= Email Studio contact links): the page is on the CLIENT's brand,
+// exactly like email-optout. Their subscribers never see Interstellar's logo. (Portal v2 cleanup, Nov 2026.)
+type Theme = { business: string; logo_url?: string; address?: string; background: string; font: string; text: string; primary: string };
+function clientPage(t: Theme, title: string, text: string, form = "") {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(title)} | ${esc(t.business)}</title>
+<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;background:${t.background};font-family:${t.font};color:${t.text};display:flex;align-items:flex-start;justify-content:center;padding:48px 16px}
+.card{width:100%;max-width:480px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 20px 50px -30px rgba(0,0,0,.35)}.bar{height:6px;background:${t.primary}}.in{padding:30px 28px}
+img{height:40px;width:auto;display:block;margin-bottom:18px}.biz{font-weight:800;font-size:18px;margin-bottom:18px;color:${readable(t.text)}}h1{font-size:26px;line-height:1.15;margin:0 0 10px;letter-spacing:-.4px;color:${readable(t.text)}}
+p{font-size:16px;line-height:1.55;margin:0 0 6px;color:#4a4a4a}a{color:${readable(t.primary)};font-weight:700}button{margin-top:20px;border:0;border-radius:8px;cursor:pointer;padding:14px 22px;font:700 15px ${t.font};background:${t.primary};color:${onColor(t.primary)}}
+button.ghost{background:transparent;border:1px solid #d6d3ce;color:#4a4a4a}.foot{padding:14px 28px;border-top:1px solid #eee;font-size:12px;color:#7a7a7a}</style></head>
+<body><div class="card"><div class="bar"></div><div class="in">${t.logo_url ? `<img src="${esc(t.logo_url)}" alt="${esc(t.business)}">` : `<div class="biz">${esc(t.business)}</div>`}<h1>${esc(title)}</h1><p>${text}</p>${form}</div><div class="foot">${esc(t.business)}${t.address ? ` &middot; ${esc(t.address)}` : ""}</div></div></body></html>`;
+}
+const neutralTheme = (business: string): Theme => ({ business, background: "#f4f3f1", font: "Helvetica,Arial,sans-serif", text: "#1a1a1a", primary: "#1a1a1a" });
+
 const html = (s: string, status = 200) => new Response(s, { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-robots-tag": "noindex", "x-unsub-version": "2" } });
 const formFor = (t: string, op: string, label: string, ghost = false, field = "t") =>
   `<form method="POST"><input type="hidden" name="${field}" value="${esc(t)}"><input type="hidden" name="op" value="${op}"><button class="${ghost ? "ghost" : ""}" type="submit">${label}</button></form>`;
@@ -49,10 +64,12 @@ async function clientUnsub(req: Request, token: string, op: string, s: { client_
   const db = base44.asServiceRole.entities;
   const client = await db.CRMClient.get(s.client_id).catch(() => null);
   if (!client) return bad();
-  const biz = esc(client.business || "this business");
-  const addr = `<a href="mailto:${esc(s.email)}">${esc(s.email)}</a>`;
+  // Read-only theme lookup (create=false: an unsubscribe never creates Email Studio settings rows).
+  const t: Theme = await loadSettings(db, client, false).then((st: unknown) => loadTheme(db, client, st)).catch(() => neutralTheme(String(client.business || "This business")));
+  const biz = esc(t.business || client.business || "this business");
+  const addr = `<strong>${esc(s.email)}</strong>`;
   if (req.method !== "POST") {
-    return html(page({ title: "Unsubscribe", accent: "one click", text: `Stop ${biz} list emails to ${addr}?`, form: formFor(token, "unsubscribe", "Unsubscribe &nbsp;&rarr;", false, field) }));
+    return html(clientPage(t, "Unsubscribe?", `Stop ${biz} list emails to ${addr}?`, formFor(token, "unsubscribe", "Unsubscribe", false, field)));
   }
   const now = new Date().toISOString();
   const contact = attr.contact_id ? await db.EmailContact.get(attr.contact_id).catch(() => null) : ((await db.EmailContact.filter({ client_id: s.client_id, email: s.email }, "-created_date", 1).catch(() => [])) || [])[0];
@@ -61,14 +78,14 @@ async function clientUnsub(req: Request, token: string, op: string, s: { client_
     // Only an unsubscribe can be undone here; bounces and complaints stay suppressed.
     for (const r of rows) if (r.reason === "unsubscribe") await db.EmailSuppression.delete(r.id).catch(() => null);
     if (contact && contact.client_id === s.client_id && contact.status === "unsubscribed") await db.EmailContact.update(contact.id, { status: "subscribed", unsubscribed_at: null }).catch(() => null);
-    return html(page({ title: "You're back", accent: "on the list", text: `${addr} will get ${biz} updates again.` }));
+    return html(clientPage(t, "You're back on the list", `${addr} will get ${biz} updates again.`));
   }
   if (!rows.some((r: { reason?: string }) => r.reason === "unsubscribe")) {
     await db.EmailSuppression.create({ client_id: s.client_id, email: s.email, reason: "unsubscribe", detail: "One-click unsubscribe link", campaign_id: attr.campaign_id || "", created_at: now });
     await db.EmailEvent.create({ client_id: s.client_id, campaign_id: attr.campaign_id || "", automation_id: attr.automation_id || "", step_id: attr.step_id || "", rid: attr.rid || attr.contact_id || "", contact_id: contact?.id || "", email: s.email, type: "unsubscribe", at: now, link_index: -1, url: "" }).catch(() => null);
   }
   if (contact && contact.client_id === s.client_id && contact.status !== "unsubscribed") await db.EmailContact.update(contact.id, { status: "unsubscribed", unsubscribed_at: now }).catch(() => null);
-  return html(page({ title: "You're", accent: "unsubscribed", text: `${addr} won't get any more ${biz} list emails. Changed your mind?`, form: formFor(token, "resubscribe", "Resubscribe", true, field) }));
+  return html(clientPage(t, "You're unsubscribed", `${addr} won't get any more ${biz} list emails. Changed your mind?`, formFor(token, "resubscribe", "Resubscribe", true, field)));
 }
 
 Deno.serve(async (req) => {
