@@ -215,9 +215,9 @@ export function StudioDuo({ label, studio, state, scopeId, preview }) {
         <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${ready ? "bg-ink text-white" : "bg-ink/[0.06] text-ink/50"}`}>{ready ? <Wrench className="h-[18px] w-[18px]" /> : <Lock className="h-4 w-4" />}</span>
         <div className="min-w-0"><p className="mono-label text-[9.5px] text-ink/50">Do it yourself</p><p className="text-[15px] font-semibold leading-tight tracking-[-0.02em]">{diy[0]}</p><p className="truncate text-[12px] text-ink/55">{diy[1]}</p></div>
       </div>
-      <div className="flex items-center gap-3 rounded-lg border border-[#ff3c00]/40 bg-white p-4">
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[#ff3c00]/40 bg-white p-4">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md flame-bg text-white"><Users className="h-[18px] w-[18px]" /></span>
-        <div className="min-w-0 flex-1"><p className="mono-label text-[9.5px] text-ink/50">Have us do it</p><p className="text-[15px] font-semibold leading-tight tracking-[-0.02em]">Our team handles it</p><p className="truncate text-[12px] text-ink/55">Tell us what you need. We reply within 1 business day.</p></div>
+        <div className="min-w-[180px] flex-1"><p className="mono-label text-[9.5px] text-ink/50">Have us do it</p><p className="text-[15px] font-semibold leading-tight tracking-[-0.02em]">Our team handles it</p><p className="text-[12px] text-ink/55">Tell us what you need. We reply within 1 business day.</p></div>
         <RequestHelpButton studio={studio} studioLabel={label} scopeId={scopeId} preview={preview} context={`Portal > Studios > ${label}`} placeholder={`What should we do in ${label}?`} compact />
       </div>
     </div>
