@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Plus, Minus, Maximize2 } from "lucide-react";
 import Starfield from "@/features/agents/Starfield";
 
@@ -61,8 +61,18 @@ export default function SystemsMap({ apps, links, keys, selected, onSelect, stat
   const [hover, setHover] = useState(null);
   const drag = useRef(null);
   const svgRef = useRef(null);
+  const [width, setWidth] = useState(900);
+  useLayoutEffect(() => {
+    const el = svgRef.current;
+    if (!el) return undefined;
+    const measure = () => setWidth(el.clientWidth || 900);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
-  const fitK = useMemo(() => clamp((height - 80) / (2 * R + 200), 0.35, 1.2), [R, height]);
+  const fitK = useMemo(() => clamp(Math.min((height - 80) / (2 * R + 200), (width - 40) / (2 * R + 320)), 0.22, 1.2), [R, height, width]);
   const k = view.k || fitK;
   const q = String(query || "").trim().toLowerCase();
 
@@ -115,7 +125,7 @@ export default function SystemsMap({ apps, links, keys, selected, onSelect, stat
           <linearGradient id="sys-flame" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stopColor="#ff3c00" /><stop offset=".55" stopColor="#ff6a00" /><stop offset="1" stopColor="#ffaa00" /></linearGradient>
           <marker id="sys-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="rgba(255,150,80,.8)" /></marker>
         </defs>
-        <g transform={`translate(${(svgRef.current?.clientWidth || 900) / 2 + view.x},${height / 2 + view.y}) scale(${k})`}>
+        <g transform={`translate(${width / 2 + view.x},${height / 2 + view.y}) scale(${k})`}>
           <circle r={R} fill="none" stroke="rgba(255,255,255,.05)" strokeDasharray="2 8" vectorEffect="non-scaling-stroke" />
           {edges.map((e) => {
             const st = LINK_STATUS[e.l.status] || LINK_STATUS.unknown;
