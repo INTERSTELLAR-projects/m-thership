@@ -129,9 +129,12 @@ Deno.serve(async (req) => {
     }
     await db.EmailSignupForm.update(form.id, { submissions: (Number(form.submissions) || 0) + 1, last_submission_at: now }).catch(() => null);
     let note = form.success_message || "You're on the list.";
+    let testConfirm = "";
     if (!hardBlock && c.status === "pending") {
       const ready = readiness(client, settings);
       const link = `${await baseUrl(db)}/functions/email-signup?confirm=${encodeURIComponent(await signToken(keys.confirm, "confirm", `${client.id}|${c.id}|${form.id}`))}`;
+      // Test clients only (dry run, nothing is emailed): hand the confirm link back so QA can complete double opt-in.
+      if (client?.usage_overrides?.email_dry_run === true) testConfirm = link;
       if (ready.ready) {
         const body = `<!doctype html><html><body style="margin:0;background:#f4f4f2;padding:28px 12px;font-family:${theme.font}"><table role="presentation" width="100%"><tr><td align="center"><table role="presentation" width="560" style="max-width:560px;background:#fff;border-radius:10px"><tr><td style="height:6px;background:${theme.primary};border-radius:10px 10px 0 0"></td></tr><tr><td style="padding:28px 36px">
 <h1 style="margin:0 0 12px;font-size:24px;color:${readable(theme.text)}">Please confirm your email</h1><p style="margin:0 0 20px;font-size:16px;line-height:25px;color:${theme.text}">Tap the button to start getting emails from ${esc(theme.business)}. If you didn't sign up, ignore this email and you won't hear from us.</p>
@@ -143,7 +146,7 @@ Deno.serve(async (req) => {
     } else if (!hardBlock && up.created || (!hardBlock && c.status === "subscribed")) {
       for (const l of up.lists_added || []) await enroll(db, client, c, { type: "list_join", list_id: l });
     }
-    if (wantsJson) return Response.json({ ok: true, status: hardBlock ? "subscribed" : c.status, message: note }, { headers: CORS });
+    if (wantsJson) return Response.json({ ok: true, status: hardBlock ? "subscribed" : c.status, message: note, ...(testConfirm ? { test_confirm_url: testConfirm } : {}) }, { headers: CORS });
     if (form.redirect_url && /^https:\/\//.test(form.redirect_url)) return new Response(null, { status: 303, headers: { ...CORS, location: form.redirect_url } });
     return htmlRes(page(theme, `<h1>Thanks!</h1><p>${esc(note)}</p>`, "Thanks"));
   } catch (e) {
