@@ -124,6 +124,7 @@ export const DECK_RULES = [
   "If the input cannot fill the requested slide count without new claims, return up to 2 fewer slides and list what is missing in needs_from_user. Never repeat the same fact as the headline of two slides.",
   "The closing next step comes from the input. If the input gives none, invite the audience to talk or ask questions; never mention documents, agreements or offers the input does not mention.",
   "Never write a testimonial, review or quote that is not in the input word for word, and never attribute words to a person or role the input does not name.",
+  "Copy prices with their qualifiers exactly as the input gives them: keep 'from', 'starting at', 'per season', 'per cupcake', minimums and caps. Never turn 'from $1,800' into '$1,800'.",
   "Use derived figures only when they are simple arithmetic on input numbers (e.g. $412,000 vs $365,000 is +$47,000 or +12.9%), and say they are derived in the notes.",
   "One idea per slide. The title states that idea as a short assertion a reader could repeat (\"Online revenue up 13% in Q3\"), never a topic label like \"Overview\", \"Financials\" or \"Thank you\".",
   "Keep visible text short so it reads from the back of a room: bullets <= 12 words, card text <= 18 words, at most about 40 words on a slide. Longer explanation belongs in the speaker notes.",
