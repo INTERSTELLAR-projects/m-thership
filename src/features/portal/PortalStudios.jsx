@@ -42,7 +42,8 @@ export const STUDIOS = [
     replaces: "Mailchimp ($60/mo at 2,500 contacts)",
   },
   {
-    key: "ads", tab: "studio_ads", label: "Ads Studio", eyebrow: "Paid ads",
+    // Portal v2 (Nov 2026): Ads is locked "coming soon" for every client until it launches (Justin's brief).
+    key: "ads", tab: "studio_ads", label: "Ads Studio", eyebrow: "Coming soon · Paid ads", comingSoon: true,
     title: "An ads agent that", accent: "watches every dollar.",
     lead: "Your Meta ad account read in plain English: what's working, what's burning money, and exactly what to change next, with you approving every move.",
     features: [
