@@ -1,13 +1,12 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { requireSecondFactor } from "../../shared/twoFactor.ts";
-import { resolveClient } from "../../shared/portalClient.ts";
+import { resolveClient, getSecret } from "../../shared/portalClient.ts";
 import { sesHookToken, normEmail } from "../../shared/emailUnsub.ts";
 import { drain, readiness, loadSettings, isDryRun, BATCH } from "../../shared/emailStudio.ts";
 import { extractLinks } from "../../shared/emailCore.ts";
 import { check, record } from "../../shared/meter.ts";
 import { studioState, planUnlocksStudios, MAX_FREE_LIST_SIZE, SES_COST_PER_EMAIL } from "../../shared/usagePlans.ts";
 import { markOutOfFuel, loadFuelConfig } from "../../shared/fuel.ts";
-import { getSecret } from "../../shared/portalClient.ts";
 
 // Client Studios bulk / marketing email through Amazon SES (our AWS account, each client's own verified domain).
 // Engine since Nov 2026: base44/shared/emailStudio.ts (scheduling, tracking, automations).
@@ -205,4 +204,3 @@ Deno.serve(async (req) => {
     return Response.json({ error: (e as Error)?.message || "Send failed" }, { status: 500 });
   }
 });
-
