@@ -1,9 +1,9 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { requireSecondFactor } from "../../shared/twoFactor.ts";
 import { resolveClient } from "../../shared/portalClient.ts";
-import { sesConfig, sesSendEmail, SesError } from "../../shared/ses.ts";
-import { clientUnsubscribeUrl, sesHookToken, normEmail } from "../../shared/emailUnsub.ts";
-import { inviteSettings } from "../../shared/portalInvite.ts";
+import { sesHookToken, normEmail } from "../../shared/emailUnsub.ts";
+import { drain, readiness, loadSettings, isDryRun } from "../../shared/emailStudio.ts";
+import { extractLinks } from "../../shared/emailCore.ts";
 import { check, record } from "../../shared/meter.ts";
 import { studioState, planUnlocksStudios, MAX_FREE_LIST_SIZE, SES_COST_PER_EMAIL } from "../../shared/usagePlans.ts";
 import { markOutOfFuel, loadFuelConfig } from "../../shared/fuel.ts";
@@ -17,7 +17,8 @@ import { getSecret } from "../../shared/portalClient.ts";
 //   send      { client_id?, name?, subject, html, text?, recipients: [{ email, name?, first_name? }] }
 //             -> queues an EmailCampaign + EmailSendBatch rows (500 each), meters marketing_email units up front,
 //                then sends as much as fits in this request; the "Studios: drain bulk email" workflow finishes it.
-//   drain     {}                                   scheduled (no user) or admin: continue queued batches
+//   drain     {}                                   scheduled (no user) or admin: promote due scheduled batches, continue
+//                                                  queued batches, run Email Studio automations (shared/emailStudio.ts)
 //   campaigns { client_id? }                       recent campaigns for the client
 //   suppressions / suppress / unsuppress           per-client do-not-send list (portal: own client; admin: any)
 //   POST ?hook=<token>                             SES -> SNS bounce / complaint notifications (no login; token-gated)
@@ -30,115 +31,14 @@ import { getSecret } from "../../shared/portalClient.ts";
 // after a Refuel or the monthly reset (fuel.ts resumeClient). A campaign already sending always finishes.
 // If SES secrets are missing, client marketing sends are disabled with a clear message.
 
-const BATCH = 500;
-const TIME_BUDGET_MS = 45_000;
-const DEFAULT_RATE = 10; // emails / second; SES production accounts start at 14/s
 const isEmail = (e: string) => /^[^\s@<>"']+@[^\s@<>"']+\.[a-z]{2,}$/i.test(e);
 const esc = (s: unknown) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string));
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function rateLimit(db: any) {
-  const rows = await db.AppSettings.filter({ key: "studios_email" }, "-updated_date", 1).catch(() => []);
-  const n = Number(rows?.[0]?.advancedSettings?.ses_max_per_second);
-  return n > 0 && n <= 200 ? n : DEFAULT_RATE;
-}
-
-function personalize(tpl: string, r: Record<string, string>, html: boolean) {
-  const first = r.first_name || String(r.name || "").split(/\s+/)[0] || "there";
-  const vars: Record<string, string> = { first_name: first, name: r.name || first, email: r.email, unsubscribe_url: r.unsub || "" };
-  return tpl.replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (m, k) => (k in vars ? (html && k !== "unsubscribe_url" ? esc(vars[k]) : vars[k]) : m));
-}
-
-function withFooter(html: string, client: any, unsub: string) {
+// Legacy raw-HTML sends get the CAN-SPAM footer with the {{unsubscribe_url}} merge tag (filled per recipient).
+function withFooter(html: string, client: any, address: string) {
   if (/\{\{\s*unsubscribe_url\s*\}\}/.test(html)) return html;
-  const foot = `<div style="margin:24px auto 0;max-width:600px;padding:16px;font:12px/18px Helvetica,Arial,sans-serif;color:#8a8780;text-align:center">You're getting this because you're on the ${esc(client.business)} list. <a href="${esc(unsub)}" style="color:#8a8780">Unsubscribe</a></div>`;
+  const foot = `<div style="margin:24px auto 0;max-width:600px;padding:16px;font:12px/18px Helvetica,Arial,sans-serif;color:#8a8780;text-align:center">${esc(client.business)}${address ? `<br>${esc(address)}` : ""}<br>You're getting this because you're on the ${esc(client.business)} list. <a href="{{unsubscribe_url}}" style="color:#8a8780">Unsubscribe</a></div>`;
   return /<\/body>/i.test(html) ? html.replace(/<\/body>/i, `${foot}</body>`) : html + foot;
-}
-
-function readiness(client: any) {
-  const cfg = sesConfig();
-  if (!cfg) return { ready: false, code: "ses_not_configured", reason: "Marketing email isn't set up yet: Amazon SES hasn't been connected. Interstellar has been notified." };
-  if (!client?.ses_from_email || !isEmail(String(client.ses_from_email))) return { ready: false, code: "no_sender", reason: "No sending address is set for this business yet." };
-  if (!client.ses_domain_verified) return { ready: false, code: "domain_unverified", reason: "This business's sending domain isn't verified in Amazon SES yet." };
-  return { ready: true, code: "ok", reason: "" };
-}
-
-// Send pending batches until the time budget runs out. Returns counts for this run.
-async function drain(db: any, onlyCampaign?: string) {
-  const cfg = sesConfig();
-  if (!cfg) return { ok: false, reason: "SES not configured", sent: 0 };
-  const settings = await inviteSettings(db).catch(() => ({ portal_url: "" }));
-  const rate = await rateLimit(db);
-  const started = Date.now();
-  let sent = 0, failed = 0, throttled = false;
-  const q = onlyCampaign ? { campaign_id: onlyCampaign, status: "pending" } : { status: "pending" };
-  const batches = ((await db.EmailSendBatch.filter(q, "created_date", 20).catch(() => [])) || []) as any[];
-  const stale = ((await db.EmailSendBatch.filter({ status: "sending" }, "created_date", 20).catch(() => [])) || []) as any[];
-  // A batch left "sending" for 10+ minutes (function timed out) is picked up again from its cursor.
-  for (const b of stale) if (!onlyCampaign && b.locked_at && Date.now() - Date.parse(b.locked_at) > 600_000) batches.push(b);
-  const campaigns: Record<string, any> = {};
-  const clients: Record<string, any> = {};
-  for (const b of batches) {
-    if (Date.now() - started > TIME_BUDGET_MS || throttled) break;
-    const camp = campaigns[b.campaign_id] ||= await db.EmailCampaign.get(b.campaign_id).catch(() => null);
-    if (!camp || camp.status === "cancelled") { await db.EmailSendBatch.update(b.id, { status: "failed" }).catch(() => null); continue; }
-    if (camp.status === "paused") { await db.EmailSendBatch.update(b.id, { status: "held" }).catch(() => null); continue; }
-    const client = clients[b.client_id] ||= await db.CRMClient.get(b.client_id).catch(() => null);
-    if (!client) continue;
-    await db.EmailSendBatch.update(b.id, { status: "sending", locked_at: new Date().toISOString(), attempts: (Number(b.attempts) || 0) + 1 });
-    if (camp.status === "queued") await db.EmailCampaign.update(camp.id, { status: "sending", started_at: new Date().toISOString() }).catch(() => null);
-    const sup = new Set((((await db.EmailSuppression.filter({ client_id: b.client_id }, "-created_date", 5000).catch(() => [])) || []) as any[]).map((s) => normEmail(s.email)));
-    const recips = (b.recipients || []) as any[];
-    let cursor = Number(b.cursor) || 0;
-    let bs = Number(b.sent) || 0, bf = Number(b.failed) || 0, skipped = 0;
-    const errors = (b.errors || []).slice(0, 50) as any[];
-    const gap = 1000 / rate;
-    while (cursor < recips.length) {
-      if (Date.now() - started > TIME_BUDGET_MS) break;
-      const r = recips[cursor];
-      const email = normEmail(r.email);
-      if (sup.has(email)) { skipped++; cursor++; continue; }
-      const t0 = Date.now();
-      try {
-        const unsub = await clientUnsubscribeUrl(settings.portal_url, client.id, email);
-        const ctx = { ...r, email, unsub };
-        await sesSendEmail(cfg, {
-          from: client.ses_from_email, fromName: camp.from_name || client.ses_from_name || client.business, replyTo: camp.reply_to || client.ses_reply_to || undefined,
-          to: email, subject: personalize(camp.subject, ctx, false), html: withFooter(personalize(camp.html, ctx, true), client, unsub),
-          text: camp.text ? `${personalize(camp.text, ctx, false)}\n\nUnsubscribe: ${unsub}` : undefined,
-          unsubscribeUrl: unsub, tags: { client_id: client.id, campaign_id: camp.id },
-        });
-        bs++; sent++;
-      } catch (e) {
-        if (e instanceof SesError && e.retryable) { throttled = true; break; } // leave the cursor here; next run retries
-        bf++; failed++;
-        if (errors.length < 50) errors.push({ email, error: String((e as Error)?.message || e).slice(0, 200) });
-        if (e instanceof SesError && /MailFromDomainNotVerified|NotVerified|AccountSuspended|SendingPaused/i.test(e.code + e.message)) {
-          await db.EmailCampaign.update(camp.id, { status: "failed", last_error: e.message.slice(0, 300) }).catch(() => null);
-          cursor = recips.length; break;
-        }
-      }
-      cursor++;
-      const wait = gap - (Date.now() - t0);
-      if (wait > 0) await sleep(wait);
-    }
-    const done = cursor >= recips.length;
-    await db.EmailSendBatch.update(b.id, { cursor, sent: bs, failed: bf, errors, status: done ? "done" : "pending", locked_at: null });
-    await db.EmailCampaign.update(camp.id, {
-      sent_count: (Number(camp.sent_count) || 0) + (bs - (Number(b.sent) || 0)),
-      failed_count: (Number(camp.failed_count) || 0) + (bf - (Number(b.failed) || 0)),
-      skipped_count: (Number(camp.skipped_count) || 0) + skipped,
-    }).then((c: any) => { campaigns[camp.id] = c || camp; }).catch(() => null);
-  }
-  // Close out campaigns with nothing left.
-  for (const id of Object.keys(campaigns)) {
-    const left = await db.EmailSendBatch.filter({ campaign_id: id, status: "pending" }, "created_date", 1).catch(() => []);
-    const c = await db.EmailCampaign.get(id).catch(() => null);
-    if (c && !left?.length && ["queued", "sending"].includes(c.status)) {
-      await db.EmailCampaign.update(id, { status: (c.failed_count || 0) > 0 ? ((c.sent_count || 0) > 0 ? "partial" : "failed") : "sent", finished_at: new Date().toISOString() }).catch(() => null);
-    }
-  }
-  return { ok: true, sent, failed, throttled, batches: batches.length };
 }
 
 // SES feedback through SNS. SubscriptionConfirmation is confirmed only for an amazonaws.com SubscribeURL.
@@ -165,9 +65,15 @@ async function snsHook(req: Request, db: any) {
     clientId = hit?.id || "";
   }
   if (!clientId) return new Response("no client");
+  const automationId = String((tags.automation_id || [])[0] || "");
+  const stepId = String((tags.step_id || [])[0] || "");
+  const rid = String((tags.rid || [])[0] || "");
   const add = async (email: string, reason: string, detail: string) => {
     const e = normEmail(email);
     if (!isEmail(e)) return;
+    await db.EmailEvent.create({ client_id: clientId, campaign_id: campaignId, automation_id: automationId, step_id: stepId, rid, email: e, type: reason, at: new Date().toISOString(), url: "", link_index: -1 }).catch(() => null);
+    const contact = ((await db.EmailContact.filter({ client_id: clientId, email: e }, "-created_date", 1).catch(() => [])) || [])[0];
+    if (contact) await db.EmailContact.update(contact.id, { status: "cleaned" }).catch(() => null);
     const have = await db.EmailSuppression.filter({ client_id: clientId, email: e, reason }, "-created_date", 1).catch(() => []);
     if (!have?.length) await db.EmailSuppression.create({ client_id: clientId, email: e, reason, detail: detail.slice(0, 300), campaign_id: campaignId, created_at: new Date().toISOString() }).catch(() => null);
   };
@@ -202,7 +108,7 @@ Deno.serve(async (req) => {
     const isAdmin = user.role === "admin";
     if (action === "drain") {
       if (!isAdmin) return Response.json({ error: "Admins only" }, { status: 403 });
-      return Response.json(await drain(db, body?.campaign_id ? String(body.campaign_id) : undefined));
+      return Response.json(await drain(db, { onlyCampaign: body?.campaign_id ? String(body.campaign_id) : "" }));
     }
 
     const client = await resolveClient(db, user, body?.client_id);
@@ -211,8 +117,9 @@ Deno.serve(async (req) => {
     if (!isAdmin && studioState(client, "email") !== "on") return Response.json({ error: "Email Studio isn't switched on for your account yet.", code: "studio_off" }, { status: 403 });
     const cid = String(client.id);
 
+    const settings = await loadSettings(db, client);
     if (action === "status") {
-      const r = readiness(client);
+      const r = readiness(client, settings);
       return Response.json({ ...r, from_email: client.ses_from_email || "", from_name: client.ses_from_name || client.business, max_list: MAX_FREE_LIST_SIZE });
     }
 
@@ -243,7 +150,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "send") {
-      const ready = readiness(client);
+      const ready = readiness(client, settings);
       if (!ready.ready) return Response.json({ error: ready.reason, code: ready.code }, { status: ready.code === "ses_not_configured" ? 503 : 400 });
       const subject = String(body?.subject || "").trim().slice(0, 250);
       const html = String(body?.html || "");
@@ -272,7 +179,7 @@ Deno.serve(async (req) => {
       if (!m.ok && !pause) return Response.json({ error: m.reason, code: m.code, meter: m }, { status: 429 });
 
       const camp = await db.EmailCampaign.create({
-        client_id: cid, client_name: client.business, name: String(body?.name || subject).slice(0, 160), subject, html,
+        client_id: cid, client_name: client.business, name: String(body?.name || subject).slice(0, 160), subject, html: withFooter(html, client, settings.physical_address || ""), links: extractLinks(html), track: true, dry_run: isDryRun(client),
         text: String(body?.text || "").slice(0, 100_000), from_email: client.ses_from_email, from_name: String(body?.from_name || client.ses_from_name || client.business).slice(0, 120),
         reply_to: client.ses_reply_to || "", status: pause ? "paused" : "queued", total: queue.length, sent_count: 0, failed_count: 0, skipped_count: skipped,
         batches: Math.ceil(queue.length / BATCH), created_by: user.email, by_admin: isAdmin, created_at: new Date().toISOString(),
@@ -286,7 +193,7 @@ Deno.serve(async (req) => {
         return Response.json({ ok: true, paused: true, campaign_id: camp.id, queued: queue.length, skipped, status: "paused", code: m.code, message: m.reason, meter: { used: m.used, cap: m.cap, left: m.left, wallet: m.wallet } });
       }
       await record(db, client, "marketing_email", queue.length, { ...meta, campaign_id: camp.id });
-      const run = await drain(db, camp.id).catch((e) => ({ ok: false, error: (e as Error).message }));
+      const run = await drain(db, { onlyCampaign: camp.id }).catch((e) => ({ ok: false, error: (e as Error).message }));
       const now = await db.EmailCampaign.get(camp.id).catch(() => camp);
       return Response.json({ ok: true, campaign_id: camp.id, queued: queue.length, skipped, status: now?.status, sent_so_far: now?.sent_count || 0, run, meter: { used: m.used + (isAdmin ? 0 : queue.length), cap: m.cap } });
     }
