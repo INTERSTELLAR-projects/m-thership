@@ -2,7 +2,7 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { requireSecondFactor } from "../../shared/twoFactor.ts";
 import { resolveClient } from "../../shared/portalClient.ts";
 import { sesHookToken, normEmail } from "../../shared/emailUnsub.ts";
-import { drain, readiness, loadSettings, isDryRun } from "../../shared/emailStudio.ts";
+import { drain, readiness, loadSettings, isDryRun, BATCH } from "../../shared/emailStudio.ts";
 import { extractLinks } from "../../shared/emailCore.ts";
 import { check, record } from "../../shared/meter.ts";
 import { studioState, planUnlocksStudios, MAX_FREE_LIST_SIZE, SES_COST_PER_EMAIL } from "../../shared/usagePlans.ts";
