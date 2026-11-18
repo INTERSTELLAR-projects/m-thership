@@ -65,9 +65,24 @@
         "rejected",
         "unpublished",
         "failed",
-        "test_passed"
+        "test_passed",
+        "manual"
       ],
-      "default": "received"
+      "default": "received",
+      "description": "manual = in the manual queue: auto-publish is off for the site, the site isn't set up, or a publish failed. Justin builds it by hand (Client posts \u2192 Build page manually), then marks it posted."
+    },
+    "posted_manually": {
+      "type": "boolean",
+      "default": false,
+      "description": "Live page was built by hand and recorded with Mark as posted manually (no site endpoint involved)"
+    },
+    "manual_reason": {
+      "type": "string",
+      "description": "Why it went to the manual queue (Justin only)"
+    },
+    "manual_at": {
+      "type": "string",
+      "format": "date-time"
     },
     "status_detail": {
       "type": "string",
