@@ -58,7 +58,7 @@ function Answer({ q, call, onSaved, preview }) {
   );
 }
 
-export function BrainView({ call, scopeId, business, preview }) {
+export function BrainView({ call, scopeId, business, preview, openAudit }) {
   const q = useQuery({ queryKey: ["portal", scopeId, "brain"], queryFn: () => call("brain"), retry: false });
   const b = q.data;
   const pct = b?.pct;
@@ -107,6 +107,13 @@ export function BrainView({ call, scopeId, business, preview }) {
               ) : <EmptyState icon={Brain} title="Nothing synced yet">Answers you give inside your own Command System app show up here automatically.</EmptyState>}
             </Card>
           </div>
+          {openAudit && (
+            <button type="button" onClick={openAudit} className="card-hover flex w-full items-center gap-3 rounded-lg border border-hair bg-card p-4 text-left sm:p-5">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md flame-bg text-white"><Brain className="h-[18px] w-[18px]" /></span>
+              <span className="min-w-0 flex-1"><span className="block text-[15px] font-semibold">Tell us how your business runs</span><span className="block text-[12.5px] text-ink/55">The business audit: answer what you can, it saves as you go.</span></span>
+              <ArrowUpRight className="h-4 w-4 text-ink/40" />
+            </button>
+          )}
         </>
       )}
     </div>
