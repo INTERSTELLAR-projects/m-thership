@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
       return Response.json({
         client: pick(client, ["id", "business", "industry", "location", "domain", "websites", "logo_url"]),
         kit: kit ? { kit: kit.kit || {}, status: kit.status } : null,
-        dossier: dossier ? pick(dossier, ["elevator_pitch", "usp", "tagline", "services", "service_area", "brand_identity"]) : null,
+        dossier: dossier ? pick(dossier, ["elevator_pitch", "usp", "tagline", "services", "service_area", "brand_identity", "founded", "team_size", "story", "differentiators", "offers"]) : null,
         brain: Object.keys(sections).length ? { sections } : null,
       });
     }
