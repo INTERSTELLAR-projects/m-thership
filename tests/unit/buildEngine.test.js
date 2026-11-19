@@ -4,11 +4,11 @@ import { describe, it, expect } from "vitest";
 import { laneForText, laneForJob, laneForPost, laneForLedger, AUTO_NOTE } from "@/lib/approvalLanes";
 import { scorePillars, weakestPillar, automationIssue, expectedGapDays, portalPillars, CLIENT_PILLARS } from "@/lib/clientPillars";
 import { dealLabel, pipelineValueOf, monthlyOf } from "@/features/pipeline/deal";
-import { summarize } from "@/pages/UsageInsights";
+import { summarize } from "@/lib/usageSummary";
 import { cleanPath } from "@/lib/usageLog";
 import { jobGroupOf, rowIssue, gapOf, scopeMatch } from "@/features/automations/board";
 import { matchesBrand } from "@/features/brands/brandFilter";
-import { PROCESSES } from "@/features/flight/ServiceProcess";
+import { PROCESSES } from "@/features/flight/serviceProcesses";
 
 const DAY = 86400000;
 const NOW = Date.parse("2026-11-19T18:00:00Z");
