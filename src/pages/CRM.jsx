@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Search, Plus, Phone, Mail, Globe, Building, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2, CheckCircle2, Link2, Unlink2, RefreshCw } from "lucide-react";
+import { Search, Plus, Phone, Mail, Globe, Building, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2, CheckCircle2, Link2, Unlink2, RefreshCw, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,11 +13,10 @@ import MicButton from "../components/MicButton";
 import BrandProfile from "../components/crm/BrandProfile";
 import { useRef } from "react";
 import StripeServicePicker from "@/features/clients/StripeServicePicker";
-import ClientAnalytics, { serviceKey, serviceLabel } from "@/features/clients/ClientAnalytics";
+import { serviceKey, serviceLabel } from "@/features/clients/ClientAnalytics";
 import { useCompletenessMap } from "@/features/clients/hooks";
+import { useClientSignals } from "@/features/clients/clientSignals";
 import { useList } from "@/lib/useData";
-import Collapse from "@/components/Collapse";
-import { PipelineBoard } from "@/pages/Pipeline";
 import { useBrands } from "@/features/brands/useHouseData";
 import { brandFieldOptions } from "@/features/brands/graph";
 
@@ -43,6 +42,7 @@ export default function CRM() {
   const [serviceFilter, setServiceFilter] = useState(null); // service key picked in the analytics charts
   const [deleting, setDeleting] = useState(null);
   const [showAll, setShowAll] = useState(false);
+  const [sortBy, setSortBy] = useState("name");
   // "Sync from Stripe": re-reads every live (active + trialing) subscription and rewrites the clients' billing lines.
   // Read-only toward Stripe. Also runs on Stripe webhooks and every 3 hours (workflow "Stripe — scheduled resync").
   const [stripeSyncing, setStripeSyncing] = useState(false);
@@ -150,13 +150,20 @@ export default function CRM() {
     setClients(clients.map((c) => (c.id === client.id ? { ...c, bundle: "" } : c)));
   };
 
+  const signals = useClientSignals(clients);
   const filtered = clients.filter((c) => {
     const matchSearch = c.business?.toLowerCase().includes(search.toLowerCase()) ||
       c.contact?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "All" || c.status === statusFilter;
     const matchService = !serviceFilter || (c.services || []).some((sv) => !sv.discontinued && serviceKey(sv) === serviceFilter);
     return matchSearch && matchStatus && matchService;
-  }).sort((a, b) => (a.business || "").localeCompare(b.business || "", undefined, { sensitivity: "base" }));
+  }).sort((a, b) => {
+    const sa = signals[a.id] || {}, sb = signals[b.id] || {};
+    if (sortBy === "mrr") return ((sb.mrr?.stripe || 0) + (sb.mrr?.committed || 0)) - ((sa.mrr?.stripe || 0) + (sa.mrr?.committed || 0));
+    if (sortBy === "brain") return (sb.brainPct ?? -1) - (sa.brainPct ?? -1);
+    if (sortBy === "attention") return (sb.attention?.length || 0) - (sa.attention?.length || 0);
+    return (a.business || "").localeCompare(b.business || "", undefined, { sensitivity: "base" });
+  });
 
   const selectedClient = clients.find((c) => c.id === selectedId);
   const completeness = useCompletenessMap(clients).data || {};
@@ -194,9 +201,8 @@ export default function CRM() {
   }
 
   const Row = ({ client, inPackage }) => {
-    const total = priceOf(client);
-    const pct = completeness[client.id];
-    const na = nextAction(client);
+    const sig = signals[client.id] || {};
+    const pct = sig.brainPct;
     const tone = client.status === "Active" ? "bg-green-600" : client.status === "Lead" ? "bg-[#ff3c00]" : "bg-ink/30";
     return (
       <div className="crm-row group" data-client-row>
@@ -211,27 +217,25 @@ export default function CRM() {
         </button>
         <div className="crm-status min-w-0">
           <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-ink/75"><i className={`h-1.5 w-1.5 rounded-full ${tone}`} />{client.status}{inPackage ? <span className="font-mono text-[9.5px] uppercase tracking-[.12em] text-[#ff3c00]">· pkg</span> : null}</span>
-          <span className="mt-0.5 block truncate text-[11.5px] text-ink/45">{client.stripe_plan || client.plan || ((client.services || [])[0] || {}).name || "No plan set"}</span>
+          <span className="mt-0.5 block truncate text-[11.5px] text-ink/50" title={client.stripe_plan || client.plan || ""}>{client.stripe_plan ? client.stripe_plan.split(" · ")[0] : client.plan || "No plan set"}</span>
+          <span className="block font-mono text-[11px] tabular-nums text-ink/75" data-testid="client-mrr">{sig.mrr ? <>${sig.mrr.stripe.toLocaleString("en-US")}<span className="text-ink/40"> live</span>{sig.mrr.committed ? <span className="text-ink/45"> + ${sig.mrr.committed.toLocaleString("en-US")} committed</span> : null}</> : null}</span>
         </div>
-        <div className="crm-health" title="Profile completeness (what the Brain knows)">
+        <div className="crm-health" title="Brain completeness (what the Brain knows)">
           {typeof pct === "number" ? (
             <>
-              <span className="flex items-baseline justify-between text-[11px] text-ink/50"><span>Profile</span><span className="font-mono tabular-nums text-ink/70">{pct}%</span></span>
+              <span className="flex items-baseline justify-between text-[11px] text-ink/50"><span>Brain</span><span className="font-mono tabular-nums text-ink/70">{pct}%</span></span>
               <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-ink/[0.08]"><span className="block h-full rounded-full" style={{ width: `${pct}%`, background: pct >= 80 ? "linear-gradient(90deg,#ff3c00,#ffaa00)" : pct >= 50 ? "#ff6a00" : "#ff3c00" }} /></span>
             </>
-          ) : <span className="text-[11px] text-ink/35">…</span>}
+          ) : <span className="text-[11px] text-ink/35">No Brain yet</span>}
         </div>
-        <button type="button" onClick={() => na && navigate(`/clients/${client.id}?tab=${na.tab}`)} className="crm-next min-w-0 text-left" disabled={!na}>
-          {na ? (
-            <>
-              <span className="block truncate text-[12.5px] text-ink/80 group-hover:text-ink">{na.text}</span>
-              {na.when ? <span className={`font-mono text-[10px] uppercase tracking-[.1em] ${na.late ? "text-red-600" : "text-ink/40"}`}>{na.when}</span> : null}
-            </>
-          ) : <span className="text-[12px] text-ink/35">Nothing due</span>}
+        <button type="button" onClick={() => navigate(`/clients/${client.id}`)} className="crm-next min-w-0 text-left">
+          <span className="block truncate text-[12.5px] text-ink/80">{sig.buildStatus || "—"}</span>
+          <span className="block truncate font-mono text-[10px] uppercase tracking-[.08em] text-ink/45" title={sig.weak ? sig.weak.verdict : ""}>{sig.weak ? <>Weakest: <span style={{ color: sig.weak.tone === "red" ? "#dc2626" : sig.weak.tone === "amber" ? "#b45309" : "#15803d" }}>{sig.weak.name} {sig.weak.score}</span></> : "Pillars: not enough info"}</span>
         </button>
-        <div className="crm-money text-right">
-          <span className="font-mono text-[13px] tabular-nums text-ink/80">{inPackage && !total ? "incl." : `$${total.toLocaleString("en-US")}`}</span>
-          <span className="block font-mono text-[9.5px] uppercase tracking-[.12em] text-ink/40">{inPackage && !total ? "in package" : "/ mo"}</span>
+        <div className="crm-money text-right" title={(sig.attention || []).join(" · ")}>
+          {sig.attention && sig.attention.length ? (
+            <span className="inline-flex items-center gap-1 rounded-sm bg-red-600/10 px-1.5 py-0.5 text-[11px] font-medium text-red-700" data-testid="needs-attention"><AlertTriangle className="h-3 w-3" />{sig.attention.length}</span>
+          ) : <span className="text-[11px] text-ink/35">OK</span>}
         </div>
         <div className="crm-actions flex items-center justify-end gap-0.5">
           <button onClick={() => navigate(`/email?client=${client.id}`)} title="Email client (Email Studio)" aria-label={`Email ${client.business}`} className="p-2 text-ink/35 hover:text-[#ff3c00]"><Mail className="h-3.5 w-3.5" /></button>
@@ -261,6 +265,9 @@ export default function CRM() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/35" />
               <Input placeholder="Search clients" value={search} onChange={(e) => setSearch(e.target.value)} className="h-9 border-hair bg-card pl-9 text-ink placeholder:text-ink/35" aria-label="Search clients" />
             </div>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} aria-label="Sort clients" className="h-9 border border-hair bg-card px-2 text-[12.5px]">
+              <option value="name">Sort: name</option><option value="mrr">Sort: MRR</option><option value="brain">Sort: Brain %</option><option value="attention">Sort: needs attention</option>
+            </select>
             <div className="seg-ms flex" role="tablist" aria-label="Filter by status">
               {statusFilters.map((f) => (
                 <button key={f} type="button" role="tab" aria-selected={statusFilter === f} onClick={() => setStatusFilter(f)} className={statusFilter === f ? "on" : ""}>{f} <span className="font-mono text-[10px] opacity-60">{counts[f]}</span></button>
@@ -278,7 +285,7 @@ export default function CRM() {
           ) : (
             <div className="overflow-hidden rounded-md border border-hair bg-card">
               <div className="crm-row crm-head hidden lg:grid" aria-hidden="true">
-                <span>Client</span><span>Status · plan</span><span>Health</span><span>Next action</span><span className="text-right">Monthly</span><span />
+                <span>Client</span><span>Plan · MRR</span><span>Brain</span><span>Build · weakest pillar</span><span className="text-right">Attention</span><span />
               </div>
               {!rows.length ? <p className="px-4 py-10 text-center text-[13px] text-ink/45">{search ? `No clients match “${search}”.` : `No ${statusFilter === "All" ? "" : statusFilter.toLowerCase() + " "}clients yet.`}</p> : null}
               {(search || showAll ? rows : rows.slice(0, 12)).map((row) => row.kind === "bundle" ? (
@@ -299,18 +306,6 @@ export default function CRM() {
           )}
         </section>
 
-        <section aria-labelledby="crm-leads">
-          <div className="mb-3 flex flex-wrap items-baseline gap-3">
-            <p id="crm-leads" className="ms-kicker"><span className="num">02</span> Leads pipeline</p>
-            <span className="text-[12px] text-ink/45">Drag a lead to the next stage. Click one for details.</span>
-            <a href="/pipeline" className="ml-auto text-[12px] text-ink/50 hover:text-[#ff3c00]">Full-page board →</a>
-          </div>
-          <PipelineBoard embedded />
-        </section>
-
-        <Collapse id="crm-numbers" label="03 · Client numbers" hint="MRR, revenue by service, top clients" right={<a href="/financial" onClick={(e) => e.stopPropagation()} className="text-[12px] text-ink/50 hover:text-[#ff3c00]">Open Financial →</a>}>
-          {!loading && <ClientAnalytics clients={clients} serviceFilter={serviceFilter} onServiceFilter={setServiceFilter} />}
-        </Collapse>
       </div>
 
       <Dialog open={Boolean(deleting)} onOpenChange={(o) => { if (!o) setDeleting(null); }}>
