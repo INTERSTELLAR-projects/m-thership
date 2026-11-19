@@ -12,7 +12,7 @@ import { createFlight } from "@/features/flight/onboarding/store";
 import { SALES_FOR_PACKAGE, saleByKey, defaultPrice } from "@/features/flight/onboarding/catalog";
 import {
   STAGES, STAGE_LABEL, SOURCE_BY_KEY, stageOf, sourceOf, interestOf, detailsOf, bookedCallOf,
-  daysInStage, suggestedSale, noteDate, money,
+  daysInStage, suggestedSale, noteDate,
 } from "./pipeline";
 import { useLeadSources } from "./useLeadSources";
 import { useOptionList } from "@/hooks/useOptionList";
