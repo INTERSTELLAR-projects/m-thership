@@ -1,0 +1,12 @@
+{
+  "name": "Leads — stage triggers",
+  "description": "Every 15 minutes: moves leads automatically, tagged auto and undoable. Sales call booked through Møthership → Call booked; the booked call's end time passed → Call held; a proposal/deck email logged → Proposal sent. (Stripe invoice or subscription for the lead → Won runs from the Stripe sync; Lost stays Justin's.) Never emails anyone. Function: lead-stage / triggers.",
+  "trigger": {
+    "condition": null,
+    "config": { "trigger_type": "scheduled", "events": [], "schedule_mode": "recurring", "cron_expression": "7,22,37,52 * * * *", "one_time_date": null, "timezone": "America/Los_Angeles", "interval_value": null, "interval_unit": null, "interval_anchor": null, "ends_type": "never", "ends_on_date": null, "ends_after_count": null }
+  },
+  "definition": {
+    "document": { "dsl": "1.0.0", "name": "leads_stage_triggers", "version": "1.0", "namespace": "base44" },
+    "do": [ { "run_function": { "call": "invoke_backend_function", "with": { "function_name": "lead-stage", "args": { "action": "triggers" } }, "then": "end" } } ]
+  }
+}

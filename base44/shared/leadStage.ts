@@ -112,7 +112,7 @@ export async function runTriggers(db: any) {
       // A proposal or deck email logged for this lead (Email Studio sends or Command's sent-email notes).
       if (["new", "contacted", "call_booked", "call_held"].includes(st)) {
         const emails = new Set((c.emails || []).map((e: string) => str(e).toLowerCase()));
-        const sent = (drafts || []).find((d: any) => /proposal|deck|quote|mission (alpha|bravo)/i.test(str(d.subject)) && ((d.client_ids || []).includes(c.id) || (d.recipients || []).some((r: any) => r?.client_id === c.id || emails.has(str(r?.email).toLowerCase()))));
+        const sent = (drafts || []).find((d: any) => /proposal|deck|quote|mission (alpha|bravo)/i.test(str(d.subject)) && ([...(d.recipients || []), ...(d.results || [])].some((r: any) => r?.client_id === c.id || emails.has(str(r?.email).toLowerCase()))));
         const noted = (c.notes || []).find((n: any) => /Email sent from Command: ".*(proposal|deck|quote)/i.test(str(n?.text)));
         if (sent || noted) out.push(await moveStage(db, c, "proposal_sent", { by: "automation:proposal emailed", reason: sent ? `Email "${str(sent.subject).slice(0, 80)}" logged` : "Proposal email logged in Command", auto: true, source: "automation" }));
       }

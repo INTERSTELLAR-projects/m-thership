@@ -1,0 +1,12 @@
+{
+  "name": "Leads — log stage changes",
+  "description": "When a lead's pipeline_stage is changed directly (Claude updating the record from chat, or any writer outside the board), log the move to LeadStageMove as 'Moved by Claude: <reason>' (from pipeline_stage_reason) and, for Won, convert the lead and start new-client prep. Never emails anyone. Function: lead-stage / observe.",
+  "trigger": {
+    "condition": "${ .trigger.data.pipeline_stage != null and .trigger.data.pipeline_stage != .trigger.data.pipeline_stage_logged }",
+    "config": { "trigger_type": "entity", "events": ["update"], "entity_name": "CRMClient" }
+  },
+  "definition": {
+    "document": { "dsl": "1.0.0", "name": "leads_log_stage_changes", "version": "1.0", "namespace": "base44" },
+    "do": [ { "run_function": { "call": "invoke_backend_function", "with": { "function_name": "lead-stage", "args": { "action": "observe", "client_id": "${ .trigger.data.id }" } }, "then": "end" } } ]
+  }
+}
