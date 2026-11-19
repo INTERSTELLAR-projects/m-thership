@@ -159,7 +159,15 @@ export function BillingView({ d, fuel, go, scopeId, preview, onRefuel }) {
         <Card className="p-5">
           <span className="flex h-9 w-9 items-center justify-center rounded-md bg-ink text-white"><CreditCard className="h-4 w-4" /></span>
           <p className="mono-label mt-3 text-[9.5px] text-ink/50">Your plan</p>
-          <p className="mt-1 text-[19px] font-semibold tracking-[-0.03em]">{d.client.plan || "Set up with your account manager"}</p>
+          {/* Live subscriptions straight from billing (one line each, its items underneath); the typed plan name only when there are none. */}
+          {Array.isArray(d.client.subscriptions) && d.client.subscriptions.length ? (
+            <ul className="mt-1 space-y-2" data-testid="portal-subscriptions">{d.client.subscriptions.map((sub, k) => (
+              <li key={k}>
+                <p className="flex items-baseline justify-between gap-3 text-[16px] font-semibold tracking-[-0.02em]"><span className="min-w-0">{sub.name}{sub.status === "trialing" ? <span className="ml-1.5 text-[11px] font-normal text-ink/50">(trial)</span> : null}</span><span className="shrink-0 font-mono text-[13px] font-normal text-ink/70">{money(sub.monthly)}/mo</span></p>
+                {sub.items && sub.items.length > 1 ? <p className="text-[12px] text-ink/55">{sub.items.join(" + ")}</p> : null}
+              </li>
+            ))}</ul>
+          ) : <p className="mt-1 text-[19px] font-semibold tracking-[-0.03em]">{d.client.plan || "Set up with your account manager"}</p>}
           <p className="mt-1 text-[12.5px] text-ink/55">Invoices and receipts come by email from our billing system.</p>
         </Card>
         <Card className="p-5">
