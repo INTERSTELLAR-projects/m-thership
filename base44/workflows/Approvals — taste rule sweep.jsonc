@@ -1,0 +1,25 @@
+{
+  "name": "Approvals — taste rule sweep",
+  "description": "Every 30 minutes: applies Justin's approval rule (Nov 19, 2026). Classifies every open approval item as Taste, Logic or Hard gate (shared/approvalLanes.js) and auto-approves the Logic ones with the note 'Auto-approved: logic/best practice (Justin's rule, Nov 19)' and an undo entry (Command > Decided for you). Taste and hard-gate items are never touched. Never publishes, sends, deletes or spends. Function: approval-sweep / scheduled.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "11,41 * * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": { "dsl": "1.0.0", "name": "approvals_taste_rule_sweep", "version": "1.0", "namespace": "base44" },
+    "do": [ { "run_function": { "call": "invoke_backend_function", "with": { "function_name": "approval-sweep", "args": { "action": "scheduled" } }, "then": "end" } } ]
+  }
+}
