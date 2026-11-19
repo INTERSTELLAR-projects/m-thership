@@ -617,8 +617,7 @@ function addBusyWork(E, active) {
   const all = E.CRMClient.filter((c) => c.status === "Active");
   const granted = { status: "granted", by: "Client", on: ago(30) };
   all.forEach((c, i) => {
-    if (i % 7 === 5) return; // a few honest gaps
-    const partial = i % 4 === 3;
+    const partial = false;
     E.IntakeAudit.push({ id: `iau_${c.id}`, client_id: c.id, business_name: c.business, status: "reviewed", sections_complete: partial ? 5 : 9, answers: {
       legal_name: `${c.business} LLC`, services: ["Core service", "Maintenance plans", "Emergency calls"], hours: "Mon–Fri 8–6, Sat 9–2", booking_link: `https://${c.domain || "example.demo"}/book`,
       keywords: [`${c.industry.split("·").pop().trim().toLowerCase()} near me`, `best ${c.industry.split("·").pop().trim().toLowerCase()}`], goal_12mo: "Double booked jobs from search", budget: "$2–4k / month",
@@ -630,6 +629,88 @@ function addBusyWork(E, active) {
     if (d) Object.keys(extra).forEach((k) => { if (d[k] == null) d[k] = extra[k]; });
     else E.ClientDossier.push({ id: `cdp_${c.id}`, client_id: c.id, client_name: c.business, ...extra });
   });
+  staffAndTidy(E, all, active);
+}
+
+// Every sample client gets 4-8 live agents with recent runs and 4-6 recent deliveries, the roster is set healthy,
+// and then a short, deliberate list of problems (about 20 gaps across 10 clients) so the gap finder looks real, not chaotic.
+function staffAndTidy(E, all, active) {
+  const TPL = [
+    ["seo_blog", "seo", "Blog + GBP posts", "Tue + Thu 9am"], ["review_replies", "reviews", "Review replies", "On event"], ["site_audit", "website", "Speed & SEO audit", "Weekly Mon"],
+    ["monthly_report", "reporting", "Monthly report", "Monthly 1st"], ["social_posts", "social", "Post drafts", "Weekly Fri"], ["search_console", "seo", "Search Console watch", "Daily 6am"],
+    ["review_requests", "reviews", "Review requests", "On event"], ["email_marketing", "email", "Email marketing", "Bi-weekly"],
+  ];
+  const KINDS = ["claude_scheduled_task", "in_app_ai", "backend_function", "base44_workflow"];
+  const hoursAgo = (h) => new Date(Date.now() - h * 36e5).toISOString();
+  const WORK = [["blog", "Blog: what to ask before you hire"], ["gbp_post", "GBP post: this week's featured job"], ["social", "4 social posts scheduled"], ["site_edit", "Service-area page added"], ["review", "Replied to new Google reviews"], ["email", "Monthly newsletter sent"], ["report", "Monthly results report delivered"]];
+  all.forEach((c, i) => {
+    const mine = E.AgentRegistry.filter((a) => a.client_id === c.id);
+    if (mine.length < 4) {
+      const n = 4 + (i % 5);
+      TPL.slice(0, n).forEach(([t, dep, name, schedule], k) => {
+        if (mine.some((a) => a.template_key === t)) return;
+        E.AgentRegistry.push({ id: `ags_${t}_${c.id}`, key: `${t}:${c.id}`, template_key: t, name, department: dep, scope: "client", client_id: c.id, client_name: c.business, kind: KINDS[(i + k) % KINDS.length], status: "live", autonomy: "assisted",
+          last_run_at: hoursAgo(((i * 7 + k * 5) % 20) + 0.3), last_status: "success", run_count_30d: 12 + ((i * 13 + k * 7) % 180), success_rate_30d: 0.98, schedule });
+      });
+    }
+    const have = E.WorkLog.filter((w) => w.client_id === c.id).length;
+    const short = c.business.split(" ").slice(0, 2).join(" ");
+    for (let k = have; k < 4 + (i % 3); k++) {
+      const [kind, title] = WORK[(i + k) % WORK.length];
+      E.WorkLog.push({ id: `wd_${c.id}_${k}`, client_id: c.id, client_name: c.business, kind, title: `${title} · ${short}`, date: ago(k + (i % 2)), status: "live", source: k % 2 ? "automation" : "claude", verified_live: true, url: c.domain ? `https://${c.domain}/` : "" });
+    }
+  });
+
+  // Today's engine numbers (always "today", whatever the hour): agency agent runs, AI calls, Brain facts, finished work.
+  const mid = new Date(); mid.setHours(0, 0, 0, 0);
+  const todayTs = (f) => new Date(Date.now() - Math.max(3e4, (Date.now() - mid.getTime()) * f)).toISOString();
+  E.AgentRegistry.forEach((a, k) => { if (a.status === "live") a.last_run_at = todayTs(((k * 37) % 90) / 100 + 0.02); });
+  E.UsageLedger = [...(E.UsageLedger || []), ...Array.from({ length: 64 }, (_, k) => ({ id: `ul${k}`, kind: "ai_action", calls: 1 + (k % 4), client_id: all[(k * 11) % all.length].id, created_at: todayTs(((k * 29) % 95) / 100 + 0.01) }))];
+  const FACTS = ["Spring is the busiest booking window for home services clients", "Answer-first service pages get cited by AI answers more often", "Clients reply fastest to review requests sent within 2 hours", "Map pack wins follow category + service-area cleanups", "Weekly GBP posts keep profiles in the top 3 longer"];
+  E.BrainFact = [...(E.BrainFact || []), ...Array.from({ length: 48 }, (_, k) => ({ id: `bfx${k}`, scope: "interstellar", status: "active", source: k % 3 ? "agent" : "research", fact: FACTS[k % FACTS.length], text: FACTS[k % FACTS.length], created_date: k < 14 ? todayTs(((k * 23) % 90) / 100 + 0.02) : agoTs(1 + (k % 6)) }))];
+  E.WorkEntry = [...(E.WorkEntry || []), ...Array.from({ length: 30 }, (_, k) => { const c = all[(k * 7) % all.length]; const [cat, t] = [["seo", "Blog post published"], ["social", "Social batch scheduled"], ["reviews", "Review replies sent"], ["website", "Speed fix shipped"], ["email", "Newsletter sent"]][k % 5]; return { id: `wex${k}`, client_id: c.id, client_name: c.business, title: `${t} · ${c.business}`, client_title: t, category: cat, status: "done", source: k % 2 ? "agent" : "claude", completed_at: todayTs(((k * 31) % 90) / 100 + 0.02), created_date: todayTs(((k * 31) % 90) / 100 + 0.03) }; })];
+
+  // Healthy baseline for the whole roster.
+  const brainBy = new Map(E.BusinessBrain.filter((b) => b.client_id).map((b) => [b.client_id, b]));
+  const granted = { status: "granted", by: "Client", on: ago(30) };
+  all.forEach((c, i) => {
+    if (!c.domain) { c.domain = `${c.business.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.demo`; c.websites = [c.domain]; }
+    c.site_app_id = c.site_app_id || `demo_site_${c.id}`;
+    c.command_app_id = c.command_app_id || `demo_cmd_${c.id}`;
+    if (!(c.services || []).length) c.services = [{ id: 1, name: "HyperCare+ Local", price: 750, interval: "month", stripe: true }];
+    c.portal_enabled = true;
+    if (!(c.portal_emails || []).length) c.portal_emails = (c.emails || []).slice(0, 1);
+    const prof = E.ClientAppProfile.find((p) => p.client_id === c.id);
+    if (prof) prof.has_sync = "yes"; else E.ClientAppProfile.push({ id: `capx_${c.id}`, client_id: c.id, client_name: c.business, app_id: c.command_app_id, kind: "command", has_brain: "yes", has_sync: "yes" });
+    if (!E.PerformanceSnapshot.some((s) => s.client_id === c.id)) E.PerformanceSnapshot.push({ id: `psx_${c.id}`, client_id: c.id, source: "gsc", period_start: ago(31), period_end: ago(1), metrics: {} });
+    const b = brainBy.get(c.id);
+    if (b) b.completeness = Math.max(Number(b.completeness) || 0, 72 + (i % 27));
+    else E.BusinessBrain.push({ id: `bbx_${c.id}`, scope: "client", client_id: c.id, client_name: c.business, completeness: 72 + (i % 27), glance_at: agoTs(2) });
+    const ia = E.IntakeAudit.find((x) => x.client_id === c.id && x.id.startsWith("iau_"));
+    if (ia) Object.assign(ia.answers, { access_gbp: granted, access_gsc: granted, access_ga4: granted, access_bing: granted, access_socials: granted, licenses: "Licensed & insured", awards: "Local Best Of 2026", case_studies: "3 featured jobs" });
+  });
+
+  // The deliberate problems.
+  const coach = all.filter((c) => c.brand_id === "b_podium");
+  const ink = all.filter((c) => c.brand_id === "b_nightjar");
+  const pick = (list, k) => list[Math.min(k, list.length - 1)];
+  const noSite = (c) => { c.domain = ""; c.websites = []; };
+  const noBilling = (c) => { c.services = []; };
+  const noPortal = (c) => { c.portal_enabled = false; };
+  const noCmd = (c) => { c.command_app_id = undefined; c.ops_app_id = undefined; E.ClientAppProfile = E.ClientAppProfile.filter((p) => p.client_id !== c.id); };
+  const noSync = (c) => { E.ClientAppProfile.filter((p) => p.client_id === c.id).forEach((p) => { p.has_sync = "no"; }); E.ClientDossier.filter((d) => d.client_id === c.id && d.client_brain).forEach((d) => { d.client_brain = { ...d.client_brain, synced_at: null }; }); };
+  const noData = (c) => {
+    E.PerformanceSnapshot = E.PerformanceSnapshot.filter((s) => s.client_id !== c.id);
+    E.IntakeAudit.filter((x) => x.client_id === c.id).forEach((x) => { ["access_gbp", "access_gsc", "access_ga4"].forEach((k) => { delete x.answers[k]; }); });
+    E.OnboardingFlight = (E.OnboardingFlight || []).filter((f) => f.client_id !== c.id);
+  };
+  const lowBrain = (pct) => (c) => { const b = E.BusinessBrain.find((x) => x.client_id === c.id); if (b) b.completeness = pct; };
+  const noBrain = (c) => { E.BusinessBrain = E.BusinessBrain.filter((x) => x.client_id !== c.id); E.ClientDossier.filter((d) => d.client_id === c.id).forEach((d) => { d.client_brain = null; }); };
+  const thinProfile = (c) => { E.IntakeAudit = E.IntakeAudit.filter((x) => x.client_id !== c.id); E.ClientDossier = E.ClientDossier.filter((d) => d.client_id !== c.id); };
+  [
+    [pick(active, 57), [noSite, noPortal]], [pick(active, 88), [noBilling, lowBrain(46)]], [pick(active, 120), [noCmd, noData]], [pick(active, 140), [noCmd]],
+    [pick(active, 25), [lowBrain(52)]], [pick(coach, 2), [noSync]], [pick(coach, 7), [noBrain, thinProfile]], [pick(ink, 1), [noPortal, noData]], [pick(ink, 4), [noBilling]],
+  ].forEach(([c, fns]) => { if (c) fns.forEach((f) => f(c)); });
 }
 
 let cache = null;

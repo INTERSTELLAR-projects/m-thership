@@ -33,7 +33,12 @@ describe("universe model", () => {
     const keys = u.gaps.map((g) => g.key);
     expect(keys.some((k) => k.startsWith("agent:social_posts:pc3"))).toBe(true);
     expect(u.nodes["client:pc3"].status).toBe("bad");
-    expect(u.nodes["client:pc6"].gaps.some((g) => g.key === "site")).toBe(true);
+    expect(u.gaps.some((g) => g.key === "site" && g.sev === "bad")).toBe(true);
+    // The sample roster reads as a business with a few problems, not chaos.
+    expect(u.gaps.length).toBeGreaterThanOrEqual(15);
+    expect(u.gaps.length).toBeLessThanOrEqual(30);
+    expect(Object.values(u.nodes).filter((n) => n.type === "client" && n.agents.length < 4).length).toBe(0);
+    expect(Object.values(u.nodes).filter((n) => n.type === "out" && n.items.length < 4).length).toBe(0);
     expect(u.gaps[0].sev).toBe("bad");
     u.gaps.forEach((g) => expect(g.to.startsWith("/")).toBe(true));
   });

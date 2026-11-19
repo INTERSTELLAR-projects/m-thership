@@ -23,7 +23,7 @@ async function load() {
     safe(E.AgentRegistry.list("sort", 3000)),
     safe(E.ClaudeJob.list("-updated_date", 200)),
     safe(E.AutomationRun.filter({ started_at: { $gte: from } }, "-started_at", 1000)),
-    safe(E.WorkLog.list("-date", 600)),
+    safe(E.WorkLog.list("-date", 2000)),
     safe(E.PerformanceSnapshot.list("-period_end", 2000)),
   ]);
   let evals = new Map();
