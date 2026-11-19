@@ -4,6 +4,7 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 import { requireSecondFactor } from "./twoFactor.ts";
 import { BANNED as LEDGER_BANNED, isClientSafeUrl } from "./workLedger.ts";
 import { workCounts } from "./workCounts.ts";
+import { scorePillars, portalPillars } from "./clientPillars.js";
 
 // Portal v2 (Nov 2026): + needs_you / brain / health on home; actions brain + brain_answer.
 // Client portal API. Every table is admin-only, so portal users never touch entities directly:
@@ -204,6 +205,9 @@ export async function portalHandler(req: Request): Promise<Response> {
         by("SiteAudit", "-run_at", 60).catch(() => []), by("SeoFix", "-updated_date", 500).catch(() => []), by("BrandKit", "-version", 20).catch(() => []),
       ]);
       const playbooks = await by("IndustryPlaybook", "-version", 20).catch(() => []);
+      // Pillars (client-friendly): scored from the Brain and system signals only; "still learning" when there's not enough.
+      const brainRow = ((await by("BusinessBrain", "-updated_date", 1).catch(() => [])) as Record<string, unknown>[])[0] || null;
+      const pillars = portalPillars(scorePillars({ brain: brainRow, automations: autos as any[], gaps: gaps as any[], requests: reqs as any[], work: work as any[] }));
       const msgs = await by("ConversationMessage", "-created_date", 200);
       // "Work we did": the work ledger's client-visible, finished rows, in client-safe team-voice copy only (never the
       // internal title, who or what did it, minutes, costs or evidence). Older WorkLog rows the ledger hasn't picked up
@@ -253,6 +257,7 @@ export async function portalHandler(req: Request): Promise<Response> {
         // Gaps titled "Internal: ..." are notes for the team and never reach the client, even if marked visible.
         gaps: gaps.filter(visible).filter((g: Record<string, unknown>) => !/^\s*internal\s*[:\-–]/i.test(String(g.title || ""))).map((g: Record<string, unknown>) => pick(g, ["id", "title", "area", "severity", "status", "recommendation", "impact"])),
         snapshots: snaps.map((s: Record<string, unknown>) => pick(s, ["id", "source", "period_start", "period_end", "metrics"])),
+        pillars,
         // Client to-dos: what we're working on, what's next and what we need from the client (Task.client_action).
         upcoming: tasks.filter((t: Record<string, unknown>) => t.portal_visible === true && t.status !== "done").map((t: Record<string, unknown>) => pick(t, ["id", "title", "due_date", "status", "client_action", "client_note"])),
         files: files.filter(visible).map((f: Record<string, unknown>) => pick(f, ["id", "title", "category", "file_url", "link_url", "description", "delivered_on"])),
