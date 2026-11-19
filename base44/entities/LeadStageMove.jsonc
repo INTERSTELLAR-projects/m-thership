@@ -1,0 +1,25 @@
+{
+  "name": "LeadStageMove",
+  "description": "Every pipeline stage move of a lead: who, when, from → to and why. Moves by Claude or an automation are tagged auto and can be undone.",
+  "type": "object",
+  "properties": {
+    "client_id": { "type": "string" },
+    "client_name": { "type": "string" },
+    "from_stage": { "type": "string" },
+    "to_stage": { "type": "string" },
+    "by": { "type": "string", "description": "Email of the person, 'claude', 'assistant' or 'automation:<trigger>'" },
+    "auto": { "type": "boolean", "default": false },
+    "source": { "type": "string", "enum": ["drag", "dropdown", "next", "dialog", "assistant", "claude", "direct", "automation"] },
+    "reason": { "type": "string" },
+    "at": { "type": "string", "format": "date-time" },
+    "undone_at": { "type": "string", "format": "date-time" },
+    "undone_by": { "type": "string" }
+  },
+  "required": ["client_id", "to_stage"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

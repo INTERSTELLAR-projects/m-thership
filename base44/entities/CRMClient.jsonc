@@ -196,6 +196,28 @@
       },
       "type": "array"
     },
+    "pipeline_stage_by": {
+      "description": "Who made the last stage move: a person's email, 'claude', 'assistant' or 'automation:<trigger>'. Set together with pipeline_stage when Claude or an automation moves a lead.",
+      "type": "string"
+    },
+    "pipeline_stage_reason": {
+      "description": "Why the last stage move happened (shown in the move log as 'Moved by Claude: <reason>')",
+      "type": "string"
+    },
+    "pipeline_stage_logged": {
+      "description": "The stage the move log last recorded. A direct edit of pipeline_stage that differs is picked up and logged by the 'Leads — log stage changes' workflow.",
+      "type": "string"
+    },
+    "deal_one_time": {
+      "description": "Deal value, one-time part (build/project price): {amount, status: quoted|invoiced|partly_paid|paid, paid_amount, source: manual|stripe, stripe_invoice_id, label}",
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "deal_monthly": {
+      "description": "Deal value, monthly plan: {plan: hypercare|gravitycare|none, amount, start: now|build_done|date, start_date}. Committed, not in Stripe yet, until the Stripe subscription exists; then Stripe wins.",
+      "additionalProperties": true,
+      "type": "object"
+    },
     "pipeline_stage": {
       "type": "string",
       "enum": [
