@@ -4,17 +4,21 @@ import { ChevronDown, Orbit, Plus, Check } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useBrands } from "./useHouseData";
 import { brandTheme, rootOf, childBrands } from "./graph";
+import { useBrandFilter } from "./brandFilter";
 
 export default function BrandSwitcher() {
   const { data: brands = [] } = useBrands();
   const location = useLocation();
   const navigate = useNavigate();
+  const [filter, setFilter] = useBrandFilter();
   const root = rootOf(brands);
   const list = [...(root ? [root] : []), ...childBrands(brands, root)];
   const m = location.pathname.match(/^\/brands\/([^/]+)/);
   const current = (m && list.find((b) => b.slug === decodeURIComponent(m[1]))) || root;
-  const color = current ? brandTheme(current).primary : "#ff3c00";
-  const label = current ? current.name.replace(/\s+Strategies$/i, "") : "Interstellar";
+  const filtered = filter !== "all" ? list.find((b) => b.id === filter) : null;
+  const shown = m ? current : filtered || current;
+  const color = shown ? brandTheme(shown).primary : "#ff3c00";
+  const label = (shown ? shown.name.replace(/\s+Strategies$/i, "") : "Interstellar") + (filtered && !m ? " only" : "");
 
   return (
     <DropdownMenu>
@@ -39,6 +43,13 @@ export default function BrandSwitcher() {
           );
         })}
         <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-[10px] font-normal uppercase tracking-[.14em] text-ink/45">Filter Møthership to</DropdownMenuLabel>
+        <DropdownMenuItem onSelect={() => setFilter("all")} className="cursor-pointer gap-2.5" data-testid="brand-filter-all"><span className="min-w-0 flex-1 text-[13px]">All brands</span>{filter === "all" ? <Check className="h-3.5 w-3.5 text-[#ff3c00]" /> : null}</DropdownMenuItem>
+        {list.map((b) => (
+          <DropdownMenuItem key={`f-${b.id}`} onSelect={() => setFilter(b.id)} className="cursor-pointer gap-2.5"><span className="min-w-0 flex-1 truncate text-[13px]">{b.name} only</span>{filter === b.id ? <Check className="h-3.5 w-3.5 text-[#ff3c00]" /> : null}</DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => navigate("/brands?view=numbers")} className="cursor-pointer gap-2.5">Brand numbers</DropdownMenuItem>
         <DropdownMenuItem onSelect={() => navigate("/brands")} className="cursor-pointer gap-2.5"><Orbit className="h-3.5 w-3.5 text-[#ff3c00]" />House of Brands</DropdownMenuItem>
         <DropdownMenuItem onSelect={() => navigate("/brands?add=1")} className="cursor-pointer gap-2.5"><Plus className="h-3.5 w-3.5" />Add brand</DropdownMenuItem>
       </DropdownMenuContent>

@@ -12,6 +12,7 @@ import { Spinner } from "@/features/agents/ui";
 import { buildHouse, orientEdges, themeVars, STATUS_LABEL, BRAIN_COLOR, TEMPLATE_COLOR, ROOT_ID } from "./graph";
 import { useHouseData } from "./useHouseData";
 import AddBrandDialog from "./AddBrandDialog";
+import BrandNumbers from "./BrandNumbers";
 
 export const templateAppUrl = (id) => (id ? `https://app.base44.com/apps/${id}/editor/preview` : null);
 
@@ -168,6 +169,8 @@ export default function BrandsPage() {
   const [hover, setHover] = useState(null);
   const [params, setParams] = useSearchParams();
   const adding = params.get("add") === "1";
+  const numbers = params.get("view") === "numbers";
+  const setNumbers = (on) => { const next = new URLSearchParams(params); if (on) next.set("view", "numbers"); else next.delete("view"); setParams(next, { replace: true }); };
   const setAdding = (on) => { const next = new URLSearchParams(params); if (on) next.set("add", "1"); else next.delete("add"); setParams(next, { replace: true }); };
   const leaveT = useRef(0);
 
@@ -299,6 +302,7 @@ export default function BrandsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <button type="button" className="btn-d" onClick={() => setNumbers(!numbers)} data-testid="brand-numbers-toggle">{numbers ? "Map" : "Numbers"}</button>
             <Link to={`/brands/${rootSlug}`} className="btn-d"><LayoutGrid className="h-3.5 w-3.5" />Dashboards</Link>
             <button type="button" className="btn-d" onClick={() => setAdding(true)} data-testid="add-brand-button"><Plus className="h-3.5 w-3.5" />Add brand</button>
           </div>
@@ -311,7 +315,8 @@ export default function BrandsPage() {
         </div>
       </header>
 
-      <div ref={stageRef} className="shp-stage relative min-h-0 flex-1">
+      {numbers ? <div className="min-h-0 flex-1 overflow-y-auto"><BrandNumbers /></div> : null}
+      <div ref={stageRef} className={`shp-stage relative min-h-0 flex-1${numbers ? " hidden" : ""}`}>
         <FlowCanvas ref={canvasApi} anchors={anchors} edges={flowEdges} scrollRef={scrollRef} mode={mode} lit={null} focusIds={focusIds} hoverEdge={null} reduced={reduced} density={density} />
         <div ref={scrollRef} className="shp-scroll absolute inset-0 overflow-y-auto overflow-x-hidden">
           <div ref={contentRef} className="relative" style={{ "--stage-h": `${stageH}px` }}>
