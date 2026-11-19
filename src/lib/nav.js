@@ -154,7 +154,6 @@ export const MORE_HUB = {
     { label: "Training", icon: GraduationCap, path: "/training", hint: "Training tracks and assignments for new hires" },
     { label: "Signatures", icon: PenLine, path: "/signatures", hint: "Email signatures for the team and clients" },
     { label: "QR codes", icon: QrCode, path: "/qr", hint: "Branded QR codes and their scans" },
-    { label: "Interstellar Codes", icon: QrCode, path: "/qr?tab=codes-app", hint: "interstellarcodes.com: users, codes, scans and SEO status" },
     { label: "SMPL. Studio", icon: Wand2, path: "/studios/smpl", arch: "SOON", hint: "SMPL. studio (coming soon)" },
     { label: "Chrome Workspace", icon: Chrome, path: "/tools/chrome-workspace", hint: "Browser workspace setup" },
   ].map((t) => ({ ...t, key: t.path })),
