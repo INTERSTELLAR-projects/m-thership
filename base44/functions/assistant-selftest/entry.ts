@@ -34,6 +34,8 @@ async function cleanup(db: any) {
   const out: Record<string, number> = {};
   const del = async (entity: string, rows: any[]) => { for (const r of rows) { await db[entity].delete(r.id).catch(() => null); out[entity] = (out[entity] || 0) + 1; } };
   for (const c of leads) {
+    const jobs = (await db.ClaudeJob.filter({ client_id: c.id }, "-created_date", 100).catch(() => [])) || [];
+    for (const j of jobs) await del("AgentAuditLog", (await db.AgentAuditLog.filter({ record_id: j.id }, "-at", 20).catch(() => [])) || []);
     for (const e of ["BusinessBrain", "ClaudeJob", "LeadStageMove", "PrepChecklist", "Task", "BrainFact"]) await del(e, (await db[e].filter({ client_id: c.id }, "-created_date", 100).catch(() => [])) || []);
     await del("AgentAuditLog", (await db.AgentAuditLog.filter({ record_id: c.id }, "-at", 100).catch(() => [])) || []);
     await del("CRMClient", [c]);
