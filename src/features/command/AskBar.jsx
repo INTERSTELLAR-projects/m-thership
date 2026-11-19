@@ -1,6 +1,6 @@
 import { IS_PRESENTING } from "@/lib/presentation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { ArrowUp, Volume2, VolumeX, X, Check, Inbox, Lightbulb } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { tipFor, hiddenTips, hideTip, hideAllTips } from "./tips";
@@ -18,6 +18,7 @@ const isTyping = (el) => el && (el.tagName === "INPUT" || el.tagName === "TEXTAR
 export default function AskBar() {
   const { user } = useAuth();
   const loc = useLocation();
+  const navigate = useNavigate();
   const [text, setText] = useState("");
   const [turns, setTurns] = useState([]);
   const [open, setOpen] = useState(false);
@@ -38,7 +39,8 @@ export default function AskBar() {
     setBusy(true);
     try {
       const r = await ask(user, q);
-      setTurns((t) => [...t, { who: "agent", text: r.reply, done: r.done || [], proposed: r.proposed || [], offline: r.offline }]);
+      setTurns((t) => [...t, { who: "agent", text: r.reply, done: r.done || [], proposed: r.proposed || [], offline: r.offline, link: r.open || null }]);
+      if (r.open?.path && /^(open|go to|take me to|show me)\b/i.test(q)) navigate(r.open.path);
       if (voiceOn) speak(r.speak || r.reply);
       if (r.replanned) window.dispatchEvent(new Event("command:refresh"));
       if ((r.proposed || []).length || (r.done || []).length) window.dispatchEvent(new Event("command:actions"));
@@ -46,7 +48,7 @@ export default function AskBar() {
       setTurns((t) => [...t, { who: "agent", text: `I couldn't do that: ${errMsg(e)}`, error: true }]);
     }
     setBusy(false);
-  }, [text, busy, user, voiceOn]);
+  }, [text, busy, user, voiceOn, navigate]);
 
   // Tap the mic to start, tap again to stop. What you said stays in the box for you to check and send.
   const dict = useDictation({ onStop: (t) => { setText(t); setTimeout(() => inputRef.current?.focus(), 30); } });
@@ -86,6 +88,7 @@ export default function AskBar() {
                 <div key={k} className={t.who === "you" ? "text-right" : ""}>
                   <p className={`inline-block max-w-[92%] px-3 py-2 text-left text-[14px] leading-snug ${t.who === "you" ? "bg-ink text-white" : t.error ? "bg-[#ff3c00]/10 text-ink" : "bg-white text-ink"}`}>{t.text}</p>
                   {t.done?.map((d, j) => <p key={`d${j}`} className="mt-1 flex items-center gap-1.5 text-[12px] text-[#1f8a5b]"><Check className="h-3 w-3" />{d.label}</p>)}
+                  {t.link?.path ? <Link to={t.link.path} className="mt-1 inline-block text-[12px] text-[#d83300] hover:underline">Open {t.link.name} →</Link> : null}
                   {t.proposed?.length > 0 && <Link to="/" className="mt-1 inline-flex items-center gap-1.5 text-[12px] text-[#ff3c00]"><Inbox className="h-3 w-3" />{t.proposed.length} waiting for your OK in Needs you</Link>}
                   {t.offline && <p className="mt-1 text-[11px] text-ink/40">Answered offline from the records (AI unavailable).</p>}
                 </div>
