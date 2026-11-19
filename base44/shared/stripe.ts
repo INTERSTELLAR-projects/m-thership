@@ -1,11 +1,12 @@
 /*
  * Live subscription picture from Stripe, matched to CRM clients.
- *   subscriptions[]  every active/trialing/past_due subscription with its lines, customer and matched client
+ *   subscriptions[]  every live (active/trialing) subscription with its lines, customer and matched client
  *   month            revenue this month split: subscriptions (paid invoices with a subscription) vs other
  *   plans            HyperCare+ / GravïtyCare / other recurring: count + MRR
  * Matching: Stripe customer email ∈ CRMClient.emails, else customer name ≈ business name, else stripe_customer_id saved on the client.
  */
 const STRIPE_API = "https://api.stripe.com/v1";
+export const LIVE_STATUSES = ["active", "trialing"];
 const round = (n: number) => Math.round(n * 100) / 100;
 const norm = (s: string) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
@@ -76,7 +77,9 @@ export async function loadPicture(base44: any, key: string) {
   const [subs, clients] = await Promise.all([
     stripe("subscriptions", key, { status: "all", "expand[]": "data.customer" } as any).then((rows) =>
       // Stripe only allows one expand per key via URLSearchParams; items.price.product is fetched below
-      rows.filter((s: any) => ["active", "trialing", "past_due", "unpaid"].includes(s.status))
+      // Only live subscriptions count: active and trialing. Canceled, incomplete, incomplete_expired, past_due,
+      // unpaid and paused ones (including subscriptions replaced by a merge) never reach a client's lines or MRR.
+      rows.filter((s: any) => LIVE_STATUSES.includes(s.status))
     ),
     base44.asServiceRole.entities.CRMClient.list("business", 300)
   ]);
