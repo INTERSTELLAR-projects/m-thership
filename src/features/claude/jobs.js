@@ -16,18 +16,20 @@ import { isTopicCalendarJob, saveApprovedTopicCalendar } from "@/features/launch
 export const JOB_STATUS = {
   queued: { label: "Queued", tone: "bg-ink/[0.07] text-ink/70" },
   running: { label: "Claude working", tone: "bg-[#ff6a00]/15 text-[#c24100]" },
+  needs_review: { label: "Needs review", tone: "bg-[#ff3c00] text-white" },
   needs_approval: { label: "Needs your OK", tone: "bg-[#ff3c00] text-white" },
   changes_requested: { label: "Redo queued", tone: "bg-amber-100 text-amber-800" },
   approved: { label: "Approved", tone: "bg-green-100 text-green-800" },
+  done: { label: "Done", tone: "bg-green-100 text-green-800" },
   failed: { label: "Failed", tone: "bg-red-100 text-red-700" },
   cancelled: { label: "Cancelled", tone: "bg-ink/[0.05] text-ink/45" },
 };
 
-export const ACTIVE = ["queued", "running", "needs_approval", "changes_requested"];
+export const ACTIVE = ["queued", "running", "needs_review", "needs_approval", "changes_requested"];
 
 export const KIND_LABELS = {
   task: "Task", audit: "Business audit", build_website: "Website build", build_app: "App build", blog: "Blog",
-  gbp_post: "GBP post", report: "Report", brand: "Brand", email: "Email draft", research: "Research", presentation: "Presentation", playbook: "Industry playbook", content_plan: "Content plan", social_plan: "Social plan", enrich_profile: "Profile enrichment", map_pack_plan: "Map pack plan", topic_calendar: "Topic calendar", other: "Other",
+  gbp_post: "GBP post", report: "Report", brand: "Brand", email: "Email draft", research: "Research", presentation: "Presentation", playbook: "Industry playbook", content_plan: "Content plan", social_plan: "Social plan", enrich_profile: "Profile enrichment", map_pack_plan: "Map pack plan", topic_calendar: "Topic calendar", lead_build: "Lead build", checklist_item: "Checklist item", command: "Command", other: "Other",
 };
 
 export function guessKind(text = "") {

@@ -14,10 +14,10 @@ import { isEnrichJob } from "@/features/clients/enrich";
 import { useViewMode } from "@/features/claude/simple";
 
 const TABS = [
-  { key: "review", label: "Needs your OK", match: ["needs_approval"] },
+  { key: "review", label: "Needs your OK", match: ["needs_approval", "needs_review"] },
   { key: "working", label: "Queued & working", match: ["queued", "running", "changes_requested"] },
   { key: "failed", label: "Failed", match: ["failed"] },
-  { key: "done", label: "Approved", match: ["approved", "cancelled"] },
+  { key: "done", label: "Done", match: ["approved", "done", "cancelled"] },
 ];
 
 function StatusChip({ status }) {
