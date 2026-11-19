@@ -13,8 +13,8 @@ export const LOGO_URL =
 
 // One source of truth for the sidebar, the hub tab bar (src/components/HubTabs.jsx) and the ⌘K palette.
 //
-// Seven hubs, top to bottom in the order of Justin's day:
-//   Today → Clients → Work → Marketing → Sales → Money → Agents, then More and Settings at the foot.
+// Three screens first (Command, Clients, Claude), then More (Work, Marketing, Sales, Money, Agents and Tools) and
+// Settings at the foot.
 // Each hub is one page with tabs. A tab is still its own route, so every URL keeps working; the hub just
 // gathers related pages under one tab bar with a one-line purpose ("hint") for the open tab.
 //
