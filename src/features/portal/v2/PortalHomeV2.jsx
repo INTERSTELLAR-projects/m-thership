@@ -11,6 +11,7 @@ import { fmtDate } from "@/lib/useData";
 import { analyze } from "@/features/financing/schedule";
 import NovaBar from "./NovaBar";
 import Launcher from "./Launcher";
+import PortalTodos from "./PortalTodos";
 import { inPeriod, pacificToday } from "./portalMap";
 
 const CAT = {
@@ -340,6 +341,8 @@ export default function PortalHomeV2({ d, groups, go, call, refresh, preview, on
         <WorkBand items={Array.isArray(d.work_feed) ? d.work_feed : []} counts={d.work_counts} business={d.client.business} />
         <NeedsBand needs={d.needs_you} brain={d.brain} call={call} go={go} refresh={refresh} preview={preview} />
       </div>
+
+      <PortalTodos items={Array.isArray(d.upcoming) ? d.upcoming : []} business={d.client.business} />
 
       <HealthBand d={d} go={go} />
 

@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, X, Users, FolderKanban, CornerDownLeft, Sparkles, RefreshCw, Zap, Brain, Headphones, Orbit, Sun, LayoutDashboard, ListPlus, Receipt, Mail, Rocket, Presentation } from "lucide-react";
+import { Search, X, Users, FolderKanban, CornerDownLeft, Sparkles, RefreshCw, Zap, Brain, Headphones, Orbit, Sun, LayoutDashboard, ListPlus, Receipt, Mail, Rocket, Presentation, HelpCircle, PanelTop } from "lucide-react";
 import { IS_PRESENTING, togglePresentation } from "@/lib/presentation";
 import { base44 } from "@/api/base44Client";
 import { ALL_NAV } from "@/lib/nav";
+import { SUB_TABS, CLIENT_TABS, openNavGuide } from "@/lib/navGuide";
 import { usePins } from "@/components/navPrefs";
 
 // ⌘K / "Jump to…" palette: pages, clients and projects in one list.
@@ -23,6 +24,7 @@ const ACTIONS = [
   { key: "a:task", label: "New task…", hint: "Say or type it", icon: ListPlus, run: () => askWith("Add task: ") },
   { key: "a:email", label: "Draft an email…", hint: "Waits for your OK before sending", icon: Mail, run: () => askWith("Draft an email to ") },
   { key: "a:expense", label: "Log an expense…", hint: "Waits for your OK", icon: Receipt, run: () => askWith("Log an expense: ") },
+  { key: "a:guide", label: "Where is everything? (page guide)", hint: "Every page and tab, one line each", icon: HelpCircle, run: openNavGuide },
   { key: "a:brain", label: "Teach the Brain", hint: "G B", icon: Brain, path: "/brain" },
   { key: "a:pillars", label: "Pillars compass", hint: "G P", icon: Orbit, path: "/pillars" },
   { key: "a:walk", label: "Walk mode", hint: "G W · hands-free brief", icon: Headphones, path: "/walk" },
@@ -70,6 +72,11 @@ export default function CommandPalette({ open, onClose }) {
     const pages = ALL_NAV.filter((c) => match(c.label) || match(c.group)).map((c) => ({
       key: "p:" + c.key, group: "Pages", label: c.label, hint: c.group, icon: c.icon, path: c.path,
     }));
+    // Tabs and sub-tabs inside pages ("Email templates", "Stripe", "Client · Billing"), only when searching.
+    const seen = new Set(pages.map((p) => p.path));
+    const tabs = q ? [...SUB_TABS, ...CLIENT_TABS].filter((t) => !seen.has(t.path) || t.clientTab).filter((t) => match(t.label) || match(t.parent) || match(t.hint)).slice(0, 10).map((t) => ({
+      key: "t:" + t.path + t.label, group: "Tabs", label: t.label, hint: t.parent, icon: PanelTop, path: t.path,
+    })) : [];
     if (!q) {
       const pin = pinned.map((c) => ({ key: "pin:" + c.key, group: "Pinned", label: c.label, hint: c.group, icon: c.icon, path: c.path }));
       return [...ACTIONS.slice(0, 3), ...pin, ...pages.filter((p) => !pinned.some((c) => "p:" + c.key === p.key)), ...ACTIONS.slice(3)];
@@ -88,7 +95,7 @@ export default function CommandPalette({ open, onClose }) {
         key: "j:" + p.id, group: "Projects", label: p.name || p.title || "Project",
         hint: p.client_name || "", icon: FolderKanban, path: "/projects/" + p.id,
       }));
-    const found = [...actions, ...pages, ...clients, ...projects];
+    const found = [...actions, ...pages, ...tabs, ...clients, ...projects];
     return found.length ? [...found, ...askItem] : askItem;
   }, [query, records, pins]);
 

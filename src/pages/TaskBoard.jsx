@@ -381,6 +381,7 @@ function TaskBoardInner() {
               onStatus={(task, status) => updateTask(task, statusPatch(status))}
               onFocus={(task) => updateTask(task, { is_focus: !task.is_focus })}
               onDelete={removeTask}
+              onComplete={complete}
               onPatch={(task, patch) => patchLocal(task.id, patch)}
             />
           )}

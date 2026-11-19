@@ -5,6 +5,7 @@ import Sidebar from "./Sidebar";
 import TimeZoneBar from "./TimeZoneBar";
 import HubTabs from "./HubTabs";
 import CommandPalette from "./CommandPalette";
+import NavGuide, { NavGuideButton } from "./NavGuide";
 import GridTrail from "./GridTrail";
 import BrandLockup from "@/components/brand/BrandLockup";
 import AccountingNotices from "@/features/accounting/AccountingNotices";
@@ -61,6 +62,7 @@ export default function Layout() {
         <Link to="/" aria-label="Møthership Command, Today"><BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={16} /></Link>
         <div className="flex items-center">
           <PresentationButton />
+          <NavGuideButton />
           <button onClick={() => setCmdOpen(true)} className="flex items-center gap-2 p-2 text-ink/60 hover:text-ink" aria-label="Search pages, clients and actions">
             <Search className="h-4 w-4" />
             <kbd className="hidden font-mono text-[10px] text-ink/40 md:inline">⌘K</kbd>
@@ -81,6 +83,7 @@ export default function Layout() {
         </div>
       </main>
       <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} />
+      <NavGuide />
       <ErrorBoundary compact where="ask bar"><AskBar /></ErrorBoundary>
       <ErrorBoundary compact where="accounting notices"><AccountingNotices /></ErrorBoundary>
     </div>

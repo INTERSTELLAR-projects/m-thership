@@ -15,7 +15,9 @@ export default function PreviewPane({ doc, recipients, kind, portalUrl, previewK
   const live = recipients.filter((r) => r.email && !r.excluded);
   const current = live.find((r) => r.key === previewKey) || null;
   const vars = current ? current.vars : previewKey === "sample" ? { first_name: "Justin", contact_name: "Justin Cowell", business: "Interstellar Strategies", email: "justin@interstellar-strategies.com", website: "https://interstellar-strategies.com", portal_url: portalUrl } : null;
-  const html = useMemo(() => renderEmail(doc, { vars, unsubscribeUrl: kind === "mass" ? PREVIEW_UNSUB : "" }), [doc, vars, kind]);
+  // A client recipient's preview shows the co-branded header (Interstellar × their logo), like the real send.
+  const clientLogo = current && current.source === "client" ? current.logo || "" : "";
+  const html = useMemo(() => renderEmail(doc, { vars, unsubscribeUrl: kind === "mass" ? PREVIEW_UNSUB : "", clientLogo, clientName: current ? current.name : "" }), [doc, vars, kind, clientLogo, current]);
   const subject = renderSubject(doc, vars);
   const missing = current ? missingMerge(doc, current.vars) : [];
 

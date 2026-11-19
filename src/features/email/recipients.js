@@ -40,7 +40,7 @@ const fromClient = (c, portalUrl, overrides) => {
   const options = clientEmails(c);
   const chosen = normEmail(overrides && overrides[c.id]);
   const email = options.includes(chosen) ? chosen : options[0] || "";
-  return { key: `c:${c.id}`, source: "client", client_id: c.id, name: c.business, email, options, vars: clientVars(c, portalUrl, email) };
+  return { key: `c:${c.id}`, source: "client", client_id: c.id, name: c.business, email, options, vars: clientVars(c, portalUrl, email), logo: c.logo_url || "" };
 };
 const fromSub = (s, portalUrl) => ({ key: `s:${s.id}`, source: "subscriber", subscriber_id: s.id, name: s.name || s.email, email: normEmail(s.email), options: [], vars: subscriberVars(s, portalUrl), status: s.status });
 const fromAddress = (e, portalUrl) => ({ key: `m:${e}`, source: "manual", name: e, email: e, options: [], vars: { email: e, portal_url: portalUrl } });

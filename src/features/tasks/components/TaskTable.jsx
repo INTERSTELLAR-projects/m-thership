@@ -1,5 +1,5 @@
 import React from "react";
-import { CornerDownRight, Pencil, Search, Trash2, Zap } from "lucide-react";
+import { Check, CornerDownRight, Eye, Pencil, Search, Trash2, Zap } from "lucide-react";
 import PriorityBadge from "@/features/tasks/ui-kit/PriorityBadge";
 import CategoryChip from "@/features/tasks/ui-kit/CategoryChip";
 import TimerButton from "@/features/tasks/components/TimerButton";
@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 const COLS = "lg:grid-cols-[28px_minmax(0,1fr)_150px_104px_64px_118px_92px_150px_120px]";
 
-export default function TaskTable({ tasks = [], onEdit, onStatus, onFocus, onDelete, onPatch, emptyHint }) {
+export default function TaskTable({ tasks = [], onEdit, onStatus, onFocus, onDelete, onPatch, onComplete, emptyHint }) {
   if (!tasks.length) {
     return <EmptyState icon={Search} title="Nothing in this slice" hint={emptyHint || "Adjust the filters or speak a new task into the core."} />;
   }
@@ -49,8 +49,14 @@ export default function TaskTable({ tasks = [], onEdit, onStatus, onFocus, onDel
 
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
+                  {onComplete && task.status !== "done" ? (
+                    <button type="button" onClick={() => onComplete(task)} title="Complete in one click" aria-label={`Complete ${task.title}`}
+                      className="grid h-4 w-4 shrink-0 place-items-center rounded-sm border border-ink/25 text-transparent transition-colors hover:border-green-700 hover:text-green-700"><Check className="h-2.5 w-2.5" /></button>
+                  ) : null}
                   {task.parent_task_id ? <CornerDownRight className="h-3 w-3 shrink-0 text-ink/30" /> : null}
                   <p className={cn("truncate text-[13px]", task.status === "done" ? "text-ink/40 line-through" : "text-ink")}>{task.title}</p>
+                  {task.portal_visible ? <span title="Shown to the client in their portal" className="shrink-0 text-ink/35"><Eye className="h-3 w-3" /></span> : null}
+                  {task.client_action && task.status !== "done" ? <span className="shrink-0 rounded-sm bg-[#ff3c00]/10 px-1.5 py-[1px] text-[9.5px] font-medium text-[#c2410c]">Needs client</span> : null}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5 lg:hidden">
                   <CategoryChip value={task.category} />

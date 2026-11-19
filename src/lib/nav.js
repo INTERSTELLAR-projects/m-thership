@@ -120,6 +120,7 @@ export const HUBS = [
       { label: "Client usage", icon: Gauge, path: "/client-usage", hint: "Metered usage per client against their plan" },
       { label: "Fuel economics", icon: Fuel, path: "/fuel-economics", hint: "What the AI work costs per studio and plan" },
       { label: "Hiring plan", icon: UserPlus, path: "/growth/hiring", hint: "When revenue supports the next hire" },
+      { label: "Usage & cost", icon: Gauge, path: "/usage-cost", hint: "Claude plan, Base44 credits and email/text sending costs, with a scale calculator" },
     ],
   },
   {

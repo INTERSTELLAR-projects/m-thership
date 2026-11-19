@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, ArrowUpRight, CheckCircle2, XCircle, Pencil, ExternalLink, Play } from "lucide-react";
+import { Plus, ArrowUpRight, CheckCircle2, XCircle, Pencil, ExternalLink, Play, Eye } from "lucide-react";
+import { resolvePortalVisible } from "@/features/tasks/lib/clientVisibility";
 import { useClientRecords } from "./hooks";
 import { Panel, Empty, Btn, SmallBtn, Tag, Stat, FormDialog } from "./ui";
 import { WORK_KINDS, SERVICE_LABELS, fmtDate, timeAgo } from "@/lib/useData";
@@ -220,10 +221,12 @@ export function TasksTab({ client }) {
     { name: "due_date", label: "Due", type: "date" },
     { name: "remind_at", label: "Remind me", type: "datetime" },
     { name: "notes", label: "Notes", type: "textarea", rows: 3 },
-    { name: "portal_visible", label: "Client can see this", type: "checkbox", hint: "Show as upcoming work in their portal" },
+    { name: "portal_visible", label: "Show to client", type: "checkbox", hint: "Shows as a to-do in their portal (on for client work, off for internal)" },
+    { name: "client_action", label: "We need something from the client", type: "checkbox", hint: "Lists it under \"Needed from you\" in their portal" },
+    { name: "client_note", label: "What the client sees", type: "text" },
   ];
   const save = (v) => {
-    const data = { ...v, priority: v.priority ? Number(v.priority) : 3, completed_at: v.status === "done" ? new Date().toISOString() : null };
+    const data = { ...v, priority: v.priority ? Number(v.priority) : 3, completed_at: v.status === "done" ? new Date().toISOString() : null, portal_visible: resolvePortalVisible({ ...v, client_id: client.id }), client_action: !!v.client_action };
     if (edit?.id && v.status === "done" && edit.status !== "done") return settleTimer(edit).then(() => tasks.update(edit.id, data));
     return edit?.id ? tasks.update(edit.id, data) : tasks.create({ ...data, client_name: client.business, source: "manual" });
   };
@@ -239,18 +242,20 @@ export function TasksTab({ client }) {
           <SmallBtn active={!showDone} onClick={() => setShowDone(false)}>Open {tasks.rows.filter((t) => t.status !== "done").length}</SmallBtn>
           <SmallBtn active={showDone} onClick={() => setShowDone(true)}>Done {tasks.rows.filter((t) => t.status === "done").length}</SmallBtn>
         </div>
-        <Btn icon={Plus} onClick={() => setEdit({ status: "next", priority: 3, category: "ops" })}>Add task</Btn>
+        <Btn icon={Plus} onClick={() => setEdit({ status: "next", priority: 3, category: "ops", portal_visible: true })}>Add task</Btn>
       </div>
       <Panel>
         {rows.length === 0 ? <Empty>No {showDone ? "completed" : "open"} tasks for this client.</Empty> : (
           <ul className="divide-y divide-hair">
             {rows.map((t) => (
               <li key={t.id} className="group flex items-center gap-3 px-4 py-2.5">
-                <button onClick={() => toggle(t)} className={`flex h-4 w-4 shrink-0 items-center justify-center border ${t.status === "done" ? "border-[#ff3c00] bg-[#ff3c00] text-white" : "border-ink/40 hover:border-[#ff3c00]"}`}>
+                <button onClick={() => toggle(t)} aria-label={t.status === "done" ? `Reopen ${t.title}` : `Complete ${t.title}`} title={t.status === "done" ? "Reopen" : "Complete in one click"} className={`flex h-5 w-5 shrink-0 items-center justify-center border ${t.status === "done" ? "border-[#ff3c00] bg-[#ff3c00] text-white" : "border-ink/40 hover:border-[#ff3c00]"}`}>
                   {t.status === "done" && <CheckCircle2 className="h-3 w-3" />}
                 </button>
                 <span className="mono-label w-6 text-[9.5px] text-ink/50">{PRI[t.priority] || "P2"}</span>
                 <span className={`min-w-0 flex-1 truncate text-[13.5px] ${t.status === "done" ? "text-ink/45 line-through" : "font-medium"}`}>{t.title}</span>
+                {t.client_action && t.status !== "done" && <Tag tone="flame">Needs client</Tag>}
+                {t.portal_visible ? <span title="Shown to the client in their portal" className="inline-flex"><Eye className="h-3.5 w-3.5 text-ink/40" /></span> : null}
                 {t.status === "blocked" && <Tag tone="red">Blocked</Tag>}
                 {t.status === "doing" && <Tag tone="flame">Doing</Tag>}
                 <span className="font-mono text-[10.5px] text-ink/45">{t.due_date ? fmtDate(t.due_date) : ""}</span>

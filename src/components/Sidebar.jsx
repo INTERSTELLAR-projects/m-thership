@@ -1,6 +1,7 @@
+import { openNavGuide } from "@/lib/navGuide";
 import { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LogOut, Search, X, Pin, PinOff, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { LogOut, Search, X, Pin, PinOff, PanelLeftClose, PanelLeftOpen, HelpCircle } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { HUBS, MORE_HUB, SETTINGS_ITEM, ALL_NAV, activeKey, hubFor } from "@/lib/nav";
@@ -140,15 +141,17 @@ export default function Sidebar({ onOpenCommand, open, onClose, pinned = false, 
       </div>
 
       {/* Quick navigate */}
-      <div className="border-b border-hair p-3">
+      <div className="flex gap-1.5 border-b border-hair p-3">
         <button
           onClick={onOpenCommand}
-          className="flex w-full items-center gap-2.5 border border-hair bg-paper px-3 py-2 text-xs text-ink/50 transition-colors hover:border-ink/40 hover:text-ink"
+          className="flex min-w-0 flex-1 items-center gap-2.5 border border-hair bg-paper px-3 py-2 text-xs text-ink/50 transition-colors hover:border-ink/40 hover:text-ink"
         >
           <Search className="h-3.5 w-3.5" />
           <span className="truncate">Jump to page or client</span>
           <kbd className="ml-auto font-mono text-[10px] text-ink/40">⌘K</kbd>
         </button>
+        <button type="button" onClick={() => { if (onClose) onClose(); openNavGuide(); }} aria-label="Where is everything? Page guide" title="Where is everything?"
+          className="grid w-9 shrink-0 place-items-center border border-hair bg-paper text-ink/50 transition-colors hover:border-ink/40 hover:text-ink"><HelpCircle className="h-3.5 w-3.5" /></button>
       </div>
 
       <nav className="flex-1 overflow-y-auto overscroll-contain pb-3" aria-label="Møthership">

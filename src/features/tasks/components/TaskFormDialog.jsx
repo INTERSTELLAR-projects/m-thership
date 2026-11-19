@@ -8,6 +8,7 @@ import { base44 } from "@/api/base44Client";
 import Field from "@/features/tasks/ui-kit/Field";
 import RollButton from "@/features/tasks/ui-kit/RollButton";
 import { CATEGORIES, PRIORITIES, TASK_STATUSES, TASK_TYPES } from "@/features/tasks/lib/constants";
+import { defaultPortalVisible } from "@/features/tasks/lib/clientVisibility";
 import {
   btnDanger,
   btnGhost,
@@ -34,7 +35,11 @@ const EMPTY = {
   labels: "",
   notes: "",
   is_focus: false,
-  parent_task_id: ""
+  parent_task_id: "",
+  // null = follow the default (ON for client-facing work, OFF for internal); a boolean = Justin's explicit choice.
+  portal_visible: null,
+  client_action: false,
+  client_note: ""
 };
 
 const NONE = "__none__";
@@ -56,7 +61,10 @@ export default function TaskFormDialog({ open, onOpenChange, projects = [], clie
         ...splitMinutes(itemMinutes(initial)),
         labels: Array.isArray(initial.labels) ? initial.labels.join(", ") : "",
         notes: initial.notes || "",
-        parent_task_id: initial.parent_task_id || ""
+        parent_task_id: initial.parent_task_id || "",
+        portal_visible: typeof initial.portal_visible === "boolean" ? initial.portal_visible : null,
+        client_action: !!initial.client_action,
+        client_note: initial.client_note || ""
       });
     } else {
       const project = projects.find((p) => p.id === lockProject);
@@ -102,7 +110,10 @@ export default function TaskFormDialog({ open, onOpenChange, projects = [], clie
       labels: form.labels ? form.labels.split(",").map((l) => l.trim()).filter(Boolean) : [],
       notes: form.notes || null,
       is_focus: !!form.is_focus,
-      parent_task_id: form.parent_task_id || null
+      parent_task_id: form.parent_task_id || null,
+      portal_visible: typeof form.portal_visible === "boolean" ? form.portal_visible : defaultPortalVisible({ ...form, client_id: clientId }),
+      client_action: !!form.client_action,
+      client_note: form.client_note || null
     };
     const wasDone = initial && initial.status === "done";
     if (form.status === "done" && !wasDone) {
@@ -288,6 +299,26 @@ export default function TaskFormDialog({ open, onOpenChange, projects = [], clie
           <Field label="Notes">
             <textarea value={form.notes || ""} onChange={(e) => set("notes", e.target.value)} className={textareaClass} placeholder="Anything the core should know" />
           </Field>
+
+          {form.client_id || (form.project_id && (projects.find((p) => p.id === form.project_id) || {}).client_id) ? (
+            <div className="space-y-2 rounded-md border border-hair bg-card px-3 py-2.5" data-testid="task-client-visibility">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[12.5px] text-ink">Show to client</p>
+                  <p className="text-[11px] text-ink/45">Appears as a to-do in their portal. On by default for client work, off for internal tasks.</p>
+                </div>
+                <Switch checked={typeof form.portal_visible === "boolean" ? form.portal_visible : defaultPortalVisible({ ...form, client_id: form.client_id || (projects.find((p) => p.id === form.project_id) || {}).client_id })} onCheckedChange={(v) => set("portal_visible", v)} />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[12.5px] text-ink">We need something from the client</p>
+                  <p className="text-[11px] text-ink/45">Lists it under "Needed from you" in their portal.</p>
+                </div>
+                <Switch checked={!!form.client_action} onCheckedChange={(v) => set("client_action", v)} />
+              </div>
+              <input value={form.client_note || ""} onChange={(e) => set("client_note", e.target.value)} placeholder="What the client sees (one line, optional)" className={inputClass} />
+            </div>
+          ) : null}
 
           <div className="flex items-center justify-between rounded-md border border-hair bg-card px-3 py-2.5">
             <div>

@@ -9,6 +9,8 @@ import { Mono, scoreTone, PILLAR_COLOR } from "./ui";
 import { PILLARS } from "./engine";
 import { getBrief, interrupt, listActions, recentAudit, undo, errMsg } from "./api";
 import LaunchWeekCard from "@/features/launchweek/LaunchWeekCard";
+import { PrepBoard } from "@/features/prep/PrepChecklist";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 function Skeleton() {
   return (
@@ -132,6 +134,7 @@ export default function CommandHome() {
         </nav>
       </div>
       <LaunchWeekCard />
+      <div className="mt-4"><ErrorBoundary compact where="client prep"><PrepBoard /></ErrorBoundary></div>
       {state.loading && !brief ? <Skeleton /> : (
         <div className="space-y-4">
           {brief ? (

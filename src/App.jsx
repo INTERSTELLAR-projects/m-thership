@@ -61,6 +61,7 @@ import FuelEconomicsPage from '@/features/fuel/FuelEconomicsPage';
 import UpgradeStorePage from '@/features/addons/UpgradeStorePage';
 import AgentsPage from '@/features/agents/AgentsPage';
 import UniversePage from '@/features/universe/UniversePage';
+import UsageCostPage from '@/features/usage/UsageCostPage';
 import PlaybooksPage from '@/features/playbooks/PlaybooksPage';
 import SystemsPage from '@/features/systems/SystemsPage';
 import ContentPipelinePage from '@/features/content/ContentPipelinePage';
@@ -172,6 +173,7 @@ const AuthenticatedApp = () => {
         <Route path="/agents" element={<ProtectedRoute><AgentsPage /></ProtectedRoute>} />
         {/* Universe: Claude -> Møthership -> brands -> clients -> departments -> agents, one zoomable tree. */}
         <Route path="/universe" element={<ProtectedRoute><UniversePage /></ProtectedRoute>} />
+        <Route path="/usage-cost" element={<ProtectedRoute><UsageCostPage /></ProtectedRoute>} />
         <Route path="/playbooks" element={<ProtectedRoute><PlaybooksPage /></ProtectedRoute>} />
         <Route path="/systems" element={<ProtectedRoute><SystemsPage /></ProtectedRoute>} />
         <Route path="/launch" element={<ProtectedRoute><LaunchPage /></ProtectedRoute>} />

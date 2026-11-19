@@ -218,7 +218,7 @@ function build() {
     ["Brand Arsenal handover: Cedar Hollow Roofing", "design", "next", active[3]], ["Launch Grid: 18 listings for Ironclad HVAC", "content", "doing", active[5]], ["Rebuild quote flow in Tidewater's system", "development", "blocked", active[7]],
     ["Monthly reports: 154 clients", "content", "next", null], ["Chrome Workspace install for Copperline", "ops", "next", active[6]], ["AI Email Agent rollout: Granite Peak", "ops", "next", active[8]],
   ];
-  tt.forEach(([title, category, status, c], i) => tasks.push({ id: `k${i + 1}`, title, category, status, client_id: c?.id, client_name: c?.business || "Interstellar", priority: (i % 3) + 1, due_date: ahead(i % 7 - 1), is_focus: i < 2, source: i % 3 === 0 ? "ai" : "manual", portal_visible: c === c1, estimated_hours: ri(1, 8), logged_hours: ri(0, 6), task_type: c ? "billable" : "internal", project_name: c ? `${c.business} build` : undefined }));
+  tt.forEach(([title, category, status, c], i) => tasks.push({ id: `k${i + 1}`, title, category, status, client_id: c?.id, client_name: c?.business || "Interstellar", priority: (i % 3) + 1, due_date: ahead(i % 7 - 1), is_focus: i < 2, source: i % 3 === 0 ? "ai" : "manual", portal_visible: c === c1, client_action: c === c1 && /^Approve/.test(title), client_note: c === c1 && /^Approve/.test(title) ? "Give the posts a thumbs-up in Messages and they go live Friday." : undefined, estimated_hours: ri(1, 8), logged_hours: ri(0, 6), task_type: c ? "billable" : "internal", project_name: c ? `${c.business} build` : undefined }));
   for (let i = 0; i < 26; i++) { const c = active[ri(3, 60)]; tasks.push({ id: `kd${i}`, title: pick(["Publish blog", "GBP post", "Schema fix", "Speed pass", "Review replies", "Citation cleanup", "Service-area page", "Social batch approved"]) + ` · ${c.business}`, category: pick(["content", "development", "marketing", "ops"]), status: "done", client_id: c.id, client_name: c.business, completed_at: agoTs(ri(0, 6)), due_date: ago(ri(0, 6)), priority: 2, source: "automation", logged_hours: ri(1, 3) }); }
   E.Task = tasks;
   E.ToDoItem = tasks.slice(0, 8).map((t, i) => ({ id: `td${i}`, title: t.title, taskType: "Other Task", category: i < 4 ? "Priority" : "NextUp", status: t.status === "done" ? "Completed" : "Pending", done: false, assignedTo: t.client_name, dueDate: t.due_date }));
@@ -441,6 +441,7 @@ function build() {
 
   addUniverse(E, clients, active, { CT, CTD, KIND, brainSec });
   addBusyWork(E, active);
+  addPrepAndUsage(E, active, c1);
   return { E, stripeRev, stripeSubs, c1 };
 }
 
@@ -521,6 +522,34 @@ function addUniverse(E, clients, active, { CT, CTD, KIND, brainSec }) {
 // (with owners, agents, due dates and blocked reasons), a project the tasks belong to, recurring patterns and a filled
 // profile, all timestamped relative to now so the board always looks current. Invented names only.
 // ---------------------------------------------------------------------------------------------
+// Sample-only: client to-dos for the demo portal, new client prep checklists and Usage & cost meter readings.
+function addPrepAndUsage(E, active, c1) {
+  E.Task.push(
+    { id: "kc1", title: "Send 6 job-site photos for the portfolio page", category: "content", status: "next", client_id: c1.id, client_name: c1.business, priority: 2, due_date: ahead(3), portal_visible: true, client_action: true, client_note: "Phone photos are fine. Drop them in Messages.", task_type: "billable" },
+    { id: "kc2", title: "Fleet tracker: confirm the vehicle list", category: "development", status: "next", client_id: c1.id, client_name: c1.business, priority: 2, due_date: ahead(6), portal_visible: true, client_action: true, client_note: "We drafted it from your invoices; tick what's right.", task_type: "billable" },
+    { id: "kc3", title: "Service-area pages for Eagle and Kuna", category: "content", status: "next", client_id: c1.id, client_name: c1.business, priority: 3, due_date: ahead(9), portal_visible: true, task_type: "billable" },
+  );
+  const doneKeys = (n) => ["research", "spec_site", "spec_cmd", "demo_videos", "invite_email", "call_structure", "closing_film", "call", "audit_video", "quote", "invoice", "thanks_email", "process_call", "build", "launch"].slice(0, n);
+  const prep = (c, n, i) => ({ id: `prep${i}`, client_id: c.id, client_name: c.business, title: `New client prep · ${c.business}`, status: "active", started_at: agoTs(n + 2),
+    steps: ["research", "spec_site", "spec_cmd", "demo_videos", "invite_email", "call_structure", "closing_film", "call", "audit_video", "quote", "invoice", "thanks_email", "process_call", "build", "launch"].map((key) => ({ key, done: doneKeys(n).includes(key), done_at: doneKeys(n).includes(key) ? agoTs(1) : null })) });
+  E.PrepChecklist = [prep(active[2], 10, 1), prep(active[9], 4, 2), prep(active[14], 1, 3)];
+  // Claude plan readings across this week (reset Monday 00:00), Base44 credits and the default rates.
+  const now = Date.now();
+  const d = new Date(now); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  const weekStart = d.getTime();
+  const hours = Math.max(6, (now - weekStart) / 36e5);
+  const reset = new Date(weekStart + 7 * 864e5).toISOString();
+  const claude = [0.18, 0.36, 0.55, 0.72, 0.9, 1].map((f, i) => ({ id: `um${i}`, kind: "claude", pct_used: Math.round(f * hours * 0.62), reset_at: reset, plan: "Max 20x", recorded_at: new Date(weekStart + f * hours * 36e5 - 60e3).toISOString() }));
+  const past = [1, 2, 3].map((w) => ({ id: `umh${w}`, kind: "claude", pct_used: [78, 91, 64][w - 1], reset_at: new Date(weekStart - (w - 1) * 7 * 864e5).toISOString(), plan: "Max 20x", recorded_at: new Date(weekStart - (w - 1) * 7 * 864e5 - 3 * 36e5).toISOString() }));
+  E.UsageMeter = [...claude, ...past,
+    { id: "umb1", kind: "base44", used: 6120, limit: 10000, pct_used: 61.2, unit: "message credits", recorded_at: agoTs(1) },
+    { id: "umb2", kind: "base44", used: 41200, limit: 100000, pct_used: 41.2, unit: "integration credits", recorded_at: agoTs(1) },
+    { id: "umb3", kind: "base44", used: 4380, limit: 10000, pct_used: 43.8, unit: "message credits", recorded_at: agoTs(8) },
+  ];
+  const month = new Date().toISOString().slice(0, 7);
+  E.UsageLedger = [...(E.UsageLedger || []), ...active.slice(0, 12).map((c, i) => ({ id: `ulm${i}`, kind: "marketing_email", client_id: c.id, client_name: c.business, month, units: [18400, 9200, 6100, 4800, 3900, 3300, 2600, 2100, 1700, 1200, 900, 400][i] }))];
+}
+
 function addBusyWork(E, active) {
   const coach = E.CRMClient.filter((c) => c.brand_id === "b_podium");
   const ink = E.CRMClient.filter((c) => c.brand_id === "b_nightjar");
@@ -576,6 +605,7 @@ function addBusyWork(E, active) {
         project_id: proj.id, project_name: proj.title, due_date: status === "done" ? ago(0) : ahead(due + (ci % 3)), is_focus: ci < 4 && k === 0,
         owner_name: TEAM[(ci + k) % TEAM.length], agent_name: agent, source: k % 3 === 0 ? "ai" : k % 3 === 1 ? "automation" : "manual",
         blocked_reason: status === "blocked" ? blk[2] || reason : undefined,
+        client_action: status === "blocked" || /^Approve/.test(title), client_note: status === "blocked" ? blk[2] : /^Approve/.test(title) ? "Give these a quick look and tap approve in your portal." : undefined,
         completed_at: status === "done" ? doneTs(Math.min(0.9, ((hoursAgo || 2) / 30) + (ci % 4) * 0.05)) : undefined,
         estimated_hours: 1 + (k % 4), logged_hours: status === "done" ? 1 + (k % 3) : k % 2, task_type: "billable", portal_visible: true, created_date: nowTs(24 * (2 + (k % 5))),
       });

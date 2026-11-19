@@ -31,6 +31,7 @@ import { ClientUsageCard } from "@/features/usage/ClientUsagePage";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ClientCallsTab from "@/features/calls/ClientCallsTab";
 import EngineChecklist from "@/features/launch/EngineChecklist";
+import { PrepStrip } from "@/features/prep/PrepChecklist";
 import { useBrands } from "@/features/brands/useHouseData";
 import { brandFieldOptions } from "@/features/brands/graph";
 
@@ -153,6 +154,8 @@ export default function ClientCockpit() {
         </div>
         <p className="hidden text-[12.5px] text-ink/45 lg:block">{section.hint}</p>
       </div>
+
+      <div className="px-5 pt-4 md:px-8"><ErrorBoundary compact where="client prep"><PrepStrip client={client} /></ErrorBoundary></div>
 
       <div key={tab} className="page-enter px-5 pt-4 md:px-8">
         {tab === "agents" && <ErrorBoundary where="client agents"><ClientAgentsView client={client} go={go} /></ErrorBoundary>}

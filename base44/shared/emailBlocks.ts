@@ -274,6 +274,17 @@ function statsTable(b, v) {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #2c2c2c;"><tr>${items.map((x, i) => stat({ ...x, value: fillMerge(x.value, v), label: fillMerge(x.label, v) }, w, i === items.length - 1)).join("")}</tr></table>`;
 }
 
+// Co-brand: "×" + the client's current website logo (round, thin border). Only when a logo is on file; otherwise the
+// header stays Interstellar's lockup alone.
+function clientMark(ctx) {
+  const src = safeUrl(ctx.clientLogo || "");
+  if (!src || !/^https:\/\//i.test(src)) return "";
+  const alt = esc(ctx.clientName || "Client logo");
+  return `
+        <td style="vertical-align:middle;padding:0 14px;${F}font-size:18px;color:#6b6b6b;">&times;</td>
+        <td style="vertical-align:middle;"><img src="${esc(src)}" width="40" height="40" alt="${alt}" style="display:block;width:40px;height:40px;border:1px solid #444444;border-radius:50%;object-fit:cover;"></td>`;
+}
+
 // The dark header band: lockup + date, kicker, headline (orange second line), intro, stats.
 function headerBand(blocks, ctx) {
   const v = ctx.vars;
@@ -285,7 +296,7 @@ function headerBand(blocks, ctx) {
     <td style="vertical-align:middle;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
         <td style="vertical-align:middle;padding-right:12px;"><img src="${LOGO}" width="40" alt="Interstellar Strategies" style="display:block;width:40px;height:auto;border:0;"></td>
-        <td style="vertical-align:middle;${F}font-size:18px;letter-spacing:-0.5px;font-weight:bold;color:#f5f3f0;">INTERSTELLAR${REG}</td>
+        <td style="vertical-align:middle;${F}font-size:18px;letter-spacing:-0.5px;font-weight:bold;color:#f5f3f0;">INTERSTELLAR${REG}</td>${clientMark(ctx)}
       </tr></table>
     </td>
     ${head.show_date === false ? "" : `<td align="right" style="vertical-align:middle;${M}font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.55);">${esc(String(ctx.date).toUpperCase())}</td>`}
@@ -482,13 +493,14 @@ function renderBlock(b, ctx, first) {
 const HEAD_TYPES = new Set(["hero", "intro", "stats"]);
 
 // doc = { subject, blocks }. opts.vars = merge values (null keeps {{tokens}} visible), opts.unsubscribeUrl adds the
-// unsubscribe line (mass / subscriber sends only), opts.date overrides the header date.
+// unsubscribe line (mass / subscriber sends only), opts.date overrides the header date, opts.clientLogo (+ clientName)
+// adds the client's logo to the header lockup.
 export function renderEmail(doc, opts = {}) {
   const vars = opts.vars === undefined ? null : opts.vars;
   const date = opts.date || new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/Los_Angeles" });
   const blocks = normalizeBlocks(doc && doc.blocks);
   const subject = fillMerge(doc && doc.subject, vars);
-  const ctx = { vars, date, section: 0 };
+  const ctx = { vars, date, section: 0, clientLogo: opts.clientLogo || "", clientName: opts.clientName || "" };
 
   let split = 1;
   const seen = new Set();
