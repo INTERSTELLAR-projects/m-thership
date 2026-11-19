@@ -56,7 +56,7 @@ export const HUBS = [
       { label: "Clients", icon: Users, path: "/crm", match: ["/clients"], hint: "Every client and lead; open one for its page: build checklist, Brain, launch grid, growth feed and requests" },
       { label: "Pipeline", icon: Target, path: "/pipeline", hint: "Leads from first contact to signed" },
       { label: "Requests", icon: ClipboardList, path: "/requests", hint: "What clients have asked for through their forms and portal" },
-      { label: "Onboarding", icon: Route, path: "/flight-plan", hint: "Flight Plan: every purchase, every stage, every SOP step until it is delivered" },
+      { label: "Service Process", icon: Route, path: "/flight-plan", hint: "One process per thing we sell: steps, owner, auto/manual, where, and where each client is" },
       { label: "Brands", icon: Orbit, path: "/brands", hint: "House of Brands: Interstellar, DIALD and future brands, their clients and brains flowing up" },
       { label: "Messages", icon: MessageSquare, path: "/comms", hint: "Client chats in one inbox" },
       { label: "Client posts", icon: Globe, path: "/client-posts", hint: "Projects and testimonials clients sent that went live on their websites, with Unpublish and Edit" },

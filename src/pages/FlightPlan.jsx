@@ -8,6 +8,7 @@ import { packagePath, packageByKey } from "@/features/packages/registry";
 import { DELIVERABLES } from "@/features/packages/deliverables";
 import { ADDONS, LANES, LOOSE_ENDS, SOP_TO_PACKAGE, STAGES, TIERS, scenarioPieces } from "@/features/flight/flightPlan";
 import { cn } from "@/lib/utils";
+import ServiceProcess from "@/features/flight/ServiceProcess";
 
 /* Flight Plan — one huge map of every purchase and everything that has to happen to deliver it.
    Columns are the ways a client can buy (top). Rows are the stages, top to bottom.
@@ -293,9 +294,11 @@ export default function FlightPlan() {
 
   return (
     <div className="min-h-screen">
-      <PageHeader breadcrumb="Command / Flight Plan" rightText="Every purchase · every stage · every SOP step" />
+      <PageHeader breadcrumb="Clients / Service Process" rightText="One process per thing we sell · who · auto or manual · where" />
 
       <div className="space-y-5 px-5 py-6 md:px-8">
+        <ServiceProcess />
+        <h2 className="pt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-ink/45">Full flight plan · every SOP step</h2>
         {/* Intro + legend */}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <p className="max-w-2xl text-[14px] leading-relaxed text-ink/70">
