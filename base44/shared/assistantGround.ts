@@ -147,7 +147,7 @@ const stageIn = (text: string) => {
   for (const [k, v] of pairs) if (new RegExp(`\\b(to|into|as)\\s+${k}\\b`).test(t)) return v;
   return null;
 };
-const GATE_ASK = /^(please\s+)?(publish|deploy|go live|push live|change (the )?dns|point (the )?domain|delete|remove|purge|refund|charge|invoice|bill|cancel (the |their )?(subscription|plan)|email|text|sms|send)\b/i;
+const GATE_ASK = /^(please\s+)?(publish|deploy|go live|push live|change (the )?dns|point (the )?domain|delete|remove|purge|refund|charge|invoice|bill|cancel (the |their )?(subscription|plan)|email|text|sms|send(?!\s+to\s+claude))\b/i;
 
 // ---------------------------------------------------------------- answers
 function clientSummary(c: any) {

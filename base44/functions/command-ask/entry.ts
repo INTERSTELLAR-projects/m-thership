@@ -2,6 +2,7 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import * as C from "../../shared/command.js";
 import { requireAdmin, audit, invokeJson, generateBrief } from "../../shared/commandServer.ts";
 import { systemsContext, systemsFallback } from "../../shared/systemsBrain.ts";
+import { loadGround, groundBlock, handleGrounded } from "../../shared/assistantGround.ts";
 
 // Møthership Command: the Ask bar. { text } -> { reply, speak, done[], proposed[], replanned }
 // One LLM call turns what Justin said into intents; code decides what runs and what waits for approval:
@@ -28,11 +29,18 @@ Deno.serve(async (req) => {
     const briefRows = await db.DailyBrief.filter({ date: s.today }, "-updated_date", 1).catch(() => []);
     const brief = (briefRows || [])[0] || null;
 
+    // Grounding (Build Engine round): live clients, Brain %, builds, Claude jobs, approvals by lane, requests,
+    // automation health, Stripe MRR, usage meters and the route map. Questions and actions it can answer from records
+    // alone are answered here, without the LLM, so nothing is guessed.
+    const g = await loadGround(db);
+    const det = await handleGrounded(base44, db, text, g, { by: user.email || "justin" }).catch((e) => ({ kind: "error", done: [], reply: `I couldn't do that: ${(e as Error).message}` }));
+    if (det) return Response.json({ reply: det.reply, speak: det.reply.slice(0, 400), done: det.done || [], proposed: [], replanned: false, open: (det as any).open || null, grounded: true, gated: !!(det as any).gated });
+
     // Systems brain: the keys / connections / systems facts that match the question (names and wiring only, no values).
     const sys = await systemsContext(db, text).catch(() => ({ block: "", keys: [] as any[], links: [] as any[] }));
 
     let out: any = null, llmOk = true;
-    try { out = await invokeJson(base44, C.askPrompt(text, s, scores, brief, s.facts) + sys.block, C.ASK_SCHEMA, 40000); } catch { out = null; }
+    try { out = await invokeJson(base44, C.askPrompt(text, s, scores, brief, s.facts) + groundBlock(g) + sys.block, C.ASK_SCHEMA, 40000); } catch { out = null; }
     if (!out || !Array.isArray(out.intents)) {
       llmOk = false;
       const intent = C.fallbackIntent(text);
