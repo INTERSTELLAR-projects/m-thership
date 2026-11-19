@@ -150,5 +150,12 @@ export async function syncFromStripe(base44: any, key: string) {
   const matchedMrr = Math.round(report.reduce((a, r) => a + (r.mrr || 0), 0) * 100) / 100;
   const unmatched = picture.subscriptions.filter((s: any) => !s.client).map((s: any) => ({ id: s.id, status: s.status, customer: s.customer, mrr: s.mrr, lines: s.lines.map((l: any) => l.name) }));
   const errors = report.filter((r) => r.error).map((r) => ({ client: r.client, error: r.error }));
+  // Last-sync status for the Clients page and for checking a run later (admin-only AppSettings row).
+  const status = { at: now, subscriptions: picture.subscriptions.length, mrr: picture.mrr, matched_mrr: Math.round(report.reduce((a, r) => a + (r.mrr || 0), 0) * 100) / 100, clients: report.map((r) => ({ client: r.client, subscriptions: r.subscriptions.length, mrr: r.mrr, lines: r.subscriptions.map((x: any) => `${x.name} $${x.mrr}/mo`) })), unmatched: picture.subscriptions.filter((x: any) => !x.client).map((x: any) => ({ id: x.id, status: x.status, mrr: x.mrr, customer: x.customer?.name || x.customer?.id, lines: x.lines.map((l: any) => l.name) })), errors };
+  try {
+    const row = ((await db.AppSettings.filter({ key: "stripe_sync_status" }, "-updated_date", 1).catch(() => [])) || [])[0];
+    if (row) await db.AppSettings.update(row.id, { pageSettings: status });
+    else await db.AppSettings.create({ key: "stripe_sync_status", pageSettings: status });
+  } catch { /* status row is a convenience; the sync itself already ran */ }
   return { synced: report.length - errors.length, errors, synced_at: now, subscriptions: picture.subscriptions.length, mrr: picture.mrr, matched_mrr: matchedMrr, unmatched, report, plans: picture.plans };
 }
