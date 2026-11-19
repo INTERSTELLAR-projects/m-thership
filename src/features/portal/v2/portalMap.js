@@ -38,8 +38,6 @@ export const GROUPS = [
       { k: "studio_accounting", label: "Accounting & taxes", desc: "Books, receipts and quarterly taxes", icon: Calculator },
       { k: "studio_ads", label: "Ads", desc: "An ads agent that watches your spend", icon: BadgeDollarSign },
       { k: "studio_smpl", label: "SMPL. Studio", desc: "AI image, video and voice", icon: Sparkles, cobrand: true },
-      { k: "studio_hiring", label: "Hiring", desc: "When to hire, and who", icon: UserPlus },
-      { k: "studio_training", label: "Training", desc: "Train new people from your processes", icon: GraduationCap },
     ],
   },
   {
@@ -51,6 +49,8 @@ export const GROUPS = [
       { k: "qr", label: "QR codes", desc: "Branded codes you can re-point", icon: QrCode, bonus: true },
       { k: "playbook", label: "Your playbook", desc: "Your industry growth plan", icon: Compass },
       { k: "resources", label: "SOPs & guides", desc: "How your business runs, step by step", icon: BookOpen },
+      { k: "studio_hiring", label: "Hiring", desc: "When to hire, and who", icon: UserPlus },
+      { k: "studio_training", label: "Training", desc: "Train new people from your processes", icon: GraduationCap },
     ],
   },
   {
