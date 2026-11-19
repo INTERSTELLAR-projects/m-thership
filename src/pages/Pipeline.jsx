@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useDeepLinkFocus } from "@/lib/deepLink";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import Collapse from "@/components/Collapse";
 import { AlertTriangle, CalendarClock, CircleDollarSign, Inbox, Loader2, PhoneCall, Target, Trophy, UserPlus } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { base44 } from "@/api/base44Client";
@@ -77,7 +78,12 @@ function LeadCard({ c, onOpen, onMove, provided, dragging }) {
   );
 }
 
+// The leads board. Used full-page at /pipeline and embedded on the Clients page (embedded: stats collapsed, no page header).
 export default function Pipeline() {
+  return <PipelineBoard />;
+}
+
+export function PipelineBoard({ embedded = false }) {
   const [params, setParams] = useSearchParams();
   const clientsQ = useList("CRMClient", { sort: "-created_date", limit: 1000 });
   const invalidate = useInvalidate();
@@ -183,24 +189,33 @@ export default function Pipeline() {
     if (c) move(c, r.destination.droppableId);
   };
 
+  const statCards = (
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <StatCard icon={Inbox} label="Leads this month" value={stats.thisMonth} hint={stats.bySource.length ? stats.bySource.map(([l, n]) => `${l} ${n}`).join(" · ") : "None yet this month"} />
+      <StatCard icon={PhoneCall} label="Call-booked rate" value={pct(stats.booked, stats.total)} hint={`${stats.booked} of ${stats.total} leads booked a call`} />
+      <StatCard icon={Trophy} label="Close rate" value={pct(stats.won, stats.won + stats.lost)} hint={stats.won + stats.lost ? `${stats.won} won · ${stats.lost} lost` : "No decided leads yet"} />
+      <StatCard icon={CircleDollarSign} label="Pipeline value" value={money(stats.value)} hint={stats.unvalued ? `${stats.unvalued} open lead${stats.unvalued === 1 ? "" : "s"} with no value set` : "All open leads valued"} />
+      <StatCard icon={AlertTriangle} accent={stats.overdue ? "#dc2626" : "#ff3c00"} label="Overdue next steps" value={stats.overdue} hint={stats.overdue ? "Past due, still open" : "Nothing overdue"} />
+    </div>
+  );
+
   const sourceCounts = Object.fromEntries(SOURCES.map((s) => [s.key, board.filter((c) => sourceOf(c) === s.key).length]));
 
   return (
-    <div className="pb-16">
-      <PageHeader breadcrumb="Command / Pipeline" title="Leads /Pipeline" rightText={`${stats.open} open`}>
-        <button type="button" onClick={() => setNewOpen(true)} className={btnSmallFlame}><UserPlus className="h-3.5 w-3.5" /> New lead</button>
-      </PageHeader>
+    <div className={embedded ? "" : "pb-16"}>
+      {embedded ? null : (
+        <PageHeader breadcrumb="Command / Pipeline" title="Leads /Pipeline" rightText={`${stats.open} open`}>
+          <button type="button" onClick={() => setNewOpen(true)} className={btnSmallFlame}><UserPlus className="h-3.5 w-3.5" /> New lead</button>
+        </PageHeader>
+      )}
 
-      <div className="space-y-5 px-4 pt-6 md:px-8">
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-          <StatCard icon={Inbox} label="Leads this month" value={stats.thisMonth} hint={stats.bySource.length ? stats.bySource.map(([l, n]) => `${l} ${n}`).join(" · ") : "None yet this month"} />
-          <StatCard icon={PhoneCall} label="Call-booked rate" value={pct(stats.booked, stats.total)} hint={`${stats.booked} of ${stats.total} leads booked a call`} />
-          <StatCard icon={Trophy} label="Close rate" value={pct(stats.won, stats.won + stats.lost)} hint={stats.won + stats.lost ? `${stats.won} won · ${stats.lost} lost` : "No decided leads yet"} />
-          <StatCard icon={CircleDollarSign} label="Pipeline value" value={money(stats.value)} hint={stats.unvalued ? `${stats.unvalued} open lead${stats.unvalued === 1 ? "" : "s"} with no value set` : "All open leads valued"} />
-          <StatCard icon={AlertTriangle} accent={stats.overdue ? "#dc2626" : "#ff3c00"} label="Overdue next steps" value={stats.overdue} hint={stats.overdue ? "Past due, still open" : "Nothing overdue"} />
-        </div>
+      <div className={embedded ? "space-y-4" : "space-y-5 px-4 pt-6 md:px-8"}>
+        {embedded ? (
+          <Collapse id="pipeline-stats" label="Pipeline numbers" hint="Leads this month, booked and close rates, pipeline value" right={<span className="font-mono text-[10.5px] text-ink/45">{stats.open} open{stats.overdue ? ` · ${stats.overdue} overdue` : ""}</span>}>{statCards}</Collapse>
+        ) : statCards}
 
         <div className="flex flex-wrap items-center gap-1.5">
+          {embedded ? <button type="button" onClick={() => setNewOpen(true)} className={`${btnSmallFlame} order-last ml-auto`}><UserPlus className="h-3.5 w-3.5" /> New lead</button> : null}
           <span className="mono-label mr-1 text-[9.5px] text-ink/50">Source</span>
           <button type="button" onClick={() => setSource("all")} className={cn("rounded-sm border px-2.5 py-1 text-[12px]", source === "all" ? "border-ink bg-ink text-white" : "border-hair bg-card hover:border-ink/40")}>All <span className="font-mono text-[10px] opacity-60">{board.length}</span></button>
           {SOURCES.filter((s) => !s.archived || sourceCounts[s.key] || source === s.key).map((s) => (
@@ -221,7 +236,7 @@ export default function Pipeline() {
           />
         ) : (
           <DragDropContext onDragEnd={onDragEnd}>
-            <div className="-mx-4 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
+            <div className={embedded ? "overflow-x-auto pb-2" : "-mx-4 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8"}>
               <div className="grid min-w-max auto-cols-[272px] grid-flow-col gap-3">
                 {STAGES.map((s) => {
                   const list = filtered.filter((c) => stageOf(c) === s.key).sort((a, b) => (isOverdue(b) - isOverdue(a)) || String(b.stage_changed_at || b.created_date).localeCompare(String(a.stage_changed_at || a.created_date)));

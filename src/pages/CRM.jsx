@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { ArrowUpRight, Search, Plus, Phone, Mail, Globe, Building, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2, CheckCircle2, Link2, Unlink2 } from "lucide-react";
+import { Search, Plus, Phone, Mail, Globe, Building, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2, CheckCircle2, Link2, Unlink2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,9 @@ import { useRef } from "react";
 import StripeServicePicker from "@/features/clients/StripeServicePicker";
 import ClientAnalytics, { serviceKey, serviceLabel } from "@/features/clients/ClientAnalytics";
 import { useCompletenessMap } from "@/features/clients/hooks";
-import CompletenessBadge from "@/features/clients/CompletenessBadge";
+import { useList } from "@/lib/useData";
+import Collapse from "@/components/Collapse";
+import { PipelineBoard } from "@/pages/Pipeline";
 import { useBrands } from "@/features/brands/useHouseData";
 import { brandFieldOptions } from "@/features/brands/graph";
 
@@ -39,6 +41,10 @@ export default function CRM() {
   const [bundleName, setBundleName] = useState("");
   const [bundleSaving, setBundleSaving] = useState(false);
   const [serviceFilter, setServiceFilter] = useState(null); // service key picked in the analytics charts
+  const [deleting, setDeleting] = useState(null);
+  const [showAll, setShowAll] = useState(false);
+  const tasksQ = useList("Task", { sort: "due_date", limit: 1000 });
+  const openTasks = (tasksQ.data || []).filter((t) => !["done", "Completed", "cancelled"].includes(t.status));
 
   useEffect(() => {
     loadClients();
@@ -153,128 +159,149 @@ export default function CRM() {
   });
 
   const priceOf = (client) => (client.services || []).reduce((s, sv) => s + (Number(sv.price) || 0), 0);
-  const Logo = ({ client, size = "w-11 h-11" }) => (
-    <div className={`${size} bg-white border border-ink/[0.1] flex items-center justify-center shrink-0 overflow-hidden`}>
-      {client.logoUrl || client.logo_url ? (
-        <img src={client.logoUrl || client.logo_url} alt={client.business} className="w-full h-full object-contain p-1.5" />
-      ) : (
-        <span className="text-[#ff3c00] font-semibold text-[15px]">{client.business?.charAt(0)}</span>
-      )}
-    </div>
-  );
-  const Money = ({ total, sub }) => (
-    <div className="text-right shrink-0 border-l border-ink/[0.08] pl-5 min-w-[118px]">
-      <p className="text-[20px] font-semibold leading-none tracking-[-0.04em] tabular-nums text-ink">
-        ${total.toLocaleString("en-US")}<span className="ml-0.5 text-[12px] font-normal tracking-normal text-ink/45">/mo</span>
-      </p>
-      <p className="mono-label mt-1.5 text-[9.5px] text-ink/45">{sub}</p>
-    </div>
-  );
-  const Arrow = () => (
-    <span className="ml-1 flex h-9 w-9 shrink-0 items-center justify-center border border-ink/[0.12] text-ink/50 transition-all duration-300 group-hover:border-[#ff3c00] group-hover:bg-[#ff3c00] group-hover:text-white">
-      <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-    </span>
-  );
+  const todayIso = new Date().toISOString().slice(0, 10);
+  // Next action: the earliest open task, else the most useful setup gap. Honest: blank when there is nothing.
+  const nextAction = (c) => {
+    const t = openTasks.filter((x) => x.client_id === c.id).sort((x, y) => String(x.due_date || "9999").localeCompare(String(y.due_date || "9999")))[0];
+    if (t) return { text: t.title, when: t.due_date ? (t.due_date < todayIso ? "overdue" : t.due_date === todayIso ? "today" : t.due_date.slice(5)) : "", late: !!t.due_date && t.due_date < todayIso, tab: "tasks" };
+    const pct = completeness[c.id];
+    if (c.status === "Active" && typeof pct === "number" && pct < 60) return { text: "Fill in their profile", when: "", tab: "profile" };
+    if (c.status === "Active" && !c.portal_enabled) return { text: "Invite them to the portal", when: "", tab: "billing" };
+    return null;
+  };
 
   if (selectedClient) {
     return <ClientDetail client={selectedClient} onBack={() => setSelectedId(null)} onUpdate={updateClient} />;
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <PageHeader breadcrumb="Command / Clients" rightText="Customer Management" />
-      <div className="px-8 py-6 space-y-5">
-        {!loading && <ClientAnalytics clients={clients} serviceFilter={serviceFilter} onServiceFilter={setServiceFilter} />}
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/[0.38]" />
-            <Input placeholder="Search clients..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 bg-card border-ink/[0.13] text-ink placeholder:text-ink/[0.38] h-9" />
-          </div>
-          <div className="flex gap-1.5">
-            {statusFilters.map((f) => (
-              <button key={f} onClick={() => setStatusFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${statusFilter === f ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-orange-600 border border-orange-500/30" : "text-ink/[0.48] hover:text-ink/50 border border-transparent"}`}>{f}</button>
-            ))}
-          </div>
-          {serviceFilter && (
-            <button onClick={() => setServiceFilter(null)} className="inline-flex items-center gap-1.5 rounded-full border border-[#ff3c00]/40 bg-[#ff3c00]/[0.06] px-3 py-1.5 text-xs text-[#d83300]">
-              On {serviceLabel(clients.flatMap((c) => c.services || []).find((s) => serviceKey(s) === serviceFilter) || { name: serviceFilter })} <X className="w-3 h-3" />
-            </button>
-          )}
-          <Button onClick={() => setAddOpen(true)} className="bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-white font-semibold h-9 gap-2"><Plus className="w-4 h-4" />Add Client</Button>
+  const Row = ({ client, inPackage }) => {
+    const total = priceOf(client);
+    const pct = completeness[client.id];
+    const na = nextAction(client);
+    const tone = client.status === "Active" ? "bg-green-600" : client.status === "Lead" ? "bg-[#ff3c00]" : "bg-ink/30";
+    return (
+      <div className="crm-row group" data-client-row>
+        <button type="button" onClick={() => navigate(`/clients/${client.id}`)} className="crm-main flex min-w-0 items-center gap-3 text-left">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden border border-hair bg-white" style={{ borderRadius: 6 }}>
+            {client.logoUrl || client.logo_url ? <img src={client.logoUrl || client.logo_url} alt="" className="h-full w-full object-contain p-1" /> : <span className="text-[14px] font-semibold text-[#ff3c00]">{client.business?.charAt(0)}</span>}
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-[14.5px] font-semibold tracking-[-0.02em] text-ink group-hover:text-[#ff3c00]">{client.business}</span>
+            <span className="block truncate text-[12px] text-ink/50">{[client.contact, client.industry].filter(Boolean).join(" · ") || (client.emails || [])[0] || ""}</span>
+          </span>
+        </button>
+        <div className="crm-status min-w-0">
+          <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-ink/75"><i className={`h-1.5 w-1.5 rounded-full ${tone}`} />{client.status}{inPackage ? <span className="font-mono text-[9.5px] uppercase tracking-[.12em] text-[#ff3c00]">· pkg</span> : null}</span>
+          <span className="mt-0.5 block truncate text-[11.5px] text-ink/45">{client.plan || ((client.services || [])[0] || {}).name || "No plan set"}</span>
         </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 text-ink/[0.38] animate-spin" /></div>
-        ) : (
-          <div className="space-y-2">
-            {rows.map((row) => {
-              if (row.kind === "bundle") {
-                const total = row.members.reduce((s, m) => s + priceOf(m), 0);
-                // Only billable lines count — included/redundant $0 lines in the package aren't billed
-                const serviceCount = row.members.reduce((s, m) => s + (m.services || []).filter((sv) => (Number(sv.price) || 0) > 0).length, 0);
-                return (
-                  <div key={"bundle:" + row.name} className="w-full bg-card rounded-md border border-[#ff3c00]/40 overflow-hidden">
-                    <div className="flex items-center justify-between gap-4 px-4 py-2 border-b border-ink/[0.08] bg-[#ff3c00]/[0.04]">
-                      <p className="label-cross text-[10.5px] text-ink/70">(Package · {row.name} · {row.members.length} businesses · one deal)</p>
-                      <Money total={total} sub={`${serviceCount} ${serviceCount === 1 ? "service" : "services"} · billed together`} />
-                    </div>
-                    <div className="divide-y divide-ink/[0.08]">
-                      {row.members.map((client) => {
-                        const own = priceOf(client);
-                        return (
-                          <div key={client.id} className="card-hover flex items-center gap-5 p-4 group">
-                            <button onClick={() => navigate(`/clients/${client.id}`)} className="flex items-center gap-5 flex-1 text-left min-w-0">
-                              <Logo client={client} />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-3 mb-1">
-                                  <span className="text-ink/90 text-sm font-medium">{client.business}</span>
-                                  <span className="text-green-600/60 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-green-400/10 border border-green-500/20 rounded">{client.status}</span>
-                                  <span className="text-[#ff3c00] text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-[#ff3c00]/10 border border-[#ff3c00]/25 rounded">Package</span>
-                                  <CompletenessBadge pct={completeness[client.id]} />
-                                </div>
-                                <p className="text-ink/[0.48] text-xs">{client.contact} · {(client.emails || [])[0]}</p>
-                              </div>
-                              <div className="text-right shrink-0 pl-5 min-w-[118px]">
-                                <p className="mono-label text-[9.5px] text-ink/45">{own ? `carries $${own.toLocaleString("en-US")}/mo` : "included in package"}</p>
-                              </div>
-                              <Arrow />
-                            </button>
-                            <button onClick={() => navigate(`/email?client=${client.id}`)} title="Email client (Email Studio)" className="p-1.5 text-ink/[0.28] hover:text-[#ff3c00] opacity-0 group-hover:opacity-100 transition-all shrink-0"><Mail className="w-3.5 h-3.5" /></button>
-                            <button onClick={() => unbundle(client)} title="Remove from package" className="p-1.5 text-ink/[0.28] hover:text-[#ff3c00] opacity-0 group-hover:opacity-100 transition-all shrink-0"><Unlink2 className="w-3.5 h-3.5" /></button>
-                            <button onClick={() => deleteClient(client.id)} className="p-1.5 text-ink/[0.28] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              }
-              const client = row.client;
-              const total = priceOf(client);
-              return (
-                <div key={client.id} className="card-hover w-full bg-card rounded-md border border-ink/[0.13] p-4 flex items-center gap-5 group">
-                  <button onClick={() => navigate(`/clients/${client.id}`)} className="flex items-center gap-5 flex-1 text-left min-w-0">
-                    <Logo client={client} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="text-ink/90 text-sm font-medium">{client.business}</span>
-                        <span className="text-green-600/60 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-green-400/10 border border-green-500/20 rounded">{client.status}</span>
-                        <CompletenessBadge pct={completeness[client.id]} />
-                      </div>
-                      <p className="text-ink/[0.48] text-xs">{client.contact} · {(client.emails || [])[0]}</p>
-                    </div>
-                    <Money total={total} sub={`${(client.services || []).length} ${(client.services || []).length === 1 ? "service" : "services"}`} />
-                    <Arrow />
-                  </button>
-                  <button onClick={() => navigate(`/email?client=${client.id}`)} title="Email client (Email Studio)" className="p-1.5 text-ink/[0.28] hover:text-[#ff3c00] opacity-0 group-hover:opacity-100 transition-all shrink-0"><Mail className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => { setBundleFor(client); setBundleWith(""); setBundleName(""); }} title="Group into a package deal" className="p-1.5 text-ink/[0.28] hover:text-[#ff3c00] opacity-0 group-hover:opacity-100 transition-all shrink-0"><Link2 className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => deleteClient(client.id)} className="p-1.5 text-ink/[0.28] hover:text-red-600/60 opacity-0 group-hover:opacity-100 transition-all shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <div className="crm-health" title="Profile completeness (what the Brain knows)">
+          {typeof pct === "number" ? (
+            <>
+              <span className="flex items-baseline justify-between text-[11px] text-ink/50"><span>Profile</span><span className="font-mono tabular-nums text-ink/70">{pct}%</span></span>
+              <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-ink/[0.08]"><span className="block h-full rounded-full" style={{ width: `${pct}%`, background: pct >= 80 ? "linear-gradient(90deg,#ff3c00,#ffaa00)" : pct >= 50 ? "#ff6a00" : "#ff3c00" }} /></span>
+            </>
+          ) : <span className="text-[11px] text-ink/35">…</span>}
+        </div>
+        <button type="button" onClick={() => na && navigate(`/clients/${client.id}?tab=${na.tab}`)} className="crm-next min-w-0 text-left" disabled={!na}>
+          {na ? (
+            <>
+              <span className="block truncate text-[12.5px] text-ink/80 group-hover:text-ink">{na.text}</span>
+              {na.when ? <span className={`font-mono text-[10px] uppercase tracking-[.1em] ${na.late ? "text-red-600" : "text-ink/40"}`}>{na.when}</span> : null}
+            </>
+          ) : <span className="text-[12px] text-ink/35">Nothing due</span>}
+        </button>
+        <div className="crm-money text-right">
+          <span className="font-mono text-[13px] tabular-nums text-ink/80">{inPackage && !total ? "incl." : `$${total.toLocaleString("en-US")}`}</span>
+          <span className="block font-mono text-[9.5px] uppercase tracking-[.12em] text-ink/40">{inPackage && !total ? "in package" : "/ mo"}</span>
+        </div>
+        <div className="crm-actions flex items-center justify-end gap-0.5">
+          <button onClick={() => navigate(`/email?client=${client.id}`)} title="Email client (Email Studio)" aria-label={`Email ${client.business}`} className="p-2 text-ink/35 hover:text-[#ff3c00]"><Mail className="h-3.5 w-3.5" /></button>
+          {inPackage
+            ? <button onClick={() => unbundle(client)} title="Remove from package" aria-label="Remove from package" className="p-2 text-ink/35 hover:text-[#ff3c00]"><Unlink2 className="h-3.5 w-3.5" /></button>
+            : <button onClick={() => { setBundleFor(client); setBundleWith(""); setBundleName(""); }} title="Group into a package deal" aria-label="Group into a package deal" className="p-2 text-ink/35 hover:text-[#ff3c00]"><Link2 className="h-3.5 w-3.5" /></button>}
+          <button onClick={() => setDeleting(client)} title="Delete client" aria-label={`Delete ${client.business}`} className="p-2 text-ink/25 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></button>
+        </div>
       </div>
+    );
+  };
+
+  const counts = Object.fromEntries(statusFilters.map((f) => [f, f === "All" ? clients.length : clients.filter((c) => c.status === f).length]));
+
+  return (
+    <div className="min-h-screen pb-16">
+      <PageHeader breadcrumb="Command / Clients" title="Your /Clients" rightText={`${counts.Active || 0} active`}>
+        <button type="button" onClick={() => setAddOpen(true)} className="btn-roll is-flame"><span className="roll"><span>Add client</span><span>Add client</span></span><span className="box"><Plus className="h-3.5 w-3.5" /></span></button>
+      </PageHeader>
+      <div className="space-y-8 px-5 py-6 md:px-8">
+        <section aria-labelledby="crm-clients">
+          <div className="mb-3 flex flex-wrap items-center gap-3">
+            <p id="crm-clients" className="ms-kicker"><span className="num">01</span> Clients</p>
+            <div className="relative ml-auto w-full min-w-[180px] sm:w-64">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/35" />
+              <Input placeholder="Search clients" value={search} onChange={(e) => setSearch(e.target.value)} className="h-9 border-hair bg-card pl-9 text-ink placeholder:text-ink/35" aria-label="Search clients" />
+            </div>
+            <div className="seg-ms flex" role="tablist" aria-label="Filter by status">
+              {statusFilters.map((f) => (
+                <button key={f} type="button" role="tab" aria-selected={statusFilter === f} onClick={() => setStatusFilter(f)} className={statusFilter === f ? "on" : ""}>{f} <span className="font-mono text-[10px] opacity-60">{counts[f]}</span></button>
+              ))}
+            </div>
+            {serviceFilter && (
+              <button onClick={() => setServiceFilter(null)} className="inline-flex items-center gap-1.5 rounded-full border border-[#ff3c00]/40 bg-[#ff3c00]/[0.06] px-3 py-1.5 text-xs text-[#d83300]">
+                On {serviceLabel(clients.flatMap((c) => c.services || []).find((sv) => serviceKey(sv) === serviceFilter) || { name: serviceFilter })} <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-ink/35" /></div>
+          ) : (
+            <div className="overflow-hidden rounded-md border border-hair bg-card">
+              <div className="crm-row crm-head hidden lg:grid" aria-hidden="true">
+                <span>Client</span><span>Status · plan</span><span>Health</span><span>Next action</span><span className="text-right">Monthly</span><span />
+              </div>
+              {!rows.length ? <p className="px-4 py-10 text-center text-[13px] text-ink/45">{search ? `No clients match “${search}”.` : `No ${statusFilter === "All" ? "" : statusFilter.toLowerCase() + " "}clients yet.`}</p> : null}
+              {(search || showAll ? rows : rows.slice(0, 12)).map((row) => row.kind === "bundle" ? (
+                <div key={"bundle:" + row.name} className="border-t border-hair first:border-t-0">
+                  <div className="flex items-center justify-between gap-3 bg-[#ff3c00]/[0.04] px-4 py-2">
+                    <p className="ms-kicker !text-[9.5px]">Package · {row.name} · {row.members.length} businesses, one deal</p>
+                    <span className="font-mono text-[12px] tabular-nums text-ink/70">${row.members.reduce((t, m) => t + priceOf(m), 0).toLocaleString("en-US")} / mo</span>
+                  </div>
+                  {row.members.map((m) => <Row key={m.id} client={m} inPackage />)}
+                </div>
+              ) : <Row key={row.client.id} client={row.client} />)}
+              {!search && rows.length > 12 ? (
+                <button type="button" onClick={() => setShowAll((v) => !v)} className="flex w-full items-center justify-center gap-2 border-t border-hair px-4 py-3 text-[12.5px] font-medium text-ink/60 hover:bg-white hover:text-[#ff3c00]">
+                  {showAll ? "Show fewer" : `Show all ${rows.length}`}<span className="font-mono text-[10px] text-ink/35">{showAll ? "" : "· or search"}</span>
+                </button>
+              ) : null}
+            </div>
+          )}
+        </section>
+
+        <section aria-labelledby="crm-leads">
+          <div className="mb-3 flex flex-wrap items-baseline gap-3">
+            <p id="crm-leads" className="ms-kicker"><span className="num">02</span> Leads pipeline</p>
+            <span className="text-[12px] text-ink/45">Drag a lead to the next stage. Click one for details.</span>
+            <a href="/pipeline" className="ml-auto text-[12px] text-ink/50 hover:text-[#ff3c00]">Full-page board →</a>
+          </div>
+          <PipelineBoard embedded />
+        </section>
+
+        <Collapse id="crm-numbers" label="03 · Client numbers" hint="MRR, revenue by service, top clients" right={<a href="/financial" onClick={(e) => e.stopPropagation()} className="text-[12px] text-ink/50 hover:text-[#ff3c00]">Open Financial →</a>}>
+          {!loading && <ClientAnalytics clients={clients} serviceFilter={serviceFilter} onServiceFilter={setServiceFilter} />}
+        </Collapse>
+      </div>
+
+      <Dialog open={Boolean(deleting)} onOpenChange={(o) => { if (!o) setDeleting(null); }}>
+        <DialogContent className="bg-card border-hair text-ink">
+          <DialogHeader><DialogTitle className="text-ink">Delete {deleting?.business}?</DialogTitle></DialogHeader>
+          <p className="text-[13px] text-ink/60">This removes the client record. Their portal, tasks and history stop showing under a client.</p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDeleting(null)}>Cancel</Button>
+            <Button onClick={async () => { const c = deleting; setDeleting(null); await deleteClient(c.id); }} className="bg-red-600 text-white hover:bg-red-700">Delete</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={Boolean(bundleFor)} onOpenChange={(o) => { if (!o) setBundleFor(null); }}>
         <DialogContent className="bg-card border-ink/[0.13] text-ink">

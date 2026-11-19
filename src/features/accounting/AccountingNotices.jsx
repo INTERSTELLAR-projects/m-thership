@@ -13,6 +13,8 @@ export default function AccountingNotices() {
   const navigate = useNavigate();
   const location = useLocation();
   const [alert, setAlert] = useState(null);
+  // Starts as a small pill so it never covers a page or the Ask bar; one click opens the full reminder.
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     if (!user || user.role !== "admin" || !base44.entities.AccountingAlert) return undefined;
@@ -36,8 +38,17 @@ export default function AccountingNotices() {
   };
   const due = alert.due_date ? new Date(`${alert.due_date}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
 
+  if (!expanded) {
+    return (
+      <button type="button" onClick={() => setExpanded(true)} className="fixed right-3 top-[54px] z-50 flex h-8 max-w-[calc(100vw-24px)] items-center gap-2 rounded-full border border-ink bg-ink pl-2.5 pr-3 text-[12px] font-medium text-white shadow-[0_10px_24px_-14px_rgba(0,0,0,.6)]" aria-label={`Reminder: ${alert.title}`}>
+        <Bell className="h-3.5 w-3.5 shrink-0 text-[#ff6a00]" />
+        <span className="truncate">{alert.kind === "usage" ? "Fair use" : "Accounting"}{due && alert.kind !== "usage" ? ` · due ${due}` : ""}</span>
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#ff3c00] pm-live-dot" aria-hidden="true" />
+      </button>
+    );
+  }
   return (
-    <div className="fixed right-4 top-14 z-50 md:bottom-[88px] md:top-auto w-[min(360px,calc(100vw-32px))] overflow-hidden rounded-md border border-ink bg-ink text-white shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)]">
+    <div className="fixed right-3 top-[54px] z-50 w-[min(360px,calc(100vw-24px))] overflow-hidden rounded-md border border-ink bg-ink text-white shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)]">
       <div className="h-[3px] flame-bg" />
       <div className="flex items-start gap-3 p-4">
         <Bell className="mt-0.5 h-4 w-4 shrink-0 text-[#ff6a00]" />
@@ -53,7 +64,7 @@ export default function AccountingNotices() {
             <button onClick={hide} className="text-[11.5px] text-white/55 hover:text-white">Later</button>
           </div>
         </div>
-        <button onClick={hide} className="text-white/40 hover:text-white" aria-label="Close"><X className="h-4 w-4" /></button>
+        <button onClick={() => setExpanded(false)} className="text-white/40 hover:text-white" aria-label="Minimise"><X className="h-4 w-4" /></button>
       </div>
     </div>
   );

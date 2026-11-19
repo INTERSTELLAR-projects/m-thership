@@ -6,14 +6,70 @@ import { Check, ChevronDown } from "lucide-react";
 // The list comes from the portal function (`businesses`), which already limits it to the clients this
 // login may open; picking one only changes which client_id the portal sends, and the server re-checks it.
 
-function Mark({ b, size = 22 }) {
+// Logo tile: the client's current logo (CRMClient.logo_url, the one their website uses), or a monogram in their
+// brand color when no logo is on file.
+export function Mark({ b, size = 22 }) {
+  const [bad, setBad] = useState(false);
   const initials = String(b.business || "?").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
-  return b.logo_url ? (
-    <span className="flex shrink-0 items-center justify-center overflow-hidden rounded-[5px] border border-hair bg-white" style={{ width: size, height: size }}>
-      <img src={b.logo_url} alt="" className="h-full w-full object-contain p-[2px]" />
+  const r = size >= 30 ? 6 : 5;
+  return b.logo_url && !bad ? (
+    <span className="flex shrink-0 items-center justify-center overflow-hidden border border-hair bg-white" style={{ width: size, height: size, borderRadius: r }}>
+      <img src={b.logo_url} alt="" className="h-full w-full object-contain" style={{ padding: Math.max(2, Math.round(size / 10)) }} onError={() => setBad(true)} />
     </span>
   ) : (
-    <span className="flex shrink-0 items-center justify-center rounded-[5px] text-[9px] font-semibold text-white" style={{ width: size, height: size, background: b.accent || "#151515" }}>{initials}</span>
+    <span className="pm-dots relative flex shrink-0 items-center justify-center overflow-hidden font-semibold tracking-[-0.02em] text-white" style={{ width: size, height: size, borderRadius: r, background: b.accent || "#1a1a1a", fontSize: Math.max(9, Math.round(size * 0.38)) }}>{initials}</span>
+  );
+}
+
+// Portal header: the active business, front and centre (logo + name). Package owners get the switcher right on it.
+export function ClientHeaderBrand({ client, businesses = [], onSwitch }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const multi = businesses.length > 1 && !!onSwitch;
+  useEffect(() => {
+    if (!open) return undefined;
+    const off = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const esc = (e) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", off);
+    window.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("mousedown", off); window.removeEventListener("keydown", esc); };
+  }, [open]);
+  if (!client) return null;
+  const listed = businesses.find((x) => x.id === client.id) || {};
+  const b = { business: client.business, logo_url: client.logo_url || client.logoUrl || listed.logo_url || "", accent: client.accent || listed.accent || "" };
+  const inner = (
+    <>
+      <Mark b={b} size={36} />
+      <span className="min-w-0 text-left">
+        <span className="block truncate text-[15px] font-semibold leading-tight tracking-[-0.03em] sm:text-[17px]"><span className="sm:hidden">{short(b.business)}</span><span className="hidden sm:inline">{b.business}</span></span>
+        <span className="hidden font-mono text-[9px] uppercase tracking-[0.14em] text-ink/45 sm:block">{multi ? "Switch business" : "Client portal"}</span>
+      </span>
+      {multi ? <ChevronDown className={`h-4 w-4 shrink-0 text-ink/45 transition-transform ${open ? "rotate-180" : ""}`} /> : null}
+    </>
+  );
+  if (!multi) return <div className="flex min-w-0 flex-1 items-center gap-2.5 lg:flex-none" data-client-brand>{inner}</div>;
+  return (
+    <div ref={ref} className="relative min-w-0 flex-1 lg:flex-none" data-client-brand>
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-haspopup="listbox" aria-expanded={open} title="Switch business" className="flex min-w-0 max-w-[340px] items-center gap-2.5 rounded-md py-1 pr-2 transition-colors hover:bg-ink/[0.04]">{inner}</button>
+      {open && (
+        <div role="listbox" aria-label="Your businesses" className="absolute left-0 top-[calc(100%+8px)] z-40 w-[290px] overflow-hidden rounded-md border border-hair bg-card shadow-xl">
+          <div className="h-[3px] flame-bg" />
+          <p className="mono-label border-b border-hair px-3 py-2 text-[9.5px] text-ink/45">Your businesses</p>
+          <ul className="py-1">
+            {businesses.map((x) => (
+              <li key={x.id}>
+                <button type="button" role="option" aria-selected={x.id === client.id} onClick={() => { setOpen(false); if (x.id !== client.id) onSwitch(x.id); }} className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] hover:bg-paper">
+                  <Mark b={x} size={28} />
+                  <span className="min-w-0 flex-1 truncate font-medium">{x.business}</span>
+                  {x.portal_enabled === false && <span className="text-[10px] text-ink/40">portal off</span>}
+                  {x.id === client.id && <Check className="h-4 w-4 shrink-0 text-[#ff3c00]" />}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, ExternalLink, Eye, Mail, Rocket } from "lucide-react";
+import { ArrowLeft, ExternalLink, Eye, Mail, Rocket, MoreHorizontal, Send, Pencil } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import StartServiceDialog from "@/features/tasks/StartServiceDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -10,7 +11,8 @@ import { OverviewTab, WorkTab, TasksTab, RequestsTab, AutomationsTab } from "@/f
 import { PerformanceTab, GoalsTab, FilesTab, AuditTab, MessagesTab } from "@/features/clients/tabsGrowth";
 import { ServicesTab, NotesTab, DocumentsTab } from "@/pages/CRM";
 import ClientClaudeTab from "@/features/claude/ClientClaudeTab";
-import ConstellationsTab from "@/features/constellations/ConstellationsTab";
+import ClientAgentsView from "@/features/clients/ClientAgentsView";
+import BrainDossierTab from "@/features/clients/BrainDossierTab";
 import BrandKitTab from "@/features/clients/BrandKitTab";
 import PlaybookTab from "@/features/clients/PlaybookTab";
 import SocialPlanTab from "@/features/clients/SocialPlanTab";
@@ -32,10 +34,19 @@ import EngineChecklist from "@/features/launch/EngineChecklist";
 import { useBrands } from "@/features/brands/useHouseData";
 import { brandFieldOptions } from "@/features/brands/graph";
 
-const TABS = [
-  ["overview", "Overview"], ["constellations", "✧ Constellations"], ["claude", "✦ Claude"], ["calls", "Calls"], ["work", "Work"], ["tasks", "Tasks"], ["requests", "Requests"], ["automations", "Automations"],
-  ["performance", "Performance"], ["gbp", "Google Business"], ["mappack", "Map pack"], ["citations", "Citations & PR"], ["goals", "Goals & Gaps"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["social", "Social plan"], ["content", "Content plan"], ["resources", "Portal resources"], ["systems", "Systems"], ["files", "Files & Brand"], ["audit", "Intake Audit"], ["messages", "Messages"], ["billing", "Billing & Notes"],
+// Five sections instead of 23 tabs. Every old tab still exists (as a sub-tab) and every old ?tab= link still opens it.
+// Where each old tab now lives: Agents (agents, claude, automations) · Work (overview, tasks, requests, work, calls,
+// messages) · Growth (performance, goals, gbp, mappack, citations, content, social) · Brain & brand (profile, dossier,
+// brand, playbook, audit, files) · Setup & billing (billing, systems, resources).
+const SECTIONS = [
+  { key: "agents", label: "Agents", hint: "What is running for this client, wired to their Brain", tabs: [["agents", "Live view"], ["claude", "Claude jobs"], ["automations", "Automations"]] },
+  { key: "work", label: "Work", hint: "Summary, tasks, requests and conversations", tabs: [["overview", "Summary"], ["tasks", "Tasks"], ["requests", "Requests"], ["work", "Work log"], ["calls", "Calls"], ["messages", "Messages"]] },
+  { key: "growth", label: "Growth", hint: "Results, goals and the plans that drive them", tabs: [["performance", "Performance"], ["goals", "Goals & gaps"], ["gbp", "Google Business"], ["mappack", "Map pack"], ["citations", "Citations & PR"], ["content", "Content plan"], ["social", "Social plan"]] },
+  { key: "brain", label: "Brain & brand", hint: "What we know about them, and their brand", tabs: [["profile", "Profile"], ["dossier", "Dossier"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["audit", "Intake audit"], ["files", "Files"]] },
+  { key: "setup", label: "Setup & billing", hint: "Services, notes, systems and portal resources", tabs: [["billing", "Billing & notes"], ["systems", "Systems"], ["resources", "Portal resources"]] },
 ];
+const ALIAS = { constellations: "agents", "": "agents" };
+const sectionOf = (t) => SECTIONS.find((x) => x.tabs.some(([k]) => k === t)) || SECTIONS[0];
 
 const PROFILE_FIELDS = [
   { name: "business", label: "Business name", type: "text", required: true },
@@ -61,8 +72,10 @@ const PROFILE_FIELDS = [
 export default function ClientCockpit() {
   const { id } = useParams();
   const [params, setParams] = useSearchParams();
-  const tab = params.get("tab") || "overview";
-  const go = (t) => setParams(t === "overview" ? {} : { tab: t }, { replace: true });
+  const raw = params.get("tab") || "";
+  const tab = ALIAS[raw] || (SECTIONS.some((x) => x.tabs.some(([k]) => k === raw)) ? raw : "agents");
+  const section = sectionOf(tab);
+  const go = (t) => setParams(t === "agents" ? {} : { tab: t }, { replace: true });
   const { data: client, isLoading } = useRecord("CRMClient", id);
   const [editing, setEditing] = useState(false);
   const [inviting, setInviting] = useState(false);
@@ -114,25 +127,38 @@ export default function ClientCockpit() {
             </button>
             <Link to={emailClientPath(client.id)} className="btn-roll is-outline" title="Open Email Studio with this client as the recipient"><span className="roll"><span>Email client</span><span>Email client</span></span><span className="box"><Mail className="h-3.5 w-3.5" /></span></Link>
             <Link to={`/portal/${client.id}`} className="btn-roll is-ink"><span className="roll"><span>View their portal</span><span>View their portal</span></span><span className="box"><Eye className="h-3.5 w-3.5" /></span></Link>
-            <button onClick={invite} className="btn-roll is-outline" title="Send a portal login its secure invite and turn the portal on">
-              <span className="roll"><span>Invite to portal</span><span>Invite to portal</span></span>
-            </button>
-            <button onClick={() => setEditing(true)} className="btn-roll is-outline">
-              <span className="roll"><span>Edit client</span><span>Edit client</span></span>
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button type="button" className="flex h-10 w-10 items-center justify-center border border-hair bg-paper text-ink/65 transition-colors hover:border-[#ff3c00] hover:text-[#ff3c00]" style={{ borderRadius: 4 }} aria-label="More actions"><MoreHorizontal className="h-4 w-4" /></button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => setEditing(true)}><Pencil className="mr-2 h-3.5 w-3.5" />Edit client</DropdownMenuItem>
+                <DropdownMenuItem onClick={invite}><Send className="mr-2 h-3.5 w-3.5" />Invite to portal</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-        <ProfileMeter client={client} go={go} />
-        <nav className="no-scrollbar -mb-px mt-6 flex overflow-x-auto">
-          {TABS.map(([k, l]) => (
-            <button key={k} onClick={() => go(k)} className={`whitespace-nowrap border-b-2 px-3.5 py-2.5 text-[13px] font-medium transition-colors ${tab === k ? "border-[#ff3c00] text-ink" : "border-transparent text-ink/50 hover:text-ink"}`}>{l}</button>
+        <nav className="no-scrollbar -mb-px mt-6 flex overflow-x-auto" aria-label="Client sections">
+          {SECTIONS.map((x) => (
+            <button key={x.key} type="button" aria-current={section.key === x.key ? "page" : undefined} onClick={() => go(x.tabs[0][0])} className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-[14px] font-medium transition-colors ${section.key === x.key ? "border-[#ff3c00] text-ink" : "border-transparent text-ink/50 hover:text-ink"}`}>{x.label}</button>
           ))}
         </nav>
       </div>
 
-      <div key={tab} className="page-enter px-5 pt-6 md:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 md:px-8">
+        <div className="seg-ms no-scrollbar flex max-w-full overflow-x-auto" role="tablist" aria-label={`${section.label} views`}>
+          {section.tabs.map(([k, l]) => (
+            <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => go(k)} className={tab === k ? "on" : ""}>{l}</button>
+          ))}
+        </div>
+        <p className="hidden text-[12.5px] text-ink/45 lg:block">{section.hint}</p>
+      </div>
+
+      <div key={tab} className="page-enter px-5 pt-4 md:px-8">
+        {tab === "agents" && <ErrorBoundary where="client agents"><ClientAgentsView client={client} go={go} /></ErrorBoundary>}
+        {tab === "profile" && <ProfileMeter client={client} go={go} startOpen />}
+        {tab === "dossier" && <ErrorBoundary where="dossier"><BrainDossierTab client={client} /></ErrorBoundary>}
         {tab === "overview" && <><ErrorBoundary compact where="engine checklist"><EngineChecklist client={client} /></ErrorBoundary><OverviewTab client={client} onEdit={() => setEditing(true)} go={go} /><ErrorBoundary compact where="recent emails"><ClientRecentEmails client={client} /></ErrorBoundary><ErrorBoundary compact where="usage card"><ClientUsageCard client={client} /></ErrorBoundary></>}
-        {tab === "constellations" && <ConstellationsTab client={client} />}
         {tab === "claude" && <ClientClaudeTab client={client} />}
         {tab === "calls" && <ErrorBoundary compact where="calls"><ClientCallsTab client={client} /></ErrorBoundary>}
         {tab === "work" && <WorkTab client={client} />}

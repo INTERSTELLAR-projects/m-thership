@@ -59,14 +59,14 @@ function InlineEdit({ item, onSave, onCancel, go }) {
   );
 }
 
-export default function ProfileMeter({ client, go }) {
+export default function ProfileMeter({ client, go, startOpen = false }) {
   const qc = useQueryClient();
   const ctxQ = useQuery({ queryKey: ["clientContext", client.id], queryFn: () => loadClientContext(client.id), staleTime: 30_000 });
   const pendingQ = useQuery({ queryKey: ["clientContext", client.id, "pendingIntake"], queryFn: () => pendingProfileAnswers(client.id), staleTime: 30_000 });
   const { data: jobs = [] } = useJobs();
   const ctx = ctxQ.data;
   const ev = useMemo(() => (ctx ? evaluateCriteria(ctx) : null), [ctx]);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
   const [focus, setFocus] = useState(null); // output key whose blockers are highlighted
   const [editing, setEditing] = useState(null);
   const [busy, setBusy] = useState("");
@@ -88,7 +88,7 @@ export default function ProfileMeter({ client, go }) {
   const blockersOf = focus ? new Set((ev.outputs.find((o) => o.key === focus) || { blockers: [] }).blockers.map((b) => b.key)) : null;
 
   return (
-    <section className="mt-5 rounded-md border border-hair bg-card">
+    <section className={`${startOpen ? "" : "mt-5 "}rounded-md border border-hair bg-card`}>
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3">
         <div className="flex items-center gap-3">
           <div className="relative h-12 w-12 shrink-0">

@@ -32,7 +32,7 @@ import StudioPreview, { studioTabs, STUDIO_BY_TAB } from "@/features/portal/Port
 import { IS_DEMO } from "@/lib/qa";
 import TwoFactorChallenge from "@/features/security/TwoFactorChallenge";
 import { needsSecondFactor } from "@/features/security/api";
-import { BusinessDropdown, BusinessPills } from "@/features/portal/BusinessSwitcher";
+import { ClientHeaderBrand } from "@/features/portal/BusinessSwitcher";
 import { useFuel } from "@/features/fuel/useFuel";
 import { FuelBanner, RefuelModal } from "@/features/fuel/FuelPrompts";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -230,15 +230,13 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, brainOpen = 0, previe
       )}
       <header className="sticky top-0 z-20 border-b border-hair bg-canvas/90 backdrop-blur">
         <div className="mx-auto flex h-[64px] max-w-[1280px] items-center gap-3 px-4 md:px-8">
-          <button type="button" onClick={() => setTab && go("home")} className="flex min-w-0 shrink-0 items-center gap-3" aria-label="Home">
-            <BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={18} />
+          {/* Møthership mark | [client logo] [Client name]: the client side leads; the switcher sits on it for package owners. */}
+          <button type="button" onClick={() => setTab && go("home")} className="flex shrink-0 items-center" aria-label="Home">
+            <span className="sm:hidden"><BrandLockup word="" size={14} className="pm-mark-only" /></span>
+            <span className="hidden sm:inline-flex"><BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={13} /></span>
           </button>
-          <span className="hidden h-7 w-px bg-hair md:block" aria-hidden="true" />
-          {multi ? (
-            <div className="hidden md:block"><BusinessDropdown businesses={businesses} currentId={client?.id} onSwitch={onSwitch} /></div>
-          ) : (
-            <p className="hidden max-w-[220px] truncate text-[13px] font-medium tracking-[-0.02em] text-ink/70 md:block">{client?.business || "Client Portal"}</p>
-          )}
+          <span className="h-8 w-px shrink-0 bg-hair" aria-hidden="true" />
+          {client ? <ClientHeaderBrand client={client} businesses={multi ? businesses : []} onSwitch={multi ? onSwitch : null} /> : <p className="truncate text-[14px] font-semibold tracking-[-0.02em]">Client portal</p>}
           {setTab ? (
             <>
               <nav aria-label="Portal" className="ml-auto hidden items-center gap-0.5 lg:flex">
@@ -275,7 +273,6 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, brainOpen = 0, previe
             !preview && <button onClick={() => base44.auth.logout()} className="ml-auto p-2 text-ink/45 hover:text-[#ff3c00]" title="Log out" aria-label="Log out"><LogOut className="h-4 w-4" /></button>
           )}
         </div>
-        {multi && <BusinessPills businesses={businesses} currentId={client?.id} onSwitch={onSwitch} className="md:hidden" />}
       </header>
       {setTab && <FuelBanner fuel={fuel} onOpen={openRefuel} />}
       {setRefuelOpen && <RefuelModal open={refuelOpen} onClose={() => setRefuelOpen(false)} fuel={fuel} scopeId={scopeId || previewId} preview={preview} onUpgrade={() => { setRefuelOpen(false); setSchedOpen(true); }} />}

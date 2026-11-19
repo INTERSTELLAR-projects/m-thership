@@ -65,3 +65,15 @@
 .agx.shp .shp-bar { height: 3px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; }
 .agx.shp .shp-bar > span { display: block; height: 100%; border-radius: 3px; }
 @media (prefers-reduced-motion: reduce) { .agx.shp .live-dot, .agx.shp .shp-tick, .agx.shp .shp-dash { animation: none; } .agx.shp .shp-card { transition: none; } }
+
+/* Client profile · Agents section (ClientAgentsView): the ship, scoped to one client. Flows inside the page. */
+.agx.shp .csh-cols { display: grid; grid-template-columns: minmax(150px, .75fr) minmax(230px, 1fr) minmax(230px, 1fr) clamp(20px, 3vw, 70px) minmax(300px, 1.45fr); column-gap: clamp(26px, 3vw, 64px); row-gap: 26px; padding: 18px 22px 26px; align-items: center; }
+.agx.shp .csh-cols .csh-wires { grid-column: 1 / 5; grid-row: 1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; align-self: end; }
+.agx.shp .csh-cols .csh-needs { grid-column: 5 / 6; grid-row: 1; align-self: end; }
+.agx.shp .csh-cols .csh-a { grid-column: 1; grid-row: 2; }
+.agx.shp .csh-cols .csh-b { grid-column: 2; grid-row: 2; }
+.agx.shp .csh-cols .csh-c { grid-column: 3; grid-row: 2; }
+.agx.shp .csh-cols .csh-d { grid-column: 5; grid-row: 2; align-self: start; }
+.agx.shp .csh-wires-s { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.agx.shp .csh-wires-s > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 700px) { .agx.shp .csh-wires-s { grid-template-columns: repeat(5, minmax(0, 1fr)); } .agx.shp .csh-wires-s > :last-child:nth-child(odd) { grid-column: auto; } }

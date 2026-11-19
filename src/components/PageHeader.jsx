@@ -19,7 +19,7 @@ export default function PageHeader({ breadcrumb = "", rightText, title, children
     <div className="relative border-b border-hair px-5 pb-6 pt-7 md:px-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <p className="label-cross text-ink/60">({section})</p>
+          <p className="ms-kicker">{section}{name && name !== section ? <><span className="text-ink/30">·</span><span className="text-ink/45">{name.replace(/\//g, "")}</span></> : null}</p>
           <h1 className="mt-3 text-[34px] font-semibold leading-[0.95] tracking-[-0.045em] text-ink md:text-[46px]">
             {last ? (
               <>

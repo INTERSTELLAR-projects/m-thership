@@ -36,8 +36,9 @@ export default function HubTabs() {
             </Link>
           );
         })}
+        {tab.hint ? <span className="ml-auto hidden min-w-0 shrink truncate pl-6 text-[11.5px] text-ink/45 xl:block">{tab.hint}</span> : null}
       </nav>
-      {tab.hint && <p className="truncate border-t border-hair/60 px-4 py-1.5 text-[11.5px] text-ink/55 md:px-7">{tab.hint}</p>}
+      {tab.hint && <p className="truncate border-t border-hair/60 px-4 py-1.5 text-[11.5px] text-ink/55 md:px-7 xl:hidden">{tab.hint}</p>}
     </div>
   );
 }

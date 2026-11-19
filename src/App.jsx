@@ -241,6 +241,8 @@ function App() {
         <Router>
           <AuthenticatedApp />
         </Router>
+        {/* Site film grain over every screen (admin, portal, sign-in): see "SITE SKIN" in index.css. */}
+        <div className="ms-grain" aria-hidden="true" />
         <Toaster />
       </QueryClientProvider>
     </AuthProvider>

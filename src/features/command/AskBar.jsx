@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { ArrowUp, Volume2, VolumeX, X, Check, Inbox } from "lucide-react";
+import { ArrowUp, Volume2, VolumeX, X, Check, Inbox, Lightbulb } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { tipFor, hiddenTips, hideTip, hideAllTips } from "./tips";
 import { useAuth } from "@/lib/AuthContext";
 import { Mono } from "./ui";
 import { MicToggle, ListeningStatus } from "./Dictation";
@@ -22,6 +24,9 @@ export default function AskBar() {
   const [voiceOn, setVoiceOn] = useState(getSpeakPref());
   const inputRef = useRef(null);
   const listRef = useRef(null);
+  const clientId = (loc.pathname.match(/^\/clients\/([^/]+)/) || [])[1] || "";
+  const clientQ = useQuery({ queryKey: ["CRMClient", "get", clientId], enabled: false });
+  const [hidden, setHidden] = useState(hiddenTips);
 
   const submit = useCallback(async (raw) => {
     const q = String(raw ?? text).trim();
@@ -58,6 +63,11 @@ export default function AskBar() {
   useEffect(() => { listRef.current?.scrollTo({ top: 1e6 }); }, [turns, busy]);
 
   if (loc.pathname === "/walk") return null;
+  // Contextual tip: one per page, dismissible (remembered in this browser), "Try it" fills the bar.
+  const baseTip = tipFor(loc.pathname);
+  const clientName = clientId ? clientQ.data?.business || "this client" : "";
+  const tip = baseTip && !hidden.includes("*") && !hidden.includes(String(baseTip.match)) ? { ...baseTip, ask: (baseTip.ask || "").replace("{client}", clientName) } : null;
+  const showTip = tip && !open && !text && !dict.listening && !busy;
   const toggleVoice = () => { const on = !voiceOn; setVoiceOn(on); setSpeakPref(on); if (!on) stopSpeaking(); };
 
   return (
@@ -80,6 +90,14 @@ export default function AskBar() {
               ))}
               {busy && <p className="text-[13px] text-ink/45">Thinking…</p>}
             </div>
+          </div>
+        )}
+        {showTip && (
+          <div className="mb-1.5 flex items-center gap-2 border border-hair bg-paper/95 px-3 py-1.5 text-[12px] text-ink/70 shadow-[0_10px_24px_-18px_rgba(26,26,26,0.5)] backdrop-blur" role="note" data-ask-tip>
+            <Lightbulb className="h-3.5 w-3.5 shrink-0 text-[#ff3c00]" aria-hidden="true" />
+            <span className="min-w-0 flex-1 leading-snug"><span className="mr-1 font-mono text-[9.5px] uppercase tracking-[.14em] text-[#ff3c00]">Tip</span>{tip.text}</span>
+            {tip.ask ? <button type="button" onClick={() => { setText(tip.ask); setTimeout(() => inputRef.current?.focus(), 20); }} className="hidden shrink-0 whitespace-nowrap font-medium text-[#ff3c00] hover:text-ink sm:inline">Try “{tip.ask.trim()}”</button> : null}
+            <button type="button" onClick={() => { hideTip(String(tip.match)); setHidden(hiddenTips()); }} className="shrink-0 p-0.5 text-ink/40 hover:text-ink" aria-label="Dismiss tip" title="Dismiss (Shift-click hides all tips)" onMouseDown={(e) => { if (e.shiftKey) { hideAllTips(); setHidden(hiddenTips()); } }}><X className="h-3.5 w-3.5" /></button>
           </div>
         )}
         {(dict.listening || dict.error) && <div className="mb-1.5 bg-paper/95 px-3 py-1.5 backdrop-blur"><ListeningStatus dict={dict} /></div>}

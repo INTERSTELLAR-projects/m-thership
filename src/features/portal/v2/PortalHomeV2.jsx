@@ -10,7 +10,7 @@ import { ArrowUpRight, Check, Globe, Search, PenLine, MapPin, Link2, LayoutGrid,
 import { fmtDate } from "@/lib/useData";
 import { analyze } from "@/features/financing/schedule";
 import NovaBar from "./NovaBar";
-import { EverythingGrid } from "./Everything";
+import Launcher from "./Launcher";
 import { inPeriod, pacificToday } from "./portalMap";
 
 const CAT = {
@@ -296,7 +296,7 @@ function HealthBand({ d, go }) {
         <HealthTile
           icon={Gauge} label="Website" onClick={() => go("results")}
           value={site?.score != null ? site.score : site?.band === "Improving" ? "Improving" : ""}
-          sub={site?.score != null ? `${site.band} · speed & indexing check` : site?.band === "Improving" ? "We're working on speed and indexing" : ""}
+          sub={site?.score != null ? `${site.band || site.label || "Checked"} · speed & indexing check` : site?.band === "Improving" ? "We're working on speed and indexing" : ""}
           trend={site?.fixes_applied ? { good: true, text: `${site.fixes_applied} fixes applied` } : site?.last_checked ? { good: false, text: `Checked ${fmtDate(String(site.last_checked).slice(0, 10))}` } : null}
           empty={site?.score != null || site?.band ? null : "Speed and indexing checks show here after your first site check."}
         />
@@ -344,9 +344,9 @@ export default function PortalHomeV2({ d, groups, go, call, refresh, preview, on
       <HealthBand d={d} go={go} />
 
       <section aria-labelledby="everything" className="pt-2">
-        <p className="label-cross">(Everything else)</p>
-        <h2 id="everything" className="mb-4 mt-2 text-[24px] font-semibold tracking-[-0.035em] sm:text-[28px]">One tap away</h2>
-        <EverythingGrid groups={groups} tab="home" onPick={go} unread={unread} />
+        <p className="ms-kicker">Everything else</p>
+        <h2 id="everything" className="mb-5 mt-2 text-[24px] font-semibold tracking-[-0.035em] sm:text-[28px]">One tap <span className="text-[#ff3c00]">/away</span></h2>
+        <Launcher groups={groups} onPick={go} unread={unread} />
       </section>
     </div>
   );
