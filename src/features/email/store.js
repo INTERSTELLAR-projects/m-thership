@@ -25,7 +25,8 @@ export async function listTemplates() {
     await seeding.catch(() => null);
     rows = arr(await base44.entities.EmailTemplate.list("sort", 200));
   }
-  return rows.sort((a, b) => (Number(a.sort) || 100) - (Number(b.sort) || 100) || String(a.name).localeCompare(String(b.name)));
+  const rank = (t) => (t.sort === 0 || Number(t.sort) ? Number(t.sort) : 100); // sort 0 = the default (Mission brief) first
+  return rows.sort((a, b) => rank(a) - rank(b) || String(a.name).localeCompare(String(b.name)));
 }
 export const createTemplate = (data) => base44.entities.EmailTemplate.create({ sort: 50, category: "other", ...data });
 export const deleteTemplate = (id) => base44.entities.EmailTemplate.delete(id);
