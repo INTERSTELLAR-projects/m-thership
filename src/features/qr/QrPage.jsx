@@ -4,6 +4,7 @@ import PageHeader from "@/components/PageHeader";
 import QrLibrary from "./QrLibrary";
 import QrEditor from "./QrEditor";
 import { adminStore } from "./lib/qrStore";
+import CodesAppPanel from "@/features/codesApp/CodesAppPanel";
 
 const qs = (o) => {
   const s = new URLSearchParams(Object.entries(o).filter(([, v]) => v)).toString();
@@ -22,6 +23,16 @@ function useClients() {
 export default function QrPage() {
   const navigate = useNavigate();
   const clients = useClients();
+  const [params] = useSearchParams();
+  // /qr?tab=codes-app: the Interstellar Codes (interstellarcodes.com) growth + SEO panel.
+  if (params.get("tab") === "codes-app") {
+    return (
+      <div className="min-h-full">
+        <PageHeader breadcrumb="More / Interstellar Codes" title="Interstellar /Codes" rightText="interstellarcodes.com" />
+        <CodesAppPanel />
+      </div>
+    );
+  }
   return (
     <div className="min-h-full">
       <PageHeader breadcrumb="Studio / QR Codes" rightText="Wørmhole" />
