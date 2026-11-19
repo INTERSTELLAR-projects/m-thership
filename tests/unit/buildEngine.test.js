@@ -5,7 +5,7 @@ import { laneForText, laneForJob, laneForPost, laneForLedger, AUTO_NOTE } from "
 import { scorePillars, weakestPillar, automationIssue, expectedGapDays, portalPillars, CLIENT_PILLARS } from "@/lib/clientPillars";
 import { dealLabel, pipelineValueOf, monthlyOf } from "@/features/pipeline/deal";
 import { summarize } from "@/lib/usageSummary";
-import { cleanPath } from "@/lib/usageLog";
+import { cleanPath } from "@/lib/usageSummary";
 import { jobGroupOf, rowIssue, gapOf, scopeMatch } from "@/features/automations/board";
 import { matchesBrand } from "@/features/brands/brandFilter";
 import { PROCESSES } from "@/features/flight/serviceProcesses";

@@ -3,6 +3,7 @@
 // Presentation mode, QA/demo previews and the client portal. Read by More > How you use it (src/pages/UsageInsights.jsx).
 import { base44 } from "@/api/base44Client";
 import { IS_QA } from "@/lib/qa";
+import { cleanPath } from "@/lib/usageSummary";
 import { IS_PRESENTING } from "@/lib/presentation";
 
 let enabled = false;
@@ -34,11 +35,7 @@ function push(kind, path, label) {
 }
 
 // Route path with only the tab query kept (?tab=… is a real page; other query values are not stored).
-export function cleanPath(location) {
-  const tab = new URLSearchParams(location.search || "").get("tab");
-  const p = String(location.pathname || "/").replace(/\/[0-9a-f]{16,}(?=\/|$)/gi, "/:id");
-  return tab ? `${p}?tab=${tab}` : p;
-}
+export { cleanPath };
 
 export const logPageView = (location, label) => push("page_view", cleanPath(location), label);
 export const logAction = (name) => push("action", typeof window !== "undefined" ? cleanPath(window.location) : "", name);

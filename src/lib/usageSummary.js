@@ -17,3 +17,10 @@ export function summarize(events) {
   return { views: views.length, sessions: new Set(events.map((e) => e.session_id)).size, top, paths, slow, actions: [...actions].sort((a, b) => b[1] - a[1]) };
 }
 
+
+// Record ids become ":id" so pages group together; only ?tab= is kept from the query.
+export function cleanPath(location) {
+  const tab = new URLSearchParams(location.search || "").get("tab");
+  const p = String(location.pathname || "/").replace(/\/[0-9a-f]{16,}(?=\/|$)/gi, "/:id");
+  return tab ? `${p}?tab=${tab}` : p;
+}
