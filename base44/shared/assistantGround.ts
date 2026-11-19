@@ -260,6 +260,13 @@ export async function handleGrounded(base44: any, db: any, text: string, g: any,
     return { kind: "open", done: [], reply: "I don't know that page. Try Command, Clients, Pipeline, Claude, Automations or Financial." };
   }
 
+  // A named business that isn't in Møthership: say so instead of answering about someone else.
+  if (!client) {
+    const named = /\b(?:for|of|about|on|is)\s+((?:[A-Z][\w'’&-]+)(?:\s+(?:[A-Z][\w'’&-]+|&|and|of))*)/.exec(t);
+    const NOT_NAMES = /^(Claude|Justin|Stripe|Today|Tomorrow|Command|Clients?|Pipeline|Møthership|Mothership|Interstellar|Brain|MRR|Me|The|This|That|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|November|December|DIALD|Dream|Service|House)$/;
+    if (named && !NOT_NAMES.test(named[1].split(/\s+/)[0]) && !findRoute(named[1])) return { kind: "answer", done: [], reply: `I don't see a client or lead called "${named[1]}" in Møthership.` };
+  }
+
   // Questions
   if (/needs? me|need me|needs? my|what needs|waiting on me|what do i (need|have) to do/.test(low)) return { kind: "answer", done: [], reply: needsToday(g) };
   if (/\b(what s|whats|what is) left\b|\bleft (for|on|to do)\b|\bremaining for\b/.test(low)) {
