@@ -1,4 +1,5 @@
 import { loadPicture, PLAN_OF } from "./stripe.ts";
+import { moveStage } from "./leadStage.ts";
 
 /*
  * Stripe → CRM. For every subscription matched to a client, the client's billing line items are
@@ -107,6 +108,12 @@ export async function syncFromStripe(base44: any, key: string) {
 
   const report: any[] = [];
   for (const [id, t] of touched) {
+    // A lead with a live Stripe subscription has bought: move it to Won (auto, undoable), which converts it to a
+    // client and starts new-client prep. Then Stripe's lines replace the committed ones below.
+    if (t.client.status === "Lead") {
+      await moveStage(db, t.client, "won", { by: "automation:stripe", reason: `Stripe subscription ${t.subs[0]?.id || ""} is ${t.subs[0]?.status || "active"}`, auto: true, source: "automation" }).catch(() => null);
+      t.client = (await db.CRMClient.get(id).catch(() => null)) || t.client;
+    }
     const existing: any[] = Array.isArray(t.client.services) ? t.client.services : [];
     const lines = t.subs.sort((a: any, b: any) => b.mrr - a.mrr).map(subscriptionLine);
     const liveIds = new Set(lines.map((l: any) => l.subscription_id));
