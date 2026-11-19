@@ -101,7 +101,7 @@ export async function loadGround(db: any) {
     reviewJobs: jobs.filter((j: any) => ["needs_review", "needs_approval"].includes(j.status)).map((j: any) => ({ title: str(j.title).slice(0, 90), client: str(j.client_name), lane: laneForJob(j) })),
     automationIssues: [...rows.flatMap((r: any) => r.automation_issues.map((x: string) => `${r.name} · ${x}`)), ...catalogIssues],
     meters: [...meterBy.values()].map((m: any) => ({ kind: str(m.kind), used: m.used, limit: m.limit, unit: str(m.unit), pct: m.pct_used, at: str(m.recorded_at).slice(0, 10) })),
-    lastSweep: taste[0]?.value || null,
+    lastSweep: taste[0]?.pageSettings || null,
   };
 }
 

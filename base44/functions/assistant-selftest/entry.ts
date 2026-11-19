@@ -95,7 +95,7 @@ export default async function (req: Request) {
     const clean = await cleanup(db);
     const value = { at: new Date().toISOString(), results, scrape, observe, cleanup: clean };
     const ex = ((await db.AppSettings.filter({ key: "assistant_selftest" }, "-updated_date", 1).catch(() => [])) || [])[0];
-    if (ex) await db.AppSettings.update(ex.id, { value }); else await db.AppSettings.create({ key: "assistant_selftest", value });
+    if (ex) await db.AppSettings.update(ex.id, { pageSettings: value }); else await db.AppSettings.create({ key: "assistant_selftest", pageSettings: value });
     return Response.json({ ok: true, n: results.length });
   } catch (e) {
     return Response.json({ error: String((e as Error)?.message || e).slice(0, 300) }, { status: 500 });
