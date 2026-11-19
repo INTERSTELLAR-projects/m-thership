@@ -494,6 +494,19 @@ const PREST_DEF = {
   ],
 };
 
+// The portal's "What we did for you" band: feed + counts built from the client's sample work log.
+function demoWork(log) {
+  const done = log.filter((w) => w.title && w.date);
+  const age = (w) => (Date.now() - new Date(w.date).getTime()) / DAY;
+  const n = (days) => done.filter((w) => age(w) <= days).length;
+  const by_category_this_month = {};
+  done.filter((w) => age(w) <= 30).forEach((w) => { by_category_this_month[w.kind] = (by_category_this_month[w.kind] || 0) + 1; });
+  return {
+    work_feed: done.map((w) => ({ id: w.id, title: w.title, summary: "", category: w.kind, date: String(w.date).slice(0, 10), url: w.url || "" })),
+    work_counts: { today: n(1), this_week: n(7), this_month: n(30), last_month: n(60) - n(30), this_year: n(365), all_time: done.length, by_category_this_month },
+  };
+}
+
 function demoPortal(args, rows, D) {
   const cid = args.client_id || D.c1.id;
   const client = rows("CRMClient").find((c) => c.id === cid) || D.c1;
@@ -508,6 +521,7 @@ function demoPortal(args, rows, D) {
       has_brand_kit: true, has_playbook: true, goals: of("ClientGoal"), gaps: of("ClientGap"), snapshots: of("PerformanceSnapshot"),
       upcoming: of("Task").filter((t) => t.portal_visible && t.status !== "done"), files: of("ClientFile"),
       future: of("Project").filter((p) => ["proposed", "backlog", "planning", "in_progress", "review"].includes(p.status)), unread: 2,
+      ...demoWork(of("WorkLog")),
     };
   }
   if (a === "messages") return { messages: of("ConversationMessage").filter((m) => !m.thread_id) };

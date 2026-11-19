@@ -125,14 +125,15 @@ export default function CommandPalette({ open, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-start justify-center bg-black/40 pt-[12vh] backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-start justify-center bg-ink/50 pt-[12vh] backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="mx-4 w-full max-w-lg overflow-hidden rounded-md border border-black/10 bg-[#f6f4f1] text-[#1a1a1a] shadow-2xl"
+        className="mx-4 w-full max-w-lg overflow-hidden rounded-lg border border-hair bg-card text-ink shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3 border-b border-black/10 px-4 py-3.5">
+        <div className="h-[3px] flame-bg" />
+        <div className="flex items-center gap-3 border-b border-hair px-4 py-3.5">
           <Search className="h-4 w-4 shrink-0 text-black/45" />
           <input
             ref={inputRef}
@@ -162,7 +163,7 @@ export default function CommandPalette({ open, onClose }) {
               return (
                 <div key={r.key}>
                   {header && (
-                    <p className="px-4 pb-1 pt-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-black/40">{header}</p>
+                    <p className="px-4 pb-1 pt-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">{header}</p>
                   )}
                   <button
                     data-index={i}
@@ -183,7 +184,7 @@ export default function CommandPalette({ open, onClose }) {
           )}
         </div>
 
-        <div className="flex items-center gap-4 border-t border-black/10 px-4 py-2.5 text-[10px] text-black/45">
+        <div className="flex items-center gap-4 border-t border-hair px-4 py-2.5 text-[10px] text-ink/45">
           <span>↑↓ navigate</span>
           <span>↵ open</span>
           <span className="ml-auto font-mono">⌘K</span>

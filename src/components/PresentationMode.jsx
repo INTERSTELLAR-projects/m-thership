@@ -12,7 +12,7 @@ export function PresentationControls() {
   }, []);
   if (!IS_PRESENTING) return null;
   return (
-    <div role="status" aria-live="polite" className="pointer-events-auto fixed right-3 top-[54px] z-[95] flex h-9 items-center gap-2 rounded-full border border-[#ff3c00] bg-white pl-3 pr-1 text-[12.5px] font-medium text-ink shadow-[0_8px_20px_-12px_rgba(255,60,0,0.9)]">
+    <div role="status" aria-live="polite" className="pointer-events-auto fixed bottom-4 left-4 z-[95] flex h-9 items-center gap-2 rounded-full border border-[#ff3c00] bg-white pl-3 pr-1 text-[12.5px] font-medium text-ink shadow-[0_8px_20px_-12px_rgba(255,60,0,0.9)]">
       <span className="pm-live-dot h-2 w-2 rounded-full bg-[#ff3c00]" aria-hidden="true" />
       <span>Presentation mode</span>
       <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-[#ff3c00]" style={{ background: "rgba(255,60,0,.10)", padding: "1px 5px" }}>Sample data</span>
