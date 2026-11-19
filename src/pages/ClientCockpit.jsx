@@ -33,6 +33,7 @@ import ClientCallsTab from "@/features/calls/ClientCallsTab";
 import EngineChecklist from "@/features/launch/EngineChecklist";
 import { PrepStrip } from "@/features/prep/PrepChecklist";
 import ClientBuildPage from "@/features/build/ClientBuildPage";
+import ClientPillars from "@/features/build/ClientPillars";
 import { useBrands } from "@/features/brands/useHouseData";
 import { brandFieldOptions } from "@/features/brands/graph";
 
@@ -161,7 +162,7 @@ export default function ClientCockpit() {
       <div className="px-5 pt-4 md:px-8"><ErrorBoundary compact where="client prep"><PrepStrip client={client} /></ErrorBoundary></div>
 
       <div key={tab} className="page-enter px-5 pt-4 md:px-8">
-        {tab === "build" && <ErrorBoundary where="client build"><ClientBuildPage client={client} go={go} /></ErrorBoundary>}
+        {tab === "build" && <ErrorBoundary where="client build"><div className="mb-4"><ClientPillars client={client} /></div><ClientBuildPage client={client} go={go} /></ErrorBoundary>}
         {tab === "agents" && <ErrorBoundary where="client agents"><ClientAgentsView client={client} go={go} /></ErrorBoundary>}
         {tab === "profile" && <ProfileMeter client={client} go={go} startOpen />}
         {tab === "dossier" && <ErrorBoundary where="dossier"><BrainDossierTab client={client} /></ErrorBoundary>}
