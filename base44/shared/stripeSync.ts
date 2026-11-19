@@ -114,9 +114,9 @@ export async function syncFromStripe(base44: any, key: string) {
     const oneTime = existing.filter((x) => !x.stripe && !isRecurring(x));
     // Everything else that Stripe is not billing right now goes to history: old per-item lines, subscriptions
     // replaced by a merge, canceled ones, and recurring lines typed in by hand.
-    const gone = existing.filter((x) => isRecurring(x) && !(x.stripe && liveIds.has(x.subscription_id) && Array.isArray(x.items)))
-      .filter((x) => !(x.stripe && liveIds.has(x.id)))
-      .map((x) => toHistory(x, x.stripe ? (liveIds.has(x.subscription_id) ? "replaced by the subscription line" : "no longer an active subscription in Stripe") : "not billed in Stripe", now));
+    // (Older per-item lines of a subscription that is still live are simply replaced by its one line.)
+    const gone = existing.filter((x) => isRecurring(x) && !(x.stripe && (liveIds.has(x.subscription_id) || liveIds.has(x.id))))
+      .map((x) => toHistory(x, x.stripe ? "no longer an active subscription in Stripe (canceled or replaced by a merge)" : "not billed in Stripe", now));
     const services = [...lines, ...oneTime];
     const managed = new Set<string>(t.client.services_managed || []);
     if (t.plans.has("hypercare")) managed.add("orbit_seo");
