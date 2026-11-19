@@ -1,15 +1,15 @@
 import { openNavGuide } from "@/lib/navGuide";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { LogOut, Search, X, Pin, PinOff, PanelLeftClose, PanelLeftOpen, HelpCircle } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { HUBS, MORE_HUB, SETTINGS_ITEM, ALL_NAV, activeKey, hubFor } from "@/lib/nav";
+import { HUBS, MORE_HUBS, MORE_HUB, SETTINGS_ITEM, ALL_NAV, activeKey, hubFor } from "@/lib/nav";
 import BrandLockup from "@/components/brand/BrandLockup";
 import { usePins } from "@/components/navPrefs";
 import { useNavBadges } from "@/components/navBadges";
 
-// The sidebar is a short, fixed list: seven hubs top to bottom in the order of the day, then More and Settings.
+// The sidebar is short: three screens (Command, Clients, Claude), then More (every deeper page, grouped) and Settings.
 // The hub you are in unfolds its tabs underneath it; the same tabs sit across the top of the page (HubTabs).
 
 function Badge({ n, active }) {
@@ -100,6 +100,9 @@ export default function Sidebar({ onOpenCommand, open, onClose, pinned = false, 
   const pinnedItems = useMemo(() => (pins || []).map((k) => ALL_NAV.find((i) => i.key === k)).filter(Boolean), [pins]);
   const togglePin = (key) => setPins((p) => ((p || []).includes(key) ? p.filter((k) => k !== key) : [...(p || []), key]));
 
+  const inMore = !!here && !HUBS.some((h) => h.id === here.hub.id);
+  const [moreOpen, setMoreOpen] = useState(inMore);
+  useEffect(() => { if (inMore) setMoreOpen(true); }, [inMore]);
   const renderHub = (hub) => {
     const active = here?.hub.id === hub.id;
     return (
@@ -161,11 +164,17 @@ export default function Sidebar({ onOpenCommand, open, onClose, pinned = false, 
             {pinnedItems.map((item) => <PinnedItem key={`pin:${item.key}`} item={item} active={item.key === current} onClose={onClose} onPin={togglePin} />)}
           </div>
         )}
-        <div className="space-y-px pt-2">{HUBS.map(renderHub)}</div>
+        <div className="space-y-px pt-2" data-nav-primary>{HUBS.map(renderHub)}</div>
+        {/* More: every deeper page, grouped. Opens by itself when you are on one of its pages. */}
+        <details className="group mt-2 border-t border-hair pt-1" open={moreOpen} onToggle={(e) => setMoreOpen(e.currentTarget.open)} data-nav-more>
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2 font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink/45 hover:text-ink">
+            <span>More</span><span className="text-ink/35 group-open:hidden">Work · Marketing · Sales · Money · Agents · Tools</span>
+          </summary>
+          <div className="space-y-px">{[...MORE_HUBS, MORE_HUB].map(renderHub)}</div>
+        </details>
       </nav>
 
       <div className="border-t border-hair">
-        {renderHub(MORE_HUB)}
         <Link
           to={SETTINGS_ITEM.path}
           onClick={onClose}
