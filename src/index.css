@@ -238,7 +238,7 @@
 
 /* 4. hairline cards with corner brackets (site .ticks): drawn as background layers just inside the hairline,
       so no extra markup and no change to layout. Ink at rest, flame on hover. Zero specificity: utilities win. */
-:where(.bg-card.border, .bg-card.border-hair, .ticks-ms, .lx-light):not(input, textarea, select, button.h-9, [role="combobox"]) {
+:where(.bg-card.border:not(button, a, input, textarea, select, [role="combobox"]), .bg-card.border-hair:not(button, a, input, textarea, select, [role="combobox"]), .ticks-ms, .lx-light) {
   --b: var(--brk);
   background-image:
     linear-gradient(var(--b), var(--b)), linear-gradient(var(--b), var(--b)),
