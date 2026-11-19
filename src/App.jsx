@@ -72,6 +72,7 @@ import IntelligencePage from '@/features/oracle/IntelligencePage';
 import LaunchPage from '@/features/launch/LaunchPage';
 import OracleTopicPage from '@/features/oracle/TopicPage';
 import More from './pages/More';
+import UsageInsights from './pages/UsageInsights';
 import CommandHome from '@/features/command/CommandHome';
 import PillarsView from '@/features/command/PillarsView';
 import BrainView from '@/features/command/BrainView';
@@ -157,6 +158,7 @@ const AuthenticatedApp = () => {
         <Route path="/sales" element={<Navigate to="/pipeline" replace />} />
         <Route path="/money" element={<Navigate to="/financial" replace />} />
         <Route path="/more" element={<ProtectedRoute><More /></ProtectedRoute>} />
+        <Route path="/more/usage" element={<ProtectedRoute><UsageInsights /></ProtectedRoute>} />
         <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
         <Route path="/financial" element={<ProtectedRoute><Financial /></ProtectedRoute>} />
         <Route path="/legal" element={<ProtectedRoute><Legal /></ProtectedRoute>} />

@@ -1,5 +1,7 @@
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import { enableUsageLog, logPageView } from "@/lib/usageLog";
+import { useAuth } from "@/lib/AuthContext";
 import { Menu, Search } from "lucide-react";
 import Sidebar from "./Sidebar";
 import TimeZoneBar from "./TimeZoneBar";
@@ -48,6 +50,10 @@ export default function Layout() {
   }, [navigate]);
 
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+  // Private usage log (Justin's own sessions only; off in Presentation mode and QA previews).
+  const { user: me } = useAuth();
+  useEffect(() => { enableUsageLog(me); }, [me]);
+  useEffect(() => { logPageView(location, document.title); }, [location.pathname, location.search]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="relative flex h-screen overflow-hidden bg-canvas text-ink">
