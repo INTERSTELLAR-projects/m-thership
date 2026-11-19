@@ -17,6 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "../components/PageHeader";
+import ClientAnalytics from "@/features/clients/ClientAnalytics";
+import { useList } from "@/lib/useData";
 
 const INITIAL_EXPENSES = [
   { platform: "SERP API", amount: 75, frequency: "Monthly", dueDay: 7, dueMonth: null, category: "SEO", paidCycles: [] },
@@ -46,8 +48,14 @@ const FREQUENCIES = ["Monthly", "Quarterly", "Annually"];
 const FIN_CATS_KEY = "financial_categories";
 const FIN_TABS = [
   ["dashboard", "Dashboard"], ["goal", "Goal"], ["advisor", "Advisor"], ["overview", "Expenses"], ["accounting", "Accounting & Taxes"],
-  ["stripe", "Stripe"], ["projections", "Projections"], ["investments", "Investments"],
+  ["stripe", "Stripe"], ["clients", "Client numbers"], ["projections", "Projections"], ["investments", "Investments"],
 ];
+// Client numbers moved here from the Clients page (Nov 2026): MRR, revenue by service, top clients.
+function ClientNumbers() {
+  const q = useList("CRMClient", { sort: "business", limit: 500 });
+  const [svc, setSvc] = useState(null);
+  return q.isLoading ? <p className="text-[13px] text-ink/45">Loading…</p> : <ClientAnalytics clients={q.data || []} serviceFilter={svc} onServiceFilter={setSvc} />;
+}
 const LIVE_TABS = new Set(["dashboard", "goal", "advisor", "overview"]);
 // Expenses and their categories go hand in hand: Categories is a tab INSIDE Expenses ("Expenses | Categories").
 // The old ?tab=categories link still lands there.
@@ -172,6 +180,8 @@ export default function Financial() {
             <RevenueProjections />
             <ProjectProjections />
           </>
+        ) : subPage === "clients" ? (
+          <ClientNumbers />
         ) : subPage === "stripe" ? (
           <StripeRevenue />
         ) : subPage === "investments" ? (
