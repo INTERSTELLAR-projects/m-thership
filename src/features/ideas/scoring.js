@@ -17,7 +17,7 @@ export const FORMULA_VERSION = "v1-hormozi-log";
 
 export const FACTORS = [
   { key: "revenue", label: "Revenue potential", short: "Revenue", hint: "How much this could add toward $1M in 2027 (10 = $250k+/yr realistic)", role: "dream" },
-  { key: "fit", label: "Interstellar fit", short: "Fit", hint: "Home-service / local clients, Base44 builds, Studios", role: "likelihood" },
+  { key: "fit", label: "Interstellar fit", short: "Fit", hint: "Home-service / local clients, custom builds, Studios", role: "likelihood" },
   { key: "time_to_dollar", label: "Time to first $", short: "Speed", hint: "10 = paid within days, 1 = years away", role: "time" },
   { key: "effort", label: "Build effort", short: "Ease", hint: "10 = an afternoon, 1 = a funded team for a year", role: "effort" },
   { key: "assets", label: "Existing assets", short: "Assets", hint: "Clients, apps, audience, skills already owned", role: "likelihood" },

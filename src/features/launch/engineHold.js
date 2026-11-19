@@ -8,7 +8,7 @@ import { base44 } from "@/api/base44Client";
 
 export const HOLD_KEY = "engines_hold";
 export const HOLD_OWNER = "justin@interstellar-strategies.com";
-export const HOLD_CONDITION = "All client sites cut over to Base44 + every client profile complete";
+export const HOLD_CONDITION = "All client sites cut over to the new stack + every client profile complete";
 export const HOLD_MESSAGE = "Engines are on hold until every client is launched (all sites cut over + profiles complete). Only Justin can release them on Road to Dec 31.";
 
 export async function loadHold() {

@@ -57,7 +57,7 @@ export const STAGES = [
     num: "04", title: "Build", hint: "These run in parallel, not one after another. Each one is its own SOP and project tasks.",
     parallel: true,
     rows: [
-      { key: "website", sop: "website", doing: "Inputs → build prompt → Base44 build → edit rounds → SEO + schema → pillar sweep.", lanes: { alpha: "on", bravo: "on", website: "on" } },
+      { key: "website", sop: "website", doing: "Inputs → build prompt → site build → edit rounds → SEO + schema → pillar sweep.", lanes: { alpha: "on", bravo: "on", website: "on" } },
       { key: "system", sop: "system", doing: "Discovery → approved blueprint → build → integrations → security test → training.", lanes: { alpha: "on", bravo: "on", app: "on" } },
       { key: "ops", sop: "ops_command", doing: "Map processes, write SOPs, automate them in their system, route alerts, set up the AI Email Agent and Chrome Workspace, train.", lanes: { alpha: "on", addon: "if" }, addon: "ops_command" },
       { key: "brand", sop: "brand_arsenal", doing: "Discovery, direction, full kit, voice guide, signatures, socials, launch posts.", lanes: { alpha: "on", addon: "if" }, addon: "brand_arsenal" },

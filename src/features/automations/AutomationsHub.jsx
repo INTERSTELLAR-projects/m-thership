@@ -208,7 +208,7 @@ export default function AutomationsHub({ clientId = null }) {
 
       <Panel
         title={clientId ? "Automations for this client" : "Every automation & notification"}
-        subtitle="Claude scheduled tasks, Base44 workflows and functions, Stripe, public endpoints and per-client automation records. Click a row for how it works."
+        subtitle="Claude scheduled tasks, app workflows and functions, Stripe, public endpoints and per-client automation records. Click a row for how it works."
         right={(
           <div className="flex items-center gap-1 rounded-md border border-hair bg-paper p-0.5">
             {[["list", "List"], ...(clientId ? [] : [["client", "By client"]])].map(([k, l]) => (
