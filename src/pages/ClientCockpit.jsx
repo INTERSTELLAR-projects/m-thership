@@ -21,7 +21,7 @@ import SystemsTab from "@/features/clients/SystemsTab";
 import ContentPlanTab from "@/features/clients/ContentPlanTab";
 import MapPackTab from "@/features/clients/MapPackTab";
 import { ClientGbpTab } from "@/features/gbp/GbpPanel";
-import ClientAutomationsCard from "@/features/automations/ClientAutomationsCard";
+import AutomationBoard from "@/features/automations/AutomationBoard";
 import { useOptionList } from "@/hooks/useOptionList";
 import ClientOutreachTab from "@/features/outreach/ClientOutreachTab";
 import ProfileMeter from "@/features/clients/ProfileMeter";
@@ -172,7 +172,7 @@ export default function ClientCockpit() {
         {tab === "work" && <WorkTab client={client} />}
         {tab === "tasks" && <TasksTab client={client} />}
         {tab === "requests" && <RequestsTab client={client} />}
-        {tab === "automations" && <><ClientAutomationsCard client={client} /><AutomationsTab client={client} /></>}
+        {tab === "automations" && <><AutomationBoard clientId={client.id} client={client} /><div className="mt-8"><p className="mb-3 font-mono text-[11px] uppercase tracking-[0.16em] text-ink/45">Edit this client's automation records</p><AutomationsTab client={client} /></div></>}
         {tab === "performance" && <PerformanceTab client={client} />}
         {tab === "gbp" && <ClientGbpTab client={client} />}
         {tab === "mappack" && <MapPackTab client={client} />}

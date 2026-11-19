@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { KpiTile, Panel, EmptyState, FinanceStyles, SourceNote } from "@/components/financial/finance/ui";
 import { useAutomationHub, appliesToClient } from "./useAutomationHub";
+import AutomationBoard from "./AutomationBoard";
 import { SOURCE_META, CHANNEL_META, SCOPE_LABEL, STATUS_META, fmtWhen, relTime, REFRESH_PROMPT } from "./meta";
 
 const count = (v) => String(Math.round(v));
@@ -204,8 +205,12 @@ export default function AutomationsHub({ clientId = null }) {
         <KpiTile index={4} icon={CalendarClock} label="Next up" value={kpi.next ? 1 : 0} format={() => (kpi.next ? relTime(kpi.next.nextAt).replace("in ", "") : "—")} sub={kpi.next ? kpi.next.name : "nothing scheduled"} />
       </div>
 
+      <AutomationBoard clientId={clientId} />
+
       {!clientId && <RefreshNote meta={meta} />}
 
+      <details className="group" data-testid="automations-technical">
+      <summary className="cursor-pointer list-none py-1 text-[12.5px] text-ink/55 hover:text-ink">Technical catalog: every field, source and channel ▸</summary>
       <Panel
         title={clientId ? "Automations for this client" : "Every automation & notification"}
         subtitle="Claude scheduled tasks, app workflows and functions, Stripe, public endpoints and per-client automation records. Click a row for how it works."
@@ -267,6 +272,7 @@ export default function AutomationsHub({ clientId = null }) {
         )}
         <SourceNote>Next runs are worked out from each schedule · last runs from the catalog snapshot and the live AutomationRun log</SourceNote>
       </Panel>
+      </details>
 
       <Panel title="Latest reported runs" subtitle="What automations told Møthership they did (AutomationRun), newest first.">
         {!recentRuns.length ? (
