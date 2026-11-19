@@ -9,6 +9,7 @@ import {
   useJobs, useRefreshJobs, JOB_STATUS, KIND_LABELS, approveJob, requestChanges, cancelJob, retryJob, chatPrompt, queueCustom, STANDING_RULES,
 } from "@/features/claude/jobs";
 import SimpleQueue from "@/features/claude/SimpleQueue";
+import ClaudeCommandBox from "@/features/build/ClaudeCommandBox";
 import EnrichReview from "@/features/clients/EnrichReview";
 import { isEnrichJob } from "@/features/clients/enrich";
 import { useViewMode } from "@/features/claude/simple";
@@ -249,8 +250,8 @@ export default function ClaudeQueue() {
     <div className="px-5 pb-10 pt-6 md:px-8">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="label-cross">(Claude queue)</p>
-          <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.03em]">Send to Claude</h1>
+          <p className="label-cross">(Claude)</p>
+          <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.03em]">Tell Claude, watch the jobs</h1>
           <p className="mt-1 max-w-xl text-[13px] text-ink/55">
             Every step you authorize lands here. Claude&apos;s scheduled run picks up queued jobs, does the work, and sends it back for your OK.
           </p>
@@ -269,6 +270,8 @@ export default function ClaudeQueue() {
           </button>
         </div>
       </div>
+
+      <ClaudeCommandBox />
 
       {view === "simple" ? (
         <>
