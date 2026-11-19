@@ -9,7 +9,9 @@ import { Mono, scoreTone, PILLAR_COLOR } from "./ui";
 import { PILLARS } from "./engine";
 import { getBrief, interrupt, listActions, recentAudit, undo, errMsg } from "./api";
 import LaunchWeekCard from "@/features/launchweek/LaunchWeekCard";
-import { PrepBoard } from "@/features/prep/PrepChecklist";
+import QuickAddLead from "@/features/build/QuickAddLead";
+import { NeedsToday, BuildsInProgress } from "@/features/build/TodayStack";
+import DecidedForYou from "@/features/build/DecidedForYou";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 function Skeleton() {
@@ -133,8 +135,16 @@ export default function CommandHome() {
           <Link to="/classic" className="hidden h-9 items-center sm:inline-flex gap-1.5 px-2 text-[12.5px] text-ink/50 hover:text-ink"><LayoutDashboard className="h-3.5 w-3.5" />Classic</Link>
         </nav>
       </div>
+      {/* Build Engine (Nov 2026): quick-add on top, then only what needs you today, then every build. */}
+      <div className="space-y-4">
+        <ErrorBoundary compact where="quick-add lead"><QuickAddLead /></ErrorBoundary>
+        <ErrorBoundary compact where="needs you today"><NeedsToday /></ErrorBoundary>
+        <ErrorBoundary compact where="builds in progress"><BuildsInProgress /></ErrorBoundary>
+        <ErrorBoundary compact where="decided for you"><DecidedForYou /></ErrorBoundary>
+      </div>
+      <p className="label-cross mb-3 mt-8 text-[10.5px]">(Today&apos;s plan)</p>
       <LaunchWeekCard />
-      <div className="mt-4"><ErrorBoundary compact where="client prep"><PrepBoard /></ErrorBoundary></div>
+      <div className="mt-4" />
       {state.loading && !brief ? <Skeleton /> : (
         <div className="space-y-4">
           {brief ? (
