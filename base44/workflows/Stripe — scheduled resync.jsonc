@@ -1,0 +1,43 @@
+{
+  "name": "Stripe — scheduled resync",
+  "description": "Every 3 hours at :17: re-reads every live (active + trialing) Stripe subscription and rewrites each client's billing lines, MRR and portal plan from it, so merges, cancellations and new subscriptions never go stale even if a webhook is missed. Read-only toward Stripe: never creates, cancels or changes anything there. Function: stripeSync / scheduled.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "17 */3 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "stripe_scheduled_resync",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "stripeSync",
+            "args": {
+              "action": "scheduled"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
