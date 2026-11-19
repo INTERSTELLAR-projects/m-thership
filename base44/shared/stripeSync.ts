@@ -130,8 +130,8 @@ export async function syncFromStripe(base44: any, key: string) {
     const mrr = Math.round(lines.reduce((a: number, l: any) => a + l.price, 0) * 100) / 100;
     const patch: any = { ...care.patch, services, services_history: mergeHistory(t.client.services_history, gone), services_managed: [...managed], stripe_customer_id: t.customer, stripe_customer_ids: [...ids], stripe_mrr: mrr, stripe_plan: summary(lines), stripe_synced_at: now };
     if (t.client.status !== "Active") patch.status = "Active";
-    await db.CRMClient.update(id, patch);
-    report.push({ client: t.client.business, subscriptions: lines.map((l: any) => ({ id: l.subscription_id, status: l.status, name: l.name, mrr: l.price, items: l.items.map((i: any) => `${i.name} $${i.monthly}/mo`) })), mrr, moved_to_history: gone.map((x: any) => x.name), ...(care.ended.length ? { care_ended: care.ended, plan_status: patch.plan_status || t.client.plan_status } : {}) });
+    const err = await db.CRMClient.update(id, patch).then(() => null).catch((e: any) => String(e?.message || e).slice(0, 300));
+    report.push({ ...(err ? { error: err } : {}), client: t.client.business, subscriptions: lines.map((l: any) => ({ id: l.subscription_id, status: l.status, name: l.name, mrr: l.price, items: l.items.map((i: any) => `${i.name} $${i.monthly}/mo`) })), mrr, moved_to_history: gone.map((x: any) => x.name), ...(care.ended.length ? { care_ended: care.ended, plan_status: patch.plan_status || t.client.plan_status } : {}) });
   }
 
   // Clients with Stripe lines but no live subscription any more: those lines move to history (never counted).
@@ -143,11 +143,12 @@ export async function syncFromStripe(base44: any, key: string) {
     const managed = new Set<string>(c.services_managed || []);
     const kept = lines.filter((x) => !x.stripe);
     const care = carePatch(c, new Set<string>(), kept, managed);
-    await db.CRMClient.update(c.id, { ...care.patch, services_managed: [...managed], services: kept, services_history: mergeHistory(c.services_history, stale.map((x) => toHistory(x, "no longer an active subscription in Stripe", now))), stripe_mrr: 0, stripe_plan: "", stripe_synced_at: now });
-    report.push({ client: c.business, subscriptions: [], mrr: 0, moved_to_history: stale.map((x) => x.name), ...(care.ended.length ? { care_ended: care.ended, plan_status: care.patch.plan_status || c.plan_status } : {}) });
+    const err = await db.CRMClient.update(c.id, { ...care.patch, services_managed: [...managed], services: kept, services_history: mergeHistory(c.services_history, stale.map((x) => toHistory(x, "no longer an active subscription in Stripe", now))), stripe_mrr: 0, stripe_plan: "", stripe_synced_at: now }).then(() => null).catch((e: any) => String(e?.message || e).slice(0, 300));
+    report.push({ ...(err ? { error: err } : {}), client: c.business, subscriptions: [], mrr: 0, moved_to_history: stale.map((x) => x.name), ...(care.ended.length ? { care_ended: care.ended, plan_status: care.patch.plan_status || c.plan_status } : {}) });
   }
 
   const matchedMrr = Math.round(report.reduce((a, r) => a + (r.mrr || 0), 0) * 100) / 100;
   const unmatched = picture.subscriptions.filter((s: any) => !s.client).map((s: any) => ({ id: s.id, status: s.status, customer: s.customer, mrr: s.mrr, lines: s.lines.map((l: any) => l.name) }));
-  return { synced: report.length, synced_at: now, subscriptions: picture.subscriptions.length, mrr: picture.mrr, matched_mrr: matchedMrr, unmatched, report, plans: picture.plans };
+  const errors = report.filter((r) => r.error).map((r) => ({ client: r.client, error: r.error }));
+  return { synced: report.length - errors.length, errors, synced_at: now, subscriptions: picture.subscriptions.length, mrr: picture.mrr, matched_mrr: matchedMrr, unmatched, report, plans: picture.plans };
 }

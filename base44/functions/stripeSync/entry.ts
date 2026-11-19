@@ -21,7 +21,7 @@ export default async function (req: Request) {
     try { key = secrets.get("STRIPE_SECRET_KEY") || ""; } catch { key = ""; }
     if (!key) return Response.json({ configured: false });
     const result = await syncFromStripe(base44, key);
-    if (scheduled && (!user || user.role !== "admin")) return Response.json({ ok: true, synced: result.synced, subscriptions: result.subscriptions, unmatched: result.unmatched.length, synced_at: result.synced_at });
+    if (scheduled && (!user || user.role !== "admin")) return Response.json({ ok: !result.errors.length, synced: result.synced, errors: result.errors.length, subscriptions: result.subscriptions, unmatched: result.unmatched.length, synced_at: result.synced_at });
     return Response.json(result);
   } catch (error: any) {
     return Response.json({ error: error.message }, { status: 502 });
