@@ -24,7 +24,7 @@ export const SUB_TABS = [
 
 // Sections inside every client profile (open a client first).
 export const CLIENT_TABS = [
-  ["agents", "Agents", "The client's agents, live"], ["overview", "Overview", "Work, requests and tasks at a glance"], ["tasks", "Tasks", "The client's to-dos (tick to complete)"],
+  ["build", "Build", "Pillars, lead card, build checklist, Brain and unlocks, launch grid, growth feed, requests"], ["agents", "Agents", "The client's agents, live"], ["overview", "Overview", "Work, requests and tasks at a glance"], ["tasks", "Tasks", "The client's to-dos (tick to complete)"],
   ["requests", "Requests", "What they asked for"], ["work", "Work log", "Everything delivered"], ["calls", "Calls", "Call recordings and notes"], ["messages", "Messages", "Chat with the client"],
   ["performance", "Performance", "Search, GA4, GBP numbers"], ["goals", "Goals", "Their goals and plan"], ["profile", "Profile", "What's filled in and what's missing"], ["dossier", "Brain", "The client's Business Brain"],
   ["brand", "Brand kit", "Colors, fonts, voice"], ["audit", "Audit", "Site and listing audits"], ["files", "Files", "Delivered files"], ["billing", "Billing", "Services, notes, documents"], ["systems", "Systems", "Their apps and connections"],
