@@ -5,7 +5,7 @@
 // LeadStageMove), add a task, open a page. Hard gates (publish/deploy, DNS, deleting data, money, emailing or texting
 // real clients) are never done here: it says so and points to where Justin approves them.
 import { automationIssue } from "./clientPillars.js";
-import { laneForJob, laneForAction } from "./approvalLanes.js";
+import { laneForJob, laneForAction, laneForLaunchItem } from "./approvalLanes.js";
 import { STAGES, STAGE_LABEL, stageOf, moveStage } from "./leadStage.ts";
 import { runScrape } from "./leadScrape.ts";
 
@@ -44,7 +44,7 @@ export const ROUTES: [string, string, string[]][] = [
 ];
 
 export async function loadGround(db: any) {
-  const [clients, brains, jobs, props, reqs, autos, catalog, meters, preps, taste] = await Promise.all([
+  const [clients, brains, jobs, props, reqs, autos, catalog, meters, preps, taste, launch, posts] = await Promise.all([
     safe(db.CRMClient.list("business", 600)),
     safe(db.BusinessBrain.list("-updated_date", 600)),
     safe(db.ClaudeJob.list("-created_date", 300)),
@@ -55,6 +55,8 @@ export async function loadGround(db: any) {
     safe(db.UsageMeter.list("-recorded_at", 60)),
     safe(db.PrepChecklist.list("-updated_date", 200)),
     safe(db.AppSettings.filter({ key: "approval_taste_rule" }, "-updated_date", 1)),
+    safe(db.LaunchItem.filter({ owner: "justin", status: { $in: ["todo", "in_progress", "waiting"] } }, "-updated_date", 300)),
+    safe(db.SocialPost.filter({ status: "draft" }, "-created_date", 100)),
   ]);
   const brainBy = new Map<string, any>();
   for (const b of brains) if (b.client_id && !brainBy.has(b.client_id)) brainBy.set(b.client_id, b);
@@ -89,6 +91,9 @@ export async function loadGround(db: any) {
   const lanes: Record<string, number> = { taste: 0, gate: 0, logic: 0 };
   for (const j of jobs) if (["needs_review", "needs_approval"].includes(j.status)) lanes[laneForJob(j)] = (lanes[laneForJob(j)] || 0) + 1;
   for (const p of props) lanes[laneForAction(p)] = (lanes[laneForAction(p)] || 0) + 1;
+  // Same sources as Command › Needs you today: Road to Dec 31 items Justin owns, social post drafts (taste).
+  for (const it of launch) { const l = laneForLaunchItem(it); lanes[l] = (lanes[l] || 0) + 1; }
+  lanes.taste += posts.length;
   const catalogIssues = catalog.filter((e: any) => e.enabled !== false && e.last_status === "failed").map((e: any) => `${e.name}: last run failed`);
   const meterBy = new Map<string, any>();
   for (const m of meters) if (!meterBy.has(m.kind)) meterBy.set(m.kind, m);
@@ -99,6 +104,11 @@ export async function loadGround(db: any) {
     committedMrr: rows.filter((r: any) => r.status === "Active").reduce((t: number, r: any) => t + r.mrr.committed, 0),
     lanes, pending: props.map((p: any) => ({ title: str(p.title).slice(0, 90), lane: laneForAction(p) })),
     reviewJobs: jobs.filter((j: any) => ["needs_review", "needs_approval"].includes(j.status)).map((j: any) => ({ title: str(j.title).slice(0, 90), client: str(j.client_name), lane: laneForJob(j) })),
+    launchTaste: launch.filter((i: any) => laneForLaunchItem(i) === "taste").map((i: any) => str(i.title).slice(0, 80)),
+    launchGate: launch.filter((i: any) => laneForLaunchItem(i) === "gate").map((i: any) => str(i.title).slice(0, 80)),
+    socialDrafts: posts.length,
+    failedJobs: jobs.filter((j: any) => j.status === "failed").length,
+    erroredAutomations: autos.filter((a: any) => a.status === "error").map((a: any) => `${str(a.client_name)} · ${str(a.name)}`),
     automationIssues: [...rows.flatMap((r: any) => r.automation_issues.map((x: string) => `${r.name} · ${x}`)), ...catalogIssues],
     meters: [...meterBy.values()].map((m: any) => ({ kind: str(m.kind), used: m.used, limit: m.limit, unit: str(m.unit), pct: m.pct_used, at: str(m.recorded_at).slice(0, 10) })),
     lastSweep: taste[0]?.pageSettings || null,
@@ -171,17 +181,22 @@ function whatsLeft(c: any) {
   return items.length ? `Left for ${c.name}: ${items.join("; ")}.` : `I don't see anything open for ${c.name}: no prep steps, builds, Claude jobs, requests or Brain questions waiting.`;
 }
 function needsToday(g: any) {
-  const taste = g.pending.filter((p: any) => p.lane === "taste").length + g.reviewJobs.filter((j: any) => j.lane === "taste").length;
-  const gate = g.pending.filter((p: any) => p.lane === "gate").length + g.reviewJobs.filter((j: any) => j.lane === "gate").length;
-  const reqs = g.clients.reduce((t: number, c: any) => t + c.requests.filter((r: any) => r.status === "received").length, 0);
+  // Mirrors Command › Needs you today: taste and hard-gate items only (logic is auto-approved), new client requests,
+  // builds waiting for review, and broken things (failed Claude jobs, automations in error).
+  const taste = g.pending.filter((p: any) => p.lane === "taste").length + g.reviewJobs.filter((j: any) => j.lane === "taste").length + g.launchTaste.length + g.socialDrafts;
+  const gate = g.pending.filter((p: any) => p.lane === "gate").length + g.reviewJobs.filter((j: any) => j.lane === "gate").length + g.launchGate.length;
+  const reqs = g.clients.reduce((t: number, c: any) => t + c.requests.filter((r: any) => r.status === "received" || r.status === "needs_info").length, 0);
   const builds = g.clients.filter((c: any) => /needs review|needs approval/.test(c.build)).map((c: any) => c.name);
-  const broken = g.automationIssues.filter((x: string) => /failed|late|never/i.test(x));
+  const broken = g.failedJobs + g.erroredAutomations.length;
   const bits = [
-    `${taste} taste approval${taste === 1 ? "" : "s"}`, `${gate} hard-gate item${gate === 1 ? "" : "s"}`, `${reqs} new client request${reqs === 1 ? "" : "s"}`,
+    `${taste} taste approval${taste === 1 ? "" : "s"}${g.socialDrafts ? ` (incl. ${g.socialDrafts} social post drafts)` : ""}`,
+    `${gate} hard-gate item${gate === 1 ? "" : "s"}${g.launchGate[0] ? ` (e.g. ${g.launchGate[0]})` : ""}`,
+    `${reqs} client request${reqs === 1 ? "" : "s"} to answer`,
     builds.length ? `builds waiting on you: ${builds.join(", ")}` : "no builds waiting on you",
-    broken.length ? `${broken.length} broken automation${broken.length === 1 ? "" : "s"} (first: ${broken[0]})` : "no broken automations",
+    broken ? `${broken} broken (${g.failedJobs} failed Claude job${g.failedJobs === 1 ? "" : "s"}, ${g.erroredAutomations.length} automation${g.erroredAutomations.length === 1 ? "" : "s"} in error)` : "nothing broken",
   ];
-  return `Needs you today: ${bits.join("; ")}.`;
+  const later = g.automationIssues.length ? ` Also ${g.automationIssues.length} automation${g.automationIssues.length === 1 ? "" : "s"} late or never run (ask "which automations are broken").` : "";
+  return `Needs you today: ${bits.join("; ")}.${later}`;
 }
 
 export type GroundOut = { reply: string; done: any[]; open?: { path: string; name: string } | null; kind: string; gated?: boolean } | null;
@@ -211,7 +226,7 @@ export async function handleGrounded(base44: any, db: any, text: string, g: any,
     if (!name) return { kind: "action", done: [], reply: "What's the business name?" };
     if (opts.testOnly && !/^\[TEST\]/.test(name)) return { kind: "action", done: [], reply: "Self-test mode: only [TEST] leads can be created." };
     const url = site ? (/^https?:\/\//.test(site) ? site : `https://${site}`) : "";
-    const rec = await db.CRMClient.create({ business: name.slice(0, 120), status: "Lead", pipeline_stage: "new", websites: url ? [url] : [], domain: url ? url.replace(/^https?:\/\//, "").replace(/\/.*$/, "") : "", lead_source: "", scrape_status: "none", stage_changed_at: new Date().toISOString() });
+    const rec = await db.CRMClient.create({ business: name.slice(0, 120), status: "Lead", pipeline_stage: "new", pipeline_stage_logged: "new", websites: url ? [url] : [], domain: url ? url.replace(/^https?:\/\//, "").replace(/\/.*$/, "") : "", lead_source: "", scrape_status: "none", stage_changed_at: new Date().toISOString() });
     const log = await audit({ action: "lead_created", entity: "CRMClient", record_id: rec.id, summary: `Lead: ${name}`, undo: { entity: "CRMClient", id: rec.id, patch: { status: "Inactive" } } });
     return { kind: "action", done: [{ type: "lead", id: rec.id, label: `Lead added: ${name}`, audit_id: log?.id }], open: { path: `/pipeline?lead=${rec.id}`, name: "Pipeline" }, reply: `Added ${name} as a new lead${url ? ` (${url})` : ""}. Say "scrape ${name}" to research it.` };
   }
@@ -282,13 +297,14 @@ export async function handleGrounded(base44: any, db: any, text: string, g: any,
   }
   if (/\b(builds?|in progress)\b/.test(low) && !client) {
     const b = g.clients.filter((c: any) => c.build).map((c: any) => `${c.name} (${c.build})`);
-    return { kind: "answer", done: [], reply: b.length ? `Builds: ${b.join("; ")}.` : "No builds in progress." };
+    const p = g.clients.filter((c: any) => c.prep_left.length).map((c: any) => `${c.name} (new-client prep, ${c.prep_left.length} step${c.prep_left.length === 1 ? "" : "s"} left)`);
+    return { kind: "answer", done: [], reply: b.length || p.length ? `In progress: ${[...b, ...p].join("; ")}.` : "No builds or new-client prep in progress." };
   }
   if (/\b(automation|broken|failing|late blog)/.test(low)) {
     const list = client ? client.automation_issues : g.automationIssues;
     return { kind: "answer", done: [], reply: list.length ? `Automations needing attention${client ? ` for ${client.name}` : ""}: ${list.slice(0, 6).join("; ")}${list.length > 6 ? ` (+${list.length - 6} more)` : ""}.` : `No automation problems${client ? ` for ${client.name}` : ""} in the records.` };
   }
-  if (/\b(approval|approve|taste|hard gate|decided for)\b/.test(low)) {
+  if (/\b(approvals?|approve|taste|hard gates?|decided for)\b/.test(low)) {
     const sw = g.lastSweep?.last || g.lastSweep?.first || null;
     return { kind: "answer", done: [], reply: `Waiting now: ${g.lanes.taste || 0} taste, ${g.lanes.gate || 0} hard-gate, ${g.lanes.logic || 0} logic (logic gets auto-approved on the next sweep).${sw?.approved != null ? ` Last sweep auto-approved ${sw.approved}.` : ""}` };
   }

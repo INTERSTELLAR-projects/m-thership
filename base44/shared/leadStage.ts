@@ -87,6 +87,8 @@ export async function observe(db: any, clientId: string) {
   const auto = !/@/.test(by);
   const reason = str(c.pipeline_stage_reason);
   const from = str(c.pipeline_stage_logged) || "new";
+  // First sighting of a record whose stage never changed (e.g. a new lead at "new"): just mark it logged.
+  if (from === c.pipeline_stage) { await db.CRMClient.update(c.id, { pipeline_stage_logged: c.pipeline_stage }); return { ok: true, nothing: true }; }
   await db.LeadStageMove.create({ client_id: c.id, client_name: c.business, from_stage: from, to_stage: c.pipeline_stage, by, auto, source: by === "claude" ? "claude" : "direct", reason: auto && by === "claude" ? `Moved by Claude: ${reason || "no reason given"}` : reason, at: nowIso() });
   await db.CRMClient.update(c.id, { pipeline_stage_logged: c.pipeline_stage, stage_changed_at: c.stage_changed_at || nowIso() });
   if (c.pipeline_stage === "won" && c.status === "Lead") await convertWon(db, c, by);

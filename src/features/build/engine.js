@@ -53,6 +53,7 @@ export async function createLead(f) {
     business: String(f.business || "").trim(),
     status: "Lead",
     pipeline_stage: "new",
+    pipeline_stage_logged: "new",
     websites: site ? [site] : [],
     domain: domainOf(site),
     gbp_url: normUrl(f.gbp_url),
