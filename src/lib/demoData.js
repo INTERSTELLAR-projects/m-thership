@@ -440,6 +440,7 @@ function build() {
   E.AdSet = []; E.Ad = []; E.AdCreative = []; E.AdChangeLog = []; E.AdLearning = []; E.AdPolicyCheck = []; E.AdSettings = [];
 
   addUniverse(E, clients, active, { CT, CTD, KIND, brainSec });
+  addBusyWork(E, active);
   return { E, stripeRev, stripeSubs, c1 };
 }
 
@@ -513,6 +514,122 @@ function addUniverse(E, clients, active, { CT, CTD, KIND, brainSec }) {
   );
   [[coach[0], "blog", "How many weeks out should you hire a posing coach?"], [coach[1], "gbp_post", "Booking spring show-prep spots now"], [ink[0], "social", "Flash day: Friday 13th sheet"], [coach[3], "site_edit", "Added the 2027 show calendar page"], [ink[2], "gbp_post", "Walk-ins welcome every Saturday"]].forEach(([c, kind, title], i) =>
     E.WorkLog.push({ id: `wu${i}`, client_id: c.id, client_name: c.business, kind, title, date: ago(i), status: "live", source: i % 2 ? "automation" : "claude", verified_live: true, url: `https://${c.domain || "example.demo"}/` }));
+}
+
+// ---------------------------------------------------------------------------------------------
+// Busy work for Presentation mode: 16 sample clients across the three brands, each with tasks in every status
+// (with owners, agents, due dates and blocked reasons), a project the tasks belong to, recurring patterns and a filled
+// profile, all timestamped relative to now so the board always looks current. Invented names only.
+// ---------------------------------------------------------------------------------------------
+function addBusyWork(E, active) {
+  const coach = E.CRMClient.filter((c) => c.brand_id === "b_podium");
+  const ink = E.CRMClient.filter((c) => c.brand_id === "b_nightjar");
+  const heroes = [...active.slice(0, 9), ...coach.slice(0, 4), ...ink.slice(0, 3)];
+  const TEAM = ["Justin", "Maya", "Theo", "Rina"];
+  const short = (c) => c.business.replace(/ (Co|Studio|Team|Builders|Coffee Co|Dental Studio)$/, "");
+  const nowTs = (h) => new Date(Date.now() - h * 36e5).toISOString();
+  // Finished "today": a fraction of the time since midnight, so it is always today whatever the hour.
+  const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
+  const doneTs = (f) => new Date(Date.now() - Math.max(6e4, (Date.now() - midnight.getTime()) * f)).toISOString();
+  const T = [
+    // [status, title, category, agent, priority, due offset (days), extra]
+    ["doing", "Publish this week's blog + matching GBP post", "content", "Blog + GBP posts", 2, 0],
+    ["doing", "Speed pass on the service pages (LCP under 2.5s)", "development", "Speed & SEO audit", 1, 1],
+    ["next", "Approve the November social batch (12 posts)", "marketing", "Post drafts", 2, 2],
+    ["next", "Send the monthly results report", "content", "Monthly report", 3, 3],
+    ["inbox", "Reply to 4 new Google reviews", "marketing", "Review replies", 3, 4],
+    ["blocked", "BLOCKED", "ops", "Map pack & citations", 1, -1],
+    ["done", "Added 3 service-area pages", "content", "Blog + GBP posts", 2, 0, null, 2],
+    ["done", "Review request flow sent to last week's customers", "marketing", "Review requests", 3, 0, null, 5],
+    ["done", "Fixed broken contact form on mobile", "development", "Uptime & forms watch", 1, -1, null, 26],
+  ];
+  const DONE = [
+    ["Added 3 service-area pages", "Blog + GBP posts"], ["Replied to 6 new Google reviews", "Review replies"], ["Fixed broken contact form on mobile", "Uptime & forms watch"],
+    ["Sent review requests to last week's customers", "Review requests"], ["Published 4 social posts", "Post drafts"], ["Compressed hero images (site 38% faster)", "Speed & SEO audit"],
+    ["Requested indexing for 9 new pages", "Search Console watch"], ["Sent the November newsletter draft for approval", "Email marketing"], ["Updated holiday hours on every listing", "Map pack & citations"],
+  ];
+  const BLOCKED = [
+    ["Fix map pack categories on the Google profile", "Map pack & citations", "Waiting on Google Business Profile owner access from the client"],
+    ["Swap in the new job photos on the gallery page", "Post drafts", "Client has not sent the new job photos yet"],
+    ["Move the site to the new domain", "Uptime & forms watch", "DNS change is pending at the registrar"],
+    ["Publish the new pricing page", "Blog + GBP posts", "Need the client's OK on the new pricing copy"],
+    ["Request indexing for 12 new pages", "Search Console watch", "Search Console access was removed; asked the client to re-add us"],
+    ["Launch the winter email campaign", "Email marketing", "Sending domain still needs its DNS records verified"],
+  ];
+  const EXTRA = [["Keyword map refresh for Q1", "strategy", "Keyword steward"], ["Email campaign: winter offer", "marketing", "Email marketing"], ["Citation cleanup (6 listings)", "ops", "Map pack & citations"], ["Competitor scan: who moved this month", "strategy", "Competitor & search research"]];
+  let n = 0;
+  heroes.forEach((c, ci) => {
+    const proj = E.Project.find((p) => p.client_id === c.id) || (() => {
+      const p = { id: `pjh${ci}`, client_id: c.id, client_name: c.business, title: `${short(c)} · Growth system`, type: ci % 2 ? "seo" : "website", status: "in_progress", priority: 2, start_date: ago(20 + ci), due_date: ahead(10 + ci), estimated_hours: 60, logged_hours: 18 + ci * 2, contract_value: 4997, progress: 35 + ((ci * 9) % 50), portal_visible: true, accent: c.accent, service_key: "website" };
+      E.Project.push(p);
+      return p;
+    })();
+    const rows = [...T, ...EXTRA.slice(ci % 2, (ci % 2) + 2).map(([title, category, agent], k) => [k ? "inbox" : "next", title, category, agent, 3, 5 + k])];
+    rows.forEach(([status, title0, category, agent0, priority, due, reason, hoursAgo], k) => {
+      n += 1;
+      const blk = BLOCKED[(ci * 5 + Math.floor(ci / 3)) % BLOCKED.length];
+      const dn = status === "done" ? DONE[(ci * 3 + k) % DONE.length] : null;
+      const title = title0 === "BLOCKED" ? blk[0] : dn ? dn[0] : title0;
+      const agent = title0 === "BLOCKED" ? blk[1] : dn ? dn[1] : agent0;
+      E.Task.push({
+        id: `kh${n}`, title: `${title} · ${short(c)}`, category, status, priority: ci < 3 && k < 2 ? 1 : priority, client_id: c.id, client_name: c.business,
+        project_id: proj.id, project_name: proj.title, due_date: status === "done" ? ago(0) : ahead(due + (ci % 3)), is_focus: ci < 4 && k === 0,
+        owner_name: TEAM[(ci + k) % TEAM.length], agent_name: agent, source: k % 3 === 0 ? "ai" : k % 3 === 1 ? "automation" : "manual",
+        blocked_reason: status === "blocked" ? blk[2] || reason : undefined,
+        completed_at: status === "done" ? doneTs(Math.min(0.9, ((hoursAgo || 2) / 30) + (ci % 4) * 0.05)) : undefined,
+        estimated_hours: 1 + (k % 4), logged_hours: status === "done" ? 1 + (k % 3) : k % 2, task_type: "billable", portal_visible: true, created_date: nowTs(24 * (2 + (k % 5))),
+      });
+    });
+  });
+  // A few more project types, then every project gets real-looking tasks so progress and counts are never 0/0.
+  E.Project.push(
+    { id: "pjx1", client_id: heroes[2].id, client_name: heroes[2].business, title: `${short(heroes[2])} · Growth strategy sprint`, type: "consulting", status: "in_progress", priority: 2, start_date: ago(9), due_date: ahead(12), estimated_hours: 24, logged_hours: 11, contract_value: 3500, progress: 46, portal_visible: true },
+    { id: "pjx2", client_name: "Interstellar", title: "Interstellar · Q1 playbook refresh", type: "internal", status: "in_progress", priority: 3, start_date: ago(14), due_date: ahead(20), estimated_hours: 30, logged_hours: 9, progress: 30 },
+    { id: "pjx3", client_id: heroes[5].id, client_name: heroes[5].business, title: `${short(heroes[5])} · Trade show booth kit`, type: "other", status: "planning", priority: 3, start_date: ago(3), due_date: ahead(30), estimated_hours: 16, logged_hours: 2, contract_value: 1800, progress: 12, portal_visible: true },
+  );
+  const PT = ["Kickoff + access checklist", "Wireframes approved", "Build sprint", "QA pass on mobile", "Client review round", "Launch + handoff"];
+  const PS = ["done", "done", "doing", "next", "inbox", "blocked"];
+  E.Project.forEach((p, pi) => {
+    if (E.Task.some((t) => t.project_id === p.id)) return;
+    const k = 3 + (pi % 3);
+    for (let j = 0; j < k; j++) {
+      n += 1;
+      const status = p.status === "launched" || p.status === "done" ? "done" : PS[(j + pi) % PS.length];
+      E.Task.push({ id: `kp${n}`, title: `${PT[j % PT.length]} · ${p.title.split(" · ")[0]}`, category: ["development", "design", "content", "ops"][j % 4], status, priority: 2 + (j % 2),
+        client_id: p.client_id, client_name: p.client_name, project_id: p.id, project_name: p.title, due_date: status === "done" ? ago(j + 1) : ahead(j + (pi % 5)),
+        owner_name: TEAM[(pi + j) % TEAM.length], source: j % 2 ? "manual" : "ai", blocked_reason: status === "blocked" ? "Waiting on the client's sign-off" : undefined,
+        completed_at: status === "done" ? agoTs(j + 1) : undefined, estimated_hours: 2 + j, logged_hours: status === "done" ? 2 + j : j % 2, task_type: p.client_id ? "billable" : "internal" });
+    }
+  });
+  // Lots of runs in the last day and a half so the constellation and counters look alive.
+  const autos = E.Automation.length ? E.Automation : [];
+  for (let i = 0; i < 180 && autos.length; i++) {
+    const a = autos[(i * 7) % autos.length];
+    E.AutomationRun.push({ id: `arh${i}`, automation_id: a.id, client_id: a.client_id, client_name: a.client_name, kind: a.kind, automation_name: a.name, started_at: new Date(Date.now() - ((i * 9973) % 1296) * 1e5).toISOString(), status: i % 41 === 7 ? "failed" : "success", title: a.name, verified_live: true });
+  }
+  // Recurring work the core noticed.
+  E.RecurringPattern = [
+    ["Weekly GBP post", "content", 7, 64, "enabled"], ["Monthly results report", "content", 30, 38, "enabled"], ["Review replies sweep", "marketing", 2, 210, "enabled"],
+    ["Speed & SEO audit", "development", 14, 41, "enabled"], ["Citation check", "ops", 30, 22, "enabled"], ["Social batch approval", "marketing", 7, 58, "suggested"],
+    ["Keyword map refresh", "strategy", 90, 9, "suggested"], ["Invoice follow-up", "finance", 14, 17, "paused"],
+  ].map(([title, category, cadence_days, occurrences, status], i) => ({ id: `rp${i}`, title, category, cadence_days, occurrences, status, client_name: heroes[i % heroes.length].business, project_name: "", sample_titles: [`${title} · ${short(heroes[i % heroes.length])}`, `${title} · ${short(heroes[(i + 3) % heroes.length])}`], created_date: agoTs(i + 3) }));
+  // Filled-in profiles (intake answers + dossier details) for most of the roster, so completeness reads real.
+  const all = E.CRMClient.filter((c) => c.status === "Active");
+  const granted = { status: "granted", by: "Client", on: ago(30) };
+  all.forEach((c, i) => {
+    if (i % 7 === 5) return; // a few honest gaps
+    const partial = i % 4 === 3;
+    E.IntakeAudit.push({ id: `iau_${c.id}`, client_id: c.id, business_name: c.business, status: "reviewed", sections_complete: partial ? 5 : 9, answers: {
+      legal_name: `${c.business} LLC`, services: ["Core service", "Maintenance plans", "Emergency calls"], hours: "Mon–Fri 8–6, Sat 9–2", booking_link: `https://${c.domain || "example.demo"}/book`,
+      keywords: [`${c.industry.split("·").pop().trim().toLowerCase()} near me`, `best ${c.industry.split("·").pop().trim().toLowerCase()}`], goal_12mo: "Double booked jobs from search", budget: "$2–4k / month",
+      contact: `${c.location}`, competitors: ["Two local leaders", "One national chain"], why_choose: ["Same-week scheduling", "Lifetime workmanship warranty"], photos: "Shared folder",
+      ...(partial ? {} : { access_gbp: granted, access_gsc: granted, access_ga4: granted, access_bing: granted, access_socials: granted, licenses: "Licensed & insured", awards: "Local Best Of 2026", case_studies: "3 featured jobs" }),
+    } });
+    const d = E.ClientDossier.find((x) => x.client_id === c.id);
+    const extra = { elevator_pitch: `${c.business} helps ${c.location.split(",")[0]} homeowners and businesses with ${c.industry.split("·").pop().trim().toLowerCase()}, done right the first time.`, brand_identity: { colors: [c.accent || "#ff3c00", "#1a1a1a"], fonts: ["Geist"] }, brand_voice: { tagline: "Done right. On time." }, audience: { primary: "Local owners, 35–65" }, offers: [{ name: "Starter visit", price: 149 }] };
+    if (d) Object.keys(extra).forEach((k) => { if (d[k] == null) d[k] = extra[k]; });
+    else E.ClientDossier.push({ id: `cdp_${c.id}`, client_id: c.id, client_name: c.business, ...extra });
+  });
 }
 
 let cache = null;

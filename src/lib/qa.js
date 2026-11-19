@@ -111,7 +111,20 @@ const FIX = {
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const store = {};
 const rows = (name) => (store[name] ||= clone((IS_DEMO && demo().E[name]) || FIX[name] || []));
-const matches = (r, q = {}) => Object.entries(q).every(([k, v]) => (v && typeof v === "object" ? true : r[k] === v));
+// Mongo-style operators the app uses ($ne, $in, $nin, $gt/$gte/$lt/$lte, $regex, $exists); unknown ones pass.
+const op = (val, o) => Object.entries(o).every(([k, x]) => {
+  if (k === "$ne") return val !== x;
+  if (k === "$in") return Array.isArray(x) && x.includes(val);
+  if (k === "$nin") return !(Array.isArray(x) && x.includes(val));
+  if (k === "$gt") return val != null && val > x;
+  if (k === "$gte") return val != null && val >= x;
+  if (k === "$lt") return val != null && val < x;
+  if (k === "$lte") return val != null && val <= x;
+  if (k === "$exists") return x ? val !== undefined && val !== null : val === undefined || val === null;
+  if (k === "$regex") { try { return new RegExp(x, o.$options || "").test(String(val ?? "")); } catch { return true; } }
+  return true;
+});
+const matches = (r, q = {}) => Object.entries(q).every(([k, v]) => (v && typeof v === "object" && !Array.isArray(v) ? op(r[k], v) : v === null ? r[k] == null : r[k] === v));
 const sortBy = (arr, sort) => {
   if (!sort || typeof sort !== "string") return arr;
   const desc = sort.startsWith("-");

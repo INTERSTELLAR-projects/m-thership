@@ -6,9 +6,11 @@ import { base44 } from "@/api/base44Client";
 import PageHeader from "@/components/PageHeader";
 import TaskFilters from "@/features/tasks/components/TaskFilters";
 import TaskTable from "@/features/tasks/components/TaskTable";
-import TaskRail from "@/features/tasks/components/TaskRail";
 import TaskFormDialog from "@/features/tasks/components/TaskFormDialog";
-import ClientSwitcher from "@/features/tasks/components/ClientSwitcher";
+import ClientPicker from "@/features/tasks/components/ClientPicker";
+import { PriorityLadder, BoardAndLanes } from "@/features/tasks/components/MatrixViews";
+import { ladder as buildLadder, board as buildBoard, lanes as buildLanes } from "@/features/tasks/lib/matrix";
+import { IS_PRESENTING } from "@/lib/presentation";
 import RollButton from "@/features/tasks/ui-kit/RollButton";
 import { statusPatch } from "@/features/tasks/lib/constants";
 import { settleTimer } from "@/features/tasks/lib/timer";
@@ -20,8 +22,8 @@ const ALL = "__all__";
 const NONE = "__none__"; // internal filter value for "Interstellar" (no client)
 const NAME = "name:"; // prefix for clients that only exist as a client_name on tasks
 const PAGE = 40;
-const RAIL = 5;
-const STORE_KEY = "mothership:taskboard:client";
+// Presentation mode keeps its own remembered client so a real client id never leaks into (or empties) the sample board.
+const STORE_KEY = IS_PRESENTING ? "mothership:taskboard:client:present" : "mothership:taskboard:client";
 
 // URL / storage token <-> internal filter value.
 const toToken = (v) => (v === ALL ? "all" : v === NONE ? "interstellar" : v);
@@ -47,23 +49,15 @@ const isOverdue = (t) => {
   return n !== null && n < 0;
 };
 
-// Most important first: priority asc, overdue first, due soonest (no date last), focus flag.
-const rank = (a, b) => {
-  const pa = Number(a.priority) || 3;
-  const pb = Number(b.priority) || 3;
-  if (pa !== pb) return pa - pb;
-  const oa = isOverdue(a) ? 0 : 1;
-  const ob = isOverdue(b) ? 0 : 1;
-  if (oa !== ob) return oa - ob;
-  const da = daysUntil(a.due_date);
-  const db = daysUntil(b.due_date);
-  if (da !== db) {
-    if (da === null) return 1;
-    if (db === null) return -1;
-    return da - db;
+// Recently finished work, for the "Done today" rung.
+async function fetchRecentDone() {
+  const since = new Date(Date.now() - 2 * 864e5).toISOString();
+  try {
+    return itemsOf(await base44.entities.Task.filter({ status: "done", completed_at: { $gte: since } }, { sort: "-completed_at", limit: 200 }));
+  } catch (error) {
+    return [];
   }
-  return (b.is_focus ? 1 : 0) - (a.is_focus ? 1 : 0);
-};
+}
 
 async function fetchOpenTasks() {
   const out = [];
@@ -92,6 +86,9 @@ function TaskBoardInner() {
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [openTasks, setOpenTasks] = useState([]);
+  const [doneTasks, setDoneTasks] = useState([]);
+  const [railsLoaded, setRailsLoaded] = useState(false);
+  const [laneBy, setLaneBy] = useState("client");
   const [clients, setClients] = useState([]);
   const [projects, setProjects] = useState([]);
   const [editing, setEditing] = useState(null);
@@ -159,7 +156,10 @@ function TaskBoardInner() {
 
   // All open tasks drive the rails and the switcher counts.
   const loadRails = useCallback(async () => {
-    setOpenTasks(await fetchOpenTasks());
+    const [open, done] = await Promise.all([fetchOpenTasks(), fetchRecentDone()]);
+    setOpenTasks(open);
+    setDoneTasks(done);
+    setRailsLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -206,7 +206,7 @@ function TaskBoardInner() {
       const k = keyOf(t);
       const s = stats.get(k) || { open: 0, hot: false };
       s.open += 1;
-      if (isOverdue(t) || Number(t.priority) <= 2) s.hot = true;
+      if (isOverdue(t) || Number(t.priority) <= 2 || t.status === "blocked") s.hot = true;
       stats.set(k, s);
     });
     const statOf = (k) => stats.get(k) || { open: 0, hot: false };
@@ -237,15 +237,27 @@ function TaskBoardInner() {
 
   const selectedLabel = (switcherOptions.find((o) => o.key === selected) || {}).label || "All";
 
-  const { focus, next } = useMemo(() => {
-    const scoped = openTasks.filter(inScope).sort(rank);
-    const nextRail = scoped.filter((t) => t.status === "next").slice(0, RAIL);
-    const used = new Set(nextRail.map((t) => t.id));
-    const flagged = scoped.filter((t) => t.is_focus);
-    // Flagged tasks ride first; the rest of the rail is filled with the most important open work.
-    const fill = scoped.filter((t) => !t.is_focus && !used.has(t.id));
-    return { focus: [...flagged, ...fill].slice(0, RAIL), next: nextRail };
-  }, [openTasks, inScope]);
+  const matrix = useMemo(() => {
+    const scoped = openTasks.filter(inScope);
+    return {
+      ladder: buildLadder(scoped, doneTasks.filter(inScope)),
+      board: buildBoard(scoped),
+      lanes: buildLanes(scoped, selected === ALL || selected === NONE ? laneBy : "department"),
+    };
+  }, [openTasks, doneTasks, inScope, laneBy, selected]);
+
+  // A remembered client with no open work (or one that does not exist here) falls back: in Presentation mode to the
+  // busiest sample client, otherwise to everything.
+  useEffect(() => {
+    if (!railsLoaded || !clients.length || selected === ALL || selected === NONE) return;
+    const opt = switcherOptions.find((o) => o.key === selected);
+    if (opt && opt.open > 0) return;
+    if (IS_PRESENTING) {
+      const busiest = switcherOptions.filter((o) => o.key !== ALL && o.key !== NONE).sort((x, y) => y.open - x.open)[0];
+      if (busiest && busiest.open > 0) setSelected(busiest.key);
+    } else if (!opt || !clients.some((c) => c.id === selected)) setSelected(ALL);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [railsLoaded, clients.length]);
 
   const scopedOpen = useMemo(() => openTasks.filter(inScope).length, [openTasks, inScope]);
 
@@ -286,6 +298,7 @@ function TaskBoardInner() {
   const complete = async (task) => {
     const patch = statusPatch("done");
     setOpenTasks((prev) => prev.filter((row) => row.id !== task.id));
+    setDoneTasks((prev) => [{ ...task, ...patch, completed_at: patch.completed_at || new Date().toISOString() }, ...prev]);
     if (filters.status === "done") {
       setTasks((prev) => prev.map((row) => (row.id === task.id ? { ...row, ...patch } : row)));
     } else {
@@ -326,39 +339,26 @@ function TaskBoardInner() {
       </PageHeader>
 
       <div className="space-y-6 px-5 py-6 md:px-8">
-        <div>
-          <div className="mb-3 flex items-baseline justify-between gap-3">
-            <p className="label-cross">(Working on)</p>
-            <p className="mono-label text-[10px] text-ink/45">
-              {scopedOpen} open · {scopeText}
-            </p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="min-w-0 flex-1 sm:flex-none">
+            <p className="label-cross mb-2">(Working on)</p>
+            <ClientPicker options={switcherOptions} value={selected} onChange={setSelected} />
           </div>
-          <ClientSwitcher options={switcherOptions} value={selected} onChange={setSelected} />
+          <div className="mono-label flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-ink/50" data-testid="task-scope-counts">
+            <span><b className="text-ink">{scopedOpen}</b> open · {scopeText}</span>
+            <span><b className="text-ink">{matrix.board.doing.length}</b> in flight</span>
+            <span><b className={matrix.ladder.counts.blocked ? "text-red-700" : "text-ink"}>{matrix.ladder.counts.blocked}</b> blocked</span>
+            <span><b className="text-green-700">{matrix.ladder.doneToday.length}</b> done today</span>
+          </div>
         </div>
 
         <div>
-          <p className="label-cross mb-3">(Focus now{selected === ALL ? " · most important across everything" : " · " + selectedLabel})</p>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <TaskRail
-              kicker="Priority ladder"
-              title="Focus now"
-              tasks={focus}
-              emptyHint={selected === ALL ? "Flag a task with the bolt and it rides here above everything else." : "No open work for " + selectedLabel + "."}
-              onComplete={complete}
-              onOpen={openEditor}
-              onPatch={(task, patch) => patchLocal(task.id, patch)}
-            />
-            <TaskRail
-              kicker="Queued"
-              title="Next up"
-              tasks={next}
-              emptyHint={selected === ALL ? "Nothing queued. Speak a command and the core will fill this rail." : "Nothing queued for " + selectedLabel + "."}
-              onComplete={complete}
-              onOpen={openEditor}
-              onPatch={(task, patch) => patchLocal(task.id, patch)}
-            />
-          </div>
+          <p className="label-cross mb-3">(Priority ladder{selected === ALL ? " · across everything" : " · " + selectedLabel})</p>
+          <PriorityLadder ladder={matrix.ladder} scope={scopeText} onOpen={openEditor} onComplete={complete} />
         </div>
+
+        <BoardAndLanes board={matrix.board} lanes={matrix.lanes} laneBy={selected === ALL || selected === NONE ? laneBy : "department"} setLaneBy={setLaneBy} onOpen={openEditor}
+          onPickClient={(key) => { if (key === "interstellar") setSelected(NONE); else setSelected(key); }} />
 
         <div className="space-y-4">
           <p className="label-cross">({selected === ALL ? "All tasks" : selectedLabel + " tasks"})</p>

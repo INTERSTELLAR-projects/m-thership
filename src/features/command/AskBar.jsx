@@ -1,3 +1,4 @@
+import { IS_PRESENTING } from "@/lib/presentation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { ArrowUp, Volume2, VolumeX, X, Check, Inbox, Lightbulb } from "lucide-react";
@@ -67,7 +68,8 @@ export default function AskBar() {
   const baseTip = tipFor(loc.pathname);
   const clientName = clientId ? clientQ.data?.business || "this client" : "";
   const tip = baseTip && !hidden.includes("*") && !hidden.includes(String(baseTip.match)) ? { ...baseTip, ask: (baseTip.ask || "").replace("{client}", clientName) } : null;
-  const showTip = tip && !open && !text && !dict.listening && !busy;
+  // Presentation mode: no tips over the page while Justin is screen sharing.
+  const showTip = tip && !IS_PRESENTING && !open && !text && !dict.listening && !busy;
   const toggleVoice = () => { const on = !voiceOn; setVoiceOn(on); setSpeakPref(on); if (!on) stopSpeaking(); };
 
   return (
