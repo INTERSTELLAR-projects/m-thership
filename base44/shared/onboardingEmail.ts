@@ -1,7 +1,6 @@
-// Branded client-portal onboarding email. Same structure as the Intel briefing and client update emails:
-// dark header (logo + INTERSTELLAR), eyebrow, big "Title /accent" heading, stat strip, gradient "short version"
-// band, light body with numbered cards and steps, dark footer with the CTA. No preheader. Never mentions the
-// platform the app runs on.
+// Branded client-portal onboarding email, rendered by the Email Studio engine (emailBlocks.ts) in the house
+// "Interstellar · Mission brief" design. No preheader. Never mentions the platform the app runs on.
+// emailHeaderRows / mailLink / REG below are the older look, still used by the 2-step sign-in code email.
 import { renderEmail, SIGNATURE } from "./emailBlocks.ts";
 const LOGO = "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/9226df076_interstellar-email-logo.png";
 // Links are always bright orange, never client-default blue: every address/URL in text is an explicit anchor with
