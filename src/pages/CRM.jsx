@@ -18,6 +18,8 @@ import { useCompletenessMap } from "@/features/clients/hooks";
 import { useClientSignals } from "@/features/clients/clientSignals";
 import { useList } from "@/lib/useData";
 import { useBrands } from "@/features/brands/useHouseData";
+import { useBrandFilter, matchesBrand } from "@/features/brands/brandFilter";
+import { rootOf } from "@/features/brands/graph";
 import { brandFieldOptions } from "@/features/brands/graph";
 
 // Radix Select can't hold an empty value: "direct" stands for Interstellar direct (brand_id empty).
@@ -151,7 +153,9 @@ export default function CRM() {
   };
 
   const signals = useClientSignals(clients);
-  const filtered = clients.filter((c) => {
+  const [brandFilter] = useBrandFilter();
+  const rootBrandId = rootOf(brands)?.id || "";
+  const filtered = clients.filter((c) => matchesBrand(c, brandFilter, rootBrandId)).filter((c) => {
     const matchSearch = c.business?.toLowerCase().includes(search.toLowerCase()) ||
       c.contact?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "All" || c.status === statusFilter;

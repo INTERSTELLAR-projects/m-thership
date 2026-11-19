@@ -21,6 +21,9 @@ import {
   STAGES, OPEN_STAGES, isLeadish, stageOf, sourceOf, interestOf, bookedCallOf, reachedCall,
   daysInStage, isOverdue, money,
 } from "@/features/pipeline/pipeline";
+import { useBrandFilter, matchesBrand } from "@/features/brands/brandFilter";
+import { useBrands } from "@/features/brands/useHouseData";
+import { rootOf } from "@/features/brands/graph";
 import { useLeadSources } from "@/features/pipeline/useLeadSources";
 
 const RECENT_DAYS = 90;
@@ -117,7 +120,10 @@ export function PipelineBoard({ embedded = false }) {
     if (!o && params.get("new")) setParams({});
   };
 
-  const all = useMemo(() => (clientsQ.data || []).map((c) => (overrides[c.id] ? { ...c, ...overrides[c.id] } : c)), [clientsQ.data, overrides]);
+  const [brandFilter] = useBrandFilter();
+  const { data: brandList = [] } = useBrands();
+  const rootBrandId = rootOf(brandList)?.id || "";
+  const all = useMemo(() => (clientsQ.data || []).map((c) => (overrides[c.id] ? { ...c, ...overrides[c.id] } : c)).filter((c) => matchesBrand(c, brandFilter, rootBrandId)), [clientsQ.data, overrides, brandFilter, rootBrandId]);
   const leadish = useMemo(() => all.filter(isLeadish), [all]);
   // Board: every open lead, plus won / lost in the last 90 days.
   const board = useMemo(() => leadish.filter((c) => {
