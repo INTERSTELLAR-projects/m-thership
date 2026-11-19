@@ -8,7 +8,8 @@ const DAY = 864e5;
 const iso = (d) => d.toISOString().slice(0, 10);
 const ago = (n) => iso(new Date(NOW.getTime() - n * DAY));
 const ahead = (n) => iso(new Date(NOW.getTime() + n * DAY));
-const agoTs = (n, h = 10) => new Date(NOW.getTime() - n * DAY - (NOW.getHours() - h) * 36e5).toISOString();
+// Never in the future: an hour later than now today rolls back to yesterday.
+const agoTs = (n, h = 10) => { const t = NOW.getTime() - n * DAY - (NOW.getHours() - h) * 36e5; return new Date(t > NOW.getTime() ? t - DAY : t).toISOString(); };
 const aheadTs = (n, h = 10) => new Date(NOW.getTime() + n * DAY + (h - NOW.getHours()) * 36e5).toISOString();
 const Y = NOW.getFullYear();
 const pad = (n) => String(n).padStart(2, "0");
@@ -438,7 +439,80 @@ function build() {
   E.AdRecommendation = [{ id: "arc0", title: "Shift $80/day from Retargeting to Performance Max · Strategy call", status: "proposed", expected_impact: "+11 booked calls/week at the same spend", platform: "google", client_id: "", created_date: agoTs(0) }, { id: "arc1", title: "Refresh creative on Command System · Demo video (frequency 4.1)", status: "proposed", expected_impact: "CPL back under $40", platform: "meta", client_id: "", created_date: agoTs(1) }];
   E.AdSet = []; E.Ad = []; E.AdCreative = []; E.AdChangeLog = []; E.AdLearning = []; E.AdPolicyCheck = []; E.AdSettings = [];
 
+  addUniverse(E, clients, active, { CT, CTD, KIND, brainSec });
   return { E, stripeRev, stripeSubs, c1 };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Universe (house of brands) sample: two made-up sister brands with their own made-up clients, a planned brand with
+// none, Command System links, data sources and a few honest problems (a broken agent, a paused one, gaps) so the
+// gap finder has something to show. Every name here is invented.
+// ---------------------------------------------------------------------------------------------
+function addUniverse(E, clients, active, { CT, CTD, KIND, brainSec }) {
+  E.Brand = [
+    { id: "b_root", name: "Interstellar Strategies", slug: "interstellar", niche: "Any industry", tagline: "Full-stack growth partner", status: "active", sort_order: 0, colors: { primary: "#ff3c00", accent: "#ffaa00", background: "#07080d" }, brain_stats: { total: 120, answered: 112, synced_at: agoTs(0, 6) } },
+    { id: "b_podium", name: "Podium Coaching Co.", slug: "podium", niche: "Competition coaches", tagline: "Stage-ready systems for prep coaches", status: "active", parent_brand_id: "b_root", sort_order: 1, template_app_id: "demo_tpl_podium", colors: { primary: "#d4ff3c", accent: "#7cf0b0", background: "#07080d" }, brain_stats: { total: 40, answered: 33, synced_at: agoTs(0, 7) } },
+    { id: "b_nightjar", name: "Nightjar Ink Collective", slug: "nightjar", niche: "Tattoo studios", tagline: "Booked-out books for tattoo studios", status: "building", parent_brand_id: "b_root", sort_order: 2, colors: { primary: "#c084fc", accent: "#f0abfc", background: "#07080d" }, brain_stats: { total: 40, answered: 14, synced_at: agoTs(2, 9) } },
+    { id: "b_hearth", name: "Hearth & Hound", slug: "hearth-hound", niche: "Pet care", tagline: "Next brand on the launch pad", status: "planned", parent_brand_id: "b_root", sort_order: 3, colors: { primary: "#38bdf8", accent: "#7dd3fc", background: "#07080d" } },
+  ];
+  const COACH = ["Apex Physique Coaching", "Ironform Prep Team", "Stage Ready Athletics", "Peak Condition Posing", "Northstar Bikini Prep", "Forge Natural Bodybuilding", "Summit Stage Coaching", "Valkyrie Figure Team", "Precision Prep Lab", "Titan Classic Physique", "Gold Line Posing Studio", "Brightline Prep Co"];
+  const INK = ["Black Lantern Tattoo", "Velvet Needle Studio", "Copper Moth Tattoo", "Old Harbor Ink", "Linework Society", "Ember & Ash Tattoo", "Saint Fern Tattoo Parlor", "Hollow Oak Ink"];
+  const extra = [];
+  const mk = (biz, i, brand, industry, tier) => {
+    const contact = `${pick(FIRST)} ${pick(LAST)}`;
+    const domain = `${slug(biz)}.demo`;
+    const c = {
+      id: `${brand === "b_podium" ? "pc" : "nk"}${i + 1}`, business: biz, contact, industry, location: pick(CITIES), brand_id: brand,
+      emails: [`${contact.split(" ")[0].toLowerCase()}@${domain}`], phones: [`(208) 555-02${pad(ri(0, 99))}`], websites: i % 6 === 5 ? [] : [domain], domain: i % 6 === 5 ? "" : domain,
+      status: "Active", services: i % 7 === 6 ? [] : [svc(tier, 1, 1)], plan: tier === "care" ? "Brand starter + GravïtyCare" : `Brand system + ${SVC[tier].name}`,
+      accent: brand === "b_podium" ? "#d4ff3c" : "#c084fc", services_managed: ["website", "system"], portal_enabled: i % 5 !== 4, portal_emails: i % 5 !== 4 ? [`${contact.split(" ")[0].toLowerCase()}@${domain}`] : [],
+      started_on: ago(ri(20, 300)), notes: [], documents: [], completedTasks: [], created_date: agoTs(ri(20, 300)),
+    };
+    extra.push(c);
+    return c;
+  };
+  const coach = COACH.map((b, i) => mk(b, i, "b_podium", "Fitness · Competition coaching", i < 4 ? "national" : "local"));
+  const ink = INK.map((b, i) => mk(b, i, "b_nightjar", "Beauty · Tattoo studio", i < 2 ? "local" : "care"));
+  clients.push(...extra);
+  E.CRMClient = clients;
+
+  // Command System + site apps, and their sync state (most connected, some not: real gaps to find).
+  const all = [...active, ...extra];
+  E.ClientAppProfile = [];
+  all.forEach((c, i) => {
+    if (i % 6 !== 4) c.command_app_id = `demo_cmd_${c.id}`;
+    if (i % 4 !== 1 && c.domain) c.site_app_id = `demo_site_${c.id}`;
+    if (c.command_app_id) E.ClientAppProfile.push({ id: `cap_${c.id}`, client_id: c.id, client_name: c.business, app_id: c.command_app_id, kind: "command", has_brain: i % 9 !== 7 ? "yes" : "no", has_sync: i % 9 === 7 ? "no" : i % 5 === 2 ? "partial" : "yes" });
+  });
+  // Brain counts reported by each client's own app.
+  const brainOf = (c, i) => ({ total: 40, answered: Math.max(6, 40 - ((i * 7) % 29)), facts_active: ri(8, 60), synced_at: c.command_app_id ? agoTs((i % 3) + 1, 6) : null });
+  E.ClientDossier = [...E.ClientDossier, ...all.filter((c, i) => c.id !== active[0].id && i % 6 !== 4).map((c, i) => ({ id: `cdu_${c.id}`, client_id: c.id, client_name: c.business, client_brain: brainOf(c, i + 1) }))];
+  E.ClientDossier[0].client_brain = { total: 40, answered: 39, facts_active: 84, synced_at: agoTs(0, 6) };
+  // Business Brain completeness for the rest of the roster + the sister brands' clients.
+  const have = new Set(E.BusinessBrain.map((b) => b.client_id).filter(Boolean));
+  all.forEach((c, i) => { if (!have.has(c.id) && i % 8 !== 6) E.BusinessBrain.push({ id: `bbu_${c.id}`, scope: "client", client_id: c.id, client_name: c.business, sections: brainSec(c.business), completeness: Math.max(34, 100 - ((i * 13) % 47)), glance_at: agoTs(2) }); });
+  // Search Console / GA4 / GBP numbers for most clients.
+  all.forEach((c, i) => { if (i % 3 !== 2 && c.id !== active[0].id) ["gsc", "ga4"].slice(0, i % 2 ? 1 : 2).forEach((src) => E.PerformanceSnapshot.push({ id: `psu_${src}_${c.id}`, client_id: c.id, source: src, period_start: ago(31), period_end: ago(1), metrics: {} })); });
+
+  // Agents for the sister brands' first clients, plus a few honest problems across the roster.
+  [...coach.slice(0, 6), ...ink.slice(0, 3)].forEach((c, ci) => CT.forEach((t, k) => E.AgentRegistry.push({
+    id: `ag_${t}_${c.id}`, key: `${t}:${c.id}`, template_key: t, name: t.replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase()).replace("Ceo", "CEO").replace("Nova", "Nøva"),
+    department: CTD[t], scope: "client", client_id: c.id, client_name: c.business, kind: KIND[k % KIND.length], status: ci === 7 && k > 9 ? "planned" : "live", autonomy: "assisted",
+    last_run_at: ci === 7 && k > 9 ? undefined : agoTs(0, 5 + (k % 10)), last_status: "success", run_count_30d: ri(6, 200), success_rate_30d: 0.97, schedule: pick(["Daily 6am", "Weekly Mon", "On event", "Tue + Thu 9am"]),
+  })));
+  const setAg = (key, patch) => { const a = E.AgentRegistry.find((x) => x.key === key); if (a) Object.assign(a, patch); };
+  setAg(`search_console:${active[3].id}`, { status: "broken", last_status: "error", last_error: "Search Console access was removed" });
+  setAg(`ads_optimizer:${active[7].id}`, { status: "paused", last_status: "skipped" });
+  setAg(`social_posts:${coach[2].id}`, { status: "broken", last_status: "error", last_error: "Instagram token expired" });
+  setAg(`review_requests:${ink[1].id}`, { status: "paused", last_status: "skipped" });
+  // What the agents are doing right now (in-flight jobs) for the sister brands.
+  E.ClaudeJob.push(
+    { id: "cju1", title: "Peak-week check-in emails (Apex Physique)", kind: "email", status: "running", client_id: coach[0].id, client_name: coach[0].business, priority: 2, requested_at: agoTs(0), started_at: agoTs(0) },
+    { id: "cju2", title: "Flash-day post set (Black Lantern Tattoo)", kind: "social_plan", status: "needs_approval", client_id: ink[0].id, client_name: ink[0].business, priority: 2, requested_at: agoTs(0) },
+    { id: "cju3", title: "Show-season landing page (Ironform Prep)", kind: "app_build", status: "running", client_id: coach[1].id, client_name: coach[1].business, priority: 2, requested_at: agoTs(0), started_at: agoTs(0) },
+  );
+  [[coach[0], "blog", "How many weeks out should you hire a posing coach?"], [coach[1], "gbp_post", "Booking spring show-prep spots now"], [ink[0], "social", "Flash day: Friday 13th sheet"], [coach[3], "site_edit", "Added the 2027 show calendar page"], [ink[2], "gbp_post", "Walk-ins welcome every Saturday"]].forEach(([c, kind, title], i) =>
+    E.WorkLog.push({ id: `wu${i}`, client_id: c.id, client_name: c.business, kind, title, date: ago(i), status: "live", source: i % 2 ? "automation" : "claude", verified_live: true, url: `https://${c.domain || "example.demo"}/` }));
 }
 
 let cache = null;

@@ -443,9 +443,12 @@ export default function ShipView({ onClassic }) {
             <h1 className="shrink-0 text-[22px] font-semibold leading-[0.95] tracking-[-0.045em] text-white sm:text-[26px] md:text-[30px]">Agent <span className="text-[#ff3c00]">/Constellation</span></h1>
             <p className="hidden min-w-0 items-center gap-2 text-[13px] text-[var(--ink-d)] lg:flex" data-testid="ship-summary"><span className="live-dot shrink-0" />{summaryLine(ship.summary)}</p>
           </div>
+          <div className="flex shrink-0 items-center gap-2">
+          <Link to="/universe" className="btn-d" data-testid="ship-universe-link"><Sparkles className="h-3.5 w-3.5" /><span className="hidden sm:inline">Open the </span>Universe</Link>
           <div className="seg shrink-0" role="tablist" aria-label="Constellation view">
             <button type="button" role="tab" aria-selected className="on"><Orbit className="h-3.5 w-3.5" />Ship</button>
             <button type="button" role="tab" aria-selected={false} onClick={onClassic}><Network className="h-3.5 w-3.5" />Classic</button>
+          </div>
           </div>
         </div>
         <p className="mt-1.5 flex items-start gap-2 text-[12.5px] leading-snug text-[var(--ink-d)] lg:hidden"><span className="live-dot mt-1 shrink-0" />{summaryLine(ship.summary)}</p>

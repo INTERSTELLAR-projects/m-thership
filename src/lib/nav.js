@@ -129,6 +129,7 @@ export const HUBS = [
     path: "/agents",
     hint: "The agents, the intelligence they gather and the automations they run",
     tabs: [
+      { label: "Universe", icon: Sparkles, path: "/universe", hint: "The whole operation as one zoomable tree: Claude, Møthership, every brand, client, department and agent, with what is broken" },
       { label: "Constellation", icon: Orbit, path: "/agents", hint: "Every agent, what it knows and what it is working on" },
       { label: "Playbooks", icon: BookOpenCheck, path: "/playbooks", hint: "The prompt agent: copy-paste foundation prompts per service, and the standards every client site and app gets" },
       { label: "Systems", icon: KeyRound, path: "/systems", hint: "Systems brain: every key on every app, what it does, how the apps connect, and what is left over" },
