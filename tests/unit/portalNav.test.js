@@ -18,6 +18,12 @@ describe("portal v2 navigation", () => {
     for (const g of GROUPS) expect(g.items.length, g.id).toBeLessThanOrEqual(8);
   });
 
+  it("has four pages: Glance, Requests & self-serve, Brand & assets, Billing", () => {
+    expect(HEADER_TABS.map((h) => h.k)).toEqual(["home", "requests", "assets", "billing"]);
+    expect(GROUPS.map((g) => g.id)).toEqual(["glance", "requests", "brand", "account"]);
+    expect(labelFor("home")).toBe("Glance");
+  });
+
   it("every tile and header item opens a real portal tab", () => {
     for (const t of [...ALL_TILES, ...HEADER_TABS]) expect(PORTAL_TABS.has(t.k), t.k).toBe(true);
   });
