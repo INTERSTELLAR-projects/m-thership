@@ -1,5 +1,5 @@
 import { isEmail, normEmail } from "./store";
-import { missingMerge } from "./emailBlocks";
+import { contentTokensLeft, missingMerge } from "./emailBlocks";
 
 // Audience -> recipients with merge values. Every recipient gets their own email at send time.
 // audience = { mode: "clients" | "list" | "subscribers" | "manual", client_ids, list_id, tag, emails_text, overrides: { [client_id]: email }, excluded: [email] }
@@ -94,9 +94,13 @@ export function docWarnings(doc) {
   const text = JSON.stringify([doc.subject, doc.blocks]);
   const holes = [...new Set((text.match(/\[[^\]\[\n"]{1,80}\](?!\()/g) || []))];
   if (holes.length) w.push(`Unfilled placeholders: ${holes.slice(0, 6).join(" ")}${holes.length > 6 ? " …" : ""}`);
+  const tokens = contentTokensLeft(doc);
+  if (tokens.length) w.push(`Write these before sending: ${tokens.map((k) => `{{${k}}}`).join(" ")}`);
   (doc.blocks || []).forEach((b) => {
     if (b.type === "button" && !String(b.url || "").trim()) w.push(`The "${b.label || "button"}" button has no link.`);
     if (b.type === "image" && !String(b.url || "").trim()) w.push("An image block has no image URL.");
+    if (b.type === "videos" && (b.items || []).some((x) => !String(x.url || "").trim())) w.push("A video card has no link.");
+    if (b.type === "links" && (b.items || []).some((x) => !String(x.url || "").trim())) w.push(`A read link has no URL.`);
   });
   return w;
 }

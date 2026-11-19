@@ -74,7 +74,7 @@ export function TemplatesTab({ templates, onUse, refresh }) {
           <div className="flex flex-1 flex-col p-3.5">
             <div className="flex items-center gap-2">
               <h3 className="flex-1 text-[14px] font-semibold tracking-tight">{t.name}</h3>
-              {t.seed_key ? <Pill tone="flame">house</Pill> : <Pill>{t.category || "saved"}</Pill>}
+              {t.seed_key === "mission_brief" ? <Pill tone="flame">default</Pill> : t.seed_key ? <Pill tone="flame">house</Pill> : <Pill>{t.category || "saved"}</Pill>}
             </div>
             <p className="mt-1 flex-1 text-[12px] leading-snug text-ink/55">{t.description || t.subject}</p>
             <div className="mt-3 flex items-center gap-2">

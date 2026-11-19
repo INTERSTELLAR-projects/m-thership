@@ -1,19 +1,25 @@
 import { useState } from "react";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { ChevronDown, ChevronRight, Copy, GripVertical, Plus, Trash2, X } from "lucide-react";
-import { BLOCK_ORDER, BLOCK_TYPES, TAG_STYLES, defaultBlock, newId } from "./emailBlocks";
+import { BLOCK_ORDER, BLOCK_TYPES, LINK_ICONS, TAG_STYLES, defaultBlock, newId } from "./emailBlocks";
 import { Btn, Select, TextArea, TextInput, inputCls } from "./ui";
 
 // Manual block editing: every block's text, drag to reorder, add / duplicate / remove. Header stays first.
 
 const SPEC = {
   header: { fields: [["eyebrow", "Eyebrow", "input"], ["show_date", "Show today's date", "check"]] },
-  hero: { fields: [["title", "Title", "input"], ["accent", "Orange accent (after the slash)", "input"]] },
+  hero: { fields: [["title", "Headline", "input"], ["accent", "Orange second line", "input"]] },
   intro: { fields: [["text", "Text", "area"]] },
   paragraph: { fields: [["text", "Text", "area"]] },
   stats: { list: { key: "items", max: 4, add: { value: "", label: "" }, fields: [["value", "Number", "input"], ["label", "Label", "input"], ["accent", "Orange", "check"]] } },
   band: { fields: [["label", "Label", "input"], ["text", "Text", "area"]] },
-  section: { fields: [["title", "Label", "input"], ["text", "Line under it (optional)", "area"]] },
+  section: { fields: [["title", "Label (numbered 01, 02… automatically)", "input"], ["text", "Line under it (optional)", "area"]] },
+  videos: { list: { key: "items", max: 3, add: { thumb: "", title: "", text: "", url: "" }, fields: [["title", "Title", "input"], ["url", "Video link", "input"], ["thumb", "Thumbnail image URL (blank = dark play tile)", "input"], ["text", "Blurb", "area"]] } },
+  links: { list: { key: "items", max: 6, add: { icon: "doc", title: "", text: "", url: "", cta: "Open" }, fields: [["title", "Title", "input"], ["url", "Link", "input"], ["icon", "Icon", "icon"], ["cta", "Link word (Open, Read…)", "input"], ["text", "Line under it", "area"]] } },
+  checklist: { list: { key: "items", max: 12, add: { title: "", text: "" }, fields: [["title", "Bold part", "input"], ["text", "Rest of the line", "input"]] } },
+  offer: { fields: [["eyebrow", "Label", "input"]], list: { key: "rows", max: 10, add: { label: "", value: "", accent: false }, fields: [["label", "Label", "input"], ["value", "Value", "input"], ["accent", "Big orange value", "check"]] } },
+  guarantee: { fields: [["label", "Label", "input"], ["title", "Bold promise", "area"], ["text", "The rest", "area"]] },
+  signature: { fields: [["name", "Name", "input"], ["role", "Role", "input"], ["website", "Website", "input"], ["email", "Email", "input"], ["ps", "P.S. line", "area"]] },
   cards: { list: { key: "items", max: 12, add: { tag: "Coming up", tag_style: "coming_up", title: "", text: "" }, fields: [["tag", "Tag", "input"], ["tag_style", "Tag colour", "tag"], ["title", "Title", "input"], ["text", "Text", "area"]] } },
   steps: { list: { key: "items", max: 10, add: { title: "", text: "", foot: "" }, fields: [["title", "Title", "input"], ["text", "Text", "area"], ["foot", "Small orange line", "input"]] } },
   callout: { fields: [["title", "Title", "input"], ["text", "Text", "area"]] },
@@ -25,6 +31,7 @@ const SPEC = {
 };
 
 const TAG_OPTIONS = Object.entries(TAG_STYLES).map(([value, t]) => ({ value, label: t.label }));
+const ICON_OPTIONS = Object.entries(LINK_ICONS).map(([value, label]) => ({ value, label }));
 
 function summary(b) {
   const s = b.title || b.text || b.eyebrow || b.label || (b.items && b.items[0] && (b.items[0].title || b.items[0].value)) || (b.rows && b.rows[0] && b.rows[0].label) || b.url || "";
@@ -44,7 +51,7 @@ function FieldInput({ kind, label, value, onChange }) {
   return (
     <div>
       <p className="mono-label mb-1 text-[8.5px] text-ink/45">{label}</p>
-      {kind === "area" ? <TextArea rows={3} value={value} onChange={onChange} /> : kind === "tag" ? <Select value={value} onChange={onChange} options={TAG_OPTIONS} /> : <TextInput value={value} onChange={onChange} />}
+      {kind === "area" ? <TextArea rows={3} value={value} onChange={onChange} /> : kind === "tag" ? <Select value={value} onChange={onChange} options={TAG_OPTIONS} /> : kind === "icon" ? <Select value={value} onChange={onChange} options={ICON_OPTIONS} /> : <TextInput value={value} onChange={onChange} />}
     </div>
   );
 }
@@ -100,8 +107,8 @@ export default function BlockEditor({ blocks, onChange }) {
     if (!type) return;
     const b = defaultBlock(type);
     // New blocks go before the button / sign-off so the footer stays at the end.
-    const tail = blocks.findIndex((x, i) => i > 0 && (x.type === "button" || x.type === "signoff"));
-    const at = type === "button" || type === "signoff" || tail < 0 ? blocks.length : tail;
+    const tail = blocks.findIndex((x, i) => i > 0 && (x.type === "button" || x.type === "signoff" || x.type === "signature"));
+    const at = type === "button" || type === "signoff" || type === "signature" || tail < 0 ? blocks.length : tail;
     onChange([...blocks.slice(0, at), b, ...blocks.slice(at)]);
     setOpen((s) => new Set(s).add(b.id));
     setAdding("");

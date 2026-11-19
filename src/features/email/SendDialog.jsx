@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, Loader2, Send, XCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { renderSubject } from "./emailBlocks";
+import { contentTokensLeft, renderSubject } from "./emailBlocks";
 import { recipientIssues } from "./recipients";
 import { Btn, Pill } from "./ui";
 
@@ -14,6 +14,8 @@ export default function SendDialog({ open, onClose, doc, recipients, kind, warni
   const [error, setError] = useState("");
   useEffect(() => { if (open) { setChecked(false); setBusy(false); setResult(null); setError(""); } }, [open]);
   const flagged = recipients.filter((r) => recipientIssues(doc, r).length);
+  // Template content tokens ({{headline}}, {{intro}}…) would go out literally: sending waits until they are written.
+  const unwritten = contentTokensLeft(doc);
 
   const go = async () => {
     setBusy(true);
@@ -66,6 +68,7 @@ export default function SendDialog({ open, onClose, doc, recipients, kind, warni
               <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} className="accent-[#ff3c00]" />
               I checked the preview and these {recipients.length} recipient{recipients.length === 1 ? "" : "s"}.
             </label>
+            {unwritten.length > 0 && <p className="text-[12px] text-red-700">Write {unwritten.map((k) => `{{${k}}}`).join(", ")} first. Sending is off until the template text is filled in.</p>}
             {error && <p className="text-[12px] text-red-700">{error}</p>}
           </>
         )}
@@ -86,7 +89,7 @@ export default function SendDialog({ open, onClose, doc, recipients, kind, warni
           {result ? <Btn variant="ink" onClick={onClose}>Done</Btn> : (
             <>
               <Btn disabled={busy} onClick={onClose}>Cancel</Btn>
-              <Btn variant="flame" disabled={!checked || busy || !recipients.length} onClick={go}>
+              <Btn variant="flame" disabled={!checked || busy || !recipients.length || unwritten.length > 0} onClick={go}>
                 {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />} {busy ? "Sending…" : `Send ${recipients.length}`}
               </Btn>
             </>
