@@ -81,7 +81,7 @@ export async function deliverInvite(base44: any, invite: any, settings: { portal
       if (!/already|exist/i.test(msg)) throw e;
     }
     if (client.portal_enabled !== true) await db.CRMClient.update(client.id, { portal_enabled: true });
-    const { subject, html } = onboardingEmail({ business: client.business, contact: client.contact, portalUrl: settings.portal_url, email });
+    const { subject, html } = onboardingEmail({ business: client.business, contact: client.contact, portalUrl: settings.portal_url, email, logo: client.logo_url || "" });
     await sendBrandedEmail(base44, { to: email, subject, html });
     const now = new Date().toISOString();
     await db.PortalInvite.update(invite.id, { status: "sent", sent_at: now, message: `Portal access granted and welcome email sent to ${email}.` });

@@ -30,7 +30,7 @@ const esc = (s: unknown) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "
 
 // The portal onboarding email renders through the Email Studio engine (emailBlocks.ts) in the house
 // "Interstellar · Mission brief" design, so system emails and Email Studio emails look the same.
-export function onboardingEmail({ business, contact, portalUrl, email }: { business: string; contact?: string; portalUrl: string; email: string }) {
+export function onboardingEmail({ business, contact, portalUrl, email, logo }: { business: string; contact?: string; portalUrl: string; email: string; logo?: string }) {
   const first = String(contact || "").split(/[\s&,]+/)[0] || "there";
   const loginUrl = `${portalUrl}/login`;
   const subject = `Your ${business} portal is ready`;
@@ -59,7 +59,7 @@ export function onboardingEmail({ business, contact, portalUrl, email }: { busin
     { type: "signature", ...SIGNATURE, ps: "" },
   ];
   // Names and addresses go in as block text: the engine escapes everything and never treats it as HTML.
-  const html = renderEmail({ subject, blocks }, { vars: {} });
+  const html = renderEmail({ subject, blocks }, { vars: {}, clientLogo: logo || "", clientName: business });
   return { subject, html };
 }
 

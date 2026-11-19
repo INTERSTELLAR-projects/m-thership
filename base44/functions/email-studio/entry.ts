@@ -75,12 +75,19 @@ Deno.serve(async (req) => {
         if (unsubscribed.has(r.email)) { results.push({ email: r.email, name: r.name, status: "skipped", error: "Unsubscribed" }); return false; }
         return true;
       });
+      // Co-branded header: each client recipient's email shows "INTERSTELLAR™ × their current website logo".
+      const logos = new Map<string, { logo: string; name: string }>();
+      for (const id of [...new Set(queue.map((r) => r.client_id).filter(Boolean))]) {
+        const c = await db.CRMClient.get(id).catch(() => null);
+        if (c?.logo_url) logos.set(id, { logo: String(c.logo_url), name: String(c.business || "") });
+      }
       let i = 0;
       const worker = async () => {
         while (i < queue.length) {
           const r = queue[i++];
           try {
-            const html = renderEmail(doc, { vars: r.vars, unsubscribeUrl: kind === "mass" ? await unsubscribeUrl(portalUrl, r.email) : "" });
+            const co = logos.get(r.client_id);
+            const html = renderEmail(doc, { vars: r.vars, unsubscribeUrl: kind === "mass" ? await unsubscribeUrl(portalUrl, r.email) : "", clientLogo: co?.logo || "", clientName: co?.name || "" });
             await base44.asServiceRole.integrations.Core.SendEmail({ to: r.email, subject: renderSubject(doc, r.vars), body: html, from_name: SENDER_NAME });
             results.push({ email: r.email, name: r.name, client_id: r.client_id, subscriber_id: r.subscriber_id, status: "sent", at: new Date().toISOString() });
           } catch (e) {

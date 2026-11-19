@@ -13,7 +13,7 @@
 import { callAI } from "./anthropic.ts";
 import { siteFor, type SiteConfig } from "./contentSites.ts";
 import { loadConfig, savedMinutes } from "./workLedger.ts";
-import { TEST_EMAIL, SENDER_NAME } from "./emailBlocks.ts";
+import { TEST_EMAIL, SENDER_NAME, renderEmail } from "./emailBlocks.ts";
 
 export const WRITER_AGENT = { key: "content_writer", name: "Content writer" };
 const enc = new TextEncoder();
@@ -641,12 +641,13 @@ const esc = (t: string) => s(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").rep
 // have received it. Sending to clients is a later, deliberate code change.
 export async function notify(base44: any, client: any, subject: string, lines: string[]) {
   const would = arr(client?.portal_emails).length ? arr(client.portal_emails) : arr(client?.emails);
-  const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#111;max-width:560px">
-<div style="height:4px;background:linear-gradient(90deg,#ff3c00,#ff6a00,#ffaa00)"></div>
-<p style="font-size:12px;color:#666">Testing: in live use this would go to ${esc(would.join(", ") || "the client")}.</p>
-${lines.map((l) => `<p>${esc(l)}</p>`).join("\n")}
-<p style="color:#666;font-size:13px">Interstellar Strategies</p>
-<div style="height:4px;background:linear-gradient(90deg,#ffaa00,#ff6a00,#ff3c00)"></div></div>`;
+  // Client update: house design with the co-branded header (Interstellar × the client's logo when one is on file).
+  const blocks = [
+    { type: "header", eyebrow: "Update", show_date: true },
+    { type: "paragraph", text: `Testing: in live use this would go to ${would.join(", ") || "the client"}.` },
+    ...lines.map((l) => ({ type: "paragraph", text: s(l) })),
+  ];
+  const html = renderEmail({ subject: clip(subject, 150), blocks }, { vars: {}, clientLogo: s(client?.logo_url), clientName: s(client?.business) });
   try {
     await base44.asServiceRole.integrations.Core.SendEmail({ to: TEST_EMAIL, subject: clip(subject, 150), body: html, from_name: SENDER_NAME });
     return { sent: true };
