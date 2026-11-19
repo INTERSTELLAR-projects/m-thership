@@ -323,7 +323,7 @@ function build() {
   ].map(([section, task, d], i) => ({ id: `lg${i}`, section, task, dueDate: d >= 0 ? ahead(d) : ago(-d), status: d < 0 ? "Done" : i % 5 === 0 ? "In progress" : "Open", done: d < 0 }));
 
   E.AppDocument = [
-    ["Brand guidelines 2027", "Brand"], ["MSA template", "Legal"], ["Mission ALPHA SOP", "Operations"], ["Pricing & packages", "Sales"], ["Employee handbook", "HR"], ["Onboarding checklist", "Operations"], ["Investor update · Q3", "Finance"], ["Insurance certificates", "Legal"], ["Creative Studio roadmap", "Product"], ["Chrome Workspace template", "Operations"], ["Command System architecture", "Product"], ["Board deck · Q3", "Finance"],
+    ["Brand guidelines 2027", "Brand"], ["MSA template", "Legal"], ["Mission ALPHA SOP", "Operations"], ["Pricing & packages", "Sales"], ["Employee handbook", "HR"], ["Onboarding checklist", "Operations"], ["Investor update · Q3", "Finance"], ["Insurance certificates", "Legal"], ["Studio roadmap", "Product"], ["Chrome Workspace template", "Operations"], ["Command System architecture", "Product"], ["Board deck · Q3", "Finance"],
   ].map(([name, category], i) => ({ id: `doc${i}`, name, category, url: "https://example.com/doc", date: ago(i * 5), pinned: i < 3 }));
   E.FormTemplate = [];
 

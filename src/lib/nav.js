@@ -6,6 +6,7 @@ import {
   Brain, Images, PhoneCall, KeyRound,
 } from "lucide-react";
 import { PACKAGES, packagePath } from "@/features/packages/registry";
+import { IS_PRESENTING } from "@/lib/presentation";
 
 export const LOGO_URL =
   "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/536102fbf_interstellar-mark-v2.webp";
@@ -161,6 +162,14 @@ export const SETTINGS_ITEM = { key: "/settings", label: "Settings", icon: Settin
 
 // Every package page, so ⌘K finds "HyperCare+" etc. and old package pins keep working. Not shown as tabs.
 const PACKAGE_ITEMS = PACKAGES.map((p) => ({ key: `pkg:${p.key}`, label: p.label, icon: p.icon, path: packagePath(p.key), hidden: true }));
+
+// Presentation mode: pages built around real client names (site security audit, SMPL. Studio) or Justin's own
+// browser setup stay out of the demo. They leave the sidebar, tab bars and ⌘K; Layout shows a note if opened.
+export const PRESENT_HIDDEN = ["/security", "/studios/smpl", "/studios/simple-social", "/tools/chrome-workspace"];
+export const isPresentHidden = (pathname) => PRESENT_HIDDEN.some((p) => pathname === p || pathname.startsWith(p + "/"));
+if (IS_PRESENTING) {
+  for (const hub of [...HUBS, MORE_HUB]) hub.tabs = hub.tabs.filter((t) => !isPresentHidden(t.path.split("?")[0]));
+}
 
 const flat = (hub) => hub.tabs.map((t) => ({ ...t, group: hub.label, groupId: hub.id }));
 

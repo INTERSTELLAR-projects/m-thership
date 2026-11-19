@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from './components/Layout';
+import { PresentationControls } from './components/PresentationMode';
 import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
 import Documents from './pages/Documents';
@@ -132,6 +133,8 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
+    <>
+    <PresentationControls />
     <Routes>
       <Route path="/portal/:clientId" element={<PortalPreview />} />
       <Route path="/r/:id" element={<PublicRequest />} />
@@ -225,6 +228,7 @@ const AuthenticatedApp = () => {
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
+    </>
   );
 };
 
