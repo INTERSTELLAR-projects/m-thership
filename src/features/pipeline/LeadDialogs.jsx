@@ -1,3 +1,5 @@
+import DealEditor from "./DealEditor";
+import { dealForm, dealPatch, dealLabel } from "./deal";
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ExternalLink, Loader2, Mail, MessageSquare, Phone, Plane, Trophy, XCircle } from "lucide-react";
@@ -155,30 +157,38 @@ export function LeadDialog({ lead, onClose, onPatch, onMove, onWon, onLost }) {
   const [note, setNote] = useState("");
   const [nextStep, setNextStep] = useState("");
   const [nextAt, setNextAt] = useState("");
-  const [value, setValue] = useState("");
+  const [deal, setDeal] = useState(() => dealForm(null));
   const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const leadId = lead?.id;
   useEffect(() => {
     if (!lead) return;
     setNote("");
     setNextStep(lead.next_step || "");
     setNextAt(lead.next_step_at ? String(lead.next_step_at).slice(0, 10) : "");
-    setValue(lead.lead_value ? String(lead.lead_value) : "");
-  }, [lead]);
+    setDeal(dealForm(lead));
+    setSaved(false);
+  }, [leadId]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!lead) return null;
   const stage = stageOf(lead);
   const d = detailsOf(lead);
   const call = bookedCallOf(lead);
   const notes = [...(lead.notes || [])].reverse().slice(0, 12);
-  const dirty = nextStep !== (lead.next_step || "") || nextAt !== (lead.next_step_at ? String(lead.next_step_at).slice(0, 10) : "") || (Number(value) || 0) !== (Number(lead.lead_value) || 0);
+  const dirty = nextStep !== (lead.next_step || "") || nextAt !== (lead.next_step_at ? String(lead.next_step_at).slice(0, 10) : "") || JSON.stringify(deal) !== JSON.stringify(dealForm(lead));
 
+  // One save for everything (next step, due, both deal values). Also runs when focus leaves the fields, so a typed
+  // value is never lost.
   const saveFields = async () => {
+    if (!dirty || busy) return;
     setBusy(true);
     try {
-      await onPatch(lead, { next_step: nextStep.trim(), next_step_at: nextAt || null, lead_value: Number(value) > 0 ? Number(value) : null });
+      await onPatch(lead, { next_step: nextStep.trim(), next_step_at: nextAt || null, ...dealPatch(deal) });
+      setSaved(true);
     } finally {
       setBusy(false);
     }
   };
+  const onFieldsBlur = (e) => { if (!e.currentTarget.contains(e.relatedTarget)) saveFields(); };
   const logNote = async () => {
     if (!note.trim()) return;
     setBusy(true);
@@ -245,12 +255,17 @@ export function LeadDialog({ lead, onClose, onPatch, onMove, onWon, onLost }) {
           </dl>
         ) : null}
 
-        <div className="grid gap-3 sm:grid-cols-[1fr_150px_130px]">
-          <label className="block"><span className={labelClass}>Next step</span><input value={nextStep} onChange={(e) => setNextStep(e.target.value)} placeholder="Follow up after the call" className={cn(inputClass, "mt-1")} /></label>
-          <label className="block"><span className={labelClass}>Due</span><input type="date" value={nextAt} onChange={(e) => setNextAt(e.target.value)} className={cn(inputClass, "mt-1")} /></label>
-          <label className="block"><span className={labelClass}>Value ($)</span><input inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value.replace(/[^\d.]/g, ""))} placeholder={lead.lead_value ? money(lead.lead_value) : "—"} className={cn(inputClass, "mt-1")} /></label>
+        <div onBlur={onFieldsBlur} className="space-y-3" data-testid="lead-fields">
+          <div className="grid gap-3 sm:grid-cols-[1fr_160px]">
+            <label className="block"><span className={labelClass}>Next step</span><input value={nextStep} onChange={(e) => setNextStep(e.target.value)} placeholder="Follow up after the call" className={cn(inputClass, "mt-1")} /></label>
+            <label className="block"><span className={labelClass}>Due</span><input type="date" value={nextAt} onChange={(e) => setNextAt(e.target.value)} className={cn(inputClass, "mt-1")} /></label>
+          </div>
+          <DealEditor value={deal} onChange={(v) => { setDeal(v); setSaved(false); }} stripePaid={lead.deal_one_time?.source === "stripe" ? Number(lead.deal_one_time.paid_amount) || 0 : null} />
+          <div className="flex items-center justify-end gap-3">
+            <span className="text-[11.5px] text-ink/45">{busy ? "Saving…" : dirty ? "Unsaved changes (saves when you leave the fields)" : saved ? "Saved" : dealLabel(lead) || "No value yet"}</span>
+            <button type="button" disabled={busy || !dirty} onClick={saveFields} className={cn(btnSmallFlame, "disabled:opacity-40")}>Save</button>
+          </div>
         </div>
-        {dirty ? <div className="flex justify-end"><button type="button" disabled={busy} onClick={saveFields} className={btnSmallFlame}>Save next step &amp; value</button></div> : null}
 
         <div>
           <p className={labelClass}>Log a note</p>
