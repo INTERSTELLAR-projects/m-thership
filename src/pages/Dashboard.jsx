@@ -2,6 +2,8 @@ import { useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { GripVertical, Settings, X, Plus, ChevronRight } from "lucide-react";
 import PageHeader from "../components/PageHeader";
+import QuickAddLead from "@/features/build/QuickAddLead";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import ClientContentSchedule from "../components/dashboard/ClientContentSchedule";
 import ActiveSubscriptions from "../components/dashboard/ActiveSubscriptions";
 import FinancialPanel from "../components/dashboard/FinancialPanel";
@@ -138,6 +140,8 @@ export default function Dashboard() {
           {editing ? <><X className="w-3.5 h-3.5" />Done</> : <><Settings className="w-3.5 h-3.5" />Customize</>}
         </button>
       </PageHeader>
+      {/* Build Engine: the quick-add lead bar is pinned on top in classic mode too. */}
+      <div className="px-4 pt-4 md:px-8"><ErrorBoundary compact where="quick-add lead"><QuickAddLead /></ErrorBoundary></div>
 
       {editing ? (
         <div className="space-y-8 px-5 py-3 md:px-8">
