@@ -236,9 +236,10 @@ export async function handleGrounded(base44: any, db: any, text: string, g: any,
     if (client.status !== "Lead" && to !== "won") return { kind: "action", done: [], reply: `${client.name} isn't a lead (status ${client.status}), so it has no pipeline stage to move.` };
     if (!writable(client)) return { kind: "action", done: [], reply: "Self-test mode: only [TEST] leads can be moved." };
     const reason = (/\b(?:because|since|reason:?)\s+(.+)$/i.exec(t) || [])[1] || `Asked in the assistant: "${t.slice(0, 120)}"`;
-    const r = await moveStage(db, client.id, to, { by: "assistant", reason, source: "assistant", auto: true });
-    if (r?.error) return { kind: "action", done: [], reply: `Couldn't move ${client.name}: ${r.error}` };
-    return { kind: "action", done: [{ type: "move", id: r?.move?.id || client.id, label: `${client.name} → ${STAGE_LABEL[to]}` }], reply: `Moved ${client.name} to ${STAGE_LABEL[to]} (logged with the reason, undo from the Pipeline toast or the card).` };
+    let r: any;
+    try { r = await moveStage(db, client.id, to, { by: "assistant", reason, source: "assistant", auto: true }); } catch (e) { return { kind: "action", done: [], reply: `Couldn't move ${client.name}: ${(e as Error).message}` }; }
+    if (r?.unchanged) return { kind: "action", done: [], reply: `${client.name} is already at ${STAGE_LABEL[to]}.` };
+    return { kind: "action", done: [{ type: "move", id: r?.move_id || client.id, move_id: r?.move_id, label: `${client.name} → ${STAGE_LABEL[to]}` }], reply: `Moved ${client.name} to ${STAGE_LABEL[to]} (logged with the reason, undo from the Pipeline toast or the card).` };
   }
 
   // Queue a Claude job: "send to claude: … for Acme" / "have claude …"
