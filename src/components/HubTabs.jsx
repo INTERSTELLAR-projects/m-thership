@@ -32,7 +32,7 @@ export default function HubTabs() {
           {hub.label}
         </span>
         {hub.tabs.map(scoped).map((t) => {
-          const on = t.key === tab.key && !(inClient && hub.id === "clients" && t.path.startsWith("/clients/") === false && t.key !== "/crm");
+          const on = t.key === tab.key;
           const n = t.badge ? badges[t.badge] : 0;
           return (
             <Link
