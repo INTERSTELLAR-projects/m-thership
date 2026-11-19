@@ -198,7 +198,7 @@ function build() {
 
   E.Investment = [
     ["Second studio: video + podcast suite", "Real estate", 185000, "High", "Transmission demand is 3× capacity."], ["Senior engineer ×2 (Command Systems)", "Team", 310000, "High", "Cuts Command System delivery from 21 to 12 days."],
-    ["Client success lead", "Team", 95000, "High", "One per 60 accounts."], ["GPU workstation fleet (4)", "Hardware", 48000, "Medium", "Local generation for SMPL Social."], ["Brand film + launch campaign", "Marketing", 120000, "Medium", "2027 rebrand rollout."],
+    ["Client success lead", "Team", 95000, "High", "One per 60 accounts."], ["GPU workstation fleet (4)", "Hardware", 48000, "Medium", "Local generation for the Creative Studio."], ["Brand film + launch campaign", "Marketing", 120000, "Medium", "2027 rebrand rollout."],
     ["Leadership program", "Education", 18000, "Low", "Team leads."], ["Data platform annual plan", "Software", 36000, "Medium", "Search intelligence at scale."], ["Index fund · treasury reserve", "Other", 500000, "High", "6 months of runway parked."],
   ].map(([name, category, estimatedCost, priority, notes], i) => ({ id: `iv${i}`, name, category, estimatedCost, priority, notes, acquired: i === 3 }));
 
@@ -318,18 +318,18 @@ function build() {
   E.ClientOperationItem = [];
   E.LegalItem = [
     ["deadline", "Q4 federal estimated tax payment", 72], ["deadline", "State annual report filing", 41], ["deadline", "BOI report update (new officer)", 18], ["deadline", "Sales tax return (Q4)", 87], ["deadline", "W-2s + 1099s to 25 employees & 9 contractors", 88], ["deadline", "Trademark renewal: MØTHERSHIP™", 140],
-    ["todo", "Update MSA with AI Email Agent data clause", 6], ["todo", "Renew cyber insurance policy", 24], ["todo", "Contractor agreements for Q1 video team", 12], ["todo", "Privacy policy refresh (SMPL. Studio)", 30], ["todo", "Register trademark: Nøva", 45],
+    ["todo", "Update MSA with AI Email Agent data clause", 6], ["todo", "Renew cyber insurance policy", 24], ["todo", "Contractor agreements for Q1 video team", 12], ["todo", "Privacy policy refresh (Creative Studio)", 30], ["todo", "Register trademark: Nøva", 45],
     ["date", "LLC formed", -900], ["date", "S-corp election effective", -300], ["date", "Office lease renewal", 210],
   ].map(([section, task, d], i) => ({ id: `lg${i}`, section, task, dueDate: d >= 0 ? ahead(d) : ago(-d), status: d < 0 ? "Done" : i % 5 === 0 ? "In progress" : "Open", done: d < 0 }));
 
   E.AppDocument = [
-    ["Brand guidelines 2027", "Brand"], ["MSA template", "Legal"], ["Mission ALPHA SOP", "Operations"], ["Pricing & packages", "Sales"], ["Employee handbook", "HR"], ["Onboarding checklist", "Operations"], ["Investor update · Q3", "Finance"], ["Insurance certificates", "Legal"], ["SMPL. Studio roadmap", "Product"], ["Chrome Workspace template", "Operations"], ["Command System architecture", "Product"], ["Board deck · Q3", "Finance"],
+    ["Brand guidelines 2027", "Brand"], ["MSA template", "Legal"], ["Mission ALPHA SOP", "Operations"], ["Pricing & packages", "Sales"], ["Employee handbook", "HR"], ["Onboarding checklist", "Operations"], ["Investor update · Q3", "Finance"], ["Insurance certificates", "Legal"], ["Creative Studio roadmap", "Product"], ["Chrome Workspace template", "Operations"], ["Command System architecture", "Product"], ["Board deck · Q3", "Finance"],
   ].map(([name, category], i) => ({ id: `doc${i}`, name, category, url: "https://example.com/doc", date: ago(i * 5), pinned: i < 3 }));
   E.FormTemplate = [];
 
   // ---------------- Idea Vault ----------------
   E.Idea = [
-    ["SMPL. Studio: image, video, voice and clipping for every client", "Product", "building", 94, "Launch inside the portal; every plan gets fair-use credits."], ["Chrome Workspace one-click installer", "Operations", "live", 91, "Ships as part of Ops Command."], ["AI Email Agent for every Command System", "Product", "building", 89, "Triage, labels and drafted replies with approval."],
+    ["Creative Studio: image, video, voice and clipping for every client", "Product", "building", 94, "Launch inside the portal; every plan gets fair-use credits."], ["Chrome Workspace one-click installer", "Operations", "live", 91, "Ships as part of Ops Command."], ["AI Email Agent for every Command System", "Product", "building", 89, "Triage, labels and drafted replies with approval."],
     ["Franchise edition of the Command System", "Product", "validating", 86, "Multi-location roll-up for franchise groups."], ["Prestige wall at HQ", "Marketing", "idea", 71, "Celebrate referrers publicly."], ["Interstellar Academy (paid course)", "Content", "validating", 77, "Teach owners the 4-tab business."],
     ["Fleet tracker template", "Product", "live", 82, "Built for Summit Ridge; template for all trades."], ["Restaurant daily-flow module", "Product", "validating", 79, "Prep lists, temps, closing checklist."], ["Quarterly owner summit", "Marketing", "idea", 64, "In-person mastermind for clients."], ["Podcast: The Future of Business", "Content", "parked", 58, "Paused until studio 2."],
   ].map(([title, category, stage, score, description], i) => ({ id: `id${i}`, title, category, stage, score, rank: i + 1, description, status: stage === "live" ? "Implemented" : stage === "building" ? "Planned" : "In Review", date: ago(i * 4), source: i % 3 ? "manual" : "oracle", score_breakdown: { effort_band: pick(["S", "M", "L"]), time_to_dollar_label: pick(["< 30 days", "1–3 months", "3–6 months"]), next_action: "Scope v1" }, scored_at: agoTs(1) }));
@@ -362,12 +362,12 @@ function build() {
     { id: "s1", layout: "cover", eyebrow, title, subtitle: "The Future of Business." },
     { id: "s2", layout: "bigstat", title: "Revenue, trailing 12 months", stats: [{ value: "$4.8M", label: "Collected" }] },
     { id: "s3", layout: "stats", title: "Where we are", stats: [{ value: "154", label: "Active clients" }, { value: "99.2%", label: "Retention" }, { value: "13", label: "Platforms per post" }] },
-    { id: "s4", layout: "bullets", title: "What ships next", bullets: ["SMPL. Studio (coming soon)", "AI Email Agent", "Chrome Workspace", "Franchise Command System"] },
+    { id: "s4", layout: "bullets", title: "What ships next", bullets: ["Creative Studio (coming soon)", "AI Email Agent", "Chrome Workspace", "Franchise Command System"] },
     { id: "s5", layout: "closing", title: "Let's build.", subtitle: "interstellar-booking.com" },
   ].slice(0, n) });
   E.Presentation = [
     deck("Q4 board review", null, 5, "Interstellar · Board"), deck("Summit Ridge · 2027 growth plan", c1, 5, "Proposal"), deck("Harborline · Mission BRAVO kickoff", H[1], 4, "Kickoff"), deck("Blue Heron · Holiday campaign", H[2], 4, "Campaign"),
-    deck("Granite Peak Solar · Mission ALPHA proposal", active[8], 5, "Proposal"), deck("Franchise Command System · pitch", null, 5, "Product"), deck("All-hands · November", null, 4, "Team"), deck("SMPL. Studio · roadmap", null, 5, "Product"),
+    deck("Granite Peak Solar · Mission ALPHA proposal", active[8], 5, "Proposal"), deck("Franchise Command System · pitch", null, 5, "Product"), deck("All-hands · November", null, 4, "Team"), deck("Creative Studio · roadmap", null, 5, "Product"),
   ].map((p, i) => ({ id: `pres${i}`, ...p, project_id: ["dp1", "dp2", "dp2", "dp2", "dp3", "dp1", "dp1", "dp3"][i], created_date: agoTs(i * 3), updated_date: agoTs(i) }));
   E.DeckProject = [{ id: "dp1", name: "Interstellar · Board & team", description: "Board reviews, all-hands, product", client: "Interstellar" }, { id: "dp2", name: "Client proposals & kickoffs", description: "Every Mission deck", client: "Clients" }, { id: "dp3", name: "Sales & product", description: "Pitches and roadmaps", client: "Interstellar" }];
 
@@ -405,7 +405,7 @@ function build() {
   E.OraclePrediction = [["AI answers drive 30% of local service discovery", 0.7, "1-3yr"], ["Half of trades businesses consolidate to ≤5 apps", 0.62, "1-3yr"], ["Voice booking becomes default for home services", 0.45, "3-10yr"]].map(([claim, probability, horizon], i) => ({ id: `op${i}`, claim, probability, horizon, outcome: "pending", topic_key: TOP[i][0], created_at: agoTs(20 + i), resolve_by: ahead(300) }));
   E.OracleBrief = [{ id: "ob1", kind: "daily", date: ago(0), title: "Daily brief", summary: "Three changes worth acting on today; all three already applied to client sites.", new_findings: 14, top_changes: [] }];
   E.OracleThesis = [];
-  E.OracleOpportunity = [["Franchise Command System", "Multi-location groups want one system.", 92], ["AI Email Agent as a stand-alone add-on", "Inbox chaos is the #1 complaint on calls.", 88], ["SMPL Social credits marketplace", "Clients want more generations than fair use.", 81]].map(([title, why_now, fit_score], i) => ({ id: `oo${i}`, title, why_now, summary: why_now, fit_score, rank: i + 1, effort: pick(["M", "L"]), revenue_band_estimate: pick(["$250K–$1M/yr", "$1M+/yr"]), status: "new", topic_key: "opportunities", created_at: agoTs(i) }));
+  E.OracleOpportunity = [["Franchise Command System", "Multi-location groups want one system.", 92], ["AI Email Agent as a stand-alone add-on", "Inbox chaos is the #1 complaint on calls.", 88], ["the Creative Studio credits marketplace", "Clients want more generations than fair use.", 81]].map(([title, why_now, fit_score], i) => ({ id: `oo${i}`, title, why_now, summary: why_now, fit_score, rank: i + 1, effort: pick(["M", "L"]), revenue_band_estimate: pick(["$250K–$1M/yr", "$1M+/yr"]), status: "new", topic_key: "opportunities", created_at: agoTs(i) }));
 
   // ---------------- Outreach / content / dossier ----------------
   E.OutreachTarget = [["Apple Business Connect", "citation_directory", "won"], ["Bing Places", "citation_directory", "won"], ["Nextdoor Business", "citation_directory", "won"], ["Angi", "review_site", "won"], ["Houzz", "industry_directory", "approved"], ["Idaho Business Review", "local_news", "replied"], ["Boise Chamber", "association_chamber", "won"], ["BuildZoom", "industry_directory", "sent"], ["Best of Boise awards", "awards_lists", "drafted"], ["Yelp", "review_site", "won"], ["BBB", "association_chamber", "won"], ["Thumbtack", "citation_directory", "qualified"]].map(([name, kind, status], i) => ({ id: `otg${i}`, client_id: c1.id, client_name: c1.business, name, kind, status, priority: i < 6 ? "high" : "medium", cost: "free", url: "https://example.com", domain: "example.com", found_by: "claude", found_at: ago(30 - i), live_ok: status === "won" }));

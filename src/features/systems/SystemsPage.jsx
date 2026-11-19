@@ -8,7 +8,7 @@ import { Spinner, relTime } from "@/features/agents/ui";
 
 // Møthership > Agents > Systems: the systems brain. Every secret NAME on every app Justin manages, what it is for, how
 // the apps connect, what is left over, and a Re-scan that flags new or missing secrets. Names only, never values.
-// Ask about any key on the Command Ask bar ("what does WEBSITE_INTAKE_KEY do?", "what connects Redline to Møthership?").
+// Ask about any key on the Command Ask bar ("what does WEBSITE_INTAKE_KEY do?", "what connects a client site to Møthership?").
 
 const STATUS = {
   active: { label: "Active", cls: "text-[#ffb27a] border-[rgba(255,138,61,.45)] bg-[rgba(255,106,0,.1)]" },
@@ -247,7 +247,7 @@ export default function SystemsPage() {
                 <aside className="glass rounded-2xl p-4 text-[12.5px] leading-relaxed text-[var(--ink-m)]">
                   <p className="eyebrow !text-[9.5px]">How to read it</p>
                   <p className="mt-1.5">Møthership sits in the middle. Each client's website and command app sit side by side on the ring. Arrows point the way data flows; the label is the secret name that guards the link. Click an app for its keys, functions, workflows and connectors.</p>
-                  <p className="mt-3 flex items-start gap-2"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#ff6a00]" /><span>Ask the Command bar: <span className="text-white">"what does WEBSITE_INTAKE_KEY do?"</span> or <span className="text-white">"what connects Redline to Møthership?"</span></span></p>
+                  <p className="mt-3 flex items-start gap-2"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#ff6a00]" /><span>Ask the Command bar: <span className="text-white">"what does WEBSITE_INTAKE_KEY do?"</span> or <span className="text-white">"what connects a client site to Møthership?"</span></span></p>
                 </aside>
               )}
               <DecisionNote text={d.decision} />

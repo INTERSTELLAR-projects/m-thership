@@ -12,6 +12,9 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { usePolicySweep } from "@/features/launch/usePolicySweep";
 import { useSidebarPinned } from "@/components/navPrefs";
 import AskBar from "@/features/command/AskBar";
+import { PresentationButton, PresentationHidden } from "@/components/PresentationMode";
+import { IS_PRESENTING } from "@/lib/presentation";
+import { isPresentHidden } from "@/lib/nav";
 
 const isTyping = (el) => el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable);
 // "G then …" jumps (Møthership Command): T Today · P Pillars · B Brain · W Walk · C Classic.
@@ -56,10 +59,13 @@ export default function Layout() {
           <span className="hidden text-[12.5px] md:inline">All pages</span>
         </button>
         <Link to="/" aria-label="Møthership Command, Today"><BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={16} /></Link>
-        <button onClick={() => setCmdOpen(true)} className="flex items-center gap-2 p-2 text-ink/60 hover:text-ink" aria-label="Search pages, clients and actions">
-          <Search className="h-4 w-4" />
-          <kbd className="hidden font-mono text-[10px] text-ink/40 md:inline">⌘K</kbd>
-        </button>
+        <div className="flex items-center">
+          <PresentationButton />
+          <button onClick={() => setCmdOpen(true)} className="flex items-center gap-2 p-2 text-ink/60 hover:text-ink" aria-label="Search pages, clients and actions">
+            <Search className="h-4 w-4" />
+            <kbd className="hidden font-mono text-[10px] text-ink/40 md:inline">⌘K</kbd>
+          </button>
+        </div>
       </header>
 
       {mobileOpen && <div onClick={() => setMobileOpen(false)} className={`fixed inset-0 z-40 bg-ink/40 ${pinned ? "md:hidden" : ""}`} />}
@@ -70,7 +76,7 @@ export default function Layout() {
         <ErrorBoundary compact where="hub tabs"><HubTabs /></ErrorBoundary>
         <div key={location.pathname} data-trail className="page-enter relative z-10 pb-24">
           <ErrorBoundary where="admin route" resetKey={location.pathname}>
-            <Outlet />
+            {IS_PRESENTING && isPresentHidden(location.pathname) ? <PresentationHidden /> : <Outlet />}
           </ErrorBoundary>
         </div>
       </main>

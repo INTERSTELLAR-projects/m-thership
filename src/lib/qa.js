@@ -1,6 +1,7 @@
 // QA MODE — design preview with FAKE data, only on the Base44 preview sandbox host with ?qa=1.
 // Never active on the live app. Real data stays protected by entity access rules either way.
-// Remove this file (and its two imports) before launch.
+// PRESENTATION MODE (live app, admins only) reuses the same in-memory demo layer: see src/lib/presentation.js.
+// Keep this file, demoData.js and the qaFixtures: Presentation mode needs them.
 
 import { QA_ACCOUNTING } from "@/features/accounting/qaFixtures";
 import { QA_SOCIAL, qaSocialInvoke } from "@/features/social/qaFixtures";
@@ -9,6 +10,7 @@ import { qaFuelInvoke } from "@/features/fuel/qaFixtures";
 import { demo, demoInvoke, warmDemo } from "@/lib/demoData";
 import { QA_LEDGER, qaLedgerInvoke, qaWorkFeed, qaWorkCounts } from "@/features/output/qaFixtures";
 import { qaTrainingInvoke } from "@/features/training/qaFixtures";
+import { IS_PRESENTING, endPresentation } from "@/lib/presentation";
 
 const host = typeof window !== "undefined" ? window.location.hostname : "";
 const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
@@ -17,7 +19,10 @@ if (host.startsWith("preview-sandbox--") && params.get("qa") === "1") {
 }
 let flag = false;
 try { flag = host.startsWith("preview-sandbox--") && sessionStorage.getItem("ms_qa") === "1"; } catch { flag = false; }
-export const IS_QA = flag;
+// Presentation mode swaps in the same fictional book (labelled "Sample") on any host, for a verified admin only
+// (AuthContext checks the real login before showing anything; everything is in memory, nothing real is read or written).
+export const IS_QA = flag || IS_PRESENTING;
+export const IS_PREVIEW_QA = flag;
 
 // DEMO (screen library for the sales deck): ?qa=1&demo=1 swaps in a big fictional book from src/lib/demoData.js.
 // ?demo=0 switches it off again. Same preview-only guard as QA.
@@ -25,7 +30,7 @@ if (flag && params.get("demo") === "1") { try { sessionStorage.setItem("ms_demo"
 if (flag && params.get("demo") === "0") { try { sessionStorage.removeItem("ms_demo"); } catch { /* ignore */ } }
 let demoFlag = false;
 try { demoFlag = flag && sessionStorage.getItem("ms_demo") === "1"; } catch { demoFlag = false; }
-export const IS_DEMO = demoFlag;
+export const IS_DEMO = demoFlag || IS_PRESENTING;
 
 export const QA_USER = { id: "qa-admin", email: IS_DEMO ? "commander@interstellar.demo" : "qa@interstellar.test", full_name: "Commander", role: "admin" };
 
@@ -132,8 +137,17 @@ function entityApi(name) {
   };
 }
 
+// The real login check, kept before the demo layer replaces auth.me (Presentation mode only).
+let realMe = null;
+export async function verifyPresenter() {
+  if (!realMe) return false;
+  try { const u = await realMe(); return !!u && u.role === "admin"; } catch { return false; }
+}
+
 export function installQa(base44) {
   if (!IS_QA) return base44;
+  if (IS_PRESENTING && base44.auth && typeof base44.auth.me === "function") realMe = base44.auth.me.bind(base44.auth);
+  const realLogout = base44.auth && typeof base44.auth.logout === "function" ? base44.auth.logout.bind(base44.auth) : null;
   if (IS_DEMO) warmDemo();
   const ents = new Proxy({}, { get: (_, name) => entityApi(String(name)) });
   try {
@@ -141,7 +155,16 @@ export function installQa(base44) {
   } catch { base44.entities = ents; }
   base44.auth.me = async () => QA_USER;
   base44.auth.isAuthenticated = async () => true;
-  base44.auth.logout = () => { sessionStorage.removeItem("ms_qa"); window.location.href = "/"; };
+  base44.auth.logout = IS_PRESENTING && !flag
+    ? (...a) => { endPresentation(false); if (realLogout) realLogout(...a); }
+    : () => { sessionStorage.removeItem("ms_qa"); window.location.href = "/"; };
+  base44.auth.updateMe = async (data) => ({ ...QA_USER, ...(data || {}) });
+  // Nothing reaches the real backend in these modes: agents, invites and connectors are stubbed too.
+  const noop = async () => ({});
+  base44.agents = { listConversations: async () => [], getConversation: async () => ({ messages: [] }), createConversation: async (c) => ({ id: "demo-conv", messages: [], ...(c || {}) }), addMessage: noop, subscribeToConversation: () => () => {} };
+  base44.users = { inviteUser: noop };
+  base44.connectors = { connectAppUser: noop };
+  base44.analytics = { track: () => {} };
   base44.integrations = { Core: { InvokeLLM: async () => ({}), UploadFile: async () => ({ file_url: "" }) } };
   base44.functions = {
     invoke: async (name, args = {}) => {

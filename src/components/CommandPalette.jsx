@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, X, Users, FolderKanban, CornerDownLeft, Sparkles, RefreshCw, Zap, Brain, Headphones, Orbit, Sun, LayoutDashboard, ListPlus, Receipt, Mail, Rocket } from "lucide-react";
+import { Search, X, Users, FolderKanban, CornerDownLeft, Sparkles, RefreshCw, Zap, Brain, Headphones, Orbit, Sun, LayoutDashboard, ListPlus, Receipt, Mail, Rocket, Presentation } from "lucide-react";
+import { IS_PRESENTING, togglePresentation } from "@/lib/presentation";
 import { base44 } from "@/api/base44Client";
 import { ALL_NAV } from "@/lib/nav";
 import { usePins } from "@/components/navPrefs";
@@ -26,6 +27,7 @@ const ACTIONS = [
   { key: "a:pillars", label: "Pillars compass", hint: "G P", icon: Orbit, path: "/pillars" },
   { key: "a:walk", label: "Walk mode", hint: "G W · hands-free brief", icon: Headphones, path: "/walk" },
   { key: "a:classic", label: "Classic dashboard", hint: "G C · Mission Control", icon: LayoutDashboard, path: "/classic" },
+  { key: "a:present", label: IS_PRESENTING ? "Leave Presentation mode" : "Presentation mode (sample data for screen shares)", hint: "Alt+Shift+P", icon: Presentation, run: togglePresentation },
 ].map((a) => ({ ...a, group: "Actions" }));
 
 async function loadRecords() {

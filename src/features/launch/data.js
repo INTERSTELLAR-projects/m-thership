@@ -3,6 +3,7 @@
 // (functions/agents ceoContext), so the page, the API and the daily brief always agree.
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { IS_PRESENTING } from "@/lib/presentation";
 
 export const LAUNCH_DATE = "2026-12-31";
 export const LAUNCH_END = new Date("2026-12-31T23:59:59-08:00");
@@ -19,6 +20,19 @@ export const WEEKS = [
   { n: 8, from: "2026-12-21", to: "2026-12-27", label: "Dec 21–27", theme: "Christmas buffer", note: "Only retire the booking + QR apps. Claude sweeps every client for stragglers." },
   { n: 9, from: "2026-12-28", to: "2026-12-31", label: "Dec 28–31", theme: "Launch", note: "Final sweep, every engine running, 2027 lane handed over." },
 ];
+// Presentation mode (sample data): the week notes name real clients, so prospects see generic ones instead.
+const SAMPLE_NOTES = [
+  "Answer the open questions and clear the first approvals.",
+  "QA pass on Møthership and the portal; approvals inbox cleared.",
+  "Portal invites go out; the first content engines start.",
+  "Light week: two site moves. Claude drafts the next site.",
+  "Two more site moves; the first client Command System ships.",
+  "Three site moves; app stages finish.",
+  "Agency website launch; the last site moves.",
+  "Buffer week. Claude sweeps every client for stragglers.",
+  "Final sweep, every engine running, 2027 lane handed over.",
+];
+if (IS_PRESENTING) WEEKS.forEach((w, i) => { w.note = SAMPLE_NOTES[i] || w.note; });
 
 export const WORKSTREAM_ORDER = ["Møthership", "Portal", "Website", "Automations & Agents", "Clients", "Client apps", "Billing & Accounts", "Security"];
 export const streamOf = (i) => (String(i.workstream || "").startsWith("Client:") ? "Clients" : i.workstream || "Other");

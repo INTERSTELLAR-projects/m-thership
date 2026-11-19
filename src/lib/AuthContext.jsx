@@ -2,7 +2,8 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
-import { IS_QA, QA_USER } from '@/lib/qa';
+import { IS_QA, IS_PREVIEW_QA, QA_USER, verifyPresenter } from '@/lib/qa';
+import { IS_PRESENTING, endPresentation } from '@/lib/presentation';
 
 const AuthContext = createContext();
 
@@ -20,6 +21,8 @@ export const AuthProvider = ({ children }) => {
 
   const checkAppState = async () => {
     if (IS_QA) {
+      // Presentation mode on the live app: only a signed-in admin gets the sample book; anyone else is switched back.
+      if (IS_PRESENTING && !IS_PREVIEW_QA && !(await verifyPresenter())) { endPresentation(); return; }
       setUser(QA_USER); setIsAuthenticated(true); setIsLoadingAuth(false); setIsLoadingPublicSettings(false);
       return;
     }
