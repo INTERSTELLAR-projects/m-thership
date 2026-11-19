@@ -24,7 +24,13 @@ export default function ClientBuildPage({ client, go }) {
   const reqQ = useList("ClientRequest", { filter: { client_id: client.id }, limit: 20, sort: "-created_date" });
   const brain = (brainQ.data || [])[0];
   const pct = brain?.completeness ?? client.scrape_summary?.completeness ?? 0;
-  const growth = (workQ.data || []).filter((w) => /blog|gbp|post|social/i.test(String(w.kind || w.title || ""))).slice(0, 6);
+  // Client posts (projects / testimonials the client sent that went live) join the growth feed; Clients › Client
+  // posts stays as the audit trail with Unpublish / Edit.
+  const postsQ = useList("ContentSubmission", { filter: { client_id: client.id, status: "live" }, limit: 10, sort: "-published_at" });
+  const fromPosts = (postsQ.data || []).filter((p) => !p.is_test).map((p) => ({ id: `cs-${p.id}`, work: p.work_entry_id, title: p.writer_output?.title || `${p.kind} post`, kind: `client ${p.kind}`, date: p.published_at, url: p.published_url }));
+  const postWork = new Set(fromPosts.map((p) => p.work).filter(Boolean));
+  const growth = [...fromPosts, ...(workQ.data || []).filter((w) => !postWork.has(w.id) && /blog|gbp|post|social/i.test(String(w.kind || w.title || "")))]
+    .sort((a, b) => String(b.date || b.created_date || "").localeCompare(String(a.date || a.created_date || ""))).slice(0, 6);
   const reqs = (reqQ.data || []).filter((r) => !["complete", "declined"].includes(r.status)).slice(0, 5);
 
   return (
