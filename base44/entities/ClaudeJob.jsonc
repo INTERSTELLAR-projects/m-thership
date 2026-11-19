@@ -24,9 +24,6 @@
       "description": "Build Engine: where the result lives (preview URL, app, doc)",
       "type": "string"
     },
-    "created_by": {
-      "type": "string"
-    },
     "approved_at": {
       "format": "date-time",
       "type": "string"
