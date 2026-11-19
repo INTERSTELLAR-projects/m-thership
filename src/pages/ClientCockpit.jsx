@@ -32,21 +32,24 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import ClientCallsTab from "@/features/calls/ClientCallsTab";
 import EngineChecklist from "@/features/launch/EngineChecklist";
 import { PrepStrip } from "@/features/prep/PrepChecklist";
+import ClientBuildPage from "@/features/build/ClientBuildPage";
 import { useBrands } from "@/features/brands/useHouseData";
 import { brandFieldOptions } from "@/features/brands/graph";
 
-// Five sections instead of 23 tabs. Every old tab still exists (as a sub-tab) and every old ?tab= link still opens it.
+// Six sections instead of 23 tabs (Build first, Nov 2026). Every old tab still exists (as a sub-tab) and every old ?tab= link still opens it.
 // Where each old tab now lives: Agents (agents, claude, automations) · Work (overview, tasks, requests, work, calls,
 // messages) · Growth (performance, goals, gbp, mappack, citations, content, social) · Brain & brand (profile, dossier,
 // brand, playbook, audit, files) · Setup & billing (billing, systems, resources).
 const SECTIONS = [
+  // Build Engine (Nov 2026): the same first screen for every client and lead.
+  { key: "build", label: "Build", hint: "Lead card, build checklist, Brain and unlocks, launch grid, growth feed and requests", tabs: [["build", "Overview"]] },
   { key: "agents", label: "Agents", hint: "What is running for this client, wired to their Brain", tabs: [["agents", "Live view"], ["claude", "Claude jobs"], ["automations", "Automations"]] },
   { key: "work", label: "Work", hint: "Summary, tasks, requests and conversations", tabs: [["overview", "Summary"], ["tasks", "Tasks"], ["requests", "Requests"], ["work", "Work log"], ["calls", "Calls"], ["messages", "Messages"]] },
   { key: "growth", label: "Growth", hint: "Results, goals and the plans that drive them", tabs: [["performance", "Performance"], ["goals", "Goals & gaps"], ["gbp", "Google Business"], ["mappack", "Map pack"], ["citations", "Citations & PR"], ["content", "Content plan"], ["social", "Social plan"]] },
   { key: "brain", label: "Brain & brand", hint: "What we know about them, and their brand", tabs: [["profile", "Profile"], ["dossier", "Dossier"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["audit", "Intake audit"], ["files", "Files"]] },
   { key: "setup", label: "Setup & billing", hint: "Services, notes, systems and portal resources", tabs: [["billing", "Billing & notes"], ["systems", "Systems"], ["resources", "Portal resources"]] },
 ];
-const ALIAS = { constellations: "agents", "": "agents" };
+const ALIAS = { constellations: "agents", "": "build" };
 const sectionOf = (t) => SECTIONS.find((x) => x.tabs.some(([k]) => k === t)) || SECTIONS[0];
 
 const PROFILE_FIELDS = [
@@ -74,9 +77,9 @@ export default function ClientCockpit() {
   const { id } = useParams();
   const [params, setParams] = useSearchParams();
   const raw = params.get("tab") || "";
-  const tab = ALIAS[raw] || (SECTIONS.some((x) => x.tabs.some(([k]) => k === raw)) ? raw : "agents");
+  const tab = ALIAS[raw] || (SECTIONS.some((x) => x.tabs.some(([k]) => k === raw)) ? raw : "build");
   const section = sectionOf(tab);
-  const go = (t) => setParams(t === "agents" ? {} : { tab: t }, { replace: true });
+  const go = (t) => setParams(t === "build" ? {} : { tab: t }, { replace: true });
   const { data: client, isLoading } = useRecord("CRMClient", id);
   const [editing, setEditing] = useState(false);
   const [inviting, setInviting] = useState(false);
@@ -158,6 +161,7 @@ export default function ClientCockpit() {
       <div className="px-5 pt-4 md:px-8"><ErrorBoundary compact where="client prep"><PrepStrip client={client} /></ErrorBoundary></div>
 
       <div key={tab} className="page-enter px-5 pt-4 md:px-8">
+        {tab === "build" && <ErrorBoundary where="client build"><ClientBuildPage client={client} go={go} /></ErrorBoundary>}
         {tab === "agents" && <ErrorBoundary where="client agents"><ClientAgentsView client={client} go={go} /></ErrorBoundary>}
         {tab === "profile" && <ProfileMeter client={client} go={go} startOpen />}
         {tab === "dossier" && <ErrorBoundary where="dossier"><BrainDossierTab client={client} /></ErrorBoundary>}
