@@ -109,7 +109,12 @@ export const EDITABLE: Record<string, string[]> = {
   Expense: ["paidCycles"],
   WorkEntry: ["status"],
   CRMClient: ["notes", "next_step", "next_step_at", "pipeline_stage"],
-  LaunchItem: ["status", "answer", "answered_at"],
+  LaunchItem: ["status", "answer", "answered_at", "owner"],
+  // Override of an auto-approval (Command > Decided for you): puts the item back in front of Justin.
+  ClaudeJob: ["status"],
+  FoundationPrompt: ["status"],
+  AgentLearning: ["status", "applied"],
+  ProposedAction: ["status"],
 };
 const fill = (v: unknown) => (v === "$now" ? nowIso() : v);
 
