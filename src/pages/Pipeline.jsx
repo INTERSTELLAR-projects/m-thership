@@ -3,11 +3,14 @@ import { useSearchParams } from "react-router-dom";
 import { useDeepLinkFocus } from "@/lib/deepLink";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Collapse from "@/components/Collapse";
-import { AlertTriangle, CalendarClock, CircleDollarSign, Inbox, Loader2, PhoneCall, Target, Trophy, UserPlus } from "lucide-react";
+import { AlertTriangle, ArrowRight, CalendarClock, CircleDollarSign, Inbox, Loader2, PhoneCall, Target, Trophy, UserPlus } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { base44 } from "@/api/base44Client";
 import { useList, useInvalidate } from "@/lib/useData";
 import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+import { moveLead, undoLeadMove, nextStageOf, isAutoMove } from "@/features/pipeline/moves";
+import { dealLabel, oneTimeOf, monthlyOf, pipelineValueOf } from "@/features/pipeline/deal";
 import StatCard from "@/features/tasks/ui-kit/StatCard";
 import EmptyState from "@/features/tasks/ui-kit/EmptyState";
 import { btnSmallFlame } from "@/features/tasks/lib/ui";
@@ -16,7 +19,7 @@ import NewLeadDialog from "@/features/pipeline/NewLeadDialog";
 import { ContactLinks, LeadDialog, LostDialog, SourceBadge, WonDialog } from "@/features/pipeline/LeadDialogs";
 import {
   STAGES, OPEN_STAGES, isLeadish, stageOf, sourceOf, interestOf, bookedCallOf, reachedCall,
-  daysInStage, isOverdue, noteDate, money,
+  daysInStage, isOverdue, money,
 } from "@/features/pipeline/pipeline";
 import { useLeadSources } from "@/features/pipeline/useLeadSources";
 
@@ -48,7 +51,8 @@ function LeadCard({ c, onOpen, onMove, provided, dragging }) {
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         {interest ? <span className="rounded-sm bg-[#ff3c00]/[0.08] px-1.5 py-0.5 text-[10.5px] font-medium text-[#c24100]">{interest}</span> : null}
-        {Number(c.lead_value) > 0 ? <span className="font-mono text-[10.5px] text-ink/70">{money(c.lead_value)}</span> : null}
+        {dealLabel(c) ? <span className="font-mono text-[10.5px] text-ink/70" data-testid="deal-label">{dealLabel(c)}</span> : null}
+        {isAutoMove(c) ? <span className="rounded-sm bg-ink/[0.07] px-1 font-mono text-[9px] uppercase text-ink/55" title={`Moved by ${c.pipeline_stage_by}${c.pipeline_stage_reason ? `: ${c.pipeline_stage_reason}` : ""}`}>auto</span> : null}
         <span className="font-mono text-[10px] text-ink/40">{days}d in stage</span>
       </div>
       {call && ["call_booked", "call_held"].includes(stage) ? (
@@ -63,16 +67,22 @@ function LeadCard({ c, onOpen, onMove, provided, dragging }) {
       {stage === "lost" && c.lost_reason ? <p className="mt-1.5 truncate text-[11px] text-ink/50">Lost: {c.lost_reason}</p> : null}
       <div className="mt-2 flex items-center justify-between gap-2">
         <ContactLinks c={c} />
-        {/* Touch-friendly move control (drag works too) */}
-        <select
-          value={stage}
-          onClick={(e) => e.stopPropagation()}
-          onChange={(e) => onMove(c, e.target.value)}
-          className="h-7 max-w-[120px] rounded-sm border border-hair bg-card px-1 text-[11px] text-ink/70 md:hidden"
-          aria-label="Move to stage"
-        >
-          {STAGES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
-        </select>
+        {/* Stage chip: tap → pick a stage. "Next →" moves one stage forward. Drag works too. */}
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <select
+            value={stage}
+            onChange={(e) => onMove(c, e.target.value, "dropdown")}
+            className="h-7 max-w-[118px] cursor-pointer rounded-full border border-hair bg-card px-2 text-[11px] font-medium text-ink/75 hover:border-[#ff3c00]"
+            aria-label={`Stage of ${c.business}`}
+            data-testid="stage-chip"
+          >
+            {STAGES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+          </select>
+          {nextStageOf(stage) ? (
+            <button type="button" onClick={() => onMove(c, nextStageOf(stage), "next")} title={`Move to ${STAGES.find((x) => x.key === nextStageOf(stage)).label}`} aria-label={`Move ${c.business} to the next stage`}
+              className="grid h-7 w-7 place-items-center rounded-full border border-hair text-ink/55 hover:border-[#ff3c00] hover:text-[#ff3c00]"><ArrowRight className="h-3.5 w-3.5" /></button>
+          ) : null}
+        </div>
       </div>
     </div>
   );
@@ -130,10 +140,12 @@ export function PipelineBoard({ embedded = false }) {
     const won = statBase.filter((c) => stageOf(c) === "won").length;
     const lost = statBase.filter((c) => stageOf(c) === "lost").length;
     const open = statBase.filter((c) => c.status === "Lead" && OPEN_STAGES.includes(stageOf(c)));
-    const value = open.reduce((s, c) => s + (Number(c.lead_value) || 0), 0);
-    const unvalued = open.filter((c) => !(Number(c.lead_value) > 0)).length;
+    const value = open.reduce((s, c) => s + pipelineValueOf(c), 0);
+    const oneTime = open.reduce((s, c) => s + oneTimeOf(c), 0);
+    const monthly = open.reduce((s, c) => s + monthlyOf(c), 0);
+    const unvalued = open.filter((c) => !(pipelineValueOf(c) > 0)).length;
     const overdue = open.filter(isOverdue).length;
-    return { thisMonth: thisMonth.length, bySource, booked, total: statBase.length, won, lost, value, unvalued, open: open.length, overdue };
+    return { thisMonth: thisMonth.length, bySource, booked, total: statBase.length, won, lost, value, oneTime, monthly, unvalued, open: open.length, overdue };
   }, [statBase, SOURCES]);
 
   const pct = (a, b) => (b ? Math.round((a / b) * 100) + "%" : "—");
@@ -156,10 +168,7 @@ export function PipelineBoard({ embedded = false }) {
   };
 
   const markLost = async (c, reason) => {
-    await patch(c, {
-      pipeline_stage: "lost", stage_changed_at: nowIso(), lost_reason: reason,
-      notes: [...(c.notes || []), { id: Date.now(), text: `Pipeline: marked lost${reason ? ` (${reason})` : ""}.`, date: noteDate() }],
-    });
+    await applyMove(c, "lost", "dialog", reason);
     // Keep the referrer's Prestige board honest.
     if (c.lead_referrer_member_id) {
       const refs = await base44.entities.PrestigeReferral.filter({ memberId: c.lead_referrer_member_id }, "-created_date", 100).catch(() => []);
@@ -170,23 +179,41 @@ export function PipelineBoard({ embedded = false }) {
 
   const markWon = async (c, pkg) => {
     if (stageOf(c) === "won") return;
-    await patch(c, {
-      pipeline_stage: "won", stage_changed_at: nowIso(), lost_reason: "",
-      notes: [...(c.notes || []), { id: Date.now(), text: `Pipeline: won → onboarding on ${pkg.label}.`, date: noteDate() }],
-    });
+    await applyMove(c, "won", "dialog", `Won → onboarding on ${pkg.label}`);
   };
 
-  const move = (c, stage) => {
+  // Every move goes through the lead-stage function (logged: who, when, from → to, why) with an Undo toast.
+  const applyMove = async (c, stage, source, reason = "") => {
+    const from = stageOf(c);
+    setOverrides((o) => ({ ...o, [c.id]: { ...(o[c.id] || {}), pipeline_stage: stage, stage_changed_at: nowIso() } }));
+    try {
+      const r = await moveLead(c, stage, { source, reason });
+      invalidate("CRMClient");
+      const label = STAGES.find((x) => x.key === stage)?.label || stage;
+      toast({
+        title: `${c.business} → ${label}`,
+        description: r?.won?.converted ? "Now a client; new-client prep started." : "Logged in the move history.",
+        action: <ToastAction altText="Undo the move" onClick={async () => {
+          setOverrides((o) => ({ ...o, [c.id]: { ...(o[c.id] || {}), pipeline_stage: from } }));
+          try { await undoLeadMove(r?.move_id, c, from); invalidate("CRMClient"); } catch (e) { toast({ title: "Undo failed", description: e.message, variant: "destructive" }); }
+        }}>Undo</ToastAction>,
+      });
+    } catch (e) {
+      setOverrides((o) => { const next = { ...o }; delete next[c.id]; return next; });
+      toast({ title: "Could not move", description: e.message, variant: "destructive" });
+    }
+  };
+  const move = (c, stage, source = "dropdown") => {
     if (!stage || stage === stageOf(c)) return;
     if (stage === "won") return setWonLead(c);
     if (stage === "lost") return setLostLead(c);
-    patch(c, { pipeline_stage: stage, stage_changed_at: nowIso() }).catch(() => null);
+    applyMove(c, stage, source);
   };
 
   const onDragEnd = (r) => {
     if (!r.destination || r.destination.droppableId === r.source.droppableId) return;
     const c = all.find((x) => x.id === r.draggableId);
-    if (c) move(c, r.destination.droppableId);
+    if (c) move(c, r.destination.droppableId, "drag");
   };
 
   const statCards = (
@@ -194,7 +221,7 @@ export function PipelineBoard({ embedded = false }) {
       <StatCard icon={Inbox} label="Leads this month" value={stats.thisMonth} hint={stats.bySource.length ? stats.bySource.map(([l, n]) => `${l} ${n}`).join(" · ") : "None yet this month"} />
       <StatCard icon={PhoneCall} label="Call-booked rate" value={pct(stats.booked, stats.total)} hint={`${stats.booked} of ${stats.total} leads booked a call`} />
       <StatCard icon={Trophy} label="Close rate" value={pct(stats.won, stats.won + stats.lost)} hint={stats.won + stats.lost ? `${stats.won} won · ${stats.lost} lost` : "No decided leads yet"} />
-      <StatCard icon={CircleDollarSign} label="Pipeline value" value={money(stats.value)} hint={stats.unvalued ? `${stats.unvalued} open lead${stats.unvalued === 1 ? "" : "s"} with no value set` : "All open leads valued"} />
+      <StatCard icon={CircleDollarSign} label="Pipeline value (one-time + 12× monthly)" value={money(stats.value)} hint={`${money(stats.oneTime)} one-time + ${money(stats.monthly)}/mo${stats.unvalued ? ` · ${stats.unvalued} with no value` : ""}`} />
       <StatCard icon={AlertTriangle} accent={stats.overdue ? "#dc2626" : "#ff3c00"} label="Overdue next steps" value={stats.overdue} hint={stats.overdue ? "Past due, still open" : "Nothing overdue"} />
     </div>
   );
@@ -240,30 +267,34 @@ export function PipelineBoard({ embedded = false }) {
               <div className="grid min-w-max auto-cols-[272px] grid-flow-col gap-3">
                 {STAGES.map((s) => {
                   const list = filtered.filter((c) => stageOf(c) === s.key).sort((a, b) => (isOverdue(b) - isOverdue(a)) || String(b.stage_changed_at || b.created_date).localeCompare(String(a.stage_changed_at || a.created_date)));
-                  const val = list.reduce((sum, c) => sum + (Number(c.lead_value) || 0), 0);
+                  const one = list.reduce((sum, c) => sum + oneTimeOf(c), 0);
+                  const mon = list.reduce((sum, c) => sum + monthlyOf(c), 0);
                   return (
-                    <section key={s.key} className={cn("flex min-h-[320px] flex-col rounded-md border bg-card", s.key === "won" ? "border-[#ff3c00]/40" : "border-hair")}>
-                      <header className="border-b border-hair px-3 py-2.5">
-                        <div className="flex items-center justify-between">
-                          <p className="text-[13.5px] font-semibold">{s.label}</p>
-                          <span className="font-mono text-[11px] tabular-nums text-ink/50">{list.length}</span>
-                        </div>
-                        <p className="text-[10.5px] text-ink/45">{s.hint}{val ? ` · ${money(val)}` : ""}{["won", "lost"].includes(s.key) ? ` · last ${RECENT_DAYS}d` : ""}</p>
-                      </header>
-                      <Droppable droppableId={s.key}>
-                        {(drop, snap) => (
-                          <div ref={drop.innerRef} {...drop.droppableProps} className={cn("flex-1 space-y-2 p-2 transition-colors", snap.isDraggingOver && "bg-[#ff3c00]/[0.04]")}>
+                    <Droppable key={s.key} droppableId={s.key}>
+                      {(drop, snap) => (
+                        // The whole column is the drop target (header included), so a drop anywhere in it lands.
+                        <section ref={drop.innerRef} {...drop.droppableProps} data-stage={s.key}
+                          className={cn("flex min-h-[420px] flex-col rounded-md border bg-card transition-colors", s.key === "won" ? "border-[#ff3c00]/40" : "border-hair", snap.isDraggingOver && "border-[#ff3c00] bg-[#ff3c00]/[0.05]")}>
+                          <header className="border-b border-hair px-3 py-2.5">
+                            <div className="flex items-center justify-between">
+                              <p className="text-[13.5px] font-semibold">{s.label}</p>
+                              <span className="font-mono text-[11px] tabular-nums text-ink/50">{list.length}</span>
+                            </div>
+                            <p className="text-[10.5px] text-ink/45">{s.hint}{["won", "lost"].includes(s.key) ? ` · last ${RECENT_DAYS}d` : ""}</p>
+                            {one || mon ? <p className="mt-0.5 font-mono text-[10.5px] text-ink/60">{one ? money(one) : "$0"} one-time · {money(mon)}/mo</p> : null}
+                          </header>
+                          <div className="flex-1 space-y-2 p-2">
                             {list.map((c, i) => (
                               <Draggable key={c.id} draggableId={c.id} index={i}>
                                 {(p, ds) => <LeadCard c={c} provided={p} dragging={ds.isDragging} onOpen={(x) => setOpenId(x.id)} onMove={move} />}
                               </Draggable>
                             ))}
                             {drop.placeholder}
-                            {!list.length ? <p className="px-1 py-4 text-center text-[11px] text-ink/35">Empty</p> : null}
+                            {!list.length ? <p className="px-1 py-10 text-center text-[11px] text-ink/35">Drop here</p> : null}
                           </div>
-                        )}
-                      </Droppable>
-                    </section>
+                        </section>
+                      )}
+                    </Droppable>
                   );
                 })}
               </div>
