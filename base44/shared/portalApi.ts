@@ -10,6 +10,9 @@ import { workCounts } from "./workCounts.ts";
 // this function finds the client their login belongs to and returns only that client's
 // portal-visible records. Admins can pass client_id to preview any client's portal.
 
+const liveSubscriptions = (c: Record<string, unknown>) => (Array.isArray(c.services) ? c.services : [])
+  .filter((x: any) => x && x.stripe && ["active", "trialing"].includes(String(x.status || "")))
+  .map((x: any) => ({ name: String(x.name || ""), monthly: Number(x.price) || 0, status: String(x.status), items: (Array.isArray(x.items) ? x.items : []).map((i: any) => String(i.name || "").replace(/^Interstellar[®™]?\s*/i, "")) }));
 const SAFE_CLIENT = ["id", "business", "contact", "domain", "websites", "plan", "services_managed", "industry", "location", "logoUrl", "logo_url", "started_on", "studios"];
 const pick = (o: Record<string, unknown>, keys: string[]) => Object.fromEntries(keys.filter((k) => o?.[k] !== undefined).map((k) => [k, o[k]]));
 const visible = (r: Record<string, unknown>) => r.portal_visible !== false;
@@ -235,7 +238,9 @@ export async function portalHandler(req: Request): Promise<Response> {
       const v2 = await portalV2Extras(db, client, cid, reqs as Row[], [...ledgerShown, ...legacyShown.map((w: Row) => ({ category: KIND_CAT[String(w.kind)] || "website", completed_at: w.date }))]).catch(() => null);
       return Response.json({
         ...(v2 || {}),
-        client: pick(client, SAFE_CLIENT),
+        // Live Stripe subscriptions only (written by the Stripe sync): one line each with its item names. Never
+        // ids, history or anything Stripe isn't billing right now.
+        client: { ...pick(client, SAFE_CLIENT), subscriptions: liveSubscriptions(client) },
         businesses: await businessesFor().catch(() => []),
         user: { email: user.email, name: user.full_name, is_admin_preview: user.role === "admin" },
         work: work.filter(visible).filter((w: Record<string, unknown>) => w.status !== "failed").map((w: Record<string, unknown>) => pick(w, ["id", "kind", "title", "url", "date", "description", "status", "verified_live"])),
