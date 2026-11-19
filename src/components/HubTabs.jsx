@@ -11,6 +11,18 @@ export default function HubTabs() {
   const here = hubFor(location);
   if (!here) return null;
   const { hub, tab } = here;
+  // Inside one client (/clients/:id) the Clients tab bar is scoped to that client: Messages opens only their thread,
+  // Requests only theirs, Portal only their portal (preview as them). The cross-client pages stay one click away
+  // from the Clients list.
+  const inClient = location.pathname.match(/^\/clients\/([^/]+)/);
+  const scoped = (t) => {
+    if (!inClient || hub.id !== "clients") return t;
+    const id = inClient[1];
+    if (t.path === "/comms") return { ...t, path: `/clients/${id}?tab=messages`, label: "Messages", hint: "This client's thread only" };
+    if (t.path === "/requests") return { ...t, path: `/clients/${id}?tab=requests`, hint: "This client's requests only" };
+    if (t.path === "/settings?tab=portal") return { ...t, path: `/portal/${id}`, label: "Their portal", hint: "Preview this client's portal as them" };
+    return t;
+  };
 
   return (
     <div data-no-trail data-hub-tabs={hub.id} className="relative z-[15] border-b border-hair bg-canvas/95">
@@ -19,8 +31,8 @@ export default function HubTabs() {
           <hub.icon className="h-3 w-3 text-[#ff3c00]" strokeWidth={2} />
           {hub.label}
         </span>
-        {hub.tabs.map((t) => {
-          const on = t.key === tab.key;
+        {hub.tabs.map(scoped).map((t) => {
+          const on = t.key === tab.key && !(inClient && hub.id === "clients" && t.path.startsWith("/clients/") === false && t.key !== "/crm");
           const n = t.badge ? badges[t.badge] : 0;
           return (
             <Link

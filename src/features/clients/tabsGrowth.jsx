@@ -459,7 +459,9 @@ export function MessageThread({ messages, meRole, onSend, placeholder = "Write a
 
 export function MessagesTab({ client }) {
   const { user } = useAuth();
-  const msgs = useClientRecords("ConversationMessage", client.id, { sort: "created_date" });
+  const all = useClientRecords("ConversationMessage", client.id, { sort: "created_date" });
+  // Only this client's own thread: group-chat messages (thread_id) and other clients' messages never show here.
+  const msgs = { ...all, rows: all.rows.filter((m) => !m.thread_id && (!m.client_id || m.client_id === client.id)) };
   useEffect(() => {
     const unread = msgs.rows.filter((m) => m.sender_role === "client" && !m.read_at);
     unread.forEach((m) => base44.entities.ConversationMessage.update(m.id, { read_at: new Date().toISOString() }));
