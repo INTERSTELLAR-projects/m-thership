@@ -143,6 +143,22 @@
       },
       "type": "array"
     },
+    "services_history": {
+      "description": "Billing lines that are no longer live in Stripe (replaced by a merge, canceled, or typed in by hand). Never counted toward MRR.",
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "stripe_mrr": {
+      "description": "Sum of this client's active + trialing Stripe subscriptions, per month, as of stripe_synced_at.",
+      "type": "number"
+    },
+    "stripe_plan": {
+      "description": "One line per live Stripe subscription, written by the Stripe sync (e.g. 'Google + SEO management $320/mo').",
+      "type": "string"
+    },
     "services_managed": {
       "items": {
         "enum": [

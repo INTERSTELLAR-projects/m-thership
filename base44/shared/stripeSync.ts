@@ -122,7 +122,10 @@ export async function syncFromStripe(base44: any, key: string) {
     if (t.plans.has("hypercare")) managed.add("orbit_seo");
     if (t.plans.has("gravitycare")) managed.add("starship_care");
     if (t.plans.has("appcare") || t.plans.has("manage")) managed.add("system");
-    const care = carePatch(t.client, t.plans, [], managed);
+    // A client with a live Stripe subscription is paying: never switch a care plan off here just because a merge
+    // renamed the product (e.g. HyperCare+ folded into "Google + SEO management"). Only a client with no live
+    // subscription at all can go inactive (below).
+    const care: any = { patch: t.client.plan_status === "inactive" ? { plan_status: "active", plan_inactive_reason: "" } : (!t.client.plan_status ? { plan_status: "active" } : {}), ended: [] };
     const ids = new Set<string>([...(t.client.stripe_customer_ids || []), ...t.customers]);
     const mrr = Math.round(lines.reduce((a: number, l: any) => a + l.price, 0) * 100) / 100;
     const patch: any = { ...care.patch, services, services_history: mergeHistory(t.client.services_history, gone), services_managed: [...managed], stripe_customer_id: t.customer, stripe_customer_ids: [...ids], stripe_mrr: mrr, stripe_plan: summary(lines), stripe_synced_at: now };
