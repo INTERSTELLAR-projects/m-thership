@@ -1,0 +1,67 @@
+{
+  "name": "PrepChecklist",
+  "type": "object",
+  "description": "New client prep walkthrough: one per prospect or new client. Steps are ticked as the sale and onboarding move along.",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id (lead or client)"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "done",
+        "archived"
+      ],
+      "default": "active"
+    },
+    "steps": {
+      "type": "array",
+      "description": "[{ key, label, done, done_at, note }] in walkthrough order",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "client_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

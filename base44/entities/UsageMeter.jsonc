@@ -1,0 +1,75 @@
+{
+  "name": "UsageMeter",
+  "type": "object",
+  "description": "Usage & cost page: manual meter readings (Claude plan weekly %, Base44 credits) and the editable send rates / scale scenarios. Admin only.",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "claude",
+        "base44",
+        "rates",
+        "scenario"
+      ]
+    },
+    "pct_used": {
+      "type": "number",
+      "description": "Percent of the plan's allowance used (0-100) at recorded_at"
+    },
+    "used": {
+      "type": "number"
+    },
+    "limit": {
+      "type": "number"
+    },
+    "unit": {
+      "type": "string",
+      "description": "e.g. message credits, integration credits"
+    },
+    "plan": {
+      "type": "string"
+    },
+    "reset_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the allowance resets"
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "rates: per-vendor prices; scenario: calculator inputs"
+    },
+    "note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

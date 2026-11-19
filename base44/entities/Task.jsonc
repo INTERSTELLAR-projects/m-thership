@@ -145,6 +145,15 @@
     },
     "title": {
       "type": "string"
+    },
+    "client_action": {
+      "default": false,
+      "description": "Needs something from the client (shows under 'Needed from you' in their portal when portal_visible)",
+      "type": "boolean"
+    },
+    "client_note": {
+      "description": "Client-safe one-liner shown with the to-do in the portal (what we need or what is happening)",
+      "type": "string"
     }
   },
   "required": [
