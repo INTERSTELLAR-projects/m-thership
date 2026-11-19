@@ -18,15 +18,18 @@ export function useViewMode() {
 const STATUS_LINES = {
   queued: "Queued — Claude will start on the next run.",
   running: "Claude is working on this now.",
+  needs_review: "Claude finished — ready for your review.",
   needs_approval: "Claude finished — ready for your OK.",
   changes_requested: "Sent back — Claude will redo it on the next run.",
   approved: "Approved and done.",
+  done: "Done.",
   failed: "The run failed — retry or send it back with a note.",
   cancelled: "Cancelled.",
 };
 
 // One plain-English line: first sentence of the result, else a status line.
 export function oneLine(job, max = 140) {
+  if (job?.status === "queued" && job?.context?.held_for === "build_engine_step3") return "Queued for the build agent (Build Engine step 3, not live yet). It waits here until then.";
   const text = String(job?.result_summary || "").replace(/\s+/g, " ").trim();
   if (!text) return STATUS_LINES[job?.status] || STATUS_LINES.queued;
   const m = text.match(/^.+?[.!?](?=\s|$)/);
@@ -43,7 +46,7 @@ export function needsList(job) {
 }
 
 export const SIMPLE_GROUPS = [
-  { key: "review", label: "Needs your OK", match: ["needs_approval", "failed"] },
+  { key: "review", label: "Needs your OK", match: ["needs_approval", "needs_review", "failed"] },
   { key: "working", label: "Running & queued", match: ["running", "queued", "changes_requested"] },
-  { key: "done", label: "Done", match: ["approved", "cancelled"], collapsed: true },
+  { key: "done", label: "Done", match: ["approved", "done", "cancelled"], collapsed: true },
 ];

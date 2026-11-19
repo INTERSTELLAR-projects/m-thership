@@ -19,7 +19,7 @@ function SimpleCard({ job, open, onToggle, renderDetail }) {
   const [note, setNote] = useState("");
   const needs = needsList(job);
   const links = job.result_links || [];
-  const canReview = ["needs_approval", "failed"].includes(job.status);
+  const canReview = ["needs_approval", "needs_review", "failed"].includes(job.status);
 
   const run = async (key, fn) => {
     setBusy(key);
