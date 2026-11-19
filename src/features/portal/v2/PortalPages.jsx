@@ -37,7 +37,7 @@ export function SelfServeStrip({ call, refresh, preview }) {
   const [season, setSeason] = useState("");
   const send = async (title, details) => {
     if (preview) { setSent(`${title} (preview: not sent)`); return; }
-    try { await call("request", { title, details, type: "self_serve" }); setSent(title); refresh?.(); } catch { setSent("Couldn't send. Please try again."); }
+    try { await call("create_request", { kind: "content", title, details }); setSent(title); refresh?.(); } catch { setSent("Couldn't send. Please try again."); }
   };
   const tiles = [
     { k: "project", icon: Package, title: "Add a project", desc: "Show off a finished job on your site", details: "Self-serve: new project" },
