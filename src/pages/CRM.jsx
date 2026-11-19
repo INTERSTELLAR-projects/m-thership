@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Search, Plus, Phone, Mail, Globe, Building, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2, CheckCircle2, Link2, Unlink2 } from "lucide-react";
+import { Search, Plus, Phone, Mail, Globe, Building, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2, CheckCircle2, Link2, Unlink2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,6 +43,25 @@ export default function CRM() {
   const [serviceFilter, setServiceFilter] = useState(null); // service key picked in the analytics charts
   const [deleting, setDeleting] = useState(null);
   const [showAll, setShowAll] = useState(false);
+  // "Sync from Stripe": re-reads every live (active + trialing) subscription and rewrites the clients' billing lines.
+  // Read-only toward Stripe. Also runs on Stripe webhooks and every 3 hours (workflow "Stripe — scheduled resync").
+  const [stripeSyncing, setStripeSyncing] = useState(false);
+  const [stripeNote, setStripeNote] = useState("");
+  const syncStripe = async () => {
+    setStripeSyncing(true);
+    setStripeNote("");
+    try {
+      const r = (await base44.functions.invoke("stripeSync", {})).data || {};
+      if (r.configured === false) setStripeNote("Stripe isn't connected.");
+      else if (r.error) setStripeNote(`Sync failed: ${r.error}`);
+      else setStripeNote(`Synced ${r.synced || 0} client${r.synced === 1 ? "" : "s"} · ${r.subscriptions || 0} live subscriptions · $${Math.round(r.mrr || 0).toLocaleString()}/mo${r.unmatched && r.unmatched.length ? ` · ${r.unmatched.length} not matched to a client` : ""}${r.errors && r.errors.length ? ` · ${r.errors.length} failed` : ""}`);
+      await loadClients();
+    } catch (e) {
+      setStripeNote("Sync failed: " + ((e && e.response && e.response.data && e.response.data.error) || "could not reach Stripe"));
+    } finally {
+      setStripeSyncing(false);
+    }
+  };
   const tasksQ = useList("Task", { sort: "due_date", limit: 1000 });
   const openTasks = (tasksQ.data || []).filter((t) => !["done", "Completed", "cancelled"].includes(t.status));
 
@@ -192,7 +211,7 @@ export default function CRM() {
         </button>
         <div className="crm-status min-w-0">
           <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-ink/75"><i className={`h-1.5 w-1.5 rounded-full ${tone}`} />{client.status}{inPackage ? <span className="font-mono text-[9.5px] uppercase tracking-[.12em] text-[#ff3c00]">· pkg</span> : null}</span>
-          <span className="mt-0.5 block truncate text-[11.5px] text-ink/45">{client.plan || ((client.services || [])[0] || {}).name || "No plan set"}</span>
+          <span className="mt-0.5 block truncate text-[11.5px] text-ink/45">{client.stripe_plan || client.plan || ((client.services || [])[0] || {}).name || "No plan set"}</span>
         </div>
         <div className="crm-health" title="Profile completeness (what the Brain knows)">
           {typeof pct === "number" ? (
@@ -230,8 +249,10 @@ export default function CRM() {
   return (
     <div className="min-h-screen pb-16">
       <PageHeader breadcrumb="Command / Clients" title="Your /Clients" rightText={`${counts.Active || 0} active`}>
+        <button type="button" onClick={syncStripe} disabled={stripeSyncing} title="Re-read every live subscription from Stripe (read-only)" className="mr-2 inline-flex h-9 items-center gap-1.5 border border-hair bg-card px-3 text-[12.5px] font-medium text-ink/75 hover:border-[#ff3c00] hover:text-[#ff3c00] disabled:opacity-60" data-testid="stripe-sync"><RefreshCw className={`h-3.5 w-3.5 ${stripeSyncing ? "animate-spin" : ""}`} />{stripeSyncing ? "Syncing…" : "Sync from Stripe"}</button>
         <button type="button" onClick={() => setAddOpen(true)} className="btn-roll is-flame"><span className="roll"><span>Add client</span><span>Add client</span></span><span className="box"><Plus className="h-3.5 w-3.5" /></span></button>
       </PageHeader>
+      {stripeNote ? <p className="-mt-2 mb-3 text-[12px] text-ink/60" role="status">{stripeNote}</p> : null}
       <div className="space-y-8 px-5 py-6 md:px-8">
         <section aria-labelledby="crm-clients">
           <div className="mb-3 flex flex-wrap items-center gap-3">
@@ -536,7 +557,13 @@ export function ServicesTab({ client, update }) {
             </div>
           ) : (
             <div key={s.id} className="flex items-center justify-between py-3 border-b border-ink/[0.13] last:border-0 group">
-              <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-orange-500/50" /><span className="text-ink/70 text-sm">{s.name}</span></div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-orange-500/50" /><span className="text-ink/70 text-sm">{s.name}</span>{s.stripe && s.status === "trialing" ? <span className="text-[10px] uppercase tracking-wider text-ink/45">Trial</span> : null}</div>
+                {/* One line per Stripe subscription; its items underneath. */}
+                {Array.isArray(s.items) && s.items.length ? (
+                  <ul className="mt-1 ml-3.5 space-y-0.5">{s.items.map((i) => <li key={i.id || i.name} className="text-[11.5px] text-ink/50">{String(i.name || "").replace(/^Interstellar[®™]?\s*/i, "")}{i.quantity > 1 ? ` ×${i.quantity}` : ""} · ${i.monthly}/mo</li>)}</ul>
+                ) : null}
+              </div>
               <div className="flex items-center gap-3">
                 {s.stripe ? <span className="text-[10px] uppercase tracking-wider text-green-700/70" title="Billed in Stripe">Stripe</span>
                   : s.stripe_product_id ? <span className="text-[10px] uppercase tracking-wider text-ink/40" title="Picked from Stripe products; not on a Stripe subscription yet">Stripe product</span>
