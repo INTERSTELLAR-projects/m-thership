@@ -42,6 +42,7 @@ export function useAutomationHub() {
         lastAt, lastStatus, nextAt: cronNext || snapNext, externalId: e.external_id || "", notes: e.notes || "",
         snapshotAt: e.snapshot_at || e.updated_date,
         liveRuns: match.size ? runList.filter((r) => match.has(norm(r.automation_name))).length : null,
+        lastRun: live, kind: e.kind || "",
       };
     });
 
@@ -61,7 +62,7 @@ export function useAutomationHub() {
         enabled: a.status !== "paused", status, lastAt, lastStatus,
         nextAt: a.next_run_at && ts(a.next_run_at) > now ? new Date(a.next_run_at) : null,
         externalId: a.target_app_id ? `app ${a.target_app_id}` : "", notes: a.last_message || "", snapshotAt: a.updated_date,
-        liveRuns: a.runs_count ?? null, kind: a.kind,
+        liveRuns: a.runs_count ?? null, kind: a.kind, lastRun: live,
       };
     });
 
