@@ -21,6 +21,8 @@ export default async function (req: Request) {
     try { key = secrets.get("STRIPE_SECRET_KEY") || ""; } catch { key = ""; }
     if (!key) return Response.json({ configured: false });
     const result = await syncFromStripe(base44, key);
+    // Run log (internal): totals, per-client MRR and any subscription not matched to a client. No secrets or emails.
+    console.log(JSON.stringify({ stripe_sync: { subscriptions: result.subscriptions, mrr: result.mrr, matched_mrr: result.matched_mrr, clients: result.report.map((r: any) => [r.client, r.subscriptions.length, r.mrr]), unmatched: result.unmatched.map((u: any) => [u.id, u.status, u.mrr, u.lines]), errors: result.errors } }));
     if (scheduled && (!user || user.role !== "admin")) return Response.json({ ok: !result.errors.length, synced: result.synced, errors: result.errors.length, subscriptions: result.subscriptions, unmatched: result.unmatched.length, synced_at: result.synced_at });
     return Response.json(result);
   } catch (error: any) {
