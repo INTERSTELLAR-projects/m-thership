@@ -1,6 +1,6 @@
 // "Where is everything?": one searchable map of every page, tab and sub-tab, one line each. Built from the
 // sidebar hubs (src/lib/nav.js) plus the tabs that live inside pages (?tab=…) and the client profile sections.
-import { HUBS, MORE_HUB, SETTINGS_ITEM } from "@/lib/nav";
+import { HUBS, MORE_HUBS, MORE_HUB, SETTINGS_ITEM } from "@/lib/nav";
 
 // Tabs inside pages. path opens that tab directly; parent is the page it lives on.
 export const SUB_TABS = [
@@ -32,7 +32,7 @@ export const CLIENT_TABS = [
 
 export function guideEntries() {
   const out = [];
-  [...HUBS, MORE_HUB].forEach((h) => h.tabs.forEach((t) => out.push({ label: t.label, path: t.path, parent: h.label, hint: t.hint || "" })));
+  [...HUBS, ...MORE_HUBS, MORE_HUB].forEach((h) => h.tabs.forEach((t) => out.push({ label: t.label, path: t.path, parent: h.label, hint: t.hint || "" })));
   out.push({ label: SETTINGS_ITEM.label, path: SETTINGS_ITEM.path, parent: "System", hint: SETTINGS_ITEM.hint || "Settings" });
   SUB_TABS.forEach((t) => { if (!out.some((o) => o.path === t.path)) out.push(t); });
   CLIENT_TABS.forEach((t) => out.push(t));

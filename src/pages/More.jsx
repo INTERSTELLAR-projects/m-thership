@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
-import { HUBS, MORE_HUB, SETTINGS_ITEM } from "@/lib/nav";
+import { HUBS, MORE_HUBS, MORE_HUB, SETTINGS_ITEM } from "@/lib/nav";
 import { PACKAGES, packagePath } from "@/features/packages/registry";
 
 // /more — the occasional tools, plus an index of every page in the app grouped the way the sidebar is.
@@ -57,7 +57,7 @@ export default function More() {
         <div>
           <p className="label-cross mb-3 text-ink/60">(Every page, by hub)</p>
           <div className="grid gap-4 lg:grid-cols-2">
-            {HUBS.map((hub) => <Section key={hub.id} hub={hub} items={hub.id === "work" ? [...hub.tabs, ...packages.map((p) => ({ ...p, label: "Package · " + p.label }))] : hub.tabs} />)}
+            {[...HUBS, ...MORE_HUBS].map((hub) => <Section key={hub.id} hub={hub} items={hub.id === "work" ? [...hub.tabs, ...packages.map((p) => ({ ...p, label: "Package · " + p.label }))] : hub.tabs} />)}
             <Section hub={{ ...SETTINGS_ITEM, label: "Settings", hint: SETTINGS_ITEM.hint }} items={[SETTINGS_ITEM]} />
           </div>
         </div>
