@@ -61,7 +61,7 @@ function JobDetail({ job, onDone }) {
       <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
         {job.status === "queued" && (
           <p className="rounded-sm bg-ink/[0.04] px-3 py-2.5 text-[12.5px] text-ink/65">
-            Waiting for Claude&apos;s next scheduled run. To run it now, copy the prompt into a Claude chat.
+            {job.context?.held_for === "build_engine_step3" ? "Queued for the build agent (Build Engine step 3). It waits here until that agent is switched on; nothing runs it yet." : "Waiting for Claude's next scheduled run. To run it now, copy the prompt into a Claude chat."}
           </p>
         )}
         {job.status === "running" && (
