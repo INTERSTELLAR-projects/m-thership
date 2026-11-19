@@ -50,7 +50,7 @@ export function ClientHeaderBrand({ client, businesses = [], onSwitch }) {
   if (!multi) return <div className="flex min-w-0 flex-1 items-center gap-2.5 lg:flex-none" data-client-brand>{inner}</div>;
   return (
     <div ref={ref} className="relative min-w-0 flex-1 lg:flex-none" data-client-brand>
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-haspopup="listbox" aria-expanded={open} title="Switch business" className="flex min-w-0 max-w-[340px] items-center gap-2.5 rounded-md py-1 pr-2 transition-colors hover:bg-ink/[0.04]">{inner}</button>
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-haspopup="listbox" aria-expanded={open} title="Switch business" className="flex w-full min-w-0 max-w-[340px] items-center gap-2.5 rounded-md py-1 pr-2 text-left transition-colors hover:bg-ink/[0.04]">{inner}</button>
       {open && (
         <div role="listbox" aria-label="Your businesses" className="absolute left-0 top-[calc(100%+8px)] z-40 w-[290px] overflow-hidden rounded-md border border-hair bg-card shadow-xl">
           <div className="h-[3px] flame-bg" />
