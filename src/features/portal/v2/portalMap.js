@@ -8,56 +8,53 @@ import {
   CreditCard, Crown, Store, UserRound,
 } from "lucide-react";
 
-// The header keeps only these (plus the Everything button, Schedule a call and Account). Short on purpose.
+// Four pages (Nov 2026 simplification): Glance (home) · Requests & self-serve · Brand & assets · Billing.
+// The header shows exactly these four plus Everything, Schedule a call and Account. Every older tab key still opens.
 export const HEADER_TABS = [
-  { k: "home", label: "Home" },
+  { k: "home", label: "Glance" },
   { k: "requests", label: "Requests" },
-  { k: "messages", label: "Messages" },
+  { k: "assets", label: "Brand & assets" },
+  { k: "billing", label: "Billing" },
 ];
 
 export const GROUPS = [
   {
-    id: "system", label: "Your business system", hint: "The operating system we built for your business",
+    id: "glance", label: "Glance", hint: "Progress, what's done, what's next and your numbers",
     items: [
-      { k: "brain", label: "Your Brain", desc: "What we know, and the questions that teach it more", icon: Brain },
-      { k: "playbook", label: "Your playbook", desc: "Your industry growth plan", icon: Compass },
-      { k: "resources", label: "SOPs & guides", desc: "How your business runs, step by step", icon: BookOpen },
+      { k: "goals", label: "Goals & plan", desc: "Targets and what we're fixing next", icon: Target },
+      { k: "results", label: "Search results", desc: "Traffic, calls and how people find you", icon: LineChart },
+      { k: "gbp", label: "Google Business", desc: "Your profile, reviews and review link", icon: MapPin },
+      { k: "mentions", label: "Mentions & PR", desc: "Listings, press and links we earned", icon: Newspaper },
+    ],
+  },
+  {
+    id: "requests", label: "Requests & self-serve", hint: "Ask us, chat, or do it yourself",
+    items: [
+      { k: "requests", label: "Requests", desc: "Edits, content, projects, drops and offers", icon: ClipboardList },
+      { k: "messages", label: "Messages", desc: "Chat with the Interstellar team", icon: MessageSquare },
+      { k: "studio_social", label: "Social", desc: "Plan, design and publish posts", icon: Megaphone },
+      { k: "studio_email", label: "Email", desc: "Campaigns and automations to your list", icon: Mail },
+      { k: "studio_presentations", label: "Presentations", desc: "On-brand decks from one prompt", icon: Presentation },
+      { k: "studio_accounting", label: "Accounting & taxes", desc: "Books, receipts and quarterly taxes", icon: Calculator },
+      { k: "studio_ads", label: "Ads", desc: "An ads agent that watches your spend", icon: BadgeDollarSign },
+      { k: "studio_smpl", label: "SMPL. Studio", desc: "AI image, video and voice", icon: Sparkles, cobrand: true },
       { k: "studio_hiring", label: "Hiring", desc: "When to hire, and who", icon: UserPlus },
       { k: "studio_training", label: "Training", desc: "Train new people from your processes", icon: GraduationCap },
     ],
   },
   {
-    id: "work", label: "Work with us", hint: "Ask, chat and see what we delivered",
+    id: "brand", label: "Brand & assets", hint: "Your Brain, brand kit, files and tools",
     items: [
-      { k: "requests", label: "Requests", desc: "Edits, content, designs and fixes", icon: ClipboardList },
-      { k: "messages", label: "Messages", desc: "Chat with the Interstellar team", icon: MessageSquare },
+      { k: "brain", label: "Your Brain", desc: "What we know, and the questions that teach it more", icon: Brain },
       { k: "files", label: "Files & brand kit", desc: "Deliverables, logo rules, colors and fonts", icon: FolderOpen },
-      { k: "mentions", label: "Mentions & PR", desc: "Listings, press and links we earned", icon: Newspaper },
-      { k: "goals", label: "Goals & plan", desc: "Targets and what we're fixing next", icon: Target },
-    ],
-  },
-  {
-    id: "growth", label: "Search & reviews", hint: "How people find you",
-    items: [
-      { k: "results", label: "Search results", desc: "Traffic, calls and how people find you", icon: LineChart },
-      { k: "gbp", label: "Google Business", desc: "Your profile, reviews and review link", icon: MapPin },
-    ],
-  },
-  {
-    id: "studios", label: "Studios", hint: "Do it yourself, or have us do it",
-    items: [
-      { k: "studio_social", label: "Social", desc: "Plan, design and publish posts", icon: Megaphone },
-      { k: "studio_email", label: "Email", desc: "Campaigns and automations to your list", icon: Mail },
-      { k: "studio_presentations", label: "Presentations", desc: "On-brand decks from one prompt", icon: Presentation },
       { k: "signatures", label: "Signatures", desc: "On-brand email signatures", icon: PenLine, bonus: true },
       { k: "qr", label: "QR codes", desc: "Branded codes you can re-point", icon: QrCode, bonus: true },
-      { k: "studio_accounting", label: "Accounting & taxes", desc: "Books, receipts and quarterly taxes", icon: Calculator },
-      { k: "studio_ads", label: "Ads", desc: "An ads agent that watches your spend", icon: BadgeDollarSign },
-      { k: "studio_smpl", label: "SMPL. Studio", desc: "AI image, video and voice", icon: Sparkles, cobrand: true },
+      { k: "playbook", label: "Your playbook", desc: "Your industry growth plan", icon: Compass },
+      { k: "resources", label: "SOPs & guides", desc: "How your business runs, step by step", icon: BookOpen },
     ],
   },
   {
-    id: "account", label: "Account", hint: "Plan, billing and rewards",
+    id: "account", label: "Billing", hint: "Plan, payments, rewards and login",
     items: [
       { k: "billing", label: "Billing", desc: "Your plan, payments and fuel", icon: CreditCard },
       { k: "referrals", label: "Prestige referrals", desc: "Refer a business, earn credit", icon: Crown },
@@ -69,11 +66,12 @@ export const GROUPS = [
 
 export const ALL_TILES = GROUPS.flatMap((g) => g.items.map((i) => ({ ...i, group: g.id })));
 // Studio tabs get the "Do it yourself / Have us do it" strip.
-export const STUDIO_KEYS = new Set(GROUPS.find((g) => g.id === "studios").items.map((i) => i.k));
+export const STUDIO_KEYS = new Set(["studio_social", "studio_email", "studio_presentations", "studio_accounting", "studio_ads", "studio_smpl", "studio_hiring", "studio_training"]);
 
 // Labels for the header / mobile button ("where am I").
 export function labelFor(tab) {
-  if (tab === "home") return "Home";
+  if (tab === "home") return "Glance";
+  if (tab === "assets") return "Brand & assets";
   if (tab === "assistant") return "Nøva";
   if (tab === "brand") return "Brand kit";
   return ALL_TILES.find((t) => t.k === tab)?.label || "";

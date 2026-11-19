@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, LogOut, X, ChevronDown, Check, Eye, UserRound, LayoutGrid, Menu, Palette } from "lucide-react";
 import { ScheduleCallButton, ScheduleCallModal } from "@/features/portal/PortalNav";
 import { HEADER_TABS, STUDIO_KEYS, groupsFor, labelFor } from "@/features/portal/v2/portalMap";
+import { BrandAssetsPage, SelfServeStrip } from "@/features/portal/v2/PortalPages";
 import { EverythingSheet, PortalV2Motion } from "@/features/portal/v2/Everything";
 import PortalHomeV2 from "@/features/portal/v2/PortalHomeV2";
 import { BrainView, MentionsView, BillingView, StudioDuo, PlaybookPending } from "@/features/portal/v2/PortalViews";
@@ -45,7 +46,7 @@ import PortalPresentations from "@/features/presentations/portal/PortalPresentat
 // Tabs this portal can show. Grouping, labels and icons for the header nav live in PortalNav.jsx (NAV);
 // free-for-life bonus tools (Signatures, QR Codes) are tagged there and listed together on Home.
 // Portal v2 (Nov 2026): + brain, mentions, billing. Navigation for all of them is the one-tap map in v2/portalMap.js.
-const TABS = [["home", "Home"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["resources", "Resources"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["brain", "Your Brain"], ["mentions", "Mentions & PR"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["upgrades", "Upgrades"], ["billing", "Billing"], ["referrals", "Referrals"], ["messages", "Messages"], ["account", "Account"]];
+const TABS = [["home", "Glance"], ["assets", "Brand & assets"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["resources", "Resources"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["brain", "Your Brain"], ["mentions", "Mentions & PR"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["upgrades", "Upgrades"], ["billing", "Billing"], ["referrals", "Referrals"], ["messages", "Messages"], ["account", "Account"]];
 
 function usePortal(previewId) {
   const call = async (action, args = {}) => (await base44.functions.invoke("portal", { action, client_id: previewId, ...args })).data;
@@ -177,7 +178,8 @@ export default function PortalApp({ previewId }) {
           {tab === "brand" && d.has_brand_kit && <BrandKitView call={call} previewId={scopeId} business={d.client.business} />}
           {tab === "playbook" && d.has_playbook && <PortalPlaybook call={call} previewId={scopeId} business={d.client.business} />}
           {tab === "resources" && <PortalResources call={call} previewId={scopeId} business={d.client.business} go={setTab} />}
-          {tab === "requests" && <RequestsView d={d} call={call} refresh={refresh} previewId={scopeId} />}
+          {tab === "requests" && <div className="space-y-8"><RequestsView d={d} call={call} refresh={refresh} previewId={scopeId} /><SelfServeStrip call={call} refresh={refresh} preview={!!previewId} /></div>}
+          {tab === "assets" && <BrandAssetsPage tabs={tabs.map(([k]) => k)} go={go} d={d} />}
           {tab === "signatures" && <PortalSignatures call={call} />}
           {tab === "qr" && <PortalQr call={call} previewId={scopeId} openId={qrOpen} />}
           {tab === "referrals" && <PortalPrestige call={call} previewId={previewId} />}
@@ -243,7 +245,7 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, brainOpen = 0, previe
                 {HEADER_TABS.map((h) => (
                   <button key={h.k} type="button" data-tab={h.k} aria-current={tab === h.k ? "page" : undefined} onClick={() => go(h.k)} className={`relative flex h-10 items-center gap-1.5 px-3 text-[13.5px] font-medium ${tab === h.k ? "text-ink" : "text-ink/55 hover:text-ink"}`}>
                     {h.label}
-                    {h.k === "messages" && unread > 0 && <span className="flex h-4 min-w-4 items-center justify-center bg-[#ff3c00] px-1 font-mono text-[10px] text-white" aria-label={`${unread} unread`}>{unread}</span>}
+                    {h.k === "requests" && unread > 0 && <span className="flex h-4 min-w-4 items-center justify-center bg-[#ff3c00] px-1 font-mono text-[10px] text-white" aria-label={`${unread} unread`}>{unread}</span>}
                     {tab === h.k && <span className="absolute inset-x-3 -bottom-[13px] h-[2px] bg-[#ff3c00]" aria-hidden="true" />}
                   </button>
                 ))}

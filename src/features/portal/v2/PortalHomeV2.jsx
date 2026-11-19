@@ -12,6 +12,7 @@ import { analyze } from "@/features/financing/schedule";
 import NovaBar from "./NovaBar";
 import Launcher from "./Launcher";
 import PortalTodos from "./PortalTodos";
+import { PortalPillarsBand } from "./PortalPages";
 import { inPeriod, pacificToday } from "./portalMap";
 
 const CAT = {
@@ -345,6 +346,8 @@ export default function PortalHomeV2({ d, groups, go, call, refresh, preview, on
       <PortalTodos items={Array.isArray(d.upcoming) ? d.upcoming : []} business={d.client.business} />
 
       <HealthBand d={d} go={go} />
+
+      <PortalPillarsBand pillars={d.pillars} />
 
       <section aria-labelledby="everything" className="pt-2">
         <p className="ms-kicker">Everything else</p>
