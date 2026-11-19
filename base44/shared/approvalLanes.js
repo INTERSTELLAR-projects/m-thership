@@ -22,9 +22,9 @@ const GATE_RE = [
   /\bpublish|\bdeploy|cut ?over|go[- ]live|\blive after publish/,
   /\bdns\b|\bdomain|point [\w.-]+\.(com|net|org)|buy [\w.-]+\.(com|net)/,
   /\bdelete\b|\bremove\b.*\b(data|records?|rows?)\b|\bredact|\bpurge/,
-  /\bstripe\b|\bprice|\bpricing|\bbilling|\binvoice|\bpay(ment)?\b|\brefund|\bcredit\b|\bbudget|\bspend|\bcharge|\$\s?\d|\ballowances?\b|\bcancel the \$/,
+  /\bstripe\b|\bprices?\b|\bpricing|\bbilling|\binvoice|\bpay(ment)?\b|\brefund|\bcredit\b|\bbudget|\bspend|\bcharge|\$\s?\d|\ballowances?\b|\bcancel\b|\bdeposit|\bterms\b/,
   /\bsend\b|\bemail(s)? (to|for)\b|\btext(s|-back)?\b.*(send|client|customer)|\binvite\b|\btell [a-z]+/,
-  /\bapi[_ ]?key\b|\bsecret|\blogins?\b|\bconnect (quickbooks|amazon ses|ses|google search console|google analytics)|\bclaim(ed)?\b.*listing|\bservice agreement|\bcontract\b/,
+  /api_?key|\bsecret|\blogins?\b|\bconnect (quickbooks|amazon ses|ses|google search console|google analytics)|\bclaim(ed)?\b.*listing|listing claimed|verify .*(search console|bing)|\bservice agreement|\bcontract\b/,
   /\bask (james|jen|todd|miguel|ivan|jay|jacob|cami|tyler|kev|jeremy|jamal|chase)|still to get from|questions? for [a-z ]+\(ask|\bgoals call|\bbook (a|an) .*(call|intake)|\bfranchise pitch/,
 ];
 const TASTE_RE = [
@@ -32,7 +32,8 @@ const TASTE_RE = [
 ];
 
 export function laneForText(title, extra = "") {
-  const s = `${t(title)} ${t(extra)}`;
+  // "market-price source" is a data-source choice, not pricing.
+  const s = `${t(title)} ${t(extra)}`.replace(/market[- ]price/g, "market data");
   if (GATE_RE.some((r) => r.test(s))) return "gate";
   if (TASTE_RE.some((r) => r.test(s))) return "taste";
   return "logic";
