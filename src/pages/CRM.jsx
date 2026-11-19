@@ -580,6 +580,13 @@ export function ServicesTab({ client, update }) {
           <span className="text-ink/[0.58] text-xs uppercase tracking-wider">Total Monthly</span>
           <span className="font-display font-bold text-lg bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">${total}/mo</span>
         </div>
+        {(client.services_history || []).length ? (
+          <details className="mt-3 text-[12px] text-ink/50">
+            <summary className="cursor-pointer select-none">History · {(client.services_history || []).length} ended or replaced (not counted)</summary>
+            <ul className="mt-1.5 space-y-0.5">{(client.services_history || []).map((h, k) => <li key={`${h.id}-${k}`}>{h.name}{h.last_price ? ` · was $${h.last_price}/mo` : ""}{h.ended_reason ? ` · ${h.ended_reason}` : ""}</li>)}</ul>
+          </details>
+        ) : null}
+        {client.stripe_synced_at ? <p className="mt-2 text-[11px] text-ink/40">Stripe lines synced {new Date(client.stripe_synced_at).toLocaleString()}</p> : null}
       </div>
       <BlogScheduleSection client={client} update={update} />
     </div>
