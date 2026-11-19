@@ -23,7 +23,7 @@ const GATE_RE = [
   /\bdns\b|\bdomain|point [\w.-]+\.(com|net|org)|buy [\w.-]+\.(com|net)/,
   /\bdelete\b|\bremove\b.*\b(data|records?|rows?)\b|\bredact|\bpurge/,
   /\bstripe\b|\bprices?\b|\bpricing|\bbilling|\binvoice|\bpay(ment)?\b|\brefund|\bcredit\b|\bbudget|\bspend|\bcharge|\$\s?\d|\ballowances?\b|\bcancel\b|\bdeposit|\bterms\b/,
-  /\bsend\b|\bemail(s)? (to|for)\b|\btext(s|-back)?\b.*(send|client|customer)|\binvite\b|\btell [a-z]+/,
+  /\bsend\b|\bemail(s)? (to|for)\b|\bemail (the |our |a )?(client|customer|lead|owner)s?\b|\bsms\b|\btext(s|-back)?\b.*(send|client|customer)|\binvite\b|\btell [a-z]+/,
   /api_?key|\bsecret|\blogins?\b|\bconnect (quickbooks|amazon ses|ses|google search console|google analytics)|\bclaim(ed)?\b.*listing|listing claimed|verify .*(search console|bing)|\bservice agreement|\bcontract\b/,
   /\bask (james|jen|todd|miguel|ivan|jay|jacob|cami|tyler|kev|jeremy|jamal|chase)|still to get from|questions? for [a-z ]+\(ask|\bgoals call|\bbook (a|an) .*(call|intake)|\bfranchise pitch/,
 ];
