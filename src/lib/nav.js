@@ -25,23 +25,25 @@ export const LOGO_URL =
 //   badge  live count key filled by src/components/navBadges.js
 //   hint   the page's purpose line, shown under the tab bar
 // Map of old page → new home: docs/cleanup-2026-11-12.md.
+// Build Engine (Nov 2026): Justin's day runs from three screens. Command (home), Clients (one page per client) and
+// Claude (send instructions, watch jobs). Everything else lives under More (MORE_HUBS), still one or two clicks away.
+// Route map: docs/route-map.md.
 export const HUBS = [
   {
-    id: "today",
-    label: "Today",
+    id: "command",
+    label: "Command",
     icon: Sun,
     path: "/",
-    hint: "Start here every morning, left to right",
-    // Møthership Command (docs/command/01-vision-and-architecture.md): Today is the home; Mission Control moved to /classic.
+    hint: "Add a lead, clear what needs you today, watch every build",
     tabs: [
-      { label: "Command", icon: Sun, path: "/", hint: "Your brief, the plan for today and what needs your yes" },
-      { label: "Pillars", icon: Orbit, path: "/pillars", hint: "The 8 business pillars, scored from live records, with why and what to do" },
-      { label: "Brain", icon: Brain, path: "/brain", hint: "Teach the Business Brain, one question at a time" },
-      { label: "Road to Dec 31", icon: Rocket, path: "/launch", badge: "justinMoves", hint: "Your launch moves: calls, payments, logins and final OKs" },
+      { label: "Command", icon: Sun, path: "/", hint: "Quick-add a lead, what needs you today, and every build in progress" },
       { label: "Approvals", icon: Inbox, path: "/launch?tab=approvals", badge: "approvals", hint: "Only the items that truly need your yes" },
+      { label: "Road to Dec 31", icon: Rocket, path: "/launch", badge: "justinMoves", hint: "Your launch moves: calls, payments, logins and final OKs" },
+      { label: "Brain", icon: Brain, path: "/brain", hint: "Teach the Business Brain, one question at a time" },
+      { label: "Pillars", icon: Orbit, path: "/pillars", hint: "The 8 business pillars, scored from live records, with why and what to do" },
       { label: "Commander brief", icon: Crown, path: "/agents?ceo=1", hint: "What the agents did overnight and what matters today" },
       { label: "Output", icon: Activity, path: "/output-analytics", hint: "Work done and hours saved this week" },
-      { label: "Classic", icon: LayoutDashboard, path: "/classic", hint: "Mission Control: the original widget dashboard, unchanged" },
+      { label: "Classic", icon: LayoutDashboard, path: "/classic", hint: "Mission Control: the original widget dashboard, with the quick-add bar on top" },
     ],
   },
   {
@@ -49,18 +51,33 @@ export const HUBS = [
     label: "Clients",
     icon: Users,
     path: "/crm",
-    hint: "Every client, from onboarding to day-to-day contact",
+    hint: "Every lead and client, one page each: build, brain, launch, growth and requests",
     tabs: [
-      { label: "Clients", icon: Users, path: "/crm", match: ["/clients"], hint: "Every client record; open one for its hub with projects, tasks, work log, files and email" },
-      { label: "Brands", icon: Orbit, path: "/brands", hint: "House of Brands: Interstellar and its niche brands, their clients and brains flowing up" },
-      { label: "Onboarding", icon: Route, path: "/flight-plan", hint: "Flight Plan: every purchase, every stage, every SOP step until it is delivered" },
+      { label: "Clients", icon: Users, path: "/crm", match: ["/clients"], hint: "Every client and lead; open one for its page: build checklist, Brain, launch grid, growth feed and requests" },
+      { label: "Pipeline", icon: Target, path: "/pipeline", hint: "Leads from first contact to signed" },
       { label: "Requests", icon: ClipboardList, path: "/requests", hint: "What clients have asked for through their forms and portal" },
-      { label: "Client posts", icon: Globe, path: "/client-posts", hint: "Projects and testimonials clients sent that went live on their websites, with Unpublish and Edit" },
-      { label: "Share images", icon: Images, path: "/share-images", hint: "1200x630 social sharing images for every client site: one per page or page group, download as a ZIP" },
+      { label: "Onboarding", icon: Route, path: "/flight-plan", hint: "Flight Plan: every purchase, every stage, every SOP step until it is delivered" },
+      { label: "Brands", icon: Orbit, path: "/brands", hint: "House of Brands: Interstellar, DIALD and future brands, their clients and brains flowing up" },
       { label: "Messages", icon: MessageSquare, path: "/comms", hint: "Client chats in one inbox" },
+      { label: "Client posts", icon: Globe, path: "/client-posts", hint: "Projects and testimonials clients sent that went live on their websites, with Unpublish and Edit" },
       { label: "Portal", icon: Globe, path: "/settings?tab=portal", hint: "Which clients have a portal and what it shows them" },
     ],
   },
+  {
+    id: "claude",
+    label: "Claude",
+    icon: Sparkles,
+    path: "/claude",
+    hint: "Tell Claude what to build or do for a client, and watch the jobs",
+    tabs: [
+      { label: "Claude", icon: Sparkles, path: "/claude", hint: "Pick a client, type an instruction, send. Every job and its status" },
+      { label: "Playbooks", icon: BookOpenCheck, path: "/playbooks", hint: "The prompt agent: copy-paste foundation prompts per service, and the standards every client site and app gets" },
+    ],
+  },
+].map((h) => ({ ...h, tabs: h.tabs.map((t) => ({ ...t, key: t.key || t.path })) }));
+
+// Under More: the deeper pages, grouped as before. Each is still a hub with its own tab bar.
+export const MORE_HUBS = [
   {
     id: "work",
     label: "Work",
@@ -71,9 +88,9 @@ export const HUBS = [
       { label: "Tasks", icon: ListTodo, path: "/tasks", hint: "The task matrix: what is due, for whom, and what to do next" },
       { label: "Projects", icon: FolderKanban, path: "/projects", hint: "Every project in flight, with its tasks, time and value" },
       { label: "Packages", icon: Package, path: "/packages/orbit-seo", match: ["/packages", "/orbit-seo"], hint: "All nine packages and subscriptions, one orb rail per client" },
-      { label: "Claude Queue", icon: Sparkles, path: "/claude", hint: "Jobs handed to Claude and their results" },
       { label: "SOPs", icon: BookOpenCheck, path: "/tasks/sops", hint: "The procedures every task is built from" },
       { label: "Patterns", icon: Repeat, path: "/tasks/patterns", hint: "Recurring work the system creates on a schedule" },
+      { label: "Share images", icon: Images, path: "/share-images", hint: "1200x630 social sharing images for every client site: one per page or page group, download as a ZIP" },
     ],
   },
   {
@@ -100,13 +117,13 @@ export const HUBS = [
     path: "/pipeline",
     hint: "Win new work and grow existing clients",
     tabs: [
-      { label: "Pipeline", icon: Target, path: "/pipeline", hint: "Leads from first contact to signed" },
       // Calls moved here from Clients (Nov 2026, portal v2 cleanup) so every hub stays at 8 tabs or fewer.
       { label: "Calls", icon: PhoneCall, path: "/calls", hint: "Structure a prospect or client call: say what it needs to cover, get a timeboxed plan, run it, debrief into the client brain" },
       { label: "Financing", icon: Landmark, path: "/financing", badge: "financingLate", hint: "Client payment plans, short and long term: who's paid, who's due, who's late" },
       { label: "Prestige", icon: Crown, path: "/prestige", hint: "Prestige referral program: members, referrals and rewards" },
       { label: "Upgrade Store", icon: Store, path: "/upgrades", hint: "Add-ons clients can buy on top of their plan" },
       { label: "Decks", icon: Presentation, path: "/presentations/projects", match: ["/presentations"], hint: "Pitch and client presentations" },
+      { label: "SMPL. Studio", icon: Wand2, path: "/studios/smpl", arch: "SOON", hint: "SMPL. studio (coming soon)" },
     ],
   },
   {
@@ -132,7 +149,6 @@ export const HUBS = [
     tabs: [
       { label: "Universe", icon: Sparkles, path: "/universe", hint: "The whole operation as one zoomable tree: Claude, Møthership, every brand, client, department and agent, with what is broken" },
       { label: "Constellation", icon: Orbit, path: "/agents", hint: "Every agent, what it knows and what it is working on" },
-      { label: "Playbooks", icon: BookOpenCheck, path: "/playbooks", hint: "The prompt agent: copy-paste foundation prompts per service, and the standards every client site and app gets" },
       { label: "Systems", icon: KeyRound, path: "/systems", hint: "Systems brain: every key on every app, what it does, how the apps connect, and what is left over" },
       { label: "Intelligence", icon: Radar, path: "/intelligence", hint: "Market and search changes worth acting on" },
       { label: "Idea Vault", icon: Lightbulb, path: "/idea-vault", hint: "Ideas, scored" },
@@ -140,6 +156,7 @@ export const HUBS = [
     ],
   },
 ].map((h) => ({ ...h, tabs: h.tabs.map((t) => ({ ...t, key: t.key || t.path })) }));
+
 
 // Tools Justin opens now and then. They live under More so the main list stays short; nothing was removed.
 export const MORE_HUB = {
@@ -150,12 +167,12 @@ export const MORE_HUB = {
   hint: "Occasional tools and an index of every page",
   tabs: [
     { label: "All pages", icon: LayoutGrid, path: "/more", hint: "Every page in Møthership, grouped the way the sidebar is" },
+    { label: "How you use it", icon: Activity, path: "/more/usage", hint: "How you use Møthership: most-used pages, repeated paths and slow steps (private, your sessions only)" },
     { label: "Documents", icon: FileText, path: "/documents", hint: "Agency documents and forms" },
     { label: "Legal", icon: Scale, path: "/legal", hint: "Legal items, filings and their dates" },
     { label: "Training", icon: GraduationCap, path: "/training", hint: "Training tracks and assignments for new hires" },
     { label: "Signatures", icon: PenLine, path: "/signatures", hint: "Email signatures for the team and clients" },
     { label: "QR codes", icon: QrCode, path: "/qr", hint: "Branded QR codes and their scans" },
-    { label: "SMPL. Studio", icon: Wand2, path: "/studios/smpl", arch: "SOON", hint: "SMPL. studio (coming soon)" },
     { label: "Chrome Workspace", icon: Chrome, path: "/tools/chrome-workspace", hint: "Browser workspace setup" },
   ].map((t) => ({ ...t, key: t.path })),
 };
@@ -170,19 +187,20 @@ const PACKAGE_ITEMS = PACKAGES.map((p) => ({ key: `pkg:${p.key}`, label: p.label
 export const PRESENT_HIDDEN = ["/security", "/studios/smpl", "/studios/simple-social", "/tools/chrome-workspace"];
 export const isPresentHidden = (pathname) => PRESENT_HIDDEN.some((p) => pathname === p || pathname.startsWith(p + "/"));
 if (IS_PRESENTING) {
-  for (const hub of [...HUBS, MORE_HUB]) hub.tabs = hub.tabs.filter((t) => !isPresentHidden(t.path.split("?")[0]));
+  for (const hub of [...HUBS, ...MORE_HUBS, MORE_HUB]) hub.tabs = hub.tabs.filter((t) => !isPresentHidden(t.path.split("?")[0]));
 }
 
 const flat = (hub) => hub.tabs.map((t) => ({ ...t, group: hub.label, groupId: hub.id }));
 
 export const ALL_NAV = [
   ...HUBS.flatMap(flat),
+  ...MORE_HUBS.flatMap(flat),
   ...PACKAGE_ITEMS.map((i) => ({ ...i, group: "Work · Packages", groupId: "work" })),
   ...flat(MORE_HUB),
   { ...SETTINGS_ITEM, group: "System", groupId: "system" },
 ];
 
-const ALL_HUBS = [...HUBS, MORE_HUB];
+const ALL_HUBS = [...HUBS, ...MORE_HUBS, MORE_HUB];
 
 function score(location, item) {
   const params = new URLSearchParams(location.search || "");
