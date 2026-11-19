@@ -2,6 +2,31 @@
   "description": "Send to Claude queue: a step Justin authorized Claude to do. A Claude scheduled task picks up queued jobs, does the work and returns it for approval.",
   "name": "ClaudeJob",
   "properties": {
+    "brand": {
+      "description": "Build Engine: brand the job is for (interstellar, diald, ...)",
+      "type": "string"
+    },
+    "instruction": {
+      "description": "Build Engine: Justin's instruction as typed (instructions holds the full brief)",
+      "type": "string"
+    },
+    "references": {
+      "description": "Build Engine: reference links and uploaded files (screen recordings, images of the look)",
+      "items": { "additionalProperties": true, "type": "object" },
+      "type": "array"
+    },
+    "progress_notes": {
+      "description": "Build Engine: running notes from the build agent (step 3)",
+      "items": { "additionalProperties": true, "type": "object" },
+      "type": "array"
+    },
+    "result_url": {
+      "description": "Build Engine: where the result lives (preview URL, app, doc)",
+      "type": "string"
+    },
+    "created_by": {
+      "type": "string"
+    },
     "approved_at": {
       "format": "date-time",
       "type": "string"
@@ -57,6 +82,9 @@
         "enrich_profile",
         "map_pack_plan",
         "topic_calendar",
+        "lead_build",
+        "checklist_item",
+        "command",
         "other"
       ],
       "type": "string"
@@ -138,9 +166,11 @@
       "enum": [
         "queued",
         "running",
+        "needs_review",
         "needs_approval",
         "changes_requested",
         "approved",
+        "done",
         "failed",
         "cancelled"
       ],

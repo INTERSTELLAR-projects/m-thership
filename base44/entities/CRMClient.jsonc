@@ -209,6 +209,37 @@
       ],
       "description": "Sales pipeline stage for leads (Pipeline page). Missing on older leads: derived from notes."
     },
+    "gbp_url": {
+      "description": "Google Business Profile link (Build Engine quick-add)",
+      "type": "string"
+    },
+    "one_liner": {
+      "description": "What they do, in one line (Build Engine quick-add)",
+      "type": "string"
+    },
+    "lead_references": {
+      "description": "Reference links and uploaded screen recordings or images of the look Justin wants: [{kind: link|file, url, name, note}]",
+      "items": { "additionalProperties": true, "type": "object" },
+      "type": "array"
+    },
+    "niche_key": {
+      "description": "Build Engine niche template key",
+      "enum": ["home_service", "fitness_coach", "retail_streetwear", "food_bev", "other"],
+      "type": "string"
+    },
+    "scrape_status": {
+      "enum": ["none", "running", "done", "failed"],
+      "type": "string"
+    },
+    "scraped_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "scrape_summary": {
+      "description": "Clean summary of the last scrape for the lead card (never invented; missing facts are listed in not_found)",
+      "additionalProperties": true,
+      "type": "object"
+    },
     "lead_source": {
       "type": "string",
       "description": "Where the lead came from: a value from Settings > Lists & fields > Lead sources (defaults website, funnel, referral, cold, ads, social, other)"

@@ -1,0 +1,21 @@
+{
+  "name": "UsageEvent",
+  "description": "Private usage log of Justin's own Møthership sessions (admin only, no third-party analytics): page views, main actions and time between steps. Feeds More > How you use Møthership.",
+  "type": "object",
+  "properties": {
+    "kind": { "type": "string", "enum": ["page_view", "action"] },
+    "path": { "type": "string", "description": "Route path (no query values beyond tab)" },
+    "label": { "type": "string", "description": "Page label or action name" },
+    "prev_path": { "type": "string" },
+    "ms_since_prev": { "type": "number", "description": "Milliseconds since the previous event in the same session" },
+    "session_id": { "type": "string" },
+    "at": { "type": "string", "format": "date-time" }
+  },
+  "required": ["kind"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}
