@@ -4,6 +4,7 @@ import { syncFromStripe } from "../../shared/stripeSync.ts";
 import { queueFromInvoice } from "../../shared/portalInvite.ts";
 import { creditFromCheckoutSession } from "../../shared/fuel.ts";
 import { activateFromCheckoutSession, handleSubscriptionEvent } from "../../shared/addons.ts";
+import { fromStripeInvoice } from "../../shared/leadStage.ts";
 
 /*
  * Stripe → Møthership, as it happens. Register this function's URL in Stripe (Developers → Webhooks) for:
@@ -50,7 +51,7 @@ export default async function (req: Request) {
       return Response.json({ received: false, error: error.message }, { status: 500 });
     }
   }
-  const relevant = /^customer\.subscription\.|^invoice\.paid$|^customer\.(created|updated)$/.test(event.type || "");
+  const relevant = /^customer\.subscription\.|^invoice\.(paid|created|finalized)$|^customer\.(created|updated)$/.test(event.type || "");
   if (!relevant) return Response.json({ received: true, ignored: event.type });
   try {
     const base44 = createClientFromRequest(req);
@@ -59,8 +60,10 @@ export default async function (req: Request) {
     const result = await syncFromStripe(base44, key);
     // First payment on a new subscription: queue the client's portal onboarding invite for the next day.
     let invite = null;
+    // A Stripe invoice for a lead's customer: Won (auto, undoable) + paid amount onto the deal. Never emails.
+    const lead = /^invoice\./.test(event.type || "") ? await fromStripeInvoice(base44.asServiceRole.entities, event.data?.object).catch((e: any) => ({ error: e.message })) : null;
     if (event.type === "invoice.paid") invite = await queueFromInvoice(base44, event.data?.object).catch((e: any) => ({ queued: false, reason: e.message }));
-    return Response.json({ received: true, type: event.type, synced: result.synced, unmatched: result.unmatched.length, invite, addon });
+    return Response.json({ received: true, type: event.type, synced: result.synced, unmatched: result.unmatched.length, invite, addon, lead });
   } catch (error: any) {
     return Response.json({ received: true, error: error.message }, { status: 200 });
   }

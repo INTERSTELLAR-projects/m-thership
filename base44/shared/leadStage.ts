@@ -120,3 +120,24 @@ export async function runTriggers(db: any) {
   }
   return out.filter(Boolean);
 }
+
+// Stripe invoice for a lead (created, finalized or paid): the lead is Won (auto), and the one-time deal value picks up
+// what Stripe says was paid. Matched by Stripe customer id, then the invoice email.
+export async function fromStripeInvoice(db: any, inv: any) {
+  if (!inv) return null;
+  const cust = str(typeof inv.customer === "object" ? inv.customer?.id : inv.customer);
+  const email = str(inv.customer_email).toLowerCase();
+  const all = await db.CRMClient.filter({ status: { $in: ["Lead", "Active"] } }, "-updated_date", 500).catch(() => []);
+  const c = (all || []).find((x: any) => (cust && (x.stripe_customer_id === cust || (x.stripe_customer_ids || []).includes(cust))) || (email && (x.emails || []).map((e: string) => str(e).toLowerCase()).includes(email)));
+  if (!c) return null;
+  const paid = (Number(inv.amount_paid) || 0) / 100;
+  const due = (Number(inv.amount_due) || 0) / 100;
+  const one = c.deal_one_time || {};
+  if (Number(one.amount) > 0 && (paid > 0 || inv.status === "open")) {
+    const total = Math.max(Number(one.paid_amount) || 0, paid);
+    const status = total >= Number(one.amount) ? "paid" : total > 0 ? "partly_paid" : "invoiced";
+    await db.CRMClient.update(c.id, { deal_one_time: { ...one, status, paid_amount: total, source: "stripe", stripe_invoice_id: str(inv.id), amount_due: due } }).catch(() => null);
+  }
+  if (c.status === "Lead") return moveStage(db, c, "won", { by: "automation:stripe", reason: `Stripe invoice ${str(inv.number || inv.id)} ${inv.status || "created"}`, auto: true, source: "automation" });
+  return { ok: true, updated: c.id };
+}
