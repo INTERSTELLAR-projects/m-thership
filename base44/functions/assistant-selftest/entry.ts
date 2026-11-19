@@ -77,8 +77,23 @@ export default async function (req: Request) {
       row.ms = Date.now() - started;
       results.push(row);
     }
+    // Direct-edit logging: set the [TEST] lead's stage straight on the record (as Claude would from chat) and wait for
+    // the "Leads — log stage changes" workflow to log it.
+    let observe: any = null;
+    const lead = ((await db.CRMClient.filter({ business: TEST }, "-created_date", 1).catch(() => [])) || [])[0];
+    if (lead) {
+      await db.CRMClient.update(lead.id, { pipeline_stage: "call_booked", pipeline_stage_by: "claude", pipeline_stage_reason: "self-test of direct edits" });
+      for (let i = 0; i < 12 && !observe; i++) {
+        await new Promise((r) => setTimeout(r, 5000));
+        const m = ((await db.LeadStageMove.filter({ client_id: lead.id, to_stage: "call_booked" }, "-created_date", 1).catch(() => [])) || [])[0];
+        if (m) observe = { logged: true, by: m.by, source: m.source, auto: m.auto, reason: m.reason, after_s: (i + 1) * 5 };
+      }
+      if (!observe) observe = { logged: false, waited_s: 60 };
+      const moves = ((await db.LeadStageMove.filter({ client_id: lead.id }, "at", 20).catch(() => [])) || []).map((m: any) => `${m.from_stage}→${m.to_stage} by ${m.by} (${m.source}${m.auto ? ", auto" : ""}): ${m.reason}`);
+      observe.moves = moves;
+    }
     const clean = await cleanup(db);
-    const value = { at: new Date().toISOString(), results, scrape, cleanup: clean };
+    const value = { at: new Date().toISOString(), results, scrape, observe, cleanup: clean };
     const ex = ((await db.AppSettings.filter({ key: "assistant_selftest" }, "-updated_date", 1).catch(() => [])) || [])[0];
     if (ex) await db.AppSettings.update(ex.id, { value }); else await db.AppSettings.create({ key: "assistant_selftest", value });
     return Response.json({ ok: true, n: results.length });
