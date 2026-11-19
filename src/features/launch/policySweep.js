@@ -11,6 +11,7 @@ import { loadClientContext } from "@/features/clients/clientContext";
 import { GATES, gateMode, loadPolicy, loadWaiting, approveRow, rowTitle, POLICY_KEY } from "./gates";
 import { engineChecklist, loadFacts, startEngine } from "./engine";
 import { loadHold } from "./engineHold";
+import { AUTO_NOTE, laneForJob } from "@/lib/approvalLanes";
 
 const THROTTLE_KEY = "mothership.policySweep.lastRun";
 const MIN_GAP_MS = 20 * 60 * 1000;
@@ -85,12 +86,38 @@ async function autoStartEngines(by, out) {
   }
 }
 
+// Justin's taste rule (Nov 19, 2026): Claude jobs whose approval code lives in the app (profile enrichments,
+// playbooks, plans, calendars, blogs, app stages) and that are logic/best practice are approved here, whatever the
+// saved gate mode says. Taste and hard-gate jobs are never touched. The backend sweep (approval-sweep) clears the
+// rest (audits, research, tasks, Road to Dec 31 items, foundation prompts, agent learnings) with the same rule.
+async function tasteRule(out) {
+  const jobs = await base44.entities.ClaudeJob.filter({ status: { $in: ["needs_approval", "needs_review"] } }, "-created_date", 300).catch(() => []);
+  for (const r of jobs || []) {
+    if (laneForJob(r) !== "logic") continue;
+    try {
+      let extra = "";
+      if (r.kind === "enrich_profile") {
+        // Research is ours: sourced, high-confidence values are applied; where a proposal disagrees with what is on
+        // file, what is on file stays (decided: keep it) and the job closes with that note.
+        const keys = enrichAccepted(r) || (proposalsFromJob(r) || []).filter((p) => p.confidence === "high" && !/differs|disagree|mismatch|conflict/i.test(String(p.note || ""))).map((p) => p.key);
+        await approveJob(r, { accepted: keys });
+        extra = `applied ${keys.length} sourced field${keys.length === 1 ? "" : "s"}; kept what is on file where they disagree`;
+      } else {
+        await approveJob(r);
+      }
+      await base44.entities.AgentAuditLog.create({ at: new Date().toISOString(), ok: true, actor: "policy:taste-rule", action: "auto_approved", entity: "ClaudeJob", record_id: r.id, summary: `${AUTO_NOTE}: ${r.title}${extra ? ` (${extra})` : ""}`.slice(0, 480), undo: { entity: "ClaudeJob", id: r.id, patch: { status: r.status } } }).catch(() => null);
+      out.cleared.push({ gate: "taste-rule", mode: "auto", title: r.title, client: r.client_name || "" });
+    } catch (e) { out.errors.push(`${r.title}: ${e?.message || e}`); }
+  }
+}
+
 export async function runPolicySweep({ by = "claude", force = false } = {}) {
   if (running) return running;
   if (!force && Date.now() - readTs(THROTTLE_KEY) < MIN_GAP_MS) return { skipped: "ran recently" };
   writeTs(THROTTLE_KEY);
   running = (async () => {
     const out = { cleared: [], skipped: [], engines: [], errors: [], at: new Date().toISOString() };
+    await tasteRule(out);
     const policy = await loadPolicy();
     if (!policy?.pageSettings?.saved_at) return { ...out, note: "No saved policy yet." };
     const waiting = await loadWaiting();
