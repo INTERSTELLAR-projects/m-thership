@@ -14,7 +14,7 @@ const newKey = () => {
   return Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
 };
 
-export default function SeasonsOffersPanel({ client, me }) {
+export default function SeasonsOffersPanel({ client }) {
   const qc = useQueryClient();
   const seasonsQ = useList("SiteSeason", { filter: { client_id: client.id }, limit: 20, sort: "key" });
   const offersQ = useList("SiteOffer", { filter: { client_id: client.id }, limit: 30, sort: "-created_date" });
@@ -26,6 +26,7 @@ export default function SeasonsOffersPanel({ client, me }) {
 
   const connect = () => run("key", () => base44.entities.CRMClient.update(client.id, { site_key: newKey() }));
   const approve = (o) => run(o.id, async () => {
+    const me = await base44.auth.me().catch(() => null);
     await base44.entities.SiteOffer.update(o.id, { discount_status: "approved", approved_by: me?.email || "justin", approved_at: new Date().toISOString() });
     await base44.entities.AgentAuditLog.create({ at: new Date().toISOString(), ok: true, actor: me?.email || "justin", action: "discount_approved", entity: "SiteOffer", record_id: o.id, summary: `Checkout discount approved: ${client.business} · ${o.title} (${offerLabel(o)}, ends ${o.ends_on})` }).catch(() => null);
   });
