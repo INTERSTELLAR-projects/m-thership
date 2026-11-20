@@ -31,8 +31,7 @@ export const TRACKS = [
   { key: "command", label: "Command System" },
 ];
 
-// Launch grid placeholder: where the client needs to be live.
-export const LAUNCH_GRID = ["Website", "Google Business", "Bing Places", "Apple Maps", "Facebook", "Instagram", "Yelp", "Citations", "Search Console", "Analytics"];
+// Launch grid is real now: src/lib/launchGrid.js + LaunchListing (launch-grid function), shown by LaunchGridPanel.
 
 export function normUrl(u) {
   const v = String(u || "").trim();
