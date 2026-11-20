@@ -6,6 +6,7 @@ import { useClientRecords } from "./hooks";
 import { Panel, Empty, Btn, SmallBtn, Tag, Stat, FormDialog } from "./ui";
 import { WORK_KINDS, SERVICE_LABELS, fmtDate, timeAgo } from "@/lib/useData";
 import { settleTimer } from "@/features/tasks/lib/timer";
+import { isLiveSiteAutomation, startsWhenText } from "@/lib/buildTemplates";
 import { KIND_ORDER, kindLabel } from "@/features/requests/formSchema";
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -370,7 +371,7 @@ export function AutomationsTab({ client }) {
                 <span className="mono-label text-[9px] text-ink/45">{a.runner?.replace(/_/g, " ")}</span>
               </div>
               <p className="mt-3 text-[15px] font-semibold tracking-[-0.02em]">{a.name}</p>
-              <p className="text-[12px] text-ink/55">{a.schedule || "No schedule set"}</p>
+              <p className="text-[12px] text-ink/55">{!client.website_live_at && a.status === "setup" && isLiveSiteAutomation(a) ? <span className="text-[#c24100]">{startsWhenText(client)}</span> : a.schedule || "No schedule set"}</p>
               <div className="mt-4 flex items-center justify-between border-t border-hair pt-3 text-[12px]">
                 <span className="text-ink/55">Last run {a.last_run_at ? timeAgo(a.last_run_at) : "—"}</span>
                 <span className="font-mono tabular-nums text-ink/60">{a.runs_count || 0} runs</span>
