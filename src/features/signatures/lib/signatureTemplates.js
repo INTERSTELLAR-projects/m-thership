@@ -81,6 +81,7 @@ export const TEMPLATES = [
   { id: "t4_centered", name: "Stack", description: "Centered, mobile-first card" },
   { id: "t2_minimal", name: "Minimal", description: "Borderless with accent rule" },
   { id: "t3_compact", name: "Compact", description: "Slim one-row for replies" },
+  { id: "t6_ink", name: "Ink", description: "Dark grainy card, mono contacts, gradient bar" },
 ];
 
 const FONT_STACK = {
@@ -558,7 +559,48 @@ function tCompact(c) {
   return frame(c, `<div style="font-family:${font};">${header(c, identity, { gap: 14, size: Math.min(Number(f.photo_px) || 96, 64) })}</div>`, "14px 16px");
 }
 
-const RENDER = { t5_rail: tHalo, t1_classic: tSplit, t4_centered: tStack, t2_minimal: tMinimal, t3_compact: tCompact };
+// Ink: dark grainy card. Logo lockup (or company name), name, mono title + slogan on the
+// left; T / E / W mono contacts on the right; gradient bar along the bottom. Always dark,
+// whatever the surface colour, so the grain and light type read the same everywhere.
+// Outlook drops the background image and keeps the solid #141414.
+const INK_GRAIN = "https://media.base44.com/images/public/6ae18dc255e0da91f0ee6f1b/25fbff53b_sig-grain.jpg";
+function tInk(c) {
+  const { f, t } = c;
+  const sans = `Geist,${fontOf(t)}`;
+  const mono = "'JetBrains Mono',Menlo,Consolas,'Courier New',monospace";
+  const a1 = esc(t.accent_color);
+  const a2 = esc(t.accent_color_2 || t.accent_color);
+  const lh = Math.min(Number(f.logo_height) || 32, 40);
+  const brand = f.logo_url
+    ? `<a href="${esc(href(f.website))}" style="text-decoration:none;"><img src="${esc(f.logo_url)}" height="${lh}" alt="${esc(
+        f.company_name || "Logo"
+      )}" style="display:block;height:${lh}px;width:auto;max-width:240px;border:0;" /></a>`
+    : f.company_name
+    ? `<div style="font-family:${sans};font-size:17px;line-height:22px;font-weight:600;letter-spacing:-0.5px;color:#f4f1ec;">${esc(f.company_name)}</div>`
+    : "";
+  const monoLine = (txt, color, pt) =>
+    txt
+      ? `<div style="padding-top:${pt}px;font-family:${mono};font-size:10px;line-height:14px;letter-spacing:1.4px;text-transform:uppercase;color:${color};">${esc(txt)}</div>`
+      : "";
+  const slogan = String(f.slogan || "").replace(/^["“]|["”]$/g, "");
+  const left = `${brand}${brand ? `<div style="height:28px;line-height:28px;font-size:0;">&nbsp;</div>` : ""}<div style="font-family:${sans};font-size:24px;line-height:26px;font-weight:600;letter-spacing:-0.6px;color:#f4f1ec;">${esc(
+    f.full_name
+  )}</div>${monoLine(f.job_title ? `+ ${f.job_title}` : "", a1, 7)}${monoLine(slogan, "#7a746c", 3)}`;
+  const items = contactList(f);
+  const letter = { phone: "T", mail: "E", globe: "W", pin: "A" };
+  const right = items
+    .map(
+      (i) =>
+        `<span style="color:#7a746c;">${letter[i.g]}</span>&nbsp;&nbsp;<a href="${esc(i.h)}" style="color:${a1};text-decoration:none;">${esc(i.v)}</a>`
+    )
+    .join("<br />");
+  const contactsCell = items.length
+    ? `<td valign="middle" style="padding:20px 18px;border-left:1px solid #2a2a2a;font-family:${mono};font-size:11px;line-height:24px;color:#cfc9c0;white-space:nowrap;">${right}</td>`
+    : "";
+  return `<table ${TBL} style="width:560px;max-width:100%;border-collapse:collapse;background-color:#141414;font-family:${sans};"><tr><td background="${INK_GRAIN}" bgcolor="#141414" style="background-color:#141414;background-image:url('${INK_GRAIN}');background-size:cover;border:1px solid #2a2a2a;border-bottom:0;padding:0;"><table ${TBL} style="width:100%;border-collapse:collapse;"><tr><td valign="top" style="padding:22px 22px 20px 24px;">${left}</td>${contactsCell}</tr></table></td></tr><tr><td style="padding:0;font-size:0;line-height:0;"><table ${TBL} style="width:100%;border-collapse:collapse;"><tr><td height="3" bgcolor="${a1}" style="height:3px;background-color:${a1};background-image:linear-gradient(90deg,${a1},${a2},#ffaa00);font-size:0;line-height:0;">&nbsp;</td></tr></table></td></tr></table>`;
+}
+
+const RENDER = { t5_rail: tHalo, t1_classic: tSplit, t4_centered: tStack, t2_minimal: tMinimal, t3_compact: tCompact, t6_ink: tInk };
 
 // ---- Public API -----------------------------------------------------------------
 
