@@ -1,0 +1,43 @@
+{
+  "name": "Build checklists \u2014 seed templates (one-time)",
+  "description": "Manual helper (kept inactive; use Run now): creates the BuildChecklistTemplate for any niche that has none (home_service, fitness_coach, retail_streetwear, food_bev, other) from the defaults in shared/buildTemplates.js. Never edits an existing template. Function: build-checklist / seed_templates.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 3 1 1 *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "build_checklists_seed_templates",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "build-checklist",
+            "args": {
+              "action": "seed_templates"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
