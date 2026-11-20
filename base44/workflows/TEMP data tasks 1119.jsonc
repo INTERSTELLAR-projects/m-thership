@@ -27,24 +27,12 @@
     },
     "do": [
       {
-        "seo": {
+        "categorize": {
           "call": "invoke_backend_function",
           "with": {
             "function_name": "data-tasks-1119",
             "args": {
-              "action": "seo_approve"
-            }
-          },
-          "then": "analyze"
-        }
-      },
-      {
-        "analyze": {
-          "call": "invoke_backend_function",
-          "with": {
-            "function_name": "data-tasks-1119",
-            "args": {
-              "action": "analyze"
+              "action": "categorize"
             }
           },
           "then": "end"
