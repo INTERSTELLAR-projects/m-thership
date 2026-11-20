@@ -90,7 +90,9 @@ export const CONTENT_SITES: Record<string, SiteConfig> = {
     enabled: true,
     footprint: "regional",
     owner_name: "PowerLift Doors of Oregon",
-    indexnow: null,
+    // Key file public/181cc819022b4b5eb681b0e0f729c525.txt ships in the site checkpoint of 2026-11-19; IndexNow accepts
+    // pings once that checkpoint is published (before that a ping is just refused and logged on the ContentPost).
+    indexnow: { key: "181cc819022b4b5eb681b0e0f729c525", key_location: "https://oregonpowerlift.com/181cc819022b4b5eb681b0e0f729c525.txt" },
     daily_limit: 5,
     weekly_limit: 20,
     profile: "door_project",
