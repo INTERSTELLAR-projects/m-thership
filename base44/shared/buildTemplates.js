@@ -13,10 +13,14 @@
 //      approved in Interstellar's portal flow) go to the website's backend function projectPhoto (signed: x-photo-key =
 //      PHOTO_FEED_KEY on both; WEBSITE_PHOTO_URL on Command). Capture only: auto-publish stays off; the page shows
 //      published photos only. Reference build: the [TEST] Summit Ridge Landscaping website + Command System.
+// v4 (Nov 19 2026): SELF-SERVE SEASONS + OFFERS. The site reads a SiteSeason config (banner, accent, featured section)
+//   and live offers from Møthership's public site-config function by the client's site_key (CRMClient.site_key), and
+//   falls back to its normal look when nothing is on. The client switches them in the portal. Checkout discounts for
+//   offers are a money hard gate (Justin's tap), never part of the build.
 
 export const NICHE_KEYS = ["home_service", "fitness_coach", "retail_streetwear", "food_bev", "other"];
 export const NICHE_LABEL = { home_service: "Home service", fitness_coach: "Fitness coach", retail_streetwear: "Retail / streetwear", food_bev: "Food & beverage", other: "Other" };
-export const TEMPLATE_VERSION = 3;
+export const TEMPLATE_VERSION = 4;
 export const DOMAIN_TOKEN = "<domain>";
 
 const I = (key, label, auto, client_label = "", group = "", gate = "") => ({ key, label, auto, client_label, group, gate });
@@ -76,6 +80,8 @@ const WEBSITE_COMMON = [
   I("forms", "Forms (quote/contact/booking) with spam protection, saved on the site", true, "Your contact and quote forms", "forms"),
   I("link_forms", "Linked apps: every form submission also posts into this client's Command System (server-side forwardToCommand -> Command function websiteIntake, signed x-intake-key; secrets set by name on both apps; checked with one [TEST] lead)", true, "Your forms feed your Command System", "forms"),
   I("link_gallery", "Linked apps: projects/gallery takes approved photos as DRAFTS (function projectPhoto, signed x-photo-key; image copied to site storage; page shows published only; auto-publish off; checked with one [TEST] photo)", true, "", "pages"),
+  I("site_season", "Seasons: the site reads its SiteSeason config (site-config function, by site_key) for the banner, accent and featured section; off = normal look; fails soft", true, "Seasonal looks you switch on yourself", "content"),
+  I("site_offers", "Offers: live offers from site-config show as a banner/section between their dates (no checkout change; discounts are Justin's tap)", true, "Offers you run yourself", "content"),
   I("seo_basics", "SEO basics: unique titles/meta, one H1, sitemap, robots, canonicals, internal links, alt text, prerendered routes", true, "Search-engine setup", "seo"),
   I("speed", "Speed pass: compressed images, lazy loading, good LCP/CLS", true, "Fast loading on phones", "speed"),
   I("security", "Security check: no secrets in code, admin-only data, rate limits on public functions", true, "", "security"),

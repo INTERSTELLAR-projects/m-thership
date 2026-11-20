@@ -78,3 +78,36 @@ describe("Launch grid", () => {
     expect(SUBMISSION_SERVICES).toEqual(["brightlocal", "whitespark", "yext", "manual"]);
   });
 });
+
+import { cleanSeason, cleanOffer, publicConfig, offerLive, offerLabel, SEASON_PRESETS } from "@/lib/siteExtras";
+
+describe("Seasons + offers", () => {
+  it("shared copy matches", () => {
+    expect(body("base44/shared/siteExtras.js")).toBe(readFileSync("src/lib/siteExtras.js", "utf8"));
+  });
+  it("cleans what a client may set", () => {
+    expect(cleanSeason({ key: "nope" }).error).toBeTruthy();
+    const s = cleanSeason({ key: "holiday", accent: "javascript:alert(1)", banner_text: "" });
+    expect(s.accent).toBe(SEASON_PRESETS[0].accent);
+    expect(s.banner_text).toBe(SEASON_PRESETS[0].banner);
+    expect(cleanOffer({ title: "x", kind: "percent", value: 95, starts_on: "2026-12-01", ends_on: "2026-12-31" }).error).toMatch(/90/);
+    expect(cleanOffer({ title: "x", kind: "amount", value: 50, starts_on: "2026-12-31", ends_on: "2026-12-01" }).error).toMatch(/before/);
+    const o = cleanOffer({ title: "[TEST] Spring cleanup", kind: "amount", value: "50", starts_on: "2026-11-01", ends_on: "2026-12-31" });
+    expect(o.value).toBe(50);
+    expect(offerLabel(o)).toBe("$50 off");
+  });
+  it("public config shows only the active season and offers running today, never a code before it exists", () => {
+    const seasons = [{ key: "fall", label: "Fall", active: false, banner_text: "x" }, { key: "holiday", label: "Holiday season", active: true, banner_text: "Happy holidays", accent: "#b3261e", activated_at: "2026-11-19T00:00:00Z", client_id: "secret-id" }];
+    const offers = [
+      { title: "A", kind: "percent", value: 15, starts_on: "2026-11-01", ends_on: "2026-11-30", status: "live", discount_status: "awaiting_approval", discount_code: "SHOULDNOTSHOW" },
+      { title: "B", kind: "percent", value: 10, starts_on: "2026-12-01", ends_on: "2026-12-31", status: "live" },
+      { title: "C", kind: "percent", value: 10, starts_on: "2026-11-01", ends_on: "2026-11-30", status: "ended" },
+    ];
+    const c = publicConfig(seasons, offers, "2026-11-19");
+    expect(c.season).toEqual({ key: "holiday", label: "Holiday season", banner: "Happy holidays", accent: "#b3261e", featured: null });
+    expect(c.offers).toEqual([{ title: "A", description: "", label: "15% off", ends_on: "2026-11-30", code: "" }]);
+    expect(JSON.stringify(c)).not.toMatch(/secret-id|SHOULDNOTSHOW/);
+    expect(offerLive(offers[1], "2026-11-19")).toBe(false);
+    expect(publicConfig([], [], "2026-11-19")).toEqual({ season: null, offers: [] });
+  });
+});

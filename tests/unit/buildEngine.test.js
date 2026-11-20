@@ -186,7 +186,7 @@ import { waitingForDomain, awaitingDomainIds } from "@/features/automations/boar
 
 describe("domain is the last step and makes the site live", () => {
   it("ends every Website track with Connect <domain>, a DNS hard gate filled with the client's domain", () => {
-    expect(TEMPLATE_VERSION).toBe(3);
+    expect(TEMPLATE_VERSION).toBe(4);
     for (const t of ALL_TEMPLATES) {
       const w = t.tracks.find((r) => r.key === "website").items;
       const last = w[w.length - 1];
@@ -241,14 +241,28 @@ describe("linked apps (v3): website forms -> Command System, approved photos -> 
     const client = { id: "c", business: "[TEST] Summit Ridge", websites: ["https://summit-ridge.example"] };
     const v2 = instantiate(templateFor("home_service"), client);
     v2.template_version = 2;
-    v2.tracks = v2.tracks.map((tr) => ({ ...tr, items: tr.items.filter((i) => !i.key.startsWith("link_")).map((i) => (i.key === "page_home" ? { ...i, done: true } : i)) }));
+    v2.tracks = v2.tracks.map((tr) => ({ ...tr, items: tr.items.filter((i) => !(i.key.startsWith("link_") || i.key.startsWith("site_"))).map((i) => (i.key === "page_home" ? { ...i, done: true } : i)) }));
     const up = missingItems(v2, templateFor("home_service"), client);
-    expect(up.added).toBe(4);
-    expect(up.template_version).toBe(3);
+    expect(up.added).toBe(6);
+    expect(up.template_version).toBe(4);
     const w = up.tracks.find((r) => r.key === "website").items;
     expect(w.at(-1).key).toBe("connect_domain");
     expect(w.find((i) => i.key === "page_home").done).toBe(true);
     expect(w.find((i) => i.key === "link_forms").done).toBe(false);
     expect(missingItems({ ...v2, tracks: up.tracks }, templateFor("home_service"), client)).toBeNull();
+  });
+});
+
+describe("seasons + offers (v4)", () => {
+  it("every website track reads its season and offers, as items Claude does itself", () => {
+    for (const t of ALL_TEMPLATES) {
+      const w = t.tracks.find((r) => r.key === "website").items;
+      for (const k of ["site_season", "site_offers"]) {
+        const it = w.find((i) => i.key === k);
+        expect(it.auto).toBe(true);
+        expect(it.gate).toBe("");
+      }
+      expect(w.at(-1).key).toBe("connect_domain");
+    }
   });
 });
