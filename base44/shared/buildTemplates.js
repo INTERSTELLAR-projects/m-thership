@@ -5,10 +5,18 @@
 // client's own domain. Connecting the domain is ALWAYS the last Website step and is what makes the site live (Justin,
 // Nov 19 2026): everything before it runs on the base44.app address. The runner never does gates.
 // The BuildChecklistTemplate entity holds the editable copy; these are the defaults it is seeded from.
+// v3 (Nov 19 2026): LINKED APPS. A client's website and Command System are linked, and Claude wires both links itself:
+//   1. Website forms -> Command System: the website's server forwards every quote/contact request to the Command app's
+//      backend function websiteIntake (signed: x-intake-key; secrets WEBSITE_INTAKE_KEY on Command = COMMAND_INTAKE_KEY
+//      + COMMAND_INTAKE_URL on the website). Same pattern as VSRL's websiteLead.
+//   2. Approved photos -> website gallery as DRAFTS: photos the owner approves in the Command System (or that are
+//      approved in Interstellar's portal flow) go to the website's backend function projectPhoto (signed: x-photo-key =
+//      PHOTO_FEED_KEY on both; WEBSITE_PHOTO_URL on Command). Capture only: auto-publish stays off; the page shows
+//      published photos only. Reference build: the [TEST] Summit Ridge Landscaping website + Command System.
 
 export const NICHE_KEYS = ["home_service", "fitness_coach", "retail_streetwear", "food_bev", "other"];
 export const NICHE_LABEL = { home_service: "Home service", fitness_coach: "Fitness coach", retail_streetwear: "Retail / streetwear", food_bev: "Food & beverage", other: "Other" };
-export const TEMPLATE_VERSION = 2;
+export const TEMPLATE_VERSION = 3;
 export const DOMAIN_TOKEN = "<domain>";
 
 const I = (key, label, auto, client_label = "", group = "", gate = "") => ({ key, label, auto, client_label, group, gate });
@@ -65,7 +73,9 @@ const WEBSITE_COMMON = [
   I("content_copy", "All copy written from the Brain and scrape (nothing invented; gaps marked for the owner)", true, "Your website copy", "content"),
   I("design_defaults", "Visual direction: colors, fonts, imagery left as on-brand defaults and listed for Justin", false, "", "content", "taste"),
   I("nap_schema", "NAP consistent everywhere + LocalBusiness/Organization schema, sameAs links", true, "Google-ready business details", "nap_schema"),
-  I("forms", "Forms (quote/contact/booking) wired into the Command System, with spam protection", true, "Your contact and quote forms", "forms"),
+  I("forms", "Forms (quote/contact/booking) with spam protection, saved on the site", true, "Your contact and quote forms", "forms"),
+  I("link_forms", "Linked apps: every form submission also posts into this client's Command System (server-side forwardToCommand -> Command function websiteIntake, signed x-intake-key; secrets set by name on both apps; checked with one [TEST] lead)", true, "Your forms feed your Command System", "forms"),
+  I("link_gallery", "Linked apps: projects/gallery takes approved photos as DRAFTS (function projectPhoto, signed x-photo-key; image copied to site storage; page shows published only; auto-publish off; checked with one [TEST] photo)", true, "", "pages"),
   I("seo_basics", "SEO basics: unique titles/meta, one H1, sitemap, robots, canonicals, internal links, alt text, prerendered routes", true, "Search-engine setup", "seo"),
   I("speed", "Speed pass: compressed images, lazy loading, good LCP/CLS", true, "Fast loading on phones", "speed"),
   I("security", "Security check: no secrets in code, admin-only data, rate limits on public functions", true, "", "security"),
@@ -86,7 +96,7 @@ const MODULES = {
     I("mod_customers", "Customers & properties", true, "Customer list", "modules"),
     I("mod_invoices", "Invoices & payments tracking (records only; no charging)", true, "Invoices", "modules"),
     I("mod_reviews", "Review requests after a finished job (drafts; owner sends)", true, "Review requests", "modules"),
-    I("mod_photos", "Job photos → website project gallery", true, "Project photos to your site", "modules"),
+    I("mod_photos", "Job photos: upload, caption, approve with \"Use on website\"", true, "Project photos to your site", "modules"),
   ],
   fitness_coach: [
     I("mod_clients", "Clients & intake forms", true, "Client list", "modules"),
@@ -128,6 +138,8 @@ const COMMAND_COMMON = [
   I("connections", "Connections: Stripe, Google Calendar etc. (needs the owner's accounts)", false, "Connected tools", "connections"),
   I("automations", "Automations & notifications (internal only until approved)", true, "Automations", "automations"),
   I("mothership_sync", "Brain sync to Møthership (command_app_id + sync key)", true, "", "connections"),
+  I("link_website_intake", "Linked apps: website requests land in the leads/inquiry inbox (backend function websiteIntake, fails closed without WEBSITE_INTAKE_KEY, dedupes on source_ref, never emails during tests)", true, "Website requests in your inbox", "connections"),
+  I("link_photo_feed", "Linked apps: photos approved here (or in the portal) go to the website gallery as drafts (signed, PHOTO_FEED_KEY + WEBSITE_PHOTO_URL); nothing auto-publishes", true, "Approved photos sent to your website", "connections"),
   I("test_run", "Test run with [TEST] sample data, then remove it", true, "", "launch"),
   I("training", "Hand-off walkthrough for the owner", false, "Your walkthrough", "launch"),
   I("publish_command", "Publish the Command System (Justin's tap: Ready to publish)", false, "Your system is live", "launch", "publish"),
@@ -166,6 +178,26 @@ export function instantiate(template, client) {
     template_version: t.version || TEMPLATE_VERSION,
     tracks: t.tracks.map((tr) => ({ key: tr.key, label: tr.label, items: tr.items.map((it) => ({ ...it, label: withDomain(it.label, client), done: false, done_at: "", done_by: "", note: "", preview_url: "", job_id: "" })) })),
   };
+}
+
+// Items added to the template since a checklist was made (e.g. the v3 linked-apps items), appended unticked to the
+// right track in template order. Never removes or changes an existing item. Returns null when nothing is missing.
+export function missingItems(checklist, template, client) {
+  const t = template && template.tracks ? template : templateFor(checklist && checklist.niche_key);
+  let added = 0;
+  const tracks = ((checklist && checklist.tracks) || []).map((tr) => {
+    const src = t.tracks.find((x) => x.key === tr.key);
+    if (!src) return tr;
+    const have = new Set(tr.items.map((i) => i.key));
+    const extra = src.items.filter((i) => !have.has(i.key)).map((it) => ({ ...it, label: withDomain(it.label, client), done: false, done_at: "", done_by: "", note: "", preview_url: "", job_id: "" }));
+    if (!extra.length) return tr;
+    added += extra.length;
+    // Keep Connect <domain> last on the Website track.
+    const last = tr.items.length && tr.items[tr.items.length - 1].key === "connect_domain" ? tr.items[tr.items.length - 1] : null;
+    const body = last ? tr.items.slice(0, -1) : tr.items;
+    return { ...tr, items: [...body, ...extra, ...(last ? [last] : [])] };
+  });
+  return added ? { tracks, template_version: t.version || TEMPLATE_VERSION, added } : null;
 }
 
 export function tick(checklist, trackKey, itemKey, patch) {

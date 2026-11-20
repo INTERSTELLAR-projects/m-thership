@@ -186,7 +186,7 @@ import { waitingForDomain, awaitingDomainIds } from "@/features/automations/boar
 
 describe("domain is the last step and makes the site live", () => {
   it("ends every Website track with Connect <domain>, a DNS hard gate filled with the client's domain", () => {
-    expect(TEMPLATE_VERSION).toBe(2);
+    expect(TEMPLATE_VERSION).toBe(3);
     for (const t of ALL_TEMPLATES) {
       const w = t.tracks.find((r) => r.key === "website").items;
       const last = w[w.length - 1];
@@ -214,5 +214,41 @@ describe("domain is the last step and makes the site live", () => {
     expect(startsWhenText({})).toBe("Starts when the domain is connected");
     expect(isLaunched(live) && !isLaunched(lead)).toBe(true);
     expect(automationIssue({ name: "Search Console check", kind: "search_console", status: "setup", schedule: "weekly" }, NOW)).toBeNull();
+  });
+});
+
+import { missingItems } from "@/lib/buildTemplates";
+
+describe("linked apps (v3): website forms -> Command System, approved photos -> website drafts", () => {
+  it("every template has both links as items Claude does itself, with no gate", () => {
+    for (const t of ALL_TEMPLATES) {
+      const w = t.tracks.find((r) => r.key === "website").items;
+      const c = t.tracks.find((r) => r.key === "command").items;
+      for (const [items, keys] of [[w, ["link_forms", "link_gallery"]], [c, ["link_website_intake", "link_photo_feed"]]]) {
+        for (const k of keys) {
+          const it = items.find((i) => i.key === k);
+          expect(it, `${t.niche_key} ${k}`).toBeTruthy();
+          expect(it.auto).toBe(true);
+          expect(it.gate).toBe("");
+        }
+      }
+      expect(w.find((i) => i.key === "link_gallery").label).toMatch(/DRAFTS/);
+      expect(w.find((i) => i.key === "link_gallery").label).toMatch(/auto-publish off/);
+      expect(w.at(-1).key).toBe("connect_domain");
+    }
+  });
+  it("appends missing items to an older checklist, keeps ticks and keeps Connect <domain> last", () => {
+    const client = { id: "c", business: "[TEST] Summit Ridge", websites: ["https://summit-ridge.example"] };
+    const v2 = instantiate(templateFor("home_service"), client);
+    v2.template_version = 2;
+    v2.tracks = v2.tracks.map((tr) => ({ ...tr, items: tr.items.filter((i) => !i.key.startsWith("link_")).map((i) => (i.key === "page_home" ? { ...i, done: true } : i)) }));
+    const up = missingItems(v2, templateFor("home_service"), client);
+    expect(up.added).toBe(4);
+    expect(up.template_version).toBe(3);
+    const w = up.tracks.find((r) => r.key === "website").items;
+    expect(w.at(-1).key).toBe("connect_domain");
+    expect(w.find((i) => i.key === "page_home").done).toBe(true);
+    expect(w.find((i) => i.key === "link_forms").done).toBe(false);
+    expect(missingItems({ ...v2, tracks: up.tracks }, templateFor("home_service"), client)).toBeNull();
   });
 });

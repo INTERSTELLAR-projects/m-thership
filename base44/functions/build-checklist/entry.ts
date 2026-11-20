@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
-import { ALL_TEMPLATES, instantiate, templateFor, TEMPLATE_VERSION } from "../../shared/buildTemplates.js";
+import { ALL_TEMPLATES, instantiate, templateFor, TEMPLATE_VERSION, missingItems } from "../../shared/buildTemplates.js";
 
 /*
  * Build Engine step 4: build checklists from niche templates.
@@ -8,6 +8,8 @@ import { ALL_TEMPLATES, instantiate, templateFor, TEMPLATE_VERSION } from "../..
  *                                  Idempotent, takes no input, never touches a template someone edited.
  *                                  Workflow "Build checklists — seed templates (one-time)" runs it.
  *   { action: "ensure", client_id } admin: the client's BuildChecklist, created from its niche's template if missing.
+ *                                  An older checklist gets the template's new items appended unticked (v3: linked apps);
+ *                                  nothing existing is removed or changed.
  */
 const s = (v: unknown) => (v == null ? "" : String(v));
 
@@ -43,8 +45,13 @@ export default async function (req: Request) {
       const c = await db.CRMClient.get(s(body.client_id)).catch(() => null);
       if (!c) return Response.json({ error: "Client not found" }, { status: 404 });
       const existing = ((await db.BuildChecklist.filter({ client_id: c.id }, "-updated_date", 1).catch(() => [])) || [])[0];
-      if (existing) return Response.json({ ok: true, checklist: existing, created: false });
       const tpl = ((await db.BuildChecklistTemplate.filter({ niche_key: c.niche_key || "other" }, "-version", 1).catch(() => [])) || [])[0] || templateFor(c.niche_key);
+      if (existing) {
+        const up = (Number(existing.template_version) || 1) < (Number(tpl.version) || TEMPLATE_VERSION) ? missingItems(existing, tpl, c) : null;
+        if (!up) return Response.json({ ok: true, checklist: existing, created: false });
+        const rec = await db.BuildChecklist.update(existing.id, { tracks: up.tracks, template_version: up.template_version, updated_by: user.email });
+        return Response.json({ ok: true, checklist: rec, created: false, added: up.added });
+      }
       const rec = await db.BuildChecklist.create({ ...instantiate(tpl, c), website_app_id: s(c.site_app_id), command_app_id: s(c.command_app_id), updated_by: user.email });
       return Response.json({ ok: true, checklist: rec, created: true });
     }
