@@ -214,6 +214,12 @@ export async function portalHandler(req: Request): Promise<Response> {
       // go-live dates so the portal can play the launch animation once.
       const checklistRow = ((await by("BuildChecklist", "-updated_date", 1).catch(() => [])) as Record<string, unknown>[])[0] || null;
       const build = { view: portalView(checklistRow as any), website_live_at: client.website_live_at || null, command_live_at: client.command_live_at || null };
+      // Brain unlocks as progress: label + the client-facing line only (never what's missing in internal terms).
+      const UNLOCK_ORDER = ["basics", "brand", "growth", "transmission"];
+      const unlocks = ((await by("ClientUnlock", "key", 10).catch(() => [])) as Record<string, unknown>[])
+        .filter((u) => UNLOCK_ORDER.includes(String(u.key)))
+        .sort((a, b) => UNLOCK_ORDER.indexOf(String(a.key)) - UNLOCK_ORDER.indexOf(String(b.key)))
+        .map((u) => ({ key: u.key, label: u.label, on: !!u.on, portal: String(u.portal || "") }));
       const msgs = await by("ConversationMessage", "-created_date", 200);
       // "Work we did": the work ledger's client-visible, finished rows, in client-safe team-voice copy only (never the
       // internal title, who or what did it, minutes, costs or evidence). Older WorkLog rows the ledger hasn't picked up
@@ -265,6 +271,7 @@ export async function portalHandler(req: Request): Promise<Response> {
         snapshots: snaps.map((s: Record<string, unknown>) => pick(s, ["id", "source", "period_start", "period_end", "metrics"])),
         pillars,
         build,
+        unlocks,
         // Client to-dos: what we're working on, what's next and what we need from the client (Task.client_action).
         upcoming: tasks.filter((t: Record<string, unknown>) => t.portal_visible === true && t.status !== "done").map((t: Record<string, unknown>) => pick(t, ["id", "title", "due_date", "status", "client_action", "client_note"])),
         files: files.filter(visible).map((f: Record<string, unknown>) => pick(f, ["id", "title", "category", "file_url", "link_url", "description", "delivered_on"])),

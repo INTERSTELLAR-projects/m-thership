@@ -3,6 +3,33 @@
 import { useEffect, useState } from "react";
 import { Check, Rocket } from "lucide-react";
 
+// Brain unlocks as progress (Build Engine, Nov 19 2026): one line each, e.g. "Your social engine unlocks when we have
+// your brand colors." Lit when on. Lines come from ClientUnlock.portal (written by the brain-unlocks function).
+export function PortalUnlocksBand({ unlocks }) {
+  const list = Array.isArray(unlocks) ? unlocks : [];
+  if (!list.length) return null;
+  const on = list.filter((u) => u.on).length;
+  return (
+    <section className="rounded-md border border-hair bg-card p-5" aria-labelledby="unlocks-h" data-testid="portal-unlocks">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="ms-kicker">(What unlocks next)</p>
+          <h2 id="unlocks-h" className="mt-1 text-[22px] font-semibold tracking-[-0.035em]">Your engines <span className="text-[#ff3c00]">/unlocking</span></h2>
+        </div>
+        <p className="font-mono text-[12px] text-ink/55">{on} of {list.length} unlocked</p>
+      </div>
+      <ul className="mt-4 grid gap-2 md:grid-cols-2">
+        {list.map((u) => (
+          <li key={u.key} className={`flex items-start gap-2.5 rounded-md border px-3 py-2.5 text-[13px] ${u.on ? "border-[#ff3c00]/35 bg-[#ff3c00]/[0.05] text-ink" : "border-hair text-ink/60"}`}>
+            <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full ${u.on ? "bg-[#ff3c00] text-white" : "border border-ink/20"}`}>{u.on ? <Check className="h-3 w-3" /> : null}</span>
+            <span><b className="block font-semibold">{u.label}</b>{u.portal}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function PortalBuildBand({ build }) {
   const v = build?.view;
   if (!v || !v.total) return null;

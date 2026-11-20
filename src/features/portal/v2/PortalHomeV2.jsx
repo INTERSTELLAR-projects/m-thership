@@ -13,7 +13,7 @@ import NovaBar from "./NovaBar";
 import Launcher from "./Launcher";
 import PortalTodos from "./PortalTodos";
 import { PortalPillarsBand } from "./PortalPages";
-import { PortalBuildBand, LaunchMoment } from "./PortalBuild";
+import { PortalBuildBand, PortalUnlocksBand, LaunchMoment } from "./PortalBuild";
 import { inPeriod, pacificToday } from "./portalMap";
 
 const CAT = {
@@ -342,6 +342,7 @@ export default function PortalHomeV2({ d, groups, go, call, refresh, preview, on
       <NovaBar onSend={onAsk} business={d.client.business} />
 
       <PortalBuildBand build={d.build} />
+      <PortalUnlocksBand unlocks={d.unlocks} />
 
       <div className="grid gap-5 sm:gap-6 xl:grid-cols-[1.35fr_1fr] [&>*]:min-w-0">
         <WorkBand items={Array.isArray(d.work_feed) ? d.work_feed : []} counts={d.work_counts} business={d.client.business} />
