@@ -127,7 +127,17 @@ Deno.serve(async (req) => {
       await db.ContentSubmission.update(existing.id, row);
       row.id = existing.id;
     } else {
-      row = await db.ContentSubmission.create({ ...base, version: 1, history: [{ at: now(), action: "received", by }] });
+      row = await db.ContentSubmission.create({ ...base, channel: "command_system", version: 1, history: [{ at: now(), action: "received", by }] });
+      // Same landing place as the portal Submit intake: a request on Justin's Command screen.
+      const label = kind === "project" ? "Job / project" : "Testimonial";
+      const req = await db.ClientRequest.create({
+        client_id: client.id, client_name: client.business, kind: "project_submission",
+        title: `${base.is_test ? "[TEST] " : ""}New submission from ${client.business}: ${label}`,
+        details: `${label} sent from their Command System by ${by}. It goes through the content pipeline (Clients › Client posts).`,
+        attachments: base.photos.map((p: any) => p?.url).filter(Boolean).slice(0, 30), fields: { submission_id: row.id, submission_kind: kind, channel: "command_system" },
+        source: "client_app", submitted_by: by, status: "received", priority: "normal", page_status: "none",
+      }).catch(() => null);
+      if (req) await db.ContentSubmission.update(row.id, { request_id: req.id }).catch(() => null);
     }
     await audit(db, "content_received", row.id, `${client.business}: ${kind} from ${appId} (${existing ? "resubmit" : "new"})${base.is_test ? " [test]" : ""}`, true, `app:${appId}`);
     await kickWriter(base44);
