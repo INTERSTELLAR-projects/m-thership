@@ -115,7 +115,7 @@ export default async function (req: Request) {
       const open = (await db.Task.filter({ client_id: client.id, title }, "-created_date", 1).then(arr).catch(() => [])).find((t: any) => t.status !== "done");
       const task = open
         ? await db.Task.update(open.id, { notes: text })
-        : await db.Task.create({ title, client_id: client.id, client_name: client.business, notes: text, status: "next", source: "automation", priority: "normal", portal_visible: false });
+        : await db.Task.create({ title, client_id: client.id, client_name: client.business, notes: text, status: "next", source: "automation", priority: 2, portal_visible: false });
       const reqTitle = "Verification codes for your listings";
       const openReq = (await db.ClientRequest.filter({ client_id: client.id, title: reqTitle }, "-created_date", 1).then(arr).catch(() => [])).find((r: any) => !["complete", "declined"].includes(r.status));
       const note = `We're setting up your business listings (${missing.map((m: any) => m.name).join(", ")}). Some of them send a verification code by postcard, phone call, text or email. When one arrives, reply here with the code and which listing it's for.`;

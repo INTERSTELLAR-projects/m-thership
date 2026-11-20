@@ -1,0 +1,29 @@
+{
+  "name": "Launch grid — monthly check",
+  "description": "1st of each month, 6:23am PT, read-only: for every launch grid listing with a URL, checks the page resolves and shows the client's NAP (name, phone, street number). Live = resolves + NAP matches (lit); otherwise pending (amber). Never submits, edits or claims a listing; citation submissions stay off. Function: launch-grid / check.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "23 6 1 * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": { "dsl": "1.0.0", "name": "launch_grid_check", "version": "1.0", "namespace": "base44" },
+    "do": [
+      { "c1": { "call": "invoke_backend_function", "with": { "function_name": "launch-grid", "args": { "action": "check", "offset": 0, "limit": 20 } }, "then": "c2" } },
+      { "c2": { "call": "invoke_backend_function", "with": { "function_name": "launch-grid", "args": { "action": "check", "offset": 20, "limit": 20 } }, "then": "c3" } },
+      { "c3": { "call": "invoke_backend_function", "with": { "function_name": "launch-grid", "args": { "action": "check", "offset": 40, "limit": 20 } }, "then": "end" } }
+    ]
+  }
+}
