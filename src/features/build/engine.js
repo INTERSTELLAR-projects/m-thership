@@ -30,10 +30,12 @@ export const UNLOCKS = [
 ];
 export const unlockState = (pct) => UNLOCKS.map((u) => ({ ...u, on: (Number(pct) || 0) >= u.at }));
 
-// Build checklist: two tracks. Placeholders until step 3 wires real items.
+// Build checklist: real per-client checklists live in BuildChecklist, made from the niche template
+// (src/lib/buildTemplates.js / BuildChecklistTemplate). TRACKS is the plain fallback shape for screens without one.
+export { templateFor, progress as checklistProgress, portalView } from "@/lib/buildTemplates";
 export const TRACKS = [
-  { key: "website", label: "Website", items: ["Brand cues and references", "Sitemap and page plan", "Design pass (your taste call)", "Content and SEO structure", "Schema, speed and accessibility", "Forms, booking and tracking", "Preview and your look-over", "Publish and DNS (your tap)"] },
-  { key: "command", label: "Command System", items: ["Process map from the Brain", "Data model", "Core screens", "Automations and notifications", "Client portal hooks", "Test run with sample data", "Hand-off and training", "Publish (your tap)"] },
+  { key: "website", label: "Website" },
+  { key: "command", label: "Command System" },
 ];
 
 // Launch grid placeholder: where the client needs to be live.
@@ -74,8 +76,9 @@ export async function scrapeLead(clientId) {
   return r.data || {};
 }
 
-// Jobs the build agent (step 3) will run. Held until it exists, so nothing picks them up early.
-export const HOLD = { held_for: "build_engine_step3" };
+// Build Engine step 3 is live: the "Send to Claude queue runner" scheduled task works lead_build, checklist_item
+// and command jobs on its next run (hourly, 7 AM–9 PM PT). The old hold marker is only read for legacy jobs.
+export const QUEUED_COPY = "Queued — Claude starts it on the next run (hourly, 7 AM–9 PM PT). Say 'run the queue' in chat to start now.";
 
 export function leadBrief(c, brain) {
   const s = c.scrape_summary || {};
@@ -117,14 +120,13 @@ export async function sendToBuild(c, brain) {
     priority: 2,
     requested_at: now,
     complete_task_on_approve: false,
-    not_before: "2099-12-31",
-    context: { ...HOLD, niche_key: c.niche_key || "other", scrape_summary: c.scrape_summary || null, one_liner: c.one_liner || "", source: c.lead_source || "", brain_pct: brain?.completeness ?? 0 },
+    context: { niche_key: c.niche_key || "other", scrape_summary: c.scrape_summary || null, one_liner: c.one_liner || "", source: c.lead_source || "", brain_pct: brain?.completeness ?? 0 },
   });
   logAction("send_to_build");
   return job;
 }
 
-export async function sendCommand({ client, instruction, kind = "command", references = [] }) {
+export async function sendCommand({ client, instruction, kind = "command", references = [], context = {} }) {
   const now = new Date().toISOString();
   const job = await base44.entities.ClaudeJob.create({
     title: `${client ? client.business + ": " : ""}${String(instruction).trim().slice(0, 90)}`,
@@ -139,11 +141,32 @@ export async function sendCommand({ client, instruction, kind = "command", refer
     priority: 3,
     requested_at: now,
     complete_task_on_approve: false,
-    not_before: "2099-12-31",
-    context: { ...HOLD },
+    context: { ...context },
   });
   logAction("claude_command");
   return job;
 }
 
-export const isHeld = (j) => j?.context?.held_for === "build_engine_step3" && j?.status === "queued";
+// Legacy: jobs queued before step 3 went live carried a hold. Kept so old records still read correctly.
+export const isHeld = (j) => j?.context?.held_for === "build_engine_step3" && j?.status === "queued" && String(j?.not_before || "") > "2099";
+
+// Send one checklist item to Claude (kind checklist_item). The runner works in that client's existing app.
+export function sendChecklistItem({ client, checklist, track, item }) {
+  return sendCommand({
+    client, kind: "checklist_item",
+    instruction: `${track.label}: ${item.label}`,
+    context: { checklist_id: checklist.id, track_key: track.key, item_key: item.key, item_label: item.label, app_id: track.key === "command" ? (checklist.command_app_id || client.command_app_id || "") : (checklist.website_app_id || client.site_app_id || "") },
+  });
+}
+
+// Ready to publish: Justin's tap is the approval. The queue runner deploys the job's checkpoints on its next run.
+export async function requestPublish(job, me) {
+  const b = job.build || {};
+  const targets = (b.checkpoints || []).filter((c) => c.app_id && c.checkpoint);
+  const publish = { status: "requested", requested_at: new Date().toISOString(), requested_by: me?.email || "justin", targets };
+  await base44.entities.ClaudeJob.update(job.id, { publish });
+  await base44.entities.AgentAuditLog.create({ at: new Date().toISOString(), ok: true, actor: me?.email || "justin", action: "publish_requested", entity: "ClaudeJob", record_id: job.id, summary: `Ready to publish: ${job.title}` }).catch(() => null);
+  logAction("ready_to_publish");
+  return publish;
+}
+export const canPublish = (job) => !!(job?.build?.ready_to_publish && (job.build.checkpoints || []).length && ["needs_review", "needs_approval", "approved", "done"].includes(job.status) && !["requested", "deploying", "deployed"].includes(job.publish?.status));
