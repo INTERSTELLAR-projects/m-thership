@@ -42,7 +42,7 @@ export function laneForText(title, extra = "") {
 // ClaudeJob results waiting for review, by kind.
 const JOB_LANE = {
   research: "logic", enrich_profile: "logic", audit: "logic", task: "logic", report: "logic", content_plan: "logic", map_pack_plan: "logic",
-  topic_calendar: "logic", playbook: "logic", social_plan: "logic", blog: "logic", checklist_item: "logic", lead_build: "logic", command: "logic",
+  topic_calendar: "logic", playbook: "logic", social_plan: "logic", blog: "logic", checklist_item: "logic", lead_build: "taste", command: "logic",
   build_website: "taste", build_app: "logic", brand: "taste", presentation: "taste", gbp_post: "taste",
   email: "gate",
 };
