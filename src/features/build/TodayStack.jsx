@@ -37,7 +37,8 @@ export function NeedsToday() {
   const gates = review.filter((j) => laneForJob(j) === "gate").length + (launchQ.data || []).filter((i) => laneForLaunchItem(i) === "gate").length;
   const builds = review.filter((j) => BUILD_KINDS.has(j.kind)).length;
   const failed = jobs.filter((j) => j.status === "failed").length + (autoQ.data || []).length;
-  const reqs = (reqQ.data || []).length;
+  const subs = (reqQ.data || []).filter((r) => r.kind === "project_submission" && r.status === "received").sort((a, b) => String(b.created_date || "").localeCompare(String(a.created_date || "")));
+  const reqs = (reqQ.data || []).length - subs.length;
   const loading = jobsQ.isLoading || launchQ.isLoading;
   const none = !loading && !taste && !gates && !builds && !failed && !reqs;
   return (
@@ -53,6 +54,7 @@ export function NeedsToday() {
           <Row icon={Palette} label="Taste calls" n={taste} hint="Look, feel, brand tone: designs, posts, brand kits" to="/launch?tab=approvals" tone="text-[#ff3c00]" />
           <Row icon={ShieldAlert} label="Hard gates" n={gates} hint="Publish, DNS, delete, money, client sends, your logins" to="/launch" tone="text-amber-700" />
           <Row icon={ClipboardList} label="Client requests" n={reqs} hint="New or waiting on info" to="/requests" />
+          <Row icon={ClipboardList} label="New submissions" n={subs.length} hint={subs[0] ? subs[0].title : "Jobs, before & afters, drops, testimonials and events clients send (capture only)"} to="/requests" />
           <Row icon={Hammer} label="Builds waiting on you" n={builds} hint="Build stages ready for your look" to="/claude" />
           <Row icon={AlertTriangle} label="Broken or failing" n={failed} hint="Failed Claude jobs and automations in error" to="/automations" tone="text-red-700" />
         </ul>

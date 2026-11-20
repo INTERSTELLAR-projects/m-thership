@@ -7,6 +7,7 @@ export const PROCESSES = [
     S("Call + custom quote", "Justin", "manual", "Calls", "/calls"),
     S("Invoice + deal value", "Justin (money gate)", "manual", "Pipeline › lead card", "/pipeline"),
     S("Flight plan: contacts, brand, access, goals", "Claude + client", "auto", "Service Process › flight", "/flight-plan"),
+    S("Portal Submit intake on (automatic for every client)", "Claude", "auto", "Client portal › Requests › Submit", "/requests"),
     S("Website + Command System build", "Claude", "auto", "Claude", "/claude"),
     S("Taste review", "Justin (taste)", "manual", "Command › Needs you", "/"),
     S("Launch grid: listings, citations, GBP", "Claude", "auto", "Client › Build › Launch grid", "/crm"),
@@ -33,6 +34,7 @@ export const PROCESSES = [
   ] },
   { key: "hypercare", label: "HyperCare+", sales: ["orbit_local", "orbit_national", "orbit_global", "orbit_multi"], steps: [
     S("Stripe subscription live", "Justin (money gate)", "manual", "Money › Financial › Stripe", "/financial?tab=stripe"),
+    S("Portal Submit intake on (automatic for every client)", "Claude", "auto", "Client portal › Requests › Submit", "/requests"),
     S("Engine start: four lights green", "Claude", "auto", "Packages › HyperCare+", "/packages/orbit-seo"),
     S("Monthly Topic Calendar", "Claude", "auto", "Claude", "/claude"),
     S("Blogs + GBP posts", "Claude", "auto", "Client › Build › Growth feed", "/crm"),
@@ -41,6 +43,7 @@ export const PROCESSES = [
   ] },
   { key: "gravitycare", label: "GravïtyCare", sales: ["starship_care"], steps: [
     S("Stripe subscription live", "Justin (money gate)", "manual", "Money › Financial › Stripe", "/financial?tab=stripe"),
+    S("Portal Submit intake on (automatic for every client)", "Claude", "auto", "Client portal › Requests › Submit", "/requests"),
     S("Site care: uptime, security, backups", "Claude", "auto", "Marketing › Site security", "/security"),
     S("Edits from requests", "Claude", "auto", "Clients › Requests", "/requests"),
     S("Monthly care note to portal", "Claude", "auto", "Client › Work log", "/crm"),
