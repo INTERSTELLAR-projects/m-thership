@@ -173,6 +173,11 @@
       },
       "type": "array"
     },
+    "submit_intake": {
+      "description": "Portal Submit intake (jobs, before & afters, drops, testimonials, events). On for every client unless set to false.",
+      "default": true,
+      "type": "boolean"
+    },
     "website_live_at": {
       "description": "Build Engine: first time the website went live through Ready to publish (portal launch animation)",
       "format": "date-time",

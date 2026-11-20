@@ -26,9 +26,36 @@
       "type": "string",
       "enum": [
         "project",
-        "testimonial"
+        "testimonial",
+        "transformation",
+        "drop",
+        "event"
       ],
       "default": "project"
+    },
+    "channel": {
+      "type": "string",
+      "enum": ["command_system", "portal"],
+      "default": "command_system",
+      "description": "Where it came from: the client's Command System (content-intake) or the portal Submit intake"
+    },
+    "capture_only": {
+      "type": "boolean",
+      "default": false,
+      "description": "Portal Submit intake (Nov 2026): stored and turned into a request for Justin only; never auto-published until auto-posting is wired for this client"
+    },
+    "fields": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Portal Submit: the type's fields (title, location tag, product name/price, quote, date, offer...)"
+    },
+    "consent": {
+      "type": "boolean",
+      "description": "Portal Submit: the client confirmed everyone shown or named agreed to be featured"
+    },
+    "request_id": {
+      "type": "string",
+      "description": "The ClientRequest (kind project_submission) this opened on Justin's Command screen"
     },
     "submitted_by": {
       "type": "string",
