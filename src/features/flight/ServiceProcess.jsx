@@ -10,7 +10,7 @@ import { PROCESSES } from "./serviceProcesses";
 
 export { PROCESSES };
 
-const FLIGHT_STEP_INDEX = { client: 4, deal: 3, business: 4, brand: 4, access: 4, strategy: 4, kickoff: 5, launch: 8 };
+const FLIGHT_STEP_INDEX = { client: 4, deal: 3, business: 4, brand: 4, access: 4, strategy: 4, kickoff: 6, launch: 9 };
 
 export default function ServiceProcess() {
   const flights = useList("OnboardingFlight", { limit: 300, sort: "-updated_date" });
@@ -29,10 +29,10 @@ export default function ServiceProcess() {
       const idx = Math.min(proc.steps.length - 1, FLIGHT_STEP_INDEX[f.current_step] ?? 4);
       put(proc.key, idx, byId.get(f.client_id), `Flight: ${f.current_step || "started"}`);
     });
-    (jobs.data || []).filter((j) => !["approved", "done", "cancelled"].includes(j.status)).forEach((j) => put("mission_alpha", 5, byId.get(j.client_id), `Build ${String(j.status).replace(/_/g, " ")}`));
+    (jobs.data || []).filter((j) => !["approved", "done", "cancelled"].includes(j.status)).forEach((j) => put("mission_alpha", 6, byId.get(j.client_id), `Build ${String(j.status).replace(/_/g, " ")}`));
     (clients.data || []).filter((c) => c.status === "Lead").forEach((c) => put("mission_alpha", c.scrape_summary ? 1 : 0, c, c.scrape_summary ? "Scraped" : "Lead"));
-    (engines.data || []).filter((e) => e.status === "running" || e.status === "queued").forEach((e) => put("hypercare", 3, byId.get(e.client_id), "Engine running"));
-    (clients.data || []).filter((c) => c.status === "Active" && (c.services || []).some((s) => /gravity|gravïty/i.test(s.name || "") && s.stripe)).forEach((c) => put("gravitycare", 2, c, "On care"));
+    (engines.data || []).filter((e) => e.status === "running" || e.status === "queued").forEach((e) => put("hypercare", 4, byId.get(e.client_id), "Engine running"));
+    (clients.data || []).filter((c) => c.status === "Active" && (c.services || []).some((s) => /gravity|gravïty/i.test(s.name || "") && s.stripe)).forEach((c) => put("gravitycare", 3, c, "On care"));
     return out;
   }, [flights.data, jobs.data, clients.data, engines.data, byId]);
 
