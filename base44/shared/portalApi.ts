@@ -7,6 +7,7 @@ import { workCounts } from "./workCounts.ts";
 import { scorePillars, portalPillars } from "./clientPillars.js";
 import { portalView } from "./buildTemplates.js";
 import { submitTypesFor, checkSubmission, statusLabel, SUBMIT_TYPES, RECEIVED_TEXT } from "./submitTypes.js";
+import { SEASON_PRESETS, cleanSeason, cleanOffer, offerLabel, todayPacific } from "./siteExtras.js";
 
 // Portal v2 (Nov 2026): + needs_you / brain / health on home; actions brain + brain_answer.
 // Client portal API. Every table is admin-only, so portal users never touch entities directly:
@@ -783,6 +784,49 @@ export async function portalHandler(req: Request): Promise<Response> {
 
     // ---- Google Business Profile: this client's ReviewClient rows (one per location), served from the Stärboard cache. ----
     // Never returns another client's rows: ReviewClient is matched on crm_client_id === cid only.
+    // ---- Seasons + offers (self-serve, Nov 19 2026). The site reads them through the public site-config function. ----
+    // A checkout discount for an offer is a hard gate (money): it waits for Justin's one tap and is never created here.
+    if (action === "seasons" || action === "season_set" || action === "offer_save" || action === "offer_end") {
+      const OFFER_KEYS = ["id", "title", "description", "kind", "value", "starts_on", "ends_on", "status", "discount_status", "discount_code"];
+      const supported = !!client.site_key;
+      if (action === "seasons") {
+        const [seasons, offers] = await Promise.all([
+          db.SiteSeason.filter({ client_id: cid }, "key", 20).catch(() => []),
+          db.SiteOffer.filter({ client_id: cid }, "-created_date", 50).catch(() => []),
+        ]);
+        return Response.json({
+          supported, today: todayPacific(), presets: SEASON_PRESETS,
+          seasons: (seasons || []).map((r: Record<string, unknown>) => pick(r, ["id", "key", "label", "active", "banner_text", "accent", "featured_title", "featured_text", "activated_at"])),
+          offers: (offers || []).map((r: Record<string, unknown>) => ({ ...pick(r, OFFER_KEYS), label: offerLabel(r) })),
+        });
+      }
+      if (!supported) return Response.json({ error: "Your website isn't connected to seasons and offers yet. Ask us and we'll switch it on." }, { status: 400 });
+      if (action === "season_set") {
+        const c = cleanSeason(args);
+        if ((c as any).error) return Response.json({ error: (c as any).error }, { status: 400 });
+        const active = args.active === true;
+        const rows = (await db.SiteSeason.filter({ client_id: cid }, "key", 20).catch(() => [])) || [];
+        // One season at a time: turning one on turns the others off; turning it off reverts the site.
+        if (active) for (const r of rows) if (r.active && r.key !== (c as any).key) await db.SiteSeason.update(r.id, { active: false, updated_by: user.email });
+        const prev = rows.find((r: Record<string, unknown>) => r.key === (c as any).key);
+        const patch = { ...(c as any), client_id: cid, client_name: client.business, active, updated_by: user.email, ...(active ? { activated_at: new Date().toISOString() } : {}) };
+        const row = prev ? await db.SiteSeason.update(prev.id, patch) : await db.SiteSeason.create(patch);
+        return Response.json({ ok: true, season: pick(row, ["id", "key", "label", "active", "banner_text", "accent", "featured_title", "featured_text"]) });
+      }
+      if (action === "offer_save") {
+        const o = cleanOffer(args);
+        if ((o as any).error) return Response.json({ error: (o as any).error }, { status: 400 });
+        const row = await db.SiteOffer.create({ ...(o as any), client_id: cid, client_name: client.business, status: "live", discount_status: "awaiting_approval", created_by: user.email });
+        return Response.json({ ok: true, offer: { ...pick(row, OFFER_KEYS), label: offerLabel(row) }, note: "It shows on your site between its dates. We'll set up the matching checkout discount for you." });
+      }
+      if (action === "offer_end") {
+        const r = args.id ? await db.SiteOffer.get(String(args.id)).catch(() => null) : null;
+        if (!r || r.client_id !== cid) return Response.json({ error: "Not found" }, { status: 404 });
+        await db.SiteOffer.update(r.id, { status: "ended", ...(r.discount_status === "awaiting_approval" ? { discount_status: "none" } : {}) });
+        return Response.json({ ok: true });
+      }
+    }
+
     if (action === "gbp") {
       const REVIEWS_URL = "https://interstellar-mothership.com/functions/reviews";
       const STALE_MS = 26 * 60 * 60 * 1000;
