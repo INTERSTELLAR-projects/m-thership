@@ -5,7 +5,7 @@ import { directoriesFor } from "../../shared/launchGrid.js";
 
 /*
  * Brain unlocks (Build Engine, Nov 19 2026: Mission ALPHA running itself).
- *   { action: "scan" }               every client that isn't Inactive: recompute its four unlocks from real Brain
+ *   { action: "scan", offset, limit } every client that isn't Inactive: recompute its four unlocks from real Brain
  *                                    completeness and keep one ClientUnlock row per unlock current (missing list +
  *                                    portal line). Workflow "Brain unlocks — daily scan" runs it.
  *   { action: "client", client_id }  admin: the same for one client, returns the rows.
@@ -179,7 +179,9 @@ export default async function (req: Request) {
     const db = base44.asServiceRole.entities;
     const body = await req.json().catch(() => ({}));
     if (body?.action === "scan") {
-      const clients = await db.CRMClient.list("business", 500).then(arr).catch(() => []);
+      // Batches (offset/limit) so no call hits the time limit; the daily workflow runs several steps.
+      const offset = Math.max(0, Number(body.offset) || 0), limit = Math.min(40, Math.max(1, Number(body.limit) || 25));
+      const clients = (await db.CRMClient.list("business", 500).then(arr).catch(() => [])).slice(offset, offset + limit);
       const done: any[] = [];
       const t0 = Date.now();
       for (const c of clients) {

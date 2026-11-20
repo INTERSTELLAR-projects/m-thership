@@ -199,6 +199,11 @@
       "default": "",
       "description": "Blog engine frequency chosen for this client (growth unlock). Posting itself stays off by Justin's rule."
     },
+    "unlocks_auto": {
+      "type": "boolean",
+      "default": false,
+      "description": "Brain unlocks prepare their work automatically for Build Engine clients (they have a BuildChecklist). Set true to include a client without one."
+    },
     "site_key": {
       "type": "string",
       "description": "Public, non-secret key the client's website uses to read its own season + offers from the site-config function"

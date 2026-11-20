@@ -1,0 +1,30 @@
+{
+  "name": "Brain unlocks — daily scan",
+  "description": "Daily 5:47am PT: recomputes every client's four Brain unlocks (business basics → launch grid, brand → social drafts + signature options, search & content → SEO step list + blog engine set-up, Transmission) from real Brain completeness, with what's missing for each and the portal line. First time one turns on, it prepares its plans and drafts once (Build Engine clients only). Never sends, publishes or posts: blog, GBP and citation posting stays off. Function: brain-unlocks / scan.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "47 5 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": { "dsl": "1.0.0", "name": "brain_unlocks_scan", "version": "1.0", "namespace": "base44" },
+    "do": [
+      { "b1": { "call": "invoke_backend_function", "with": { "function_name": "brain-unlocks", "args": { "action": "scan", "offset": 0, "limit": 25 } }, "then": "b2" } },
+      { "b2": { "call": "invoke_backend_function", "with": { "function_name": "brain-unlocks", "args": { "action": "scan", "offset": 25, "limit": 25 } }, "then": "b3" } },
+      { "b3": { "call": "invoke_backend_function", "with": { "function_name": "brain-unlocks", "args": { "action": "scan", "offset": 50, "limit": 25 } }, "then": "b4" } },
+      { "b4": { "call": "invoke_backend_function", "with": { "function_name": "brain-unlocks", "args": { "action": "scan", "offset": 75, "limit": 25 } }, "then": "end" } }
+    ]
+  }
+}
