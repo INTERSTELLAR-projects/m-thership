@@ -1,12 +1,14 @@
 // The Build section of every client page. Same layout for every client and lead:
 //   lead card (scrape → send to build) · build checklist (Website + Command System tracks) · Brain meter with its
 //   unlocks · launch grid · growth feed (blogs, GBP posts) · requests.
-// The checklist is the client's real BuildChecklist (niche template, ticked by the runner); the launch grid is a placeholder.
+// The checklist is the client's real BuildChecklist (niche template, ticked by the runner); the Brain unlocks and the
+// launch grid are real (ClientUnlock / LaunchListing).
 import { Link } from "react-router-dom";
-import { Check, Lock, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { useList, timeAgo } from "@/lib/useData";
 import LeadCard from "./LeadCard";
-import { LAUNCH_GRID, unlockState } from "./engine";
+import BrainUnlocksPanel from "./BrainUnlocksPanel";
+import LaunchGridPanel from "./LaunchGridPanel";
 import BuildChecklistPanel from "./BuildChecklistPanel";
 import ReadyToPublish from "./ReadyToPublish";
 
@@ -64,25 +66,11 @@ export default function ClientBuildPage({ client, go }) {
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title="Brain" link={{ to: `/clients/${client.id}?tab=dossier`, label: "Open Brain" }} testid="brain-meter">
-          <div className="px-4 py-3">
-            <div className="flex items-baseline justify-between"><span className="text-[12.5px] text-ink/60">What we know</span><span className="font-mono text-[22px] font-semibold tabular-nums">{pct}%</span></div>
-            <div className="mt-2 h-2 bg-ink/[0.08]"><div className="h-full bg-[#ff3c00]" style={{ width: `${pct}%` }} /></div>
-            <ul className="mt-3 grid grid-cols-2 gap-2">
-              {unlockState(pct).map((u) => (
-                <li key={u.label} className={`flex items-start gap-2 border px-2.5 py-2 text-[12px] ${u.on ? "border-[#ff3c00]/40 bg-[#ff3c00]/[0.05]" : "border-hair text-ink/50"}`}>
-                  {u.on ? <Check className="mt-0.5 h-3.5 w-3.5 text-[#ff3c00]" /> : <Lock className="mt-0.5 h-3.5 w-3.5" />}
-                  <span><b className="font-medium">{u.label}</b> <span className="font-mono text-[10px]">{u.at}%</span><span className="block text-[11px] leading-snug text-ink/50">{u.hint}</span></span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <Panel title="Brain unlocks" link={{ to: `/clients/${client.id}?tab=dossier`, label: "Open Brain" }} testid="brain-meter">
+          <BrainUnlocksPanel client={client} pct={pct} />
         </Panel>
         <Panel title="Launch grid" testid="launch-grid">
-          <ul className="grid grid-cols-2 gap-px bg-hair p-px sm:grid-cols-5">
-            {LAUNCH_GRID.map((x) => <li key={x} className="bg-paper px-2.5 py-3 text-center text-[11.5px] text-ink/55"><span className="mx-auto mb-1.5 block h-2 w-2 rounded-full bg-ink/15" />{x}</li>)}
-          </ul>
-          <p className="border-t border-hair px-4 py-2 text-[11.5px] text-ink/45">Placeholder. Each square turns live as the listing or profile is verified.</p>
+          <LaunchGridPanel client={client} />
         </Panel>
       </div>
 
