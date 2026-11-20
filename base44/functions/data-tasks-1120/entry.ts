@@ -26,7 +26,7 @@ const has = (n: string, re: RegExp) => re.test(n);
 
 const FUEL = /^(chevron|shell|space age|arrowhead travel plaza|conoco|banwait oil|76|astro 239|carson hood river|arco|circle k)\b/;
 const VEHICLE = /^(molalla car wash|oregon city car wash|autotech|empire mobile deta|u-haul|parkmobile|city center parking|caltrain bike station)\b/;
-const RESTAURANT = /(cafe|caf\b|bar & grill|tavern|pub|taphouse|saloon|sushi|teriyaki|taqueria|bbq|red robin|cheesecake|el gaucho|sol tapatio|su casa|don chico|mac's place|gene.s hitchin|fire foods|sundowner|hearth & vine|coffin|birdie time|wildhorse|molalla whitehorse|bishops|lakeview|cascada|otis|biscuits|dixie|mayan twins|bear creek|redland|hog wild|45 east|happyvalley|main st molalla|perky|life of riley|the hilt|fir point farms|wilsonville f k|j milwaukie|2levy)/;
+const RESTAURANT = /(cafe|caf\b|bar & grill|tavern|pub|taphouse|saloon|sushi|teriyaki|taqueria|bbq|red robin|cheesecake|el gaucho|sol tapatio|su casa|don chico|mac's place|gene.s hitchin|fire foods|sundowner|hearth & vine|coffin|birdie time|wildhorse|molalla whitehorse|bishops|lakeview|cascada|otis|biscuits|dixie|mayan twins|bear creek|redland|hog wild|45 east|happyvalley|perky|life of riley|the hilt|fir point farms|wilsonville f k|j milwaukie|2levy)/;
 
 function decide(t: any): D {
   const n = name(t);

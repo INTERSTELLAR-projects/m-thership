@@ -25,6 +25,8 @@
     "rule_id": { "type": "string" },
     "ai_suggestion": { "type": "object", "additionalProperties": true, "description": "{ category, confidence, reason, at }" },
     "matched_id": { "type": "string", "description": "Ledger row this one duplicates or reconciles" },
+    "auto_tag": { "type": "string", "enum": ["", "likely", "guess"], "description": "Set when Claude categorized it without a rule (Nov 20, 2026): likely = clear signal; guess = conservative default for the tax preparer to review" },
+    "auto_reason": { "type": "string", "description": "One line: why Claude chose that category" },
     "notes": { "type": "string" }
   },
   "required": ["date", "amount", "direction"],
