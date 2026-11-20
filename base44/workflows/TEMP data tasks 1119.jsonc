@@ -1,0 +1,55 @@
+{
+  "name": "TEMP data tasks 1119",
+  "description": "Temporary (Nov 19-20 2026): Justin's data-only tasks (Search Intel approvals, bank categorization). Removed after use.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 3 31 12 *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "temp_data_tasks_1119",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "seo": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "data-tasks-1119",
+            "args": {
+              "action": "seo_approve"
+            }
+          },
+          "then": "analyze"
+        }
+      },
+      {
+        "analyze": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "data-tasks-1119",
+            "args": {
+              "action": "analyze"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
