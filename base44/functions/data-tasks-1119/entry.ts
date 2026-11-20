@@ -63,15 +63,19 @@ const RULES: [string, string, string[]][] = [
   ["merchant_fees", "out", ["elavon"]], ["office", "out", ["usps"]], ["other_income", "in", ["impact radius"]],
   ["owner_draw", "out", PERSONAL],
 ];
+const esc = (p: string) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const has = (name: string, p: string) => new RegExp(`(^|[^a-z0-9])${esc(p)}($|[^a-z0-9])`).test(name);
+// Short or generic words are matched here as whole words, but not saved as "contains" rules for future imports.
+const NO_SAVE = new Set(["rei", "vans", "gnc", "ag1", "target", "render", "usps", "canva", "skool", "mercury"]);
 function pick(name: string, dir: string, account: string): string {
-  if (/\bstripe\b/.test(name)) return dir === "in" || account === "Stripe" ? "transfer" : "";
+  if (/\bstripe\b/.test(name)) return /capital|loan/.test(name) ? "" : dir === "in" || account === "Stripe" ? "transfer" : "";
   if (dir === "in" && name === "mercury") return "other_income";
   for (const [cat, d, pats] of RULES) {
     if (d !== "any" && d !== dir) continue;
-    if (pats.some((p) => name.includes(p))) return cat;
+    if (pats.some((p) => has(name, p))) return cat;
   }
   // Small refunds back from personal merchants.
-  if (dir === "in" && PERSONAL.some((p) => name.includes(p))) return "personal";
+  if (dir === "in" && PERSONAL.some((p) => has(name, p))) return "personal";
   return "";
 }
 function reviewReason(name: string) {
@@ -160,7 +164,7 @@ export default async function (req: Request) {
       const have = new Set(((await db.LedgerRule.list("priority", 1000).catch(() => [])) || []).map((r: any) => `${norm(r.pattern)}|${r.direction || "any"}`));
       let rulesAdded = 0;
       for (const [cat, dir, pats] of RULES) for (const p of pats) {
-        if (have.has(`${p}|${dir}`)) continue;
+        if (have.has(`${p}|${dir}`) || NO_SAVE.has(p) || p.length < 5) continue;
         await db.LedgerRule.create({ business_id: "interstellar", pattern: p, match_field: "any", match_type: "contains", direction: dir, category: cat, priority: 40, learned: true, active: true, hits: 0, notes: "Vendor rule from the Nov 19 categorization (Justin)" }).catch(() => null);
         rulesAdded++;
       }
