@@ -4,6 +4,7 @@ import { ArrowUpRight, LogOut, X, ChevronDown, Check, Eye, UserRound, LayoutGrid
 import { ScheduleCallButton, ScheduleCallModal } from "@/features/portal/PortalNav";
 import { HEADER_TABS, STUDIO_KEYS, groupsFor, labelFor } from "@/features/portal/v2/portalMap";
 import { BrandAssetsPage, SelfServeStrip } from "@/features/portal/v2/PortalPages";
+import PortalSubmit from "@/features/portal/v2/PortalSubmit";
 import { EverythingSheet, PortalV2Motion } from "@/features/portal/v2/Everything";
 import PortalHomeV2 from "@/features/portal/v2/PortalHomeV2";
 import { BrainView, MentionsView, BillingView, StudioDuo, PlaybookPending } from "@/features/portal/v2/PortalViews";
@@ -178,7 +179,7 @@ export default function PortalApp({ previewId }) {
           {tab === "brand" && d.has_brand_kit && <BrandKitView call={call} previewId={scopeId} business={d.client.business} />}
           {tab === "playbook" && d.has_playbook && <PortalPlaybook call={call} previewId={scopeId} business={d.client.business} />}
           {tab === "resources" && <PortalResources call={call} previewId={scopeId} business={d.client.business} go={setTab} />}
-          {tab === "requests" && <div className="space-y-8"><RequestsView d={d} call={call} refresh={refresh} previewId={scopeId} /><SelfServeStrip call={call} refresh={refresh} preview={!!previewId} /></div>}
+          {tab === "requests" && <div className="space-y-8"><PortalSubmit call={call} scopeId={scopeId} preview={!!previewId} /><RequestsView d={d} call={call} refresh={refresh} previewId={scopeId} /><SelfServeStrip call={call} refresh={refresh} preview={!!previewId} /></div>}
           {tab === "assets" && <BrandAssetsPage tabs={tabs.map(([k]) => k)} go={go} d={d} />}
           {tab === "signatures" && <PortalSignatures call={call} />}
           {tab === "qr" && <PortalQr call={call} previewId={scopeId} openId={qrOpen} />}

@@ -2,7 +2,7 @@
 // This file holds the client-friendly pillars band (Glance), the self-serve strip (Requests) and the Brand & assets page.
 // Old tab keys (brain, files, brand, signatures, qr, playbook, resources, …) still open exactly as before.
 import { useState } from "react";
-import { ArrowUpRight, Brain, FolderOpen, Palette, PenLine, QrCode, Compass, BookOpen, Radio, Package, Sun, Snowflake, Tag } from "lucide-react";
+import { ArrowUpRight, Brain, FolderOpen, Palette, PenLine, QrCode, Compass, BookOpen, Radio, Sun, Snowflake } from "lucide-react";
 import { PillarRadial, TONE } from "@/features/build/ClientPillars";
 
 export function PortalPillarsBand({ pillars }) {
@@ -30,8 +30,8 @@ export function PortalPillarsBand({ pillars }) {
   );
 }
 
-// Self-serve (stubs): ask for a project, a drop or a product; switch the season; turn an offer on. Each one files a
-// normal request so nothing is lost while the full flows are being built.
+// Self-serve (stubs): switch the season, turn an offer on. Each files a normal request. Projects, drops and products
+// now go through the Submit intake (PortalSubmit).
 export function SelfServeStrip({ call, refresh, preview }) {
   const [sent, setSent] = useState("");
   const [season, setSeason] = useState("");
@@ -39,25 +39,12 @@ export function SelfServeStrip({ call, refresh, preview }) {
     if (preview) { setSent(`${title} (preview: not sent)`); return; }
     try { await call("create_request", { kind: "content", title, details }); setSent(title); refresh?.(); } catch { setSent("Couldn't send. Please try again."); }
   };
-  const tiles = [
-    { k: "project", icon: Package, title: "Add a project", desc: "Show off a finished job on your site", details: "Self-serve: new project" },
-    { k: "drop", icon: Radio, title: "Announce a drop", desc: "A launch, an event or a limited run", details: "Self-serve: new drop" },
-    { k: "product", icon: Tag, title: "Add a product or service", desc: "Something new you sell", details: "Self-serve: new product or service" },
-  ];
   return (
     <section className="space-y-3" data-testid="portal-self-serve">
       <div>
         <p className="label-cross">(Self-serve)</p>
         <h2 className="mt-2 text-[26px] font-semibold tracking-[-0.04em]">Do it <span className="text-[#ff3c00]">/yourself</span></h2>
-        <p className="mt-1 text-[13px] text-ink/55">Each one starts a request we pick up. Full self-serve tools are coming.</p>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-3">
-        {tiles.map((t) => (
-          <button key={t.k} type="button" onClick={() => send(t.title, t.details)} className="card-hover flex items-start gap-3 rounded-md border border-hair bg-card p-4 text-left">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-ink text-white"><t.icon className="h-4 w-4" /></span>
-            <span><span className="block text-[14px] font-semibold">{t.title}</span><span className="block text-[12px] text-ink/55">{t.desc}</span></span>
-          </button>
-        ))}
+        <p className="mt-1 text-[13px] text-ink/55">Each one starts a request we pick up. To send us a job, a drop or photos, use Submit above.</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-md border border-hair bg-card p-4">
