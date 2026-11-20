@@ -9,6 +9,7 @@ import { useList, timeAgo } from "@/lib/useData";
 import LeadCard from "./LeadCard";
 import BrainUnlocksPanel from "./BrainUnlocksPanel";
 import LaunchGridPanel from "./LaunchGridPanel";
+import SeasonsOffersPanel from "./SeasonsOffersPanel";
 import BuildChecklistPanel from "./BuildChecklistPanel";
 import ReadyToPublish from "./ReadyToPublish";
 
@@ -73,6 +74,10 @@ export default function ClientBuildPage({ client, go }) {
           <LaunchGridPanel client={client} />
         </Panel>
       </div>
+
+      <Panel title="Seasons & offers" testid="seasons-offers-panel">
+        <SeasonsOffersPanel client={client} />
+      </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Growth feed" link={{ to: `/clients/${client.id}?tab=content`, label: "Content plan" }} testid="growth-feed">
