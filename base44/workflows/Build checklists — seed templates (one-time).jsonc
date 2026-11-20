@@ -1,6 +1,6 @@
 {
   "name": "Build checklists \u2014 seed templates (one-time)",
-  "description": "Manual helper (kept inactive; use Run now): creates the BuildChecklistTemplate for any niche that has none (home_service, fitness_coach, retail_streetwear, food_bev, other) from the defaults in shared/buildTemplates.js. Never edits an existing template. Function: build-checklist / seed_templates.",
+  "description": "Manual helper (kept inactive; use Run now): creates the BuildChecklistTemplate for any niche that has none (home_service, fitness_coach, retail_streetwear, food_bev, other) from the defaults in shared/buildTemplates.js. Upgrades templates still on older seeded defaults; never touches one someone edited. Function: build-checklist / seed_templates.",
   "trigger": {
     "condition": null,
     "config": {

@@ -1,24 +1,34 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
-import { ALL_TEMPLATES, instantiate, templateFor } from "../../shared/buildTemplates.js";
+import { ALL_TEMPLATES, instantiate, templateFor, TEMPLATE_VERSION } from "../../shared/buildTemplates.js";
 
 /*
  * Build Engine step 4: build checklists from niche templates.
  *   { action: "seed_templates" }   creates the BuildChecklistTemplate for any niche that has none, from the defaults in
- *                                  shared/buildTemplates.js. Idempotent, takes no input, never edits an existing one.
+ *                                  shared/buildTemplates.js, and upgrades templates still on older seeded defaults.
+ *                                  Idempotent, takes no input, never touches a template someone edited.
  *                                  Workflow "Build checklists — seed templates (one-time)" runs it.
  *   { action: "ensure", client_id } admin: the client's BuildChecklist, created from its niche's template if missing.
  */
 const s = (v: unknown) => (v == null ? "" : String(v));
 
 async function seed(db: any) {
-  const have = new Set(((await db.BuildChecklistTemplate.list("niche_key", 50).catch(() => [])) || []).map((t: any) => t.niche_key));
+  const rows = (await db.BuildChecklistTemplate.list("niche_key", 50).catch(() => [])) || [];
+  const have = new Set(rows.map((t: any) => t.niche_key));
   const made: string[] = [];
+  const upgraded: string[] = [];
+  // Upgrade templates that are still the seeded defaults (never one Justin edited) to the current version.
+  for (const r of rows) {
+    if ((Number(r.version) || 1) >= TEMPLATE_VERSION || !/^Seeded from/.test(String(r.notes || ""))) continue;
+    const t = templateFor(r.niche_key);
+    await db.BuildChecklistTemplate.update(r.id, { version: t.version, tracks: t.tracks, notes: `Seeded from shared/buildTemplates.js (v${t.version})` });
+    upgraded.push(r.niche_key);
+  }
   for (const t of ALL_TEMPLATES) {
     if (have.has(t.niche_key)) continue;
     await db.BuildChecklistTemplate.create({ niche_key: t.niche_key, label: t.label, version: t.version, tracks: t.tracks, notes: "Seeded from shared/buildTemplates.js" });
     made.push(t.niche_key);
   }
-  return { ok: true, created: made, existing: [...have] };
+  return { ok: true, created: made, upgraded, existing: [...have] };
 }
 
 export default async function (req: Request) {

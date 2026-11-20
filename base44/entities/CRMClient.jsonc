@@ -178,8 +178,17 @@
       "default": true,
       "type": "boolean"
     },
+    "website_published_at": {
+      "description": "Build Engine: first time the website was published on its base44.app address (Ready to publish). Not live yet.",
+      "format": "date-time",
+      "type": "string"
+    },
+    "website_domain": {
+      "description": "Build Engine: the client's own domain once connected and verified",
+      "type": "string"
+    },
     "website_live_at": {
-      "description": "Build Engine: first time the website went live through Ready to publish (portal launch animation)",
+      "description": "Build Engine: the moment the client's own domain was connected AND verified (custom-domains status verified). This is what 'live' means: it plays the portal launch animation, switches live-site automations from setup to active and marks the build Launched.",
       "format": "date-time",
       "type": "string"
     },
