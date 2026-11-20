@@ -1,0 +1,25 @@
+{
+  "name": "SiteSeason",
+  "description": "Self-serve seasons (Build Engine, Nov 19 2026): the client flips a season/holiday on in their portal and their website's banner, accent and featured section switch (the site reads it from the public site-config function); off reverts. One row per client per season key.",
+  "type": "object",
+  "properties": {
+    "client_id": { "type": "string" },
+    "client_name": { "type": "string" },
+    "key": { "type": "string" },
+    "label": { "type": "string" },
+    "active": { "type": "boolean", "default": false },
+    "banner_text": { "type": "string" },
+    "accent": { "type": "string", "description": "#rrggbb" },
+    "featured_title": { "type": "string" },
+    "featured_text": { "type": "string" },
+    "activated_at": { "type": "string", "format": "date-time" },
+    "updated_by": { "type": "string" }
+  },
+  "required": ["client_id", "key"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}
