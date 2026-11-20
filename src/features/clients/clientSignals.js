@@ -36,7 +36,7 @@ export function useClientSignals(clients) {
       const myJobs = j.get(c.id) || [];
       const prep = (p.get(c.id) || []).find((x) => x.status === "active");
       const build = myJobs.find((x) => ["lead_build", "build_website", "build_app"].includes(x.kind) && !["approved", "done", "cancelled"].includes(x.status));
-      const buildStatus = build ? (build.status === "queued" || isHeld(build) ? "Build queued" : `Build ${String(build.status).replace(/_/g, " ")}`) : prep ? `Prep ${(prep.steps || []).filter((s) => s.done).length}/${(prep.steps || []).length || 15}` : c.status === "Lead" ? (c.scrape_summary ? "Scraped" : "Lead") : "Live";
+      const buildStatus = c.website_live_at ? "Launched" : build ? (build.status === "queued" || isHeld(build) ? "Build queued" : `Build ${String(build.status).replace(/_/g, " ")}`) : prep ? `Prep ${(prep.steps || []).filter((s) => s.done).length}/${(prep.steps || []).length || 15}` : c.status === "Lead" ? (c.scrape_summary ? "Scraped" : "Lead") : "Live";
       const reasons = [];
       const broken = (a.get(c.id) || []).map((x) => automationIssue(x, now)).filter((x) => x && ["failed", "overdue", "never"].includes(x.kind));
       if (broken.length) reasons.push(`${broken.length} automation${broken.length === 1 ? "" : "s"} failing or late`);

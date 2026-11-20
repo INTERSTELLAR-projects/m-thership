@@ -3,11 +3,11 @@
 // and "Send to Claude". Ticks are records only; publishing happens through Ready to publish.
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Bot, Hand, Send, ExternalLink, Loader2, Check, Palette, Rocket } from "lucide-react";
+import { Bot, Hand, Send, ExternalLink, Loader2, Check, Palette, Rocket, Globe } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useList } from "@/lib/useData";
-import { instantiate, progress, templateFor, tick } from "@/lib/buildTemplates";
+import { instantiate, progress, templateFor, tick, domainOf } from "@/lib/buildTemplates";
 import { sendChecklistItem, QUEUED_COPY } from "./engine";
 
 export function useBuildChecklist(clientId) {
@@ -43,6 +43,15 @@ export default function BuildChecklistPanel({ client }) {
     setBusy(`c:${tr.key}:${it.key}`);
     try { await sendChecklistItem({ client, checklist, track: tr, item: it }); setSent((s) => ({ ...s, [`${tr.key}:${it.key}`]: true })); } finally { setBusy(""); refresh(); }
   };
+  // Connect <domain>: Justin's tap says he has pointed the domain; the runner checks the custom-domains status every
+  // run and only a verified domain makes the site live (ticks this item, launch animation, automations, Launched).
+  const connectTapped = async (tr, it) => {
+    setBusy(`d:${tr.key}:${it.key}`);
+    try {
+      const next = tick(checklist, tr.key, it.key, { requested_at: new Date().toISOString(), requested_by: user?.email || "justin", note: "Justin connected it; waiting for the domain to verify" });
+      await base44.entities.BuildChecklist.update(checklist.id, { tracks: next.tracks, updated_by: user?.email || "" });
+    } finally { setBusy(""); refresh(); }
+  };
   const openJob = (tr, it) => (jobsQ.data || []).find((j) => j.context?.item_key === it.key && j.context?.track_key === tr.key && !["approved", "done", "cancelled", "failed"].includes(j.status));
 
   if (isLoading) return <div className="h-40 animate-pulse bg-ink/[0.04]" />;
@@ -57,6 +66,7 @@ export default function BuildChecklistPanel({ client }) {
   const p = progress(checklist);
   return (
     <div data-testid="build-checklist-real">
+      {client.website_live_at ? <p className="flex items-center gap-2 border-b border-hair bg-green-50 px-4 py-2 text-[12.5px] text-green-800" data-testid="build-launched"><Check className="h-3.5 w-3.5" /><b className="font-medium">Launched</b> on {client.website_domain || domainOf(client)} · {new Date(client.website_live_at).toLocaleDateString()}</p> : null}
       <div className="grid md:grid-cols-2">
         {checklist.tracks.map((tr, i) => {
           const appId = tr.key === "command" ? checklist.command_app_id : checklist.website_app_id;
@@ -84,11 +94,17 @@ export default function BuildChecklistPanel({ client }) {
                           {it.auto ? <Bot className="h-3 w-3" aria-label="Claude does it" /> : <Hand className="h-3 w-3" aria-label="Manual" />}
                           {it.gate === "taste" ? <span className="inline-flex items-center gap-0.5 text-[#c24100]"><Palette className="h-3 w-3" />taste</span> : null}
                           {it.gate === "publish" ? <span className="inline-flex items-center gap-0.5 text-[#c24100]"><Rocket className="h-3 w-3" />your tap</span> : null}
+                          {it.gate === "dns" ? <span className="inline-flex items-center gap-0.5 text-[#c24100]"><Globe className="h-3 w-3" />your tap · DNS · goes live</span> : null}
                         </span>
                         {it.note || it.preview_url ? <span className="block text-[11px] text-ink/50">{it.note}{it.preview_url ? <> · <a href={it.preview_url} target="_blank" rel="noreferrer" className="hover:text-[#ff3c00]">preview</a></> : null}</span> : null}
+                        {it.gate === "dns" && !it.done ? (
+                          it.requested_at
+                            ? <span className="block text-[11px] text-[#c24100]">Connected by you {new Date(it.requested_at).toLocaleDateString()}. Claude checks the domain every run (hourly, 7 AM–9 PM PT); the site goes live when it verifies.</span>
+                            : <button type="button" onClick={() => connectTapped(tr, it)} disabled={busy === `d:${k}`} className="mt-1 inline-flex h-7 items-center gap-1 border border-[#ff3c00]/40 px-2 text-[11.5px] text-[#c24100] hover:bg-[#ff3c00]/[0.06]">{busy === `d:${k}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <Globe className="h-3 w-3" />}I&apos;ve connected {domainOf(client) || "the domain"}</button>
+                        ) : null}
                         {job || sent[k] ? <span className="block text-[11px] text-[#c24100]">{job?.status === "running" ? "Claude is on it" : QUEUED_COPY}</span> : null}
                       </span>
-                      {!it.done && !job && !sent[k] && it.gate !== "publish" ? (
+                      {!it.done && !job && !sent[k] && it.gate !== "publish" && it.gate !== "dns" ? (
                         <button type="button" onClick={() => toClaude(tr, it)} disabled={busy === `c:${k}`} className="shrink-0 opacity-60 transition-opacity hover:text-[#ff3c00] hover:opacity-100 group-hover:opacity-100" title="Send to Claude" aria-label={`Send ${it.label} to Claude`}>
                           {busy === `c:${k}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                         </button>

@@ -11,8 +11,9 @@ export const PROCESSES = [
     S("Website + Command System build", "Claude", "auto", "Claude", "/claude"),
     S("Taste review", "Justin (taste)", "manual", "Command › Needs you", "/"),
     S("Launch grid: listings, citations, GBP", "Claude", "auto", "Client › Build › Launch grid", "/crm"),
-    S("Publish + DNS", "Justin (hard gate)", "manual", "Road to Dec 31", "/launch"),
-    S("HyperCare+ engine starts", "Claude", "auto", "Packages › HyperCare+", "/packages/orbit-seo"),
+    S("Publish on the base44.app address (Ready to publish)", "Justin (hard gate)", "manual", "Client › Build › Build jobs", "/crm"),
+    S("Connect the client's domain — LAST step; live when it verifies", "Justin (hard gate: DNS)", "manual", "Client › Build › checklist", "/crm"),
+    S("HyperCare+ engine starts (live-site automations switch on)", "Claude", "auto", "Packages › HyperCare+", "/packages/orbit-seo"),
   ] },
   { key: "website", label: "Website", sales: ["custom_website", "mission_bravo"], steps: [
     S("Lead + scrape", "Claude", "auto", "Command › Add lead", "/"),
@@ -20,8 +21,9 @@ export const PROCESSES = [
     S("Design pass", "Justin (taste)", "manual", "Client › Build", "/crm"),
     S("Content, SEO structure, schema, speed", "Claude", "auto", "Claude", "/claude"),
     S("Forms, booking, tracking", "Claude", "auto", "Client › Systems", "/crm"),
-    S("Publish + DNS", "Justin (hard gate)", "manual", "Road to Dec 31", "/launch"),
-    S("Search Console + sitemap", "Claude", "auto", "Marketing › Search", "/performance"),
+    S("Publish on the base44.app address (Ready to publish)", "Justin (hard gate)", "manual", "Client › Build › Build jobs", "/crm"),
+    S("Connect the client's domain — LAST step; live when it verifies", "Justin (hard gate: DNS)", "manual", "Client › Build › checklist", "/crm"),
+    S("Search Console + IndexNow switch on at launch", "Claude", "auto", "Client › Automations", "/automations"),
   ] },
   { key: "command_system", label: "Command System", sales: ["command_system", "ops_command", "mission_bravo"], steps: [
     S("Process call", "Justin + client", "manual", "Calls", "/calls"),
