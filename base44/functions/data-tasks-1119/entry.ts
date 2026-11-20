@@ -27,6 +27,65 @@ async function listAll(ent: any, q: any, sort: string, max = 5000) {
   }
   return out;
 }
+// Ledger categories used here (src/features/accounting/ledger.js CATEGORIES), Schedule C lines by default.
+const CATS: Record<string, { tax: string; lines: Record<string, string> }> = {
+  transfer: { tax: "transfer", lines: {} }, owner_draw: { tax: "equity", lines: {} }, personal: { tax: "personal", lines: {} },
+  hosting: { tax: "deductible", lines: { schedule_c: "Sch C L27a (Part V)", f1065: "1065 L21", f1120s: "1120-S L19", f1120: "1120 L26" } },
+  ai_tools: { tax: "deductible", lines: { schedule_c: "Sch C L27a (Part V)", f1065: "1065 L21", f1120s: "1120-S L19", f1120: "1120 L26" } },
+  software: { tax: "deductible", lines: { schedule_c: "Sch C L27a (Part V)", f1065: "1065 L21", f1120s: "1120-S L19", f1120: "1120 L26" } },
+  education: { tax: "deductible", lines: { schedule_c: "Sch C L27a (Part V)", f1065: "1065 L21", f1120s: "1120-S L19", f1120: "1120 L26" } },
+  dues: { tax: "deductible", lines: { schedule_c: "Sch C L27a (Part V)", f1065: "1065 L21", f1120s: "1120-S L19", f1120: "1120 L26" } },
+  taxes_licenses: { tax: "deductible", lines: { schedule_c: "Sch C L23", f1065: "1065 L14", f1120s: "1120-S L12", f1120: "1120 L17" } },
+  est_tax_oregon: { tax: "tax_payment", lines: { schedule_c: "OR-40 estimated payments" } },
+  utilities: { tax: "deductible", lines: { schedule_c: "Sch C L25", f1065: "1065 L21", f1120s: "1120-S L19", f1120: "1120 L26" } },
+  advertising: { tax: "deductible", lines: { schedule_c: "Sch C L8", f1065: "1065 L21", f1120s: "1120-S L16", f1120: "1120 L22" } },
+  merchant_fees: { tax: "deductible", lines: { schedule_c: "Sch C L10", f1065: "1065 L21", f1120s: "1120-S L19", f1120: "1120 L26" } },
+  office: { tax: "deductible", lines: { schedule_c: "Sch C L18", f1065: "1065 L21", f1120s: "1120-S L19", f1120: "1120 L26" } },
+  other_income: { tax: "income", lines: { schedule_c: "Sch C L6", f1065: "1065 L7", f1120s: "1120-S L5", f1120: "1120 L10" } },
+};
+const FORM: Record<string, string> = { smllc_schedule_c: "schedule_c", sole_prop: "schedule_c", mmllc_1065: "f1065", s_corp_1120s: "f1120s", c_corp_1120: "f1120" };
+const lineFor = (cat: string, et: string) => CATS[cat]?.lines[FORM[et] || "schedule_c"] || CATS[cat]?.lines.schedule_c || "";
+// [category, direction, patterns] — only vendors that are clearly one thing. Everything else goes to Needs review.
+const PERSONAL = [
+  "safeway", "fred meyer", "winco", "center market", "us market", "lil pantry", "plaid pantry", "get & go", "barton food mart", "fred's food", "mulino store", "beavercreek grocery", "sunrise food store", "dollar general", "target", "world market",
+  "taco bell", "mcdonald", "five guys", "chipotle", "panda express", "wendy's", "carl's jr", "arby's", "burgerville", "domino's", "dairy queen", "firehouse subs", "wetzel's", "starbucks", "dutch bros", "black rock coffee", "hotshots espresso", "cowboy coffee", "doordash", "all mine frozen", "dot sugar",
+  "amazon prime", "netflix", "xbox", "fabletics", "the north face", "arc'teryx", "vans", "nordstrom", "lululemon", "urban outfitters", "le d bug", "boot barn", "zales", "bass pro", "rei", "pop mart", "washington square", "build-a-bear", "bricks & minifigs", "tan republic", "gnc", "ag1", "planet fitness", "nw fitness", "hi-school pharmacy", "novacare", "oregon liquor control", "tobacco vape", "gofundme", "girl scout", "groupon",
+  "oregon zoo", "oregon museum of science", "helium comedy", "seat engine", "chow comedy", "event tickets center", "dave & buster", "scooterbug", "ocean plays", "ami musicbox", "dtd parks", "havasupai",
+  "white barn estate", "coomer dance", "portland general electric", "oregon city garbage", "payment alliance international",
+];
+const RULES: [string, string, string[]][] = [
+  ["transfer", "in", ["transfer from mercury"]], ["transfer", "out", ["transfer to mercury"]], ["transfer", "any", ["interstellar llc"]],
+  ["hosting", "out", ["framer", "webflow", "base44", "render", "mongodb", "godaddy", "squarespace", "google cloud"]],
+  ["ai_tools", "out", ["anthropic", "openai", "genspark", "elevenlabs", "myclaw.ai", "aragon ai"]],
+  ["software", "out", ["canva", "serpapi", "envato", "typeform", "quickbooks", "docusign", "cloudhq", "shopify", "microsoft", "custom esignature"]],
+  ["taxes_licenses", "out", ["zenbusiness"]], ["est_tax_oregon", "out", ["oregon department of revenue"]],
+  ["utilities", "out", ["verizon"]], ["advertising", "out", ["vistaprint"]], ["education", "out", ["coursera"]], ["dues", "out", ["skool"]],
+  ["merchant_fees", "out", ["elavon"]], ["office", "out", ["usps"]], ["other_income", "in", ["impact radius"]],
+  ["owner_draw", "out", PERSONAL],
+];
+function pick(name: string, dir: string, account: string): string {
+  if (/\bstripe\b/.test(name)) return dir === "in" || account === "Stripe" ? "transfer" : "";
+  if (dir === "in" && name === "mercury") return "other_income";
+  for (const [cat, d, pats] of RULES) {
+    if (d !== "any" && d !== dir) continue;
+    if (pats.some((p) => name.includes(p))) return cat;
+  }
+  // Small refunds back from personal merchants.
+  if (dir === "in" && PERSONAL.some((p) => name.includes(p))) return "personal";
+  return "";
+}
+function reviewReason(name: string) {
+  if (/chevron|shell|conoco|\b76\b|space age|arrowhead|banwait|astro|carson/.test(name)) return "fuel: business vehicle or personal?";
+  if (/car wash|autotech|detail|santander|u-haul|parkmobile|caltrain/.test(name)) return "vehicle / travel: business or personal?";
+  if (/geico|progressive|prog universal|lemonade/.test(name)) return "insurance: business or personal policy?";
+  if (/amazon|apple|best buy|ace hardware|home depot|tractor supply|arashi|tapstitch|bowker/.test(name)) return "purchase could be business supplies/equipment or personal";
+  if (/cash app|paypal|apple wallet|onpoint|zillow/.test(name)) return "money app / credit union: transfer, payment or personal?";
+  if (/clarkes|thai yo/.test(name)) return "spent at a client's business: meeting or personal?";
+  if (/editor|asadkhaleel|contra|polar|red cube|innovative foto/.test(name)) return "possible contractor or software: confirm";
+  if (/city hall|city of molalla|revenue department|sheriff|clackamas/.test(name)) return "government payment: tax, license, fee or personal?";
+  if (/stripe/.test(name)) return "Stripe deposit that may be Stripe Capital (loan)";
+  return "restaurant, bar or unknown merchant: business meal or personal?";
+}
 const HOLD_IDS = new Set(["A-1119-1", "A-1106-5", "A-1105-3", "A-1031-1", "A-1029-5", "A-1103-1"]);
 
 async function save(db: any, patch: any) {
@@ -77,6 +136,36 @@ export default async function (req: Request) {
       }
       await save(db, { seo: { approved: done.length + held.length, held } });
       return Response.json({ ok: true, approved: done.length + held.length, held });
+    }
+    if (action === "categorize") {
+      const tp = ((await db.BusinessTaxProfile.filter({ business_id: "interstellar" }, "-updated_date", 1).catch(() => [])) || [])[0];
+      const entityType = s(tp?.entity_type) || "smllc_schedule_c";
+      const tx = await listAll(db.LedgerTransaction, { review_status: "needs_review" }, "date");
+      const counts: Record<string, number> = {};
+      const reviewWhy: Record<string, number> = {};
+      let changed = 0;
+      for (const t of tx) {
+        if (s(t.category)) continue;
+        const name = norm(t.payee || t.description);
+        const sug = s(t.ai_suggestion?.category);
+        let cat = pick(name, t.direction, s(t.account));
+        if (cat === "transfer" && /stripe/.test(name) && sug === "loan") cat = "";
+        if (!cat) { counts.needs_review = (counts.needs_review || 0) + 1; const w = reviewReason(name); reviewWhy[w] = (reviewWhy[w] || 0) + 1;
+          await db.LedgerTransaction.update(t.id, { notes: [s(t.notes), `Needs review (Nov 19): ${w}`].filter(Boolean).join("\n").slice(0, 2000) }).catch(() => null); continue; }
+        const c = CATS[cat];
+        await db.LedgerTransaction.update(t.id, { category: cat, tax_category: c.tax, form_line: lineFor(cat, entityType), review_status: "approved", notes: [s(t.notes), "Categorized by vendor rule (Justin's request, Nov 19)"].filter(Boolean).join("\n").slice(0, 2000) });
+        counts[cat] = (counts[cat] || 0) + 1; changed++;
+      }
+      // Save the vendor rules (learned) so future bank imports categorize the same way.
+      const have = new Set(((await db.LedgerRule.list("priority", 1000).catch(() => [])) || []).map((r: any) => `${norm(r.pattern)}|${r.direction || "any"}`));
+      let rulesAdded = 0;
+      for (const [cat, dir, pats] of RULES) for (const p of pats) {
+        if (have.has(`${p}|${dir}`)) continue;
+        await db.LedgerRule.create({ business_id: "interstellar", pattern: p, match_field: "any", match_type: "contains", direction: dir, category: cat, priority: 40, learned: true, active: true, hits: 0, notes: "Vendor rule from the Nov 19 categorization (Justin)" }).catch(() => null);
+        rulesAdded++;
+      }
+      await save(db, { categorize: { entityType, scanned: tx.length, categorized: changed, counts, review_reasons: reviewWhy, rules_added: rulesAdded } });
+      return Response.json({ ok: true, changed, counts });
     }
     return Response.json({ error: "unknown" }, { status: 400 });
   } catch (e) {
