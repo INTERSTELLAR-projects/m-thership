@@ -180,3 +180,39 @@ describe("portal Submit intake", () => {
     expect(statusLabel("live")).toBe("Live");
   });
 });
+
+import { domainOf, isLiveSiteAutomation, startsWhenText, isLaunched, TEMPLATE_VERSION } from "@/lib/buildTemplates";
+import { waitingForDomain, awaitingDomainIds } from "@/features/automations/board";
+
+describe("domain is the last step and makes the site live", () => {
+  it("ends every Website track with Connect <domain>, a DNS hard gate filled with the client's domain", () => {
+    expect(TEMPLATE_VERSION).toBe(2);
+    for (const t of ALL_TEMPLATES) {
+      const w = t.tracks.find((r) => r.key === "website").items;
+      const last = w[w.length - 1];
+      expect(last.key).toBe("connect_domain");
+      expect(last.gate).toBe("dns");
+      expect(last.auto).toBe(false);
+      expect(last.client_label).toBe("Your website is live");
+    }
+    const c = instantiate(templateFor("food_bev"), { id: "c", business: "[TEST] Cafe", websites: ["https://www.test-cafe.example/"] });
+    expect(c.tracks[0].items.at(-1).label).toMatch(/^Connect test-cafe\.example /);
+    expect(domainOf({})).toBe("");
+  });
+  it("holds live-site automations until the domain verifies, without flagging them", () => {
+    expect(isLiveSiteAutomation({ kind: "search_console" })).toBe(true);
+    expect(isLiveSiteAutomation({ kind: "blog", name: "Blog drop" })).toBe(false);
+    expect(isLiveSiteAutomation({ kind: "other", name: "IndexNow ping" })).toBe(true);
+    const lead = { id: "L", status: "Lead", domain: "test-co.example" };
+    const live = { id: "A", status: "Active", website_live_at: "2026-11-20T00:00:00Z" };
+    const legacy = { id: "B", status: "Active" };
+    const awaiting = awaitingDomainIds([lead, live, legacy], new Set());
+    expect([...awaiting]).toEqual(["L"]);
+    const byId = new Map([[lead.id, lead]]);
+    expect(waitingForDomain({ kind: "search_console", name: "GSC", clientIds: ["L"] }, awaiting, byId)).toBe("Starts when test-co.example is connected");
+    expect(waitingForDomain({ kind: "search_console", name: "GSC", clientIds: ["B"] }, awaiting, byId)).toBe("");
+    expect(startsWhenText({})).toBe("Starts when the domain is connected");
+    expect(isLaunched(live) && !isLaunched(lead)).toBe(true);
+    expect(automationIssue({ name: "Search Console check", kind: "search_console", status: "setup", schedule: "weekly" }, NOW)).toBeNull();
+  });
+});
