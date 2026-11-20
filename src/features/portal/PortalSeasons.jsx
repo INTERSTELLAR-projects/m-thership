@@ -12,13 +12,13 @@ export default function PortalSeasons({ call }) {
   const [edit, setEdit] = useState({});
   const [offer, setOffer] = useState({ title: "", kind: "percent", value: "", starts_on: "", ends_on: "", description: "" });
 
-  const load = () => call("seasons").then((r) => { setD(r); setErr(""); }).catch((e) => setErr(String(e?.message || e)));
+  const load = () => call("seasons").then((r) => { setD(r); setErr(""); }).catch((e) => setErr(String(e?.response?.data?.error || e?.message || e)));
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const run = async (what, action, args) => {
     setBusy(what); setMsg(""); setErr("");
     try { const r = await call(action, args); if (r?.note) setMsg(r.note); await load(); return r; }
-    catch (e) { setErr(String(e?.message || e)); }
+    catch (e) { setErr(String(e?.response?.data?.error || e?.message || e)); }
     finally { setBusy(""); }
   };
 

@@ -18,6 +18,7 @@ import { INTAKE_SECTIONS, intakeProgress } from "@/features/clients/intakeQuesti
 import GridTrail from "@/components/GridTrail";
 import BrandLockup from "@/components/brand/BrandLockup";
 import PortalSignatures from "@/features/signatures/PortalSignatures";
+import PortalSeasons from "@/features/portal/PortalSeasons";
 import PortalQr from "@/features/qr/PortalQr";
 import PortalPrestige from "@/features/portal/PortalPrestige";
 import ClientHealthSummary from "@/features/performance/ClientHealthSummary";
@@ -47,7 +48,7 @@ import PortalPresentations from "@/features/presentations/portal/PortalPresentat
 // Tabs this portal can show. Grouping, labels and icons for the header nav live in PortalNav.jsx (NAV);
 // free-for-life bonus tools (Signatures, QR Codes) are tagged there and listed together on Home.
 // Portal v2 (Nov 2026): + brain, mentions, billing. Navigation for all of them is the one-tap map in v2/portalMap.js.
-const TABS = [["home", "Glance"], ["assets", "Brand & assets"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["resources", "Resources"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["brain", "Your Brain"], ["mentions", "Mentions & PR"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["upgrades", "Upgrades"], ["billing", "Billing"], ["referrals", "Referrals"], ["messages", "Messages"], ["account", "Account"]];
+const TABS = [["home", "Glance"], ["assets", "Brand & assets"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["resources", "Resources"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["brain", "Your Brain"], ["mentions", "Mentions & PR"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["seasons", "Seasons & offers"], ["upgrades", "Upgrades"], ["billing", "Billing"], ["referrals", "Referrals"], ["messages", "Messages"], ["account", "Account"]];
 
 function usePortal(previewId) {
   const call = async (action, args = {}) => (await base44.functions.invoke("portal", { action, client_id: previewId, ...args })).data;
@@ -182,6 +183,7 @@ export default function PortalApp({ previewId }) {
           {tab === "requests" && <div className="space-y-8"><PortalSubmit call={call} scopeId={scopeId} preview={!!previewId} /><RequestsView d={d} call={call} refresh={refresh} previewId={scopeId} /><SelfServeStrip call={call} refresh={refresh} preview={!!previewId} /></div>}
           {tab === "assets" && <BrandAssetsPage tabs={tabs.map(([k]) => k)} go={go} d={d} />}
           {tab === "signatures" && <PortalSignatures call={call} />}
+          {tab === "seasons" && <PortalSeasons call={call} />}
           {tab === "qr" && <PortalQr call={call} previewId={scopeId} openId={qrOpen} />}
           {tab === "referrals" && <PortalPrestige call={call} previewId={previewId} />}
           {tab === "messages" && <MessagesView call={call} previewId={previewId} />}

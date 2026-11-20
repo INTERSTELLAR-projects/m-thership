@@ -5,7 +5,7 @@
 import {
   Brain, Compass, BookOpen, UserPlus, GraduationCap, ClipboardList, MessageSquare, FolderOpen, Newspaper, Target,
   LineChart, MapPin, Megaphone, Mail, Presentation, PenLine, QrCode, Calculator, BadgeDollarSign, Sparkles,
-  CreditCard, Crown, Store, UserRound,
+  CreditCard, Crown, Store, UserRound, CalendarHeart,
 } from "lucide-react";
 
 // Four pages (Nov 2026 simplification): Glance (home) · Requests & self-serve · Brand & assets · Billing.
@@ -31,6 +31,7 @@ export const GROUPS = [
     id: "requests", label: "Requests & self-serve", hint: "Ask us, chat, or do it yourself",
     items: [
       { k: "requests", label: "Requests", desc: "Edits, content, projects, drops and offers", icon: ClipboardList },
+      { k: "seasons", label: "Seasons & offers", desc: "Switch your site to a season look and run offers", icon: CalendarHeart },
       { k: "messages", label: "Messages", desc: "Chat with the Interstellar team", icon: MessageSquare },
       { k: "studio_social", label: "Social", desc: "Plan, design and publish posts", icon: Megaphone },
       { k: "studio_email", label: "Email", desc: "Campaigns and automations to your list", icon: Mail },
