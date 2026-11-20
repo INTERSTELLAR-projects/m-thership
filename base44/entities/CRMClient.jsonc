@@ -187,6 +187,22 @@
       "description": "Build Engine: the client's own domain once connected and verified",
       "type": "string"
     },
+    "market_scope": {
+      "type": "string",
+      "enum": ["", "local", "national", "global"],
+      "default": "",
+      "description": "Brain unlocks: local clients need NAP + service area; national/global clients need topics instead. Empty = read from the scrape (market)."
+    },
+    "blog_frequency": {
+      "type": "string",
+      "enum": ["", "weekly", "2_per_month", "monthly"],
+      "default": "",
+      "description": "Blog engine frequency chosen for this client (growth unlock). Posting itself stays off by Justin's rule."
+    },
+    "site_key": {
+      "type": "string",
+      "description": "Public, non-secret key the client's website uses to read its own season + offers from the site-config function"
+    },
     "website_live_at": {
       "description": "Build Engine: the moment the client's own domain was connected AND verified (custom-domains status verified). This is what 'live' means: it plays the portal launch animation, switches live-site automations from setup to active and marks the build Launched.",
       "format": "date-time",

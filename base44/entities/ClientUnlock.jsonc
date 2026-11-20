@@ -1,0 +1,28 @@
+{
+  "name": "ClientUnlock",
+  "description": "Brain unlocks (Build Engine, Nov 19 2026). One row per client per unlock (basics, brand, growth, transmission), kept current by the brain-unlocks function from real Brain completeness. missing lists what's needed; portal is the client-facing line. prepared records what was set up when it first turned on (plans and drafts only; posting stays off).",
+  "type": "object",
+  "properties": {
+    "client_id": { "type": "string" },
+    "client_name": { "type": "string" },
+    "key": { "type": "string", "enum": ["basics", "brand", "growth", "transmission"] },
+    "label": { "type": "string" },
+    "on": { "type": "boolean", "default": false },
+    "done": { "type": "number" },
+    "total": { "type": "number" },
+    "missing": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "portal": { "type": "string", "description": "Client-facing progress line" },
+    "unlocked_at": { "type": "string", "format": "date-time" },
+    "prepared_at": { "type": "string", "format": "date-time" },
+    "prepared": { "type": "object", "additionalProperties": true, "description": "What was set up when it unlocked: ids of jobs, templates, listings, steps" },
+    "steps": { "type": "array", "items": { "type": "object", "additionalProperties": true }, "description": "Growth: the foundational SEO step list" },
+    "checked_at": { "type": "string", "format": "date-time" }
+  },
+  "required": ["client_id", "key"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}
