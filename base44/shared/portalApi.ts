@@ -6,6 +6,7 @@ import { BANNED as LEDGER_BANNED, isClientSafeUrl } from "./workLedger.ts";
 import { workCounts } from "./workCounts.ts";
 import { scorePillars, portalPillars } from "./clientPillars.js";
 import { portalView } from "./buildTemplates.js";
+import { submitTypesFor, checkSubmission, statusLabel, SUBMIT_TYPES, RECEIVED_TEXT } from "./submitTypes.js";
 
 // Portal v2 (Nov 2026): + needs_you / brain / health on home; actions brain + brain_answer.
 // Client portal API. Every table is admin-only, so portal users never touch entities directly:
@@ -489,6 +490,49 @@ export async function portalHandler(req: Request): Promise<Response> {
       });
       if (form) await db.RequestForm.update(form.id as string, { submissions: (Number(form.submissions) || 0) + 1 }).catch(() => null);
       return Response.json({ request: pick(r, ["id", "kind", "title", "status", "created_date"]) });
+    }
+
+    // Portal Submit intake (Justin's standard for every client, Nov 19 2026). Capture only: the submission is stored in
+    // the content pipeline's ContentSubmission (channel "portal", status "received", capture_only) — the writer never
+    // touches "received" rows — and opens a project_submission request on Justin's Command screen. Nothing is published.
+    if (action === "submit_content") {
+      if (client.submit_intake === false) return Response.json({ error: "Submissions are switched off for this account" }, { status: 403 });
+      const chk: any = checkSubmission(String(client.niche_key || "other"), args);
+      if (chk.error) return Response.json({ error: chk.error }, { status: 400 });
+      const label = SUBMIT_TYPES[chk.kind].label;
+      const at = new Date().toISOString();
+      const recId = `portal_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+      const sub = await db.ContentSubmission.create({
+        client_id: cid, client_name: client.business, source_app_id: "portal", source_record_id: recId, source_entity: "PortalSubmit",
+        channel: "portal", capture_only: true, kind: chk.kind, submitted_by: user.email, raw: { ...chk.fields, title: chk.title }, fields: chk.fields,
+        photos: chk.photos, consent: chk.consent, is_test: /^\[TEST\]/.test(String(client.business || "")),
+        status: "received", status_detail: RECEIVED_TEXT, received_at: at, version: 1, attempts: 0,
+        history: [{ at, action: "received", by: user.email, note: "Portal Submit (capture only)" }],
+      });
+      const lines = Object.entries(chk.fields).map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`);
+      const req = await db.ClientRequest.create({
+        client_id: cid, client_name: client.business, kind: "project_submission",
+        title: `New submission from ${client.business}: ${label}`,
+        details: [`${label}: ${chk.title}`, ...lines, `${chk.photos.length} photo${chk.photos.length === 1 ? "" : "s"}`, chk.consent ? "Consent to feature: yes" : "", "Capture only: not published. Auto-posting is wired per client at the end."].filter(Boolean).join("\n").slice(0, 8000),
+        attachments: chk.photos.map((p: any) => p.url), fields: { submission_id: sub.id, submission_kind: chk.kind, channel: "portal" },
+        source: "portal", contact_email: user.email, submitted_by: user.email, status: "received", priority: "normal", page_status: "none",
+      });
+      await db.ContentSubmission.update(sub.id, { request_id: req.id }).catch(() => null);
+      return Response.json({ ok: true, message: RECEIVED_TEXT, item: { id: sub.id, kind: chk.kind, label, title: chk.title, status: "received", status_label: statusLabel("received"), received_at: at } });
+    }
+
+    if (action === "submissions") {
+      const rows = (await by("ContentSubmission", "-received_at", 100).catch(() => [])) as Record<string, any>[];
+      return Response.json({
+        enabled: client.submit_intake !== false,
+        types: submitTypesFor(String(client.niche_key || "other")),
+        items: rows.filter((r) => !r.is_test || /^\[TEST\]/.test(String(client.business || ""))).map((r) => ({
+          id: r.id, kind: r.kind, label: (SUBMIT_TYPES as any)[r.kind]?.label || r.kind, channel: r.channel || "command_system",
+          title: String(r.fields?.title || r.fields?.product_name || r.raw?.title || r.raw?.shoot_title || r.writer_output?.title || "").slice(0, 140),
+          status: r.status, status_label: statusLabel(r.status), received_at: r.received_at || r.created_date,
+          url: r.status === "live" && isUrl(r.published_url) ? r.published_url : "", photo: (r.photos || [])[0]?.url || "",
+        })),
+      });
     }
 
     if (action === "intake") {
