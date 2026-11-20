@@ -9,7 +9,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { queueCustom } from "@/features/claude/jobs";
 import { useAutomationHub, appliesToClient } from "./useAutomationHub";
 import { SOURCE_META, fmtWhen, relTime } from "./meta";
-import { JOB_GROUPS, jobGroupOf, rowIssue, lastResultWords, scopeMatch } from "./board";
+import { JOB_GROUPS, jobGroupOf, rowIssue, lastResultWords, scopeMatch, waitingForDomain, awaitingDomainIds } from "./board";
+import { useList } from "@/lib/useData";
 
 const ISSUE_TONE = { failed: "bg-red-600", off: "bg-ink/40", overdue: "bg-[#ff6a00]", never: "bg-[#ff6a00]", unverified: "bg-amber-500" };
 
@@ -17,7 +18,7 @@ function Tag({ source }) {
   return <span className="rounded border border-hair px-1.5 py-0.5 text-[10px] text-ink/40">{SOURCE_META[source]?.short || source}</span>;
 }
 
-function PlainRow({ row, open, onToggle }) {
+function PlainRow({ row, open, onToggle, waiting }) {
   const on = row.enabled !== false && row.status !== "paused";
   return (
     <li className="border-b border-hair last:border-0">
@@ -27,13 +28,14 @@ function PlainRow({ row, open, onToggle }) {
           <span className="flex flex-wrap items-center gap-2"><span className="truncate text-[13.5px] font-medium">{row.name}</span><Tag source={row.source} /></span>
           <span className="line-clamp-1 block text-[12px] text-ink/55">{row.description}</span>
         </span>
-        <span className="hidden text-[12px] text-ink/65 md:block">{row.nextAt ? <>Next {fmtWhen(row.nextAt)}<span className="block text-[10.5px] text-ink/40">{relTime(row.nextAt)}</span></> : <span className="text-ink/40">{row.schedule}</span>}</span>
+        <span className="hidden text-[12px] text-ink/65 md:block">{waiting ? <span className="text-[#c24100]">{waiting}</span> : row.nextAt ? <>Next {fmtWhen(row.nextAt)}<span className="block text-[10.5px] text-ink/40">{relTime(row.nextAt)}</span></> : <span className="text-ink/40">{row.schedule}</span>}</span>
         <span className={`hidden text-[12px] md:block ${row.lastStatus === "failed" ? "text-red-700" : "text-ink/65"}`}>{lastResultWords(row)}{row.lastAt ? <span className="block text-[10.5px] text-ink/40">{relTime(row.lastAt)}</span> : null}</span>
         <span className="hidden md:block"><span className={`inline-flex h-5 w-9 items-center rounded-full px-0.5 ${on ? "justify-end bg-[#ff3c00]" : "justify-start bg-ink/15"}`} aria-label={on ? "On" : "Off"}><span className="h-4 w-4 rounded-full bg-white" /></span></span>
       </button>
       {open ? (
         <div className="space-y-1.5 border-t border-dashed border-hair bg-ink/[0.015] px-3 py-3 pl-[40px] text-[12px] text-ink/70">
           <p>{row.how || row.description}</p>
+          {waiting ? <p className="text-[#c24100]">{waiting}. It switches on by itself when the domain verifies.</p> : null}
           <p className="text-ink/50">Schedule: {row.schedule} · Last result: {lastResultWords(row)}{row.lastAt ? ` (${fmtWhen(row.lastAt)})` : ""} · {on ? "On" : "Off"}</p>
           {row.scope === "client" && row.clientIds.length ? <p>{row.clientIds.map((id, i) => <Link key={id} to={`/clients/${id}?tab=automations`} className="mr-2 text-[#d83300] hover:underline">{row.clientNames[i] || "Client"}</Link>)}</p> : null}
         </div>
@@ -50,8 +52,12 @@ export default function AutomationBoard({ clientId = null, client = null, rowsOv
   const [shut, setShut] = useState(() => Object.fromEntries(JOB_GROUPS.map((g) => [g.id, !!g.collapsed])));
   const [sent, setSent] = useState({});
 
+  const checklists = useList("BuildChecklist", { limit: 300 });
+  const clientsById = useMemo(() => new Map((hub.clients || []).map((c) => [c.id, c])), [hub.clients]);
+  const awaiting = useMemo(() => awaitingDomainIds(hub.clients, new Set((checklists.data || []).map((x) => x.client_id))), [hub.clients, checklists.data]);
+  const waitOf = (r) => waitingForDomain(r, awaiting, clientsById);
   const rows = useMemo(() => (rowsOverride || hub.rows).filter((r) => (!clientId || appliesToClient(r, clientId)) && scopeMatch(r, scope)), [rowsOverride, hub.rows, clientId, scope]);
-  const issues = useMemo(() => rows.map((r) => ({ row: r, issue: rowIssue(r) })).filter((x) => x.issue).sort((a, b) => ["failed", "overdue", "never", "unverified", "off"].indexOf(a.issue.kind) - ["failed", "overdue", "never", "unverified", "off"].indexOf(b.issue.kind)), [rows]);
+  const issues = useMemo(() => rows.map((r) => ({ row: r, issue: waitingForDomain(r, awaiting, clientsById) ? null : rowIssue(r) })).filter((x) => x.issue).sort((a, b) => ["failed", "overdue", "never", "unverified", "off"].indexOf(a.issue.kind) - ["failed", "overdue", "never", "unverified", "off"].indexOf(b.issue.kind)), [rows, awaiting, clientsById]);
   const grouped = useMemo(() => JOB_GROUPS.map((g) => ({ ...g, rows: rows.filter((r) => jobGroupOf(r) === g.id) })), [rows]);
 
   const clientFor = (row) => client || (row.clientIds?.[0] ? { id: row.clientIds[0], business: row.clientNames?.[0] || "" } : null);
@@ -119,7 +125,7 @@ export default function AutomationBoard({ clientId = null, client = null, rowsOv
           </button>
           {!shut[g.id] ? (g.rows.length ? (
             <ul className="border-t border-hair">
-              {g.rows.map((r) => <PlainRow key={r.key} row={r} open={openKey === r.key} onToggle={() => setOpenKey(openKey === r.key ? null : r.key)} />)}
+              {g.rows.map((r) => <PlainRow key={r.key} row={r} waiting={waitOf(r)} open={openKey === r.key} onToggle={() => setOpenKey(openKey === r.key ? null : r.key)} />)}
             </ul>
           ) : <p className="border-t border-hair px-4 py-3 text-[12px] text-ink/45">Nothing here.</p>) : null}
         </section>

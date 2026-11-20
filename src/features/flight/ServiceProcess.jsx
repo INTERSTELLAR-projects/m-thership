@@ -31,6 +31,9 @@ export default function ServiceProcess() {
     });
     (jobs.data || []).filter((j) => !["approved", "done", "cancelled"].includes(j.status)).forEach((j) => put("mission_alpha", 6, byId.get(j.client_id), `Build ${String(j.status).replace(/_/g, " ")}`));
     (clients.data || []).filter((c) => c.status === "Lead").forEach((c) => put("mission_alpha", c.scrape_summary ? 1 : 0, c, c.scrape_summary ? "Scraped" : "Lead"));
+    // Website published on base44.app but domain not connected yet → the Connect-domain step; launched → HyperCare.
+    (clients.data || []).filter((c) => c.website_published_at && !c.website_live_at).forEach((c) => put("mission_alpha", 10, c, "Waiting for the domain"));
+    (clients.data || []).filter((c) => c.website_live_at && c.status === "Active").forEach((c) => put("website", 7, c, `Live on ${c.website_domain || "its domain"}`));
     (engines.data || []).filter((e) => e.status === "running" || e.status === "queued").forEach((e) => put("hypercare", 4, byId.get(e.client_id), "Engine running"));
     (clients.data || []).filter((c) => c.status === "Active" && (c.services || []).some((s) => /gravity|gravïty/i.test(s.name || "") && s.stripe)).forEach((c) => put("gravitycare", 3, c, "On care"));
     return out;

@@ -1,6 +1,7 @@
 // Automations, grouped by job and checked for health in plain words (Nov 2026 redesign).
 // Pure helpers so they can be unit tested; the board component renders them.
 import { expectedGapDays } from "@/lib/clientPillars";
+import { isLiveSiteAutomation, startsWhenText } from "@/lib/buildTemplates";
 
 const DAY = 86400000;
 const t = (v) => String(v || "").toLowerCase();
@@ -69,4 +70,18 @@ export function scopeMatch(row, scope) {
   if (scope === "every") return row.scope === "all_clients";
   if (scope === "agency") return row.scope === "agency" || row.scope === "personal";
   return true;
+}
+
+// Live-site automations of a client whose domain isn't connected yet: shown as "Starts when <domain> is connected",
+// never flagged. awaiting = Set of client ids still waiting for their domain; clientsById for the domain name.
+export function waitingForDomain(row, awaiting, clientsById) {
+  if (!isLiveSiteAutomation({ kind: row.kind, name: row.name })) return "";
+  const id = (row.clientIds || [])[0];
+  if (!id || !awaiting || !awaiting.has(id)) return "";
+  return startsWhenText(clientsById && clientsById.get(id));
+}
+export function awaitingDomainIds(clients, checklistClientIds) {
+  const out = new Set();
+  for (const c of clients || []) if (!c.website_live_at && (c.status === "Lead" || c.website_published_at || (checklistClientIds && checklistClientIds.has(c.id)))) out.add(c.id);
+  return out;
 }

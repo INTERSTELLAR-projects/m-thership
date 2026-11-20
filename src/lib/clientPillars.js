@@ -53,6 +53,9 @@ export function automationIssue(a, now = Date.now()) {
   const status = s(a.status).toLowerCase();
   if (status === "error" || s(a.last_result).toLowerCase() === "error" || s(a.last_result).toLowerCase() === "failed") return { kind: "failed", reason: `Last run failed${a.last_message ? `: ${s(a.last_message).slice(0, 80)}` : ""}` };
   if (status === "paused" || status === "off" || status === "disabled") return { kind: "off", reason: "Switched off" };
+  // Live-site automations (Search Console, IndexNow, Bing) wait in "setup" until the client's domain is connected and
+  // verified (Justin, Nov 19 2026). Waiting for the domain is the plan, not a problem.
+  if (status === "setup" && (/^(search_console|bing|indexnow|rich_results|schema_check)$/.test(s(a.kind)) || /search console|indexnow|bing webmaster/i.test(s(a.name)))) return null;
   const gap = expectedGapDays(a.schedule);
   const last = a.last_run_at ? Date.parse(a.last_run_at) : NaN;
   if (gap && Number.isFinite(last) && now - last > Math.max(gap * 2, gap + 2) * DAY) return { kind: "overdue", reason: `Last ran ${Math.round((now - last) / DAY)}d ago on a ${s(a.schedule)} schedule` };
