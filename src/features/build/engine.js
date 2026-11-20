@@ -21,14 +21,7 @@ export const NICHES = {
   other: "Other",
 };
 
-// Brain % → what it unlocks. Shown on the client page as the Brain meter.
-export const UNLOCKS = [
-  { at: 25, label: "Brief", hint: "Enough to write the build brief" },
-  { at: 50, label: "Build", hint: "Claude can start the website and Command System" },
-  { at: 75, label: "Launch grid", hint: "Listings, citations and profiles can go out" },
-  { at: 90, label: "Growth engine", hint: "Blogs, GBP posts and social run on their own" },
-];
-export const unlockState = (pct) => UNLOCKS.map((u) => ({ ...u, on: (Number(pct) || 0) >= u.at }));
+// Brain unlocks are real now: src/lib/unlocks.js + ClientUnlock (brain-unlocks function), shown by BrainUnlocksPanel.
 
 // Build checklist: real per-client checklists live in BuildChecklist, made from the niche template
 // (src/lib/buildTemplates.js / BuildChecklistTemplate). TRACKS is the plain fallback shape for screens without one.

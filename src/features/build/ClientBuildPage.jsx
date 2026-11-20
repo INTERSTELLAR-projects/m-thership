@@ -8,7 +8,7 @@ import { ArrowUpRight } from "lucide-react";
 import { useList, timeAgo } from "@/lib/useData";
 import LeadCard from "./LeadCard";
 import BrainUnlocksPanel from "./BrainUnlocksPanel";
-import LaunchGridPanel from "./LaunchGridPanel";
+import { LAUNCH_GRID } from "./engine";
 import BuildChecklistPanel from "./BuildChecklistPanel";
 import ReadyToPublish from "./ReadyToPublish";
 
@@ -70,7 +70,9 @@ export default function ClientBuildPage({ client, go }) {
           <BrainUnlocksPanel client={client} pct={pct} />
         </Panel>
         <Panel title="Launch grid" testid="launch-grid">
-          <LaunchGridPanel client={client} />
+          <ul className="grid grid-cols-2 gap-px bg-hair p-px sm:grid-cols-5">
+            {LAUNCH_GRID.map((x) => <li key={x} className="bg-paper px-2.5 py-3 text-center text-[11.5px] text-ink/55"><span className="mx-auto mb-1.5 block h-2 w-2 rounded-full bg-ink/15" />{x}</li>)}
+          </ul>
         </Panel>
       </div>
 
