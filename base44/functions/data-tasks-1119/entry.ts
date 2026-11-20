@@ -148,8 +148,11 @@ export default async function (req: Request) {
       const counts: Record<string, number> = {};
       const reviewWhy: Record<string, number> = {};
       let changed = 0;
+      const t0 = Date.now();
+      let more = false;
       for (const t of tx) {
-        if (s(t.category)) continue;
+        if (s(t.category) || s(t.notes).includes("Needs review (Nov 19)")) continue;
+        if (Date.now() - t0 > 40000) { more = true; break; }
         const name = norm(t.payee || t.description);
         const sug = s(t.ai_suggestion?.category);
         let cat = pick(name, t.direction, s(t.account));
@@ -160,6 +163,7 @@ export default async function (req: Request) {
         await db.LedgerTransaction.update(t.id, { category: cat, tax_category: c.tax, form_line: lineFor(cat, entityType), review_status: "approved", notes: [s(t.notes), "Categorized by vendor rule (Justin's request, Nov 19)"].filter(Boolean).join("\n").slice(0, 2000) });
         counts[cat] = (counts[cat] || 0) + 1; changed++;
       }
+      if (more) return Response.json({ ok: true, more, changed });
       // Save the vendor rules (learned) so future bank imports categorize the same way.
       const have = new Set(((await db.LedgerRule.list("priority", 1000).catch(() => [])) || []).map((r: any) => `${norm(r.pattern)}|${r.direction || "any"}`));
       let rulesAdded = 0;
@@ -168,7 +172,17 @@ export default async function (req: Request) {
         await db.LedgerRule.create({ business_id: "interstellar", pattern: p, match_field: "any", match_type: "contains", direction: dir, category: cat, priority: 40, learned: true, active: true, hits: 0, notes: "Vendor rule from the Nov 19 categorization (Justin)" }).catch(() => null);
         rulesAdded++;
       }
-      await save(db, { categorize: { entityType, scanned: tx.length, categorized: changed, counts, review_reasons: reviewWhy, rules_added: rulesAdded } });
+      // Final tally over every row touched by this job (all chunks).
+      const all = await listAll(db.LedgerTransaction, { notes: { $regex: "Nov 19" } }, "date");
+      const tally: Record<string, number> = {};
+      const why: Record<string, number> = {};
+      for (const t of all) {
+        const n = s(t.notes);
+        if (n.includes("Categorized by vendor rule")) tally[s(t.category)] = (tally[s(t.category)] || 0) + 1;
+        else if (t.review_status === "needs_review") { tally.needs_review = (tally.needs_review || 0) + 1; const m = n.match(/Needs review \(Nov 19\): (.*)/); if (m) why[m[1]] = (why[m[1]] || 0) + 1; }
+      }
+      const left = (await listAll(db.LedgerTransaction, { review_status: "needs_review" }, "date")).length;
+      await save(db, { categorize: { entityType, touched: all.length, tally, review_reasons: why, needs_review_total: left, rules_added: rulesAdded } });
       return Response.json({ ok: true, changed, counts });
     }
     return Response.json({ error: "unknown" }, { status: 400 });
