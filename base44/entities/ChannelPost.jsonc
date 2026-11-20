@@ -17,10 +17,11 @@
         "draft",
         "approved",
         "posted",
-        "declined"
+        "declined",
+        "archived"
       ],
       "default": "draft",
-      "description": "draft (Claude/Justin) -> approved (ready to post by hand) -> posted (Justin pasted the URL). Nothing auto-posts."
+      "description": "draft (Claude/Justin) -> approved (ready to post by hand) -> posted (Justin pasted the URL). Nothing auto-posts. archived = planned date passed before approval; rescheduled only if Justin re-approves."
     },
     "title": {
       "type": "string",

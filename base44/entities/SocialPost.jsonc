@@ -14,10 +14,11 @@
         "publishing",
         "posted",
         "failed",
-        "declined"
+        "declined",
+        "archived"
       ],
       "default": "draft",
-      "description": "draft -> approved (scheduled, Justin approved) -> publishing (publisher lock) -> posted | failed. declined = Justin said no. Nothing publishes unless Justin approved it."
+      "description": "draft -> approved (scheduled, Justin approved) -> publishing (publisher lock) -> posted | failed. declined = Justin said no. archived = a draft whose planned date passed before approval; it never auto-posts late and is rescheduled only if Justin re-approves it. Nothing publishes unless Justin approved it."
     },
     "folder": {
       "type": "string",
