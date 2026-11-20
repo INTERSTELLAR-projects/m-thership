@@ -150,3 +150,33 @@ describe("build checklist templates (step 4)", () => {
     expect(canPublish({ ...job, build: { ready_to_publish: false, checkpoints: [] } })).toBe(false);
   });
 });
+
+import { submitTypesFor, checkSubmission, SUBMIT_BY_NICHE, SUBMIT_TYPES, RECEIVED_TEXT, statusLabel } from "@/lib/submitTypes";
+import * as serverSubmit from "../../base44/shared/submitTypes.js";
+
+describe("portal Submit intake", () => {
+  it("offers niche-specific types, each with photos and the right fields", () => {
+    expect(submitTypesFor("home_service").map((t) => t.key)).toEqual(["project", "transformation", "testimonial", "event"]);
+    expect(submitTypesFor("retail_streetwear").map((t) => t.key)).toContain("drop");
+    expect(submitTypesFor("unknown").map((t) => t.key)).toEqual(SUBMIT_BY_NICHE.other);
+    expect(SUBMIT_TYPES.project.fields.some((f) => f.key === "location" && f.tag)).toBe(true);
+    expect(SUBMIT_TYPES.drop.fields.map((f) => f.key)).toEqual(expect.arrayContaining(["product_name", "price"]));
+    expect(SUBMIT_TYPES.transformation.consent && SUBMIT_TYPES.testimonial.consent).toBe(true);
+    expect(JSON.stringify(serverSubmit.SUBMIT_TYPES)).toBe(JSON.stringify(SUBMIT_TYPES));
+    expect(RECEIVED_TEXT).toBe("Received. We'll take it from here.");
+  });
+  it("validates: type allowed for the niche, required fields, at least one https photo, consent where people are featured", () => {
+    const photo = ["https://example.com/a.jpg"];
+    expect(checkSubmission("retail_streetwear", { kind: "project", fields: { title: "x", location: "y" }, photos: photo }).error).toBeTruthy();
+    expect(checkSubmission("home_service", { kind: "project", fields: { title: "[TEST] Patio" }, photos: photo }).error).toMatch(/Town/);
+    expect(checkSubmission("home_service", { kind: "project", fields: { title: "[TEST] Patio", location: "[TEST] Ridgeview" }, photos: [] }).error).toMatch(/photo/);
+    expect(checkSubmission("home_service", { kind: "project", fields: { title: "[TEST] Patio", location: "[TEST] Ridgeview" }, photos: ["http://insecure/x.jpg"] }).error).toMatch(/photo/);
+    expect(checkSubmission("home_service", { kind: "transformation", fields: { title: "[TEST] Yard" }, photos: photo }).error).toMatch(/agreed/);
+    const ok = checkSubmission("home_service", { kind: "project", fields: { title: "[TEST] Patio", location: "[TEST] Ridgeview", junk: "x" }, photos: photo });
+    expect(ok.error).toBeUndefined();
+    expect(ok.fields).toEqual({ title: "[TEST] Patio", location: "[TEST] Ridgeview" });
+    expect(ok.title).toBe("[TEST] Patio");
+    expect(statusLabel("received")).toBe("Received");
+    expect(statusLabel("live")).toBe("Live");
+  });
+});
