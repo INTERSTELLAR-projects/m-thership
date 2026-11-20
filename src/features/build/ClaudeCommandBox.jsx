@@ -1,10 +1,10 @@
 // Claude screen: pick a client, type an instruction, send. Saved as a ClaudeJob (kind command, status queued). The
-// job agent that runs these is Build Engine step 3, so for now each one waits in the list below and says so.
+// Send to Claude queue runner works them on its next run (hourly, 7 AM–9 PM PT).
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Send, Loader2 } from "lucide-react";
 import { useList } from "@/lib/useData";
-import { sendCommand } from "./engine";
+import { sendCommand, QUEUED_COPY } from "./engine";
 
 export default function ClaudeCommandBox() {
   const clientsQ = useList("CRMClient", { sort: "business", limit: 300 });
@@ -22,7 +22,7 @@ export default function ClaudeCommandBox() {
     try {
       await sendCommand({ client, instruction: text });
       setText("");
-      setNote(`Queued${client ? ` for ${client.business}` : ""}. It waits for the job agent (step 3).`);
+      setNote(`${client ? `For ${client.business}: ` : ""}${QUEUED_COPY}`);
       qc.invalidateQueries({ queryKey: ["ClaudeJob"] });
     } catch (err) { setNote(err?.message || "Could not queue it."); } finally { setBusy(false); }
   };
