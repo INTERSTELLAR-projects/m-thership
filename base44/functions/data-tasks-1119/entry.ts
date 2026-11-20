@@ -155,7 +155,7 @@ export default async function (req: Request) {
         let cat = pick(name, t.direction, s(t.account));
         if (cat === "transfer" && /stripe/.test(name) && sug === "loan") cat = "";
         if (!cat) { counts.needs_review = (counts.needs_review || 0) + 1; const w = reviewReason(name); reviewWhy[w] = (reviewWhy[w] || 0) + 1;
-          await db.LedgerTransaction.update(t.id, { notes: [s(t.notes), `Needs review (Nov 19): ${w}`].filter(Boolean).join("\n").slice(0, 2000) }).catch(() => null); continue; }
+          if (!s(t.notes).includes("Needs review (Nov 19)")) await db.LedgerTransaction.update(t.id, { notes: [s(t.notes), `Needs review (Nov 19): ${w}`].filter(Boolean).join("\n").slice(0, 2000) }).catch(() => null); continue; }
         const c = CATS[cat];
         await db.LedgerTransaction.update(t.id, { category: cat, tax_category: c.tax, form_line: lineFor(cat, entityType), review_status: "approved", notes: [s(t.notes), "Categorized by vendor rule (Justin's request, Nov 19)"].filter(Boolean).join("\n").slice(0, 2000) });
         counts[cat] = (counts[cat] || 0) + 1; changed++;
