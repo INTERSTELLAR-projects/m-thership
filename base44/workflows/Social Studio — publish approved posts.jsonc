@@ -1,6 +1,6 @@
 {
   "name": "Social Studio — publish approved posts",
-  "description": "Every 15 minutes: publishes Social Studio posts Justin approved whose scheduled time has passed, to Instagram (and the Facebook Page when that toggle is on). Drafts, declined and unapproved posts are never touched.",
+  "description": "OFF since Nov 19, 2026 (Justin): approving only marks a post ready and Justin posts it himself; keep inactive. Was: every 15 minutes: publishes Social Studio posts Justin approved whose scheduled time has passed, to Instagram (and the Facebook Page when that toggle is on). Drafts, declined and unapproved posts are never touched.",
   "trigger": {
     "condition": null,
     "config": {

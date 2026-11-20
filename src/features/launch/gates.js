@@ -41,9 +41,11 @@ export const GATES = [
   job("presentation", "Presentations", "approve", "Usually client-facing."),
   job("task", "General tasks", "approve", "Scope varies; may touch a client or a live site."),
   job("other", "Other jobs", "approve", "Scope varies."),
-  { key: "social.post", family: "Social Studio", label: "Social Studio posts (Interstellar IG/FB)", entity: "SocialPost", query: { status: "draft" }, current: "approve", recommended: "approve", why: "Public posts; approved posts auto-publish at their time.", bulk: false, link: "/social", note: "Review the images in Social Studio; approving there schedules them." },
+  // One taste queue for Interstellar's own social drafts (Justin, Nov 19): Social Studio (IG/FB) + LinkedIn / YouTube / DM.
+  // Auto-publishing is OFF (the two "Social Studio — publish approved …" workflows are inactive): approving only marks a
+  // post ready and Justin posts it himself. Client blogs, GBP and citations never auto-post either.
+  { key: "social.drafts", family: "Social Studio", label: "Social drafts (Interstellar)", entity: "SocialPost", sources: [{ entity: "SocialPost", query: { status: "draft" } }, { entity: "ChannelPost", query: { status: "draft" } }], query: { status: "draft" }, current: "approve", recommended: "approve", why: "Taste: Interstellar's own posts. Approving marks it ready, you post. Drafts whose planned date passes are archived, not posted late.", bulk: false, link: "/social", rowNote: () => "Approving marks it ready, you post" },
   { key: "social.variant", family: "Social Studio", label: "Content-engine variants (13 platforms)", entity: "SocialVariant", query: { status: "draft" }, current: "approve", recommended: "approve", why: "Public posts.", bulk: false, link: "/social" },
-  { key: "social.channel", family: "Social Studio", label: "LinkedIn / YouTube / DM drafts", entity: "ChannelPost", query: { status: "draft" }, current: "approve", recommended: "approve", why: "Public; you post these by hand.", bulk: false, link: "/social" },
   { key: "outreach.message", family: "Backlinks & Citations", label: "Outreach emails", entity: "OutreachMessage", query: { status: { $in: ["draft", "needs_approval"] } }, current: "approve", recommended: "approve", why: "Sent to third parties as Justin (justin@interstellar-strategies.com), on the client's behalf.", bulk: false, link: "/backlinks" },
   { key: "outreach.target", family: "Backlinks & Citations", label: "Outreach targets (qualify)", entity: "OutreachTarget", query: { status: "discovered" }, current: "approve", recommended: "auto", why: "Internal research list. Auto moves discovered targets to qualified; nothing is contacted.", bulk: "status", approveTo: { status: "qualified" }, link: "/backlinks" },
   { key: "seo.intel", family: "Search Intel", label: "Search Intel proposed actions", entity: "SeoIntel", query: { kind: "action", status: "proposed" }, current: "approve", recommended: "approve", why: "Approving sends the work to Claude: within the hour each action becomes Claude jobs (up to 5 clients each). Audits come back as findings; technical fixes on Base44 sites (redirects, robots, schema, sitemap) go live and are verified; visible copy and Google profile changes come back to you first.", bulk: "status", approveTo: { status: "approved" }, link: "/orbit-seo/manage" },
@@ -91,6 +93,11 @@ const list = (p) => Promise.resolve(p).then((r) => (Array.isArray(r) ? r : (r &&
 export async function loadWaiting() {
   const out = {};
   await Promise.all(GATES.filter((g) => g.query).map(async (g) => {
+    if (g.sources) {
+      const parts = await Promise.all(g.sources.map((s) => (base44.entities[s.entity] ? list(base44.entities[s.entity].filter(s.query, "-created_date", 300)).then((rows) => rows.map((r) => ({ ...r, _entity: s.entity }))) : [])));
+      out[g.key] = parts.flat();
+      return;
+    }
     const ent = base44.entities[g.entity];
     if (!ent) { out[g.key] = []; return; }
     out[g.key] = await list(ent.filter(g.query, "-created_date", g.entity === "LedgerTransaction" ? 2000 : 300));
@@ -101,6 +108,8 @@ export async function loadWaiting() {
 export function rowTitle(g, r) {
   return r.title || r.name || r.headline || r.payee || r.topic || r.learning || r.client_name || r.email || "(untitled)";
 }
+
+export const rowNote = (g, r) => (g.rowNote ? g.rowNote(r) : "");
 
 export async function approveRow(g, r) {
   if (g.bulk === "job") return approveJob(r);

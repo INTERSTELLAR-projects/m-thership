@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, ChevronDown, ChevronRight, CheckCheck } from "lucide-react";
-import { GATES, loadWaiting, approveRow, rowTitle, MODES, loadPolicy, gateMode } from "./gates";
+import { GATES, loadWaiting, approveRow, rowTitle, rowNote, MODES, loadPolicy, gateMode } from "./gates";
 import TopicCalendarCards from "./TopicCalendarCards";
 
 export function useWaiting() {
@@ -93,7 +93,7 @@ export default function ApprovalsInbox() {
                   <ul className="max-h-80 space-y-1 overflow-y-auto">
                     {rows.slice(0, 60).map((r) => (
                       <li key={r.id} className="flex items-center justify-between gap-3 border-b border-hair/60 py-1.5 text-[12.5px] last:border-0">
-                        <span className="min-w-0 truncate">{rowTitle(g, r)}{r.client_name && !String(rowTitle(g, r)).includes(r.client_name) ? <span className="text-ink/45"> · {r.client_name}</span> : null}</span>
+                        <span className="min-w-0 truncate">{rowTitle(g, r)}{r.client_name && !String(rowTitle(g, r)).includes(r.client_name) ? <span className="text-ink/45"> · {r.client_name}</span> : null}{rowNote(g, r) ? <span className="ml-2 text-[11px] text-ink/45">{rowNote(g, r)}</span> : null}</span>
                         <Link to={g.linkFor ? g.linkFor(r) : g.entity === "ClaudeJob" ? `/claude?job=${r.id}` : link || "/"} className="shrink-0 text-[11.5px] text-ink/50 hover:text-[#ff3c00]">Review</Link>
                       </li>
                     ))}

@@ -1,6 +1,6 @@
 {
   "name": "Social Studio — publish approved variants",
-  "description": "Every 15 minutes: posts content-engine variants Justin approved whose time has passed, on auto-mode accounts only (connector or secret in place). Manual platforms, drafts, declined and unapproved variants are never touched.",
+  "description": "OFF since Nov 19, 2026 (Justin): approving only marks a variant ready and Justin posts it himself; keep inactive. Was: every 15 minutes: posts content-engine variants Justin approved whose time has passed, on auto-mode accounts only (connector or secret in place). Manual platforms, drafts, declined and unapproved variants are never touched.",
   "trigger": {
     "condition": null,
     "config": {

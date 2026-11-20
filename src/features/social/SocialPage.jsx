@@ -391,7 +391,7 @@ function AnalyticsStrip({ posts, status, tz, onOpen }) {
 function EmptyTab({ tab }) {
   const copy = {
     draft: ["No drafts waiting", "The weekly Claude batch lands here. Approve, edit or decline each one."],
-    scheduled: ["Nothing scheduled", "Approve a draft to give it a time. Møthership publishes it then."],
+    scheduled: ["Nothing scheduled", "Approve a draft to mark it ready for its time. Approving marks it ready, you post."],
     posted: ["Nothing posted yet", "Published posts show here with their permalink and engagement."],
     failed: ["No failures", "If Instagram rejects a post it lands here with the reason."],
     declined: ["Nothing declined", "Declined drafts are kept here so you can restore them."],
