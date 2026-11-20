@@ -20,6 +20,16 @@
       "items": { "additionalProperties": true, "type": "object" },
       "type": "array"
     },
+    "build": {
+      "additionalProperties": true,
+      "description": "Build Engine step 3 (lead_build / checklist_item / command): briefs {website, command}, website_app_id, command_app_id, checkpoints [{app_id, kind, checkpoint, at}], preview urls, checklist_id, item_key, taste_defaults [] for Justin, ready_to_publish true when a deploy is the only thing left",
+      "type": "object"
+    },
+    "publish": {
+      "additionalProperties": true,
+      "description": "Ready to publish: Justin's tap is the approval. {status requested|deploying|deployed|failed, requested_at, requested_by, targets [{app_id, kind website|command, checkpoint}], deployed_at, live_urls, error}. The queue runner deploys requested ones.",
+      "type": "object"
+    },
     "result_url": {
       "description": "Build Engine: where the result lives (preview URL, app, doc)",
       "type": "string"

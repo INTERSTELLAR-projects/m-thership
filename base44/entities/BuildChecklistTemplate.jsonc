@@ -1,0 +1,19 @@
+{
+  "name": "BuildChecklistTemplate",
+  "description": "Build Engine step 4: the build checklist for one niche. Two tracks (Website, Command System); each item is auto (Claude does it) or manual, with an optional client-friendly label for the portal and a gate (taste = Justin's look call, publish = Justin's tap). Seeded from base44/shared/buildTemplates.js.",
+  "type": "object",
+  "properties": {
+    "niche_key": { "type": "string", "enum": ["home_service", "fitness_coach", "retail_streetwear", "food_bev", "other"] },
+    "label": { "type": "string" },
+    "version": { "type": "number", "default": 1 },
+    "tracks": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "notes": { "type": "string" }
+  },
+  "required": ["niche_key", "tracks"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

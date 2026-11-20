@@ -173,6 +173,16 @@
       },
       "type": "array"
     },
+    "website_live_at": {
+      "description": "Build Engine: first time the website went live through Ready to publish (portal launch animation)",
+      "format": "date-time",
+      "type": "string"
+    },
+    "command_live_at": {
+      "description": "Build Engine: first time the Command System went live through Ready to publish (portal launch animation)",
+      "format": "date-time",
+      "type": "string"
+    },
     "site_app_id": {
       "description": "Base44 app id of their website",
       "type": "string"

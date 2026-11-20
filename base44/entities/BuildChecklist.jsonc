@@ -1,0 +1,25 @@
+{
+  "name": "BuildChecklist",
+  "description": "Build Engine step 4: one client's build checklist, made from its niche's BuildChecklistTemplate. Items carry done, done_at, done_by, a one-line note, a preview_url and the job_id that did them. The portal shows only items with a client_label.",
+  "type": "object",
+  "properties": {
+    "client_id": { "type": "string" },
+    "client_name": { "type": "string" },
+    "niche_key": { "type": "string" },
+    "template_version": { "type": "number" },
+    "tracks": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "website_app_id": { "type": "string" },
+    "command_app_id": { "type": "string" },
+    "website_preview_url": { "type": "string" },
+    "command_preview_url": { "type": "string" },
+    "job_id": { "type": "string", "description": "The lead_build job that generated it" },
+    "updated_by": { "type": "string" }
+  },
+  "required": ["client_id", "tracks"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}
