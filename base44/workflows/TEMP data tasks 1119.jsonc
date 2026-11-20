@@ -19,25 +19,25 @@
     }
   },
   "definition": {
-    "document": {
-      "dsl": "1.0.0",
-      "name": "temp_data_tasks_1119",
-      "version": "1.0",
-      "namespace": "base44"
-    },
     "do": [
       {
         "categorize": {
           "call": "invoke_backend_function",
+          "then": "end",
           "with": {
-            "function_name": "data-tasks-1119",
             "args": {
               "action": "categorize"
-            }
-          },
-          "then": "end"
+            },
+            "function_name": "data-tasks-1119"
+          }
         }
       }
-    ]
+    ],
+    "document": {
+      "dsl": "1.0.0",
+      "name": "temp_data_tasks_1119",
+      "namespace": "base44",
+      "version": "1.0"
+    }
   }
 }
