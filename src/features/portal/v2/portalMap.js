@@ -25,13 +25,13 @@ export const GROUPS = [
       { k: "results", label: "Search results", desc: "Traffic, calls and how people find you", icon: LineChart },
       { k: "gbp", label: "Google Business", desc: "Your profile, reviews and review link", icon: MapPin },
       { k: "mentions", label: "Mentions & PR", desc: "Listings, press and links we earned", icon: Newspaper },
+      { k: "seasons", label: "Seasons & offers", desc: "Switch your site to a season look and run offers", icon: CalendarHeart },
     ],
   },
   {
     id: "requests", label: "Requests & self-serve", hint: "Ask us, chat, or do it yourself",
     items: [
       { k: "requests", label: "Requests", desc: "Edits, content, projects, drops and offers", icon: ClipboardList },
-      { k: "seasons", label: "Seasons & offers", desc: "Switch your site to a season look and run offers", icon: CalendarHeart },
       { k: "messages", label: "Messages", desc: "Chat with the Interstellar team", icon: MessageSquare },
       { k: "studio_social", label: "Social", desc: "Plan, design and publish posts", icon: Megaphone },
       { k: "studio_email", label: "Email", desc: "Campaigns and automations to your list", icon: Mail },
