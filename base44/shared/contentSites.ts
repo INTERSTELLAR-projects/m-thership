@@ -58,7 +58,9 @@ export const CONTENT_SITES: Record<string, SiteConfig> = {
     enabled: true,
     footprint: "national",
     owner_name: "Jacob Mercer",
-    indexnow: null, // no IndexNow key file on the site yet: reported as not_supported
+    // Key file public/09a575c685c0237ac17c7170b6455054.txt ships in the site checkpoint of 2026-11-19; IndexNow accepts
+    // pings once that checkpoint is published (before that a ping is just refused and logged on the ContentPost).
+    indexnow: { key: "09a575c685c0237ac17c7170b6455054", key_location: "https://redline-visuals.com/09a575c685c0237ac17c7170b6455054.txt" },
     daily_limit: 5,
     weekly_limit: 20,
     kinds: {
