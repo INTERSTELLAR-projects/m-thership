@@ -21,7 +21,91 @@
   "definition": {
     "do": [
       {
-        "categorize": {
+        "c1": {
+          "call": "invoke_backend_function",
+          "then": "c2",
+          "with": {
+            "args": {
+              "action": "categorize"
+            },
+            "function_name": "data-tasks-1119"
+          }
+        }
+      },
+      {
+        "c2": {
+          "call": "invoke_backend_function",
+          "then": "c3",
+          "with": {
+            "args": {
+              "action": "categorize"
+            },
+            "function_name": "data-tasks-1119"
+          }
+        }
+      },
+      {
+        "c3": {
+          "call": "invoke_backend_function",
+          "then": "c4",
+          "with": {
+            "args": {
+              "action": "categorize"
+            },
+            "function_name": "data-tasks-1119"
+          }
+        }
+      },
+      {
+        "c4": {
+          "call": "invoke_backend_function",
+          "then": "c5",
+          "with": {
+            "args": {
+              "action": "categorize"
+            },
+            "function_name": "data-tasks-1119"
+          }
+        }
+      },
+      {
+        "c5": {
+          "call": "invoke_backend_function",
+          "then": "c6",
+          "with": {
+            "args": {
+              "action": "categorize"
+            },
+            "function_name": "data-tasks-1119"
+          }
+        }
+      },
+      {
+        "c6": {
+          "call": "invoke_backend_function",
+          "then": "c7",
+          "with": {
+            "args": {
+              "action": "categorize"
+            },
+            "function_name": "data-tasks-1119"
+          }
+        }
+      },
+      {
+        "c7": {
+          "call": "invoke_backend_function",
+          "then": "c8",
+          "with": {
+            "args": {
+              "action": "categorize"
+            },
+            "function_name": "data-tasks-1119"
+          }
+        }
+      },
+      {
+        "c8": {
           "call": "invoke_backend_function",
           "then": "end",
           "with": {
