@@ -169,4 +169,4 @@ export async function requestPublish(job, me) {
   logAction("ready_to_publish");
   return publish;
 }
-export const canPublish = (job) => !!(job?.build?.ready_to_publish && (job.build.checkpoints || []).length && ["needs_review", "needs_approval", "approved", "done"].includes(job.status) && !["requested", "deploying", "deployed"].includes(job.publish?.status));
+export { canPublish } from "./publishRules";

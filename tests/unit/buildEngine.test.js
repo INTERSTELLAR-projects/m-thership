@@ -108,3 +108,45 @@ describe("brand filter and service process", () => {
     for (const p of PROCESSES) for (const s of p.steps) { expect(s.owner).toBeTruthy(); expect(["auto", "manual"]).toContain(s.mode); expect(s.where).toBeTruthy(); expect(s.to.startsWith("/")).toBe(true); }
   });
 });
+
+import { ALL_TEMPLATES, NICHE_KEYS, templateFor, instantiate, tick, progress, portalView } from "@/lib/buildTemplates";
+import * as serverTemplates from "../../base44/shared/buildTemplates.js";
+import { canPublish } from "@/features/build/publishRules";
+
+describe("build checklist templates (step 4)", () => {
+  it("has one template per niche, each with a Website and a Command System track", () => {
+    expect(ALL_TEMPLATES.map((t) => t.niche_key)).toEqual(NICHE_KEYS);
+    for (const t of ALL_TEMPLATES) {
+      expect(t.tracks.map((r) => r.key)).toEqual(["website", "command"]);
+      const groups = new Set(t.tracks[0].items.map((i) => i.group));
+      for (const g of ["pages", "content", "nap_schema", "forms", "seo", "speed", "security", "analytics", "launch"]) expect(groups.has(g), `${t.niche_key} website ${g}`).toBe(true);
+      const cg = new Set(t.tracks[1].items.map((i) => i.group));
+      for (const g of ["modules", "data", "logins", "connections", "automations", "launch"]) expect(cg.has(g), `${t.niche_key} command ${g}`).toBe(true);
+      for (const r of t.tracks) for (const i of r.items) { expect(typeof i.auto).toBe("boolean"); expect(new Set(r.items.map((x) => x.key)).size).toBe(r.items.length); }
+      // Publishing is always a manual gate, never auto.
+      for (const r of t.tracks) for (const i of r.items.filter((x) => x.gate === "publish")) expect(i.auto).toBe(false);
+    }
+    expect(templateFor("nope").niche_key).toBe("other");
+    expect(JSON.stringify(serverTemplates.ALL_TEMPLATES)).toBe(JSON.stringify(ALL_TEMPLATES));
+  });
+  it("instantiates, ticks and shows only client-friendly items in the portal", () => {
+    const c = instantiate(templateFor("home_service"), { id: "c1", business: "[TEST] Demo Co", niche_key: "home_service" });
+    const p0 = progress(c);
+    expect(p0.done).toBe(0);
+    const c2 = tick(c, "website", "page_home", { done: true, note: "built" });
+    expect(progress(c2).done).toBe(1);
+    const v = portalView(c2);
+    expect(v.done).toBe(1);
+    const labels = v.tracks.flatMap((t) => t.items.map((i) => i.label));
+    expect(labels).toContain("Your homepage");
+    expect(labels).not.toContain("");
+    expect(v.tracks.flatMap((t) => t.items).length).toBeLessThan(p0.total);
+  });
+  it("offers Ready to publish only for finished build jobs with checkpoints", () => {
+    const job = { status: "needs_review", build: { ready_to_publish: true, checkpoints: [{ app_id: "a", kind: "website", checkpoint: "x" }] } };
+    expect(canPublish(job)).toBe(true);
+    expect(canPublish({ ...job, status: "running" })).toBe(false);
+    expect(canPublish({ ...job, publish: { status: "requested" } })).toBe(false);
+    expect(canPublish({ ...job, build: { ready_to_publish: false, checkpoints: [] } })).toBe(false);
+  });
+});

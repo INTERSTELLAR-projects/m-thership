@@ -1,7 +1,7 @@
 // Portal live build (Build Engine): the client-friendly checklist items light up as Claude and the team tick them,
 // and the first time the website or Command System goes live the client sees a one-time launch moment.
 import { useEffect, useState } from "react";
-import { Check, Rocket, X } from "lucide-react";
+import { Check, Rocket } from "lucide-react";
 
 export function PortalBuildBand({ build }) {
   const v = build?.view;
