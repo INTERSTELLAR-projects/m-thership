@@ -570,6 +570,8 @@ function tInk(c) {
   const mono = "'JetBrains Mono',Menlo,Consolas,'Courier New',monospace";
   const a1 = esc(t.accent_color);
   const a2 = esc(t.accent_color_2 || t.accent_color);
+  // Interstellar orange gets the house bar (#ff3c00 → #ff6a00 → #ffaa00); other brands run accent → accent 2.
+  const bar = /^#ff6a00$/i.test(t.accent_color) ? "#ff3c00,#ff6a00,#ffaa00" : `${a1},${a2}`;
   const lh = Math.min(Number(f.logo_height) || 32, 40);
   const brand = f.logo_url
     ? `<a href="${esc(href(f.website))}" style="text-decoration:none;"><img src="${esc(f.logo_url)}" height="${lh}" alt="${esc(
@@ -597,7 +599,7 @@ function tInk(c) {
   const contactsCell = items.length
     ? `<td valign="middle" style="padding:20px 18px;border-left:1px solid #2a2a2a;font-family:${mono};font-size:11px;line-height:24px;color:#cfc9c0;white-space:nowrap;">${right}</td>`
     : "";
-  return `<table ${TBL} style="width:560px;max-width:100%;border-collapse:collapse;background-color:#141414;font-family:${sans};"><tr><td background="${INK_GRAIN}" bgcolor="#141414" style="background-color:#141414;background-image:url('${INK_GRAIN}');background-size:cover;border:1px solid #2a2a2a;border-bottom:0;padding:0;"><table ${TBL} style="width:100%;border-collapse:collapse;"><tr><td valign="top" style="padding:22px 22px 20px 24px;">${left}</td>${contactsCell}</tr></table></td></tr><tr><td style="padding:0;font-size:0;line-height:0;"><table ${TBL} style="width:100%;border-collapse:collapse;"><tr><td height="3" bgcolor="${a1}" style="height:3px;background-color:${a1};background-image:linear-gradient(90deg,${a1},${a2},#ffaa00);font-size:0;line-height:0;">&nbsp;</td></tr></table></td></tr></table>`;
+  return `<table ${TBL} style="width:560px;max-width:100%;border-collapse:collapse;background-color:#141414;font-family:${sans};"><tr><td background="${INK_GRAIN}" bgcolor="#141414" style="background-color:#141414;background-image:url('${INK_GRAIN}');background-size:cover;border:1px solid #2a2a2a;border-bottom:0;padding:0;"><table ${TBL} style="width:100%;border-collapse:collapse;"><tr><td valign="top" style="padding:22px 22px 20px 24px;">${left}</td>${contactsCell}</tr></table></td></tr><tr><td style="padding:0;font-size:0;line-height:0;"><table ${TBL} style="width:100%;border-collapse:collapse;"><tr><td height="3" bgcolor="${a1}" style="height:3px;background-color:${a1};background-image:linear-gradient(90deg,${bar});font-size:0;line-height:0;">&nbsp;</td></tr></table></td></tr></table>`;
 }
 
 const RENDER = { t5_rail: tHalo, t1_classic: tSplit, t4_centered: tStack, t2_minimal: tMinimal, t3_compact: tCompact, t6_ink: tInk };
