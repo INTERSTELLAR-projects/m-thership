@@ -1,12 +1,14 @@
 // The Build section of every client page. Same layout for every client and lead:
 //   lead card (scrape → send to build) · build checklist (Website + Command System tracks) · Brain meter with its
 //   unlocks · launch grid · growth feed (blogs, GBP posts) · requests.
-// Checklist items and the launch grid are placeholders until Build Engine step 3 wires them.
+// The checklist is the client's real BuildChecklist (niche template, ticked by the runner); the launch grid is a placeholder.
 import { Link } from "react-router-dom";
 import { Check, Lock, ArrowUpRight } from "lucide-react";
 import { useList, timeAgo } from "@/lib/useData";
 import LeadCard from "./LeadCard";
-import { TRACKS, LAUNCH_GRID, unlockState } from "./engine";
+import { LAUNCH_GRID, unlockState } from "./engine";
+import BuildChecklistPanel from "./BuildChecklistPanel";
+import ReadyToPublish from "./ReadyToPublish";
 
 const Panel = ({ title, link, children, testid }) => (
   <section className="border border-hair bg-paper/80" data-testid={testid}>
@@ -31,28 +33,34 @@ export default function ClientBuildPage({ client, go }) {
   const postWork = new Set(fromPosts.map((p) => p.work).filter(Boolean));
   const growth = [...fromPosts, ...(workQ.data || []).filter((w) => !postWork.has(w.id) && /blog|gbp|post|social/i.test(String(w.kind || w.title || "")))]
     .sort((a, b) => String(b.date || b.created_date || "").localeCompare(String(a.date || a.created_date || ""))).slice(0, 6);
+  const jobsQ = useList("ClaudeJob", { filter: { client_id: client.id, kind: { $in: ["lead_build", "checklist_item", "command"] } }, limit: 20, sort: "-created_date" });
+  const buildJobs = (jobsQ.data || []).filter((j) => j.kind === "lead_build" || j.build?.ready_to_publish || ["queued", "running", "needs_review"].includes(j.status)).slice(0, 5);
   const reqs = (reqQ.data || []).filter((r) => !["complete", "declined"].includes(r.status)).slice(0, 5);
 
   return (
     <div className="space-y-4" data-testid="client-build">
       {client.status === "Lead" || client.scrape_summary || client.scrape_status ? <LeadCard client={client} /> : null}
 
+      {buildJobs.length ? (
+        <Panel title="Build jobs" link={{ to: "/claude", label: "Claude" }} testid="build-jobs">
+          <ul className="divide-y divide-hair">
+            {buildJobs.map((j) => (
+              <li key={j.id} className="space-y-2 px-4 py-2.5 text-[12.5px]">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Link to={`/claude?job=${j.id}`} className="min-w-0 truncate font-medium hover:text-[#ff3c00]">{j.title}</Link>
+                  <span className="shrink-0 font-mono text-[10.5px] text-ink/45">{String(j.status).replace(/_/g, " ")} · {timeAgo(j.updated_date || j.created_date)}</span>
+                </div>
+                {j.result_summary ? <p className="text-ink/60">{j.result_summary}</p> : null}
+                {(j.build?.taste_defaults || []).length ? <p className="text-[11.5px] text-[#c24100]">Taste calls left as defaults for you: {j.build.taste_defaults.join("; ")}</p> : null}
+                <ReadyToPublish job={j} />
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      ) : null}
+
       <Panel title="Build checklist" testid="build-checklist">
-        <div className="grid md:grid-cols-2">
-          {TRACKS.map((tr, i) => (
-            <div key={tr.key} className={i ? "border-t border-hair md:border-l md:border-t-0" : ""}>
-              <p className="flex items-center justify-between px-4 pt-3 text-[12.5px] font-medium">{tr.label}<span className="font-mono text-[10px] text-ink/40">0/{tr.items.length}</span></p>
-              <ol className="px-4 pb-3 pt-1">
-                {tr.items.map((it, k) => (
-                  <li key={it} className="flex items-center gap-2 py-1 text-[12.5px] text-ink/60">
-                    <span className="grid h-4 w-4 shrink-0 place-items-center border border-ink/25 text-[9px] text-ink/40">{k + 1}</span>{it}
-                  </li>
-                ))}
-              </ol>
-            </div>
-          ))}
-        </div>
-        <p className="border-t border-hair px-4 py-2 text-[11.5px] text-ink/45">Placeholder tracks. The build agent (step 3) ticks these as it works; you only see the taste calls and the publish/DNS taps.</p>
+        <BuildChecklistPanel client={client} />
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">

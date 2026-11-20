@@ -1,12 +1,12 @@
 // Lead card: scrape the lead, see a clean summary (never invented: missing facts say "not found"), its Brain % and
 // niche, then "Send to build", which queues a lead_build ClaudeJob with all the context. The job waits until the
-// build agent (Build Engine step 3) exists, and the card says so.
+// queue runner's next run (hourly, 7 AM–9 PM PT), and the card says so.
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Sparkles, Loader2, Hammer, Clock, ExternalLink } from "lucide-react";
 import { useList } from "@/lib/useData";
-import { NICHES, SOURCES, scrapeLead, sendToBuild, isHeld } from "./engine";
+import { NICHES, SOURCES, scrapeLead, sendToBuild, QUEUED_COPY } from "./engine";
 
 const nf = <span className="text-ink/35">not found</span>;
 const Row = ({ k, children }) => (
@@ -62,7 +62,7 @@ export default function LeadCard({ client }) {
       {job ? (
         <p className="flex items-start gap-2 border-b border-hair bg-[#ff6a00]/[0.07] px-4 py-2.5 text-[12.5px] text-ink/75" data-testid="lead-build-queued">
           <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#c24100]" />
-          <span><b className="font-medium text-ink">Queued for build.</b> {isHeld(job) ? "It waits here until the build agent (Build Engine step 3) is switched on; nothing runs yet." : `Status: ${job.status}.`} <Link to={`/claude?job=${job.id}`} className="text-[#ff3c00] hover:underline">See the job</Link></span>
+          <span><b className="font-medium text-ink">{job.status === "queued" ? "Queued for build." : "Build"}</b> {job.status === "queued" ? QUEUED_COPY : job.status === "running" ? "Claude is building it now." : `Status: ${String(job.status).replace(/_/g, " ")}.`} <Link to={`/claude?job=${job.id}`} className="text-[#ff3c00] hover:underline">See the job</Link></span>
         </p>
       ) : null}
       {err ? <p className="px-4 pt-2 text-[12px] text-red-700" role="alert">{err}</p> : null}

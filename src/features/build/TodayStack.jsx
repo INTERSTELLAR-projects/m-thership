@@ -8,7 +8,6 @@ import { useList } from "@/lib/useData";
 import { laneForJob, laneForLaunchItem } from "@/lib/approvalLanes";
 import { PrepBoard } from "@/features/prep/PrepChecklist";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { isHeld } from "./engine";
 
 const BUILD_KINDS = new Set(["lead_build", "checklist_item", "build_website", "build_app"]);
 
@@ -75,7 +74,7 @@ export function BuildsInProgress() {
             <li key={j.id} className="px-4 py-2.5">
               <div className="flex items-baseline justify-between gap-2">
                 <Link to={j.client_id ? `/clients/${j.client_id}` : `/claude?job=${j.id}`} className="truncate text-[13.5px] font-medium hover:text-[#ff3c00]">{j.client_name || j.title}</Link>
-                <span className="shrink-0 font-mono text-[10.5px] text-ink/45">{isHeld(j) ? "queued · waits for step 3" : String(j.status).replace(/_/g, " ")}</span>
+                <span className="shrink-0 font-mono text-[10.5px] text-ink/45">{j.status === "queued" ? "queued · next run" : String(j.status).replace(/_/g, " ")}</span>
               </div>
               <div className="mt-1.5 h-1.5 bg-ink/[0.08]"><div className="h-full bg-[#ff3c00]" style={{ width: `${pctOf(j)}%` }} /></div>
             </li>

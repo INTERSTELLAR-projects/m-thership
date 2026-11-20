@@ -10,6 +10,8 @@ import {
 } from "@/features/claude/jobs";
 import SimpleQueue from "@/features/claude/SimpleQueue";
 import ClaudeCommandBox from "@/features/build/ClaudeCommandBox";
+import ReadyToPublish from "@/features/build/ReadyToPublish";
+import { QUEUED_COPY } from "@/features/build/engine";
 import EnrichReview from "@/features/clients/EnrichReview";
 import { isEnrichJob } from "@/features/clients/enrich";
 import { useViewMode } from "@/features/claude/simple";
@@ -61,7 +63,7 @@ function JobDetail({ job, onDone }) {
       <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
         {job.status === "queued" && (
           <p className="rounded-sm bg-ink/[0.04] px-3 py-2.5 text-[12.5px] text-ink/65">
-            {job.context?.held_for === "build_engine_step3" ? "Queued for the build agent (Build Engine step 3). It waits here until that agent is switched on; nothing runs it yet." : "Waiting for Claude's next scheduled run. To run it now, copy the prompt into a Claude chat."}
+            {["lead_build", "checklist_item", "command"].includes(job.kind) ? QUEUED_COPY : "Waiting for Claude's next scheduled run. To run it now, copy the prompt into a Claude chat."}
           </p>
         )}
         {job.status === "running" && (
@@ -69,6 +71,7 @@ function JobDetail({ job, onDone }) {
             <Loader2 className="h-3.5 w-3.5 animate-spin" /> Claude is working on this{job.started_at ? ` (started ${timeAgo(job.started_at)})` : ""}.
           </p>
         )}
+        <ReadyToPublish job={job} />
         {job.needs_from_justin && (
           <div className="rounded-sm border border-amber-300 bg-amber-50 px-3 py-2.5">
             <p className="mono-label flex items-center gap-1.5 text-[9.5px] text-amber-800"><AlertTriangle className="h-3 w-3" /> Needs you</p>
