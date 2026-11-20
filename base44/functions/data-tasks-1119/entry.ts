@@ -152,7 +152,8 @@ export default async function (req: Request) {
       let more = false;
       for (const t of tx) {
         if (s(t.category) || s(t.notes).includes("Needs review (Nov 19)")) continue;
-        if (Date.now() - t0 > 40000) { more = true; break; }
+        if (Date.now() - t0 > 45000) { more = true; break; }
+        await new Promise((r) => setTimeout(r, 220)); // stay under the 350 updates / 60s limit
         const name = norm(t.payee || t.description);
         const sug = s(t.ai_suggestion?.category);
         let cat = pick(name, t.direction, s(t.account));
