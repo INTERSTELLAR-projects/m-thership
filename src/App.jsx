@@ -42,7 +42,7 @@ import PortalApp from '@/features/portal/PortalApp';
 import TaskBoard from './pages/TaskBoard';
 import TaskPatterns from './pages/TaskPatterns';
 import TaskSops from './pages/TaskSops';
-import FlightPlan from './pages/FlightPlan';
+const FlightPlan = lazyPage(() => import('./pages/FlightPlan'));
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import ClaudeQueue from './pages/ClaudeQueue';
@@ -61,10 +61,10 @@ import FuelEconomicsPage from '@/features/fuel/FuelEconomicsPage';
 import UpgradeStorePage from '@/features/addons/UpgradeStorePage';
 import AgentsPage from '@/features/agents/AgentsPage';
 import UniversePage from '@/features/universe/UniversePage';
-import UsageCostPage from '@/features/usage/UsageCostPage';
+const UsageCostPage = lazyPage(() => import('@/features/usage/UsageCostPage'));
 import PlaybooksPage from '@/features/playbooks/PlaybooksPage';
 import SystemsPage from '@/features/systems/SystemsPage';
-import ContentPipelinePage from '@/features/content/ContentPipelinePage';
+const ContentPipelinePage = lazyPage(() => import('@/features/content/ContentPipelinePage'));
 import ShareImagesPage from '@/features/shareImages/ShareImagesPage';
 import CallsPage from '@/features/calls/CallsPage';
 import CallPrepPage from '@/features/calls/CallPrepPage';
@@ -72,13 +72,22 @@ import IntelligencePage from '@/features/oracle/IntelligencePage';
 import LaunchPage from '@/features/launch/LaunchPage';
 import OracleTopicPage from '@/features/oracle/TopicPage';
 import More from './pages/More';
-import UsageInsights from './pages/UsageInsights';
+const UsageInsights = lazyPage(() => import('./pages/UsageInsights'));
 import CommandHome from '@/features/command/CommandHome';
 import PillarsView from '@/features/command/PillarsView';
 import BrainView from '@/features/command/BrainView';
 import WalkMode from '@/features/command/WalkMode';
 import LaunchWeekPage from '@/features/launchweek/LaunchWeekPage';
 import BrandsPage from '@/features/brands/BrandsPage';
+import { lazy as reactLazy, Suspense } from "react";
+
+// Pages loaded on first visit (keeps the main bundle under the release-check budget).
+function lazyPage(load) {
+  const C = reactLazy(load);
+  return function LazyPage(props) {
+    return <Suspense fallback={<div className="p-8 text-[13px] text-ink/45">Loading…</div>}><C {...props} /></Suspense>;
+  };
+}
 import BrandDashboard from '@/features/brands/BrandDashboard';
 
 // Branded sign-in routes. They render without a session. While the platform's hosted login owns /login for this
