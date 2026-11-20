@@ -1,12 +1,15 @@
 // Build Engine step 4: build checklist templates per niche (identical copy in base44/shared/buildTemplates.js).
 // Each template has two tracks: Website and Command System. Every item says whether Claude does it (auto) or it
 // needs a person (manual), and how it reads to the client in the portal (client_label; empty = internal only).
-// gate: "taste" = Justin's look-and-feel call; "publish" = Justin's tap (deploy/DNS). The runner never does gates.
+// gate: "taste" = Justin's look-and-feel call; "publish" = Justin's tap (deploy); "dns" = Justin's tap that connects the
+// client's own domain. Connecting the domain is ALWAYS the last Website step and is what makes the site live (Justin,
+// Nov 19 2026): everything before it runs on the base44.app address. The runner never does gates.
 // The BuildChecklistTemplate entity holds the editable copy; these are the defaults it is seeded from.
 
 export const NICHE_KEYS = ["home_service", "fitness_coach", "retail_streetwear", "food_bev", "other"];
 export const NICHE_LABEL = { home_service: "Home service", fitness_coach: "Fitness coach", retail_streetwear: "Retail / streetwear", food_bev: "Food & beverage", other: "Other" };
-export const TEMPLATE_VERSION = 1;
+export const TEMPLATE_VERSION = 2;
+export const DOMAIN_TOKEN = "<domain>";
 
 const I = (key, label, auto, client_label = "", group = "", gate = "") => ({ key, label, auto, client_label, group, gate });
 
@@ -68,7 +71,9 @@ const WEBSITE_COMMON = [
   I("security", "Security check: no secrets in code, admin-only data, rate limits on public functions", true, "", "security"),
   I("analytics", "Analytics + Search Console: connect GA4 and verify Search Console (needs Justin's account access)", false, "Visitor tracking", "analytics"),
   I("preview_review", "Preview link ready for Justin's look-over", true, "Preview ready", "launch"),
-  I("publish_site", "Publish + connect the domain (Justin's tap: Ready to publish)", false, "Your website is live", "launch", "publish"),
+  I("publish_site", "Publish on the base44.app address (Justin's tap: Ready to publish)", false, "Your site is up for a final look", "launch", "publish"),
+  // Always last. Live = this domain connected AND verified (custom-domains status "verified").
+  I("connect_domain", "Connect <domain> (hard gate: DNS — Justin taps; the site is live when the domain verifies)", false, "Your website is live", "launch", "dns"),
 ];
 
 // Command System modules per niche.
@@ -142,6 +147,15 @@ export function templateFor(niche) {
 }
 export const ALL_TEMPLATES = NICHE_KEYS.map(templateFor);
 
+export const domainOf = (client) => String((client && (client.domain || (client.websites || [])[0])) || "").replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "");
+export const withDomain = (label, client) => String(label || "").replace(DOMAIN_TOKEN, domainOf(client) || "the client's domain");
+
+// Live-site automations only start once the domain is connected and verified (Search Console, IndexNow, Bing).
+const LIVE_SITE_KINDS = ["search_console", "bing", "indexnow", "rich_results", "schema_check"];
+export const isLiveSiteAutomation = (a) => LIVE_SITE_KINDS.includes(String((a && a.kind) || "")) || /search console|indexnow|bing webmaster/i.test(String((a && a.name) || ""));
+export const startsWhenText = (client) => `Starts when ${domainOf(client) || "the domain"} is connected`;
+export const isLaunched = (client) => !!(client && client.website_live_at);
+
 // A client's checklist from a template (entity BuildChecklist).
 export function instantiate(template, client) {
   const t = template && template.tracks ? template : templateFor(client && client.niche_key);
@@ -150,7 +164,7 @@ export function instantiate(template, client) {
     client_name: client.business,
     niche_key: t.niche_key,
     template_version: t.version || TEMPLATE_VERSION,
-    tracks: t.tracks.map((tr) => ({ key: tr.key, label: tr.label, items: tr.items.map((it) => ({ ...it, done: false, done_at: "", done_by: "", note: "", preview_url: "", job_id: "" })) })),
+    tracks: t.tracks.map((tr) => ({ key: tr.key, label: tr.label, items: tr.items.map((it) => ({ ...it, label: withDomain(it.label, client), done: false, done_at: "", done_by: "", note: "", preview_url: "", job_id: "" })) })),
   };
 }
 
