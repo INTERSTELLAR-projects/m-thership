@@ -1,7 +1,7 @@
 import { openNavGuide } from "@/lib/navGuide";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LogOut, Search, X, Pin, PinOff, PanelLeftClose, PanelLeftOpen, HelpCircle } from "lucide-react";
+import { LogOut, Search, X, Pin, PinOff, PanelLeftClose, PanelLeftOpen, HelpCircle, LayoutGrid, ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { HUBS, MORE_HUBS, MORE_HUB, SETTINGS_ITEM, ALL_NAV, activeKey, hubFor } from "@/lib/nav";
@@ -167,8 +167,18 @@ export default function Sidebar({ onOpenCommand, open, onClose, pinned = false, 
         <div className="space-y-px pt-2" data-nav-primary>{HUBS.map(renderHub)}</div>
         {/* More: every deeper page, grouped. Opens by itself when you are on one of its pages. */}
         <details className="group mt-2 border-t border-hair pt-1" open={moreOpen} onToggle={(e) => setMoreOpen(e.currentTarget.open)} data-nav-more>
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2 font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink/45 hover:text-ink">
-            <span>More</span><span className="text-ink/35 group-open:hidden">Work · Marketing · Sales · Money · Agents · Tools</span>
+          {/* A real button: same weight as the hub rows above, with an icon, a chevron and clear hover/focus. The group
+              names underneath only preview what's inside (quiet, not clickable). */}
+          <summary
+            className="group/more flex cursor-pointer list-none items-start gap-3 py-[9px] pl-4 pr-3 text-ink/75 outline-none transition-colors duration-200 hover:bg-ink/[0.05] hover:text-ink focus-visible:bg-ink/[0.05] focus-visible:text-ink focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#ff3c00] [&::-webkit-details-marker]:hidden"
+            aria-label="More pages: Work, Marketing, Sales, Money, Agents and Tools"
+          >
+            <LayoutGrid className="mt-[2px] h-[17px] w-[17px] shrink-0 text-ink/45 transition-colors group-hover/more:text-[#ff3c00] group-focus-visible/more:text-[#ff3c00]" strokeWidth={1.75} />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[14px] font-semibold tracking-[-0.01em]">More</span>
+              <span className="mt-0.5 block text-[11.5px] leading-snug text-ink/45 group-open:hidden">Work, Marketing, Sales, Money, Agents, Tools</span>
+            </span>
+            <ChevronDown className="mt-[3px] h-4 w-4 shrink-0 text-ink/40 transition-transform duration-200 group-open:rotate-180 group-hover/more:text-ink" strokeWidth={1.75} />
           </summary>
           <div className="space-y-px">{[...MORE_HUBS, MORE_HUB].map(renderHub)}</div>
         </details>
