@@ -1,0 +1,27 @@
+{
+  "name": "LaunchListing",
+  "description": "Launch grid (Build Engine, Nov 19 2026): one directory/profile a client should be live on (niche list in shared/launchGrid.js). status live = found and NAP correct (lit), pending (amber), missing (dim). Updated by hand or by the monthly read-only check (URL resolves + NAP matches). Never submits anything.",
+  "type": "object",
+  "properties": {
+    "client_id": { "type": "string" },
+    "client_name": { "type": "string" },
+    "directory_key": { "type": "string" },
+    "name": { "type": "string" },
+    "group": { "type": "string" },
+    "check": { "type": "string", "enum": ["nap", "name", "url"], "default": "nap" },
+    "status": { "type": "string", "enum": ["live", "pending", "missing"], "default": "missing" },
+    "url": { "type": "string", "description": "The client's listing URL on that directory" },
+    "nap_ok": { "type": "boolean" },
+    "last_checked_at": { "type": "string", "format": "date-time" },
+    "check_result": { "type": "string" },
+    "set_by": { "type": "string", "description": "manual | monthly_check" },
+    "notes": { "type": "string" }
+  },
+  "required": ["client_id", "directory_key"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}
