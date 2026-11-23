@@ -3,8 +3,8 @@
 //      wants, tick what to produce, send. Creates FieldInbox (upload, site_visit) + a queued site_visit ClaudeJob.
 //   2. Quick capture: a line to file, routed exactly like a WhatsApp message (task / idea / note / Claude job).
 //   3. Recent: every field item with its status and a link to what it became.
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, Camera, CheckCircle2, Film, Image as ImageIcon, Loader2, Send, Upload, X } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
@@ -221,6 +221,12 @@ function QuickCapture() {
 }
 
 export default function FieldPage() {
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!hash) return;
+    const t = setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView({ block: "start" }), 120);
+    return () => clearTimeout(t);
+  }, [hash]);
   const clientsQ = useList("CRMClient", { sort: "business", limit: 500 });
   const inboxQ = useList("FieldInbox", { sort: "-created_date", limit: 40 });
   const clients = (clientsQ.data || []).filter((c) => c.status !== "Inactive");
