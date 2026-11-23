@@ -25,6 +25,13 @@ async function templatesOf(db: any) {
   const rows = ((await db.IndustryTemplate.filter({ archived: { $ne: true } }, "name", 100).catch(() => [])) || []) as any[];
   return { rows, list: rows.length ? rows : seedTemplates(), seeded: rows.length > 0 };
 }
+async function seedMissing(db: any) {
+  const rows = ((await db.IndustryTemplate.list("name", 200).catch(() => [])) || []) as any[];
+  const have = new Set(rows.map((r: any) => r.industry_key));
+  const add = seedTemplates().filter((t) => !have.has(t.industry_key));
+  for (const t of add) await db.IndustryTemplate.create({ ...t, updated_by: "Claude (seed)" });
+  return { created: add.length, total: have.size + add.length, keys: SEED_KEYS };
+}
 async function previewOf(db: any, clientId: string) {
   return (((await db.LeadPreview.filter({ client_id: clientId }, "-updated_date", 1).catch(() => [])) || []) as any[])[0] || null;
 }
@@ -138,6 +145,8 @@ Deno.serve(async (req) => {
     // Scheduled runs (no user): only work a person already approved (build queue) or tasks/drafts (follow-ups).
     if (!user && action === "queue_run") return Response.json(await queueRun(base44, db, "schedule"));
     if (!user && action === "followups_sweep") return Response.json(await followupsSweep(db));
+    // One-time helper workflow: creates any missing seed template (never touches an existing or edited one).
+    if (!user && action === "templates_seed") return Response.json(await seedMissing(db));
     const staff = await staffOf(db, user);
     if (!staff) return err("Admins and sales reps only", 403);
     const admin = staff.kind === "admin";
@@ -157,11 +166,7 @@ Deno.serve(async (req) => {
     }
     if (action === "templates_seed") {
       if (!admin) return err("Admins only", 403);
-      const { rows } = await templatesOf(db);
-      const have = new Set(rows.map((r: any) => r.industry_key));
-      const add = seedTemplates().filter((t) => !have.has(t.industry_key));
-      for (const t of add) await db.IndustryTemplate.create({ ...t, updated_by: "Claude (seed)" });
-      return Response.json({ created: add.length, total: have.size + add.length, keys: SEED_KEYS });
+      return Response.json(await seedMissing(db));
     }
     if (action === "template_save") {
       if (!admin) return err("Admins only. Use Suggest to send a refinement.", 403);

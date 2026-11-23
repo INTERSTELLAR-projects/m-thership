@@ -1,0 +1,43 @@
+{
+  "name": "Lead Engine \u2014 seed templates (one-time)",
+  "description": "Manual helper (Run now): creates any missing industry template from the seed library in shared/leadEngine.js. Never touches a template that already exists or was edited. Function: lead-engine / templates_seed.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 3 1 1 *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "then": "end",
+          "with": {
+            "args": {
+              "action": "templates_seed"
+            },
+            "function_name": "lead-engine"
+          }
+        }
+      }
+    ],
+    "document": {
+      "dsl": "1.0.0",
+      "name": "lead_engine_seed_templates",
+      "namespace": "base44",
+      "version": "1.0"
+    }
+  }
+}
