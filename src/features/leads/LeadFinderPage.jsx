@@ -16,7 +16,7 @@ const FLAG_TONE = { no_website: "red", dated: "amber", few_reviews: "amber", few
 export default function LeadFinderPage({ embedded = false }) {
   const status = useFinder("status");
   const tpl = useEngine("templates");
-  const [tab, setTab] = useState("search");
+  const [tab, setTab] = useState(() => (new URLSearchParams(window.location.search).get("tab") === "queue" ? "queue" : "search"));
   const queue = useEngine("queue", {}, { refetchInterval: tab === "queue" ? 15000 : false });
   const cfg = status.data || {};
   const qc = queue.data?.counts || {};
@@ -129,7 +129,7 @@ function SearchTab({ cfg, loading, templates, staff, onAdded }) {
         </div>
       </div>
       {err ? <ErrorNote error={err} /> : null}
-      {msg ? <p role="status" className="border border-green-200 bg-green-50 px-3 py-2 text-[12.5px] text-green-800">{msg} <Link to="/leads/finder?tab=queue" className="underline" onClick={() => {}}>See the queue</Link></p> : null}
+      {msg ? <p role="status" className="border border-green-200 bg-green-50 px-3 py-2 text-[12.5px] text-green-800">{msg}</p> : null}
       {res ? (
         <Card kicker={`Results from Google · ${res.query}`} title={`${results.length} businesses`} pad={false} testid="finder-results"
           right={<div className="flex flex-wrap items-center gap-2">
