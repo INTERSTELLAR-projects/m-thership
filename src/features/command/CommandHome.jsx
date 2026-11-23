@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Headphones, Brain, Orbit, LayoutDashboard, Undo2, PhoneCall } from "lucide-react";
+import { Headphones, Brain, Orbit, LayoutDashboard, Undo2, PhoneCall, Camera } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import MissionBrief from "./MissionBrief";
 import NeedsYou from "./NeedsYou";
@@ -12,6 +12,7 @@ import LaunchWeekCard from "@/features/launchweek/LaunchWeekCard";
 import QuickAddLead from "@/features/build/QuickAddLead";
 import { NeedsToday, BuildsInProgress } from "@/features/build/TodayStack";
 import DecidedForYou from "@/features/build/DecidedForYou";
+import FieldInboxCard from "@/features/field/FieldInboxCard";
 import ErrorBoundary from "@/components/ErrorBoundary";
 const LeadEngineCard = lazy(() => import("@/features/leads/LeadEngineCard"));
 
@@ -130,6 +131,7 @@ export default function CommandHome() {
         <Mono className="text-ink/50">(Today) · Møthership Command</Mono>
         <nav className="flex flex-wrap gap-1.5" aria-label="Command modes">
           <Link to="/calls/new" className="inline-flex h-9 items-center gap-1.5 bg-[#ff3c00] px-3 text-[12.5px] text-white hover:bg-ink"><PhoneCall className="h-3.5 w-3.5" />Structure call</Link>
+          <Link to="/field#site-visit" className="inline-flex h-9 items-center gap-1.5 border border-ink px-3 text-[12.5px] text-ink hover:bg-ink hover:text-white"><Camera className="h-3.5 w-3.5" />Site visit</Link>
           <Link to="/walk" className="inline-flex h-9 items-center gap-1.5 bg-ink px-3 text-[12.5px] text-white hover:bg-[#ff3c00]"><Headphones className="h-3.5 w-3.5" />Walk mode</Link>
           <Link to="/pillars" className="hidden h-9 items-center sm:inline-flex gap-1.5 border border-hair px-3 text-[12.5px] text-ink/75 hover:border-ink"><Orbit className="h-3.5 w-3.5" />Pillars</Link>
           <Link to="/brain" className="hidden h-9 items-center sm:inline-flex gap-1.5 border border-hair px-3 text-[12.5px] text-ink/75 hover:border-ink"><Brain className="h-3.5 w-3.5" />Teach the Brain</Link>
@@ -140,6 +142,7 @@ export default function CommandHome() {
       <div className="space-y-4">
         <ErrorBoundary compact where="quick-add lead"><QuickAddLead /></ErrorBoundary>
         <ErrorBoundary compact where="lead engine"><Suspense fallback={null}><LeadEngineCard /></Suspense></ErrorBoundary>
+        <ErrorBoundary compact where="field inbox"><FieldInboxCard /></ErrorBoundary>
         <ErrorBoundary compact where="needs you today"><NeedsToday /></ErrorBoundary>
         <ErrorBoundary compact where="builds in progress"><BuildsInProgress /></ErrorBoundary>
         <ErrorBoundary compact where="decided for you"><DecidedForYou /></ErrorBoundary>
