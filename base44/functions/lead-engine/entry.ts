@@ -151,7 +151,9 @@ Deno.serve(async (req) => {
     /* ---------------- Templates ---------------- */
     if (action === "templates") {
       const { list, seeded } = await templatesOf(db);
-      return Response.json({ templates: list, seeded, can_edit: admin, allowed: staff.rep?.allowed_industries || null, multi: !!staff.rep?.multi_industry_ready });
+      // Reps see the real builds as public sites only (no client records or app ids).
+      const out = admin ? list : list.map((t: any) => ({ ...t, reference_builds: arr(t.reference_builds).map((r: any) => ({ key: r.key, name: r.name, url: r.url, note: r.note })) }));
+      return Response.json({ templates: out, seeded, can_edit: admin, allowed: staff.rep?.allowed_industries || null, multi: !!staff.rep?.multi_industry_ready });
     }
     if (action === "templates_seed") {
       if (!admin) return err("Admins only", 403);

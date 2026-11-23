@@ -46,7 +46,7 @@ export default function TemplatesPage({ embedded = false }) {
         </PageHeader>
       )}
       <div className={embedded ? "space-y-4" : "space-y-5 px-4 pt-6 md:px-8"}>
-        <FoundationCard />
+        <FoundationCard admin={canEdit} />
         {err ? <ErrorNote error={err} /> : null}
         {q.isLoading ? <Loading /> : q.isError ? <ErrorNote error={q.error} /> : !list.length ? <Empty icon={Layers} title="No templates yet" hint="Seed the library to load the 22 starting industries." /> : (
           <>
@@ -75,10 +75,10 @@ export default function TemplatesPage({ embedded = false }) {
   );
 }
 
-function FoundationCard() {
+function FoundationCard({ admin }) {
   const [open, setOpen] = useState(false);
   return (
-    <Card kicker="Runs on" title={FOUNDATION.title} right={<div className="flex items-center gap-2"><Link to={FOUNDATION.link} className="inline-flex items-center gap-1 text-[12px] text-[#ff3c00] hover:underline"><BookOpenCheck className="h-3.5 w-3.5" />{FOUNDATION.prompt_title}</Link><button type="button" onClick={() => setOpen((v) => !v)} className="text-[12px] text-ink/55 hover:text-ink">{open ? "Hide" : "Rules"}</button></div>}>
+    <Card kicker="Runs on" title={FOUNDATION.title} right={<div className="flex items-center gap-2">{admin ? <Link to={FOUNDATION.link} className="inline-flex items-center gap-1 text-[12px] text-[#ff3c00] hover:underline"><BookOpenCheck className="h-3.5 w-3.5" />{FOUNDATION.prompt_title}</Link> : null}<button type="button" onClick={() => setOpen((v) => !v)} className="text-[12px] text-ink/55 hover:text-ink">{open ? "Hide" : "Rules"}</button></div>}>
       <p className="text-[12.5px] text-ink/65">Every template and every preview is built on the same foundation as Interstellar client builds, plus the build standard in the Agency Brain. Templates are starting structures, not finished sites: the lead's own photos, words and brand lead.</p>
       {open ? <ol className="mt-3 grid gap-1.5 md:grid-cols-2">{FOUNDATION.rules.map((r, i) => <li key={r} className="flex gap-2 text-[12.5px]"><span className="font-mono text-[10.5px] text-[#ff3c00]">{String(i + 1).padStart(2, "0")}</span>{r}</li>)}</ol> : null}
     </Card>
