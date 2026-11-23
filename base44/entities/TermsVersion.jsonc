@@ -1,0 +1,100 @@
+{
+  "name": "TermsVersion",
+  "description": "Interstellar Terms of Service versions for the client portal clickwrap gate (docs/portal-terms.md). One active version at a time; publishing a draft retires the old one (portal-terms function, which also stamps sha256 of the normalized body). Admins write; any signed-in user may read active and retired versions (the text they are asked to accept).",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Version label shown to clients, e.g. 2026-11-23"
+    },
+    "title": {
+      "type": "string"
+    },
+    "body_markdown": {
+      "type": "string",
+      "description": "The full terms, markdown. Hashed exactly as normalized by base44/shared/terms.js normalizeBody"
+    },
+    "summary_points": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Plain-English summary shown first on the gate"
+    },
+    "change_note": {
+      "type": "string",
+      "description": "What changed since the previous version (shown to people who signed an older one)"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "retired"
+      ],
+      "default": "draft"
+    },
+    "sha256": {
+      "type": "string",
+      "description": "SHA-256 hex of the normalized body, set by the portal-terms function on save and publish"
+    },
+    "lawyer_reviewed": {
+      "type": "boolean",
+      "description": "Justin confirmed a lawyer reviewed this version before publishing"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "published_by": {
+      "type": "string"
+    },
+    "retired_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "version",
+    "title",
+    "body_markdown"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.status": {
+            "$in": [
+              "active",
+              "retired"
+            ]
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
