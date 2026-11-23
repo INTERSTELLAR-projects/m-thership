@@ -152,6 +152,6 @@ describe("copies stay in sync and the draft holds only Justin's numbers", () => 
     expect(all).toMatch(/State of Oregon/);
     expect(all).toMatch(/E-SIGN/);
     expect(all).toMatch(/Uniform Electronic Transactions Act/);
-    expect([...all.matchAll(/\$\s?\d[\d,]*/g)].map((m) => m[0]).every((m) => m === "$750")).toBe(true);
+    expect([...all.matchAll(/\$\s?\d+(?:,\d{3})*/g)].map((m) => m[0]).every((m) => m === "$750")).toBe(true);
   });
 });
