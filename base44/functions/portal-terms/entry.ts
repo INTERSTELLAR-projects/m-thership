@@ -15,12 +15,12 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import { resolveClient } from "../../shared/portalClient.ts";
 import { REQUIRED_CHECKS, acceptanceErrors, buildAcceptance, clientIp, clientTermsStatus, hasAccepted, planPublish, sha256Hex } from "../../shared/terms.js";
 import { DRAFT_V1 } from "../../shared/termsDraftV1.js";
-import { acceptancesFor, activeVersion, buildPdf, clearActiveCache, publicTerms, sendCopies, signedLink, storePdf, termsGate, verifiedActive } from "../../shared/termsServer.ts";
+import { acceptancesFor, activeVersion, buildPdf, clearActiveCache, isTestClient, publicTerms, sendCopies, signedLink, storePdf, termsGate, verifiedActive } from "../../shared/termsServer.ts";
 
 const s = (v: unknown) => (v == null ? "" : String(v));
 const itemsOf = (r: any) => (Array.isArray(r) ? r : (r && r.items) || []);
 const bad = (error: string, status = 400, extra: Record<string, unknown> = {}) => Response.json({ error, ...extra }, { status });
-const isTestRun = (client: any, user: any) => /^\[TEST\]/i.test(s(client?.business)) || /^\[TEST\]/i.test(s(user?.full_name));
+const isTestRun = (client: any, user: any) => isTestClient(client) || /^\[TEST\]/i.test(s(user?.full_name));
 
 Deno.serve(async (req) => {
   try {
@@ -73,7 +73,8 @@ Deno.serve(async (req) => {
       }
       if (action === "publish") {
         if (body.lawyer_reviewed !== true) return bad("Confirm a lawyer reviewed this version before activating it.");
-        const plan = planPublish(versions, s(body.id));
+        // Test-only versions ([TEST] clients) are never retired by a real publish, and never published from here.
+        const plan = planPublish(versions.filter((v: any) => !v.test_only), s(body.id));
         if ((plan as any).error) return bad((plan as any).error, 409);
         const draft = versions.find((v: any) => v.id === body.id);
         const now = new Date().toISOString();
@@ -84,7 +85,8 @@ Deno.serve(async (req) => {
       }
       if (action === "client_status") {
         const cid = s(body.client_id);
-        const active = await activeVersion(db, true);
+        const cl = await db.CRMClient.get(cid).catch(() => null);
+        const active = await activeVersion(db, true, isTestClient(cl));
         const acc = await acceptancesFor(db, cid);
         return Response.json({ active: publicTerms(active), status: clientTermsStatus(acc, { clientId: cid, active }), acceptances: acc });
       }
@@ -120,7 +122,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "accept") {
-      const { active, ok } = await verifiedActive(db);
+      const { active, ok } = await verifiedActive(db, isTestClient(client));
       if (active && !ok) return bad("These terms can't be signed right now (integrity check failed). Interstellar has been notified.", 409, { code: "hash_mismatch" });
       const checks = Object.fromEntries(REQUIRED_CHECKS.map((c) => [c.key, body.checks?.[c.key] === true]));
       const errs = acceptanceErrors({ active, sentVersionId: body.version_id, sentSha: body.sha256, checks, signature: body.typed_signature, scrolledToEnd: body.scrolled_to_end === true });

@@ -7,16 +7,19 @@ import { REQUIRED_CHECKS, gateDecision, hashMatches, previousAccepted } from "./
 const s = (v: unknown) => (v == null ? "" : String(v));
 const itemsOf = (r: any) => (Array.isArray(r) ? r : (r && r.items) || []);
 
-// The one active version (newest published wins if a race ever left two). Cached per isolate for 30 s.
-let cache: { at: number; v: any } = { at: 0, v: undefined };
-export async function activeVersion(db: any, fresh = false) {
-  if (!fresh && cache.v !== undefined && Date.now() - cache.at < 30_000) return cache.v;
-  const rows = itemsOf(await db.TermsVersion.filter({ status: "active" }, "-published_at", 5).catch(() => []));
-  const v = rows[0] || null;
-  cache = { at: Date.now(), v };
-  return v;
+// The active version (newest published wins if a race ever left two). A version flagged test_only applies only to
+// [TEST] clients (developer checks), so a test never gates a real client. Cached per isolate for 30 s.
+export const isTestClient = (client: any) => /^\[TEST\]/i.test(s(client && client.business));
+let cache: { at: number; rows: any[] | undefined } = { at: 0, rows: undefined };
+export async function activeVersion(db: any, fresh = false, forTest = false) {
+  if (fresh || cache.rows === undefined || Date.now() - cache.at > 30_000) {
+    cache = { at: Date.now(), rows: itemsOf(await db.TermsVersion.filter({ status: "active" }, "-published_at", 10).catch(() => [])) };
+  }
+  const rows = cache.rows || [];
+  const real = rows.find((v: any) => !v.test_only) || null;
+  return forTest ? rows.find((v: any) => v.test_only) || real : real;
 }
-export const clearActiveCache = () => { cache = { at: 0, v: undefined }; };
+export const clearActiveCache = () => { cache = { at: 0, rows: undefined }; };
 
 export async function acceptancesFor(db: any, clientId: string, email = "") {
   const q: Record<string, string> = { client_id: clientId };
@@ -31,7 +34,7 @@ export function publicTerms(v: any) {
 // null = the portal may load. Otherwise the 428 body the portal returns instead of any data.
 export async function termsGate(db: any, user: any, client: any) {
   if (!user || user.role === "admin" || !client || client.portal_tier === "lead") return null;
-  const active = await activeVersion(db);
+  const active = await activeVersion(db, false, isTestClient(client));
   if (!active) return null;
   const mine = await acceptancesFor(db, client.id, user.email);
   const d = gateDecision({ user, client, active, acceptances: mine });
@@ -49,8 +52,8 @@ export async function termsGate(db: any, user: any, client: any) {
   };
 }
 
-export async function verifiedActive(db: any) {
-  const active = await activeVersion(db, true);
+export async function verifiedActive(db: any, forTest = false) {
+  const active = await activeVersion(db, true, forTest);
   if (!active) return { active: null, ok: false };
   return { active, ok: await hashMatches(active) };
 }
