@@ -8,7 +8,8 @@ import ListsTab from "@/features/settings/ListsTab";
 import AgencyKnowledgeTab from "@/features/settings/AgencyKnowledgeTab";
 import AutomationsHub from "@/features/automations/AutomationsHub";
 import EstimatesTab from "@/features/output/EstimatesTab";
-import { Timer } from "lucide-react";
+import { Timer, Camera } from "lucide-react";
+import FieldInboxSettings from "@/features/field/FieldInboxSettings";
 
 // Settings = only things the app actually reads. Feature-owned settings stay on their feature page
 // (General lists where). Tabs are addressable: /settings?tab=lists, /settings?tab=automations …
@@ -19,6 +20,7 @@ const TABS = [
   { id: "portal", label: "Portal", icon: Globe, blurb: "Which clients have a portal and what it shows" },
   { id: "security", label: "Security", icon: ShieldCheck, blurb: "Sign-in protection for admin and client portal logins" },
   { id: "integrations", label: "Integrations", icon: Plug, blurb: "Secrets and connectors (configured or not)" },
+  { id: "field", label: "Field inbox", icon: Camera, blurb: "WhatsApp from the glasses: secrets (names only), the webhook URL for Meta and the numbers allowed to file things" },
   { id: "lists", label: "Lists & fields", icon: ListChecks, blurb: "Edit dropdown options without code" },
   { id: "automations", label: "Automations", icon: Zap, blurb: "Every automation and notification" },
   { id: "estimates", label: "Time-saved estimates", icon: Timer, blurb: "Manual minutes per task type and your hourly rate: the estimates behind hours saved and $ value on Output" },
@@ -55,6 +57,7 @@ export default function SettingsPage() {
         {tab === "portal" && <PortalTab />}
         {tab === "security" && <SecurityTab />}
         {tab === "integrations" && <IntegrationsTab />}
+        {tab === "field" && <FieldInboxSettings />}
         {tab === "lists" && <ListsTab />}
         {tab === "automations" && <AutomationsHub />}
         {tab === "estimates" && <EstimatesTab />}
