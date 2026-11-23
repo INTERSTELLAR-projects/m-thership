@@ -20,6 +20,7 @@ export const SOURCES = [
   { key: "funnel", label: "Funnel", tone: "bg-[#ff3c00] text-white" },
   { key: "referral", label: "Referral", tone: "bg-green-600/15 text-green-800" },
   { key: "cold", label: "Cold", tone: "bg-sky-600/15 text-sky-800" },
+  { key: "lead_finder", label: "Lead Finder", tone: "bg-[#ff3c00]/12 text-[#a33a00]" },
   { key: "ads", label: "Ads", tone: "bg-amber-500/20 text-amber-800" },
   { key: "social", label: "Social", tone: "bg-fuchsia-600/15 text-fuchsia-800" },
   { key: "other", label: "Other", tone: "bg-ink/[0.08] text-ink/70" },

@@ -12,6 +12,7 @@ import LaunchGridPanel from "./LaunchGridPanel";
 import SeasonsOffersPanel from "./SeasonsOffersPanel";
 import BuildChecklistPanel from "./BuildChecklistPanel";
 import ReadyToPublish from "./ReadyToPublish";
+import { leadHref } from "@/features/leads/api";
 
 const Panel = ({ title, link, children, testid }) => (
   <section className="border border-hair bg-paper/80" data-testid={testid}>
@@ -42,6 +43,12 @@ export default function ClientBuildPage({ client, go }) {
 
   return (
     <div className="space-y-4" data-testid="client-build">
+      {client.status === "Lead" ? (
+        <Link to={leadHref(client.id)} className="card-hover flex items-center justify-between gap-3 border border-hair bg-ink px-4 py-3 text-white" data-testid="lead-engine-link">
+          <span><span className="block font-mono text-[10px] uppercase tracking-[0.14em] text-white/50">Lead Engine</span><span className="block text-[14px] font-semibold">Preview, presentation pack, portal invite and deal</span></span>
+          <ArrowUpRight className="h-4 w-4 text-[#ff6a00]" />
+        </Link>
+      ) : null}
       {client.status === "Lead" || client.scrape_summary || client.scrape_status ? <LeadCard client={client} /> : null}
 
       {buildJobs.length ? (
