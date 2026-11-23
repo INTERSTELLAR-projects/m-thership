@@ -10,6 +10,7 @@ import { qaFuelInvoke } from "@/features/fuel/qaFixtures";
 import { demo, demoInvoke, warmDemo } from "@/lib/demoData";
 import { QA_LEDGER, qaLedgerInvoke, qaWorkFeed, qaWorkCounts } from "@/features/output/qaFixtures";
 import { qaTrainingInvoke } from "@/features/training/qaFixtures";
+import { QA_FIELD_INBOX, qaFieldInvoke } from "@/features/field/qaFixtures";
 import { IS_PRESENTING, endPresentation } from "@/lib/presentation";
 
 const host = typeof window !== "undefined" ? window.location.hostname : "";
@@ -104,6 +105,7 @@ const FIX = {
   ],
   Goal: [],
   WorkEntry: QA_LEDGER,
+  FieldInbox: QA_FIELD_INBOX,
   ...QA_ACCOUNTING,
   ...QA_SOCIAL,
 };
@@ -192,6 +194,7 @@ export function installQa(base44) {
       if (name === "fuel") return { data: qaFuelInvoke(args) };
       if (name === "work-ledger") return { data: qaLedgerInvoke(args) };
       if (name === "training") return { data: qaTrainingInvoke(args) };
+      if (name === "field-inbox") return { data: qaFieldInvoke(args) };
       if (name !== "portal") return { data: {} };
       const cid = args.client_id || "c1";
       const of = (e) => rows(e).filter((r) => r.client_id === cid);
