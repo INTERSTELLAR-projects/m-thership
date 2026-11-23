@@ -67,7 +67,8 @@ export async function resolvePortalClient(base44: any, body: Row = {}, req?: Req
   } else {
     const email = String(user.email || "").toLowerCase();
     const all = await db.CRMClient.filter({ portal_enabled: true }, "business", 500);
-    const mine = ((all || []) as Row[]).filter((c: Row) => ((c.portal_emails as string[]) || []).some((e) => String(e).toLowerCase() === email));
+    // Lead-tier logins (Lead Engine) don't get the assistant.
+    const mine = ((all || []) as Row[]).filter((c: Row) => c.portal_tier !== "lead" && ((c.portal_emails as string[]) || []).some((e) => String(e).toLowerCase() === email));
     // Package-deal owners (one login on several clients): the business picked in the portal switcher comes from the
     // call or from active_client_id on their latest assistant conversation, and is honoured ONLY when this login is on
     // that client's portal_emails. Anything else falls back to their first business.
