@@ -189,7 +189,7 @@ export function truncate(s, n) {
 
 const hit = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
-// items: [{ id, sx, sy, sr, w, h, prio, mode: "side" | "below" | "title" }]
+// items: [{ id, sx, sy, sr, w, h, prio, mode: "side" | "below" | "title", dir?: {x,y}, leader?: false }]
 // obstacles: node discs [{ sx, sy, sr }]; bounds: { x0, y0, x1, y1 } visible screen rect.
 export function placeLabels(items, discs, bounds, { gap = 5, maxPlaced = 400 } = {}) {
   const placed = [];
@@ -215,8 +215,10 @@ export function placeLabels(items, discs, bounds, { gap = 5, maxPlaced = 400 } =
       : it.mode === "below"
         ? [[-w / 2, g], [-w / 2, -g - h], [g, -h / 2], [-g - w, -h / 2]]
         : [[g, -h / 2], [-g - w, -h / 2], [-w / 2, g], [-w / 2, -g - h], [g * 0.8, g * 0.5], [-g * 0.8 - w, g * 0.5], [g * 0.8, -g * 0.5 - h], [-g * 0.8 - w, -g * 0.5 - h]];
+    // A preferred direction (department titles sit on the outer side of their cluster).
+    const first = it.dir ? [[it.dir.x > 0.35 ? 0 : it.dir.x < -0.35 ? -w : -w / 2, it.dir.y > 0.35 ? 0 : it.dir.y < -0.35 ? -h : -h / 2]] : [];
     let spot = null;
-    for (const [dx, dy] of near) { const b = { x: sx + dx, y: sy + dy, w, h }; if (free(b, it.id)) { spot = b; break; } }
+    for (const [dx, dy] of [...first, ...near]) { const b = { x: sx + dx, y: sy + dy, w, h }; if (free(b, it.id)) { spot = b; break; } }
     let leader = null;
     if (!spot && it.leader !== false) {
       // Farther out, with a leader line back to the node.
