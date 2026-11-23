@@ -5,7 +5,7 @@ import { countStatus, investorize, firstSentence, flowAgents, nextActions, weake
 
 // The order Justin walks investors through; departments missing from the data are skipped.
 export const SCENE_DEPT_ORDER = ["command", "systems", "backoffice", "success", "delivery", "marketing", "sales", "research"];
-const NOT_FOR_STAGE = /approval|one-time|test|\bseed\b|queue/i;
+const NOT_FOR_STAGE = /approval|one-time|\btest\b|\bseed\b|queue/i;
 
 const list = (arr) => (arr.length <= 1 ? arr.join("") : `${arr.slice(0, -1).join(", ")} and ${arr[arr.length - 1]}`);
 const shortList = (arr, max = 3) => (arr.length <= max ? list(arr) : `${arr.slice(0, max).join(", ")} and ${arr.length - max} more`);
