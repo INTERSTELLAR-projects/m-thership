@@ -24,6 +24,8 @@ const PREP_KEYS: [string, string][] = [
 async function convertWon(db: any, c: any, by: string) {
   const today = nowIso().slice(0, 10);
   const patch: any = { status: "Active", started_on: c.started_on || today };
+  // Lead Engine: a lead-tier portal login becomes the full client portal the moment they're won. Nothing is deleted.
+  if (c.portal_tier === "lead") Object.assign(patch, { portal_tier: "client", portal_tier_changed_at: nowIso() });
   const lines: any[] = Array.isArray(c.services) ? [...c.services] : [];
   const one = c.deal_one_time || {};
   const mon = c.deal_monthly || {};
