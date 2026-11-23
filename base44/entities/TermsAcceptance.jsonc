@@ -1,0 +1,110 @@
+{
+  "name": "TermsAcceptance",
+  "description": "Append-only proof that a portal login accepted a TermsVersion for a client (docs/portal-terms.md). Written once by the portal-terms function, which stamps accepted_at, ip and user_agent from the request and re-checks the active version's hash. Nobody can update or delete a row. Admins read all; a portal login reads its own rows (its client's rows come through portal-terms).",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id the acceptance is tied to"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Portal login that accepted (lowercase)"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name on the login account"
+    },
+    "typed_signature": {
+      "type": "string",
+      "description": "Full legal name the person typed"
+    },
+    "version": {
+      "type": "string"
+    },
+    "terms_version_id": {
+      "type": "string"
+    },
+    "terms_title": {
+      "type": "string"
+    },
+    "terms_sha256": {
+      "type": "string",
+      "description": "SHA-256 of the exact body accepted (re-verified on the server at signing)"
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Server time (UTC)"
+    },
+    "ip": {
+      "type": "string",
+      "description": "From the request (X-Forwarded-For first hop)"
+    },
+    "user_agent": {
+      "type": "string"
+    },
+    "checkbox_confirmations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "[{ key, label, checked }] exactly as shown"
+    },
+    "scrolled_to_end": {
+      "type": "boolean"
+    },
+    "pdf_url": {
+      "type": "string",
+      "description": "private:<file_uri> of the PDF snapshot (terms + signature block); open with a signed link"
+    },
+    "email_status": {
+      "type": "string",
+      "description": "Copy emailed: sent | test_only | failed | skipped"
+    },
+    "is_test": {
+      "type": "boolean",
+      "description": "[TEST] acceptance by a labeled test login"
+    }
+  },
+  "required": [
+    "client_id",
+    "user_email",
+    "version",
+    "terms_sha256",
+    "accepted_at"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.user_email": "{{user.email}}"
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    }
+  }
+}
