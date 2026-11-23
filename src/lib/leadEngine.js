@@ -861,6 +861,7 @@ export function followUpDraft(kind, { client = {}, rep = null } = {}) {
     sent_portal: { channel: "email", subject: `${b}: your preview is ready`, body: `Hi ${first},\n\nJust making sure the login came through. Your new website and Command System are in there with ${b}'s name on them.\n\nIf you'd like, I'll walk you through it in 30 minutes, and we pay $1 a minute for your time.\n\n${me}\nInterstellar Strategies` },
     booked: { channel: "email", subject: `See you soon, ${first}`, body: `Hi ${first},\n\nThanks for booking. We'll walk through the website and the Command System we built for ${b}, about 30 minutes. Your $30 goes out after the call by Venmo, Cash App, PayPal or check, your pick.\n\n${me}\nInterstellar Strategies` },
   };
+  drafts.voicemail = drafts.no_answer; drafts.gatekeeper = drafts.no_answer;
   return drafts[kind] || drafts.no_answer;
 }
 
@@ -940,7 +941,7 @@ export function followUpsFor({ client = {}, preview = null, calls = [], now = Da
     return out;
   }
   if (heat === "hottest") out.push({ kind: "hot_call", due_at: new Date(now).toISOString(), priority: 0, reason: "Hottest: came back to the preview more than once. Call now." });
-  else if (heat === "hot") out.push({ kind: "hot_call", due_at: new Date(Date.parse(e.first_login_at) + rules.hot_call_hours * HOUR).toISOString(), priority: 0, reason: `Opened the portal ${e.first_login_at ? "" : ""}— call within ${rules.hot_call_hours} hours.` });
+  else if (heat === "hot") out.push({ kind: "hot_call", due_at: new Date(Date.parse(e.first_login_at) + rules.hot_call_hours * HOUR).toISOString(), priority: 0, reason: `Opened the portal: call within ${rules.hot_call_hours} hours while it's warm.` });
   if (client.desk_outcome === "callback" && client.callback_at) out.push({ kind: "callback", due_at: client.callback_at, priority: 1, reason: "Callback they asked for." });
   if (preview?.status === "sent" && preview.sent_at && !e.first_login_at && now - Date.parse(preview.sent_at) >= rules.portal_quiet_hours * HOUR) {
     out.push({ kind: "portal_reminder", due_at: new Date(Date.parse(preview.sent_at) + rules.portal_quiet_hours * HOUR).toISOString(), priority: 2, reason: `Portal sent ${rules.portal_quiet_hours}h ago, not opened. Call, and send the drafted reminder.`, draft: "sent_portal" });

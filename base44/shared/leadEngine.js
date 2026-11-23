@@ -628,6 +628,9 @@ export function applyOverrides(config, overrides) {
     secs = [...secs].sort((a, b) => pos(a.key) - pos(b.key));
   }
   out.sections = secs;
+  // Light per-lead variation: accent color (e.g. from their logo) and which of their photos leads the hero.
+  if (o.theme && /^#[0-9a-f]{6}$/i.test(String(o.theme.primary || ""))) out.theme = { ...(config.theme || {}), primary: o.theme.primary, on_primary: contrastOn(o.theme.primary) };
+  if (typeof o.hero_image === "string" && (o.hero_image === "" || (config.images || []).includes(o.hero_image))) out.hero = { ...out.hero, image: o.hero_image };
   if (o.seo && typeof o.seo === "object") out.seo = { ...(config.seo || {}), ...pickStr(o.seo, ["title", "description"]) };
   return out;
 }
@@ -682,13 +685,20 @@ export function datedSignals(html, finalUrl, year = new Date().getUTCFullYear())
 /* Lead Desk                                                                                                       */
 /* ------------------------------------------------------------------------------------------------------------- */
 
+// One-key outcomes on the call sheet (keys 1–8). connect = someone picked up; owner = talked to the decision maker.
 export const OUTCOMES = [
-  { key: "no_answer", label: "No answer", next_days: 2 },
-  { key: "callback", label: "Callback", next_days: 1 },
-  { key: "not_interested", label: "Not interested", next_days: 0 },
-  { key: "booked", label: "Booked walkthrough", next_days: 0 },
-  { key: "sent_portal", label: "Sent portal access", next_days: 2 },
+  { key: "no_answer", label: "No answer", hotkey: "1", connect: false, owner: false },
+  { key: "voicemail", label: "Voicemail left", hotkey: "2", connect: false, owner: false },
+  { key: "gatekeeper", label: "Gatekeeper", hotkey: "3", connect: true, owner: false },
+  { key: "sent_portal", label: "Owner → sent portal", hotkey: "4", connect: true, owner: true },
+  { key: "callback", label: "Callback set", hotkey: "5", connect: true, owner: true },
+  { key: "booked", label: "Meeting booked", hotkey: "6", connect: true, owner: true },
+  { key: "not_interested", label: "Not interested", hotkey: "7", connect: true, owner: true },
+  { key: "dnc", label: "Do not call", hotkey: "8", connect: true, owner: false },
 ];
+export const OUTCOME_BY_KEY = Object.fromEntries(OUTCOMES.map((o) => [o.key, o]));
+export const DIAL_OUTCOMES = OUTCOMES.map((o) => o.key);
+export const DAILY_DIAL_TARGET = 100;
 export const PAY_METHODS = ["Venmo", "Cash App", "PayPal", "Check"];
 export const INCENTIVE = { minutes: 30, per_minute: 1, amount: 30 };
 
@@ -851,6 +861,7 @@ export function followUpDraft(kind, { client = {}, rep = null } = {}) {
     sent_portal: { channel: "email", subject: `${b}: your preview is ready`, body: `Hi ${first},\n\nJust making sure the login came through. Your new website and Command System are in there with ${b}'s name on them.\n\nIf you'd like, I'll walk you through it in 30 minutes, and we pay $1 a minute for your time.\n\n${me}\nInterstellar Strategies` },
     booked: { channel: "email", subject: `See you soon, ${first}`, body: `Hi ${first},\n\nThanks for booking. We'll walk through the website and the Command System we built for ${b}, about 30 minutes. Your $30 goes out after the call by Venmo, Cash App, PayPal or check, your pick.\n\n${me}\nInterstellar Strategies` },
   };
+  drafts.voicemail = drafts.no_answer; drafts.gatekeeper = drafts.no_answer;
   return drafts[kind] || drafts.no_answer;
 }
 
@@ -885,4 +896,87 @@ export function earningsFor(rep, deals = [], rules = {}, month = new Date().toIS
   const seoBonus = subs * (Number(rules.seo_bonus_per_sub) || 0);
   const base = Number(rep?.base_retainer) || 0;
   return { month, base, revenue, tier_rate: Number(tier.rate) || 0, commission, seo_subs: subs, seo_bonus: seoBonus, total: base + commission + seoBonus, deals: won.map((d) => ({ id: d.id, client_name: d.client_name, contract_value: d.contract_value, monthly_value: d.monthly_value, closed_at: d.closed_at })) };
+}
+
+/* ------------------------------------------------------------------------------------------------------------- */
+/* Follow-up engine (call sheet). Pure: given a lead, its preview and its calls, which follow-up tasks should be   */
+/* open now. The lead-engine sweep upserts them as LeadTask rows (one per lead + kind). Nothing is ever sent.     */
+/* ------------------------------------------------------------------------------------------------------------- */
+
+export const FOLLOW_UP_DEFAULTS = { voicemail_attempts: 4, portal_quiet_hours: 48, hot_call_hours: 2 };
+const HOUR = 3600000;
+
+// Next business day (Mon–Fri) at a different hour than the last attempt, between 9 AM and 4 PM Pacific-ish.
+export function nextRetryAt(lastAt, attempt = 1) {
+  const last = new Date(lastAt || Date.now());
+  const d = new Date(last.getTime() + 24 * HOUR);
+  while ([0, 6].includes(d.getUTCDay())) d.setTime(d.getTime() + 24 * HOUR);
+  const hours = [17, 19, 21, 23, 16, 18, 20, 22]; // UTC ≈ 9 AM–3 PM Pacific
+  const lastH = last.getUTCHours();
+  const h = hours.find((x, i) => i >= (attempt % hours.length) && Math.abs(x - lastH) >= 2) ?? hours[attempt % hours.length];
+  d.setUTCHours(h, 0, 0, 0);
+  return d.toISOString();
+}
+
+// Heat from portal engagement: cold → warm (sent) → hot (opened) → hottest (came back / looked a lot).
+export function heatOf(client = {}, preview = null) {
+  const e = preview?.engagement || {};
+  const views = Object.values(e.views || {}).reduce((a, n) => a + (Number(n) || 0), 0);
+  if (e.walkthrough_booked_at || client.desk_outcome === "booked") return "booked";
+  if (e.first_login_at && ((Number(e.sessions) || 0) >= 2 || views >= 4)) return "hottest";
+  if (e.first_login_at) return "hot";
+  if (preview?.status === "sent") return "warm";
+  return "cold";
+}
+
+export function followUpsFor({ client = {}, preview = null, calls = [], now = Date.now(), rules = FOLLOW_UP_DEFAULTS } = {}) {
+  const out = [];
+  if (client.do_not_contact || client.status !== "Lead" || client.desk_outcome === "not_interested") return out;
+  const e = preview?.engagement || {};
+  const dials = calls.filter((c) => DIAL_OUTCOMES.includes(c.outcome));
+  const last = dials[0] || null; // newest first
+  const heat = heatOf(client, preview);
+  if (client.desk_outcome === "booked" || e.walkthrough_booked_at) {
+    out.push({ kind: "prep", due_at: new Date(now).toISOString(), priority: 1, reason: "Meeting booked: read the presentation pack before the call." });
+    return out;
+  }
+  if (heat === "hottest") out.push({ kind: "hot_call", due_at: new Date(now).toISOString(), priority: 0, reason: "Hottest: came back to the preview more than once. Call now." });
+  else if (heat === "hot") out.push({ kind: "hot_call", due_at: new Date(Date.parse(e.first_login_at) + rules.hot_call_hours * HOUR).toISOString(), priority: 0, reason: `Opened the portal: call within ${rules.hot_call_hours} hours while it's warm.` });
+  if (client.desk_outcome === "callback" && client.callback_at) out.push({ kind: "callback", due_at: client.callback_at, priority: 1, reason: "Callback they asked for." });
+  if (preview?.status === "sent" && preview.sent_at && !e.first_login_at && now - Date.parse(preview.sent_at) >= rules.portal_quiet_hours * HOUR) {
+    out.push({ kind: "portal_reminder", due_at: new Date(Date.parse(preview.sent_at) + rules.portal_quiet_hours * HOUR).toISOString(), priority: 2, reason: `Portal sent ${rules.portal_quiet_hours}h ago, not opened. Call, and send the drafted reminder.`, draft: "sent_portal" });
+  }
+  if (last && ["no_answer", "voicemail", "gatekeeper"].includes(last.outcome) && !out.some((x) => x.kind === "hot_call" || x.kind === "callback")) {
+    const tries = dials.filter((c) => ["no_answer", "voicemail", "gatekeeper"].includes(c.outcome)).length;
+    if (tries < rules.voicemail_attempts) out.push({ kind: "retry_call", due_at: nextRetryAt(last.at, tries), priority: 3, reason: `Attempt ${tries + 1} of ${rules.voicemail_attempts}: ${OUTCOME_BY_KEY[last.outcome]?.label.toLowerCase()} last time, trying a different hour.`, attempt: tries + 1 });
+  }
+  return out;
+}
+
+// Call sheet order: due follow-ups (hottest first), then fresh ready leads never dialed, then the rest by due date.
+export function sheetOrder(rows = [], now = Date.now()) {
+  const HEAT = { hottest: 0, hot: 1, booked: 2, warm: 3, cold: 4 };
+  const due = (r) => (r.task && Date.parse(r.task.due_at) <= now ? 0 : 1);
+  return [...rows].sort((a, b) => (due(a) - due(b)) || ((a.task?.priority ?? 9) - (b.task?.priority ?? 9)) || ((HEAT[a.heat] ?? 5) - (HEAT[b.heat] ?? 5)) || ((a.client.desk_last_call_at ? 1 : 0) - (b.client.desk_last_call_at ? 1 : 0)) || String(a.task?.due_at || "9").localeCompare(String(b.task?.due_at || "9")) || ((Number(b.client.gbp_cache?.review_count) || 0) - (Number(a.client.gbp_cache?.review_count) || 0)));
+}
+
+// One-glance prep card: what's broken, what we built, the hook.
+export function prepCard(client = {}, preview = null, templateName = "") {
+  const b = brokenToday(client);
+  const broken = b.site[0] || b.gbp[0] || "Ask how customers find them today and how jobs are tracked.";
+  const mods = (preview?.command_config?.modules || []).slice(0, 4).map((m) => m.label.toLowerCase());
+  const built = preview ? `New ${templateName ? templateName.toLowerCase() + " " : ""}website in their name${client.city ? ` for ${client.city}` : ""} + a Command System (${mods.join(", ") || "pipeline, jobs, invoices"}).` : "Preview not built yet.";
+  return { broken, built, hook: "We already built it, no obligation: 30 minutes and we pay $30. Goal on this call: get them to open the portal email." };
+}
+
+// Per-caller rates for Sales HQ. calls = LeadCallLog rows for that caller in the window.
+export function callerMetrics(calls = [], { logins = 0, deals = 0, revenue = 0, cost = 0 } = {}) {
+  const dials = calls.filter((c) => DIAL_OUTCOMES.includes(c.outcome));
+  const n = dials.length;
+  const connects = dials.filter((c) => OUTCOME_BY_KEY[c.outcome]?.connect).length;
+  const owners = dials.filter((c) => OUTCOME_BY_KEY[c.outcome]?.owner).length;
+  const portals = dials.filter((c) => c.outcome === "sent_portal").length;
+  const meetings = dials.filter((c) => c.outcome === "booked").length;
+  const r = (a, b) => (b ? a / b : 0);
+  return { dials: n, connects, owners, portals, logins, meetings, deals, revenue, cost, connect_rate: r(connects, n), owner_rate: r(owners, n), portal_rate: r(portals, owners), login_rate: r(logins, portals), meeting_rate: r(meetings, owners), close_rate: r(deals, meetings), revenue_per_dial: r(revenue, n), cost_per_dial: r(cost, n) };
 }
