@@ -385,6 +385,8 @@ function ClassicAgentsPage({ onShip }) {
           <div className="absolute inset-0 grid place-items-center"><div className="flex items-center gap-3 text-[13px] text-[var(--ink-m)]"><Spinner size={18} />Mapping the constellation…</div></div>
         ) : error ? (
           <div className="absolute inset-0 grid place-items-center text-[13px] text-[#ff8a7f]">Couldn't load agents: {String(error.message || error)}</div>
+        ) : presenting ? (
+          <div className="absolute inset-0" aria-hidden="true" />
         ) : view === "list" ? (
           <ListView agents={listAgents} depts={web === "clients" ? CLIENT_DEPTS : INTERSTELLAR_DEPTS} onPick={(a) => select({ type: "agent", key: a.key })} selectedKey={selectedAgent?.key} showClient={clientsHub} />
         ) : (
