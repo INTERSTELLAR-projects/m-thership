@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { staffOf, canWorkLead, clip, nowIso, isEmail } from "../../shared/staff.ts";
-import { DEAL_PRODUCTS, dealTotals, earningsFor, US_STATE_NAMES } from "../../shared/leadEngine.js";
+import { DEAL_PRODUCTS, dealTotals, earningsFor, DIAL_OUTCOMES, callerMetrics } from "../../shared/leadEngine.js";
 import { moveStage, stageOf } from "../../shared/leadStage.ts";
 import { inviteSettings, normEmail } from "../../shared/portalInvite.ts";
 import { renderEmail, SIGNATURE } from "../../shared/emailBlocks.ts";
@@ -222,7 +222,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "hq") {
-      const days = Math.max(7, Math.min(365, Number(body.days) || 30));
+      const days = Math.max(1, Math.min(365, Number(body.days) || 30));
       const since = new Date(Date.now() - days * 86400000).toISOString();
       const [reps, calls, previews, deals, leads, goalRows, active] = await Promise.all([
         db.SalesRep.list("name", 200).catch(() => []), db.LeadCallLog.list("-at", 3000).catch(() => []), db.LeadPreview.list("-updated_date", 2000).catch(() => []),
@@ -233,7 +233,8 @@ Deno.serve(async (req) => {
       const repsL = (reps || []) as any[];
       const byEmail = new Map(repsL.map((r) => [String(r.email).toLowerCase(), r]));
       const inRange = (d: any) => String(d || "") >= since;
-      const callRows = ((calls || []) as any[]).filter((x) => ["no_answer", "callback", "not_interested", "booked", "sent_portal"].includes(x.outcome));
+      const allCalls = (calls || []) as any[];
+      const callRows = allCalls.filter((x) => DIAL_OUTCOMES.includes(x.outcome));
       const pv = (previews || []) as any[];
       const allLeads = [...((leads || []) as any[]), ...((active || []) as any[])];
       const leadById = new Map(allLeads.map((c) => [c.id, c]));
@@ -255,6 +256,19 @@ Deno.serve(async (req) => {
           deals_closed: won.length, revenue: won.reduce((a, d) => a + gross(d), 0), one_time: won.reduce((a, d) => a + num(d.contract_value), 0), seo_subs: won.reduce((a, d) => a + dealTotals(d.products || []).seo_subs, 0),
           month_cost: e.total, month_commission: e.commission + e.seo_bonus, month_gross: dl.filter((d) => d.rep_id === r.id && d.status === "won" && monthOf(d.closed_at) === month).reduce((a, d) => a + gross(d), 0), base_retainer: num(r.base_retainer),
         };
+      });
+      // Per caller (reps and admins who dial, so solo mode works): dials, connect / owner / portal / login / meeting /
+      // close rates, revenue per dial and cost per dial (rep cost for the window ÷ dials).
+      const callerEmails = [...new Set([...callRows.filter((x) => inRange(x.at)).map((x) => String(x.caller).toLowerCase()), ...repsL.filter((r) => r.status === "active").map((r) => String(r.email).toLowerCase())])].filter((e) => e && e.includes("@"));
+      const callers = callerEmails.map((em) => {
+        const rep = byEmail.get(em) || null;
+        const mine = callRows.filter((x) => String(x.caller).toLowerCase() === em && inRange(x.at));
+        const invited = new Set(allCalls.filter((x) => x.outcome === "invite_sent" && String(x.caller).toLowerCase() === em).map((x) => x.client_id));
+        const logins = pv.filter((p) => invited.has(p.client_id) && inRange(p.engagement?.first_login_at)).length;
+        const won = dl.filter((d) => d.status === "won" && inRange(d.closed_at) && (rep ? d.rep_id === rep.id : !d.rep_id && (d.log || []).some((l: any) => String(l.by).toLowerCase() === em)));
+        const revenue = won.reduce((a, d) => a + gross(d), 0);
+        const cost = rep ? Math.round(num(rep.base_retainer) * (days / 30) + won.reduce((a, d) => a + (num(d.contract_value) + num(d.monthly_value) * num(comp.monthly_counts_months)) * num((comp.tiers || [])[0]?.rate), 0)) : 0;
+        return { email: em, name: rep?.name || em.split("@")[0], role: rep ? "rep" : "admin", ...callerMetrics(mine, { logins, deals: won.length, revenue, cost }) };
       });
       // Activity over time: 8 weeks of calls, previews and deals won.
       const weeks = Array.from({ length: 8 }, (_, i) => { const end = Date.now() - (7 - i) * 7 * 86400000; return { start: new Date(end - 7 * 86400000).toISOString().slice(0, 10), end: new Date(end).toISOString().slice(0, 10) }; });
@@ -285,7 +299,7 @@ Deno.serve(async (req) => {
       });
       const pending = dl.filter((d) => d.status === "pending_approval");
       return Response.json({
-        days, board, activity, pipeline: { stages, industries }, funnel, pending_approvals: pending,
+        days, board, callers, activity, pipeline: { stages, industries }, funnel, pending_approvals: pending,
         goal: { title: goal?.title || "$1M in 2027", target, year, stripe_mrr: Math.round(stripeMrr), committed_mrr: dl.filter((d) => d.status === "won").reduce((a, d) => a + num(d.monthly_value), 0), months: goalMonths, from_goal: !!goal },
         totals: { calls: board.reduce((a, b) => a + b.calls, 0), meetings: board.reduce((a, b) => a + b.meetings, 0), deals: board.reduce((a, b) => a + b.deals_closed, 0), revenue: board.reduce((a, b) => a + b.revenue, 0), cost: board.reduce((a, b) => a + b.month_cost, 0) },
       });
