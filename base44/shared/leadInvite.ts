@@ -27,7 +27,7 @@ export function leadInviteEmail({ business, contact, email, loginUrl, optOut, po
   const blocks = [
     { type: "header", eyebrow: `Built for ${business}`.slice(0, 60), show_date: true },
     { type: "hero", title: `We built ${business}`.slice(0, 80), accent: "a new website and system" },
-    { type: "intro", text: `${first ? `${first}, ` : ""}no strings attached: we built ${business} a brand-new website and a Command System, the software that runs leads, jobs, customers and invoices in one place. It's ready for you to look at right now.` },
+    { type: "intro", text: `${first ? `${first}, ` : ""}no strings attached: we built ${business} a brand-new website and a Command System, the software that runs leads, jobs, customers and invoices in one place. It's ready for you to look at right now. If you're not the owner or manager, please pass this along to them.` },
     { type: "band", label: "Our thank-you", text: "Give us 30 minutes to walk you through it and we'll pay you $1 a minute, $30, by Venmo, Cash App, PayPal or check. Whether you love it or not." },
     { type: "section", title: "What's waiting for you" },
     { type: "cards", items: [
