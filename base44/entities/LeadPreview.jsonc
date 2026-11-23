@@ -1,0 +1,110 @@
+{
+  "name": "LeadPreview",
+  "description": "Lead Engine: the website + Command System preview built for one lead from its IndustryTemplate and scraped Brain facts. One row per lead (client_id); every rebuild bumps version and appends to build_log. website_base/command_config come from the builder, website_overrides hold the team's text edits and section swaps (kept across rebuilds), website_config is base + overrides. The lead sees it in the lead-tier portal only through the portal function (scoped to their own client_id). Admin only.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "industry_key": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready",
+        "sent",
+        "viewed"
+      ],
+      "default": "draft"
+    },
+    "website_base": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "website_overrides": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "website_config": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "command_config": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "missing": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Facts the scrape didn't find (template stand-ins used)"
+    },
+    "built_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "built_by": {
+      "type": "string"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
+    },
+    "template_version": {
+      "type": "number"
+    },
+    "build_log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "{at, by, action: build|rebuild|edit|ready|sent|viewed, version, note}"
+    },
+    "ready_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "engagement": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Lead-tier portal engagement: first_login_at, last_seen_at, sessions, views {home, website, command, offer}, seconds {website, command, home}, walkthrough_booked_at"
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
