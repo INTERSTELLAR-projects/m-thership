@@ -247,6 +247,7 @@ export function investorize(text) {
   t = t.replace(/\bBase44\b\s*/g, "");
   t = t.replace(/®/g, "™");
   t = t.replace(/,?\s*(and\s+)?open approval tasks/gi, "");
+  t = t.replace(/,\s*what needs his approval and (what)/gi, " and $1");
   t = t.replace(/what needs his approval(,| and)?\s*/gi, "");
   t = t.replace(/\b(the whole )?registry\b/gi, (m) => (/whole/i.test(m) ? "every agent's record" : "agent roster"));
   t = t.replace(/\(([a-zA-Z]+[A-Z][a-zA-Z]*|[a-z]+-[a-z-]+)\)/g, "");
