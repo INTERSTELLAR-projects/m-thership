@@ -69,7 +69,7 @@ function AgentCard({ a, name, deptLabel, links, pinned, onOpen, onClose, sheet, 
   return (
     <div data-ui="" data-testid="agent-card" role="dialog" aria-label={`${name} summary`}
       style={sheet ? undefined : { top }}
-      className={`glass z-30 ${sheet ? "absolute inset-x-2 bottom-2 rounded-2xl" : "absolute left-3 w-[320px] rounded-xl md:left-5"} px-4 py-3.5 shadow-[0_20px_60px_-20px_rgba(0,0,0,.8)]`}>
+      className={`glass z-30 ${pinned ? "" : "pointer-events-none"} ${sheet ? "absolute inset-x-2 bottom-2 rounded-2xl" : "absolute left-3 w-[320px] rounded-xl md:left-5"} px-4 py-3.5 shadow-[0_20px_60px_-20px_rgba(0,0,0,.8)]`}>
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <p className="eyebrow !text-[9.5px]">{deptLabel}{pillar ? ` · ${PILLAR_NAMES[pillar]} pillar` : ""}</p>
