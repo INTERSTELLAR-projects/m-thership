@@ -689,12 +689,13 @@ export function datedSignals(html, finalUrl, year = new Date().getUTCFullYear())
 export const OUTCOMES = [
   { key: "no_answer", label: "No answer", hotkey: "1", connect: false, owner: false },
   { key: "voicemail", label: "Voicemail left", hotkey: "2", connect: false, owner: false },
-  { key: "gatekeeper", label: "Gatekeeper", hotkey: "3", connect: true, owner: false },
-  { key: "sent_portal", label: "Owner → sent portal", hotkey: "4", connect: true, owner: true },
-  { key: "callback", label: "Callback set", hotkey: "5", connect: true, owner: true },
-  { key: "booked", label: "Meeting booked", hotkey: "6", connect: true, owner: true },
-  { key: "not_interested", label: "Not interested", hotkey: "7", connect: true, owner: true },
-  { key: "dnc", label: "Do not call", hotkey: "8", connect: true, owner: false },
+  { key: "gatekeeper", label: "Gatekeeper, no portal", hotkey: "3", connect: true, owner: false },
+  { key: "sent_portal", label: "Talked to owner / sent portal", hotkey: "4", connect: true, owner: true, portal: true },
+  { key: "staff_portal", label: "Told staff / sent portal", hotkey: "5", connect: true, owner: false, portal: true },
+  { key: "callback", label: "Callback set", hotkey: "6", connect: true, owner: true },
+  { key: "booked", label: "Meeting booked", hotkey: "7", connect: true, owner: true },
+  { key: "not_interested", label: "Not interested", hotkey: "8", connect: true, owner: true },
+  { key: "dnc", label: "Do not call", hotkey: "9", connect: true, owner: false },
 ];
 export const OUTCOME_BY_KEY = Object.fromEntries(OUTCOMES.map((o) => [o.key, o]));
 export const DIAL_OUTCOMES = OUTCOMES.map((o) => o.key);
@@ -703,12 +704,13 @@ export const PAY_METHODS = ["Venmo", "Cash App", "PayPal", "Check"];
 export const INCENTIVE = { minutes: 30, per_minute: 1, amount: 30 };
 
 export const CALL_SCRIPT = {
-  opener: "Hi, is this {contact}? This is {caller} with Interstellar Strategies. Quick one, and no pitch on this call: I came across {business} on Google and actually built you something.",
+  // Primary script: works with whoever answers (owner, manager or front desk). Goal: they agree to look at the email.
+  opener: "Hi, this is {caller} with Interstellar. We built {business} a new website and a system for running the business, no strings attached. I just sent it to the email on your website: it has a login to your own portal so you can take a look. Could you make sure the owner or manager sees it? If they like what they see, everything to reach us is inside.",
   pitch: [
-    "We built {business} a brand-new website and a Command System, the software that runs your leads, jobs, customers and invoices in one place. It's already made with your name, your services and {city} on it.",
-    "No obligation at all. I'd just love 30 minutes of your time to walk you through it.",
+    "If it's the owner: we built {business} a brand-new website and a Command System, the software that runs your leads, jobs, customers and invoices in one place. It's already made with your name, your services and {city} on it.",
+    "No obligation at all. If you like it, I'd love 30 minutes of your time to walk you through it.",
     "And because your time is worth something, we'll pay you $1 a minute for those 30 minutes, $30, by Venmo, Cash App, PayPal or check. Whether you like it or not.",
-    "Can I send you a private login so you can see it before we talk?",
+    "If it's staff: no need to decide anything. Just make sure the owner or manager sees the email. What's their name, so I can ask for them next time?",
   ],
   close: "Great. What's the best email for your login? You'll get one email from Interstellar with a button to see your site and system. Does {day} or {day2} work better for the 30 minutes?",
   objections: [
@@ -944,7 +946,9 @@ export function followUpsFor({ client = {}, preview = null, calls = [], now = Da
   else if (heat === "hot") out.push({ kind: "hot_call", due_at: new Date(Date.parse(e.first_login_at) + rules.hot_call_hours * HOUR).toISOString(), priority: 0, reason: `Opened the portal: call within ${rules.hot_call_hours} hours while it's warm.` });
   if (client.desk_outcome === "callback" && client.callback_at) out.push({ kind: "callback", due_at: client.callback_at, priority: 1, reason: "Callback they asked for." });
   if (preview?.status === "sent" && preview.sent_at && !e.first_login_at && now - Date.parse(preview.sent_at) >= rules.portal_quiet_hours * HOUR) {
-    out.push({ kind: "portal_reminder", due_at: new Date(Date.parse(preview.sent_at) + rules.portal_quiet_hours * HOUR).toISOString(), priority: 2, reason: `Portal sent ${rules.portal_quiet_hours}h ago, not opened. Call, and send the drafted reminder.`, draft: "sent_portal" });
+    const viaStaff = dials.find((c) => ["sent_portal", "staff_portal"].includes(c.outcome))?.outcome === "staff_portal";
+    const who = String(client.contact || "").trim();
+    out.push({ kind: "portal_reminder", due_at: new Date(Date.parse(preview.sent_at) + rules.portal_quiet_hours * HOUR).toISOString(), priority: 2, reason: viaStaff ? `Sent through staff ${rules.portal_quiet_hours}h ago, not opened. Call again and ask for ${who ? who + " (owner/manager)" : "the owner or manager by name"}.` : `Portal sent ${rules.portal_quiet_hours}h ago, not opened. Call, and send the drafted reminder.`, draft: "sent_portal" });
   }
   if (last && ["no_answer", "voicemail", "gatekeeper"].includes(last.outcome) && !out.some((x) => x.kind === "hot_call" || x.kind === "callback")) {
     const tries = dials.filter((c) => ["no_answer", "voicemail", "gatekeeper"].includes(c.outcome)).length;
@@ -966,7 +970,7 @@ export function prepCard(client = {}, preview = null, templateName = "") {
   const broken = b.site[0] || b.gbp[0] || "Ask how customers find them today and how jobs are tracked.";
   const mods = (preview?.command_config?.modules || []).slice(0, 4).map((m) => m.label.toLowerCase());
   const built = preview ? `New ${templateName ? templateName.toLowerCase() + " " : ""}website in their name${client.city ? ` for ${client.city}` : ""} + a Command System (${mods.join(", ") || "pipeline, jobs, invoices"}).` : "Preview not built yet.";
-  return { broken, built, hook: "We already built it, no obligation: 30 minutes and we pay $30. Goal on this call: get them to open the portal email." };
+  return { broken, built, hook: "We already built it, no strings. Goal: whoever answers agrees the owner or manager will look at the portal email. Owner on the line? Offer the 30-minute walkthrough, $30 for their time." };
 }
 
 // Per-caller rates for Sales HQ. calls = LeadCallLog rows for that caller in the window.
@@ -975,8 +979,8 @@ export function callerMetrics(calls = [], { logins = 0, deals = 0, revenue = 0, 
   const n = dials.length;
   const connects = dials.filter((c) => OUTCOME_BY_KEY[c.outcome]?.connect).length;
   const owners = dials.filter((c) => OUTCOME_BY_KEY[c.outcome]?.owner).length;
-  const portals = dials.filter((c) => c.outcome === "sent_portal").length;
+  const portals = dials.filter((c) => OUTCOME_BY_KEY[c.outcome]?.portal).length;
   const meetings = dials.filter((c) => c.outcome === "booked").length;
   const r = (a, b) => (b ? a / b : 0);
-  return { dials: n, connects, owners, portals, logins, meetings, deals, revenue, cost, connect_rate: r(connects, n), owner_rate: r(owners, n), portal_rate: r(portals, owners), login_rate: r(logins, portals), meeting_rate: r(meetings, owners), close_rate: r(deals, meetings), revenue_per_dial: r(revenue, n), cost_per_dial: r(cost, n) };
+  return { dials: n, connects, owners, portals, logins, meetings, deals, revenue, cost, connect_rate: r(connects, n), owner_rate: r(owners, n), portal_rate: r(portals, connects), login_rate: r(logins, portals), meeting_rate: r(meetings, owners), close_rate: r(deals, meetings), revenue_per_dial: r(revenue, n), cost_per_dial: r(cost, n) };
 }

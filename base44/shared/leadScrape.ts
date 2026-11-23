@@ -15,6 +15,8 @@ const SCHEMA = {
   type: "object",
   properties: {
     business_name: S,
+    contact_email: S,
+    owner_name: S,
     website: { type: "object", properties: { url: S, platform: S, about: S, services: { type: "array", items: S }, images: { type: "array", items: S }, pages: { type: "array", items: { type: "object", properties: { url: S, title: S, summary: S } } } } },
     gbp: { type: "object", properties: { url: S, name: S, address: S, phone: S, hours: S, categories: { type: "array", items: S }, rating: { type: "number" }, review_count: { type: "number" } } },
     socials: { type: "array", items: { type: "object", properties: { platform: S, url: S, handle: S, followers: S } } },
@@ -44,6 +46,8 @@ function prompt(c: any) {
     "RULES: report only what you actually find on the business's own website, its Google Business Profile, its social profiles or other public pages.",
     "Never guess, estimate or invent. If something is not found, leave that field empty (empty string, empty list, or omit the number) and add a short label for it to not_found (e.g. 'GBP hours', 'brand colors', 'competitors').",
     "List every page URL you actually used in sources.",
+    "contact_email: the business's public email address exactly as shown on their own website or Google Business Profile (prefer the owner's email only if it is publicly listed there). Never guess or construct one. Empty if not shown.",
+    "owner_name: the owner's or manager's name only if it is publicly shown on their site, profile or socials. Empty otherwise.",
     "website.images: up to 8 absolute https image URLs (jpg, png or webp) of the business's own work, team or place, taken from THEIR OWN website only. Never stock photos, never Google Maps or Google Business Profile photos, never logos or icons. Empty if none.",
     "niche_key: home_service (trades, landscaping, tree, HVAC, roofing, cleaning, remodeling), fitness_coach (coaches, trainers, gyms), retail_streetwear (apparel, streetwear, e-commerce clothing), food_bev (restaurants, cafes, bakeries, drinks), otherwise other.",
     "market.scope: local if it serves a town or metro area, regional for a state or region, national or global for e-commerce or remote services; unknown if unclear.",
@@ -137,10 +141,14 @@ export async function runScrape(base44: any, client: any): Promise<any> {
       socials: list(r?.socials).filter((x: any) => s(x?.url)).map((x: any) => ({ platform: s(x.platform), url: s(x.url) })).slice(0, 6),
       colors: list(b.colors).map(s).filter(Boolean).slice(0, 6), logo_url: s(b.logo_url), tone: s(b.tone),
       competitors: list(r?.competitors).filter((x: any) => s(x?.name)).map((x: any) => ({ name: s(x.name), url: s(x.url) })).slice(0, 5),
+      email: /^[^\s@<>"']+@[^\s@<>"']+\.[a-z]{2,}$/i.test(s(r?.contact_email)) ? s(r?.contact_email).toLowerCase() : "", owner: clip(s(r?.owner_name), 80),
       not_found: notFound, sources: src, filled, completeness,
     };
     const clientPatch: any = { scrape_status: "done", scraped_at: now, scrape_summary: summary, niche_key: niche };
     if (!s(client.industry) && summary.industry) clientPatch.industry = clip(summary.industry, 120);
+    // Lead Engine: the public business email (from their site/GBP) is where the preview invite goes; owner name helps callers ask for them.
+    if (summary.email && !(client.emails || []).length) clientPatch.emails = [summary.email];
+    if (summary.owner && !s(client.contact)) clientPatch.contact = summary.owner;
     if (!s(client.logo_url) && /^https:\/\//.test(summary.logo_url)) clientPatch.logo_url = summary.logo_url;
     await db.CRMClient.update(id, clientPatch);
     return { ok: true, summary, completeness, niche_key: niche, filled, not_found: notFound };
