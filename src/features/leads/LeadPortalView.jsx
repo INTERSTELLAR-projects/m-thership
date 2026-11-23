@@ -35,7 +35,8 @@ export default function LeadPortalView({ d, track, onBook, onLogout, preview = f
       {preview ? <div className="relative z-30 flex items-center justify-center gap-2 bg-ink px-4 py-2 text-[12px] text-white"><Eye className="h-3.5 w-3.5 text-[#ff3c00]" />{previewNote || `Previewing exactly what ${c.business} sees (lead tier).`}</div> : null}
       <header className="sticky top-0 z-20 border-b border-hair bg-canvas/90 backdrop-blur">
         <div className="mx-auto flex h-[64px] max-w-[1280px] items-center gap-3 px-4 md:px-8">
-          <BrandLockup word="INTERSTELLAR" sub="" size={13} />
+          <span className="shrink-0 sm:hidden"><BrandLockup word="" size={14} /></span>
+          <span className="hidden shrink-0 sm:inline-flex"><BrandLockup word="INTERSTELLAR" sub="" size={13} /></span>
           <span className="h-8 w-px bg-hair" aria-hidden="true" />
           <div className="flex min-w-0 items-center gap-2">{c.logo_url ? <img src={c.logo_url} alt="" className="h-8 w-8 object-contain" /> : null}<p className="truncate text-[14px] font-semibold tracking-[-0.02em]">{c.business}</p></div>
           <nav aria-label="Your preview" className="ml-auto hidden items-center gap-0.5 lg:flex">
