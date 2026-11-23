@@ -12,12 +12,18 @@
     },
     "references": {
       "description": "Build Engine: reference links and uploaded files (screen recordings, images of the look)",
-      "items": { "additionalProperties": true, "type": "object" },
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
       "type": "array"
     },
     "progress_notes": {
       "description": "Build Engine: running notes from the build agent (step 3)",
-      "items": { "additionalProperties": true, "type": "object" },
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
       "type": "array"
     },
     "build": {
@@ -92,6 +98,7 @@
         "lead_build",
         "checklist_item",
         "command",
+        "site_visit",
         "other"
       ],
       "type": "string"
