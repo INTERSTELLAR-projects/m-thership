@@ -17,7 +17,7 @@ export const DRAFT_V1 = {
   ],
   body_markdown: `# Interstellar Terms of Service
 
-**Version 2026-11-23 · DRAFT for legal review**
+**Version 2026-11-23**
 
 These Terms of Service ("Terms") are an agreement between Interstellar Strategies ("Interstellar", "we", "us") and the business that signs up for our services ("you", "Client"). They apply to every service we provide to you, your client portal, and any Command System, website or other software we build or manage for you. Your proposal, invoice or plan description (your "Order") sets out what you bought and what it costs. If your Order and these Terms disagree, your Order wins for that point.
 
