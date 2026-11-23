@@ -29,7 +29,7 @@ export const ACTIVE = ["queued", "running", "needs_review", "needs_approval", "c
 
 export const KIND_LABELS = {
   task: "Task", audit: "Business audit", build_website: "Website build", build_app: "App build", blog: "Blog",
-  gbp_post: "GBP post", report: "Report", brand: "Brand", email: "Email draft", research: "Research", presentation: "Presentation", playbook: "Industry playbook", content_plan: "Content plan", social_plan: "Social plan", enrich_profile: "Profile enrichment", map_pack_plan: "Map pack plan", topic_calendar: "Topic calendar", lead_build: "Lead build", checklist_item: "Checklist item", command: "Command", other: "Other",
+  gbp_post: "GBP post", report: "Report", brand: "Brand", email: "Email draft", research: "Research", presentation: "Presentation", playbook: "Industry playbook", content_plan: "Content plan", social_plan: "Social plan", enrich_profile: "Profile enrichment", map_pack_plan: "Map pack plan", topic_calendar: "Topic calendar", lead_build: "Lead build", checklist_item: "Checklist item", command: "Command", site_visit: "Site visit", other: "Other",
 };
 
 export function guessKind(text = "") {

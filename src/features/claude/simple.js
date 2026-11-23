@@ -29,7 +29,7 @@ const STATUS_LINES = {
 
 // One plain-English line: first sentence of the result, else a status line.
 export function oneLine(job, max = 140) {
-  if (job?.status === "queued" && ["lead_build", "checklist_item", "command"].includes(job?.kind)) return "Queued — Claude starts it on the next run (hourly, 7 AM–9 PM PT). Say 'run the queue' in chat to start now.";
+  if (job?.status === "queued" && ["lead_build", "checklist_item", "command", "site_visit"].includes(job?.kind)) return "Queued — Claude starts it on the next run (hourly, 7 AM–9 PM PT). Say 'run the queue' in chat to start now.";
   const text = String(job?.result_summary || "").replace(/\s+/g, " ").trim();
   if (!text) return STATUS_LINES[job?.status] || STATUS_LINES.queued;
   const m = text.match(/^.+?[.!?](?=\s|$)/);
