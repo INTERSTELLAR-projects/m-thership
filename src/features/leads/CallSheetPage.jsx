@@ -2,9 +2,9 @@
 // retries, unopened portals), then fresh leads whose preview is Ready. Keyboard-fast: J/K or ↑/↓ to move,
 // 1–9 for outcomes, C to call, W/S/P/O to open what we built. "Sent portal" opens the invite email; a person
 // clicks Send. No dialer yet: tel: links and one-key logging (Aircall can plug in later).
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarClock, ChevronDown, ExternalLink, Eye, Flame, Globe, LayoutDashboard, Loader2, MonitorSmartphone, Phone, PhoneCall, Settings2, Star, X } from "lucide-react";
+import { CalendarClock, ChevronDown, ExternalLink, Eye, Flame, Globe, LayoutDashboard, Loader2, MonitorSmartphone, Phone, PhoneCall, Settings2, X } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { CALL_SCRIPT, fillScript, FLAG_LABEL } from "@/lib/leadEngine";
 import { engine, useEngine, useRefresh, ago, leadHref } from "./api";

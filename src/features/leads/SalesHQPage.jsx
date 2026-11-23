@@ -2,7 +2,7 @@
 // vs revenue, the 2027 goal tracker, price approvals, reps (add, invite, training), pay rules and price floors.
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, Loader2, Mail, Plus, Shuffle, Target, UserPlus, X } from "lucide-react";
+import { Check, Mail, Plus, Shuffle, Target, UserPlus, X } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { base44 } from "@/api/base44Client";
 import { sales, engine, useSales, useEngine, money, pct, leadHref } from "./api";
