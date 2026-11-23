@@ -15,7 +15,7 @@ const SCHEMA = {
   type: "object",
   properties: {
     business_name: S,
-    website: { type: "object", properties: { url: S, platform: S, about: S, services: { type: "array", items: S }, pages: { type: "array", items: { type: "object", properties: { url: S, title: S, summary: S } } } } },
+    website: { type: "object", properties: { url: S, platform: S, about: S, services: { type: "array", items: S }, images: { type: "array", items: S }, pages: { type: "array", items: { type: "object", properties: { url: S, title: S, summary: S } } } } },
     gbp: { type: "object", properties: { url: S, name: S, address: S, phone: S, hours: S, categories: { type: "array", items: S }, rating: { type: "number" }, review_count: { type: "number" } } },
     socials: { type: "array", items: { type: "object", properties: { platform: S, url: S, handle: S, followers: S } } },
     market: { type: "object", properties: { scope: { type: "string", enum: ["local", "regional", "national", "global", "unknown"] }, service_area: S } },
@@ -44,6 +44,7 @@ function prompt(c: any) {
     "RULES: report only what you actually find on the business's own website, its Google Business Profile, its social profiles or other public pages.",
     "Never guess, estimate or invent. If something is not found, leave that field empty (empty string, empty list, or omit the number) and add a short label for it to not_found (e.g. 'GBP hours', 'brand colors', 'competitors').",
     "List every page URL you actually used in sources.",
+    "website.images: up to 8 absolute https image URLs (jpg, png or webp) of the business's own work, team or place, taken from THEIR OWN website only. Never stock photos, never Google Maps or Google Business Profile photos, never logos or icons. Empty if none.",
     "niche_key: home_service (trades, landscaping, tree, HVAC, roofing, cleaning, remodeling), fitness_coach (coaches, trainers, gyms), retail_streetwear (apparel, streetwear, e-commerce clothing), food_bev (restaurants, cafes, bakeries, drinks), otherwise other.",
     "market.scope: local if it serves a town or metro area, regional for a state or region, national or global for e-commerce or remote services; unknown if unclear.",
     "competitors: the top 3 to 5 direct competitors you can actually find for the same service and market, with their URL.",
@@ -130,7 +131,9 @@ export async function runScrape(base44: any, client: any): Promise<any> {
       industry: s(r?.industry), business_model: s(r?.business_model),
       market: m.scope && m.scope !== "unknown" ? `${m.scope}${s(m.service_area) ? ` · ${s(m.service_area)}` : ""}` : "",
       services: list(w.services).map(s).filter(Boolean).slice(0, 8),
-      gbp: { rating: typeof g.rating === "number" ? g.rating : null, reviews: typeof g.review_count === "number" ? g.review_count : null, phone: s(g.phone), address: s(g.address), categories: list(g.categories).map(s).slice(0, 4) },
+      gbp: { rating: typeof g.rating === "number" ? g.rating : null, reviews: typeof g.review_count === "number" ? g.review_count : null, phone: s(g.phone), address: s(g.address), hours: clip(s(g.hours), 300), categories: list(g.categories).map(s).slice(0, 4) },
+      // Lead Engine preview: photos from the business's own site only (https images), never Google photos.
+      images: list(w.images).map(s).filter((u: string) => /^https:\/\/\S+\.(jpe?g|png|webp)(\?\S*)?$/i.test(u) && !/googleusercontent|gstatic|ggpht|maps\.google/i.test(u)).slice(0, 8),
       socials: list(r?.socials).filter((x: any) => s(x?.url)).map((x: any) => ({ platform: s(x.platform), url: s(x.url) })).slice(0, 6),
       colors: list(b.colors).map(s).filter(Boolean).slice(0, 6), logo_url: s(b.logo_url), tone: s(b.tone),
       competitors: list(r?.competitors).filter((x: any) => s(x?.name)).map((x: any) => ({ name: s(x.name), url: s(x.url) })).slice(0, 5),
