@@ -1,0 +1,101 @@
+{
+  "name": "Deal",
+  "description": "Sales team deals: lead, rep, products (website, app/Command System, bundle, SEO subscription monthly), contract and monthly value, status, closed date. Price floors are checked on the server (sales-team deal_save) against admin-only settings; a deal under a floor is saved as pending_approval and only an admin can approve it. Reps see only 'this price needs approval', never the floor. Admin only (reps read and write their own deals through sales-team).",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "industry_key": {
+      "type": "string"
+    },
+    "rep_id": {
+      "type": "string",
+      "description": "SalesRep who closed / owns the deal"
+    },
+    "rep_name": {
+      "type": "string"
+    },
+    "builder_rep_id": {
+      "type": "string"
+    },
+    "products": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "[{key: website|app|bundle|seo, offer_key, label, billing: one_time|monthly, list_price, price}]"
+    },
+    "contract_value": {
+      "type": "number",
+      "description": "One-time total (USD)"
+    },
+    "monthly_value": {
+      "type": "number",
+      "description": "Monthly recurring total (USD)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending_approval",
+        "approved",
+        "won",
+        "lost"
+      ],
+      "default": "draft"
+    },
+    "needs_approval": {
+      "type": "boolean",
+      "default": false
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{requested_at, requested_by, decided_at, decided_by, decision: approved|declined, note}. Admin only detail."
+    },
+    "closed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": [
+    "client_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
