@@ -40,3 +40,6 @@ export const ago = (d) => {
   return `${Math.round(m / 1440)}d ago`;
 };
 export const mins = (s) => { const n = Math.round((Number(s) || 0) / 60); return n < 1 && s ? "<1 min" : `${n} min`; };
+
+// One lead page for admins and reps alike.
+export const leadHref = (id) => `/leads/lead/${id}`;

@@ -8,7 +8,7 @@ import { CheckSquare, ExternalLink, Globe, KeyRound, Link2, Loader2, MapPin, Pho
 import PageHeader from "@/components/PageHeader";
 import { FLAG_LABEL, PLACES_PRICING, US_STATE_NAMES } from "@/lib/leadEngine";
 import UsMap from "./UsMap";
-import { engine, finder, useEngine, useFinder, useRefresh, money } from "./api";
+import { engine, finder, useEngine, useFinder, useRefresh, money, leadHref } from "./api";
 import { Card, Pill, Loading, ErrorNote, Empty, btn, btnFlame, btnInk, input } from "./ui";
 
 const FLAG_TONE = { no_website: "red", dated: "amber", few_reviews: "amber", few_photos: "muted" };
@@ -243,7 +243,7 @@ function QueueTab({ q, admin }) {
           return (
             <li key={i.id} className="grid items-center gap-3 px-4 py-2.5 md:grid-cols-[24px_1.5fr_1fr_1.2fr_auto]">
               <button type="button" onClick={() => setSel((s) => { const n = new Set(s); n.has(i.id) ? n.delete(i.id) : n.add(i.id); return n; })} aria-label={`Select ${i.business}`}>{on ? <CheckSquare className="h-4 w-4 text-[#ff3c00]" /> : <Square className="h-4 w-4 text-ink/40" />}</button>
-              <div className="min-w-0"><Link to={`/clients/${i.id}`} className="truncate text-[13.5px] font-medium hover:text-[#ff3c00]">{i.business}</Link><p className="text-[11.5px] text-ink/50">{[i.city, i.state].filter(Boolean).join(", ")}{i.assigned_rep_name ? ` · ${i.assigned_rep_name}` : ""}</p></div>
+              <div className="min-w-0"><Link to={leadHref(i.id)} className="truncate text-[13.5px] font-medium hover:text-[#ff3c00]">{i.business}</Link><p className="text-[11.5px] text-ink/50">{[i.city, i.state].filter(Boolean).join(", ")}{i.assigned_rep_name ? ` · ${i.assigned_rep_name}` : ""}</p></div>
               <div className="flex flex-wrap gap-1">{(i.lead_flags || []).map((f) => <Pill key={f} tone={FLAG_TONE[f]}>{FLAG_LABEL[f] || f}</Pill>)}</div>
               <p className="text-[12px] text-ink/60">{i.queue?.reason || (i.rating != null ? `${i.rating}★ · ${i.reviews} reviews` : "")}</p>
               <Pill tone={Q_TONE[i.queue?.status]}>{i.queue?.status}{i.queue?.attempts ? ` · try ${i.queue.attempts}` : ""}</Pill>
