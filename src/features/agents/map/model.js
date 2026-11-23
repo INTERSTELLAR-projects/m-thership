@@ -239,6 +239,7 @@ export function placeLabels(items, discs, bounds, { gap = 5, maxPlaced = 400 } =
 
 // ---------------------------------------------------------------- investor copy
 // Plain English for a room of investors: no product names of the build platform, no record-type jargon, ™ not ®.
+const KEEP_CASE = new Set(["YouTube", "LinkedIn", "QuickBooks", "PageSpeed", "TikTok", "GoDaddy", "WordPress", "HyperCare", "OpenAI", "ChatGPT", "SoundCloud", "GitHub", "MailChimp", "HubSpot", "PowerLift", "MowMasters", "DreamSpace"]);
 export function investorize(text) {
   let t = String(text || "");
   t = t.replace(/\bBase44\b\s*/g, "");
@@ -247,7 +248,7 @@ export function investorize(text) {
   t = t.replace(/what needs his approval(,| and)?\s*/gi, "");
   t = t.replace(/\b(the whole )?registry\b/gi, (m) => (/whole/i.test(m) ? "every agent's record" : "agent roster"));
   t = t.replace(/\(([a-zA-Z]+[A-Z][a-zA-Z]*|[a-z]+-[a-z-]+)\)/g, "");
-  t = t.replace(/\b([A-Z][a-z]+(?:[A-Z][a-z]+)+)(s?)\b/g, (m, w, s) => w.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase() + s);
+  t = t.replace(/\b([A-Z][a-z]+(?:[A-Z][a-z]+)+)(s?)\b/g, (m, w, s) => (KEEP_CASE.has(w) ? m : w.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase() + s));
   t = t.replace(/\bai_snapshot|aiSnapshot\b/gi, "a finance snapshot");
   t = t.replace(/\s{2,}/g, " ").replace(/\s+([.,;])/g, "$1").trim();
   return t;
