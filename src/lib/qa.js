@@ -11,7 +11,6 @@ import { demo, demoInvoke, warmDemo } from "@/lib/demoData";
 import { QA_LEDGER, qaLedgerInvoke, qaWorkFeed, qaWorkCounts } from "@/features/output/qaFixtures";
 import { qaTrainingInvoke } from "@/features/training/qaFixtures";
 import { IS_PRESENTING, endPresentation } from "@/lib/presentation";
-import { qaLeadInvoke, qaLeadPortal } from "@/features/leads/qaFixtures";
 
 const host = typeof window !== "undefined" ? window.location.hostname : "";
 const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
@@ -182,8 +181,9 @@ export function installQa(base44) {
   base44.integrations = { Core: { InvokeLLM: async () => ({}), UploadFile: async () => ({ file_url: "" }) } };
   base44.functions = {
     invoke: async (name, args = {}) => {
-      if (["lead-engine", "lead-finder", "sales-team"].includes(name)) return { data: qaLeadInvoke(name, args) || {} };
-      if (name === "portal" && String(args.client_id || "").startsWith("qa-l")) { const lp = qaLeadPortal(args.client_id); if (lp) return { data: args.action === "home" ? lp : { ok: true } }; }
+      // Lead Engine fixtures load on demand (keeps the main bundle small).
+      if (["lead-engine", "lead-finder", "sales-team"].includes(name)) { const m = await import("@/features/leads/qaFixtures"); return { data: m.qaLeadInvoke(name, args) || {} }; }
+      if (name === "portal" && String(args.client_id || "").startsWith("qa-l")) { const m = await import("@/features/leads/qaFixtures"); const lp = m.qaLeadPortal(args.client_id); if (lp) return { data: args.action === "home" ? lp : { ok: true } }; }
       if (IS_DEMO) { const d = demoInvoke(name, args, rows); if (d !== undefined) return { data: d }; }
       if (String(name).startsWith("social-")) return { data: qaSocialInvoke(name, args) };
       if (name === "usage") return { data: qaUsageInvoke(args) };
