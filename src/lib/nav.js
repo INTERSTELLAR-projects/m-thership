@@ -75,6 +75,7 @@ export const HUBS = [
       { label: "Lead Finder", icon: MapPinned, path: "/leads/finder", hint: "Pick a state and an industry, find Google Business Profiles, approve them to build" },
       { label: "Sales HQ", icon: Trophy, path: "/leads/hq", hint: "Dials to deals per caller, the funnel, reps, pay, approvals and the 2027 goal" },
       { label: "Templates", icon: Layers, path: "/leads/templates", hint: "Industry templates every preview is built from; refine them with every call" },
+      { label: "Portfolio", icon: Images, path: "/leads/portfolio", hint: "Every launched client site as a case study: publish to the public page, the lead portal and the call sheet" },
     ],
   },
   {

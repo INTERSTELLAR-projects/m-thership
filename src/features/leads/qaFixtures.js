@@ -33,7 +33,12 @@ const OFFERS = [
   { key: "hypercare_local", kind: "subscription", name: "HyperCare+ Local", summary: "", includes: ["GBP posts", "Long-form blogs", "Reviews", "Citations", "Monitoring", "Daily intel"] },
   { key: "gravitycare", kind: "subscription", name: "GravïtyCare", summary: "", includes: ["Hosting", "Uptime", "Small edits"] },
 ];
-const portalFor = (d) => ({ tier: "lead", client: { id: d.c.id, business: d.c.business, contact: d.c.contact, city: d.c.city, state: d.c.state, logo_url: "" }, preview: { status: d.preview.status, website: d.preview.website_config, command: d.preview.command_config }, offers: OFFERS, incentive: { amount: 30, minutes: 30, per_minute: 1, methods: ["Venmo", "Cash App", "PayPal", "check"] }, booked: false, businesses: [] });
+const PORTFOLIO = [
+  { id: "qa-pf1", slug: "sample-tree-co", name: "Sample Tree Co (demo)", industry: "Tree service", industry_key: "tree_service", url: "https://example.com", domain: "example.com", launched_at: ago(400), description: "Tree removal & land clearing · demo card", objective: "Demo: turn Google searches into booked estimates.", built: ["website", "command_system"], highlights: ["Demo highlight one", "Demo highlight two"], results: [], image_desktop: "", image_phone: "", og_image: "" },
+  { id: "qa-pf2", slug: "sample-landscape", name: "Sample Landscaping (demo)", industry: "Landscaping", industry_key: "landscaping", url: "https://example.com", domain: "example.org", launched_at: ago(700), description: "Commercial grounds · demo card", objective: "", built: ["website", "seo_map_pack"], highlights: [], results: [], image_desktop: "", image_phone: "", og_image: "" },
+  { id: "qa-pf3", slug: "sample-barber", name: "Sample Barbershop (demo)", industry: "Barbershop", industry_key: "barber_salon", url: "https://example.com", domain: "example.net", launched_at: ago(900), description: "Two locations · demo card", objective: "", built: ["website"], highlights: [], results: [], image_desktop: "", image_phone: "", og_image: "" },
+];
+const portalFor = (d) => ({ portfolio: PORTFOLIO, tier: "lead", client: { id: d.c.id, business: d.c.business, contact: d.c.contact, city: d.c.city, state: d.c.state, logo_url: "" }, preview: { status: d.preview.status, website: d.preview.website_config, command: d.preview.command_config }, offers: OFFERS, incentive: { amount: 30, minutes: 30, per_minute: 1, methods: ["Venmo", "Cash App", "PayPal", "check"] }, booked: false, businesses: [] });
 
 const CALLS = [["no_answer", 0.2], ["voicemail", 0.4], ["gatekeeper", 0.6], ["sent_portal", 0.9], ["staff_portal", 1.1], ["no_answer", 1.3], ["callback", 1.6], ["booked", 2.2], ["no_answer", 2.5], ["voicemail", 2.7]].map(([outcome, h], i) => ({ id: `qa-c${i}`, outcome, at: ago(h), caller: "justin@interstellar-strategies.com", client_id: DATA[i % DATA.length].c.id }));
 
@@ -44,6 +49,7 @@ function results() {
 
 export function qaLeadInvoke(name, args = {}) {
   const a = args.action;
+  if (name === "portfolio") return a === "list" ? { items: PORTFOLIO.map((x, i) => ({ ...x, client_name: x.name, status: i ? "draft" : "published", source: "seed" })), noindex: true } : { items: PORTFOLIO, noindex: true };
   if (name === "lead-finder") {
     if (a === "status") return { configured: true, pricing: PLACES_PRICING, cache_days: 30, usage: { month_requests: 14, month_est_usd: 0.49, today: 3 }, staff: { kind: "admin" } };
     if (a === "search") return { query: `tree service in ${args.place ? `${args.place}, ` : ""}Oregon`, results: results(), next_page_token: "qa", page: 1, est_cost_usd: PLACES_PRICING.per_request_usd };
@@ -80,7 +86,7 @@ export function qaLeadInvoke(name, args = {}) {
     if (a === "sheet") {
       const rows = DATA.map((d) => {
         const task = d.c.id === "qa-l1" ? { id: "qa-t1", kind: "hot_call", due_at: ago(0.1), priority: 0, reason: "Hottest: came back to the preview more than once. Call now." } : d.c.id === "qa-l3" ? { id: "qa-t3", kind: "callback", due_at: d.c.callback_at, priority: 1, reason: "Callback they asked for." } : d.c.id === "qa-l2" ? { id: "qa-t2", kind: "retry_call", due_at: ago(0.5), priority: 3, reason: "Attempt 2 of 4: voicemail left last time, trying a different hour." } : null;
-        return { client: d.c, task, heat: heatOf(d.c, d.preview), preview: { status: d.preview.status, engagement: d.preview.engagement }, prep: prepCard(d.c, d.preview, d.t.name) };
+        return { client: d.c, task, heat: heatOf(d.c, d.preview), preview: { status: d.preview.status, engagement: d.preview.engagement }, prep: prepCard(d.c, d.preview, d.t.name), work: PORTFOLIO.slice(0, 2).map((w) => ({ name: w.name, url: w.url, industry: w.industry, slug: w.slug })) };
       });
       return { rows: sheetOrder(rows), outcomes: OUTCOMES, target: 100, counters: { dials: 37, connects: 14, owners: 6, portals: 5, logins: 2, meetings: 1, deals: 0 }, queue: { building: 1, pending: 2 } };
     }

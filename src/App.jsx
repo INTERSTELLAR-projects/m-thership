@@ -98,6 +98,7 @@ const SalesHQPage = lazyPage(() => import('@/features/leads/SalesHQPage'));
 const TemplatesPage = lazyPage(() => import('@/features/leads/TemplatesPage'));
 const LeadWorkspacePage = lazyPage(() => import('@/features/leads/LeadWorkspace'));
 const StaffGate = lazyPage(() => import('@/features/leads/StaffGate'));
+const PortfolioPage = lazyPage(() => import('@/features/leads/PortfolioPage'));
 
 // Branded sign-in routes. They render without a session. While the platform's hosted login owns /login for this
 // private app (custom auth not enrolled), the server answers these paths itself; the page takes over as soon as
@@ -204,6 +205,7 @@ const AuthenticatedApp = () => {
         <Route path="/leads/hq" element={<ProtectedRoute><SalesHQPage /></ProtectedRoute>} />
         <Route path="/leads/templates" element={<ProtectedRoute><TemplatesPage /></ProtectedRoute>} />
         <Route path="/leads/lead/:id" element={<ProtectedRoute><LeadWorkspacePage /></ProtectedRoute>} />
+        <Route path="/leads/portfolio" element={<ProtectedRoute><PortfolioPage /></ProtectedRoute>} />
         <Route path="/orbit-seo" element={<Navigate to="/packages/orbit-seo" replace />} />
         <Route path="/orbit-seo/manage" element={<ProtectedRoute><OrbitSEO /></ProtectedRoute>} />
         <Route path="/packages" element={<Navigate to="/packages/orbit-seo" replace />} />

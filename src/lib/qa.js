@@ -182,7 +182,7 @@ export function installQa(base44) {
   base44.functions = {
     invoke: async (name, args = {}) => {
       // Lead Engine fixtures load on demand (keeps the main bundle small).
-      if (["lead-engine", "lead-finder", "sales-team"].includes(name)) { const m = await import("@/features/leads/qaFixtures"); return { data: m.qaLeadInvoke(name, args) || {} }; }
+      if (["lead-engine", "lead-finder", "sales-team", "portfolio"].includes(name)) { const m = await import("@/features/leads/qaFixtures"); return { data: m.qaLeadInvoke(name, args) || {} }; }
       if (name === "portal" && String(args.client_id || "").startsWith("qa-l")) { const m = await import("@/features/leads/qaFixtures"); const lp = m.qaLeadPortal(args.client_id); if (lp) return { data: args.action === "home" ? lp : { ok: true } }; }
       if (IS_DEMO) { const d = demoInvoke(name, args, rows); if (d !== undefined) return { data: d }; }
       if (String(name).startsWith("social-")) return { data: qaSocialInvoke(name, args) };

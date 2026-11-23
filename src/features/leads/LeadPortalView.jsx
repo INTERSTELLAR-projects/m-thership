@@ -3,13 +3,14 @@
 // OfferCatalog, no prices: quotes are custom), the $30-for-30-minutes offer and the walkthrough booking.
 // Used by the portal (PortalApp, lead tier) and by Møthership's "Their portal" button (same view, preview flag).
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, CalendarCheck, Check, LayoutDashboard, LogOut, MonitorSmartphone, Sparkles, Eye } from "lucide-react";
+import { ArrowRight, CalendarCheck, Check, LayoutDashboard, LogOut, MonitorSmartphone, Sparkles, Eye, Images } from "lucide-react";
+import PortfolioView from "./PortfolioView";
 import BrandLockup from "@/components/brand/BrandLockup";
 import WebsitePreview from "./WebsitePreview";
 import CommandPreview from "./CommandPreview";
 import PreviewFrame, { DeviceToggle } from "./PreviewFrame";
 
-const VIEWS = [["home", "Welcome", Sparkles], ["website", "Your website", MonitorSmartphone], ["command", "Your Command System", LayoutDashboard], ["offer", "Interstellar", Check]];
+const VIEWS = [["home", "Welcome", Sparkles], ["website", "Your website", MonitorSmartphone], ["command", "Your Command System", LayoutDashboard], ["work", "Our work", Images], ["offer", "Interstellar", Check]];
 
 export default function LeadPortalView({ d, track, onBook, onLogout, preview = false, previewNote }) {
   const [view, setView] = useState("home");
@@ -85,6 +86,7 @@ export default function LeadPortalView({ d, track, onBook, onLogout, preview = f
             {p?.command ? <CommandPreview config={p.command} /> : <Pending />}
           </div>
         ) : null}
+        {view === "work" ? <div className="page-enter"><PortfolioView items={d?.portfolio || []} /></div> : null}
         {view === "offer" ? <div className="page-enter"><WhatIsInterstellar d={d} onBook={onBook} /></div> : null}
       </main>
     </div>

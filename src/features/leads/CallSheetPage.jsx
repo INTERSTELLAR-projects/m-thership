@@ -167,6 +167,10 @@ function CallPanel({ row, outcomes, onNext, onPrev, onView, onInvite, onLogged, 
         {[["Broken now", row.prep?.broken], ["What we built", row.prep?.built], ["The hook", row.prep?.hook]].map(([k, t]) => <div key={k} className="border border-hair bg-card p-3"><p className="mono-label text-[9px] text-[#ff3c00]">{k}</p><p className="mt-1 text-[12.5px] leading-relaxed">{t}</p></div>)}
       </div>
 
+      {(row.work || []).length ? (
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-ink/60" data-testid="prep-work"><span className="mono-label text-[9px] text-[#ff3c00]">Show them</span>{row.work.map((w) => <a key={w.slug} href={w.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 hover:text-[#ff3c00]">{w.name}<span className="text-ink/40"> · {w.industry}</span><ExternalLink className="h-3 w-3" /></a>)}</p>
+      ) : null}
+
       <div className="border border-hair bg-ink p-4 text-white">
         <div className="flex items-center justify-between gap-2"><p className="mono-label text-[9.5px] text-white/50">Say this (whoever answers)</p><button type="button" onClick={() => setScript((x) => !x)} className="inline-flex items-center gap-1 text-[11.5px] text-white/60 hover:text-white">Full script & objections<ChevronDown className={`h-3.5 w-3.5 transition-transform ${script ? "rotate-180" : ""}`} /></button></div>
         <p className="mt-2 text-[14.5px] leading-relaxed">{fillScript(CALL_SCRIPT.opener, v)}</p>

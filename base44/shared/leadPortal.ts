@@ -10,7 +10,7 @@ import { sweepLead } from "./leadFollowups.ts";
 import { safeItem, relevantFor } from "./portfolio.ts";
 
 export const LEAD_ACTIONS = ["home", "lead_track"];
-const VIEWS = ["home", "website", "command", "offer", "book"];
+const VIEWS = ["home", "website", "command", "work", "offer", "book"];
 
 async function previewFor(db: any, cid: string) {
   return (((await db.LeadPreview.filter({ client_id: cid }, "-updated_date", 1).catch(() => [])) || []) as any[])[0] || null;
