@@ -36,6 +36,7 @@ import ClientBuildPage from "@/features/build/ClientBuildPage";
 import ClientPillars from "@/features/build/ClientPillars";
 import { useBrands } from "@/features/brands/useHouseData";
 import { brandFieldOptions } from "@/features/brands/graph";
+import ClientTermsPanel, { TermsChip, useTermsChip } from "@/features/terms/ClientTermsPanel";
 
 // Six sections instead of 23 tabs (Build first, Nov 2026). Every old tab still exists (as a sub-tab) and every old ?tab= link still opens it.
 // Where each old tab now lives: Agents (agents, claude, automations) · Work (overview, tasks, requests, work, calls,
@@ -48,7 +49,7 @@ const SECTIONS = [
   { key: "work", label: "Work", hint: "Summary, tasks, requests and conversations", tabs: [["overview", "Summary"], ["tasks", "Tasks"], ["requests", "Requests"], ["work", "Work log"], ["calls", "Calls"], ["messages", "Messages"]] },
   { key: "growth", label: "Growth", hint: "Results, goals and the plans that drive them", tabs: [["performance", "Performance"], ["goals", "Goals & gaps"], ["gbp", "Google Business"], ["mappack", "Map pack"], ["citations", "Citations & PR"], ["content", "Content plan"], ["social", "Social plan"]] },
   { key: "brain", label: "Brain & brand", hint: "What we know about them, and their brand", tabs: [["profile", "Profile"], ["dossier", "Dossier"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["audit", "Intake audit"], ["files", "Files"]] },
-  { key: "setup", label: "Setup & billing", hint: "Services, notes, systems and portal resources", tabs: [["billing", "Billing & notes"], ["systems", "Systems"], ["resources", "Portal resources"]] },
+  { key: "setup", label: "Setup & billing", hint: "Services, notes, terms, systems and portal resources", tabs: [["billing", "Billing & notes"], ["terms", "Terms & agreements"], ["systems", "Systems"], ["resources", "Portal resources"]] },
 ];
 const ALIAS = { constellations: "agents", "": "build" };
 const sectionOf = (t) => SECTIONS.find((x) => x.tabs.some(([k]) => k === t)) || SECTIONS[0];
@@ -88,6 +89,7 @@ export default function ClientCockpit() {
   const qc = useQueryClient();
   const industries = useOptionList("client_industries").labels;
   const { data: brands = [] } = useBrands();
+  const termsStatus = useTermsChip(id);
 
   if (isLoading) return <div className="px-8 py-16 text-center text-ink/50">Loading…</div>;
   if (!client) return <div className="px-8 py-16 text-center text-ink/50">Client not found. <Link className="text-[#ff3c00]" to="/crm">Back to clients</Link></div>;
@@ -116,6 +118,7 @@ export default function ClientCockpit() {
             <div className="flex flex-wrap items-center gap-2">
               <Tag tone={client.status === "Active" ? "green" : client.status === "Lead" ? "flame" : "muted"}>{client.status}</Tag>
               {(client.services_managed || []).map((s) => <Tag key={s} tone="ink">{SERVICE_LABELS[s] || s}</Tag>)}
+              {termsStatus && termsStatus.state !== "none" && <button type="button" onClick={() => go("terms")} title="Terms & agreements"><TermsChip status={termsStatus} /></button>}
             </div>
             <h1 className="mt-3 text-[34px] font-semibold leading-[0.95] tracking-[-0.045em] md:text-[46px]">
               {last ? <>{words.join(" ")} <span className="text-[#ff3c00]">/{last}</span></> : client.business}
@@ -185,6 +188,7 @@ export default function ClientCockpit() {
         {tab === "systems" && <ErrorBoundary compact where="systems"><SystemsTab client={client} /></ErrorBoundary>}
         {tab === "content" && <ContentPlanTab client={client} onEdit={() => setEditing(true)} />}
         {tab === "files" && <FilesTab client={client} />}
+        {tab === "terms" && <ErrorBoundary compact where="terms"><ClientTermsPanel client={client} /></ErrorBoundary>}
         {tab === "audit" && <AuditTab client={client} />}
         {tab === "messages" && <MessagesTab client={client} />}
         {tab === "billing" && (
