@@ -9,6 +9,7 @@ import { inviteSettings, normEmail } from "../../shared/portalInvite.ts";
 import { sendBrandedEmail } from "../../shared/onboardingEmail.ts";
 import { leadInviteEmail, leadSettings, optOutUrl, verifyOptOut, optOutPage } from "../../shared/leadInvite.ts";
 import { leadHome } from "../../shared/leadPortal.ts";
+import { safeItem, relevantFor } from "../../shared/portfolio.ts";
 
 /*
  * Lead Engine: templates, lead previews, presentation packs, agents, the Lead Desk and the lead-tier portal invite.
@@ -364,12 +365,14 @@ Deno.serve(async (req) => {
       const tk = new Map();
       for (const t of (tasks || []) as any[]) if (!tk.has(t.client_id)) tk.set(t.client_id, t);
       const tname = new Map(tpl.list.map((t: any) => [t.industry_key, t.name]));
+      const work = (((await db.PortfolioItem.filter({ status: "published" }, "sort", 100).catch(() => [])) || []) as any[]).map(safeItem);
       const rows = mine.filter((c) => { const p = pv.get(c.id); return (p && ["ready", "sent", "viewed"].includes(p.status)) || tk.has(c.id); }).map((c) => {
         const p = pv.get(c.id) || null;
         return {
           client: forStaff(staff, c), task: tk.get(c.id) || null, heat: heatOf(c, p),
           preview: p ? { id: p.id, status: p.status, version: p.version, engagement: p.engagement || null, industry_key: p.industry_key, sent_at: p.sent_at || null } : null,
           prep: prepCard(c, p, tname.get(p?.industry_key || c.industry_key) || ""),
+          work: relevantFor(work, c.industry_key || p?.industry_key || "", 3).map((w: any) => ({ name: w.name, url: w.url, industry: w.industry, slug: w.slug })),
         };
       });
       // Today's counters for this caller (Pacific day boundary approximated server-side).

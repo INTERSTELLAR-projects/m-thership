@@ -7,6 +7,7 @@
 // and shown on the lead in Møthership. Admin previews never count as engagement.
 
 import { sweepLead } from "./leadFollowups.ts";
+import { safeItem, relevantFor } from "./portfolio.ts";
 
 export const LEAD_ACTIONS = ["home", "lead_track"];
 const VIEWS = ["home", "website", "command", "offer", "book"];
@@ -35,6 +36,8 @@ export async function leadHome(db: any, client: any, user: any) {
     offers: await offers(db),
     incentive: { amount: 30, minutes: 30, per_minute: 1, methods: ["Venmo", "Cash App", "PayPal", "check"] },
     booked: !!p?.engagement?.walkthrough_booked_at,
+    // "Our work": published portfolio sites (public facts only), most relevant to this lead's industry first.
+    portfolio: relevantFor((((await db.PortfolioItem.filter({ status: "published" }, "sort", 100).catch(() => [])) || []) as any[]).map(safeItem), client.industry_key || p?.industry_key || "", 12),
     businesses: [],
   };
 }
