@@ -147,7 +147,7 @@ export default function PresentMode({ data, registry, ceoName, onExit }) {
   const handoffs = useMemo(() => buildHandoffs(hq), [hq]);
   const scores = extra.data?.brief?.pillar_scores || null;
   const scoredOn = extra.data?.brief?.date ? new Date(`${extra.data.brief.date}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : "";
-  const scenes = useMemo(() => buildScenes({ registry, graph, handoffs, depts: INTERSTELLAR_DEPTS, hqBrain, scores, scoredOn, launchItems: extra.data?.launch || [], ceoName }), [registry, graph, handoffs, hqBrain, scores, scoredOn, extra.data, ceoName]);
+  const scenes = useMemo(() => buildScenes({ registry, graph, handoffs, depts: INTERSTELLAR_DEPTS, hqBrain, scores, scoredOn, launchItems: extra.data?.launch || [], ceoName, clients: data.clients || [] }), [registry, graph, handoffs, hqBrain, scores, scoredOn, extra.data, ceoName, data.clients]);
   const s = scenes[Math.min(idx, scenes.length - 1)];
 
   // Flow scene: light the journey step by step.
