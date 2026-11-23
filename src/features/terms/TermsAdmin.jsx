@@ -74,7 +74,7 @@ export default function TermsAdmin() {
               {versions.map((v) => (
                 <li key={v.id}>
                   <button type="button" onClick={() => { setSelId(v.id); setMode("edit"); }} className={`flex w-full flex-col items-start gap-1 px-4 py-3 text-left hover:bg-[#ff3c00]/[0.04] ${sel?.id === v.id ? "bg-white" : ""}`}>
-                    <span className="flex w-full items-center justify-between gap-2"><span className="font-mono text-[12.5px] font-medium">v{v.version}</span><Chip status={v.status} /></span>
+                    <span className="flex w-full items-center justify-between gap-2"><span className="font-mono text-[12.5px] font-medium">{v.test_only ? "[TEST] " : ""}v{v.version}</span><Chip status={v.status} /></span>
                     <span className="text-[11.5px] text-ink/50">{v.status === "active" ? `Live since ${fmtWhen(v.published_at)}` : v.status === "retired" ? `Retired ${fmtWhen(v.retired_at)}` : "Not live"} · {v.acceptances || 0} signed</span>
                   </button>
                 </li>
