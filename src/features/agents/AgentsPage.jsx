@@ -41,7 +41,7 @@ function useMedia(q) {
 
 // The app-wide ask bar floats over the bottom of every page; on phones it spans the full width, so the map, the
 // department chips and the bottom sheet sit above it.
-function useAskbarInset(stageRef) {
+function useAskbarInset(stageRef, ready) {
   const [inset, setInset] = useState(0);
   useEffect(() => {
     const bar = document.querySelector("[data-askbar]");
@@ -59,7 +59,7 @@ function useAskbarInset(stageRef) {
     const mo = new MutationObserver(measure); mo.observe(bar, { childList: true, subtree: true });
     window.addEventListener("resize", measure);
     return () => { ro.disconnect(); mo.disconnect(); window.removeEventListener("resize", measure); };
-  });
+  }, [stageRef, ready]);
   return inset;
 }
 
@@ -139,7 +139,7 @@ function ClassicAgentsPage({ onShip }) {
   const isMd = useMedia("(min-width: 768px)");
   const reduced = useMedia("(prefers-reduced-motion: reduce)");
   const ps = usePanelState();
-  const askInset = useAskbarInset(stageRef);
+  const askInset = useAskbarInset(stageRef, isLoading);
   const phoneBottom = isMd ? 0 : askInset;
 
   const setP = useCallback((patch, replace = false) => {
@@ -406,7 +406,7 @@ function ClassicAgentsPage({ onShip }) {
       </header>
 
       {/* Stage */}
-      <div ref={stageRef} className="relative min-h-0 flex-1">
+      <div ref={stageRef} className="relative min-h-0 flex-1" style={{ "--ask": `${phoneBottom}px` }}>
         {isLoading ? (
           <div className="absolute inset-0 grid place-items-center"><div className="flex items-center gap-3 text-[13px] text-[var(--ink-m)]"><Spinner size={18} />Mapping the constellation…</div></div>
         ) : error ? (
