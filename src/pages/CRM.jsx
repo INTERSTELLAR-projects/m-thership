@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Search, Plus, Phone, Mail, Globe, Building, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2, CheckCircle2, Link2, Unlink2, RefreshCw, AlertTriangle } from "lucide-react";
+import { Search, Plus, Phone, Mail, Globe, Building, Pencil, Trash2, Check, X, Upload, FileText, ExternalLink, Save, Loader2, CheckCircle2, Link2, Unlink2, RefreshCw, AlertTriangle, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,7 @@ import { useBrands } from "@/features/brands/useHouseData";
 import { useBrandFilter, matchesBrand } from "@/features/brands/brandFilter";
 import { rootOf } from "@/features/brands/graph";
 import { brandFieldOptions } from "@/features/brands/graph";
+import { useTermsSummary } from "@/features/terms/termsApi";
 
 // Radix Select can't hold an empty value: "direct" stands for Interstellar direct (brand_id empty).
 const DIRECT = "direct";
