@@ -1,0 +1,72 @@
+{
+  "name": "LeadCallLog",
+  "description": "Lead Desk: one row per call attempt or desk action on a lead (outcome, note, caller, follow-up date, incentive change). Never holds payment account numbers. Admin only.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "no_answer",
+        "callback",
+        "not_interested",
+        "booked",
+        "sent_portal",
+        "note",
+        "do_not_contact",
+        "incentive"
+      ]
+    },
+    "note": {
+      "type": "string"
+    },
+    "caller": {
+      "type": "string",
+      "description": "Email of the admin/employee who logged it"
+    },
+    "at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "follow_up_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "incentive": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Snapshot when the $30 incentive changed: {status, method, paid_at, amount}"
+    }
+  },
+  "required": [
+    "client_id",
+    "outcome"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
