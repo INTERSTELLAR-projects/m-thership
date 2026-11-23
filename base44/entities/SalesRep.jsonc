@@ -1,0 +1,127 @@
+{
+  "name": "SalesRep",
+  "description": "Sales team: one row per 1099 sales/build rep. A rep signs in with a normal (non-admin) login whose email matches; the sales-team, lead-engine and lead-finder functions then scope them to their own leads, Templates (read + suggest), Lead Finder, Lead Desk and their own deals and pay. Reps never get admin, agency finances, other clients' data, price floors or settings. Admin only (reps read their own row through sales-team).",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "invited",
+        "active",
+        "paused",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "builder",
+        "closer",
+        "both"
+      ],
+      "default": "both",
+      "description": "builder = builds previews, closer = calls/visits and presents, both = does both"
+    },
+    "build_pct": {
+      "type": "number",
+      "default": 50,
+      "description": "For mode both: share of time on building (0-100); the rest is selling"
+    },
+    "allowed_industries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IndustryTemplate keys this rep works. One industry until multi_industry_ready."
+    },
+    "multi_industry_ready": {
+      "type": "boolean",
+      "default": false
+    },
+    "weight": {
+      "type": "number",
+      "default": 1,
+      "description": "Round-robin weight (2 = gets twice the leads)"
+    },
+    "capacity": {
+      "type": "number",
+      "default": 40,
+      "description": "Max open leads before routing skips this rep"
+    },
+    "base_retainer": {
+      "type": "number",
+      "description": "Monthly base retainer (USD). Admin only."
+    },
+    "comp_overrides": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Per-rep changes to the default commission rules"
+    },
+    "assigned_total": {
+      "type": "number",
+      "default": 0
+    },
+    "last_assigned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "started_on": {
+      "type": "string",
+      "format": "date"
+    },
+    "invited_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "training_track_id": {
+      "type": "string"
+    },
+    "training_assignment_id": {
+      "type": "string"
+    },
+    "training_path": {
+      "type": "string",
+      "description": "/t/<assignment>?k=<token> link to the rep's training"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "email"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
