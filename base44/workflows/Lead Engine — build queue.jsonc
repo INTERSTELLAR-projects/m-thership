@@ -7,7 +7,7 @@
       "trigger_type": "scheduled",
       "events": [],
       "schedule_mode": "recurring",
-      "cron_expression": "*/10 7-20 * * *",
+      "cron_expression": "*/15 7-19 * * *",
       "one_time_date": null,
       "timezone": "America/Los_Angeles",
       "interval_value": null,
