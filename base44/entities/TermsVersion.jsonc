@@ -56,6 +56,10 @@
     "retired_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "test_only": {
+      "type": "boolean",
+      "description": "[TEST] version: applies only to clients whose name starts with [TEST] (developer checks). Never shown to real clients and never retired by a real publish"
     }
   },
   "required": [
