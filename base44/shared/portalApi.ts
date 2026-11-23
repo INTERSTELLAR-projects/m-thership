@@ -182,6 +182,12 @@ export async function portalHandler(req: Request): Promise<Response> {
       return Response.json(await leadTrack(db, client, user, args));
     }
     if (action === "lead_track") return Response.json({ ok: true, skipped: "client tier" });
+    // Terms gate (docs/portal-terms.md): a client login that has not accepted the active Terms of Service for this
+    // client gets nothing but the terms. No portal data is read before this line.
+    if (user.role !== "admin") {
+      const terms = await termsGate(db, user, client);
+      if (terms) return Response.json(terms, { status: 428 });
+    }
     // No active care plan (canceled / ended in Stripe): the portal shows a friendly "plan inactive, contact us"
     // screen. Only the home summary and messages (so they can reach us) stay open; their data is kept untouched.
     if (client.plan_status === "inactive") {
