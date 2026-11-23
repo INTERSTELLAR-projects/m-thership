@@ -56,6 +56,8 @@ const FlightPlan = lazyPage(() => import('./pages/FlightPlan'));
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import ClaudeQueue from './pages/ClaudeQueue';
+// Field inbox (docs/field-inbox.md): WhatsApp from the glasses + site visits.
+const FieldPage = lazyPage(() => import('@/features/field/FieldPage'));
 import Security from './pages/Security';
 import OutreachPage from '@/features/outreach/OutreachPage';
 import LegacyImportBanner from '@/features/tasks/LegacyImportBanner';
@@ -247,6 +249,7 @@ const AuthenticatedApp = () => {
         <Route path="/flight-plan" element={<ProtectedRoute><FlightPlan /></ProtectedRoute>} />
         <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
         <Route path="/claude" element={<ProtectedRoute><ClaudeQueue /></ProtectedRoute>} />
+        <Route path="/field" element={<ProtectedRoute><FieldPage /></ProtectedRoute>} />
         <Route path="/security" element={<ProtectedRoute><Security /></ProtectedRoute>} />
         <Route path="/backlinks" element={<ProtectedRoute><OutreachPage /></ProtectedRoute>} />
         <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
