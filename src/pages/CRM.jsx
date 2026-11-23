@@ -45,6 +45,10 @@ export default function CRM() {
   const [deleting, setDeleting] = useState(null);
   const [showAll, setShowAll] = useState(false);
   const [sortBy, setSortBy] = useState("name");
+  // Terms gate (docs/portal-terms.md): show only clients with no acceptance of the active Terms of Service.
+  const [termsFilter, setTermsFilter] = useState(false);
+  const termsQ = useTermsSummary();
+  const signedIds = new Set(termsQ.data?.signed_client_ids || []);
   // "Sync from Stripe": re-reads every live (active + trialing) subscription and rewrites the clients' billing lines.
   // Read-only toward Stripe. Also runs on Stripe webhooks and every 3 hours (workflow "Stripe — scheduled resync").
   const [stripeSyncing, setStripeSyncing] = useState(false);
@@ -160,7 +164,8 @@ export default function CRM() {
       c.contact?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "All" || c.status === statusFilter;
     const matchService = !serviceFilter || (c.services || []).some((sv) => !sv.discontinued && serviceKey(sv) === serviceFilter);
-    return matchSearch && matchStatus && matchService;
+    const matchTerms = !termsFilter || !signedIds.has(c.id);
+    return matchSearch && matchStatus && matchService && matchTerms;
   }).sort((a, b) => {
     const sa = signals[a.id] || {}, sb = signals[b.id] || {};
     if (sortBy === "mrr") return ((sb.mrr?.stripe || 0) + (sb.mrr?.committed || 0)) - ((sa.mrr?.stripe || 0) + (sa.mrr?.committed || 0));
@@ -277,6 +282,7 @@ export default function CRM() {
                 <button key={f} type="button" role="tab" aria-selected={statusFilter === f} onClick={() => setStatusFilter(f)} className={statusFilter === f ? "on" : ""}>{f} <span className="font-mono text-[10px] opacity-60">{counts[f]}</span></button>
               ))}
             </div>
+            <button type="button" onClick={() => setTermsFilter((v) => !v)} aria-pressed={termsFilter} disabled={!termsQ.data?.active} title={termsQ.data?.active ? `Clients with no acceptance of terms v${termsQ.data.active.version}` : "No active Terms of Service yet (Legal › Client Terms of Service)"} className={`inline-flex h-9 items-center gap-1.5 border px-3 text-[12.5px] disabled:opacity-45 ${termsFilter ? "border-ink bg-ink text-white" : "border-hair bg-card text-ink/70 hover:border-ink"}`} data-testid="terms-filter"><ShieldCheck className="h-3.5 w-3.5" />Terms: not signed</button>
             {serviceFilter && (
               <button onClick={() => setServiceFilter(null)} className="inline-flex items-center gap-1.5 rounded-full border border-[#ff3c00]/40 bg-[#ff3c00]/[0.06] px-3 py-1.5 text-xs text-[#d83300]">
                 On {serviceLabel(clients.flatMap((c) => c.services || []).find((sv) => serviceKey(sv) === serviceFilter) || { name: serviceFilter })} <X className="h-3 w-3" />
