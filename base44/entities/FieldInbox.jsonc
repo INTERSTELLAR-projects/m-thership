@@ -1,0 +1,152 @@
+{
+  "name": "FieldInbox",
+  "description": "Field inbox (docs/field-inbox.md): one row per thing Justin sends from the field, from WhatsApp (Meta Ray-Ban Display glasses: 'Hey Meta, send a WhatsApp to M\u00f8thership ...'), the /field site-visit page or the web quick capture. Routing turns it into a Task, Idea, client note, Claude job or site-visit Claude job and records where it went. Routing never publishes or sends anything except the short WhatsApp confirmation back to Justin. Admin only.",
+  "type": "object",
+  "properties": {
+    "source": {
+      "type": "string",
+      "enum": [
+        "whatsapp",
+        "upload",
+        "web"
+      ],
+      "description": "whatsapp = Cloud API webhook (whatsapp-inbound); upload = /field site visit; web = /field quick capture"
+    },
+    "external_id": {
+      "type": "string",
+      "description": "WhatsApp message id (wamid). Dedupe key: a retried webhook never creates a second row"
+    },
+    "from_number": {
+      "type": "string",
+      "description": "Sender, digits only. Only Justin's allowed numbers are ever stored"
+    },
+    "contact_name": {
+      "type": "string",
+      "description": "WhatsApp profile name of the sender"
+    },
+    "message_type": {
+      "type": "string",
+      "description": "WhatsApp message type: text, audio, video, image, document"
+    },
+    "text": {
+      "type": "string",
+      "description": "What Justin said or typed (caption, text, or the voice note transcript)"
+    },
+    "transcript_source": {
+      "type": "string",
+      "description": "typed | whisper_api | pending_runner (voice note waiting for the queue runner to transcribe)"
+    },
+    "media": {
+      "type": "array",
+      "description": "Stored media: [{ url, type (video|image|audio|document), mime, size (bytes), duration (seconds, when known), name }]",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when matched or picked"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "lead_business": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "A new prospect named on a site visit (not in the CRM yet): { name, website, city }. The queue runner creates the CRMClient (status Lead, no duplicates) only when Justin asked for a build"
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Site visit: what Justin ticked { website, operations, content }"
+    },
+    "intent": {
+      "type": "string",
+      "enum": [
+        "task",
+        "idea",
+        "note",
+        "claude_job",
+        "site_visit"
+      ]
+    },
+    "rule": {
+      "type": "string",
+      "description": "Which routing rule decided the intent (prefix_task, work_verb, llm, ambiguous, ...)"
+    },
+    "confidence": {
+      "type": "number",
+      "description": "0..1 for LLM-classified items; 1 for rule matches"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "routed",
+        "processing",
+        "done",
+        "failed",
+        "ignored"
+      ],
+      "default": "new"
+    },
+    "routed_to": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{ entity: Task|Idea|CRMClient|BusinessBrain|ClaudeJob, id, label, path }"
+    },
+    "ai_summary": {
+      "type": "string",
+      "description": "One line: what it became and why"
+    },
+    "reply_text": {
+      "type": "string",
+      "description": "The confirmation sent back on WhatsApp (or shown on /field)"
+    },
+    "reply_status": {
+      "type": "string",
+      "description": "sent | failed | skipped"
+    },
+    "is_test": {
+      "type": "boolean",
+      "description": "[TEST] row made by a developer check; never real field work"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "processed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "error": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "source"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
