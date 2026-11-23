@@ -156,6 +156,6 @@ These Terms of Service ("Terms") are an agreement between Interstellar Strategie
 
 15.5 You may not transfer these Terms without our written consent. We may transfer them as part of a sale or reorganization of our business, with notice to you.
 
-15.6 Notices to Interstellar: justin@interstellar-strategies.com. Notices to you: the email addresses on your account and your client portal.
+15.6 Notices to Interstellar: the email address on Interstellar's invoices and in the client portal. Notices to you: the email addresses on your account and your client portal.
 `,
 };
