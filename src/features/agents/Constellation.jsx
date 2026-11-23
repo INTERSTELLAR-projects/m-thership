@@ -114,7 +114,7 @@ function linkPath(a, b, center) {
 
 const Constellation = forwardRef(function Constellation({
   graph, handoffs = [], viewKey, selectedId, onSelect, onHover, isMatch, query = "",
-  pad = {}, mode = "explore", lit = null, litLinks = null, reduced = false, onCamera, focusIds = null, hideControls = false,
+  pad = {}, mode = "explore", lit = null, litLinks = null, reduced = false, onCamera, focusIds = null, hideControls = false, labelIds = null,
 }, ref) {
   const wrap = useRef(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -395,7 +395,8 @@ const Constellation = forwardRef(function Constellation({
         const inFocus = focusSet ? focusSet.has(n.id) : false;
         const matched = q && String(a.name).toLowerCase().includes(q);
         // Present mode labels only the lit agents; exploring labels everyone once there is room (mid zoom and in).
-        const wanted = lit ? (inFocus || isSel) && (level !== "far" || isSel) : isSel || isHov || matched || level !== "far";
+        // Present mode passes exactly which agents get a name (none on the wide shots).
+        const wanted = mode === "present" ? !!(labelIds && labelIds.has(n.id)) : lit ? (inFocus || isSel) && (level !== "far" || isSel) : isSel || isHov || matched || level !== "far";
         if (!wanted) return;
         // Hover never changes a label's size (it would re-place under the cursor); the hover card shows the rest.
         const max = level === "near" || isSel ? 30 : 22;
@@ -407,7 +408,7 @@ const Constellation = forwardRef(function Constellation({
       }
     });
     return placeLabels(items, discs, bounds);
-  }, [graph, t, size, padKey, level, selectedId, hoverId, focusSet, query, lit, fontsReady]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [graph, t, size, padKey, level, selectedId, hoverId, focusSet, query, lit, fontsReady, labelIds, mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------------------------------------------------------------- render
   const ctrlRight = P.right + 14;
