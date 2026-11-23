@@ -319,13 +319,17 @@ const SAMPLE_PRICES = { trade: [350, 6800], beauty: [25, 180], food: [12, 420], 
 
 const titleCase = (s) => String(s || "").replace(/\b\w/g, (c) => c.toUpperCase());
 
+const SEO_NAME = { tree_service: "Tree service", landscaping: "Landscaping", hardscaping: "Hardscaping", roofing: "Roofing", hvac: "HVAC", plumbing: "Plumbing", electrical: "Electrical", garage_doors: "Garage door", pest_control: "Pest control", cleaning: "Cleaning", auto_detailing: "Auto detailing", barber_salon: "Barbershop", tattoo: "Tattoo studio", fitness_coaching: "Fitness coaching", bakery_cafe: "Bakery & cafe", restaurant: "Restaurant", property_management: "Property management", str_management: "Vacation rental management", med_spa: "Med spa", dental: "Dentist", retail_shop: "Hobby shop", b2b_services: "Business services" };
+const lowerSafe = (s) => String(s).split(" ").map((w) => (/^[A-Z0-9]{2,}$/.test(w) ? w : w.toLowerCase())).join(" ");
+
 export function pageSeo(key, name, family) {
-  const svc = name.split(/[&,]/)[0].trim();
+  const svc = SEO_NAME[key] || name.split(/[&,]/)[0].trim();
+  const low = lowerSafe(svc);
   const pages = family === "food"
     ? [["Home", `{business} | ${svc} in {city}`, `{business} in {city}: what's fresh, hours and how to order. Stop in, call ahead or send a catering request.`], ["Menu", "Menu | {business}", "See the {business} menu: favorites, seasonal specials and custom orders, made fresh in {city}."], ["Contact", "Contact {business} in {city}", "Find {business} in {city}: address, hours, phone and a quick form for orders, catering and events."]]
     : family === "beauty"
       ? [["Home", `{business} | ${svc} in {city}`, `{business} in {city}: book your appointment online in a minute. See services, the team, hours and how to find us.`], ["Services", "Services | {business} {city}", "Every service at {business} in {city}, with how long it takes and how to book your next visit online."], ["Book", "Book at {business} | {city}", "Book your next appointment at {business} in {city}. Pick a service, a time and you're set. It takes a minute."]]
-      : [["Home", `${svc} in {city} | {business}`, `{business} provides ${svc.toLowerCase()} in {city} and nearby. See services, recent work and how to get a quote.`], ["Services", `${svc} services | {business}`, `Every ${svc.toLowerCase()} service {business} offers in {city}, what each includes and how to request a quote.`], ["Contact", "Contact {business} in {city}", "Reach {business} in {city}: call, or answer a few quick questions and we'll get back to you with next steps."]];
+      : [["Home", `${svc} in {city} | {business}`, `{business} provides ${low} in {city_area}. See services, recent work and how to get a quote.`], ["Services", `${svc} services | {business}`, `Every ${low} service {business} offers in {city}, what each includes and how to request a quote.`], ["Contact", "Contact {business} in {city}", "Reach {business} in {city}: call, or answer a few quick questions and we'll get back to you with next steps."]];
   return pages.map(([page, title, description]) => ({ page, title, description }));
 }
 
@@ -403,8 +407,14 @@ export function matchTemplate(templates, { industry_key = "", text = "", niche_k
 /* SEO helpers                                                                                                     */
 /* ------------------------------------------------------------------------------------------------------------- */
 
-const fill = (s, v) => String(s || "").replace(/\{(\w+)\}/g, (_, k) => (v[k] != null && v[k] !== "" ? String(v[k]) : ""))
-  .replace(/\s+\|\s*$/, "").replace(/^\s*\|\s+/, "").replace(/\bin\s+(\||$)/g, "$1").replace(/\s{2,}/g, " ").replace(/\s+([,.:|])/g, "$1").trim();
+// Fills {vars}. A missing var takes its preposition with it ("in {city}" disappears) and "{city}'s" becomes
+// "Your local", so a lead with no known city still reads naturally.
+const has = (v, k) => v[k] != null && String(v[k]).trim() !== "";
+const fill = (s, v) => String(s || "")
+  .replace(/\s*\b(in|near|around|across)\s+\{(\w+)\}/g, (m, _p, k) => (has(v, k) ? m : ""))
+  .replace(/\{(\w+)\}'s\s+/g, (m, k) => (has(v, k) ? m : "Your local "))
+  .replace(/\{(\w+)\}/g, (_, k) => (has(v, k) ? String(v[k]) : ""))
+  .replace(/\s{2,}/g, " ").replace(/\s+([,.:!?])/g, "$1").replace(/(\|\s*){2,}/g, "| ").replace(/^[\s|]+|[\s|]+$/g, "").trim();
 
 function clipWords(s, max) {
   if (s.length <= max) return s;
@@ -541,7 +551,7 @@ export function buildPreview({ client = {}, template, now = new Date().toISOStri
   const reviewCount = typeof s.gbp?.reviews === "number" ? s.gbp.reviews : typeof client.gbp_cache?.review_count === "number" ? client.gbp_cache.review_count : null;
   const images = (Array.isArray(s.images) ? s.images : []).map(str).filter((u) => /^https:\/\/\S+\.(jpe?g|png|webp)(\?\S*)?$/i.test(u)).slice(0, 8);
   const area = str(String(s.market || "").split("·")[1]) || (city ? `${city}${state ? `, ${state}` : ""} and nearby` : "");
-  const vars = { business, short, city, state, service: services[0] || t.name, tail: t.name };
+  const vars = { business, short, city, state, city_area: city ? `${city} and nearby` : "", service: services[0] || t.name, tail: t.name };
   const hero = {
     kicker: [t.name, city && `${city}${state ? `, ${state}` : ""}`].filter(Boolean).join(" · "),
     headline: fill((wt.hero_patterns || ["{business}"])[0], vars) || business,
