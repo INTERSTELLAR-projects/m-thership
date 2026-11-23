@@ -1,0 +1,71 @@
+{
+  "name": "LeadSearch",
+  "description": "Lead Finder: one row per Google Places (New) Text Search request (who, what, where, how many places, estimated Google list cost). Used for the daily rate limit and the cost readout. Holds no Places content. Admin only.",
+  "type": "object",
+  "properties": {
+    "at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "by": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "place": {
+      "type": "string",
+      "description": "City or county typed, if any"
+    },
+    "industry_key": {
+      "type": "string"
+    },
+    "query": {
+      "type": "string"
+    },
+    "page": {
+      "type": "number"
+    },
+    "results": {
+      "type": "number"
+    },
+    "est_cost_usd": {
+      "type": "number"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "error": {
+      "type": "string"
+    },
+    "test": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "at"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
