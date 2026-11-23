@@ -15,7 +15,8 @@ export async function resolveClient(db: any, user: any, asClient?: unknown): Pro
   }
   const email = String(user.email || "").toLowerCase();
   const all = (await db.CRMClient.filter({ portal_enabled: true }, "business", 500).catch(() => [])) || [];
-  const mine = all.filter((c: Record<string, any>) => ((c.portal_emails as string[]) || []).some((e) => String(e).toLowerCase() === email));
+  // Lead-tier logins (Lead Engine) get none of the client tools behind this resolver (studios, fuel, AI, email…).
+  const mine = all.filter((c: Record<string, any>) => c.portal_tier !== "lead" && ((c.portal_emails as string[]) || []).some((e) => String(e).toLowerCase() === email));
   return (asClient ? mine.find((c: Record<string, any>) => c.id === String(asClient)) : null) || mine[0] || null;
 }
 
