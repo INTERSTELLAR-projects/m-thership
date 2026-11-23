@@ -315,7 +315,8 @@ export function nextActions({ scores, agents, launchItems, n = 3, limit = 7, per
         why: firstSentence(a.role, 120) });
     });
     (launchItems || []).filter((i) => i.blocking_launch && i.status !== "done" && i.status !== "deferred" && launchPillar(i) === p.id).forEach((i) => {
-      if (/^Security$/i.test(i.workstream || "") || i.kind === "question" || SENSITIVE.test(i.title || "")) return;
+      // Investor view: no security items, open questions or internal approval queues.
+      if (/^Security$/i.test(i.workstream || "") || i.kind === "question" || SENSITIVE.test(i.title || "") || /approvals?\s+(inbox|queue)|\binbox\b|\bqueue\b/i.test(i.title || "")) return;
       const base = 2 + (Number(i.priority) === 1 ? 1 : 0) + Math.min(1, (Number(i.unblocks) || 0) / 4);
       const title = investorize(String(i.title || "").replace(/^Approve,?\s+(and\s+)?/i, "").replace(/^\w/, (c) => c.toUpperCase()));
       out.push({ id: `l:${i.id}`, kind: "launch", pillar: p.id, pillarName: p.name || PILLAR_NAMES[p.id], score: base * gap, title: truncate(title, 96), why: i.unblocks ? `Clears the way for ${i.unblocks} more launch item${Number(i.unblocks) === 1 ? "" : "s"}.` : "Open item on the launch plan." });
