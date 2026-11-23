@@ -189,13 +189,23 @@
     },
     "market_scope": {
       "type": "string",
-      "enum": ["", "local", "national", "global"],
+      "enum": [
+        "",
+        "local",
+        "national",
+        "global"
+      ],
       "default": "",
       "description": "Brain unlocks: local clients need NAP + service area; national/global clients need topics instead. Empty = read from the scrape (market)."
     },
     "blog_frequency": {
       "type": "string",
-      "enum": ["", "weekly", "2_per_month", "monthly"],
+      "enum": [
+        "",
+        "weekly",
+        "2_per_month",
+        "monthly"
+      ],
       "default": "",
       "description": "Blog engine frequency chosen for this client (growth unlock). Posting itself stays off by Justin's rule."
     },
@@ -250,7 +260,7 @@
       "type": "string"
     },
     "pipeline_stage_logged": {
-      "description": "The stage the move log last recorded. A direct edit of pipeline_stage that differs is picked up and logged by the 'Leads — log stage changes' workflow.",
+      "description": "The stage the move log last recorded. A direct edit of pipeline_stage that differs is picked up and logged by the 'Leads \u2014 log stage changes' workflow.",
       "type": "string"
     },
     "deal_one_time": {
@@ -286,16 +296,124 @@
     },
     "lead_references": {
       "description": "Reference links and uploaded screen recordings or images of the look Justin wants: [{kind: link|file, url, name, note}]",
-      "items": { "additionalProperties": true, "type": "object" },
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
       "type": "array"
     },
     "niche_key": {
       "description": "Build Engine niche template key",
-      "enum": ["home_service", "fitness_coach", "retail_streetwear", "food_bev", "other"],
+      "enum": [
+        "home_service",
+        "fitness_coach",
+        "retail_streetwear",
+        "food_bev",
+        "other"
+      ],
       "type": "string"
     },
+    "portal_tier": {
+      "type": "string",
+      "enum": [
+        "lead",
+        "client"
+      ],
+      "description": "Lead Engine two-tier portal. lead = the login sees only their preview (website + Command System demo), what Interstellar is and the walkthrough booking. client (or empty, for every existing client) = the full portal. Flips to client automatically when the lead becomes Active/paid (lead-stage won, Stripe sync) or by hand; a downgrade never deletes data."
+    },
+    "portal_tier_changed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "industry_key": {
+      "type": "string",
+      "description": "Lead Engine IndustryTemplate key (e.g. tree_service). Picks the template a preview is built from."
+    },
+    "place_id": {
+      "type": "string",
+      "description": "Google Places place id. Kept permanently (allowed by the Places terms); other Places fields live in gbp_cache."
+    },
+    "gbp_cache": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Cached Google Places fields (name, category, rating, review_count, phone, website, address, maps_url, photo_count). Refreshed on view after 30 days (gbp_fetched_at)."
+    },
+    "gbp_fetched_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "state": {
+      "type": "string",
+      "description": "Two-letter US state (Lead Finder)"
+    },
+    "city": {
+      "type": "string",
+      "description": "City (Lead Finder)"
+    },
+    "lead_flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lead Finder flags: no_website, dated, few_reviews, few_photos"
+    },
+    "site_check": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Lightweight homepage check: {at, dated, reasons, copyright}"
+    },
+    "do_not_contact": {
+      "type": "boolean",
+      "default": false,
+      "description": "Blocks calls and emails from the Lead Desk. Set when the person asks, or by an opt-out link."
+    },
+    "dnc_reason": {
+      "type": "string"
+    },
+    "dnc_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "email_opt_out": {
+      "type": "boolean",
+      "default": false,
+      "description": "Opted out of Lead Engine emails through the link in the invite email"
+    },
+    "lead_incentive": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "$1/minute walkthrough incentive: {status: none|owed|paid, amount, minutes, method: Venmo|Cash App|PayPal|Check, paid_at, note}. Never account numbers or handles."
+    },
+    "desk_outcome": {
+      "type": "string",
+      "description": "Last Lead Desk outcome (no_answer, callback, not_interested, booked, sent_portal)"
+    },
+    "desk_last_call_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "assigned_rep_id": {
+      "type": "string",
+      "description": "SalesRep who owns this lead (round-robin or manual)"
+    },
+    "assigned_rep_name": {
+      "type": "string"
+    },
+    "assigned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "builder_rep_id": {
+      "type": "string",
+      "description": "SalesRep who built the preview (first right to present it)"
+    },
     "scrape_status": {
-      "enum": ["none", "running", "done", "failed"],
+      "enum": [
+        "none",
+        "running",
+        "done",
+        "failed"
+      ],
       "type": "string"
     },
     "scraped_at": {
