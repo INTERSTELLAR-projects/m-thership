@@ -52,6 +52,11 @@ export default function PanelShell({ onClose, children, wide = false, label = "D
     );
   }
   return (
+    <>
+    <button type="button" data-ui="" onClick={() => panelStore.set({ collapsed: true })} aria-label="Collapse panel" title="Collapse panel"
+      className="glass absolute top-3 z-30 hidden h-9 w-7 place-items-center rounded-l-lg border-r-0 text-[var(--ink-m)] transition hover:text-white md:grid" style={{ right: w + 12 }}>
+      <ChevronsRight className="h-4 w-4" />
+    </button>
     <aside
       aria-label={label}
       data-ui=""
@@ -73,12 +78,10 @@ export default function PanelShell({ onClose, children, wide = false, label = "D
         onKeyDown={onKey}
         className="absolute bottom-0 left-0 top-0 z-20 hidden w-2 cursor-col-resize md:block [&:hover>span]:opacity-100 focus-visible:outline-none [&:focus-visible>span]:opacity-100"
       ><span className="absolute left-0.5 top-1/2 h-12 w-[3px] -translate-y-1/2 rounded-full bg-[#ff6a00] opacity-0 transition-opacity" /></div>
-      <div className="absolute right-3 top-3 z-10 flex items-center gap-1">
-        <button type="button" onClick={() => panelStore.set({ collapsed: true })} aria-label="Collapse panel" title="Collapse panel" className="hidden h-8 w-8 place-items-center rounded-lg text-[var(--ink-m)] transition hover:bg-white/5 hover:text-white md:grid"><ChevronsRight className="h-4 w-4" /></button>
-        <button type="button" onClick={onClose} aria-label="Close panel" className="grid h-8 w-8 place-items-center rounded-lg text-[var(--ink-m)] transition hover:bg-white/5 hover:text-white"><X className="h-4 w-4" /></button>
-      </div>
+      <button type="button" onClick={onClose} aria-label="Close panel" className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-lg text-[var(--ink-m)] transition hover:bg-white/5 hover:text-white"><X className="h-4 w-4" /></button>
       <span className="mx-auto mt-2 block h-1 w-10 rounded-full bg-white/15 md:hidden" />
       {children}
     </aside>
+    </>
   );
 }
