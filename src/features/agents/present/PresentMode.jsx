@@ -190,7 +190,7 @@ export default function PresentMode({ data, registry, ceoName, onExit }) {
     if (!playing) return undefined;
     let raf = 0; let last = performance.now();
     const tick = (now) => {
-      const dt = Math.min(100, now - last); last = now;
+      const dt = Math.min(500, now - last); last = now;
       progRef.current += dt / (s.duration || 9000);
       if (progRef.current >= 1) {
         if (idx < scenes.length - 1) { setIdx(idx + 1); return; }
