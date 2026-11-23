@@ -1,5 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.44";
 import { requireSecondFactor } from "../../shared/twoFactor.ts";
+import { leadBooked } from "../../shared/leadPortal.ts";
 
 // "Schedule a call" for the client portal. Same idea as the website's `booking` function, but for signed-in
 // clients: the login decides which client this is (admins may pass client_id to preview), so nobody can book
@@ -183,7 +184,7 @@ Deno.serve(async (req) => {
             method: "POST",
             headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
             body: JSON.stringify({
-              summary: `Interstellar × ${business} | Client call`,
+              summary: `Interstellar × ${business} | ${client.portal_tier === "lead" ? "30-minute walkthrough" : "Client call"}`,
               description: desc,
               start: { dateTime: start.toISOString(), timeZone: TZ },
               end: { dateTime: end.toISOString(), timeZone: TZ },
@@ -209,13 +210,15 @@ Deno.serve(async (req) => {
         status: "received", priority: "normal", due_date: date, page_status: "none",
       }).catch((e: Error) => console.error("request log failed", e.message));
       await db.Task.create({
-        title: `Client call — ${business} (${label(min)} PT)`,
+        title: `${client.portal_tier === "lead" ? "Lead walkthrough ($30 incentive)" : "Client call"} — ${business} (${label(min)} PT)`,
         category: "strategy", priority: 1, status: "next", source: "request", task_type: "internal",
         due_date: date, client_id: cid, client_name: business, estimated_minutes: CALL_MIN,
         labels: ["Booking", "Portal"],
         notes: [desc, meetLink && `Meet: ${meetLink}`, !confirmed && "Calendar invite was NOT sent automatically — confirm the time and send the invite."].filter(Boolean).join("\n"),
       }).catch((e: Error) => console.error("task create failed", e.message));
 
+      // Lead Engine: a lead booking its walkthrough is tracked on the lead (engagement + $30 owed + Lead Desk log).
+      if (client.portal_tier === "lead") await leadBooked(db, client, when).catch((e: Error) => console.error("lead booking log failed", e.message));
       return Response.json({ ok: true, confirmed, meetLink, date, time: `${label(min)} PT`, when, email: user.email });
     }
 
