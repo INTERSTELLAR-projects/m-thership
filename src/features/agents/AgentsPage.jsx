@@ -5,7 +5,7 @@ import "./agents.css";
 import { useAgentsData, useRefreshAgents } from "./useAgentsData";
 import { INTERSTELLAR_DEPTS, CLIENT_DEPTS } from "./defs";
 import { buildClientsOverview, countStatus } from "./layout";
-import { buildClusterOverview, buildHandoffs, pillarOfAgent, PILLAR_NAMES, runs30 } from "./map/model";
+import { buildClusterOverview, buildHandoffs, pillarOfAgent, PILLAR_NAMES, runs30, investorize } from "./map/model";
 import Constellation from "./Constellation";
 import ListView from "./ListView";
 import AgentPanel, { runsFor } from "./panels/AgentPanel";
@@ -102,7 +102,7 @@ function AgentCard({ a, name, deptLabel, links, pinned, onOpen, onClose, sheet, 
         <StatusPill status={a.status} />
         {pinned ? <button type="button" aria-label="Close card" onClick={onClose} className="-mr-1 grid h-7 w-7 shrink-0 place-items-center rounded-md text-[var(--ink-s)] hover:bg-white/5 hover:text-white"><X className="h-3.5 w-3.5" /></button> : null}
       </div>
-      {a.role ? <p className="mt-2 line-clamp-3 text-[12.5px] leading-snug text-[var(--ink-m)]">{a.role}</p> : null}
+      {a.role ? <p className="mt-2 line-clamp-3 text-[12.5px] leading-snug text-[var(--ink-m)]">{investorize(a.role)}</p> : null}
       <dl className="mono mt-2.5 grid grid-cols-[72px,1fr] gap-x-2 gap-y-1 text-[10.5px]">
         <dt className="uppercase tracking-[.12em] text-[var(--ink-s)]">Trigger</dt><dd className="truncate text-[var(--ink-d)]" title={a.schedule || ""}>{a.schedule || KIND_LABELS[a.kind] || "—"}</dd>
         <dt className="uppercase tracking-[.12em] text-[var(--ink-s)]">Last run</dt><dd className="text-[var(--ink-d)]">{a.status === "planned" ? `planned${a.build_order ? ` · build #${a.build_order}` : ""}` : `${relTime(a.last_run_at)}${a.last_status && a.last_status !== "unknown" && a.last_run_at ? ` · ${a.last_status}` : ""}`}</dd>
