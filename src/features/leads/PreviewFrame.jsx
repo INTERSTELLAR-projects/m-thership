@@ -26,7 +26,6 @@ export default function PreviewFrame({ children, height, device: controlled, too
         </div>
       ) : (
         <div className="overflow-hidden border border-hair bg-white shadow-[0_24px_50px_-34px_rgba(26,26,26,.5)]">
-          <div className="flex items-center gap-1.5 border-b border-hair bg-paper px-3 py-2" aria-hidden="true"><i className="h-2 w-2 rounded-full bg-ink/15" /><i className="h-2 w-2 rounded-full bg-ink/15" /><i className="h-2 w-2 rounded-full bg-ink/15" /></div>
           <div className={height ? "overflow-y-auto overflow-x-hidden" : ""} style={height ? { height } : undefined}>{children}</div>
         </div>
       )}
