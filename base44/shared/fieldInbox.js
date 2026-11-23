@@ -238,7 +238,7 @@ export const NICHE_KEYS = ["home_service", "fitness_coach", "retail_streetwear",
 // The runner's instructions for kind site_visit. Also in docs/field-inbox.md for the scheduled-task prompt.
 export const SITE_VISIT_STEPS = [
   "1. Set this ClaudeJob to status running, started_at = now.",
-  "2. Download every media URL below into a fresh folder (curl -L). Each file is a direct link to Base44 storage. A file named *.part01, *.part02 ... is one video split for upload: join the parts in order (cat name.part* > name.mp4) before anything else.",
+  "2. Download every media URL below into a fresh folder (curl -L). Each file is a direct link to Base44 storage. A media item listed with parts is one large video split into byte chunks for upload: download every part and join them in order (cat p01 p02 ... > video.mp4), then check it with ffprobe before anything else.",
   "3. Frames: for each video run ffmpeg twice into the same folder — one frame every 2.5 s (ffmpeg -i in.mp4 -vf fps=0.4,scale=1280:-2 f_%04d.jpg) and scene changes (ffmpeg -i in.mp4 -vf \"select='gt(scene,0.35)',scale=1280:-2\" -vsync vfr s_%04d.jpg). Note each frame's timestamp (ffprobe or the fps math). Look at the frames yourself; photos are looked at directly.",
   "4. Narration: pip install faster-whisper if missing, then transcribe each video's audio with model base.en (tiny.en when the clip is over 10 minutes), compute_type int8, with segment timestamps. A silent or tone-only track gives an empty transcript: say so, do not invent narration.",
   "5. If a website URL is given (or the business clearly has one), fetch it: home page plus the main service, contact and booking pages. Never log in anywhere.",
