@@ -1,0 +1,88 @@
+{
+  "name": "LeadTask",
+  "description": "Lead Engine follow-up engine: one open follow-up per lead and kind (retry_call, portal_reminder, hot_call, callback, prep), created and closed by the lead-engine sweep from call outcomes and portal engagement. Merges into the top of the daily call sheet. A drafted email/text waits for a person to click Send. Admin only (reps reach their own through lead-engine).",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "assigned_rep_id": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "retry_call",
+        "portal_reminder",
+        "hot_call",
+        "callback",
+        "prep"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "done",
+        "skipped",
+        "expired"
+      ],
+      "default": "open"
+    },
+    "due_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "priority": {
+      "type": "number",
+      "default": 3
+    },
+    "reason": {
+      "type": "string"
+    },
+    "attempt": {
+      "type": "number"
+    },
+    "draft": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "{channel: email|text, subject, body} \u2014 never sent automatically"
+    },
+    "done_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "done_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id",
+    "kind"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
