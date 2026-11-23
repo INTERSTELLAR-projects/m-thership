@@ -18,7 +18,7 @@ export async function optOutUrl(portalUrl: string, clientId: string) { return `$
 export async function leadSettings(db: any) {
   const row = ((await db.AppSettings.filter({ key: "lead_engine" }, "-created_date", 1).catch(() => [])) || [])[0] || null;
   const s = (row?.pageSettings || {}) as Record<string, unknown>;
-  return { row, postal_address: String(s.postal_address || ""), reply_email: String(s.reply_email || "justin@interstellar-strategies.com") };
+  return { row, postal_address: String(s.postal_address || ""), reply_email: String(s.reply_email || "justin@interstellar-strategies.com"), daily_cap: [25, 50, 100].includes(Number(s.daily_cap)) ? Number(s.daily_cap) : 25, queue_day: String(s.queue_day || ""), queue_today: Number(s.queue_today) || 0 };
 }
 
 export function leadInviteEmail({ business, contact, email, loginUrl, optOut, postal, logo, replyEmail, repName }: Record<string, string>) {

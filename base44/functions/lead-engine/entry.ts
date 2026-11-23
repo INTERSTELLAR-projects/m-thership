@@ -1,7 +1,8 @@
 // @ts-nocheck
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { staffOf, canWorkLead, forStaff, assignLead, clip, nowIso, noteDate, isEmail } from "../../shared/staff.ts";
-import { seedTemplates, SEED_KEYS, matchTemplate, buildPreview, applyOverrides, presentationPack, nextAction, followUpDraft, presenterFor, routeLead, OUTCOMES, PAY_METHODS, INCENTIVE } from "../../shared/leadEngine.js";
+import { seedTemplates, SEED_KEYS, matchTemplate, buildPreview, applyOverrides, presentationPack, nextAction, followUpDraft, presenterFor, routeLead, OUTCOMES, OUTCOME_BY_KEY, DIAL_OUTCOMES, DAILY_DIAL_TARGET, PAY_METHODS, INCENTIVE, heatOf, sheetOrder, prepCard } from "../../shared/leadEngine.js";
+import { sweepLead, followUpRules } from "../../shared/leadFollowups.ts";
 import { runScrape } from "../../shared/leadScrape.ts";
 import { moveStage, stageOf } from "../../shared/leadStage.ts";
 import { inviteSettings, normEmail } from "../../shared/portalInvite.ts";
@@ -28,6 +29,81 @@ async function previewOf(db: any, clientId: string) {
 }
 const logEntry = (by: string, action: string, version: number, note = "") => ({ at: nowIso(), by, action, version, note: String(note).slice(0, 300) });
 const audit = (db: any, actor: string, action: string, record: any, summary: string) => db.AgentAuditLog.create({ at: nowIso(), ok: true, actor, action, entity: "LeadPreview", record_id: record?.id || "", summary }).catch(() => null);
+
+// Build queue worker: approved leads → scrape → template preview → Ready, under the daily cap, 2 per run, with
+// backoff (15 min × 2^attempts, 3 tries). If research keeps failing, the preview is still built from the Google data
+// so calling is never blocked. Template-rendered: no app is created per lead.
+async function queueRun(base44: any, db: any, by: string) {
+  const ls = await leadSettings(db);
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
+  let built = ls.queue_day === today ? ls.queue_today : 0;
+  if (built >= ls.daily_cap) return { ran: 0, reason: `Daily cap of ${ls.daily_cap} reached`, built_today: built };
+  const all = ((await db.CRMClient.filter({ status: "Lead" }, "-created_date", 1500).catch(() => [])) || []) as any[];
+  const due = all.filter((c) => c.build_queue?.status === "queued" && Date.parse(c.build_queue.next_try_at || 0) <= Date.now() && !c.do_not_contact)
+    .sort((a, b) => String(a.build_queue.approved_at || "").localeCompare(String(b.build_queue.approved_at || ""))).slice(0, Math.min(2, ls.daily_cap - built));
+  const stuck = all.filter((c) => c.build_queue?.status === "building" && Date.now() - Date.parse(c.build_queue.started_at || 0) > 20 * 60000);
+  for (const c of stuck) await db.CRMClient.update(c.id, { build_queue: { ...c.build_queue, status: "queued", reason: "Restarted after a stall", next_try_at: nowIso() } }).catch(() => null);
+  const tpl = await templatesOf(db);
+  const results: any[] = [];
+  for (const c0 of due) {
+    const q = { ...(c0.build_queue || {}) };
+    await db.CRMClient.update(c0.id, { build_queue: { ...q, status: "building", started_at: nowIso() } });
+    let c = c0, note = "";
+    if (!c.scrape_summary) {
+      const r = await runScrape(base44, c).catch((e: any) => ({ error: String(e?.message || e) }));
+      if (r?.error) {
+        const attempts = (Number(q.attempts) || 0) + 1;
+        if (attempts < 3) {
+          await db.CRMClient.update(c.id, { build_queue: { ...q, status: "queued", attempts, reason: `Research failed (${String(r.error).slice(0, 120)}); retrying`, next_try_at: new Date(Date.now() + 15 * 60000 * 2 ** attempts).toISOString() } });
+          results.push({ id: c.id, business: c.business, status: "retry", reason: r.error });
+          continue;
+        }
+        note = `Built from Google data only: research failed ${attempts} times (${String(r.error).slice(0, 100)})`;
+      }
+      c = await db.CRMClient.get(c.id);
+    }
+    try {
+      const t = matchTemplate(tpl.list, { industry_key: c.industry_key, text: `${c.industry || ""} ${c.one_liner || ""} ${c.scrape_summary?.industry || ""}`, niche_key: c.niche_key });
+      const builtP = buildPreview({ client: c, template: t, now: nowIso() });
+      const prev = await previewOf(db, c.id);
+      const overrides = prev?.website_overrides || {};
+      const version = (Number(prev?.version) || 0) + 1;
+      const data: any = { client_id: c.id, client_name: c.business, industry_key: t.industry_key, website_base: builtP.website_config, website_overrides: overrides, website_config: applyOverrides(builtP.website_config, overrides), command_config: builtP.command_config, missing: builtP.missing, built_at: nowIso(), built_by: "build queue", version, template_version: t.version || 1, status: prev && ["sent", "viewed"].includes(prev.status) ? prev.status : "ready", ready_at: nowIso(), build_log: [...arr(prev?.build_log), logEntry("build queue", prev ? "rebuild" : "build", version, `${t.name} template · auto Ready${note ? ` · ${note}` : ""}`)].slice(-40) };
+      const row = prev ? await db.LeadPreview.update(prev.id, data) : await db.LeadPreview.create(data);
+      await db.CRMClient.update(c.id, { industry_key: c.industry_key || t.industry_key, build_queue: { ...q, status: "ready", done_at: nowIso(), reason: note || "", attempts: Number(q.attempts) || 0 } });
+      built++;
+      results.push({ id: c.id, business: c.business, status: "ready", preview: row.id });
+    } catch (e: any) {
+      const attempts = (Number(q.attempts) || 0) + 1;
+      await db.CRMClient.update(c.id, { build_queue: { ...q, status: attempts < 3 ? "queued" : "failed", attempts, reason: `Build error: ${String(e?.message || e).slice(0, 160)}`, next_try_at: new Date(Date.now() + 15 * 60000 * 2 ** attempts).toISOString() } });
+      results.push({ id: c.id, business: c.business, status: "error", reason: String(e?.message || e) });
+    }
+  }
+  if (results.length) {
+    await saveQueueCount(db, ls, today, built);
+    await db.AgentAuditLog.create({ at: nowIso(), ok: true, actor: by === "schedule" ? "automation:build-queue" : by, action: "build_queue_run", entity: "LeadPreview", record_id: "", summary: `Build queue: ${results.filter((r) => r.status === "ready").length} ready, ${results.filter((r) => r.status !== "ready").length} retrying · ${built}/${ls.daily_cap} today` }).catch(() => null);
+  }
+  return { ran: results.length, results, built_today: built, daily_cap: ls.daily_cap };
+}
+async function saveQueueCount(db: any, ls: any, day: string, count: number) {
+  const row = ls.row;
+  const ps = { ...(row?.pageSettings || {}), queue_day: day, queue_today: count };
+  if (row) await db.AppSettings.update(row.id, { pageSettings: ps }).catch(() => null);
+  else await db.AppSettings.create({ key: "lead_engine", pageSettings: ps }).catch(() => null);
+}
+async function followupsSweep(db: any) {
+  const rules = await followUpRules(db);
+  const [leads, previews] = await Promise.all([db.CRMClient.filter({ status: "Lead" }, "-updated_date", 800).catch(() => []), db.LeadPreview.list("-updated_date", 1500).catch(() => [])]);
+  const pv = new Map(((previews || []) as any[]).map((p) => [p.client_id, p]));
+  let n = 0;
+  for (const c of (leads || []) as any[]) {
+    const p = pv.get(c.id);
+    if (!p || c.do_not_contact) continue;
+    await sweepLead(db, c, { preview: p, rules }).catch(() => null);
+    n++;
+  }
+  return { swept: n };
+}
 
 async function optOutHandler(req: Request, db: any, url: URL) {
   let tok = url.searchParams.get("optout") || "";
@@ -56,11 +132,14 @@ Deno.serve(async (req) => {
     if (url.searchParams.get("optout") || (req.method === "POST" && (req.headers.get("content-type") || "").includes("form"))) return await optOutHandler(req, db, url);
 
     const user = await base44.auth.me().catch(() => null);
+    const body = await req.json().catch(() => ({}));
+    const action = String(body?.action || "");
+    // Scheduled runs (no user): only work a person already approved (build queue) or tasks/drafts (follow-ups).
+    if (!user && action === "queue_run") return Response.json(await queueRun(base44, db, "schedule"));
+    if (!user && action === "followups_sweep") return Response.json(await followupsSweep(db));
     const staff = await staffOf(db, user);
     if (!staff) return err("Admins and sales reps only", 403);
     const admin = staff.kind === "admin";
-    const body = await req.json().catch(() => ({}));
-    const action = String(body?.action || "");
     const lead = async () => {
       const c = await db.CRMClient.get(clip(body.client_id, 64)).catch(() => null);
       if (!c) throw Object.assign(new Error("Lead not found"), { status: 404 });
@@ -228,24 +307,107 @@ Deno.serve(async (req) => {
     if (action === "desk_log") {
       const c = await lead();
       const outcome = String(body.outcome || "");
-      if (!OUTCOMES.some((o) => o.key === outcome) && outcome !== "note") return err("Pick an outcome.");
-      if (c.do_not_contact && outcome !== "note") return err("This lead is marked do-not-contact.", 409);
-      const def = OUTCOMES.find((o) => o.key === outcome);
-      const follow = /^\d{4}-\d{2}-\d{2}$/.test(String(body.follow_up_at || "")) ? body.follow_up_at : def && def.next_days ? new Date(Date.now() + def.next_days * 86400000).toISOString().slice(0, 10) : "";
+      const def = OUTCOME_BY_KEY[outcome];
+      if (!def && outcome !== "note") return err("Pick an outcome.");
+      if (c.do_not_contact && outcome !== "note") return err("This lead is marked do-not-call.", 409);
       const note = clip(body.note, 2000);
+      const callbackAt = outcome === "callback" && body.callback_at && !Number.isNaN(Date.parse(body.callback_at)) ? new Date(body.callback_at).toISOString() : outcome === "callback" ? new Date(Date.now() + 86400000).toISOString() : null;
+      const follow = callbackAt ? callbackAt.slice(0, 10) : /^\d{4}-\d{2}-\d{2}$/.test(String(body.follow_up_at || "")) ? body.follow_up_at : "";
       await db.LeadCallLog.create({ client_id: c.id, client_name: c.business, outcome, note, caller: staff.email, at: nowIso(), ...(follow ? { follow_up_at: follow } : {}) });
       const label = def?.label || "Note";
-      const patch: any = { notes: [...arr(c.notes).filter((n: any) => n && typeof n === "object"), { id: Date.now(), text: `Lead Desk · ${label}${note ? `: ${note}` : ""} (${staff.name})`, date: noteDate() }] };
-      if (outcome !== "note") Object.assign(patch, { desk_outcome: outcome, desk_last_call_at: nowIso() });
-      if (follow) Object.assign(patch, { next_step: outcome === "booked" ? "Walkthrough" : outcome === "callback" ? "Call back" : "Follow up", next_step_at: follow });
+      const patch: any = { notes: [...arr(c.notes).filter((n: any) => n && typeof n === "object"), { id: Date.now(), text: `Call sheet · ${label}${note ? `: ${note}` : ""} (${staff.name})`, date: noteDate() }] };
+      if (def) Object.assign(patch, { desk_outcome: outcome, desk_last_call_at: nowIso() });
+      if (callbackAt) Object.assign(patch, { callback_at: callbackAt, next_step: "Call back", next_step_at: follow });
+      if (outcome === "booked") Object.assign(patch, { next_step: "Walkthrough", next_step_at: follow || null });
       if (outcome === "not_interested") Object.assign(patch, { next_step: "", next_step_at: null });
+      if (outcome === "dnc") Object.assign(patch, { do_not_contact: true, dnc_reason: note || "Asked not to be called", dnc_at: nowIso(), next_step: "", next_step_at: null });
       await db.CRMClient.update(c.id, patch);
       const stage = stageOf(c);
-      if (outcome === "booked" && ["new", "contacted"].includes(stage)) await moveStage(db, c.id, "call_booked", { by: staff.email, reason: "Walkthrough booked from the Lead Desk", source: "dropdown" }).catch(() => null);
-      else if (outcome !== "note" && outcome !== "no_answer" && stage === "new") await moveStage(db, c.id, "contacted", { by: staff.email, reason: `Lead Desk: ${label}`, source: "dropdown" }).catch(() => null);
+      if (outcome === "booked" && ["new", "contacted"].includes(stage)) await moveStage(db, c.id, "call_booked", { by: staff.email, reason: "Meeting booked from the call sheet", source: "dropdown" }).catch(() => null);
+      else if (def?.connect && stage === "new") await moveStage(db, c.id, "contacted", { by: staff.email, reason: `Call sheet: ${label}`, source: "dropdown" }).catch(() => null);
       if (outcome === "booked" && !(c.lead_incentive?.status && c.lead_incentive.status !== "none")) await db.CRMClient.update(c.id, { lead_incentive: { status: "owed", amount: INCENTIVE.amount, minutes: INCENTIVE.minutes, owed_at: nowIso() } });
-      return Response.json({ ok: true, follow_up_at: follow || null });
+      // Close the task this call answered, then let the follow-up engine decide what's next.
+      const open = ((await db.LeadTask.filter({ client_id: c.id, status: "open" }, "due_at", 10).catch(() => [])) || []) as any[];
+      for (const t of open.filter((t: any) => Date.parse(t.due_at) <= Date.now() + 3600000)) await db.LeadTask.update(t.id, { status: "done", done_at: nowIso(), done_by: staff.email }).catch(() => null);
+      const fresh = await db.CRMClient.get(c.id);
+      const sw = await sweepLead(db, fresh).catch(() => null);
+      return Response.json({ ok: true, callback_at: callbackAt, next: sw });
     }
+    if (action === "task_done") {
+      const t = await db.LeadTask.get(clip(body.id, 64)).catch(() => null);
+      if (!t) return err("Task not found", 404);
+      const c = await db.CRMClient.get(t.client_id).catch(() => null);
+      if (!canWorkLead(staff, c)) return err("Not your lead", 403);
+      await db.LeadTask.update(t.id, { status: body.skip ? "skipped" : "done", done_at: nowIso(), done_by: staff.email });
+      return Response.json({ ok: true });
+    }
+    if (action === "sheet") {
+      // The daily call sheet: one call for everything the caller needs, ordered by priority.
+      const [all, previews, tasks, tpl, calls] = await Promise.all([
+        db.CRMClient.filter({ status: "Lead" }, "-created_date", 1500).catch(() => []),
+        db.LeadPreview.list("-updated_date", 1500).catch(() => []),
+        db.LeadTask.filter({ status: "open" }, "due_at", 1500).catch(() => []),
+        templatesOf(db),
+        db.LeadCallLog.filter({ caller: staff.email, at: { $gte: new Date(new Date().setHours(0, 0, 0, 0) - 10 * 3600000).toISOString() } }, "-at", 1000).catch(() => []),
+      ]);
+      const mine = ((all || []) as any[]).filter((c) => !c.do_not_contact && c.desk_outcome !== "not_interested" && (admin ? (body.rep_id ? c.assigned_rep_id === body.rep_id : true) : canWorkLead(staff, c)));
+      const pv = new Map(((previews || []) as any[]).map((p) => [p.client_id, p]));
+      const tk = new Map();
+      for (const t of (tasks || []) as any[]) if (!tk.has(t.client_id)) tk.set(t.client_id, t);
+      const tname = new Map(tpl.list.map((t: any) => [t.industry_key, t.name]));
+      const rows = mine.filter((c) => { const p = pv.get(c.id); return (p && ["ready", "sent", "viewed"].includes(p.status)) || tk.has(c.id); }).map((c) => {
+        const p = pv.get(c.id) || null;
+        return {
+          client: forStaff(staff, c), task: tk.get(c.id) || null, heat: heatOf(c, p),
+          preview: p ? { id: p.id, status: p.status, version: p.version, engagement: p.engagement || null, industry_key: p.industry_key, sent_at: p.sent_at || null } : null,
+          prep: prepCard(c, p, tname.get(p?.industry_key || c.industry_key) || ""),
+        };
+      });
+      // Today's counters for this caller (Pacific day boundary approximated server-side).
+      const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
+      const todays = ((calls || []) as any[]).filter((x) => new Date(x.at).toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" }) === today);
+      const dials = todays.filter((x) => DIAL_OUTCOMES.includes(x.outcome));
+      const myIds = new Set(mine.map((c) => c.id));
+      const logins = ((previews || []) as any[]).filter((p) => myIds.has(p.client_id) && p.engagement?.first_login_at && new Date(p.engagement.first_login_at).toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" }) === today).length;
+      const dealsToday = ((await db.Deal.filter({ status: "won" }, "-closed_at", 200).catch(() => [])) || []).filter((d: any) => (admin || d.rep_id === staff.rep?.id) && d.closed_at && new Date(d.closed_at).toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" }) === today).length;
+      return Response.json({
+        rows: sheetOrder(rows), outcomes: OUTCOMES, target: DAILY_DIAL_TARGET,
+        counters: { dials: dials.length, connects: dials.filter((x) => OUTCOME_BY_KEY[x.outcome]?.connect).length, owners: dials.filter((x) => OUTCOME_BY_KEY[x.outcome]?.owner).length, portals: todays.filter((x) => x.outcome === "invite_sent").length, logins, meetings: dials.filter((x) => x.outcome === "booked").length, deals: dealsToday },
+        queue: { building: ((all || []) as any[]).filter((c) => ["queued", "building"].includes(c.build_queue?.status)).length, pending: ((all || []) as any[]).filter((c) => c.build_queue?.status === "pending").length },
+      });
+    }
+    if (action === "followups_sweep") {
+      if (!admin) return err("Admins only", 403);
+      return Response.json(await followupsSweep(db));
+    }
+
+    /* ---------------- Build queue ---------------- */
+    if (action === "queue") {
+      const all = ((await db.CRMClient.filter({ status: "Lead" }, "-created_date", 1500).catch(() => [])) || []) as any[];
+      const mine = all.filter((c) => c.build_queue?.status && (admin || canWorkLead(staff, c)));
+      const ls = await leadSettings(db);
+      const counts: Record<string, number> = {};
+      for (const c of mine) counts[c.build_queue.status] = (counts[c.build_queue.status] || 0) + 1;
+      return Response.json({ items: mine.slice(0, 400).map((c) => ({ id: c.id, business: c.business, city: c.city, state: c.state, industry_key: c.industry_key, lead_flags: c.lead_flags || [], rating: c.gbp_cache?.rating ?? null, reviews: c.gbp_cache?.review_count ?? null, website: (c.websites || [])[0] || "", queue: c.build_queue, assigned_rep_name: c.assigned_rep_name || "" })), counts, daily_cap: ls.daily_cap, built_today: ls.queue_today });
+    }
+    if (action === "queue_decide") {
+      const ids = arr(body.ids).map((x: any) => clip(x, 64)).slice(0, 200);
+      const approve = body.decision === "approve";
+      let n = 0;
+      for (const id of ids) {
+        const c = await db.CRMClient.get(id).catch(() => null);
+        if (!c || !canWorkLead(staff, c)) continue;
+        if (approve && ["ready", "building"].includes(c.build_queue?.status)) continue;
+        await db.CRMClient.update(id, { build_queue: approve ? { status: "queued", attempts: 0, next_try_at: nowIso(), approved_at: nowIso(), approved_by: staff.email } : { ...(c.build_queue || {}), status: "skipped", reason: "Skipped", decided_by: staff.email } });
+        n++;
+      }
+      return Response.json({ ok: true, updated: n });
+    }
+    if (action === "queue_run") {
+      if (!admin) return err("Admins only", 403);
+      return Response.json(await queueRun(base44, db, staff.email));
+    }
+
     if (action === "incentive_save") {
       const c = await lead();
       const status = ["none", "owed", "paid"].includes(body.status) ? body.status : "owed";
@@ -299,8 +461,9 @@ Deno.serve(async (req) => {
       }
       await db.PortalInvite.update(inv.id, { status: "sent", sent_at: nowIso(), message: `Lead-tier portal access granted and the preview email sent to ${email} by ${staff.email}.` });
       await db.LeadPreview.update(p.id, { status: p.status === "viewed" ? "viewed" : "sent", sent_at: nowIso(), build_log: [...arr(p.build_log), logEntry(staff.email, "sent", p.version || 1, `Invite to ${email}`)].slice(-40) });
-      await db.LeadCallLog.create({ client_id: c.id, client_name: c.business, outcome: "sent_portal", note: `Portal invite sent to ${email}`, caller: staff.email, at: nowIso() });
-      await db.CRMClient.update(c.id, { desk_outcome: "sent_portal", desk_last_call_at: nowIso() });
+      await db.LeadCallLog.create({ client_id: c.id, client_name: c.business, outcome: "invite_sent", note: `Portal invite sent to ${email}`, caller: staff.email, at: nowIso() });
+      await db.CRMClient.update(c.id, { desk_outcome: c.desk_outcome || "sent_portal", lead_heat: "warm" });
+      await sweepLead(db, await db.CRMClient.get(c.id)).catch(() => null);
       return Response.json({ ok: true, to: email });
     }
 
@@ -309,12 +472,12 @@ Deno.serve(async (req) => {
       if (!admin) return err("Admins only", 403);
       const ls = await leadSettings(db);
       if (body.save) {
-        const next = { postal_address: clip(body.postal_address, 200), reply_email: isEmail(body.reply_email) ? normEmail(body.reply_email) : ls.reply_email };
+        const next = { postal_address: clip(body.postal_address, 200), reply_email: isEmail(body.reply_email) ? normEmail(body.reply_email) : ls.reply_email, daily_cap: [25, 50, 100].includes(Number(body.daily_cap)) ? Number(body.daily_cap) : ls.daily_cap, voicemail_attempts: Math.max(1, Math.min(10, Number(body.voicemail_attempts) || 4)) };
         if (ls.row) await db.AppSettings.update(ls.row.id, { pageSettings: { ...(ls.row.pageSettings || {}), ...next } });
         else await db.AppSettings.create({ key: "lead_engine", pageSettings: next });
         return Response.json({ settings: next });
       }
-      return Response.json({ settings: { postal_address: ls.postal_address, reply_email: ls.reply_email } });
+      return Response.json({ settings: { postal_address: ls.postal_address, reply_email: ls.reply_email, daily_cap: ls.daily_cap, voicemail_attempts: (await followUpRules(db)).voicemail_attempts } });
     }
     if (action === "set_tier") {
       if (!admin) return err("Admins only", 403);
