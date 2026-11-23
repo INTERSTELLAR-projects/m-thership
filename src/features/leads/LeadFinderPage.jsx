@@ -8,7 +8,7 @@ import { CheckSquare, ExternalLink, Globe, KeyRound, Link2, Loader2, MapPin, Pho
 import PageHeader from "@/components/PageHeader";
 import { FLAG_LABEL, PLACES_PRICING, US_STATE_NAMES } from "@/lib/leadEngine";
 import UsMap from "./UsMap";
-import { engine, finder, useEngine, useFinder, useRefresh, money, leadHref } from "./api";
+import { engine, finder, useEngine, useFinder, useRefresh, leadHref } from "./api";
 import { Card, Pill, Loading, ErrorNote, Empty, btn, btnFlame, btnInk, input } from "./ui";
 
 const FLAG_TONE = { no_website: "red", dated: "amber", few_reviews: "amber", few_photos: "muted" };
