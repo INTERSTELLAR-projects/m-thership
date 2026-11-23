@@ -453,7 +453,7 @@ function ClassicAgentsPage({ onShip }) {
 
             {cardAgent ? (
               <AgentCard a={cardAgent} name={cardAgent.key === "commander" ? ceoName : cardAgent.name} deptLabel={depts.find((x) => x.key === cardAgent.department)?.label || cardAgent.department}
-                links={cardLinks} pinned={!hovered || hovered.key === pin} sheet={!isMd} bottom={phoneBottom + 8} top={(dept || zoomedIn) && !clientsHub ? 58 : 12} onOpen={() => openDetails(cardAgent.key)} onClose={() => setPin(null)} />
+                links={cardLinks} pinned={!isMd || !hovered || hovered.key === pin} sheet={!isMd} bottom={phoneBottom + 8} top={(dept || zoomedIn) && !clientsHub ? 58 : 12} onOpen={() => openDetails(cardAgent.key)} onClose={() => setPin(null)} />
             ) : null}
             {hover && !hover.n.agent && hover.n.type !== "brain" && isMd ? (
               <div className="glass pointer-events-none fixed z-50 max-w-[260px] rounded-lg px-3 py-2" style={{ left: hover.x + 14, top: hover.y + 14 }}>
