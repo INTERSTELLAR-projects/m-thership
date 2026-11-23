@@ -2,3 +2,4 @@
 import { portalHandler } from "../../shared/portalApi.ts";
 
 Deno.serve(portalHandler);
+// Terms gate (Nov 23 2026): portal logins resolve only after accepting the active Terms of Service (docs/portal-terms.md).

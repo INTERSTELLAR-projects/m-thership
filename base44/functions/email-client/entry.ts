@@ -599,3 +599,4 @@ RULES:
     return err(e?.message || "Something went wrong", 500);
   }
 });
+// Terms gate (Nov 23 2026): portal logins resolve only after accepting the active Terms of Service (docs/portal-terms.md).

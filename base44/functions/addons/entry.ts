@@ -240,3 +240,4 @@ Deno.serve(async (req) => {
     return json({ error: (e as Error)?.message || "Upgrade Store request failed" }, 500);
   }
 });
+// Terms gate (Nov 23 2026): portal logins resolve only after accepting the active Terms of Service (docs/portal-terms.md).
