@@ -394,9 +394,10 @@ const Constellation = forwardRef(function Constellation({
         // Present mode labels only the lit agents; exploring labels everyone once there is room (mid zoom and in).
         const wanted = lit ? (inFocus || isSel) && (level !== "far" || isSel) : isSel || isHov || matched || level !== "far";
         if (!wanted) return;
-        const max = level === "near" || isSel || isHov ? 30 : 22;
+        // Hover never changes a label's size (it would re-place under the cursor); the hover card shows the rest.
+        const max = level === "near" || isSel ? 30 : 22;
         const main = truncate(a.name, max);
-        const sub = level === "near" || isSel || isHov ? `${STATUS_TXT[a.status] || ""}${a.status !== "planned" && runs30(a) ? ` · ${runs30(a)} RUNS / 30D` : ""}` : "";
+        const sub = level === "near" || isSel ? `${STATUS_TXT[a.status] || ""}${a.status !== "planned" && runs30(a) ? ` · ${runs30(a)} RUNS / 30D` : ""}` : "";
         const w = Math.max(textWidth(main, FONT_NAME), sub ? textWidth(sub, FONT_SUB) * 1.06 : 0) + 12;
         const prio = isSel ? 970 : isHov ? 960 : matched ? 700 : inFocus ? 650 : 100 + Math.log2(1 + runs30(a)) * 12 + (a.status === "live" ? 40 : 0);
         items.push({ id: n.id, n, ...s, sr, w, h: sub ? 30 : 18, prio, mode: "side", kind: "agent", main, sub, full: a.name, truncated: main !== a.name, dim: dimmed && !inFocus, status: a.status });
