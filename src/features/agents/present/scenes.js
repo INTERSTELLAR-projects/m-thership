@@ -64,7 +64,7 @@ export function buildScenes({ registry, graph, handoffs, depts, hqBrain, scores,
     const outD = [...new Set(handoffs.filter((h) => keys.has(h.from) && !keys.has(h.to)).map((h) => h.toDept))].filter((x) => x !== k);
     const inD = [...new Set(handoffs.filter((h) => keys.has(h.to) && !keys.has(h.from)).map((h) => h.fromDept))].filter((x) => x !== k);
     const lit = new Set([`d:${k}`, ...mine.map((a) => `a:${a.key}`), ...links.map((h) => `a:${h.from}`), ...links.map((h) => `a:${h.to}`)]);
-    const onDuty = mine.filter((a) => a.status === "live" && !NOT_FOR_STAGE.test(a.name)).sort((a, b) => runs30(b) - runs30(a) || (b.last_run_at ? 1 : 0) - (a.last_run_at ? 1 : 0)).slice(0, 3)
+    const onDuty = mine.filter((a) => a.status === "live" && !NOT_FOR_STAGE.test(`${a.name} ${a.schedule || ""} ${firstSentence(a.role, 400)}`)).sort((a, b) => runs30(b) - runs30(a) || (b.last_run_at ? 1 : 0) - (a.last_run_at ? 1 : 0)).slice(0, 3)
       .map((a) => ({ key: a.key, name: investorize(a.name), what: firstSentence(a.role, 150), when: investorize(a.schedule || "") }));
     const def = depts.find((d) => d.key === k);
     const bits = [];
