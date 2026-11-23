@@ -2,7 +2,7 @@ import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { enableUsageLog, logPageView } from "@/lib/usageLog";
 import { useAuth } from "@/lib/AuthContext";
-import { Menu, Search } from "lucide-react";
+import { Camera, Menu, Search } from "lucide-react";
 import Sidebar from "./Sidebar";
 import TimeZoneBar from "./TimeZoneBar";
 import HubTabs from "./HubTabs";
@@ -67,6 +67,10 @@ export default function Layout() {
         </button>
         <Link to="/" aria-label="Møthership Command, Today"><BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={16} /></Link>
         <div className="flex items-center">
+          {/* Mobile-first quick action: straight to a site visit (Field inbox). */}
+          <Link to="/field#site-visit" className="flex items-center gap-1.5 p-2 text-ink/60 hover:text-[#ff3c00]" aria-label="Site visit: upload a video from the field" title="Site visit">
+            <Camera className="h-4 w-4" />
+          </Link>
           <PresentationButton />
           <NavGuideButton />
           <button onClick={() => setCmdOpen(true)} className="flex items-center gap-2 p-2 text-ink/60 hover:text-ink" aria-label="Search pages, clients and actions">
