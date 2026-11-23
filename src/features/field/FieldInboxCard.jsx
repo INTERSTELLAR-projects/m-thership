@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Camera } from "lucide-react";
 import { useList } from "@/lib/useData";
-import { FieldItemRow } from "./FieldPage";
+import { FieldItemRow } from "./FieldItemRow";
 
 const ptDay = (d) => new Date(d).toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
 
