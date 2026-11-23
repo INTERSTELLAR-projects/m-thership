@@ -244,7 +244,12 @@ export function placeLabels(items, discs, bounds, { gap = 5, maxPlaced = 400 } =
 const KEEP_CASE = new Set(["YouTube", "LinkedIn", "QuickBooks", "PageSpeed", "TikTok", "GoDaddy", "WordPress", "HyperCare", "OpenAI", "ChatGPT", "SoundCloud", "GitHub", "MailChimp", "HubSpot", "PowerLift", "MowMasters", "DreamSpace"]);
 export function investorize(text) {
   let t = String(text || "");
-  t = t.replace(/\bBase44\b\s*/g, "");
+  t = t.replace(/\bthe Base44 (site|website|app)\b/gi, "the new $1");
+  t = t.replace(/\bBase44\s+(systems?|sites?|apps?|websites?|workflows?)\b/g, "$1");
+  t = t.replace(/\bBase44\b/g, "our platform");
+  t = t.replace(/\bCRMClient\b/g, "client record");
+  t = t.replace(/\bGBP\b/g, "Google Business Profile");
+  t = t.replace(/\s*\((debounced|deterministic)[^)]*\)/gi, "");
   t = t.replace(/®/g, "™");
   t = t.replace(/,?\s*(and\s+)?open approval tasks/gi, "");
   t = t.replace(/,\s*what needs his approval and (what)/gi, " and $1");
@@ -297,7 +302,7 @@ export function weakestPillars(scores, n = 3) {
   const list = Object.values(scores || {}).filter((p) => p && Number.isFinite(p.score)).sort((a, b) => a.score - b.score);
   return list.slice(0, n);
 }
-export function nextActions({ scores, agents, launchItems, n = 3, limit = 7 }) {
+export function nextActions({ scores, agents, launchItems, n = 3, limit = 7, perPillar = 3 }) {
   const weak = weakestPillars(scores, n);
   const out = [];
   weak.forEach((p) => {
@@ -316,5 +321,7 @@ export function nextActions({ scores, agents, launchItems, n = 3, limit = 7 }) {
       out.push({ id: `l:${i.id}`, kind: "launch", pillar: p.id, pillarName: p.name || PILLAR_NAMES[p.id], score: base * gap, title: truncate(title, 96), why: i.unblocks ? `Clears the way for ${i.unblocks} more launch item${Number(i.unblocks) === 1 ? "" : "s"}.` : "Open item on the launch plan." });
     });
   });
-  return { weak, actions: out.sort((a, b) => b.score - a.score).slice(0, limit) };
+  // Highest impact first, but every weak pillar keeps its top few so one pillar cannot crowd out the rest.
+  const kept = weak.flatMap((p) => out.filter((x) => x.pillar === p.id).sort((a, b) => b.score - a.score).slice(0, perPillar));
+  return { weak, actions: kept.sort((a, b) => b.score - a.score).slice(0, limit) };
 }
