@@ -3,7 +3,7 @@ import {
   Crown, Activity, Settings, FolderKanban, Star, PenLine, Presentation, Route, Sparkles, Target, QrCode, Link2,
   CalendarRange, Zap, Megaphone, BadgeDollarSign, Mail, UserPlus, Gauge, Fuel, Store, Orbit, Rocket, Radar, Wand2,
   Chrome, Inbox, BookOpenCheck, Globe, GraduationCap, ShieldCheck, Package, Repeat, Sun, Briefcase, Wallet, LayoutGrid, Landmark,
-  Brain, Images, PhoneCall, KeyRound, MapPinned, Layers, Trophy,
+  Brain, Images, PhoneCall, KeyRound, MapPinned, Layers, Trophy, Camera,
 } from "lucide-react";
 import { PACKAGES, packagePath } from "@/features/packages/registry";
 import { IS_PRESENTING } from "@/lib/presentation";
@@ -86,6 +86,7 @@ export const HUBS = [
     hint: "Tell Claude what to build or do for a client, and watch the jobs",
     tabs: [
       { label: "Claude", icon: Sparkles, path: "/claude", hint: "Pick a client, type an instruction, send. Every job and its status" },
+      { label: "Field inbox", icon: Camera, path: "/field", hint: "WhatsApp from the glasses and site-visit videos: filed as tasks, ideas, notes or Claude jobs" },
       { label: "Playbooks", icon: BookOpenCheck, path: "/playbooks", hint: "The prompt agent: copy-paste foundation prompts per service, and the standards every client site and app gets" },
     ],
   },
