@@ -1,0 +1,37 @@
+{
+  "name": "Portfolio \u2014 add launched site",
+  "description": "When a client's own domain is verified live (CRMClient.website_live_at set), create that site's Portfolio card as a draft for Justin to publish with one click. Never publishes or changes the client's site. Function: portfolio / on_launch.",
+  "trigger": {
+    "condition": "${ .trigger.data.website_live_at != null }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "CRMClient"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "portfolio_add_launched_site",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "portfolio",
+            "args": {
+              "action": "on_launch",
+              "client_id": "${ .trigger.data.id }"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
