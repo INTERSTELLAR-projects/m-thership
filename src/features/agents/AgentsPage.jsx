@@ -67,8 +67,8 @@ function Toggle({ value, options, onChange, label }) {
   return (
     <div className="seg" role="tablist" aria-label={label}>
       {options.map(([v, l, Icon]) => (
-        <button key={v} type="button" role="tab" aria-selected={value === v} className={value === v ? "on" : ""} onClick={() => onChange(v)}>
-          {Icon ? <Icon className="h-3.5 w-3.5" /> : null}{l}
+        <button key={v} type="button" role="tab" aria-selected={value === v} aria-label={l} className={value === v ? "on" : ""} onClick={() => onChange(v)}>
+          {Icon ? <Icon className="h-3.5 w-3.5" /> : null}<span className={Icon ? "hidden sm:inline" : ""}>{l}</span>
         </button>
       ))}
     </div>
@@ -336,14 +336,14 @@ function ClassicAgentsPage({ onShip }) {
   return (
     <div ref={fillRef} className="agx grain-d flex flex-col overflow-hidden" style={{ height: height || "calc(100dvh - 48px)" }}>
       {/* Header */}
-      <header className="relative z-20 border-b border-[var(--hair-d)] px-4 pb-3 pt-4 md:px-6">
+      <header className="relative z-20 border-b border-[var(--hair-d)] px-4 pb-3 pt-3 md:px-6 md:pt-4">
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <div className="min-w-0">
-            <p className="eyebrow flex items-center gap-2"><span className="inline-block h-[9px] w-[9px]" style={{ background: "linear-gradient(#ff3c00,#ff3c00) center/100% 1.5px no-repeat, linear-gradient(#ff3c00,#ff3c00) center/1.5px 100% no-repeat" }} />(Command)</p>
-            <h1 className="mt-1.5 text-[30px] font-semibold leading-[0.95] tracking-[-0.045em] text-white md:text-[40px]">Agent <span className="text-[#ff3c00]">/Constellation</span></h1>
+            <p className="eyebrow hidden items-center gap-2 sm:flex"><span className="inline-block h-[9px] w-[9px]" style={{ background: "linear-gradient(#ff3c00,#ff3c00) center/100% 1.5px no-repeat, linear-gradient(#ff3c00,#ff3c00) center/1.5px 100% no-repeat" }} />(Command)</p>
+            <h1 className="text-[26px] font-semibold leading-[0.95] tracking-[-0.045em] text-white sm:mt-1.5 sm:text-[30px] md:text-[40px]">Agent <span className="text-[#ff3c00]">/Constellation</span></h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button type="button" className="btn-d" onClick={onShip} aria-label="Open the ship view"><Orbit className="h-3.5 w-3.5" />Ship view</button>
+            <button type="button" className="btn-d" onClick={onShip} aria-label="Open the ship view"><Orbit className="h-3.5 w-3.5" /><span className="hidden sm:inline">Ship view</span></button>
             <Toggle label="Which web" value={web} onChange={(v) => setParams(new URLSearchParams(v === "clients" ? { v: "classic", web: "clients", view } : { v: "classic", view }))} options={[["interstellar", "Interstellar", Orbit], ["clients", "Clients", Users]]} />
             <Toggle label="View" value={view} onChange={(v) => setP({ view: v === "list" ? "list" : null })} options={[["map", "Map", Network], ["list", "List", LayoutList]]} />
             <button type="button" className="btn-f" onClick={() => setP({ present: "1" })} disabled={isLoading || !!error} data-testid="present-button" aria-label="Present the agent workforce full screen"><Play className="h-3.5 w-3.5 fill-current" />Present</button>
