@@ -6,6 +6,8 @@
 // Engagement (first login, sessions, views, seconds per view, walkthrough booked) is written onto LeadPreview.engagement
 // and shown on the lead in Møthership. Admin previews never count as engagement.
 
+import { sweepLead } from "./leadFollowups.ts";
+
 export const LEAD_ACTIONS = ["home", "lead_track"];
 const VIEWS = ["home", "website", "command", "offer", "book"];
 
@@ -54,7 +56,9 @@ export async function leadTrack(db: any, client: any, user: any, args: any) {
   const patch: any = { engagement: e };
   if (p.status === "sent" || p.status === "ready") patch.status = "viewed";
   if (!p.engagement?.first_login_at) patch.build_log = [...(p.build_log || []), { at: now, by: user.email, action: "viewed", version: p.version || 1, note: "First login to the lead portal" }].slice(-40);
-  await db.LeadPreview.update(p.id, patch);
+  const row = await db.LeadPreview.update(p.id, patch);
+  // A new session or first login re-heats the lead and opens the "call within 2 hours" task on the call sheet.
+  if (args.event === "session" || !p.engagement?.first_login_at) await sweepLead(db, client, { preview: { ...p, ...patch, ...(row || {}) } }).catch(() => null);
   return { ok: true };
 }
 
@@ -66,5 +70,6 @@ export async function leadBooked(db: any, client: any, when: string) {
   await db.LeadPreview.update(p.id, { engagement: { ...(p.engagement || {}), walkthrough_booked_at: now, walkthrough_when: String(when || "").slice(0, 80) } }).catch(() => null);
   const inc = client.lead_incentive || {};
   await db.CRMClient.update(client.id, { desk_outcome: "booked", next_step: "Walkthrough", ...(inc.status && inc.status !== "none" ? {} : { lead_incentive: { status: "owed", amount: 30, minutes: 30, owed_at: now } }) }).catch(() => null);
-  await db.LeadCallLog.create({ client_id: client.id, client_name: client.business, outcome: "booked", note: `Booked the walkthrough from the portal: ${when}`, caller: "lead (portal)", at: now }).catch(() => null);
+  await db.LeadCallLog.create({ client_id: client.id, client_name: client.business, outcome: "note", note: `Booked the walkthrough from the portal: ${when}`, caller: "lead (portal)", at: now }).catch(() => null);
+  await sweepLead(db, { ...client, desk_outcome: "booked" }).catch(() => null);
 }

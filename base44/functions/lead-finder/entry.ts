@@ -183,6 +183,7 @@ Deno.serve(async (req) => {
           gbp_cache: { name: p.name, category: p.category, rating: p.rating, review_count: p.review_count, phone: p.phone, website: p.website, address: p.address, maps_url: p.maps_url, photo_count: p.photo_count, fetched_at: nowIso() },
           phones: p.phone ? [p.phone] : [], websites: site ? [site] : [], domain: domainOfUrl(site), state: p.state, city: p.city,
           location: [p.city, p.state].filter(Boolean).join(", "), lead_flags: flags, ...(check ? { site_check: check } : {}), scrape_status: "none",
+          build_queue: body.approve === true ? { status: "queued", attempts: 0, next_try_at: nowIso(), approved_at: nowIso(), approved_by: staff.email } : { status: "pending", added_at: nowIso() },
           notes: [{ id: Date.now(), text: `Added from Lead Finder by ${staff.name} (${tt?.name || "industry"} · ${p.city || ""}${p.state ? `, ${p.state}` : ""}).`, date: noteDate() }],
         };
         if (staff.kind === "sales") Object.assign(rec, { assigned_rep_id: staff.rep.id, assigned_rep_name: staff.rep.name, assigned_at: nowIso() });
@@ -211,7 +212,7 @@ Deno.serve(async (req) => {
       const rec: any = {
         business, status: "Lead", pipeline_stage: "new", pipeline_stage_logged: "new", stage_changed_at: nowIso(), lead_source: "lead_finder",
         gbp_url: url, industry: t?.name || "", industry_key: t?.industry_key || "", niche_key: t?.niche_key || "other", phones: phone ? [phone] : [], websites: site ? [site] : [], domain: domainOfUrl(site),
-        state: clip(body.state, 2).toUpperCase(), city: clip(body.city, 60), location: [clip(body.city, 60), clip(body.state, 2).toUpperCase()].filter(Boolean).join(", "), lead_flags: site ? [] : ["no_website"], scrape_status: "none",
+        state: clip(body.state, 2).toUpperCase(), city: clip(body.city, 60), location: [clip(body.city, 60), clip(body.state, 2).toUpperCase()].filter(Boolean).join(", "), lead_flags: site ? [] : ["no_website"], scrape_status: "none", build_queue: { status: "pending", added_at: nowIso() },
         notes: [{ id: Date.now(), text: `Added by pasting a Google Business Profile link (${staff.name}).`, date: noteDate() }],
       };
       if (staff.kind === "sales") Object.assign(rec, { assigned_rep_id: staff.rep.id, assigned_rep_name: staff.rep.name, assigned_at: nowIso() });
