@@ -273,10 +273,13 @@ const Constellation = forwardRef(function Constellation({
       gesture.current = { pinch: true, d0: Math.hypot(a.x - b.x, a.y - b.y), t0: tRef.current, mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, moved: true };
     }
   };
+  const hoverRef = useRef(null);
   const hoverEmit = (n, e) => {
-    const id = n ? n.id : null;
-    if (id !== hoverId) setHoverId(id);
-    onHover && onHover(n && n.type !== "sat" ? n : null, e?.clientX, e?.clientY);
+    const id = n && n.type !== "sat" ? n.id : null;
+    if (id === hoverRef.current) return;
+    hoverRef.current = id;
+    setHoverId(id);
+    onHover && onHover(id ? n : null, e?.clientX, e?.clientY);
   };
   const onPointerMove = (e) => {
     if (!ptrs.current.has(e.pointerId)) { if (e.pointerType === "mouse") hoverEmit(targetNode(e), e); return; }
@@ -388,9 +391,9 @@ const Constellation = forwardRef(function Constellation({
         const isSel = selectedId === n.id, isHov = hoverId === n.id;
         const inFocus = focusSet ? focusSet.has(n.id) : false;
         const matched = q && String(a.name).toLowerCase().includes(q);
-        const wanted = isSel || isHov || (level !== "far" && (!focusSet || inFocus || !lit)) || (lit && inFocus && level !== "far") || matched;
+        // Present mode labels only the lit agents; exploring labels everyone once there is room (mid zoom and in).
+        const wanted = lit ? (inFocus || isSel) && (level !== "far" || isSel) : isSel || isHov || matched || level !== "far";
         if (!wanted) return;
-        if (lit && !inFocus && !isSel) return;
         const max = level === "near" || isSel || isHov ? 30 : 22;
         const main = truncate(a.name, max);
         const sub = level === "near" || isSel || isHov ? `${STATUS_TXT[a.status] || ""}${a.status !== "planned" && runs30(a) ? ` · ${runs30(a)} RUNS / 30D` : ""}` : "";
@@ -475,8 +478,8 @@ const Constellation = forwardRef(function Constellation({
             aria-label={l.kind === "agent" ? `${l.full}, ${l.status}` : l.full || l.main}
             className={`cl-lbl k-${l.kind}${l.dim ? " dim" : ""}${selectedId === l.id ? " sel" : ""}${l.status ? ` s-${l.status}` : ""}`}
             style={{ transform: `translate(${Math.round(l.x)}px, ${Math.round(l.y)}px)`, width: Math.ceil(l.w), height: l.h }}
-            onFocus={(e) => { const r = e.currentTarget.getBoundingClientRect(); onHover && onHover(l.n, r.right, r.top); setHoverId(l.id); }}
-            onBlur={() => { onHover && onHover(null); setHoverId(null); }}
+            onFocus={(e) => { const r = e.currentTarget.getBoundingClientRect(); hoverRef.current = l.id; setHoverId(l.id); onHover && onHover(l.n, r.right, r.top); }}
+            onBlur={() => { hoverRef.current = null; setHoverId(null); onHover && onHover(null); }}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onSelect && onSelect(l.n, { pointerType: "keyboard" }); } }}
           >
             <span className="m">{l.main}</span>
