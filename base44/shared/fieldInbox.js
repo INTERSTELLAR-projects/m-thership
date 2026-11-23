@@ -294,7 +294,10 @@ export function siteVisitBrief({ fieldId = "", client = null, lead = null, promp
     "(Always include 'What the business is and does' and 'Facts not confirmed'.)",
     "",
     "## Media",
-    ...(media.length ? media.map((m, i) => `- [${s(m.type) || "file"} ${i + 1}] ${s(m.url)}${m.name ? ` (${m.name})` : ""}${m.size ? `, ${Math.round(Number(m.size) / 1024 / 1024 * 10) / 10} MB` : ""}${m.duration ? `, ${Math.round(Number(m.duration))} s` : ""}${m.parts ? `, ${m.parts} parts` : ""}`) : ["- (no media attached)"]),
+    ...(media.length ? media.map((m, i) => {
+      const head = `- [${s(m.type) || "file"} ${i + 1}] ${m.part_urls && m.part_urls.length > 1 ? "(split for upload: download every part, then join in order)" : s(m.url)}${m.name ? ` (${m.name})` : ""}${m.size ? `, ${Math.round(Number(m.size) / 1024 / 1024 * 10) / 10} MB` : ""}${m.duration ? `, ${Math.round(Number(m.duration))} s` : ""}`;
+      return m.part_urls && m.part_urls.length > 1 ? [head, ...m.part_urls.map((u, k) => `    - part ${String(k + 1).padStart(2, "0")}: ${s(u)}`)].join("\n") : head;
+    }) : ["- (no media attached)"]),
     "",
     "## Steps (kind site_visit)",
     ...SITE_VISIT_STEPS,
