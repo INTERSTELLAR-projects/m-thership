@@ -1,7 +1,7 @@
 // Agent Constellation map (v2). Geometry lives in world space (SVG, one transform), labels live in screen space
 // (HTML, constant size, placed collision-free every frame). Semantic zoom: departments far out, agent names when
 // there is room, full detail close in. The camera is a JS tween so labels follow it frame by frame.
-import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { Plus, Minus, Maximize2 } from "lucide-react";
 import Starfield from "./Starfield";
 import { isRecent } from "./layout";
