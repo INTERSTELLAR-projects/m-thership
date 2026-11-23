@@ -421,7 +421,7 @@ export function fitTitle(pattern, vars) {
     t = short.length <= hi ? short : clipWords(short, hi);
   }
   if (t.length < lo && vars.state && !t.includes(vars.state)) t = `${t}, ${vars.state}`;
-  if (t.length < lo) t = `${t} | ${vars.tail || "Local experts"}`.slice(0, hi);
+  for (const tail of [" | Official site", ` | ${vars.tail || "Local business"}`]) { if (t.length >= lo) break; if (t.length + tail.length <= hi) t += tail; }
   return t;
 }
 
@@ -439,7 +439,7 @@ export function fitDescription(pattern, vars) {
 
 export const seoOk = (title, desc) => {
   const t = String(title || "").length, d = String(desc || "").length;
-  return { title: t >= SEO_LIMITS.title[0] && t <= SEO_LIMITS.title[1], description: d >= SEO_LIMITS.description[0] && d <= SEO_LIMITS.description[1], title_len: t, desc_len: d };
+  return { title_ok: t >= SEO_LIMITS.title[0] && t <= SEO_LIMITS.title[1], description_ok: d >= SEO_LIMITS.description[0] && d <= SEO_LIMITS.description[1], title_len: t, desc_len: d };
 };
 
 /* ------------------------------------------------------------------------------------------------------------- */
