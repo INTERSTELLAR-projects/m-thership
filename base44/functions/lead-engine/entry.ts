@@ -8,6 +8,7 @@ import { moveStage, stageOf } from "../../shared/leadStage.ts";
 import { inviteSettings, normEmail } from "../../shared/portalInvite.ts";
 import { sendBrandedEmail } from "../../shared/onboardingEmail.ts";
 import { leadInviteEmail, leadSettings, optOutUrl, verifyOptOut, optOutPage } from "../../shared/leadInvite.ts";
+import { leadHome } from "../../shared/leadPortal.ts";
 
 /*
  * Lead Engine: templates, lead previews, presentation packs, agents, the Lead Desk and the lead-tier portal invite.
@@ -205,7 +206,8 @@ Deno.serve(async (req) => {
       const c = await lead();
       const [p, calls, tpl] = await Promise.all([previewOf(db, c.id), db.LeadCallLog.filter({ client_id: c.id }, "-at", 50).catch(() => []), templatesOf(db)]);
       const t = matchTemplate(tpl.list, { industry_key: c.industry_key, text: `${c.industry || ""} ${c.one_liner || ""} ${(c.scrape_summary?.gbp?.categories || []).join(" ")}`, niche_key: c.niche_key });
-      return Response.json({ client: forStaff(staff, c), preview: p, calls: calls || [], template: t ? { industry_key: t.industry_key, name: t.name, version: t.version } : null, next: nextAction(c, p), follow_up: followUpDraft(c.desk_outcome || "no_answer", { client: c, rep: staff.rep }) });
+      const [tasks, portal, reps] = await Promise.all([db.LeadTask.filter({ client_id: c.id }, "-created_date", 20).catch(() => []), leadHome(db, c, { email: staff.email, full_name: staff.name, role: "admin" }).catch(() => null), admin ? db.SalesRep.list("name", 200).catch(() => []) : Promise.resolve([])]);
+      return Response.json({ client: forStaff(staff, c), preview: p, calls: calls || [], tasks: tasks || [], portal, heat: heatOf(c, p), template: t ? { industry_key: t.industry_key, name: t.name, version: t.version } : null, templates: tpl.list.map((x: any) => ({ industry_key: x.industry_key, name: x.name })), next: nextAction(c, p), follow_up: followUpDraft(c.desk_outcome || "no_answer", { client: c, rep: staff.rep }), reps: (reps || []).map((r: any) => ({ id: r.id, name: r.name, status: r.status })), admin });
     }
     if (action === "scrape") {
       const c = await lead();
