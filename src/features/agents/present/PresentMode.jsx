@@ -1,6 +1,7 @@
 // Present mode: a full-screen, cinematic walkthrough of the agent workforce for investors. The camera flies across
 // the live constellation scene by scene; every number on screen is read from the app's records at open time.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Pause, Play, X, Maximize, Minimize } from "lucide-react";
 import { base44 } from "@/api/base44Client";
@@ -181,20 +182,19 @@ export default function PresentMode({ data, registry, ceoName, onExit }) {
   }, [s.id, wide, size.w, size.h]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Timeline: progress for the current scene, then advance (stops at the last scene).
-  useEffect(() => { setProgress(0); }, [idx]);
+  const progRef = useRef(0);
+  useEffect(() => { progRef.current = 0; setProgress(0); }, [idx]);
   useEffect(() => {
     if (!playing) return undefined;
     let raf = 0; let last = performance.now();
     const tick = (now) => {
-      const dt = now - last; last = now;
-      setProgress((p) => {
-        const np = p + dt / (s.duration || 9000);
-        if (np >= 1) {
-          if (idx < scenes.length - 1) { setIdx((i) => i + 1); return 0; }
-          setPlaying(false); return 1;
-        }
-        return np;
-      });
+      const dt = Math.min(100, now - last); last = now;
+      progRef.current += dt / (s.duration || 9000);
+      if (progRef.current >= 1) {
+        if (idx < scenes.length - 1) { setIdx(idx + 1); return; }
+        progRef.current = 1; setProgress(1); setPlaying(false); return;
+      }
+      setProgress(progRef.current);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -229,7 +229,7 @@ export default function PresentMode({ data, registry, ceoName, onExit }) {
   const onPU = (e) => { const st = sw.current; sw.current = null; if (!st) return; const dx = e.clientX - st.x; if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(e.clientY - st.y)) go(dx < 0 ? 1 : -1); };
 
   const total = scenes.length;
-  return (
+  return createPortal(
     <div ref={rootRef} className={`agx pm-root ${wide ? "wide" : "tall"}${reduced ? " reduced" : ""}`} role="dialog" aria-modal="true" aria-label="Agent workforce presentation" tabIndex={-1} onPointerDown={onPD} onPointerUp={onPU} data-testid="present">
       <div className="pm-map">
         <Constellation ref={mapRef} mode="present" graph={graph} handoffs={allLinks} viewKey="present" lit={lit} litLinks={litLinks} pad={pad} reduced={reduced} hideControls />
@@ -263,6 +263,7 @@ export default function PresentMode({ data, registry, ceoName, onExit }) {
           <span className="pm-hint hidden md:inline">← → to move · Space to pause · Esc to exit</span>
         </div>
       </footer>
-    </div>
+    </div>,
+    document.body,
   );
 }
