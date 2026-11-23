@@ -364,18 +364,18 @@ const Constellation = forwardRef(function Constellation({
       const dimmed = isDim(n);
       if (n.type === "brain") {
         const main = String(n.label).toUpperCase();
-        const w = Math.max(textWidth(main, FONT_DEPT) * 1.16, n.sub ? textWidth(n.sub, FONT_SUB) * 1.1 : 0) + 14;
+        const w = Math.max(textWidth(main, FONT_DEPT) * 1.3, n.sub ? textWidth(n.sub, FONT_SUB) * 1.16 : 0) + 14;
         items.push({ id: n.id, n, ...s, sr, w, h: n.sub ? 32 : 20, prio: 1000, mode: "below", kind: "brain", main, sub: n.sub, leader: false });
       } else if (n.type === "ceo") {
         const main = String(n.label).toUpperCase();
         const sub = "CEO AGENT";
-        const w = Math.max(textWidth(main, FONT_DEPT) * 1.16, textWidth(sub, FONT_SUB) * 1.1) + 14;
+        const w = Math.max(textWidth(main, FONT_DEPT) * 1.3, textWidth(sub, FONT_SUB) * 1.16) + 14;
         items.push({ id: n.id, n, ...s, sr, w, h: 32, prio: 990, mode: "title", kind: "ceo", main, sub, dim: dimmed });
       } else if (n.type === "dept") {
         const c = n.counts || {};
         const main = String(n.label).toUpperCase();
         const sub = `${c.live || 0} live${c.paused ? ` · ${c.paused} paused` : ""}${c.planned ? ` · ${c.planned} planned` : ""}${c.broken ? ` · ${c.broken} broken` : ""}`;
-        const w = Math.max(textWidth(main, FONT_DEPT) * 1.16, textWidth(sub, FONT_SUB) * 1.06) + 16;
+        const w = Math.max(textWidth(main, FONT_DEPT) * 1.3, textWidth(sub, FONT_SUB) * 1.16) + 16;
         const len = Math.hypot(n.x, n.y) || 1;
         const dir = { x: n.x / len, y: n.y / len };
         const edge = (n.clusterR || 30) * t.k + 8;
@@ -384,7 +384,7 @@ const Constellation = forwardRef(function Constellation({
         const main = truncate(n.label, 26);
         const c = n.counts || {};
         const sub = `${c.live || 0} LIVE · BRAIN ${Math.round(Number(n.brain?.completeness || 0))}%`;
-        const w = Math.max(textWidth(main, FONT_NAME), textWidth(sub, FONT_SUB) * 1.06) + 14;
+        const w = Math.max(textWidth(main, FONT_NAME), textWidth(sub, FONT_SUB) * 1.16) + 14;
         items.push({ id: n.id, n, ...s, sr: sr + 6, w, h: 32, prio: 600, mode: "below", kind: "client", main, sub, full: n.label, truncated: main !== n.label });
       } else if (n.type === "agent") {
         const a = n.agent || {};
@@ -398,7 +398,7 @@ const Constellation = forwardRef(function Constellation({
         const max = level === "near" || isSel ? 30 : 22;
         const main = truncate(a.name, max);
         const sub = level === "near" || isSel ? `${STATUS_TXT[a.status] || ""}${a.status !== "planned" && runs30(a) ? ` · ${runs30(a)} RUNS / 30D` : ""}` : "";
-        const w = Math.max(textWidth(main, FONT_NAME), sub ? textWidth(sub, FONT_SUB) * 1.06 : 0) + 12;
+        const w = Math.max(textWidth(main, FONT_NAME), sub ? textWidth(sub, FONT_SUB) * 1.16 : 0) + 12;
         const prio = isSel ? 970 : isHov ? 960 : matched ? 700 : inFocus ? 650 : 100 + Math.log2(1 + runs30(a)) * 12 + (a.status === "live" ? 40 : 0);
         items.push({ id: n.id, n, ...s, sr, w, h: sub ? 30 : 18, prio, mode: "side", kind: "agent", main, sub, full: a.name, truncated: main !== a.name, dim: dimmed && !inFocus, status: a.status });
       }
