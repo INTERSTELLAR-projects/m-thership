@@ -62,7 +62,7 @@ export default function PanelShell({ onClose, children, wide = false, label = "D
       data-ui=""
       data-testid="panel"
       className="panel-in glass scroll-d absolute z-30 flex flex-col overflow-y-auto shadow-[0_30px_80px_-20px_rgba(0,0,0,.8)]
-        inset-x-0 bottom-0 max-h-[62%] rounded-t-2xl
+        inset-x-0 bottom-[var(--ask,0px)] max-h-[62%] rounded-t-2xl
         md:inset-x-auto md:bottom-3 md:right-3 md:top-3 md:max-h-none md:w-[var(--pw)] md:rounded-2xl"
       style={{ "--pw": `${w}px` }}
     >
