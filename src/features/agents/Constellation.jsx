@@ -346,7 +346,10 @@ const Constellation = forwardRef(function Constellation({
   };
 
   // ---------------------------------------------------------------- labels (screen space)
-  const level = t.k < LV_MID ? "far" : t.k < LV_NEAR ? "mid" : "near";
+  // Small screens fit the whole map at a lower zoom, so names start earlier there (placement still drops any
+  // label that has no room).
+  const midAt = Math.min(LV_MID, fitK * 1.6);
+  const level = t.k < midAt ? "far" : t.k < LV_NEAR ? "mid" : "near";
   const labels = useMemo(() => {
     if (!size.w) return [];
     const S = (n) => ({ sx: n.x * t.k + t.x, sy: n.y * t.k + t.y });
