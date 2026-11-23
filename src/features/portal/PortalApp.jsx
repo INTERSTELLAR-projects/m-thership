@@ -35,6 +35,7 @@ import StudioPreview, { studioTabs, STUDIO_BY_TAB } from "@/features/portal/Port
 import { IS_DEMO } from "@/lib/qa";
 import TwoFactorChallenge from "@/features/security/TwoFactorChallenge";
 import { needsSecondFactor } from "@/features/security/api";
+import TermsGate, { needsTerms } from "@/features/terms/TermsGate";
 import { ClientHeaderBrand } from "@/features/portal/BusinessSwitcher";
 import { useFuel } from "@/features/fuel/useFuel";
 import { FuelBanner, RefuelModal } from "@/features/fuel/FuelPrompts";
@@ -129,6 +130,10 @@ export default function PortalApp({ previewId }) {
   if (home.isError && needsSecondFactor(home.error)) {
     const info = home.error.response.data || {};
     return <TwoFactorChallenge methods={info.methods} emailHint={info.email_hint} onDone={() => qc.resetQueries({ queryKey: ["portal", previewId] })} />;
+  }
+  // Terms of Service not accepted for this client (docs/portal-terms.md): the server sent no portal data, only the terms.
+  if (home.isError && needsTerms(home.error)) {
+    return <TermsGate gate={home.error.response.data} scopeId={scopeId} onDone={() => qc.resetQueries({ queryKey: ["portal", scopeId] })} />;
   }
   if (home.isError || !d?.client) {
     const msg = home.error?.response?.data?.error || "Your portal isn't set up yet.";
