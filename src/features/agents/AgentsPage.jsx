@@ -63,12 +63,13 @@ function FilterGroup({ title, items, set, onToggle, render }) {
 }
 
 // Compact card for the hovered / tapped agent: what it does, trigger, last run, status, owner pillar, hand-offs.
-function AgentCard({ a, name, deptLabel, links, pinned, onOpen, onClose, sheet }) {
+function AgentCard({ a, name, deptLabel, links, pinned, onOpen, onClose, sheet, top = 12 }) {
   const pillar = pillarOfAgent(a);
   const runs = runs30(a);
   return (
     <div data-ui="" data-testid="agent-card" role="dialog" aria-label={`${name} summary`}
-      className={`glass z-30 ${sheet ? "absolute inset-x-2 bottom-2 rounded-2xl" : "absolute left-3 top-3 w-[320px] rounded-xl md:left-5"} px-4 py-3.5 shadow-[0_20px_60px_-20px_rgba(0,0,0,.8)]`}>
+      style={sheet ? undefined : { top }}
+      className={`glass z-30 ${sheet ? "absolute inset-x-2 bottom-2 rounded-2xl" : "absolute left-3 w-[320px] rounded-xl md:left-5"} px-4 py-3.5 shadow-[0_20px_60px_-20px_rgba(0,0,0,.8)]`}>
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <p className="eyebrow !text-[9.5px]">{deptLabel}{pillar ? ` · ${PILLAR_NAMES[pillar]} pillar` : ""}</p>
@@ -106,7 +107,7 @@ function ClassicAgentsPage({ onShip }) {
   const [showFilters, setShowFilters] = useState(false);
   const [hover, setHover] = useState(null);
   const [pin, setPin] = useState(null); // agent key with its card pinned (tap / click)
-  const [cam, setCam] = useState({ k: 1, fitK: 1 });
+  const [cam, setCam] = useState({ k: 1, fitK: 1, x: 0, y: 0 });
   const [fillRef, height] = useFillHeight();
   const mapRef = useRef(null);
   const stageRef = useRef(null);
@@ -286,12 +287,15 @@ function ClassicAgentsPage({ onShip }) {
   };
 
   // In-map breadcrumb: which department the camera is in, even when you zoomed there by hand.
+  const zoomedIn = cam.k > cam.fitK * 1.35;
   const camDept = useMemo(() => {
     if (dept) return dept;
-    if (!graph.clusters?.length || cam.k < cam.fitK * 1.6) return null;
-    return null;
-  }, [dept, graph, cam]);
-  const zoomedIn = cam.k > cam.fitK * 1.35;
+    if (!graph.clusters?.length || !zoomedIn) return null;
+    const vw = Math.max(200, stage.w - pad.right), vh = Math.max(200, stage.h - pad.bottom);
+    const wx = (vw / 2 - cam.x) / cam.k, wy = (vh / 2 - cam.y) / cam.k;
+    const c = graph.clusters.find((cl) => Math.hypot(cl.x - wx, cl.y - wy) < cl.r + 40);
+    return c ? depts.find((x) => x.key === c.key) || null : null;
+  }, [dept, graph, cam, zoomedIn, stage, pad.right, pad.bottom, depts]);
 
   const crumbs = [
     { label: web === "clients" ? "Clients" : "Interstellar", go: () => setP({ client: null, dept: null, agent: null, ceo: null, brain: null, deptpanel: null, clientpanel: null }) },
@@ -386,12 +390,12 @@ function ClassicAgentsPage({ onShip }) {
         ) : (
           <>
             <Constellation ref={mapRef} graph={graph} handoffs={handoffs} viewKey={viewKey} selectedId={selectedId} onSelect={onNode} isMatch={filtering ? isMatch : null} query={query}
-              pad={pad} reduced={reduced} onCamera={(t, fitK) => { if (Math.abs(t.k - cam.k) / cam.k > 0.04 || fitK !== cam.fitK) setCam({ k: t.k, fitK }); }}
+              pad={pad} reduced={reduced} onCamera={(t, fitK) => { if (Math.abs(t.k - cam.k) / cam.k > 0.04 || fitK !== cam.fitK || Math.hypot(t.x - cam.x, t.y - cam.y) > 60) setCam({ k: t.k, fitK, x: t.x, y: t.y }); }}
               onHover={(n, x, y) => setHover(n ? { n, x, y } : null)} />
 
             {/* Back control when zoomed into a department */}
             {(dept || zoomedIn) && !clientsHub ? (
-              <div data-ui="" className="absolute z-20 flex items-center gap-1.5" style={{ left: isMd ? 20 : 12, top: cardAgent && isMd ? 12 : 12, transform: cardAgent && isMd ? "translateY(0)" : undefined, display: cardAgent && isMd ? "none" : undefined }}>
+              <div data-ui="" className="absolute z-20 flex items-center gap-1.5" style={{ left: isMd ? 20 : 12, top: 12 }}>
                 <button type="button" className="glass flex h-9 items-center gap-1.5 rounded-full pl-2.5 pr-3.5 text-[12px] text-[var(--ink-d)] hover:text-white" onClick={() => { setPin(null); if (dept) setP({ dept: null }); else mapRef.current?.fit(true); }} data-testid="map-back">
                   <ArrowLeft className="h-3.5 w-3.5" />All departments
                 </button>
@@ -421,7 +425,7 @@ function ClassicAgentsPage({ onShip }) {
 
             {cardAgent ? (
               <AgentCard a={cardAgent} name={cardAgent.key === "commander" ? ceoName : cardAgent.name} deptLabel={depts.find((x) => x.key === cardAgent.department)?.label || cardAgent.department}
-                links={cardLinks} pinned={!hovered || hovered.key === pin} sheet={!isMd} onOpen={() => openDetails(cardAgent.key)} onClose={() => setPin(null)} />
+                links={cardLinks} pinned={!hovered || hovered.key === pin} sheet={!isMd} top={(dept || zoomedIn) && !clientsHub ? 58 : 12} onOpen={() => openDetails(cardAgent.key)} onClose={() => setPin(null)} />
             ) : null}
             {hover && !hover.n.agent && hover.n.type !== "brain" && isMd ? (
               <div className="glass pointer-events-none fixed z-50 max-w-[260px] rounded-lg px-3 py-2" style={{ left: hover.x + 14, top: hover.y + 14 }}>
