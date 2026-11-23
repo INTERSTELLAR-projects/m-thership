@@ -9,6 +9,7 @@ import { portalView } from "./buildTemplates.js";
 import { submitTypesFor, checkSubmission, statusLabel, SUBMIT_TYPES, RECEIVED_TEXT } from "./submitTypes.js";
 import { SEASON_PRESETS, cleanSeason, cleanOffer, offerLabel, todayPacific } from "./siteExtras.js";
 import { LEAD_ACTIONS, leadHome, leadTrack } from "./leadPortal.ts";
+import { termsGate } from "./termsServer.ts";
 
 // Portal v2 (Nov 2026): + needs_you / brain / health on home; actions brain + brain_answer.
 // Client portal API. Every table is admin-only, so portal users never touch entities directly:
