@@ -731,3 +731,158 @@ export function deskQueue(clients = [], previews = [], todayIso = new Date().toI
 }
 
 export const titleOf = titleCase;
+
+/* ------------------------------------------------------------------------------------------------------------- */
+/* Sales team: routing, presentation pack, agent suggestions, deals and pay                                        */
+/* ------------------------------------------------------------------------------------------------------------- */
+
+// Who may work a lead's industry. One industry until the rep is marked multi-industry ready; an empty list on a
+// multi-ready rep means every industry.
+export function repAllows(rep, industryKey) {
+  const allowed = (rep?.allowed_industries || []).filter(Boolean);
+  if (rep?.multi_industry_ready) return !allowed.length || !industryKey || allowed.includes(industryKey);
+  if (!allowed.length) return false;
+  return !industryKey ? true : allowed[0] === industryKey;
+}
+
+// Weighted round-robin. Eligible: active, allowed for the industry, under capacity. Picks the lowest
+// assigned_total / weight, then the one assigned longest ago. openCounts = { repId: open leads }.
+export function routeLead(lead, reps = [], openCounts = {}) {
+  const ind = str(lead?.industry_key);
+  const ok = reps.filter((r) => r && r.status === "active" && repAllows(r, ind) && (openCounts[r.id] || 0) < (Number(r.capacity) || 40));
+  if (!ok.length) return null;
+  const load = (r) => (Number(r.assigned_total) || 0) / Math.max(0.1, Number(r.weight) || 1);
+  return [...ok].sort((a, b) => (load(a) - load(b)) || String(a.last_assigned_at || "").localeCompare(String(b.last_assigned_at || "")) || String(a.name).localeCompare(String(b.name)))[0];
+}
+
+// Whoever built the preview gets first right to present it, if they sell (closer or both) and are active.
+export function presenterFor(lead, reps = []) {
+  const byId = new Map(reps.map((r) => [r.id, r]));
+  const b = byId.get(lead?.builder_rep_id);
+  if (b && b.status === "active" && b.mode !== "builder") return b;
+  return byId.get(lead?.assigned_rep_id) || null;
+}
+
+// What's broken today, from facts we actually have (Places flags, homepage check, scrape gaps). Never guessed.
+export function brokenToday(client = {}) {
+  const s = client.scrape_summary || {};
+  const flags = new Set([...(client.lead_flags || []), ...(client.site_check?.dated ? ["dated"] : [])]);
+  const g = client.gbp_cache || {};
+  const rating = typeof s.gbp?.rating === "number" ? s.gbp.rating : g.rating;
+  const reviews = typeof s.gbp?.reviews === "number" ? s.gbp.reviews : g.review_count;
+  const site = [], gbp = [], ops = [];
+  if (flags.has("no_website")) site.push("No website on their Google profile: every search visitor has nowhere to go but a competitor.");
+  if (flags.has("dated")) {
+    const r = client.site_check?.reasons || [];
+    site.push(`Current site looks dated${r.length ? ` (${r.map((x) => FLAG_LABEL[x] || x.replace(/_/g, " ")).join(", ").toLowerCase()})` : ""}.`);
+  }
+  if (!flags.has("no_website") && !flags.has("dated") && (client.websites || []).length) site.push("Site exists: compare it side by side with the new one on speed, mobile and calls to action.");
+  if (typeof reviews === "number") gbp.push(`${reviews} Google review${reviews === 1 ? "" : "s"}${typeof rating === "number" ? ` at ${rating}★` : ""}${reviews < 15 ? ": thin next to competitors; a review funnel fixes this on autopilot" : ""}.`);
+  if (flags.has("few_photos")) gbp.push("Few photos on the Google profile: profiles with real job photos get chosen more.");
+  if ((s.not_found || []).some((x) => /hours/i.test(x))) gbp.push("Hours not found on the profile.");
+  ops.push("Ask how leads, quotes, jobs and invoices are tracked today (paper, texts, spreadsheets?). The Command System preview shows the alternative.");
+  ops.push("Ask what happens after a job: is a review requested every time?");
+  return { site, gbp, ops };
+}
+
+// The presentation pack: one structure for every rep, every time.
+export function presentationPack({ client = {}, preview = null, template = null, rep = null } = {}) {
+  const w = preview?.website_config || {};
+  const c = preview?.command_config || {};
+  const s = client.scrape_summary || {};
+  const { city } = placeOf(client);
+  const business = str(client.business) || "the business";
+  const broken = brokenToday(client);
+  const v = { business, city: city || "your area", contact: str(client.contact) || "the owner", caller: str(rep?.name) || "your name" };
+  const modules = (c.modules || []).map((m) => m.label);
+  return {
+    version: 1,
+    generated_at: new Date().toISOString(),
+    brief: {
+      business, city, industry: template?.name || str(s.industry) || "",
+      phone: str(s.gbp?.phone || (client.phones || [])[0] || client.gbp_cache?.phone),
+      website: str((client.websites || [])[0] || client.gbp_cache?.website) || "none",
+      google: client.gbp_cache?.maps_url || client.gbp_url || "",
+      services: (s.services || []).slice(0, 6),
+      one_liner: str(client.one_liner),
+    },
+    broken,
+    walkthrough: [
+      { step: "Open with them", say: fillScript("Thanks for the time, {contact}. No pitch today: I just want to show you what we built for {business} and hear how things run now.", v), minutes: 2 },
+      { step: "Their Google presence", say: "Pull up their Google profile together. Point at the facts above (reviews, photos, website link). Ask: how do most customers find you today?", minutes: 4 },
+      { step: "The new website", say: `Show the website preview on their phone first, then desktop. Hero, services${w.city ? `, ${w.city}` : ""}, the one-question contact form. Ask: what would you change?`, minutes: 7 },
+      { step: "The Command System", say: `Show the Command System with sample data: ${modules.slice(0, 4).join(", ") || "dashboard, pipeline, jobs, invoices"}. Ask: how do you track this today?`, minutes: 8 },
+      { step: "What's broken, in their words", say: "Recap the 2–3 problems they said out loud. Don't add new ones.", minutes: 3 },
+      { step: "How Interstellar works", say: "Build first, then run it with you every month. The site and system are theirs. Unlimited revisions while we build.", minutes: 3 },
+      { step: "Close to the next meeting", say: CALL_SCRIPT.close.replace("What's the best email for your login? You'll get one email from Interstellar with a button to see your site and system. ", ""), minutes: 3 },
+    ],
+    talk_track: CALL_SCRIPT.pitch.map((x) => fillScript(x, v)),
+    opener: fillScript(CALL_SCRIPT.opener, v),
+    objections: CALL_SCRIPT.objections,
+    offer: `$${INCENTIVE.per_minute} per minute for ${INCENTIVE.minutes} minutes: $${INCENTIVE.amount}, paid by ${PAY_METHODS.join(", ")} after the walkthrough, whether they buy or not.`,
+    close: fillScript("Book the walkthrough before you hang up: \"Does {day} or {day2} work better for 30 minutes?\" Then send the portal login so they can look first.", v),
+    rules: CALL_SCRIPT.rules,
+  };
+}
+
+// The next best action on a lead, from its state. Agents and the Desk show it; nothing runs on its own.
+export function nextAction(client = {}, preview = null) {
+  if (client.do_not_contact) return { key: "none", label: "Do not contact", why: "They asked not to be contacted." };
+  if (!client.scrape_summary) return { key: "scrape", label: "Scrape the lead", why: "Nothing researched yet." };
+  if (!preview) return { key: "build", label: "Build the preview", why: "Scraped; ready to build from the template." };
+  if (preview.status === "draft") return { key: "ready", label: "Review and mark Ready to show", why: "Preview built; check it before anyone sees it." };
+  const eng = preview.engagement || {};
+  if (eng.walkthrough_booked_at) return { key: "prep", label: "Prep for the walkthrough", why: "Walkthrough booked: read the presentation pack." };
+  if (eng.first_login_at) return { key: "call", label: "Call while it's warm", why: "They logged in and looked at the preview." };
+  if (preview.status === "sent") return { key: "follow_up", label: "Follow up on the portal invite", why: "Invite sent, no login yet." };
+  if (client.desk_outcome === "callback") return { key: "call", label: "Call back", why: "They asked for a callback." };
+  if (client.desk_outcome === "no_answer") return { key: "call", label: "Try again", why: "No answer last time." };
+  return { key: "call", label: "Call", why: "Preview ready to show." };
+}
+
+// Follow-up drafts. A human always clicks Send.
+export function followUpDraft(kind, { client = {}, rep = null } = {}) {
+  const first = str(client.contact).split(/\s+/)[0] || "there";
+  const me = str(rep?.name) || "the Interstellar team";
+  const b = str(client.business) || "your business";
+  const drafts = {
+    no_answer: { channel: "text", body: `Hi ${first}, it's ${me} with Interstellar Strategies. We built ${b} a new website and business system, no strings. Worth 30 minutes? We pay $30 for the time. Reply STOP to opt out.` },
+    callback: { channel: "text", body: `Hi ${first}, ${me} from Interstellar. Following up like you asked: when's a good time today or tomorrow to show you what we built for ${b}?` },
+    sent_portal: { channel: "email", subject: `${b}: your preview is ready`, body: `Hi ${first},\n\nJust making sure the login came through. Your new website and Command System are in there with ${b}'s name on them.\n\nIf you'd like, I'll walk you through it in 30 minutes, and we pay $1 a minute for your time.\n\n${me}\nInterstellar Strategies` },
+    booked: { channel: "email", subject: `See you soon, ${first}`, body: `Hi ${first},\n\nThanks for booking. We'll walk through the website and the Command System we built for ${b}, about 30 minutes. Your $30 goes out after the call by Venmo, Cash App, PayPal or check, your pick.\n\n${me}\nInterstellar Strategies` },
+  };
+  return drafts[kind] || drafts.no_answer;
+}
+
+/* Deals and pay. Floors are NOT here (server-only, admin settings). */
+
+export const DEAL_PRODUCTS = [
+  { key: "website", label: "Website", billing: "one_time", offer_key: "custom_website" },
+  { key: "app", label: "Command System (app)", billing: "one_time", offer_key: "command_system" },
+  { key: "bundle", label: "Website + Command System (Mission)", billing: "one_time", offer_key: "mission_alpha" },
+  { key: "seo", label: "SEO subscription (HyperCare+)", billing: "monthly", offer_key: "hypercare_local" },
+];
+
+export function dealTotals(products = []) {
+  const n = (x) => Math.max(0, Number(x) || 0);
+  return {
+    contract_value: products.filter((p) => p.billing !== "monthly").reduce((a, p) => a + n(p.price), 0),
+    monthly_value: products.filter((p) => p.billing === "monthly").reduce((a, p) => a + n(p.price), 0),
+    seo_subs: products.filter((p) => p.key === "seo" && n(p.price) > 0).length,
+  };
+}
+
+// Earnings for one rep for one month. rules = { tiers: [{from, rate}], seo_bonus_per_sub, seo_bonus_months, monthly_counts_months }
+// Commissionable revenue = one-time value of deals won that month + monthly value × monthly_counts_months.
+export function earningsFor(rep, deals = [], rules = {}, month = new Date().toISOString().slice(0, 7)) {
+  const won = deals.filter((d) => d.rep_id === rep?.id && d.status === "won" && String(d.closed_at || "").slice(0, 7) === month);
+  const months = Number(rules.monthly_counts_months) || 0;
+  const revenue = won.reduce((a, d) => a + (Number(d.contract_value) || 0) + (Number(d.monthly_value) || 0) * months, 0);
+  const tiers = [...(rules.tiers || [])].sort((a, b) => (Number(a.from) || 0) - (Number(b.from) || 0));
+  const tier = tiers.filter((t) => revenue >= (Number(t.from) || 0)).pop() || { from: 0, rate: 0 };
+  const commission = Math.round(revenue * (Number(tier.rate) || 0)) ;
+  const subs = won.reduce((a, d) => a + dealTotals(d.products || []).seo_subs, 0);
+  const seoBonus = subs * (Number(rules.seo_bonus_per_sub) || 0);
+  const base = Number(rep?.base_retainer) || 0;
+  return { month, base, revenue, tier_rate: Number(tier.rate) || 0, commission, seo_subs: subs, seo_bonus: seoBonus, total: base + commission + seoBonus, deals: won.map((d) => ({ id: d.id, client_name: d.client_name, contract_value: d.contract_value, monthly_value: d.monthly_value, closed_at: d.closed_at })) };
+}
