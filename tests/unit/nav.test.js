@@ -18,8 +18,8 @@ const loc = (url) => {
 };
 
 describe("navigation", () => {
-  it("keeps the sidebar short: three screens, everything else under More", () => {
-    expect(HUBS.map((h) => h.id)).toEqual(["command", "clients", "claude"]);
+  it("keeps the sidebar short: four screens, everything else under More", () => {
+    expect(HUBS.map((h) => h.id)).toEqual(["command", "clients", "leads", "claude"]);
     expect(MORE_HUBS.map((h) => h.id)).toEqual(["work", "marketing", "sales", "money", "agents"]);
     for (const h of [...HUBS, ...MORE_HUBS, MORE_HUB]) expect(h.tabs.length).toBeLessThanOrEqual(8);
   });
@@ -39,6 +39,7 @@ describe("navigation", () => {
       "/": "command", "/launch": "command", "/launch?tab=approvals": "command", "/agents?ceo=1": "command", "/output-analytics": "command", "/classic": "command", "/brain": "command",
       "/crm": "clients", "/clients/abc": "clients", "/brands": "clients", "/brands/diald": "clients", "/flight-plan": "clients", "/requests": "clients", "/comms": "clients", "/settings?tab=portal": "clients", "/pipeline": "clients",
       "/claude": "claude", "/playbooks": "claude",
+      "/leads/desk": "leads", "/leads/finder": "leads", "/leads/hq": "leads", "/leads/templates": "leads", "/leads/lead/abc": "leads",
       "/tasks": "work", "/tasks/patterns": "work", "/tasks/sops": "work", "/projects": "work", "/projects/x": "work",
       "/packages/gravitycare": "work", "/packages/orbit-seo/abc": "work", "/orbit-seo/manage": "work", "/share-images": "work",
       "/performance": "marketing", "/content-plans": "marketing", "/backlinks": "marketing", "/reviews": "marketing", "/security": "marketing",

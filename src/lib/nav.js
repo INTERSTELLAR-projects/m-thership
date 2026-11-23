@@ -3,7 +3,7 @@ import {
   Crown, Activity, Settings, FolderKanban, Star, PenLine, Presentation, Route, Sparkles, Target, QrCode, Link2,
   CalendarRange, Zap, Megaphone, BadgeDollarSign, Mail, UserPlus, Gauge, Fuel, Store, Orbit, Rocket, Radar, Wand2,
   Chrome, Inbox, BookOpenCheck, Globe, GraduationCap, ShieldCheck, Package, Repeat, Sun, Briefcase, Wallet, LayoutGrid, Landmark,
-  Brain, Images, PhoneCall, KeyRound,
+  Brain, Images, PhoneCall, KeyRound, MapPinned, Layers, Trophy,
 } from "lucide-react";
 import { PACKAGES, packagePath } from "@/features/packages/registry";
 import { IS_PRESENTING } from "@/lib/presentation";
@@ -61,6 +61,20 @@ export const HUBS = [
       { label: "Messages", icon: MessageSquare, path: "/comms", hint: "Client chats in one inbox" },
       { label: "Client posts", icon: Globe, path: "/client-posts", hint: "Projects and testimonials clients sent that went live on their websites, with Unpublish and Edit" },
       { label: "Portal", icon: Globe, path: "/settings?tab=portal", hint: "Which clients have a portal and what it shows them" },
+    ],
+  },
+  {
+    // Lead Engine (Nov 2026): find businesses, build their preview from an industry template, call 100 a day.
+    id: "leads",
+    label: "Leads",
+    icon: PhoneCall,
+    path: "/leads/desk",
+    hint: "Find businesses, build their preview, call and book the meeting",
+    tabs: [
+      { label: "Call sheet", icon: PhoneCall, path: "/leads/desk", match: ["/leads/lead"], hint: "Today's calls in priority order: follow-ups due first, one key per outcome, 100 dials a day" },
+      { label: "Lead Finder", icon: MapPinned, path: "/leads/finder", hint: "Pick a state and an industry, find Google Business Profiles, approve them to build" },
+      { label: "Sales HQ", icon: Trophy, path: "/leads/hq", hint: "Dials to deals per caller, the funnel, reps, pay, approvals and the 2027 goal" },
+      { label: "Templates", icon: Layers, path: "/leads/templates", hint: "Industry templates every preview is built from; refine them with every call" },
     ],
   },
   {

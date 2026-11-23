@@ -89,6 +89,14 @@ function lazyPage(load) {
   };
 }
 import BrandDashboard from '@/features/brands/BrandDashboard';
+// Lead Engine (Nov 2026): call sheet, Lead Finder, Sales HQ, industry templates, one page per lead; sales reps get
+// their own side (StaffGate → SalesApp).
+const CallSheetPage = lazyPage(() => import('@/features/leads/CallSheetPage'));
+const LeadFinderPage = lazyPage(() => import('@/features/leads/LeadFinderPage'));
+const SalesHQPage = lazyPage(() => import('@/features/leads/SalesHQPage'));
+const TemplatesPage = lazyPage(() => import('@/features/leads/TemplatesPage'));
+const LeadWorkspacePage = lazyPage(() => import('@/features/leads/LeadWorkspace'));
+const StaffGate = lazyPage(() => import('@/features/leads/StaffGate'));
 
 // Branded sign-in routes. They render without a session. While the platform's hosted login owns /login for this
 // private app (custom auth not enrolled), the server answers these paths itself; the page takes over as soon as
@@ -138,9 +146,9 @@ const AuthenticatedApp = () => {
     }
   }
 
-  // Clients (non-admins) only ever get their own portal
+  // Non-admins: a sales rep gets the sales side (server-checked); clients and leads get their own portal.
   if (user && user.role !== 'admin') {
-    return <PortalApp />;
+    return <StaffGate />;
   }
 
   // Render the main app
@@ -189,6 +197,12 @@ const AuthenticatedApp = () => {
         <Route path="/systems" element={<ProtectedRoute><SystemsPage /></ProtectedRoute>} />
         <Route path="/launch" element={<ProtectedRoute><LaunchPage /></ProtectedRoute>} />
         <Route path="/comms" element={<ProtectedRoute><Comms /></ProtectedRoute>} />
+        <Route path="/leads" element={<Navigate to="/leads/desk" replace />} />
+        <Route path="/leads/desk" element={<ProtectedRoute><CallSheetPage /></ProtectedRoute>} />
+        <Route path="/leads/finder" element={<ProtectedRoute><LeadFinderPage /></ProtectedRoute>} />
+        <Route path="/leads/hq" element={<ProtectedRoute><SalesHQPage /></ProtectedRoute>} />
+        <Route path="/leads/templates" element={<ProtectedRoute><TemplatesPage /></ProtectedRoute>} />
+        <Route path="/leads/lead/:id" element={<ProtectedRoute><LeadWorkspacePage /></ProtectedRoute>} />
         <Route path="/orbit-seo" element={<Navigate to="/packages/orbit-seo" replace />} />
         <Route path="/orbit-seo/manage" element={<ProtectedRoute><OrbitSEO /></ProtectedRoute>} />
         <Route path="/packages" element={<Navigate to="/packages/orbit-seo" replace />} />

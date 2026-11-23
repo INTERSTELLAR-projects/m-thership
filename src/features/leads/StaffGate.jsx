@@ -1,7 +1,6 @@
 // Non-admin logins: a sales rep gets the sales side; everyone else (clients and leads) gets their portal.
 // The server decides (sales-team "me" matches the login to an active SalesRep row); the browser can't promote itself.
 import { useQuery } from "@tanstack/react-query";
-import { BrowserRouter } from "react-router-dom";
 import PortalApp from "@/features/portal/PortalApp";
 import SalesApp from "./SalesApp";
 import { sales } from "./api";
@@ -12,4 +11,3 @@ export default function StaffGate() {
   if (q.data?.kind === "sales") return <SalesApp me={q.data} />;
   return <PortalApp />;
 }
-export { BrowserRouter };
