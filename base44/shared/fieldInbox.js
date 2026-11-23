@@ -276,18 +276,18 @@ export function siteVisitBrief({ fieldId = "", client = null, lead = null, promp
   const lines = [
     `# ${isTest ? "[TEST] " : ""}Site visit: ${biz}`,
     "",
-    isTest ? "THIS IS A [TEST] JOB made by a developer check with a synthetic clip (color bars and a sine tone). Run it end to end, but say in result_summary that it was a test, and do not create a CRMClient or queue a lead_build for it.\n" : "",
+    isTest ? "THIS IS A [TEST] JOB made by a developer check with a synthetic clip (color bars and a sine tone). Run it end to end, but say in result_summary that it was a test, and do not create a CRMClient or queue a lead_build for it.\n" : null,
     "Justin recorded this on site (Meta Ray-Ban Display glasses or his phone) and wants Claude to analyze it and start building.",
     "",
     "## Business",
     client ? `- CRMClient id: ${client.id}` : "- Not in the CRM yet (new prospect)",
     `- Business: ${biz}`,
     site ? `- Website: ${site}` : "- Website: none given",
-    client && client.city ? `- City: ${client.city}` : lead && lead.city ? `- City: ${lead.city}` : "",
-    client && client.location ? `- Location: ${client.location}` : "",
+    client && client.city ? `- City: ${client.city}` : lead && lead.city ? `- City: ${lead.city}` : null,
+    client && client.location ? `- Location: ${client.location}` : null,
     client && client.niche_key ? `- Niche: ${client.niche_key}` : "- Niche: decide from what you see (home_service, fitness_coach, retail_streetwear, food_bev, other)",
-    client && client.status ? `- Status: ${client.status}` : "",
-    fieldId ? `- FieldInbox id: ${fieldId}` : "",
+    client && client.status ? `- Status: ${client.status}` : null,
+    fieldId ? `- FieldInbox id: ${fieldId}` : null,
     "",
     "## Justin's prompt",
     s(prompt).trim() || "(none given: produce every section below)",
@@ -308,7 +308,7 @@ export function siteVisitBrief({ fieldId = "", client = null, lead = null, promp
     "## Rules",
     ...SITE_VISIT_RULES.map((r) => `- ${r}`),
   ];
-  return lines.filter((l, i, a) => !(l === "" && a[i - 1] === "")).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  return lines.filter((l) => l !== null).filter((l, i, a) => !(l === "" && a[i - 1] === "")).join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
 // Brief for a Claude job routed from a field message (kind task).
