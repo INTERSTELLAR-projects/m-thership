@@ -153,19 +153,21 @@ export default function PresentMode({ data, registry, ceoName, onExit }) {
   // Flow scene: light the journey step by step.
   const flowStep = s.kind === "flow" ? Math.min(s.steps.length - 1, Math.floor(progress * (s.steps.length + 0.6))) : -1;
   const allLinks = useMemo(() => [...handoffs, ...scenes.flatMap((x) => x.flowLinks || [])], [handoffs, scenes]);
-  const { lit, litLinks } = useMemo(() => {
+  const { lit, litLinks, labelIds } = useMemo(() => {
     if (s.kind === "flow") {
       const ids = new Set(["brain"]);
       s.steps.slice(0, flowStep + 1).forEach((st) => st.nodeIds.forEach((id) => ids.add(id)));
-      return { lit: ids, litLinks: new Set(s.flowLinks.filter((l) => l.step < flowStep).map((l) => l.id)) };
+      return { lit: ids, litLinks: new Set(s.flowLinks.filter((l) => l.step < flowStep).map((l) => l.id)), labelIds: ids };
     }
-    return { lit: s.lit, litLinks: s.links };
+    // Names only where the camera is close: department scenes and the Commander; wide shots show departments only.
+    const named = s.kind === "dept" || s.kind === "commander" || s.kind === "brain" ? s.lit : s.kind === "next" ? new Set(s.actions.filter((x) => x.agentKey).map((x) => `a:${x.agentKey}`)) : null;
+    return { lit: s.lit, litLinks: s.links, labelIds: named };
   }, [s, flowStep]);
 
   // Layout: caption column on the left on landscape screens, bottom sheet on portrait / phones.
   const wide = size.w >= 900 && size.w / size.h > 1.1;
   const pad = wide
-    ? { left: Math.min(720, Math.round(size.w * 0.42)), right: 40, top: 80, bottom: 96 }
+    ? { left: Math.min(820, Math.round(size.w * 0.45)), right: 40, top: 80, bottom: 96 }
     : { left: 12, right: 12, top: 64, bottom: Math.round(size.h * 0.56) };
 
   // Camera per scene.
@@ -232,7 +234,7 @@ export default function PresentMode({ data, registry, ceoName, onExit }) {
   return createPortal(
     <div ref={rootRef} className={`agx pm-root ${wide ? "wide" : "tall"}${reduced ? " reduced" : ""}`} role="dialog" aria-modal="true" aria-label="Agent workforce presentation" tabIndex={-1} onPointerDown={onPD} onPointerUp={onPU} data-testid="present">
       <div className="pm-map">
-        <Constellation ref={mapRef} mode="present" graph={graph} handoffs={allLinks} viewKey="present" lit={lit} litLinks={litLinks} pad={pad} reduced={reduced} hideControls />
+        <Constellation ref={mapRef} mode="present" graph={graph} handoffs={allLinks} viewKey="present" lit={lit} litLinks={litLinks} labelIds={labelIds} pad={pad} reduced={reduced} hideControls />
       </div>
       <div className="pm-vignette" aria-hidden="true" />
       <header className="pm-top">
