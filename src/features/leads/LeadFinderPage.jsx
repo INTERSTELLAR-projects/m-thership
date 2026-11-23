@@ -23,7 +23,7 @@ export default function LeadFinderPage({ embedded = false }) {
   return (
     <div className={embedded ? "" : "pb-20"}>
       {embedded ? null : (
-        <PageHeader breadcrumb="Lead Engine / Lead Finder" title="Lead /Finder" rightText={cfg.usage ? `${cfg.usage.month_requests} searches this month · ≈${money(cfg.usage.month_est_usd)} at Google list price` : ""} />
+        <PageHeader breadcrumb="Lead Engine / Lead Finder" title="Lead /Finder" rightText={cfg.usage ? `${cfg.usage.month_requests} searches this month · ≈$${Number(cfg.usage.month_est_usd || 0).toFixed(2)} at Google list price` : ""} />
       )}
       <div className={embedded ? "space-y-4" : "space-y-5 px-4 pt-6 md:px-8"}>
         <div role="tablist" className="flex gap-1 border-b border-hair">
