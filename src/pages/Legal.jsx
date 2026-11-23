@@ -75,6 +75,8 @@ export default function Legal() {
       <PageHeader breadcrumb="Agency / Legal" rightText="Legal Management" />
       <div className="mx-auto max-w-7xl space-y-8 px-4 py-6 md:px-8">
         <DeadlineHero dated={dated} undated={undated} onEdit={editFromHero} onAdd={addFromHero} />
+        {/* Client Terms of Service: the portal clickwrap gate (docs/portal-terms.md). */}
+        <div id="terms" className="scroll-mt-6"><ErrorBoundary where="terms admin"><TermsAdmin /></ErrorBoundary></div>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
           <div ref={datesRef} className="scroll-mt-6 lg:col-span-3">
             <DatesSection
@@ -92,8 +94,6 @@ export default function Legal() {
             <TodosSection items={todos} onAdd={(i) => addItem({ ...i, section: "todo" })} onUpdate={updateItem} onDelete={deleteItem} />
           </div>
         </div>
-        {/* Client Terms of Service: the portal clickwrap gate (docs/portal-terms.md). */}
-        <div id="terms" className="scroll-mt-6"><ErrorBoundary where="terms admin"><TermsAdmin /></ErrorBoundary></div>
       </div>
     </div>
   );
