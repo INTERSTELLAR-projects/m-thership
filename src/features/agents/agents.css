@@ -71,6 +71,44 @@
 .agx .cst .lbl.sub { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 9.5px; letter-spacing: .08em; fill: rgba(244, 239, 233, 0.5); }
 .agx .cst .lbl.branch { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 9.5px; letter-spacing: .12em; fill: rgba(255, 170, 110, 0.75); text-transform: uppercase; }
 
+/* v2 map: world geometry + screen-space labels */
+.agx .cst-wrap { touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; outline: none; }
+.agx .cst-wrap.dragging { cursor: grabbing; }
+.agx .cst-wrap.present { cursor: default; }
+.agx .cst-wrap:focus-visible { box-shadow: inset 0 0 0 2px rgba(255, 106, 0, .55); }
+.agx .cst-wrap .world { transition: none; will-change: transform; }
+.agx .cst .world-in { animation: agx-fade .5s cubic-bezier(.22,1,.36,1) both; }
+@keyframes agx-fade { from { opacity: 0; } to { opacity: 1; } }
+.agx .cst .edge { stroke: rgba(255, 170, 120, 0.13); stroke-width: 1; vector-effect: non-scaling-stroke; transition: opacity .25s; }
+.agx .cst .edge.spoke { stroke: rgba(255, 170, 120, 0.08); }
+.agx .cst .edge.trunk { stroke: rgba(255, 120, 60, 0.24); stroke-width: 1.2; }
+.agx .cst .edge.ceo { stroke: rgba(255, 170, 0, 0.35); stroke-dasharray: 3 4; }
+.agx .cst .edge.dim { opacity: 0.25; }
+.agx .cst .cluster { fill: rgba(255, 90, 0, 0.018); stroke: rgba(255, 150, 80, 0.12); stroke-width: 1; stroke-dasharray: 2 6; vector-effect: non-scaling-stroke; }
+.agx .cst .node.dim { opacity: 0.16; }
+.agx .cst .node.lit .ring-h { opacity: .9; }
+.agx .cst .link { fill: none; stroke: rgba(255, 150, 80, 0.55); stroke-width: 1.3; vector-effect: non-scaling-stroke; }
+.agx .cst .link.cross { stroke: rgba(255, 190, 90, 0.5); stroke-dasharray: 4 4; }
+.agx .cst .pulse-dot { fill: #ffd6b0; filter: drop-shadow(0 0 3px #ff6a00); }
+.agx .leader { stroke: rgba(255, 190, 140, 0.45); stroke-width: 1; }
+.agx .leader.dim { opacity: .3; }
+.agx .cl-layer { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.agx .cl-lbl { position: absolute; left: 0; top: 0; pointer-events: auto; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 0 6px; border-radius: 5px;
+  background: rgba(7, 8, 13, 0.78); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06); font-family: "JetBrains Mono", ui-monospace, monospace; white-space: nowrap; overflow: hidden; text-align: left; transition: opacity .2s, box-shadow .2s; cursor: pointer; }
+.agx .cl-lbl .m { font-size: 11px; font-weight: 500; line-height: 14px; color: rgba(244, 239, 233, 0.92); letter-spacing: .01em; }
+.agx .cl-lbl .s { font-size: 9px; line-height: 12px; color: rgba(244, 239, 233, 0.48); letter-spacing: .08em; }
+.agx .cl-lbl.s-paused .m { color: rgba(244, 239, 233, 0.62); }
+.agx .cl-lbl.s-planned .m { color: rgba(244, 239, 233, 0.62); font-style: italic; }
+.agx .cl-lbl.s-broken .m { color: #ff8a7f; }
+.agx .cl-lbl:hover, .agx .cl-lbl:focus-visible, .agx .cl-lbl.sel { box-shadow: inset 0 0 0 1px rgba(255, 106, 0, 0.75); outline: none; }
+.agx .cl-lbl.dim { opacity: 0.28; }
+.agx .cl-lbl.k-dept, .agx .cl-lbl.k-brain, .agx .cl-lbl.k-ceo { background: transparent; box-shadow: none; align-items: center; text-align: center; }
+.agx .cl-lbl.k-dept .m, .agx .cl-lbl.k-brain .m, .agx .cl-lbl.k-ceo .m { font-weight: 600; letter-spacing: .16em; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.9); }
+.agx .cl-lbl.k-dept .s, .agx .cl-lbl.k-brain .s, .agx .cl-lbl.k-ceo .s { text-shadow: 0 1px 6px rgba(0,0,0,.9); }
+.agx .cl-lbl.k-dept:hover .m { color: #ffb27a; }
+.agx .cl-lbl.k-brain { pointer-events: none; }
+.agx .cl-lbl.k-client { background: transparent; box-shadow: none; align-items: center; }
+
 @keyframes agx-pulse { 0%, 100% { transform: scale(1); opacity: .95; } 50% { transform: scale(1.55); opacity: .25; } }
 @keyframes agx-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
 @keyframes agx-spin { to { transform: rotate(360deg); } }
@@ -79,7 +117,7 @@
 .agx .breathe { transform-box: fill-box; transform-origin: center; animation: agx-breathe 5s ease-in-out infinite; }
 .agx .spin-slow { transform-box: fill-box; transform-origin: center; animation: agx-spin 60s linear infinite; }
 .agx .spin-rev { transform-box: fill-box; transform-origin: center; animation: agx-orbit 90s linear infinite; }
-@media (prefers-reduced-motion: reduce) { .agx .pulse, .agx .breathe, .agx .spin-slow, .agx .spin-rev { animation: none; } .agx .cst .world { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .agx .pulse, .agx .breathe, .agx .spin-slow, .agx .spin-rev, .agx .cst .world-in { animation: none; } .agx .cst .world { transition: none; } }
 
 /* Side panel: children never shrink inside the scrolling column (scroll containers would collapse). */
 .agx aside.panel-in > * { flex-shrink: 0; }
