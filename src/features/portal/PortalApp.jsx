@@ -78,7 +78,7 @@ export default function PortalApp({ previewId }) {
   const refresh = () => qc.invalidateQueries({ queryKey: ["portal", scopeId] });
   const d = home.data;
   // Fuel: Studios plan gating, meter, Refuel wallet (the `fuel` function). Loads once the portal knows its client.
-  const { fuel, refresh: refreshFuel } = useFuel(scopeId, { enabled: !!d?.client });
+  const { fuel, refresh: refreshFuel } = useFuel(scopeId, { enabled: !!d?.client && d?.tier !== "lead" });
   const [refuelOpen, setRefuelOpen] = useState(false);
   // Back from Stripe Checkout: the webhook credits the wallet a moment later, so re-read the meter a few times.
   useEffect(() => {
@@ -114,7 +114,7 @@ export default function PortalApp({ previewId }) {
     setPicked(id);
   };
   // Upgrade Store: the Upgrades tab exists only when this client has at least one add-on offered (or owned).
-  const { addons: upgrades } = useAddonStore(scopeId, { enabled: !!d?.client });
+  const { addons: upgrades } = useAddonStore(scopeId, { enabled: !!d?.client && d?.tier !== "lead" });
   // The Brand kit tab only exists when an approved, portal-visible kit does.
   // Playbook always has a tile (a designed "being written" state until one is published).
   const tabs = [...TABS.filter(([k]) => (k !== "brand" || d?.has_brand_kit) && (k !== "upgrades" || upgrades.length > 0)), ...studioTabs(d?.client, fuel).tabs];
