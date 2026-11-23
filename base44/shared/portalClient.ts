@@ -1,4 +1,5 @@
 import { secrets } from "base44:runtime";
+import { termsGate } from "./termsServer.ts";
 
 // Which CRMClient may this caller act for? Same rule as the portal function:
 //   admin + client_id   -> that client (Justin previewing / acting for a client)
@@ -7,7 +8,9 @@ import { secrets } from "base44:runtime";
 //                          clients (package-deal owner) may pick one with client_id, but only among the clients
 //                          whose portal_emails include that login; any other id falls back to their first client,
 //                          so a portal user can never act on another client.
-export async function resolveClient(db: any, user: any, asClient?: unknown): Promise<Record<string, any> | null> {
+// Terms gate (docs/portal-terms.md): a portal login that has not accepted the active Terms of Service for this client
+// resolves to no client, so every studio, fuel and AI function refuses it too. portal-terms passes skipTerms.
+export async function resolveClient(db: any, user: any, asClient?: unknown, opts: { skipTerms?: boolean } = {}): Promise<Record<string, any> | null> {
   if (!user) return null;
   if (user.role === "admin") {
     if (!asClient) return null;
@@ -17,7 +20,9 @@ export async function resolveClient(db: any, user: any, asClient?: unknown): Pro
   const all = (await db.CRMClient.filter({ portal_enabled: true }, "business", 500).catch(() => [])) || [];
   // Lead-tier logins (Lead Engine) get none of the client tools behind this resolver (studios, fuel, AI, email…).
   const mine = all.filter((c: Record<string, any>) => c.portal_tier !== "lead" && ((c.portal_emails as string[]) || []).some((e) => String(e).toLowerCase() === email));
-  return (asClient ? mine.find((c: Record<string, any>) => c.id === String(asClient)) : null) || mine[0] || null;
+  const client = (asClient ? mine.find((c: Record<string, any>) => c.id === String(asClient)) : null) || mine[0] || null;
+  if (client && !opts.skipTerms && (await termsGate(db, user, client))) return null;
+  return client;
 }
 
 // Secret presence only: values are never returned, logged or compared.
