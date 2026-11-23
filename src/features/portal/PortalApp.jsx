@@ -44,6 +44,7 @@ import { useAddonStore } from "@/features/addons/api";
 import PortalTraining from "@/features/training/PortalTraining";
 import PortalEmailStudio from "@/features/email-studio/PortalEmailStudio";
 import PortalPresentations from "@/features/presentations/portal/PortalPresentations";
+import LeadPortalView from "@/features/leads/LeadPortalView";
 
 // Tabs this portal can show. Grouping, labels and icons for the header nav live in PortalNav.jsx (NAV);
 // free-for-life bonus tools (Signatures, QR Codes) are tagged there and listed together on Home.
@@ -141,6 +142,9 @@ export default function PortalApp({ previewId }) {
       </Shell>
     );
   }
+
+  // Lead Engine lead tier: only their preview, what Interstellar is and the walkthrough booking.
+  if (d.tier === "lead") return <LeadTier d={d} call={call} previewId={previewId} />;
 
   // No active plan: a friendly screen with a way to reach us. Their data is kept; nothing else loads.
   if (d.plan_inactive) return <PlanInactive d={d} call={call} previewId={previewId} />;
@@ -283,6 +287,17 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, brainOpen = 0, previe
       {setRefuelOpen && <RefuelModal open={refuelOpen} onClose={() => setRefuelOpen(false)} fuel={fuel} scopeId={scopeId || previewId} preview={preview} onUpgrade={() => { setRefuelOpen(false); setSchedOpen(true); }} />}
       <main className="relative z-10 mx-auto max-w-[1280px] px-4 pb-28 pt-6 md:px-8 md:pt-8">{children}</main>
     </div>
+  );
+}
+
+function LeadTier({ d, call, previewId }) {
+  const [sched, setSched] = useState(false);
+  const track = (args) => { if (!previewId) call("lead_track", args).catch(() => null); };
+  return (
+    <>
+      <LeadPortalView d={d} track={track} preview={!!previewId} onBook={() => setSched(true)} onLogout={() => base44.auth.logout()} />
+      <ScheduleCallModal open={sched} onClose={() => setSched(false)} previewId={previewId} preview={!!previewId} />
+    </>
   );
 }
 
