@@ -31,6 +31,7 @@ export const GATES = [
   job("topic_calendar", "Monthly blog Topic Calendars", "approve", "One card per client per month. Approving it lets that month's posts draft and publish on their own."),
   job("blog", "Blog posts from an approved Topic Calendar", "auto", "Pre-approved by the month's Topic Calendar. Published into the client's Base44 blog and counted only once verified live. Blog jobs without a calendar still wait.", { autoIf: (r) => !!(r.context && r.context.calendar_id) }),
   job("build_website", "Website build stages", "notify", "Work lands in the sandbox; nothing is live until you publish (publishing stays yours)."),
+  job("site_visit", "Site visit analyses (Field inbox)", "notify", "Internal analysis and drafts from a site-visit video. Nothing is published or sent; a build it asks for is its own lead_build job, which still waits for your taste call."),
   job("build_app", "App build stages", "notify", "Approving a stage queues the next one; nothing is live until you publish."),
   job("audit", "Intel audits", "approve", "Approving makes the findings visible in the client's portal (ClientGap.portal_visible) and logs a client-facing work entry."),
   job("playbook", "Industry playbooks", "approve", "Client-facing deliverable (portal Playbook tab)."),
