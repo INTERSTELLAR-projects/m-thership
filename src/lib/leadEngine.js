@@ -688,7 +688,7 @@ export const CALL_SCRIPT = {
   ],
   close: "Great. What's the best email for your login? You'll get one email from Interstellar with a button to see your site and system. Does {day} or {day2} work better for the 30 minutes?",
   objections: [
-    { q: "Is this a scam? What's the catch?", a: "Fair question. No catch, no card, no contract. We build first because 9 out of 10 local businesses we look at need a better website and system, and showing beats telling. You see it, we talk 30 minutes, we pay you $30 either way." },
+    { q: "Is this a scam? What's the catch?", a: "Fair question. No catch, no card, no contract. We build first because most local businesses we look at deserve a better website and system, and showing beats telling. You see it, we talk 30 minutes, we pay you $30 either way." },
     { q: "I already have a website.", a: "Totally. This isn't about replacing it today. Take a look side by side: what we built is designed to get found on Google and turn visitors into calls. If yours is doing that already, you just made $30." },
     { q: "I don't have time.", a: "That's exactly why we pay for the time. It's 30 minutes, whenever works for you this week or next, and you can look at the login on your phone first." },
     { q: "How much does it cost?", a: "Today, nothing, and we don't talk price on the first call. Every quote is custom to the business, and the walkthrough is how we figure out what you'd actually need." },
