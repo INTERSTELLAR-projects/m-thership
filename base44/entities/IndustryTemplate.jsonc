@@ -1,0 +1,122 @@
+{
+  "name": "IndustryTemplate",
+  "description": "Lead Engine: one starting template per industry (website structure + Command System modules) that agents build lead previews from and Justin and the team refine. Seeded from base44/shared/leadEngine.js (22 industries, real Interstellar builds as references). Every edit appends to refinement_notes and bumps version. Never holds invented reviews, ratings or results. Admin only.",
+  "type": "object",
+  "properties": {
+    "industry_key": {
+      "type": "string",
+      "description": "Stable key, e.g. tree_service. CRMClient.industry_key points here."
+    },
+    "name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "description": "Industry group (same groups as Playbooks foundation prompts), e.g. 'Home services & outdoor trades'"
+    },
+    "family": {
+      "type": "string",
+      "enum": [
+        "trade",
+        "beauty",
+        "food",
+        "coach",
+        "property",
+        "health"
+      ],
+      "description": "How this industry sells (drives section order, pipeline and sample data)"
+    },
+    "niche_key": {
+      "type": "string",
+      "description": "Build Engine niche this maps to (home_service, fitness_coach, retail_streetwear, food_bev, other)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "refining",
+        "ready"
+      ],
+      "default": "draft"
+    },
+    "places_query": {
+      "type": "string",
+      "description": "What Lead Finder searches Google for, e.g. 'tree service'"
+    },
+    "match_keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Words that match a lead's industry, one-liner or Google categories to this template"
+    },
+    "website_template": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "sections [{key,type,label,purpose,enabled}], hero_patterns, services, process, faq, palette, type, schema_type, required_pages, seo {pages:[{page,title,description}]} (titles 25-55, descriptions 100-120), photo_direction"
+    },
+    "command_template": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "modules [{key,label}], pipeline [stages], entities [{name,fields}], kpis [{key,label,format}], sample {job_noun, customer_noun, money_noun, price_range, services} (spec for the clearly-labeled sample data generator)"
+    },
+    "reference_builds": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "Real Interstellar builds in this industry: {key, name, client_id, url, site_app_id, command_app_id, note}"
+    },
+    "foundation": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Link to the Interstellar build foundation (Playbooks \u203a Website build foundation, AgencyKnowledge build_standard)"
+    },
+    "refinement_notes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "Append-only log: {at, author, kind: seed|human|agent, note, fields}"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
+    },
+    "updated_by": {
+      "type": "string"
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "industry_key",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
