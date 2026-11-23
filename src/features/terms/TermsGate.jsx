@@ -149,7 +149,7 @@ export default function TermsGate({ gate, scopeId, onDone, preview = false }) {
 
           {err && <p role="alert" className="mt-4 border border-[#ff3c00]/40 bg-[#ff3c00]/[0.06] px-3.5 py-3 text-[13.5px] text-[#b82b00]">{err}</p>}
 
-          <button type="button" onClick={accept} disabled={!ready || preview} className="mt-5 flex h-13 min-h-[52px] w-full items-center justify-center gap-2 bg-[#ff3c00] text-[15px] font-medium text-white transition-colors hover:bg-ink disabled:cursor-not-allowed disabled:bg-ink/25">
+          <button type="button" onClick={accept} disabled={!ready || preview} className="mt-5 flex min-h-[52px] w-full items-center justify-center gap-2 bg-[#ff3c00] text-[15px] font-medium text-white transition-colors hover:bg-ink disabled:cursor-not-allowed disabled:bg-ink/25">
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : done ? <CheckCircle2 className="h-4 w-4" /> : null}
             {done ? "Signed. Opening your portal…" : "Agree and continue"}
           </button>
