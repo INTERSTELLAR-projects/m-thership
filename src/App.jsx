@@ -1,4 +1,14 @@
 import { Toaster } from "@/components/ui/toaster"
+import { lazy as reactLazy, Suspense } from "react";
+
+// Pages loaded on first visit (keeps the main bundle under the release-check budget). Declared before any
+// lazyPage() call so the dev server (which evaluates this module top to bottom) never hits it uninitialized.
+function lazyPage(load) {
+  const C = reactLazy(load);
+  return function LazyPage(props) {
+    return <Suspense fallback={<div className="p-8 text-[13px] text-ink/45">Loading…</div>}><C {...props} /></Suspense>;
+  };
+}
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate, useParams, useLocation } from 'react-router-dom';
@@ -79,15 +89,6 @@ import BrainView from '@/features/command/BrainView';
 import WalkMode from '@/features/command/WalkMode';
 import LaunchWeekPage from '@/features/launchweek/LaunchWeekPage';
 import BrandsPage from '@/features/brands/BrandsPage';
-import { lazy as reactLazy, Suspense } from "react";
-
-// Pages loaded on first visit (keeps the main bundle under the release-check budget).
-function lazyPage(load) {
-  const C = reactLazy(load);
-  return function LazyPage(props) {
-    return <Suspense fallback={<div className="p-8 text-[13px] text-ink/45">Loading…</div>}><C {...props} /></Suspense>;
-  };
-}
 import BrandDashboard from '@/features/brands/BrandDashboard';
 // Lead Engine (Nov 2026): call sheet, Lead Finder, Sales HQ, industry templates, one page per lead; sales reps get
 // their own side (StaffGate → SalesApp).
