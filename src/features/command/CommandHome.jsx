@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Headphones, Brain, Orbit, LayoutDashboard, Undo2, PhoneCall } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
@@ -13,7 +13,7 @@ import QuickAddLead from "@/features/build/QuickAddLead";
 import { NeedsToday, BuildsInProgress } from "@/features/build/TodayStack";
 import DecidedForYou from "@/features/build/DecidedForYou";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import LeadEngineCard from "@/features/leads/LeadEngineCard";
+const LeadEngineCard = lazy(() => import("@/features/leads/LeadEngineCard"));
 
 function Skeleton() {
   return (
@@ -139,7 +139,7 @@ export default function CommandHome() {
       {/* Build Engine (Nov 2026): quick-add on top, then only what needs you today, then every build. */}
       <div className="space-y-4">
         <ErrorBoundary compact where="quick-add lead"><QuickAddLead /></ErrorBoundary>
-        <ErrorBoundary compact where="lead engine"><LeadEngineCard /></ErrorBoundary>
+        <ErrorBoundary compact where="lead engine"><Suspense fallback={null}><LeadEngineCard /></Suspense></ErrorBoundary>
         <ErrorBoundary compact where="needs you today"><NeedsToday /></ErrorBoundary>
         <ErrorBoundary compact where="builds in progress"><BuildsInProgress /></ErrorBoundary>
         <ErrorBoundary compact where="decided for you"><DecidedForYou /></ErrorBoundary>
