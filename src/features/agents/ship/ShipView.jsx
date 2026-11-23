@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Search, X, Orbit, Network, Crown, Radar, Handshake, Megaphone, Rocket, HeartHandshake, Landmark, ShieldCheck,
-  Telescope, Lightbulb, ScanSearch, GraduationCap, Sparkles, ChevronDown, ChevronRight, PlugZap, Bot, Brain,
+  Telescope, Lightbulb, ScanSearch, GraduationCap, Sparkles, ChevronDown, ChevronRight, PlugZap, Bot, Brain, Play,
 } from "lucide-react";
 import "../agents.css";
 import "./ship.css";
@@ -233,7 +233,7 @@ function GroupCard({ node, reg, sel, onClick, onAgent, selId }) {
 }
 
 // ---------------------------------------------------------------- page
-export default function ShipView({ onClassic }) {
+export default function ShipView({ onClassic, onPresent }) {
   const { data, isLoading, error, liveAt } = useShipData();
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
@@ -444,6 +444,7 @@ export default function ShipView({ onClassic }) {
             <p className="hidden min-w-0 items-center gap-2 text-[13px] text-[var(--ink-d)] lg:flex" data-testid="ship-summary"><span className="live-dot shrink-0" />{summaryLine(ship.summary)}</p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+          {onPresent ? <button type="button" className="btn-f" onClick={onPresent} aria-label="Present the agent workforce full screen"><Play className="h-3.5 w-3.5 fill-current" />Present</button> : null}
           <Link to="/universe" className="btn-d" data-testid="ship-universe-link"><Sparkles className="h-3.5 w-3.5" /><span className="hidden sm:inline">Open the </span>Universe</Link>
           <div className="seg shrink-0" role="tablist" aria-label="Constellation view">
             <button type="button" role="tab" aria-selected className="on"><Orbit className="h-3.5 w-3.5" />Ship</button>
