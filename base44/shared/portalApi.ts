@@ -185,6 +185,7 @@ export async function portalHandler(req: Request): Promise<Response> {
     if (action === "lead_track") return Response.json({ ok: true, skipped: "client tier" });
     // Terms gate (docs/portal-terms.md): a client login that has not accepted the active Terms of Service for this
     // client gets nothing but the terms. No portal data is read before this line.
+    if (action === "terms_debug_tmp") return Response.json({ build: "terms-gate-1", role: user.role, client: client.business, gate: !!(await termsGate(db, user, client).catch((e: Error) => ({ err: e.message }))) });
     if (user.role !== "admin") {
       const terms = await termsGate(db, user, client);
       if (terms) return Response.json(terms, { status: 428 });
