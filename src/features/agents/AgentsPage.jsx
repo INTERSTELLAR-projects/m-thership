@@ -39,6 +39,30 @@ function useMedia(q) {
   return m;
 }
 
+// The app-wide ask bar floats over the bottom of every page; on phones it spans the full width, so the map, the
+// department chips and the bottom sheet sit above it.
+function useAskbarInset(stageRef) {
+  const [inset, setInset] = useState(0);
+  useEffect(() => {
+    const bar = document.querySelector("[data-askbar]");
+    const st = stageRef.current;
+    if (!bar || !st) return undefined;
+    const measure = () => {
+      const kids = [...bar.children].map((c) => c.getBoundingClientRect()).filter((r) => r.height > 0);
+      if (!kids.length) { setInset(0); return; }
+      const top = Math.min(...kids.map((r) => r.top));
+      setInset(Math.max(0, Math.round(st.getBoundingClientRect().bottom - top)));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(bar); [...bar.children].forEach((c) => ro.observe(c)); ro.observe(st);
+    const mo = new MutationObserver(measure); mo.observe(bar, { childList: true, subtree: true });
+    window.addEventListener("resize", measure);
+    return () => { ro.disconnect(); mo.disconnect(); window.removeEventListener("resize", measure); };
+  });
+  return inset;
+}
+
 function Toggle({ value, options, onChange, label }) {
   return (
     <div className="seg" role="tablist" aria-label={label}>
@@ -63,13 +87,13 @@ function FilterGroup({ title, items, set, onToggle, render }) {
 }
 
 // Compact card for the hovered / tapped agent: what it does, trigger, last run, status, owner pillar, hand-offs.
-function AgentCard({ a, name, deptLabel, links, pinned, onOpen, onClose, sheet, top = 12 }) {
+function AgentCard({ a, name, deptLabel, links, pinned, onOpen, onClose, sheet, top = 12, bottom = 8 }) {
   const pillar = pillarOfAgent(a);
   const runs = runs30(a);
   return (
     <div data-ui="" data-testid="agent-card" role="dialog" aria-label={`${name} summary`}
-      style={sheet ? undefined : { top }}
-      className={`glass z-30 ${pinned ? "" : "pointer-events-none"} ${sheet ? "absolute inset-x-2 bottom-2 rounded-2xl" : "absolute left-3 w-[320px] rounded-xl md:left-5"} px-4 py-3.5 shadow-[0_20px_60px_-20px_rgba(0,0,0,.8)]`}>
+      style={sheet ? { bottom } : { top }}
+      className={`glass z-30 ${pinned ? "" : "pointer-events-none"} ${sheet ? "absolute inset-x-2 rounded-2xl" : "absolute left-3 w-[320px] rounded-xl md:left-5"} px-4 py-3.5 shadow-[0_20px_60px_-20px_rgba(0,0,0,.8)]`}>
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <p className="eyebrow !text-[9.5px]">{deptLabel}{pillar ? ` · ${PILLAR_NAMES[pillar]} pillar` : ""}</p>
@@ -115,6 +139,8 @@ function ClassicAgentsPage({ onShip }) {
   const isMd = useMedia("(min-width: 768px)");
   const reduced = useMedia("(prefers-reduced-motion: reduce)");
   const ps = usePanelState();
+  const askInset = useAskbarInset(stageRef);
+  const phoneBottom = isMd ? 0 : askInset;
 
   const setP = useCallback((patch, replace = false) => {
     const next = new URLSearchParams(params);
@@ -283,7 +309,7 @@ function ClassicAgentsPage({ onShip }) {
     top: 0,
     left: 0,
     right: isMd && panelOpen ? (ps.collapsed ? 64 : pw + 18) : 0,
-    bottom: (isMd ? 96 : 56) + (!isMd && panelOpen ? Math.round(stage.h * 0.62) : 0) + (!isMd && pinnedAgent && !panelOpen ? 180 : 0),
+    bottom: (isMd ? 96 : 56 + phoneBottom) + (!isMd && panelOpen ? Math.round(stage.h * 0.62) : 0) + (!isMd && pinnedAgent && !panelOpen ? 200 : 0),
   };
 
   // In-map breadcrumb: which department the camera is in, even when you zoomed there by hand.
@@ -427,7 +453,7 @@ function ClassicAgentsPage({ onShip }) {
 
             {cardAgent ? (
               <AgentCard a={cardAgent} name={cardAgent.key === "commander" ? ceoName : cardAgent.name} deptLabel={depts.find((x) => x.key === cardAgent.department)?.label || cardAgent.department}
-                links={cardLinks} pinned={!hovered || hovered.key === pin} sheet={!isMd} top={(dept || zoomedIn) && !clientsHub ? 58 : 12} onOpen={() => openDetails(cardAgent.key)} onClose={() => setPin(null)} />
+                links={cardLinks} pinned={!hovered || hovered.key === pin} sheet={!isMd} bottom={phoneBottom + 8} top={(dept || zoomedIn) && !clientsHub ? 58 : 12} onOpen={() => openDetails(cardAgent.key)} onClose={() => setPin(null)} />
             ) : null}
             {hover && !hover.n.agent && hover.n.type !== "brain" && isMd ? (
               <div className="glass pointer-events-none fixed z-50 max-w-[260px] rounded-lg px-3 py-2" style={{ left: hover.x + 14, top: hover.y + 14 }}>
@@ -439,7 +465,7 @@ function ClassicAgentsPage({ onShip }) {
 
         {/* Department switcher */}
         {!isLoading && !clientsHub ? (
-          <div className="absolute bottom-3 left-3 z-20 md:left-5" style={{ right: (isMd ? pad.right : 0) + (isMd ? 70 : 12) }}>
+          <div className="absolute left-3 z-20 md:left-5" style={{ right: (isMd ? pad.right : 0) + (isMd ? 70 : 12), bottom: 12 + phoneBottom, display: !isMd && pinnedAgent ? "none" : undefined }}>
             <div className="no-scrollbar flex gap-1.5 overflow-x-auto">
               <button type="button" className={`chip shrink-0 ${!dept ? "on" : ""}`} onClick={() => setP({ dept: null, deptpanel: null })}>Overview</button>
               {presentDepts.map((x) => {
