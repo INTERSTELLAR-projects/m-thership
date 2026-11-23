@@ -6,6 +6,8 @@ import PageHeader from "../components/PageHeader";
 import MicButton from "../components/MicButton";
 import DeadlineHero, { URGENCY } from "@/features/legal/DeadlineHero";
 import { computeDeadline, categoryOf, fmtDate, toDueString, toEditorValue } from "@/features/legal/legalDates";
+import TermsAdmin from "@/features/terms/TermsAdmin";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // LegalItem sections: "todo" = checklist, "date" / "deadline" = dated items (both feed the countdown hero).
 const isDateSection = (s) => s === "date" || s === "deadline";
@@ -90,6 +92,8 @@ export default function Legal() {
             <TodosSection items={todos} onAdd={(i) => addItem({ ...i, section: "todo" })} onUpdate={updateItem} onDelete={deleteItem} />
           </div>
         </div>
+        {/* Client Terms of Service: the portal clickwrap gate (docs/portal-terms.md). */}
+        <div id="terms" className="scroll-mt-6"><ErrorBoundary where="terms admin"><TermsAdmin /></ErrorBoundary></div>
       </div>
     </div>
   );
