@@ -52,7 +52,7 @@ export const digits = (v) => s(v).replace(/\D+/g, "");
 export function parseAllowed(...sources) {
   const out = new Set();
   for (const src of sources) {
-    const list = Array.isArray(src) ? src : s(src).split(/[,;\s]+(?=[+\d(])/);
+    const list = Array.isArray(src) ? src : s(src).split(/[,;\n]+/);
     for (const raw of list) {
       let d = digits(raw);
       if (d.length === 10) d = `1${d}`;
@@ -144,8 +144,11 @@ export function aliasesFor(c) {
   const out = new Set();
   const biz = norm(c.business);
   if (biz) out.add(biz);
-  const core = biz.split(" ").filter((w) => !STOP.has(w)).join(" ");
+  const coreWords = biz.split(" ").filter((w) => !STOP.has(w));
+  const core = coreWords.join(" ");
   if (core && core.length >= 4) out.add(core);
+  // Short form: the first two words of a longer name ("Palm Shore Hardscapes & Design" -> "palm shore").
+  if (coreWords.length >= 3 && coreWords.slice(0, 2).join(" ").length >= 7) out.add(coreWords.slice(0, 2).join(" "));
   const dom = norm(s(c.domain || (c.websites || [])[0]).replace(/^https?:\/\//, "").replace(/^www\./, "").split(/[./]/)[0]);
   if (dom && dom.length >= 5) out.add(dom);
   if (s(c.contact).trim().split(/\s+/).length >= 2) out.add(norm(c.contact));
