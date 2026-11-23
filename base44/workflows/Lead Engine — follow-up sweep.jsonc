@@ -1,0 +1,43 @@
+{
+  "name": "Lead Engine \u2014 follow-up sweep",
+  "description": "Every 30 minutes, 7 AM\u20138 PM PT: refreshes each lead's heat and follow-up tasks on the call sheet (retry calls, 48h portal reminders, hot leads, callbacks, meeting prep). Creates tasks and drafts only; never emails or texts anyone.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/30 7-20 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "then": "end",
+          "with": {
+            "args": {
+              "action": "followups_sweep"
+            },
+            "function_name": "lead-engine"
+          }
+        }
+      }
+    ],
+    "document": {
+      "dsl": "1.0.0",
+      "name": "lead_engine_followup_sweep",
+      "namespace": "base44",
+      "version": "1.0"
+    }
+  }
+}

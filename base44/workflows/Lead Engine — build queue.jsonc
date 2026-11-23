@@ -1,0 +1,43 @@
+{
+  "name": "Lead Engine \u2014 build queue",
+  "description": "Every 10 minutes, 7 AM\u20138 PM PT: builds up to 2 approved leads per run (scrape \u2192 template preview \u2192 Ready) under the daily cap set in Lead Desk settings (25 to start), with retry/backoff. Only leads a person approved in the build queue. Template-rendered previews: no app is created per lead. Never sends anything.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/10 7-20 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "then": "end",
+          "with": {
+            "args": {
+              "action": "queue_run"
+            },
+            "function_name": "lead-engine"
+          }
+        }
+      }
+    ],
+    "document": {
+      "dsl": "1.0.0",
+      "name": "lead_engine_build_queue",
+      "namespace": "base44",
+      "version": "1.0"
+    }
+  }
+}
