@@ -1,0 +1,140 @@
+{
+  "name": "PortfolioItem",
+  "description": "Portfolio: one case study per launched client website (launched = the client's own domain connected and verified). Created as draft automatically when a site launches (workflow 'Portfolio \u2014 add launched site') or seeded from verified custom domains; Justin publishes with one click. Public page and the lead-tier portal show only published items, through the portfolio / portal functions, with public facts only. Results show only when real and verified (verified_by + source). Admin only.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "show_client_name": {
+      "type": "boolean",
+      "default": true,
+      "description": "Untick to show the industry instead of the client's name"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "industry": {
+      "type": "string",
+      "description": "Shown label, e.g. 'Tree service'"
+    },
+    "industry_key": {
+      "type": "string",
+      "description": "IndustryTemplate key, for filters and matching leads"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "launched_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the custom domain was verified live"
+    },
+    "description": {
+      "type": "string",
+      "description": "One line"
+    },
+    "objective": {
+      "type": "string",
+      "description": "What the client needed / the goal"
+    },
+    "built": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "website",
+          "command_system",
+          "seo_map_pack",
+          "automations"
+        ]
+      }
+    },
+    "highlights": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Approach / highlights, 2-4 bullets"
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "Only real, verified results: {text, source, verified_by, verified_at}. Rows without verified_by never show."
+    },
+    "image_desktop": {
+      "type": "string"
+    },
+    "image_phone": {
+      "type": "string"
+    },
+    "og_image": {
+      "type": "string"
+    },
+    "og_checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published",
+        "hidden"
+      ],
+      "default": "draft"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "seed",
+        "auto",
+        "manual"
+      ],
+      "default": "manual"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sort": {
+      "type": "number",
+      "default": 100
+    }
+  },
+  "required": [
+    "client_name",
+    "url"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
