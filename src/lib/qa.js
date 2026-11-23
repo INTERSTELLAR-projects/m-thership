@@ -110,7 +110,9 @@ const FIX = {
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const store = {};
-const rows = (name) => (store[name] ||= clone((IS_DEMO && demo().E[name]) || FIX[name] || []));
+// Preview QA only: a test harness may seed rows for a screen through window.__qaRows (in-memory, never written back).
+const seeded = (name) => { try { return flag && typeof window !== "undefined" && window.__qaRows && window.__qaRows[name]; } catch { return null; } };
+const rows = (name) => (store[name] ||= clone(seeded(name) || (IS_DEMO && demo().E[name]) || FIX[name] || []));
 // Mongo-style operators the app uses ($ne, $in, $nin, $gt/$gte/$lt/$lte, $regex, $exists); unknown ones pass.
 const op = (val, o) => Object.entries(o).every(([k, x]) => {
   if (k === "$ne") return val !== x;
