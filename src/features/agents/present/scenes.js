@@ -47,8 +47,8 @@ export function buildScenes({ registry, graph, handoffs, depts, hqBrain, scores,
         ["Reports to", commander.reports_to === "justin" ? "Justin, founder" : investorize(commander.reports_to || "—")],
         ["Agents reporting in", String(reporting)],
         ["Feeding it directly", `${feeds.length} agent${feeds.length === 1 ? "" : "s"}`],
-        ["Writes", "The daily CEO brief"],
-      ].filter((f) => commander.writes_knowledge?.length || f[0] !== "Writes"),
+        ...((commander.writes_knowledge || []).includes("ceo_brief") ? [["Writes", "The daily CEO brief"]] : []),
+      ],
     });
   }
 
