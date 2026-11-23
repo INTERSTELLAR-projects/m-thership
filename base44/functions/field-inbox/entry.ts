@@ -8,7 +8,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import { requireAdmin } from "../../shared/assistant.ts";
-import { SECRET_NAMES, SETTINGS_KEY, WEBHOOK_URL, maskNumber, parseAllowed, digits } from "../../shared/fieldInbox.js";
+import { SECRET_NAMES, SETTINGS_KEY, WEBHOOK_URL, maskNumber, parseAllowed } from "../../shared/fieldInbox.js";
 import { env, loadClients, loadSettings, queueSiteVisit, routeItem } from "../../shared/fieldInboxServer.ts";
 
 const s = (v: unknown) => (v == null ? "" : String(v));
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
         lead_business: lead, is_test: !!body.is_test, from_number: "", created_at: now,
       });
       try {
-        const { job, title } = await queueSiteVisit(db, { fieldId: row.id, client, lead, prompt, media: media.map((m: any) => (m.part_urls ? { ...m, url: m.part_urls.join(" ") } : m)), outputs, isTest: !!body.is_test });
+        const { job, title } = await queueSiteVisit(db, { fieldId: row.id, client, lead, prompt, media, outputs, isTest: !!body.is_test });
         const routed = { entity: "ClaudeJob", id: job.id, label: title, path: `/claude?job=${job.id}` };
         const updated = await db.FieldInbox.update(row.id, { status: "processing", routed_to: routed, rule: "site_visit_form", confidence: 1, ai_summary: "Site visit queued for Claude (analysis and drafts only).", reply_text: `Site visit queued for Claude: ${title}`, processed_at: now });
         return Response.json({ ok: true, item: { ...row, ...(updated || {}) }, job_id: job.id, routed_to: routed });
@@ -94,5 +94,3 @@ Deno.serve(async (req) => {
     return Response.json({ error: "Field inbox error" }, { status: 500 });
   }
 });
-// digits is re-exported for symmetry with the webhook; kept referenced so linters do not flag it.
-export const _keep = digits;
