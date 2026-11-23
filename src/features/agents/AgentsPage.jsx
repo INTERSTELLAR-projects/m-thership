@@ -283,7 +283,7 @@ function ClassicAgentsPage({ onShip }) {
     top: 0,
     left: 0,
     right: isMd && panelOpen ? (ps.collapsed ? 64 : pw + 18) : 0,
-    bottom: (isMd ? 60 : 56) + (!isMd && panelOpen ? Math.round(stage.h * 0.62) : 0) + (!isMd && pinnedAgent && !panelOpen ? 180 : 0),
+    bottom: (isMd ? 96 : 56) + (!isMd && panelOpen ? Math.round(stage.h * 0.62) : 0) + (!isMd && pinnedAgent && !panelOpen ? 180 : 0),
   };
 
   // In-map breadcrumb: which department the camera is in, even when you zoomed there by hand.
@@ -411,7 +411,7 @@ function ClassicAgentsPage({ onShip }) {
             ) : null}
 
             {/* Legend */}
-            <div className="glass pointer-events-none absolute bottom-[68px] left-3 z-10 hidden rounded-xl px-3.5 py-3 lg:block md:left-5">
+            <div className={`glass pointer-events-none absolute bottom-[68px] left-3 z-10 hidden rounded-xl px-3.5 py-3 md:left-5 ${dept || zoomedIn || cardAgent ? "" : "lg:block"}`}>
               <p className="eyebrow mb-2 !text-[9px]">Legend</p>
               <ul className="space-y-1.5 text-[11.5px] text-[var(--ink-m)]">
                 <li className="flex items-center gap-2"><StatusDot status="live" />Live <span className="text-[var(--ink-s)]">· ring = ran in 24h</span></li>
