@@ -5,11 +5,12 @@ import { countStatus, investorize, firstSentence, flowAgents, nextActions, weake
 
 // The order Justin walks investors through; departments missing from the data are skipped.
 export const SCENE_DEPT_ORDER = ["command", "systems", "backoffice", "success", "delivery", "marketing", "sales", "research"];
-const NOT_FOR_STAGE = /approval|one-time|test|\bseed\b/i;
+const NOT_FOR_STAGE = /approval|one-time|test|\bseed\b|queue/i;
 
 const list = (arr) => (arr.length <= 1 ? arr.join("") : `${arr.slice(0, -1).join(", ")} and ${arr[arr.length - 1]}`);
+const shortList = (arr, max = 3) => (arr.length <= max ? list(arr) : `${arr.slice(0, max).join(", ")} and ${arr.length - max} more`);
 
-export function buildScenes({ registry, graph, handoffs, depts, hqBrain, scores, scoredOn, launchItems, ceoName }) {
+export function buildScenes({ registry, graph, handoffs, depts, hqBrain, scores, scoredOn, launchItems, ceoName, clients = [] }) {
   const hq = registry.filter((a) => a.scope === "interstellar");
   const byKey = new Map(hq.map((a) => [a.key, a]));
   const deptLabel = (k) => depts.find((d) => d.key === k)?.label || k;
@@ -17,7 +18,8 @@ export function buildScenes({ registry, graph, handoffs, depts, hqBrain, scores,
 
   // 1. Opening
   const c = countStatus(hq);
-  const inClients = registry.filter((a) => a.scope === "client" && a.status === "live");
+  const active = new Set(clients.map((x) => x.id));
+  const inClients = registry.filter((a) => a.scope === "client" && a.status === "live" && (!active.size || active.has(a.client_id)));
   const clientCount = new Set(inClients.map((a) => a.client_id)).size;
   const deptCount = (graph.clusters || []).length;
   const busy = handoffs.filter((h) => byKey.get(h.from)?.status === "live" && byKey.get(h.to)?.status === "live" && h.fromDept !== h.toDept).slice(0, 14);
@@ -63,11 +65,11 @@ export function buildScenes({ registry, graph, handoffs, depts, hqBrain, scores,
     const inD = [...new Set(handoffs.filter((h) => keys.has(h.to) && !keys.has(h.from)).map((h) => h.fromDept))].filter((x) => x !== k);
     const lit = new Set([`d:${k}`, ...mine.map((a) => `a:${a.key}`), ...links.map((h) => `a:${h.from}`), ...links.map((h) => `a:${h.to}`)]);
     const onDuty = mine.filter((a) => a.status === "live" && !NOT_FOR_STAGE.test(a.name)).sort((a, b) => runs30(b) - runs30(a) || (b.last_run_at ? 1 : 0) - (a.last_run_at ? 1 : 0)).slice(0, 3)
-      .map((a) => ({ key: a.key, name: investorize(a.name), what: firstSentence(a.role, 130), when: investorize(a.schedule || "") }));
+      .map((a) => ({ key: a.key, name: investorize(a.name), what: firstSentence(a.role, 150), when: investorize(a.schedule || "") }));
     const def = depts.find((d) => d.key === k);
     const bits = [];
-    if (outD.length) bits.push(`hands work to ${list(outD.map(deptLabel))}`);
-    if (inD.length) bits.push(`picks up work from ${list(inD.map(deptLabel))}`);
+    if (outD.length) bits.push(`hands work to ${shortList(outD.map(deptLabel))}`);
+    if (inD.length) bits.push(`picks up work from ${shortList(inD.map(deptLabel))}`);
     const joined = bits.length ? `It ${bits.join(" and ")}.` : "Its agents report straight to the Commander.";
     scenes.push({
       id: `dept:${k}`, kind: "dept", dept: k, duration: 11000, camera: { type: "cluster", key: k },
