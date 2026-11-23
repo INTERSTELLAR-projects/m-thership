@@ -47,6 +47,7 @@ Every old URL still works; nothing was removed, only re-homed.
 | Page | Process | New home | Clicks before → after |
 |---|---|---|---|
 | Claude `/claude` (was Work › Claude Queue) | Pick client, type instruction, send; every job and status | Claude › Claude | 2 → 1 |
+| Field inbox `/field` (Nov 23) | WhatsApp from the glasses + site-visit videos, filed as tasks, ideas, notes or Claude jobs (docs/field-inbox.md) | Claude › Field inbox; camera icon in the top bar; Site visit on Command | new → 1–2 |
 | Playbooks `/playbooks` | Foundation prompts and standards | Claude › Playbooks (was Agents) | 2 → 2 |
 
 ## More ▸ (one click to open)
