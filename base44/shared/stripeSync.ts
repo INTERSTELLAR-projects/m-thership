@@ -137,6 +137,8 @@ export async function syncFromStripe(base44: any, key: string) {
     const mrr = Math.round(lines.reduce((a: number, l: any) => a + l.price, 0) * 100) / 100;
     const patch: any = { ...care.patch, services, services_history: mergeHistory(t.client.services_history, gone), services_managed: [...managed], stripe_customer_id: t.customer, stripe_customer_ids: [...ids], stripe_mrr: mrr, stripe_plan: summary(lines), stripe_synced_at: now };
     if (t.client.status !== "Active") patch.status = "Active";
+    // Lead Engine: paying flips a lead-tier portal to the full client portal (never deletes anything).
+    if (t.client.portal_tier === "lead" && lines.some((l: any) => ["active", "trialing"].includes(String(l.status)))) { patch.portal_tier = "client"; patch.portal_tier_changed_at = now; }
     const err = await db.CRMClient.update(id, patch).then(() => null).catch((e: any) => String(e?.message || e).slice(0, 300));
     report.push({ ...(err ? { error: err } : {}), client: t.client.business, subscriptions: lines.map((l: any) => ({ id: l.subscription_id, status: l.status, name: l.name, mrr: l.price, items: l.items.map((i: any) => `${i.name} $${i.monthly}/mo`) })), mrr, moved_to_history: gone.map((x: any) => x.name), ...(care.ended.length ? { care_ended: care.ended, plan_status: patch.plan_status || t.client.plan_status } : {}) });
   }
