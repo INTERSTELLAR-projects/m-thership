@@ -195,6 +195,9 @@ export function installQa(base44) {
       if (name === "work-ledger") return { data: qaLedgerInvoke(args) };
       if (name === "training") return { data: qaTrainingInvoke(args) };
       if (name === "field-inbox") return { data: qaFieldInvoke(args) };
+      if (name === "portal-terms") { const m = await import("@/features/terms/qaFixtures"); return { data: m.qaTermsInvoke(args) }; }
+      // ?terms=1 (preview QA only): the portal behaves like a login that has not accepted the terms yet.
+      if (name === "portal" && args.action === "home" && flag && params.get("terms") === "1") { const m = await import("@/features/terms/qaFixtures"); throw m.qaTermsGateError(); }
       if (name !== "portal") return { data: {} };
       const cid = args.client_id || "c1";
       const of = (e) => rows(e).filter((r) => r.client_id === cid);
