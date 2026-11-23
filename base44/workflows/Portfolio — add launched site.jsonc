@@ -2,7 +2,7 @@
   "name": "Portfolio \u2014 add launched site",
   "description": "When a client's own domain is verified live (CRMClient.website_live_at set), create that site's Portfolio card as a draft for Justin to publish with one click. Never publishes or changes the client's site. Function: portfolio / on_launch.",
   "trigger": {
-    "condition": "${ .trigger.data.website_live_at != null }",
+    "condition": "${ .trigger.data.website_live_at != null and .trigger.data.portfolio_item_id == null }",
     "config": {
       "trigger_type": "entity",
       "events": [

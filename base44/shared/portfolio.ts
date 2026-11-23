@@ -49,7 +49,7 @@ export async function addLaunched(db: any, client: any, opts: { url?: string; la
   const domain = String(client.website_domain || "").replace(/^https?:\/\//, "").replace(/\/.*$/, "");
   if (!client.website_live_at && !opts.url) return { created: false, reason: "not live" };
   const existing = ((await db.PortfolioItem.filter({ client_id: client.id }, "-created_date", 5).catch(() => [])) || []) as any[];
-  if (existing.length) return { created: false, reason: "exists", id: existing[0].id };
+  if (existing.length) { if (!client.portfolio_item_id) await db.CRMClient.update(client.id, { portfolio_item_id: existing[0].id }).catch(() => null); return { created: false, reason: "exists", id: existing[0].id }; }
   const url = opts.url || (domain ? `https://${domain}` : "");
   if (!url) return { created: false, reason: "no domain" };
   const built = ["website", ...(client.command_app_id ? ["command_system"] : []), ...((client.services_managed || []).includes("orbit_seo") ? ["seo_map_pack"] : [])];
@@ -59,6 +59,7 @@ export async function addLaunched(db: any, client: any, opts: { url?: string; la
     industry_key: client.industry_key || "", domain: url.replace(/^https?:\/\//, "").replace(/\/$/, ""), url, launched_at: opts.launched_at || client.website_live_at || new Date().toISOString(),
     description: "", objective: "", built, highlights: [], results: [], og_image: og, og_checked_at: new Date().toISOString(), status: "draft", source: opts.source || "auto", sort: 100,
   });
+  await db.CRMClient.update(client.id, { portfolio_item_id: row.id }).catch(() => null);
   await db.AgentAuditLog.create({ at: new Date().toISOString(), ok: true, actor: "automation:portfolio", action: "portfolio_draft", entity: "PortfolioItem", record_id: row.id, summary: `${client.business}: portfolio card drafted on launch (${url}). Publish it in Portfolio.` }).catch(() => null);
   return { created: true, id: row.id };
 }
