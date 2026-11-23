@@ -8,6 +8,7 @@ import { scorePillars, portalPillars } from "./clientPillars.js";
 import { portalView } from "./buildTemplates.js";
 import { submitTypesFor, checkSubmission, statusLabel, SUBMIT_TYPES, RECEIVED_TEXT } from "./submitTypes.js";
 import { SEASON_PRESETS, cleanSeason, cleanOffer, offerLabel, todayPacific } from "./siteExtras.js";
+import { LEAD_ACTIONS, leadHome, leadTrack } from "./leadPortal.ts";
 
 // Portal v2 (Nov 2026): + needs_you / brain / health on home; actions brain + brain_answer.
 // Client portal API. Every table is admin-only, so portal users never touch entities directly:
@@ -172,6 +173,15 @@ export async function portalHandler(req: Request): Promise<Response> {
       return linked.map(keep);
     };
     const cid = client.id as string;
+    // Lead Engine two-tier portal: a lead-tier login sees only its own preview, Interstellar's packages and the
+    // walkthrough booking. Every other action (work feed, requests, studios, messages, tools) is refused, for the
+    // lead and for an admin previewing them. Data is scoped to this client_id only.
+    if (client.portal_tier === "lead") {
+      if (!LEAD_ACTIONS.includes(String(action))) return Response.json({ error: "This part of the portal opens once you're an Interstellar client.", code: "lead_tier" }, { status: 403 });
+      if (action === "home") return Response.json(await leadHome(db, client, user));
+      return Response.json(await leadTrack(db, client, user, args));
+    }
+    if (action === "lead_track") return Response.json({ ok: true, skipped: "client tier" });
     // No active care plan (canceled / ended in Stripe): the portal shows a friendly "plan inactive, contact us"
     // screen. Only the home summary and messages (so they can reach us) stay open; their data is kept untouched.
     if (client.plan_status === "inactive") {
