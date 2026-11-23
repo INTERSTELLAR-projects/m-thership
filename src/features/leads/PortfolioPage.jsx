@@ -2,6 +2,7 @@
 // verified custom domains); publish with one click. Preview images: the site's og:image, uploaded desktop / phone
 // screenshots, and a live link. Results show publicly only when marked verified with a source.
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, ExternalLink, Eye, EyeOff, ImagePlus, Loader2, Plus, RefreshCw, Upload, X } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { base44 } from "@/api/base44Client";
@@ -66,11 +67,14 @@ export default function PortfolioPage() {
         )}
       </div>
       {edit ? <EditDrawer item={edit} onClose={() => setEdit(null)} onSaved={() => { setEdit(null); q.refetch(); }} /> : null}
-      {view ? (
+      {/* Overlays render into <body>: the page wrapper's enter animation leaves a transform, which would pin
+          `fixed` to the (scrolled) page instead of the viewport and open them off-screen. */}
+      {view ? createPortal(
         <div className="fixed inset-0 z-50 overflow-y-auto bg-canvas p-4 md:p-10" role="dialog" aria-modal="true" aria-label="Case study preview">
           <button type="button" onClick={() => setView(null)} className="fixed right-3 top-3 z-[60] inline-flex h-9 items-center gap-1.5 bg-ink px-3 text-[12.5px] text-white"><X className="h-3.5 w-3.5" />Close</button>
           <div className="mx-auto max-w-[1180px]"><CaseStudy item={{ ...view, name: view.show_client_name === false ? `${view.industry || "Local business"} website` : view.client_name, results: (view.results || []).filter((r) => r.verified_by) }} /></div>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </div>
   );
@@ -92,7 +96,7 @@ function EditDrawer({ item, onClose, onSaved }) {
     try { await pf("save", { item: { ...f, highlights: f.highlightsText.split("\n").map((x) => x.trim()).filter(Boolean) } }); onSaved(); } catch (e) { setErr(e.message); }
     setBusy("");
   };
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex justify-end bg-ink/40" role="dialog" aria-modal="true" aria-label="Edit portfolio site">
       <div className="h-full w-full max-w-xl overflow-y-auto border-l border-hair bg-canvas p-5">
         <div className="flex items-center justify-between"><p className="text-[16px] font-semibold">{item.id ? `Edit ${item.client_name}` : "Add a site"}</p><button type="button" onClick={onClose} aria-label="Close"><X className="h-4 w-4" /></button></div>
@@ -127,6 +131,7 @@ function EditDrawer({ item, onClose, onSaved }) {
           <div className="flex gap-2 pt-2"><button type="button" onClick={save} disabled={!!busy} className={btnInk}>{busy === "save" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}Save</button><button type="button" onClick={onClose} className={btn}>Cancel</button></div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
