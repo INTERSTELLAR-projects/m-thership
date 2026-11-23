@@ -329,7 +329,7 @@ export function pageSeo(key, name, family) {
     ? [["Home", `{business} | ${svc} in {city}`, `{business} in {city}: what's fresh, hours and how to order. Stop in, call ahead or send a catering request.`], ["Menu", "Menu | {business}", "See the {business} menu: favorites, seasonal specials and custom orders, made fresh in {city}."], ["Contact", "Contact {business} in {city}", "Find {business} in {city}: address, hours, phone and a quick form for orders, catering and events."]]
     : family === "beauty"
       ? [["Home", `{business} | ${svc} in {city}`, `{business} in {city}: book your appointment online in a minute. See services, the team, hours and how to find us.`], ["Services", "Services | {business} {city}", "Every service at {business} in {city}, with how long it takes and how to book your next visit online."], ["Book", "Book at {business} | {city}", "Book your next appointment at {business} in {city}. Pick a service, a time and you're set. It takes a minute."]]
-      : [["Home", `${svc} in {city} | {business}`, `{business} provides ${low} in {city_area}. See services, recent work and how to get a quote.`], ["Services", `${svc} services | {business}`, `Every ${low} service {business} offers in {city}, what each includes and how to request a quote.`], ["Contact", "Contact {business} in {city}", "Reach {business} in {city}: call, or answer a few quick questions and we'll get back to you with next steps."]];
+      : [["Home", `${svc} in {city} | {business}`, `{business} provides ${low} in {city_area}. See services, recent work and how to get a quote.`], ["Services", /services?$/i.test(svc) ? `Services | {business} {city}` : `${svc} services | {business}`, /services?$/i.test(svc) ? "Every service {business} offers in {city}, what each one includes and how to request a quote." : `Every ${low} service {business} offers in {city}, what each includes and how to request a quote.`], ["Contact", "Contact {business} in {city}", "Reach {business} in {city}: call, or answer a few quick questions and we'll get back to you with next steps."]];
   return pages.map(([page, title, description]) => ({ page, title, description }));
 }
 
@@ -442,8 +442,12 @@ export function fitDescription(pattern, vars) {
     d = clipWords(d, hi - 1);
     if (!/[.!?]$/.test(d)) d = `${d}.`;
   }
-  const tails = [" Call today.", " Get in touch today.", " We're here to help."];
-  for (const tail of tails) { if (d.length >= lo) break; if (d.length + tail.length <= hi) d += tail; }
+  if (d.length < lo) {
+    const tails = [" Call today.", " Get in touch today.", " Call or message us today.", " Call or send us a message today.", " Call or send us a quick message today."];
+    const fits = tails.filter((x) => d.length + x.length <= hi);
+    const pickTail = fits.find((x) => d.length + x.length >= lo) || fits[fits.length - 1];
+    if (pickTail) d += pickTail;
+  }
   return d;
 }
 
