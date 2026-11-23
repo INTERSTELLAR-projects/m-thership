@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, LogOut, X, ChevronDown, Check, Eye, UserRound, LayoutGrid, Menu, Palette } from "lucide-react";
 import { ScheduleCallButton, ScheduleCallModal } from "@/features/portal/PortalNav";
@@ -44,7 +44,8 @@ import { useAddonStore } from "@/features/addons/api";
 import PortalTraining from "@/features/training/PortalTraining";
 import PortalEmailStudio from "@/features/email-studio/PortalEmailStudio";
 import PortalPresentations from "@/features/presentations/portal/PortalPresentations";
-import LeadPortalView from "@/features/leads/LeadPortalView";
+// Lead tier view loads on demand so the main bundle stays inside the release budget.
+const LeadPortalView = lazy(() => import("@/features/leads/LeadPortalView"));
 
 // Tabs this portal can show. Grouping, labels and icons for the header nav live in PortalNav.jsx (NAV);
 // free-for-life bonus tools (Signatures, QR Codes) are tagged there and listed together on Home.
@@ -295,7 +296,9 @@ function LeadTier({ d, call, previewId }) {
   const track = (args) => { if (!previewId) call("lead_track", args).catch(() => null); };
   return (
     <>
-      <LeadPortalView d={d} track={track} preview={!!previewId} onBook={() => setSched(true)} onLogout={() => base44.auth.logout()} />
+      <Suspense fallback={<div className="fixed inset-0 flex items-center justify-center bg-canvas"><div className="h-8 w-8 animate-spin rounded-full border-[3px] border-hair border-t-[#ff3c00]" aria-label="Loading" /></div>}>
+        <LeadPortalView d={d} track={track} preview={!!previewId} onBook={() => setSched(true)} onLogout={() => base44.auth.logout()} />
+      </Suspense>
       <ScheduleCallModal open={sched} onClose={() => setSched(false)} previewId={previewId} preview={!!previewId} />
     </>
   );
