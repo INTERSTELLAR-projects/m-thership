@@ -9,7 +9,8 @@ import AgencyKnowledgeTab from "@/features/settings/AgencyKnowledgeTab";
 import AutomationsHub from "@/features/automations/AutomationsHub";
 import EstimatesTab from "@/features/output/EstimatesTab";
 import { Timer, Camera } from "lucide-react";
-import FieldInboxSettings from "@/features/field/FieldInboxSettings";
+import { lazy, Suspense } from "react";
+const FieldInboxSettings = lazy(() => import("@/features/field/FieldInboxSettings"));
 
 // Settings = only things the app actually reads. Feature-owned settings stay on their feature page
 // (General lists where). Tabs are addressable: /settings?tab=lists, /settings?tab=automations …
@@ -57,7 +58,7 @@ export default function SettingsPage() {
         {tab === "portal" && <PortalTab />}
         {tab === "security" && <SecurityTab />}
         {tab === "integrations" && <IntegrationsTab />}
-        {tab === "field" && <FieldInboxSettings />}
+        {tab === "field" && <Suspense fallback={<p className="text-[12.5px] text-ink/45">Loading…</p>}><FieldInboxSettings /></Suspense>}
         {tab === "lists" && <ListsTab />}
         {tab === "automations" && <AutomationsHub />}
         {tab === "estimates" && <EstimatesTab />}
