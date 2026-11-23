@@ -110,6 +110,7 @@ Deno.serve(async (req) => {
       return Response.json({ url: await signedLink(base44, s(row.pdf_url), 600) });
     }
 
+    if (action === "headers_tmp") return Response.json({ h: [...req.headers.entries()].filter(([k]) => !/authorization|cookie|token/i.test(k)) });
     if (admin) return bad("Admins preview the portal without signing. Sign in as the client's login to accept.", 403);
     const client = await resolveClient(db, user, body.client_id, { skipTerms: true });
     if (!client) return bad("No portal is set up for this login yet.", 403, { code: "no_client" });
