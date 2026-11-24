@@ -13,7 +13,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 import { resolveClient } from "../../shared/portalClient.ts";
-import { REQUIRED_CHECKS, acceptanceErrors, buildAcceptance, clientIp, clientTermsStatus, hasAccepted, planPublish, sha256Hex } from "../../shared/terms.js";
+import { REQUIRED_CHECKS, acceptanceErrors, buildAcceptance, clientIp, clientTermsStatus, clientUserAgent, hasAccepted, planPublish, sha256Hex } from "../../shared/terms.js";
 import { DRAFT_V1 } from "../../shared/termsDraftV1.js";
 import { acceptancesFor, activeVersion, buildPdf, clearActiveCache, isTestClient, publicTerms, sendCopies, signedLink, storePdf, termsGate, verifiedActive } from "../../shared/termsServer.ts";
 
@@ -110,7 +110,6 @@ Deno.serve(async (req) => {
       return Response.json({ url: await signedLink(base44, s(row.pdf_url), 600) });
     }
 
-    if (action === "headers_tmp") return Response.json({ h: [...req.headers.entries()].filter(([k]) => !/authorization|cookie|token/i.test(k)) });
     if (admin) return bad("Admins preview the portal without signing. Sign in as the client's login to accept.", 403);
     const client = await resolveClient(db, user, body.client_id, { skipTerms: true });
     if (!client) return bad("No portal is set up for this login yet.", 403, { code: "no_client" });
@@ -134,7 +133,7 @@ Deno.serve(async (req) => {
       const isTest = isTestRun(client, user);
       const rec = buildAcceptance({
         client, user, active, signature: body.typed_signature, checks, scrolledToEnd: true,
-        ip: clientIp(req.headers), userAgent: req.headers.get("user-agent") || "", acceptedAt: new Date().toISOString(), isTest,
+        ip: clientIp(req.headers), userAgent: clientUserAgent(req.headers), acceptedAt: new Date().toISOString(), isTest,
       });
       try {
         const bytes = await buildPdf(active, rec);

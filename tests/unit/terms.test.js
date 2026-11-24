@@ -4,7 +4,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
 import {
-  normalizeBody, sha256Hex, hashMatches, hasAccepted, previousAccepted, gateDecision, acceptanceErrors, clientIp,
+  normalizeBody, sha256Hex, clientUserAgent, hashMatches, hasAccepted, previousAccepted, gateDecision, acceptanceErrors, clientIp,
   buildAcceptance, planPublish, clientTermsStatus, REQUIRED_CHECKS,
 } from "../../base44/shared/terms.js";
 import { DRAFT_V1 } from "../../base44/shared/termsDraftV1.js";
@@ -89,6 +89,8 @@ describe("acceptance validation (server side)", () => {
     expect(clientIp(new Headers({ "x-forwarded-for": "198.51.100.7, 10.0.0.1" }))).toBe("198.51.100.7");
     expect(clientIp({ "cf-connecting-ip": "198.51.100.8" })).toBe("198.51.100.8");
     expect(clientIp(new Headers())).toBe("unknown");
+    expect(clientIp(new Headers({ "x-base44-connecting-ip": "203.0.113.5", "x-forwarded-for": "198.51.100.7" }))).toBe("203.0.113.5");
+    expect(clientUserAgent(new Headers({ "user-agent": "Base44-Backend", "x-base44-caller-user-agent": "Mozilla/5.0 iPhone" }))).toBe("Mozilla/5.0 iPhone");
   });
 });
 

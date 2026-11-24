@@ -72,11 +72,18 @@ export function acceptanceErrors({ active, sentVersionId, sentSha, checks = {}, 
   return errs;
 }
 
-// First address in X-Forwarded-For (the client), else the other proxy headers.
+// The caller's address as Base44's proxy saw it (x-base44-connecting-ip / true-client-ip), else the first
+// X-Forwarded-For hop, else the other proxy headers.
 export function clientIp(headers) {
   const get = (k) => s(headers && (typeof headers.get === "function" ? headers.get(k) : headers[k]));
   const xff = get("x-forwarded-for").split(",")[0].trim();
-  return (xff || get("cf-connecting-ip") || get("x-real-ip") || "unknown").slice(0, 64);
+  return (get("x-base44-connecting-ip") || get("true-client-ip") || xff || get("cf-connecting-ip") || get("x-real-ip") || "unknown").trim().slice(0, 64);
+}
+
+// The caller's browser: Base44 forwards it as x-base44-caller-user-agent (user-agent is the proxy's own).
+export function clientUserAgent(headers) {
+  const get = (k) => s(headers && (typeof headers.get === "function" ? headers.get(k) : headers[k]));
+  return (get("x-base44-caller-user-agent") || get("user-agent")).slice(0, 400);
 }
 
 // The one record written per acceptance. accepted_at, ip and user_agent come from the server, never the browser.
