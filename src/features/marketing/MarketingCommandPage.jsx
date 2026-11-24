@@ -1,14 +1,14 @@
 // /marketing-command — Interstellar's whole marketing plan on one screen (docs/marketing-command.md).
 // Season header, the revenue line (daily target x days, with an editable deal mix), one row per pillar
 // (weekly target vs actual, progress, pace, log today). ?wall=1 = full-screen TV wall mode, refreshes every minute.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, ChevronDown, Loader2, Maximize2, Minimize2, Plus, Sparkles, Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "@/components/PageHeader";
 import { useList } from "@/lib/useData";
-import { PILLARS, PILLAR_BY_KEY, dealMixTotal, isoDay, pace, revenueTargets, weekActual, weekOf } from "@/lib/marketingCommand";
+import { PILLARS, dealMixTotal, pace, revenueTargets, weekActual, weekOf } from "@/lib/marketingCommand";
 
 const money = (n) => `$${Math.round(Number(n) || 0).toLocaleString("en-US")}`;
 const fmtNum = (n, unit) => (unit === "USD" ? money(n) : Math.round(Number(n) || 0).toLocaleString("en-US"));
@@ -212,7 +212,7 @@ export default function MarketingCommandPage() {
   const [msg, setMsg] = useState(null);
   const refresh = () => ["MarketingPlan", "PillarTarget", "PillarLog"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
   // Wall display: re-read every minute.
-  useMemo(() => { if (!wall) return undefined; const t = setInterval(refresh, 60_000); return () => clearInterval(t); }, [wall]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!wall) return undefined; const t = setInterval(refresh, 60_000); return () => clearInterval(t); }, [wall]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const call = async (label, args, ok) => {
     setBusy(label); setMsg(null);
@@ -276,4 +276,3 @@ export default function MarketingCommandPage() {
   );
 }
 
-export { PILLAR_BY_KEY, isoDay };
