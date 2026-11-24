@@ -1,0 +1,83 @@
+{
+  "name": "PillarLog",
+  "description": "Daily actual for one pillar (entered by Justin, a rep or an automation). Planned vs actual on Marketing Command. Admin only.",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "pillar": {
+      "type": "string",
+      "enum": [
+        "posts",
+        "ad_spend",
+        "in_person",
+        "outreach",
+        "calls",
+        "content"
+      ]
+    },
+    "actual": {
+      "type": "number"
+    },
+    "plan_id": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "description": "manual | automation | sample"
+    },
+    "is_sample": {
+      "type": "boolean"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "interstellar",
+        "client"
+      ],
+      "default": "interstellar",
+      "description": "interstellar = Interstellar own marketing (Brain stays here). client = a plan made for a client and later delivered to their portal / Command System (docs/marketing-command.md)"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when scope is client"
+    },
+    "portal_visible": {
+      "type": "boolean",
+      "default": false,
+      "description": "Client plans only: Justin released it to the client portal"
+    }
+  },
+  "required": [
+    "date",
+    "pillar",
+    "actual"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

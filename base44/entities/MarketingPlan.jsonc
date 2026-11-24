@@ -1,0 +1,145 @@
+{
+  "name": "MarketingPlan",
+  "description": "Marketing Command (docs/marketing-command.md): one season plan. Volume targets per pillar live in PillarTarget; daily actuals in PillarLog. Generated drafts wait for Justin to approve. Admin only.",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "season": {
+      "type": "string",
+      "enum": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ]
+    },
+    "year": {
+      "type": "number"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "offer_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "OfferCatalog ids this plan sells"
+    },
+    "daily_revenue_target": {
+      "type": "number",
+      "default": 3000
+    },
+    "days_per_week": {
+      "type": "number",
+      "default": 5
+    },
+    "deal_mix": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "[{count, amount, label}] planned deals per week. Editable; its total is shown against the weekly target"
+    },
+    "holiday_windows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "summary": {
+      "type": "string",
+      "description": "The season focus (generator or Justin)"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "pricing_context": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Justin stated pricing used as context (not results)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "archived"
+      ],
+      "default": "draft"
+    },
+    "source": {
+      "type": "string",
+      "description": "generated | manual | sample"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "is_sample": {
+      "type": "boolean"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "interstellar",
+        "client"
+      ],
+      "default": "interstellar",
+      "description": "interstellar = Interstellar own marketing (Brain stays here). client = a plan made for a client and later delivered to their portal / Command System (docs/marketing-command.md)"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when scope is client"
+    },
+    "portal_visible": {
+      "type": "boolean",
+      "default": false,
+      "description": "Client plans only: Justin released it to the client portal"
+    }
+  },
+  "required": [
+    "title",
+    "season"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

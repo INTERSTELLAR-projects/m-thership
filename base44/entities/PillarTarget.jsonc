@@ -1,0 +1,93 @@
+{
+  "name": "PillarTarget",
+  "description": "Weekly volume target for one pillar of a MarketingPlan. Admin only.",
+  "type": "object",
+  "properties": {
+    "plan_id": {
+      "type": "string"
+    },
+    "pillar": {
+      "type": "string",
+      "enum": [
+        "posts",
+        "ad_spend",
+        "in_person",
+        "outreach",
+        "calls",
+        "content"
+      ]
+    },
+    "weekly_target": {
+      "type": "number"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "channel_notes": {
+      "type": "string"
+    },
+    "reasoning": {
+      "type": "string",
+      "description": "Why this number (generator), for Justin to check"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved"
+      ],
+      "default": "draft"
+    },
+    "is_sample": {
+      "type": "boolean"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "interstellar",
+        "client"
+      ],
+      "default": "interstellar",
+      "description": "interstellar = Interstellar own marketing (Brain stays here). client = a plan made for a client and later delivered to their portal / Command System (docs/marketing-command.md)"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "CRMClient id when scope is client"
+    },
+    "portal_visible": {
+      "type": "boolean",
+      "default": false,
+      "description": "Client plans only: Justin released it to the client portal"
+    }
+  },
+  "required": [
+    "plan_id",
+    "pillar",
+    "weekly_target"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
