@@ -3,7 +3,7 @@ import {
   Crown, Activity, Settings, FolderKanban, Star, PenLine, Presentation, Route, Sparkles, Target, QrCode, Link2,
   CalendarRange, Zap, Megaphone, BadgeDollarSign, Mail, UserPlus, Gauge, Fuel, Store, Orbit, Rocket, Radar, Wand2,
   Chrome, Inbox, BookOpenCheck, Globe, GraduationCap, ShieldCheck, Package, Repeat, Sun, Briefcase, Wallet, LayoutGrid, Landmark,
-  Brain, Images, PhoneCall, KeyRound, MapPinned, Layers, Trophy, Camera,
+  Brain, Images, PhoneCall, KeyRound, MapPinned, Layers, Trophy, Camera, Gauge as GaugeIcon,
 } from "lucide-react";
 import { PACKAGES, packagePath } from "@/features/packages/registry";
 import { IS_PRESENTING } from "@/lib/presentation";
@@ -133,6 +133,8 @@ export const MORE_HUBS = [
     path: "/pipeline",
     hint: "Win new work and grow existing clients",
     tabs: [
+      // Marketing Command (Nov 23 2026): Interstellar's own season plan and volume per pillar (docs/marketing-command.md).
+      { label: "Marketing Command", icon: GaugeIcon, path: "/marketing-command", hint: "The whole marketing plan: volume per pillar (posts, content, outreach, calls, in person, ads) against the revenue line. Wall mode for the office TV" },
       // Calls moved here from Clients (Nov 2026, portal v2 cleanup) so every hub stays at 8 tabs or fewer.
       { label: "Calls", icon: PhoneCall, path: "/calls", hint: "Structure a prospect or client call: say what it needs to cover, get a timeboxed plan, run it, debrief into the client brain" },
       { label: "Financing", icon: Landmark, path: "/financing", badge: "financingLate", hint: "Client payment plans, short and long term: who's paid, who's due, who's late" },
