@@ -56,7 +56,7 @@ Every old URL still works; nothing was removed, only re-homed.
 |---|---|---|
 | Work | Tasks, Projects, Packages, SOPs, Patterns, Share images (from Clients) | 1–2 → 2–3 |
 | Marketing | Search, Content plans, Backlinks, Reviews, Site security, Social, Email, Ads | 1–2 → 2–3 |
-| Sales | Calls, Financing, Prestige, Upgrade Store, Decks, SMPL. Studio (from More) | 2 → 2–3 |
+| Sales | Calls, Marketing Command (`/marketing-command`, Nov 23; `?wall=1` TV mode), Financing, Prestige, Upgrade Store, Decks, SMPL. Studio (from More) | 2 → 2–3 |
 | Money | Financial (+ Client numbers tab), Client usage, Fuel economics, Hiring plan, Usage & cost | 1–2 → 2–3 |
 | Agents | Universe, Constellation, Systems, Intelligence, Idea Vault, Automations | 1–2 → 2–3 |
 | Tools | All pages, **How you use it** (new, private), Documents, Legal, Training, Signatures, QR codes, Chrome Workspace | 1–2 → 2–3 |
