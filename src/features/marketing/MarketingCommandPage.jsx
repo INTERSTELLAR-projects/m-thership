@@ -2,6 +2,7 @@
 // Season header, the revenue line (daily target x days, with an editable deal mix), one row per pillar
 // (weekly target vs actual, progress, pace, log today). ?wall=1 = full-screen TV wall mode, refreshes every minute.
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, ChevronDown, Loader2, Maximize2, Minimize2, Plus, Sparkles, Trash2 } from "lucide-react";
@@ -227,7 +228,8 @@ export default function MarketingCommandPage() {
   const generate = () => call("gen", { action: "generate" }, (d) => `Draft plan ready: ${d.targets} pillar targets.${d.missing?.length ? ` Missing: ${d.missing.join(", ")}.` : ""} Review, then approve.`);
   const approve = () => call("approve", { action: "approve", plan_id: plan.id }, () => "Plan approved and active. Approving spends nothing: ad budgets still go through Ads Studio approvals.");
 
-  if (wall) return <WallMode plan={plan} rows={rows} week={week} onExit={() => setParams({}, { replace: true })} />;
+  // Portalled to <body>: the layout's page-enter animation would otherwise trap position:fixed inside the page.
+  if (wall) return createPortal(<WallMode plan={plan} rows={rows} week={week} onExit={() => setParams({}, { replace: true })} />, document.body);
 
   return (
     <div className="pb-16">
