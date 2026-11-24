@@ -58,6 +58,8 @@ import ProjectDetail from './pages/ProjectDetail';
 import ClaudeQueue from './pages/ClaudeQueue';
 // Field inbox (docs/field-inbox.md): WhatsApp from the glasses + site visits.
 const FieldPage = lazyPage(() => import('@/features/field/FieldPage'));
+// Marketing Command (docs/marketing-command.md): season plan, volume per pillar, ?wall=1 TV mode.
+const MarketingCommandPage = lazyPage(() => import('@/features/marketing/MarketingCommandPage'));
 import Security from './pages/Security';
 import OutreachPage from '@/features/outreach/OutreachPage';
 import LegacyImportBanner from '@/features/tasks/LegacyImportBanner';
@@ -250,6 +252,7 @@ const AuthenticatedApp = () => {
         <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
         <Route path="/claude" element={<ProtectedRoute><ClaudeQueue /></ProtectedRoute>} />
         <Route path="/field" element={<ProtectedRoute><FieldPage /></ProtectedRoute>} />
+        <Route path="/marketing-command" element={<ProtectedRoute><MarketingCommandPage /></ProtectedRoute>} />
         <Route path="/security" element={<ProtectedRoute><Security /></ProtectedRoute>} />
         <Route path="/backlinks" element={<ProtectedRoute><OutreachPage /></ProtectedRoute>} />
         <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
