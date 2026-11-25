@@ -87,17 +87,19 @@ export async function recordPackageInvoice(db: any, inv: any) {
         await db.ClientFinancing.update(plan.id, { start_paid_date: isoDate(inv.status_transitions?.paid_at) });
         return { applied: true, kind: "start", plan: plan.id };
       }
-      continue; // other one-time invoices (upgrades paid up front, refuels) don't touch the balance
+      // Early payoff: a one-time invoice for exactly what's left on the balance.
+      const left = packageState(plan).balance;
+      if (!(left > 0 && near(amount, left))) continue; // other one-time invoices (upgrades up front, refuels) don't touch it
     }
 
     const st = packageState(plan);
-    if (plan.stripe_subscription_id && subId && plan.stripe_subscription_id !== subId) continue; // an add-on subscription
+    if (isSub && plan.stripe_subscription_id && subId && plan.stripe_subscription_id !== subId) continue; // an add-on subscription
     const patch: any = {};
-    if (!plan.stripe_subscription_id) {
+    if (isSub && !plan.stripe_subscription_id) {
       if (!subId || !near(amount, st.current)) continue; // only link the subscription that bills the package amount
       patch.stripe_subscription_id = subId;
     }
-    const payments = [...(plan.payments || []), { date: isoDate(inv.status_transitions?.paid_at), amount, method: "Stripe", note: `Invoice ${inv.number || inv.id}`, stripe_invoice_id: inv.id }];
+    const payments = [...(plan.payments || []), { date: isoDate(inv.status_transitions?.paid_at), amount, method: "Stripe", note: `${isSub ? "Invoice" : "Payoff invoice"} ${inv.number || inv.id}`, stripe_invoice_id: inv.id }];
     patch.payments = payments;
     const after = packageState({ ...plan, payments });
     if (after.balance <= 0.004) {
