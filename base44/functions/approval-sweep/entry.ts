@@ -114,6 +114,7 @@ export async function sweep(db: any, apply: boolean) {
   return out;
 }
 
+import { schedulerGate } from "../../shared/schedulerGate.ts";
 export default async function (req: Request) {
   try {
     const base44 = createClientFromRequest(req);
@@ -122,6 +123,7 @@ export default async function (req: Request) {
     const user = await base44.auth.me().catch(() => null);
     const admin = user?.role === "admin";
     if (action !== "scheduled" && !admin) return Response.json({ error: "Admins only" }, { status: 403 });
+    if (!admin) { const g = await schedulerGate(base44, user, "approval-sweep", 4, 60); if (g) return g; }
     const db = base44.asServiceRole.entities;
     const out = await sweep(db, action !== "classify");
     const rows = (await db.AppSettings.filter({ key: "approval_taste_rule" }, "-updated_date", 1).catch(() => [])) || [];
