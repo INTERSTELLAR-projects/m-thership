@@ -12,6 +12,7 @@ import { moveStage, undoMove, observe, runTriggers, nextStage, stageOf, STAGES }
  * Claude can also set pipeline_stage directly on the CRMClient record, together with pipeline_stage_by ("claude")
  * and pipeline_stage_reason: the observe workflow logs it as "Moved by Claude: <reason>".
  */
+import { schedulerGate } from "../../shared/schedulerGate.ts";
 export default async function (req: Request) {
   try {
     const base44 = createClientFromRequest(req);
@@ -19,6 +20,11 @@ export default async function (req: Request) {
     const action = String(body?.action || "");
     const db = base44.asServiceRole.entities;
     // Background paths: they only read stored records and log/move from them; nothing comes from the caller but an id.
+    if (action === "observe" || action === "triggers") {
+      const u0 = await base44.auth.me().catch(() => null);
+      const g = await schedulerGate(base44, u0, `lead-stage:${action}`, action === "observe" ? 200 : 6, action === "observe" ? 3000 : 120);
+      if (g) return g;
+    }
     if (action === "observe") return Response.json(await observe(db, String(body?.client_id || "")));
     if (action === "triggers") { const r = await runTriggers(db); return Response.json({ ok: true, moved: r.filter((x: any) => x && x.ok && !x.unchanged).length, errors: r.filter((x: any) => x?.error).length }); }
 
