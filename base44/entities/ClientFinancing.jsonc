@@ -15,6 +15,77 @@
       "type": "string",
       "description": "What is financed, e.g. 'Website build' or 'Command Center app'"
     },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "installment",
+        "package"
+      ],
+      "default": "installment",
+      "description": "package = the 40-Day Business Rebuild (Nov 25 2026): balance paid monthly on HyperCare+, payoff any time, then $750/mo. installment = any other payment plan."
+    },
+    "package_plan": {
+      "type": "string",
+      "enum": [
+        "p24",
+        "p12"
+      ],
+      "description": "Package only. p24 = $750/mo x 24 ($18,000). p12 = $1,250/mo x 12 ($15,000)."
+    },
+    "start_payment": {
+      "type": "number",
+      "description": "Package only. The start payment ($2,000, or $1,500 when referred). Separate from the balance."
+    },
+    "referred": {
+      "type": "boolean",
+      "default": false,
+      "description": "Package only. Referred client: $500 off the start payment."
+    },
+    "start_paid_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Package only. When the start payment was received."
+    },
+    "launch_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Package only. Website + Command System launch. Monthly payments start here (first_due_date = launch_date)."
+    },
+    "after_payoff_monthly": {
+      "type": "number",
+      "default": 750,
+      "description": "Package only. HyperCare+ price once the balance is paid off."
+    },
+    "stripe_subscription_id": {
+      "type": "string",
+      "description": "Package only. The Stripe subscription whose paid invoices are applied to this balance automatically."
+    },
+    "upgrades": {
+      "type": "array",
+      "description": "Package only. Upgrades over $250 added to the balance; from_installment = first installment (0-based) that carries the new amount.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "label": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "from_installment": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "payoff_task_id": {
+      "type": "string",
+      "description": "Package only. Task created when the balance hit $0 (switch to HyperCare+ $750/mo), so it's made once."
+    },
     "term_type": {
       "type": "string",
       "enum": [
@@ -106,6 +177,10 @@
           },
           "note": {
             "type": "string"
+          },
+          "stripe_invoice_id": {
+            "type": "string",
+            "description": "Set when the payment came from a paid Stripe invoice (stops it being counted twice)"
           }
         }
       }
