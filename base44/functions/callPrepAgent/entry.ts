@@ -55,6 +55,7 @@ async function loadContext(db: any, clientId: string, excludeId = "", cp: any = 
     safe(db.ClientAppProfile.filter({ client_id: clientId }, "-updated_date", 6), []),
     safe(db.CallPrep.filter({ client_id: clientId }, "-created_date", 6), []),
   ]);
+  const brain = arr(await safe(db.BusinessBrain.filter({ client_id: clientId }, "-updated_date", 1), []))[0] || null;
   const launch = arr(await safe(db.LaunchItem.filter({ client_id: clientId }, "-updated_date", 40), [])).filter((l: any) => !["done", "skipped", "cancelled"].includes(s(l.status)));
   const byName = client?.business ? await safe(db.BrainFact.filter({ client_name: client.business, status: "active" }, "-updated_date", 40), []) : [];
   const allFacts = [...arr(facts), ...arr(byName).filter((f: any) => !arr(facts).some((x: any) => x.id === f.id))];
@@ -63,7 +64,7 @@ async function loadContext(db: any, clientId: string, excludeId = "", cp: any = 
   const followUps: string[] = [];
   for (const c of prior) for (const a of arr(c.action_items)) if (!a?.done && s(a?.text)) followUps.push(`${s(a.text)} (${a.owner === "client" ? "client" : "Justin"}${a.due ? `, due ${s(a.due)}` : ""}; from "${s(c.title) || "earlier call"}")`);
   const refs = [cp, ...prior].filter((c: any) => c && s(c.reference_md)).map((c: any) => ({ title: s(c.title), md: s(c.reference_md) }));
-  return { client, facts: allFacts, dossier: arr(dossiers)[0] || null, work: arr(work), openTasks, posts: arr(posts), apps: arr(apps), prior, followUps, positioning, type, cp, launch, refs };
+  return { client, facts: allFacts, dossier: arr(dossiers)[0] || null, work: arr(work), openTasks, posts: arr(posts), apps: arr(apps), prior, followUps, positioning, type, cp, launch, refs, brain };
 }
 
 function contextText(ctx: any) {
@@ -81,6 +82,10 @@ function contextText(ctx: any) {
   if (c.next_step) lines.push(`CRM next step: ${s(c.next_step)}`);
   if (arr(d.offers).length) lines.push(`Offers (dossier): ${arr(d.offers).map((o: any) => `${s(o.name)}${o.price ? ` ${s(o.price)}` : ""}${o.promise ? ` (${s(o.promise)})` : ""}`).join("; ")}`);
   if (arr(d.services).length) lines.push(`Services (dossier): ${arr(d.services).map((x: any) => s(x.name)).filter(Boolean).join(", ")}`);
+  if (ctx.brain?.context_md) lines.push(`BUSINESS BRAIN (the client's profile; source of truth for facts):\n${clip(String(ctx.brain.context_md).replace(/<!--[^>]*-->/g, ""), 7000)}`);
+  if (ctx.brain?.glance) lines.push(`AT A GLANCE:\n${clip(ctx.brain.glance, 1500)}`);
+  const oq = arr(ctx.brain?.open_questions).filter((q: any) => s(q.status) !== "answered" && s(q.q));
+  if (oq.length) lines.push(`OPEN QUESTIONS IN THE BRAIN (good things to ask if they fit this call):\n${oq.slice(0, 15).map((q: any) => `- ${clip(q.q, 240)}`).join("\n")}`);
   if (ctx.facts.length) lines.push(`STORED FACTS (brain):\n${ctx.facts.slice(0, 80).map((f: any) => `- [${s(f.pillar)}] ${clip(f.statement, 260)}`).join("\n")}`);
   if (ctx.work.length) lines.push(`RECENT WORK DONE:\n${ctx.work.slice(0, 12).map((w: any) => `- ${s(w.completed_at).slice(0, 10)} ${clip(w.title, 200)}`).join("\n")}`);
   if (ctx.openTasks.length) lines.push(`OPEN TASKS:\n${ctx.openTasks.slice(0, 25).map((t: any) => `- ${clip(t.title, 160)} (${s(t.status)}${t.due_date ? `, due ${s(t.due_date)}` : ""})`).join("\n")}`);
@@ -269,7 +274,7 @@ async function structureCall(db: any, llm: any, cp: any, b: any) {
   const patch: any = {
     ...st, qa, raw_notes: cp.raw_notes, follow_ups: ctx.followUps, status: cp.status === "done" ? "done" : "ready", generated_at: now(),
     client_name: s(ctx.client?.business) || cp.client_name,
-    context_summary: `${ctx.positioning.length ? `${ctx.positioning.length} positioning facts · ` : ""}${ctx.facts.length} brain facts · ${ctx.work.length} recent work · ${ctx.openTasks.length} open tasks · ${ctx.posts.length} site posts · ${ctx.apps.length} systems · ${ctx.prior.length} earlier calls · ${arr(ctx.launch).length} launch to-dos · ${arr(ctx.refs).length} prep notes${ctx.dossier ? " · dossier" : ""}`,
+    context_summary: `${ctx.positioning.length ? `${ctx.positioning.length} positioning facts · ` : ""}${ctx.facts.length} brain facts · ${ctx.work.length} recent work · ${ctx.openTasks.length} open tasks · ${ctx.posts.length} site posts · ${ctx.apps.length} systems · ${ctx.prior.length} earlier calls · ${arr(ctx.launch).length} launch to-dos · ${arr(ctx.refs).length} prep notes${ctx.brain ? " · business brain" : ""}${ctx.dossier ? " · dossier" : ""}`,
   };
   patch.structure = toMarkdown({ ...cp, ...patch });
   const saved = await db.CallPrep.update(cp.id, patch);
