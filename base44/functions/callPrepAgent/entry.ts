@@ -266,7 +266,7 @@ async function structureCall(db: any, llm: any, cp: any, b: any) {
       const patch: any = {
         ...st, qa, raw_notes: cp.raw_notes, follow_ups: ctx.followUps, status: cp.status === "done" ? "done" : "ready", generated_at: now(),
         client_name: s(ctx.client?.business) || cp.client_name,
-        context_summary: `${ctx.positioning.length ? `${ctx.positioning.length} positioning facts · ` : ""}${ctx.facts.length} brain facts · ${ctx.work.length} recent work · ${ctx.openTasks.length} open tasks · ${ctx.posts.length} site posts · ${ctx.apps.length} systems · ${ctx.prior.length} earlier calls${ctx.dossier ? " · dossier" : ""}`,
+        context_summary: `${ctx.positioning.length ? `${ctx.positioning.length} positioning facts · ` : ""}${ctx.facts.length} brain facts · ${ctx.work.length} recent work · ${ctx.openTasks.length} open tasks · ${ctx.posts.length} site posts · ${ctx.apps.length} systems · ${ctx.prior.length} earlier calls · ${arr(ctx.launch).length} launch to-dos · ${arr(ctx.refs).length} prep notes${ctx.dossier ? " · dossier" : ""}`,
       };
       patch.structure = toMarkdown({ ...cp, ...patch });
       const saved = await db.CallPrep.update(cp.id, patch);
