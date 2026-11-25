@@ -2,10 +2,11 @@
 // one item at a time, then dictate what happened so action items and accepted facts feed the client's brain.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { AlertTriangle, ArrowLeft, Check, ChevronLeft, ChevronRight, ClipboardCopy, ListChecks, Minus, Pause, Play, Plus, RefreshCw, Save, Sparkles, Timer, Trash2, Wand2, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, ChevronLeft, ChevronRight, ClipboardCopy, ListChecks, Minus, NotebookPen, Pause, Play, Plus, RefreshCw, Save, Sparkles, Timer, Trash2, Wand2, X } from "lucide-react";
 import { Spinner } from "@/features/agents/ui";
 import { Shell, GlideTabs, ArmBtn } from "./ui";
 import VoiceBox from "./VoiceBox";
+import CheatSheet from "./CheatSheet";
 import { E, agent, PURPOSE, CALL_TYPES, typeLabel, whoOf, totalMinutes, toMarkdown, fmtWhen } from "./api";
 
 const lines = (v) => String(v || "").split("\n").map((x) => x.trim()).filter(Boolean);
@@ -52,7 +53,7 @@ function NewCall() {
   };
 
   return (
-    <Shell title="Structure" accent="Call" sub="Talk through everything you need from this call. You get back the goal, a timeboxed agenda with decisions first, what to have open, and what to ask for."
+    <Shell title="Structure" accent="Call" sub="Talk through what you need from this call. You get a cheat sheet back: the point of the call, what not to forget, where things stand, and your questions with space for their answers. No script."
       right={<Link to="/calls" className="btn-d"><ArrowLeft className="h-3.5 w-3.5" />All calls</Link>}>
       <div className="grid gap-5 pt-5 lg:grid-cols-[1fr_340px]">
         <section className="card rise p-4 md:p-5">
@@ -60,7 +61,7 @@ function NewCall() {
             placeholder="e.g. Walk Tyler through the new website before launch, get his opinion on the lab pages, ask for better project photos, confirm lead time and budget ranges…" />
           {err ? <p className="mt-2 text-[12.5px] text-[#ff8a7f]">{err}</p> : null}
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <button type="button" className="btn-f" onClick={go} disabled={!ok || busy}>{busy ? <><Spinner />Structuring…</> : <><Wand2 className="h-3.5 w-3.5" />Structure this call</>}</button>
+            <button type="button" className="btn-f" onClick={go} disabled={!ok || busy}>{busy ? <><Spinner />Prepping…</> : <><Wand2 className="h-3.5 w-3.5" />Prep this call</>}</button>
             {!ok ? <span className="text-[12px] text-[var(--ink-s)]">{needsClient && !clientId ? "Pick the client first." : "Add a few words about the call."}</span> : null}
           </div>
         </section>
@@ -154,6 +155,9 @@ function PlanView({ cp, set, setAgenda }) {
           <section className="card rise p-4"><p className="lbl">Open from last call</p><ul className="list-disc space-y-1 pl-5 text-[12.5px] text-[var(--ink-d)]">{cp.follow_ups.map((f, i) => <li key={i}>{f}</li>)}</ul></section>
         ) : null}
         <section className="card rise space-y-3 p-4" style={{ animationDelay: "40ms" }}>
+          <ListEditor label="Don't forget" items={cp.remember} onChange={(v) => set({ remember: v })} />
+          <ListEditor label="Where things stand" items={cp.background} onChange={(v) => set({ background: v })} />
+          <ListEditor label="Show" items={cp.show} onChange={(v) => set({ show: v })} />
           <ListEditor label="Have open before the call" items={cp.prep_checklist} onChange={(v) => set({ prep_checklist: v })} />
           <ListEditor label={`Get from ${cp.contact_name || whoOf(cp)}`} items={cp.asks_from_client} onChange={(v) => set({ asks_from_client: v })} />
           <ListEditor label="Watch for" items={cp.risks} onChange={(v) => set({ risks: v })} />
@@ -304,11 +308,11 @@ function AfterCall({ cp, set, replace, onSave }) {
 }
 
 // ---------- Existing call ----------
-const FIELDS = ["title", "goal", "agenda", "prep_checklist", "asks_from_client", "risks", "timebox_minutes", "scheduled_for", "raw_notes", "outcomes", "action_items", "status", "contact_name"];
+const FIELDS = ["title", "goal", "agenda", "prep_checklist", "asks_from_client", "risks", "timebox_minutes", "scheduled_for", "raw_notes", "outcomes", "action_items", "status", "contact_name", "remember", "background", "show", "qa", "reference_md", "pdfs"];
 
 function ExistingCall({ id }) {
   const [params, setParams] = useSearchParams();
-  const view = ["plan", "call", "after", "notes"].includes(params.get("view")) ? params.get("view") : "plan";
+  const view = ["sheet", "plan", "call", "after", "notes"].includes(params.get("view")) ? params.get("view") : "sheet";
   const [cp, setCp] = useState(null);
   const [savedJson, setSavedJson] = useState("");
   const [err, setErr] = useState("");
@@ -331,6 +335,7 @@ function ExistingCall({ id }) {
     body.prep_checklist = (body.prep_checklist || []).map((x) => String(x).trim()).filter(Boolean);
     body.asks_from_client = (body.asks_from_client || []).map((x) => String(x).trim()).filter(Boolean);
     body.risks = (body.risks || []).map((x) => String(x).trim()).filter(Boolean);
+    for (const k of ["remember", "background", "show"]) body[k] = (body[k] || []).map((x) => String(x).trim()).filter(Boolean);
     body.agenda = (body.agenda || []).map((a) => ({ ...a, talking_points: (a.talking_points || []).map((t) => String(t).trim()).filter(Boolean), questions: (a.questions || []).map((t) => String(t).trim()).filter(Boolean) }));
     body.structure = toMarkdown({ ...cur, ...body });
     try { await E.CallPrep.update(cur.id, body); setSavedJson(snapshot({ ...cur, ...body })); setMsg("Saved"); setTimeout(() => setMsg(""), 2000); }
@@ -349,7 +354,7 @@ function ExistingCall({ id }) {
     catch { setMsg("Copy was blocked by the browser; select the plan text instead"); }
     setTimeout(() => setMsg(""), 2500);
   };
-  const go = (v) => setParams(v === "plan" ? {} : { view: v }, { replace: true });
+  const go = (v) => setParams(v === "sheet" ? {} : { view: v }, { replace: true });
   const pendingFacts = useMemo(() => (cp?.brain_facts_proposed || []).filter((f) => f.status === "proposed").length, [cp]);
 
   if (err) return <Shell title="Call" accent="Not found" right={<Link to="/calls" className="btn-d"><ArrowLeft className="h-3.5 w-3.5" />All calls</Link>}><p className="pt-6 text-[13px] text-[#ff8a7f]">{err}</p></Shell>;
@@ -363,7 +368,7 @@ function ExistingCall({ id }) {
         <button type="button" className="btn-d" onClick={save} disabled={!dirty}><Save className="h-3.5 w-3.5" />{dirty ? "Save" : "Saved"}</button>
       </>}>
       <div className="flex flex-wrap items-center justify-between gap-3 pt-5">
-        <GlideTabs value={view} onChange={go} label="Call views" options={[["plan", "Plan", ListChecks], ["call", "Call mode", Timer], ["after", "After the call", Sparkles, pendingFacts], ["notes", "Your notes", Wand2]]} />
+        <GlideTabs value={view} onChange={go} label="Call views" options={[["sheet", "Cheat sheet", NotebookPen], ["plan", "Edit plan", ListChecks], ["call", "Timed run", Timer], ["after", "After the call", Sparkles, pendingFacts], ["notes", "Your notes", Wand2]]} />
         <div className="flex items-center gap-3 text-[12px]">
           {msg ? <span className="text-white">{msg}</span> : null}
           {cp.status !== "done" ? (
@@ -371,17 +376,20 @@ function ExistingCall({ id }) {
           ) : <span className="mono text-[10.5px] uppercase tracking-[.12em] text-[var(--ink-s)]">done</span>}
         </div>
       </div>
-      {!(cp.agenda || []).length && view !== "notes" ? (
+      {!(cp.agenda || []).length && !(cp.remember || []).length && !cp.reference_md && view !== "notes" ? (
         <div className="card mt-5 grid place-items-center gap-3 px-6 py-12 text-center">
           <p className="max-w-md text-[13px] text-[var(--ink-m)]">No plan yet. Structure it from your notes.</p>
           <button type="button" className="btn-f" onClick={regenerate} disabled={!!busy}>{busy ? <Spinner /> : <Wand2 className="h-3.5 w-3.5" />}Structure this call</button>
         </div>
-      ) : view === "plan" ? <PlanView cp={cp} set={set} setAgenda={setAgenda} />
+      ) : view === "sheet" ? <CheatSheet cp={cp} set={set} onSave={save} />
+        : view === "plan" ? <PlanView cp={cp} set={set} setAgenda={setAgenda} />
         : view === "call" ? <CallMode cp={cp} setAgenda={setAgenda} onSave={save} />
         : view === "after" ? <AfterCall cp={cp} set={set} replace={replace} onSave={save} />
         : (
           <section className="card rise mt-5 p-4 md:p-5">
             <VoiceBox value={cp.raw_notes} onChange={(v) => set({ raw_notes: v })} rows={8} label="Add to what this call needs to cover" />
+            <label className="mt-4 block"><span className="lbl">Full prep notes (markdown; paste a prep from Claude here; read by the agent on later calls too)</span>
+              <textarea className="inp mono !text-[12px]" rows={10} value={cp.reference_md || ""} onChange={(e) => set({ reference_md: e.target.value })} /></label>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <ArmBtn className="btn-f" armedLabel="Click again: this replaces the plan" onConfirm={regenerate} disabled={!!busy}>{busy ? <Spinner /> : <RefreshCw className="h-3.5 w-3.5" />}Re-structure from notes</ArmBtn>
               <span className="text-[11.5px] text-[var(--ink-s)]">Re-structuring replaces the agenda with a fresh one from these notes.</span>

@@ -134,7 +134,7 @@ export const MORE_HUBS = [
     hint: "Win new work and grow existing clients",
     tabs: [
       // Calls moved here from Clients (Nov 2026, portal v2 cleanup) so every hub stays at 8 tabs or fewer.
-      { label: "Calls", icon: PhoneCall, path: "/calls", hint: "Structure a prospect or client call: say what it needs to cover, get a timeboxed plan, run it, debrief into the client brain" },
+      { label: "Call Prep", icon: PhoneCall, path: "/calls", hint: "Prep any call by voice: a cheat sheet from the client brain with your questions and their answers, saved PDFs, then debrief into the brain" },
       // Marketing Command (Nov 23 2026): Interstellar's own season plan and volume per pillar (docs/marketing-command.md).
       { label: "Marketing Command", icon: Gauge, path: "/marketing-command", hint: "The whole marketing plan: volume per pillar (posts, content, outreach, calls, in person, ads) against the revenue line. Wall mode for the office TV" },
       { label: "Financing", icon: Landmark, path: "/financing", badge: "financingLate", hint: "Client payment plans, short and long term: who's paid, who's due, who's late" },

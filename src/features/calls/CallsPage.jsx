@@ -1,10 +1,11 @@
 // Calls (/calls): every structured client call, split into upcoming, ready, drafts and done.
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { Clock, Mic, Plus } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Clock, Mic, Plus, Wand2 } from "lucide-react";
+import VoiceBox from "./VoiceBox";
 import { Spinner } from "@/features/agents/ui";
 import { Shell, GlideTabs } from "./ui";
-import { E, bucket, fmtWhen, totalMinutes, typeLabel, whoOf } from "./api";
+import { E, agent, bucket, fmtWhen, totalMinutes, typeLabel, whoOf } from "./api";
 import PitchView from "./PitchView";
 
 const TABS = [["upcoming", "Upcoming"], ["ready", "Ready"], ["draft", "Drafts"], ["done", "Done"], ["all", "All"], ["pitch", "Pitch"]];
@@ -33,6 +34,32 @@ export function CallCard({ cp, i = 0 }) {
   );
 }
 
+function QuickPrep() {
+  const nav = useNavigate();
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const go = async () => {
+    setBusy(true); setErr("");
+    const r = await agent({ mode: "quick", raw_notes: text });
+    setBusy(false);
+    if (r?.ok && r.call_prep?.id) nav(`/calls/${r.call_prep.id}`);
+    else setErr(r?.error || "Could not prep the call");
+  };
+  return (
+    <section className="card rise mt-5 border-[rgba(255,106,0,.4)] p-4 md:p-5">
+      <p className="eyebrow mb-3">Prep a call</p>
+      <VoiceBox value={text} onChange={setText} rows={4} label="Tap and say who it's with and what you need to cover"
+        placeholder="e.g. I need to prep for a call with Cami at Smallcakes. Show her the site, get the last answers we need to finish it and the system…" />
+      {err ? <p className="mt-2 text-[12.5px] text-[#ff8a7f]">{err}</p> : null}
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button type="button" className="btn-f" onClick={go} disabled={busy || text.trim().length < 8}>{busy ? <><Spinner />Reading the brain and prepping…</> : <><Wand2 className="h-3.5 w-3.5" />Prep it</>}</button>
+        <span className="text-[11.5px] text-[var(--ink-s)]">It works out the client, reads their brain, launch to-dos and past calls, and saves the prep here.</span>
+      </div>
+    </section>
+  );
+}
+
 export default function CallsPage() {
   const [rows, setRows] = useState(null);
   const [err, setErr] = useState("");
@@ -55,8 +82,9 @@ export default function CallsPage() {
     .sort((a, b) => (tab === "upcoming" ? new Date(a.scheduled_for) - new Date(b.scheduled_for) : 0));
 
   return (
-    <Shell title="Structure" accent="Calls" sub="Say what a client call needs to cover. Get back a tight, timeboxed plan, run the call from it, then dictate what happened so it feeds the client's brain."
-      right={<Link to="/calls/new" className="btn-f"><Mic className="h-3.5 w-3.5" />Structure a call</Link>}>
+    <Shell title="Prep" accent="Calls" sub="Say who the call is with and what you need. Get a cheat sheet (no script) with your questions and room for their answers. After the call, say what happened and it feeds the client's brain. Every prep and PDF is kept."
+      right={<Link to="/calls/new" className="btn-d"><Mic className="h-3.5 w-3.5" />Prep with details</Link>}>
+      <QuickPrep />
       <div className="flex flex-wrap items-center justify-between gap-3 pt-5">
         <GlideTabs value={tab} onChange={setTab} label="Call lists" options={TABS.map(([k, l]) => [k, l, null, k === "pitch" ? 0 : counts[k] || 0])} />
       </div>
