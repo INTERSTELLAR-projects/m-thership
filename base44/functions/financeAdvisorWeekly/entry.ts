@@ -50,11 +50,13 @@ const SCHEMA = {
   required: ["learning_summary", "recommendations"],
 };
 
+import { schedulerGate } from "../../shared/schedulerGate.ts";
 export default async function (req: Request) {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me().catch(() => null);
     if (user && user.role !== "admin") return Response.json({ error: "Forbidden" }, { status: 403 });
+    if (!user) { const g = await schedulerGate(base44, user, "financeAdvisorWeekly", 1, 2); if (g) return g; }
     const body = await req.json().catch(() => ({}));
     const db = base44.asServiceRole.entities;
 
