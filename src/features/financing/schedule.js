@@ -58,31 +58,71 @@ export function suggestPayment({ total_price, down_payment, interest_rate, num_p
 
 export const totalPaid = (plan) => (plan.payments || []).reduce((s, p) => s + (Number(p.amount) || 0), 0);
 
+// The 40-Day Business Rebuild (Nov 25 2026). Mirror of base44/shared/packageLedger.ts (keep in sync).
+export const PACKAGE_PLANS = {
+  p24: { label: "24-month plan", monthly: 750, months: 24, total: 18000 },
+  p12: { label: "12-month plan", monthly: 1250, months: 12, total: 15000 },
+};
+export const PACKAGE_START = 2000;
+export const PACKAGE_REFERRAL_OFF = 500;
+export const PACKAGE_CARE = 750;
+export const FREE_UNDER = 250;
+
+// Per-installment amounts for a package: the base monthly until an upgrade is added to the balance, then whatever is
+// left (plus the upgrade) spread evenly over the installments that remain. Cents are settled on the last one.
+export function packageAmounts(plan) {
+  const n = Math.max(0, Math.floor(Number(plan.num_payments) || 0));
+  const base = Number(plan.payment_amount) || 0;
+  const ups = [...(plan.upgrades || [])].filter((u) => Number(u.amount) > 0).sort((a, b) => (a.from_installment || 0) - (b.from_installment || 0));
+  let remaining = Number(plan.total_price) || base * n;
+  let current = base;
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const here = ups.filter((u) => (Number(u.from_installment) || 0) === i);
+    if (here.length) {
+      remaining += here.reduce((s, u) => s + Number(u.amount), 0);
+      current = Math.round((remaining / (n - i)) * 100) / 100;
+    }
+    const amt = i === n - 1 ? Math.round(remaining * 100) / 100 : current;
+    out.push(amt);
+    remaining = Math.round((remaining - amt) * 100) / 100;
+  }
+  // Upgrades dated past the last installment still raise the balance (shown on the last row).
+  const late = ups.filter((u) => (Number(u.from_installment) || 0) >= n).reduce((s, u) => s + Number(u.amount), 0);
+  if (late && out.length) out[out.length - 1] = Math.round((out[out.length - 1] + late) * 100) / 100;
+  return out;
+}
+
 // Everything the page needs about one plan, as of `now`.
 export function analyze(plan, now = new Date()) {
   const today = startOfDay(now);
-  const amt = Number(plan.payment_amount) || 0;
   const dates = dueDates(plan);
   const n = dates.length;
-  const scheduledTotal = amt * n;
+  const isPackage = plan.kind === "package";
+  const amounts = isPackage ? packageAmounts(plan) : dates.map(() => Number(plan.payment_amount) || 0);
+  const scheduledTotal = Math.round(amounts.reduce((s, x) => s + x, 0) * 100) / 100;
   const paid = totalPaid(plan);
   const balance = Math.max(0, Math.round((scheduledTotal - paid) * 100) / 100);
   const grace = Number.isFinite(Number(plan.grace_days)) ? Number(plan.grace_days) : 3;
 
   // Installments fully covered by what has been paid, oldest first.
-  const covered = amt > 0 ? Math.min(n, Math.floor((paid + 0.005) / amt)) : 0;
-  const partial = amt > 0 && covered < n ? Math.max(0, paid - covered * amt) : 0;
+  let covered = 0;
+  let pool = paid + 0.005;
+  while (covered < n && amounts[covered] > 0 && pool >= amounts[covered]) { pool -= amounts[covered]; covered++; }
+  const partial = covered < n ? Math.max(0, Math.round((pool - 0.005) * 100) / 100) : 0;
+  // The installment amount right now (what the next payment should be).
+  const amt = amounts[Math.min(covered, n - 1)] || Number(plan.payment_amount) || 0;
 
   const installments = dates.map((date, i) => {
     let state = "upcoming";
     if (i < covered) state = "paid";
     else if (daysBetween(date, today) > grace) state = "late";
     else if (daysBetween(date, today) >= 0) state = "due";
-    return { index: i + 1, date, amount: amt, state, partial: i === covered ? partial : 0 };
+    return { index: i + 1, date, amount: amounts[i], state, partial: i === covered ? partial : 0 };
   });
 
   const lateItems = installments.filter((x) => x.state === "late");
-  const behind = Math.max(0, Math.round((lateItems.length * amt - partial * (lateItems.length ? 1 : 0)) * 100) / 100);
+  const behind = Math.max(0, Math.round((lateItems.reduce((s, x) => s + x.amount, 0) - partial * (lateItems.length ? 1 : 0)) * 100) / 100);
   const next = installments.find((x) => x.state !== "paid") || null;
   const daysLate = lateItems.length ? daysBetween(lateItems[0].date, today) : 0;
   const daysToNext = next ? daysBetween(today, next.date) : null;
@@ -100,7 +140,8 @@ export function analyze(plan, now = new Date()) {
   const endDate = dates[n - 1] || null;
   const progress = scheduledTotal > 0 ? Math.min(1, paid / scheduledTotal) : 0;
 
-  return { amt, dates, n, scheduledTotal, paid, balance, covered, partial, installments, lateItems, behind, next, daysLate, daysToNext, health, lastPayment, endDate, progress };
+  const monthsLeft = Math.max(0, n - covered);
+  return { amt, dates, n, scheduledTotal, paid, balance, covered, partial, installments, lateItems, behind, next, daysLate, daysToNext, health, lastPayment, endDate, progress, isPackage, monthsLeft };
 }
 
 export const HEALTH = {
