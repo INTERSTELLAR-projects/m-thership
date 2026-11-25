@@ -1,0 +1,68 @@
+{
+  "name": "MediaJob",
+  "type": "object",
+  "description": "One-time ElevenLabs generation jobs (voiceover, sound effects, music) for Interstellar videos. Created by an admin; run once by the mediaStudio function with the job's one-time token; expires after 2 hours.",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "tts",
+        "sfx",
+        "music"
+      ]
+    },
+    "label": {
+      "type": "string"
+    },
+    "input": {
+      "type": "object",
+      "description": "tts: {text, voice_id, model_id, voice_settings}; sfx: {text, duration_seconds, prompt_influence}; music: {prompt, music_length_ms}"
+    },
+    "token": {
+      "type": "string",
+      "description": "One-time random token; the function only runs a job when the caller presents it"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "done",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "error": {
+      "type": "string"
+    },
+    "ran_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "kind",
+    "token"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
