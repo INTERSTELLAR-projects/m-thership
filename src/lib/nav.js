@@ -103,7 +103,7 @@ export const MORE_HUBS = [
     tabs: [
       { label: "Tasks", icon: ListTodo, path: "/tasks", hint: "The task matrix: what is due, for whom, and what to do next" },
       { label: "Projects", icon: FolderKanban, path: "/projects", hint: "Every project in flight, with its tasks, time and value" },
-      { label: "Packages", icon: Package, path: "/packages/orbit-seo", match: ["/packages", "/orbit-seo"], hint: "All nine packages and subscriptions, one orb rail per client" },
+      { label: "Packages", icon: Package, path: "/packages/rebuild", match: ["/packages", "/orbit-seo"], hint: "The 40-Day Rebuild checklist for every client, plus the monthly plans" },
       { label: "SOPs", icon: BookOpenCheck, path: "/tasks/sops", hint: "The procedures every task is built from" },
       { label: "Patterns", icon: Repeat, path: "/tasks/patterns", hint: "Recurring work the system creates on a schedule" },
       { label: "Share images", icon: Images, path: "/share-images", hint: "1200x630 social sharing images for every client site: one per page or page group, download as a ZIP" },

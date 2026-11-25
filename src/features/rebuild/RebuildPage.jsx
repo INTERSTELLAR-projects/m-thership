@@ -256,7 +256,7 @@ export default function RebuildPage({ tabs = null }) {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <button type="button" onClick={() => navigate("/packages/rebuild")} className="mono-label inline-flex items-center gap-2 text-[10px] text-ink/50 hover:text-ink"><ArrowLeft className="h-3.5 w-3.5" />All rebuilds · {rows.length}</button>
               <div className="flex gap-2">
-                <Link to={`/financing?plan=`} className={btnGhost}>Financing <ArrowUpRight className="h-3.5 w-3.5" /></Link>
+                <Link to="/financing" className={btnGhost}>Financing <ArrowUpRight className="h-3.5 w-3.5" /></Link>
                 {selected.rec.client_id ? <Link to={`/clients/${selected.rec.client_id}`} className={btnGhost}>Cockpit <ArrowUpRight className="h-3.5 w-3.5" /></Link> : null}
               </div>
             </div>

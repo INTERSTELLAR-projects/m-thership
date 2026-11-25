@@ -212,7 +212,7 @@ const AuthenticatedApp = () => {
         <Route path="/leads/portfolio" element={<ProtectedRoute><PortfolioPage /></ProtectedRoute>} />
         <Route path="/orbit-seo" element={<Navigate to="/packages/orbit-seo" replace />} />
         <Route path="/orbit-seo/manage" element={<ProtectedRoute><OrbitSEO /></ProtectedRoute>} />
-        <Route path="/packages" element={<Navigate to="/packages/orbit-seo" replace />} />
+        <Route path="/packages" element={<Navigate to="/packages/rebuild" replace />} />
         <Route path="/packages/:key" element={<ProtectedRoute><PackagePage /></ProtectedRoute>} />
         <Route path="/packages/:key/:clientId" element={<ProtectedRoute><PackagePage /></ProtectedRoute>} />
 

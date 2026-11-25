@@ -15,6 +15,8 @@ import OnboardClientButton from "@/features/flight/onboarding/OnboardClientButto
 import { dueLabel, dueTone, shortDate } from "@/features/tasks/lib/format";
 import { btnGhost } from "@/features/tasks/lib/ui";
 import { cn } from "@/lib/utils";
+import { Rocket } from "lucide-react";
+import RebuildPage from "@/features/rebuild/RebuildPage";
 
 const KIND_LABEL = { blog: "Blog", gbp_post: "GBP post", site_edit: "Site edit", project_page: "Project page", new_page: "New page", citation: "Citation", press: "Press", mention: "Mention", backlink: "Backlink", schema: "Schema", search_console: "Search Console", bing: "Bing", analytics: "Analytics", report: "Report", presentation: "Presentation", deliverable: "Deliverable", design: "Design", automation_setup: "Automation", other: "Work" };
 
@@ -39,7 +41,10 @@ function StatePill({ state }) {
 /* ---------- package switcher: all nine in one row (subscriptions, then packages) ----------
    The sidebar used to list each package separately; now Work › Packages is one tab and this row switches. */
 function PackageTabs({ current }) {
-  const groups = [["Subscriptions", SUBSCRIPTIONS], ["Packages", DELIVERY_PACKAGES]];
+  // Nov 25 2026: one package (the 40-Day Business Rebuild) first, then the monthly plans, then the old per-service
+  // packages kept for clients who bought them before the single package.
+  const REBUILD = { key: "rebuild", label: "40-Day Rebuild", icon: Rocket, color: "#ff3c00" };
+  const groups = [["Package", [REBUILD]], ["Monthly", SUBSCRIPTIONS], ["Legacy", DELIVERY_PACKAGES]];
   return (
     <div className="no-scrollbar flex gap-1 overflow-x-auto border-b border-hair px-5 md:px-8">
       {groups.map(([label, list], gi) => (
@@ -48,8 +53,9 @@ function PackageTabs({ current }) {
           <span className="mono-label mr-1 self-center text-[8.5px] text-ink/40">{label}</span>
           {list.map((p) => {
             const active = p.key === current;
+            const legacy = label === "Legacy";
             return (
-              <Link key={p.key} to={packagePath(p.key)} className={cn("relative flex shrink-0 items-center gap-2 px-3 py-2.5 text-[12px] transition-colors", active ? "text-ink" : "text-ink/50 hover:text-ink")}>
+              <Link key={p.key} to={packagePath(p.key)} className={cn("relative flex shrink-0 items-center gap-2 px-3 py-2.5 transition-colors", legacy ? "text-[11px]" : "text-[12.5px] font-medium", active ? "text-ink" : legacy ? "text-ink/35 hover:text-ink" : "text-ink/60 hover:text-ink")}>
                 <p.icon className="h-3.5 w-3.5" style={{ color: active ? p.color : undefined }} />
                 {p.label}
                 {active ? <span className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: p.color }} /> : null}
@@ -279,6 +285,12 @@ function DeliveryClientView({ client, rail, pkg, onPatch }) {
 
 /* ---------- the page ---------- */
 export default function PackagePage() {
+  const { key } = useParams();
+  if (key === "rebuild") return <RebuildPage tabs={<PackageTabs current="rebuild" />} />;
+  return <LegacyPackagePage />;
+}
+
+function LegacyPackagePage() {
   const { key, clientId } = useParams();
   const navigate = useNavigate();
   const pkg = packageByKey(key) || PACKAGES[0];
