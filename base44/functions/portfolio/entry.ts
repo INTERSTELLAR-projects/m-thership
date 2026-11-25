@@ -27,6 +27,7 @@ async function published(db: any) {
   return rows.sort((a, b) => (Number(a.sort) || 100) - (Number(b.sort) || 100) || String(b.launched_at || "").localeCompare(String(a.launched_at || ""))).map(safeItem);
 }
 
+import { schedulerGate } from "../../shared/schedulerGate.ts";
 Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
@@ -45,6 +46,7 @@ Deno.serve(async (req) => {
     if (action === "public_item") { const i = (await published(db)).find((x) => x.slug === clip(body.slug, 80)); return i ? Response.json({ item: i }) : err("Not found", 404); }
     if (action === "on_launch") {
       // Reads only the stored client record by id; creates a draft card at most once.
+      { const u0 = await base44.auth.me().catch(() => null); const g = await schedulerGate(base44, u0, "portfolio:on_launch", 30, 200); if (g) return g; }
       const c = await db.CRMClient.get(clip(body.client_id, 64)).catch(() => null);
       return Response.json(await addLaunched(db, c));
     }
