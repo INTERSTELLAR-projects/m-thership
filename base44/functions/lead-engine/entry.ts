@@ -133,6 +133,7 @@ async function optOutHandler(req: Request, db: any, url: URL) {
   return html(optOutPage("You're off the list", "Done. We won't call or email you about this again."));
 }
 
+import { schedulerGate } from "../../shared/schedulerGate.ts";
 Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
@@ -144,6 +145,11 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = String(body?.action || "");
     // Scheduled runs (no user): only work a person already approved (build queue) or tasks/drafts (follow-ups).
+    if (!user && ["queue_run", "followups_sweep", "templates_seed"].includes(action)) {
+      const lim = action === "queue_run" ? [6, 60] : action === "followups_sweep" ? [2, 20] : [1, 2];
+      const g = await schedulerGate(base44, user, `lead-engine:${action}`, lim[0], lim[1]);
+      if (g) return g;
+    }
     if (!user && action === "queue_run") return Response.json(await queueRun(base44, db, "schedule"));
     if (!user && action === "followups_sweep") return Response.json(await followupsSweep(db));
     // One-time helper workflow: creates any missing seed template (never touches an existing or edited one).
