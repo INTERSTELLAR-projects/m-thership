@@ -370,6 +370,7 @@ async function runReminders(db: any) {
   return { today, created: made };
 }
 
+import { schedulerGate } from "../../shared/schedulerGate.ts";
 export default async function (req: Request) {
   try {
     const base44 = createClientFromRequest(req);
@@ -378,6 +379,7 @@ export default async function (req: Request) {
     const action = body.action || "run_reminders";
     if (!user && action !== "run_reminders") return Response.json({ error: "Unauthorized" }, { status: 401 });
     if (user && user.role !== "admin") return Response.json({ error: "Forbidden" }, { status: 403 });
+    if (!user && action === "run_reminders") { const g = await schedulerGate(base44, user, "accounting:run_reminders", 2, 3); if (g) return g; }
     const db = base44.asServiceRole.entities;
     const taxYear = Number(body.tax_year) || new Date().getFullYear();
 
