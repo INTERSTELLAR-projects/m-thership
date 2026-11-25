@@ -109,7 +109,7 @@ export async function recordPackageInvoice(db: any, inv: any) {
           client_id: plan.client_id || "",
           client_name: plan.client_name || "",
           category: "finance",
-          priority: "high",
+          priority: 1,
           status: "next",
           source: "automation",
         }).catch(() => null);
