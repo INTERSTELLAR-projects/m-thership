@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useDeepLinkParam, useDeepLinkFocus } from "@/lib/deepLink";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, CalendarClock, ChevronDown, Edit, HandCoins, Landmark, Loader2, Plus, Receipt, Rocket, Sparkles, Trash2, Wallet } from "lucide-react";
@@ -313,7 +313,7 @@ function PlanCard({ plan, a, expanded, onToggle, onPay, onUpgrade, onEdit, onDel
             )}
             <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1 text-[11.5px] text-ink/60">
               {plan.total_price ? (<><dt>{pkg ? "Package balance at start" : "Price"}</dt><dd className="text-right tabular-nums">{money2(plan.total_price)}</dd></>) : null}
-              {pkg && (plan.upgrades || []).map((u, i) => (<><dt key={`u${i}`}>Upgrade · {u.label}</dt><dd key={`v${i}`} className="text-right tabular-nums">+{money2(u.amount)}</dd></>))}
+              {pkg && (plan.upgrades || []).map((u, i) => (<Fragment key={i}><dt>Upgrade · {u.label}</dt><dd className="text-right tabular-nums">+{money2(u.amount)}</dd></Fragment>))}
               {plan.down_payment ? (<><dt>Down payment</dt><dd className="text-right tabular-nums">{money2(plan.down_payment)}</dd></>) : null}
               {plan.interest_rate ? (<><dt>APR</dt><dd className="text-right tabular-nums">{plan.interest_rate}%</dd></>) : null}
               <dt>Scheduled total</dt><dd className="text-right tabular-nums">{money2(a.scheduledTotal)}</dd>
@@ -486,6 +486,169 @@ function PaymentDialog({ plan, onClose, onSubmit }) {
           <div className="col-span-2 flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
             <Button type="submit" disabled={saving} className="border-0 text-white flame-bg hover:opacity-90">{saving ? "Saving…" : "Record payment"}</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ---------- The 40-Day Business Rebuild (Nov 25 2026) ---------- */
+const addDays = (iso, d) => { const x = parseDate(iso) || new Date(); return toISODate(new Date(x.getTime() + d * 86400000)); };
+const PKG_EMPTY = { client_id: "", client_name: "", package_plan: "p24", referred: false, start_paid_date: "", launch_date: "", grace_days: 3, status: "active", notes: "" };
+
+function PackageForm({ open, onOpenChange, initial, clients, onSubmit }) {
+  const [f, setF] = useState(PKG_EMPTY);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+  const [lastKey, setLastKey] = useState(null);
+  const key = open ? (initial?.id || "new") : null;
+  if (key !== lastKey) {
+    setLastKey(key);
+    if (open) {
+      setF(initial ? { ...PKG_EMPTY, ...initial, launch_date: initial.launch_date || initial.first_due_date || "" } : { ...PKG_EMPTY, launch_date: addDays(toISODate(new Date()), 40) });
+      setErr("");
+    }
+  }
+  const plan = PACKAGE_PLANS[f.package_plan] || PACKAGE_PLANS.p24;
+  const start = f.referred ? PACKAGE_START - PACKAGE_REFERRAL_OFF : PACKAGE_START;
+  const changingPlanLater = initial && initial.package_plan !== f.package_plan && (initial.payments || []).length > 0;
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!f.client_name.trim()) return setErr("Pick the client.");
+    if (!f.launch_date) return setErr("Set the launch date (or the expected one). Monthly payments start then.");
+    const fields = {
+      kind: "package", client_id: f.client_id || "", client_name: f.client_name.trim(),
+      title: `40-Day Business Rebuild · ${plan.label}`, package_plan: f.package_plan,
+      term_type: plan.months > 12 ? "long" : "short", financed_by: "in_house",
+      total_price: plan.total, down_payment: 0, interest_rate: 0, payment_amount: plan.monthly, frequency: "monthly", num_payments: plan.months,
+      first_due_date: f.launch_date, launch_date: f.launch_date,
+      start_payment: initial?.start_payment && initial.referred === f.referred ? initial.start_payment : start,
+      referred: !!f.referred, start_paid_date: f.start_paid_date || "", after_payoff_monthly: initial?.after_payoff_monthly || PACKAGE_CARE,
+      grace_days: Math.max(0, Math.floor(Number(f.grace_days) || 0)), status: f.status || "active", notes: f.notes || "",
+    };
+    setSaving(true);
+    try { await onSubmit(fields); onOpenChange(false); } catch (x) { setErr(x?.message || "Couldn't save. Try again."); } finally { setSaving(false); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-hair bg-card text-ink sm:max-w-xl">
+        <DialogHeader><DialogTitle>{initial ? "Edit 40-Day Business Rebuild" : "New 40-Day Business Rebuild"}</DialogTitle></DialogHeader>
+        <form onSubmit={submit} className="grid grid-cols-2 gap-3">
+          <div className="col-span-2">
+            <Label htmlFor="pkg-client">Client</Label>
+            <Select value={f.client_id || (f.client_name ? "__custom" : "")} onValueChange={(v) => {
+              const c = clients.find((x) => x.id === v);
+              setF((p) => ({ ...p, client_id: c ? c.id : "", client_name: c ? (c.business || p.client_name) : p.client_name }));
+            }}>
+              <SelectTrigger id="pkg-client"><SelectValue placeholder="Choose a client" /></SelectTrigger>
+              <SelectContent>
+                {clients.filter((c) => c.business).map((c) => <SelectItem key={c.id} value={c.id}>{c.business}</SelectItem>)}
+                <SelectItem value="__custom">Someone not in the client list…</SelectItem>
+              </SelectContent>
+            </Select>
+            {!f.client_id && <Input className="mt-2" placeholder="Client name" value={f.client_name} onChange={(e) => setF({ ...f, client_name: e.target.value })} />}
+          </div>
+          <div className="col-span-2 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Plan">
+            {Object.entries(PACKAGE_PLANS).map(([k, p]) => (
+              <button key={k} type="button" role="radio" aria-checked={f.package_plan === k} onClick={() => setF({ ...f, package_plan: k })}
+                className={`rounded-md border p-3 text-left transition ${f.package_plan === k ? "border-[#ff6a00] bg-[#ff6a00]/8" : "border-hair hover:border-ink/30"}`}>
+                <p className="text-[12px] font-semibold">{p.label}</p>
+                <p className="text-[18px] font-semibold tabular-nums">{money(p.monthly)}<span className="text-[11px] font-normal text-ink/55">/mo × {p.months}</span></p>
+                <p className="text-[11px] text-ink/55">Balance {money(p.total)}</p>
+              </button>
+            ))}
+          </div>
+          {changingPlanLater && <p className="col-span-2 rounded bg-[#ffaa00]/15 p-2 text-[11.5px] text-[#8a4b00]">Payments are already recorded. Switching plans recalculates the balance from the new plan's total.</p>}
+          <label className="col-span-2 flex items-center gap-2 text-[13px]">
+            <input type="checkbox" checked={!!f.referred} onChange={(e) => setF({ ...f, referred: e.target.checked })} className="h-4 w-4 accent-[#ff6a00]" />
+            Referred client ({money(PACKAGE_REFERRAL_OFF)} off the start payment)
+          </label>
+          <div className="col-span-2 rounded-md bg-ink/[0.04] p-3 text-[12px] text-ink/70">
+            Start payment <b className="tabular-nums">{money(start)}</b> (separate from the balance), then <b>{money(plan.monthly)}/mo</b> from launch for {plan.months} months. Once paid off: HyperCare+ {money(PACKAGE_CARE)}/mo and the client owns the code.
+          </div>
+          <div><Label htmlFor="pkg-start">Start payment received</Label><Input id="pkg-start" type="date" value={f.start_paid_date} onChange={(e) => setF({ ...f, start_paid_date: e.target.value })} /><p className="mt-1 text-[10.5px] text-ink/45">Leave empty until paid. A Stripe invoice for {money(start)} fills it in.</p></div>
+          <div><Label htmlFor="pkg-launch">Launch date (monthly starts)</Label><Input id="pkg-launch" type="date" value={f.launch_date} onChange={(e) => setF({ ...f, launch_date: e.target.value })} /><p className="mt-1 text-[10.5px] text-ink/45">Expected launch until it goes live; update it on launch day.</p></div>
+          <div><Label htmlFor="pkg-grace">Grace days</Label><Input id="pkg-grace" type="number" min="0" step="1" value={f.grace_days} onChange={(e) => setF({ ...f, grace_days: e.target.value })} /></div>
+          {initial && (
+            <div>
+              <Label htmlFor="pkg-status">Status</Label>
+              <Select value={f.status} onValueChange={(v) => setF({ ...f, status: v })}>
+                <SelectTrigger id="pkg-status"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem><SelectItem value="paused">Paused</SelectItem><SelectItem value="paid_off">Paid off</SelectItem>
+                  <SelectItem value="defaulted">Defaulted</SelectItem><SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <div className="col-span-2"><Label htmlFor="pkg-notes">Notes</Label><Textarea id="pkg-notes" rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} placeholder="Agreement details, who referred them, anything to remember" /></div>
+          {err && <p className="col-span-2 text-[12px] text-[#ff3c00]">{err}</p>}
+          <div className="col-span-2 flex justify-end gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" disabled={saving} className="border-0 text-white flame-bg hover:opacity-90">{saving ? "Saving…" : initial ? "Save changes" : "Create package"}</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function UpgradeDialog({ plan, onClose, onSubmit }) {
+  const [u, setU] = useState({ label: "", amount: "", mode: "balance", date: "" });
+  const [lastId, setLastId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+  if ((plan?.id || null) !== lastId) {
+    setLastId(plan?.id || null);
+    if (plan) { setU({ label: "", amount: "", mode: "balance", date: toISODate(new Date()) }); setErr(""); }
+  }
+  const a = plan ? analyze(plan) : null;
+  const amount = Number(u.amount) || 0;
+  const free = amount > 0 && amount < FREE_UNDER;
+  const mode = free ? "free" : u.mode;
+  const preview = a && mode === "balance" && amount > 0 && a.monthsLeft > 0 ? (a.balance + amount) / a.monthsLeft : null;
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!u.label.trim() || !(amount > 0)) return setErr("Say what the upgrade is and its quoted amount.");
+    if (mode === "balance" && !(a?.monthsLeft > 0)) return setErr("No months left on the term. Bill this one up front.");
+    setSaving(true);
+    try {
+      await onSubmit(plan, { label: u.label.trim(), amount, mode: mode === "balance" ? "balance" : "upfront", date: u.date, from_installment: a.covered });
+      onClose();
+    } catch (x) { setErr(x?.message || "Couldn't save. Try again."); } finally { setSaving(false); }
+  };
+
+  return (
+    <Dialog open={!!plan} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="border-hair bg-card text-ink sm:max-w-md">
+        <DialogHeader><DialogTitle>Add upgrade{plan ? ` · ${plan.client_name}` : ""}</DialogTitle></DialogHeader>
+        <form onSubmit={submit} className="grid grid-cols-2 gap-3">
+          <div className="col-span-2"><Label htmlFor="up-label">What's being built</Label><Input id="up-label" value={u.label} onChange={(e) => setU({ ...u, label: e.target.value })} placeholder="e.g. Quote calculator, waiver forms" /></div>
+          <div><Label htmlFor="up-amt">Quoted amount</Label><Input id="up-amt" type="number" min="0" step="0.01" value={u.amount} onChange={(e) => setU({ ...u, amount: e.target.value })} /></div>
+          <div><Label htmlFor="up-date">Date</Label><Input id="up-date" type="date" value={u.date} onChange={(e) => setU({ ...u, date: e.target.value })} /></div>
+          {free ? (
+            <p className="col-span-2 rounded bg-emerald-500/10 p-2 text-[12px] text-emerald-800">Under {money(FREE_UNDER)}: done free. It's logged in the notes and nothing is added to the balance.</p>
+          ) : (
+            <div className="col-span-2 grid grid-cols-2 gap-2" role="radiogroup" aria-label="How it's paid">
+              {[["balance", "Add to balance"], ["upfront", "Paid up front"]].map(([k, l]) => (
+                <button key={k} type="button" role="radio" aria-checked={u.mode === k} onClick={() => setU({ ...u, mode: k })}
+                  className={`rounded-md border px-3 py-2 text-left text-[12.5px] ${u.mode === k ? "border-[#ff6a00] bg-[#ff6a00]/8 font-semibold" : "border-hair"}`}>{l}</button>
+              ))}
+            </div>
+          )}
+          {preview !== null && (
+            <p className="col-span-2 rounded bg-ink/[0.04] p-2 text-[12px] text-ink/75">
+              Balance {money2(a.balance)} + {money2(amount)} = {money2(a.balance + amount)} over {a.monthsLeft} month{a.monthsLeft === 1 ? "" : "s"}: <b>{money2(preview)}/mo</b> instead of {money2(a.amt)}. A task is created to update the Stripe amount.
+            </p>
+          )}
+          {err && <p className="col-span-2 text-[12px] text-[#ff3c00]">{err}</p>}
+          <div className="col-span-2 flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={saving} className="border-0 text-white flame-bg hover:opacity-90">{saving ? "Saving…" : "Add upgrade"}</Button>
           </div>
         </form>
       </DialogContent>
