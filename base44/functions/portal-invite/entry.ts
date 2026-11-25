@@ -8,6 +8,7 @@ import { inviteSettings, saveInviteSettings, pickInviteEmail, sentInviteFor, del
 //   send_test (admin)  -> send the welcome email to the signed-in admin's own address only. No invite, no client email.
 //   run_due   (schedule / admin) -> deliver queued Stripe invites that are due (only while auto-send is on)
 
+import { schedulerGate } from "../../shared/schedulerGate.ts";
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -19,6 +20,7 @@ Deno.serve(async (req) => {
     if (action === "run_due") {
       // Safe without a user: it only delivers invites that a verified Stripe payment already queued.
       if (user && user.role !== "admin") return Response.json({ error: "Admins only" }, { status: 403 });
+      if (!user) { const g = await schedulerGate(base44, user, "portal-invite:run_due", 2, 3); if (g) return g; }
       return Response.json(await sendDueInvites(base44));
     }
 
