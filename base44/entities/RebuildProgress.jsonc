@@ -1,0 +1,72 @@
+{
+  "name": "RebuildProgress",
+  "type": "object",
+  "description": "One client's progress through the 40-Day Business Rebuild checklist (src/features/rebuild/checklist.js). items is keyed by checklist item key.",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "checklist_version": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date",
+      "description": "Agreement signed / record created"
+    },
+    "intake_completed_at": {
+      "type": "string",
+      "format": "date",
+      "description": "Completed Intake: starts the 40-day clock (launch guarantee)"
+    },
+    "launched_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "launched",
+        "paused",
+        "archived"
+      ],
+      "default": "active"
+    },
+    "items": {
+      "type": "object",
+      "description": "{ [itemKey]: { done: bool, done_at: iso, by: email, note: string, waiting: bool } }"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
