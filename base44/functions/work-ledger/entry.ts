@@ -363,6 +363,7 @@ function summarize(rows: any[], rate: number) {
   return { hourly_rate: rate, week: tot(since(weekStart)), month: tot(since(monthStart)), all_time: tot(done), estimates: true };
 }
 
+import { schedulerGate } from "../../shared/schedulerGate.ts";
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -377,6 +378,7 @@ Deno.serve(async (req) => {
     if (action === "sync") {
       // Safe without a user (hourly workflow): it only reads Møthership records and writes WorkEntry rows.
       if (user && !isAdmin) return Response.json({ error: "Forbidden" }, { status: 403 });
+      if (!isAdmin) { const g = await schedulerGate(base44, user, "work-ledger:sync", 3, 40); if (g) return g; }
       return Response.json(await sync(db, base44, user));
     }
     if (action === "log") {
