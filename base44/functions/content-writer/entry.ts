@@ -12,6 +12,7 @@ import { arr, s } from "../../shared/contentPipeline.ts";
 
 const BUDGET_MS = 100_000;
 
+import { schedulerGate } from "../../shared/schedulerGate.ts";
 Deno.serve(async (req) => {
   const started = Date.now();
   const deadline = started + BUDGET_MS;
@@ -22,6 +23,7 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me().catch(() => null);
     const isAdmin = user?.role === "admin";
     const action = s(b?.action) || "drain";
+    if (!isAdmin && action === "drain") { const g = await schedulerGate(base44, user, "content-writer:drain", 30, 300); if (g) return g; }
 
     if (action === "run") {
       if (!isAdmin) return Response.json({ error: "Forbidden" }, { status: 403 });
