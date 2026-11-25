@@ -1,15 +1,14 @@
-// Structure call (/calls): turns what Justin wants to cover on a client call into a tight, timeboxed plan, and turns
+// Call Prep (/calls): turns what Justin wants to cover on a call into a cheat sheet (not a script), and turns
 // what happened on the call into action items and proposed brain facts. Built-in InvokeLLM only. Admin only.
-//   { mode: "structure", call_prep_id }                      reads raw_notes + client context, writes the plan (status ready)
+//   { mode: "structure", call_prep_id }                      reads raw_notes + client context, writes the prep (status ready)
 //   { mode: "structure", client_id, raw_notes, title?, scheduled_for?, timebox_minutes? }   creates the CallPrep first
 //   { mode: "quick", raw_notes }                             one dictation: works out the client from the roster, creates + structures
-//   { mode: "debrief", call_prep_id, outcomes? }             proposes action_items + brain_facts_proposed (status done)
+//   { mode: "debrief", call_prep_id, outcomes? }             proposes action_items + brain_facts_proposed (status done); reads captured answers
 //   { mode: "fact", call_prep_id, index, decision }          decision accepted -> writes a BrainFact on the client; rejected -> marks it
 //   { mode: "context", client_id }                           what the agent would read (for the UI)
 //   { mode: "pitch" }                                       writes PitchScript (30 s / 2 min / 10 min) from the positioning facts
-// call_type changes the structure: client | sales_discovery | sales_close | investor | partner | win_back | internal.
-// Sales, investor, partner, internal and win-back calls also read Interstellar's positioning (BrainFact source = positioning).
-// Output is a cheat sheet (remember / background / show / topics / questions with answers), never a script.
+// Context read per client: Business Brain (context_md, glance, open questions), BrainFacts, dossier, work, tasks, posts,
+// systems, open launch to-dos, earlier calls (outcomes, open action items) and prep notes written in Claude (reference_md).
 // Never invents facts, prices or promises; flags conflicts with stored facts; nothing personal is ever proposed as a fact.
 // deno-lint-ignore-file no-explicit-any
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
@@ -33,6 +32,13 @@ async function loadPositioning(db: any) {
   return arr(await safe(db.BrainFact.filter({ source: "positioning", status: "active" }, "question_key", 40), []));
 }
 
+const followUpsOf = (prior: any[], them: string) => {
+  const out: string[] = [];
+  for (const c of prior) for (const a of arr(c.action_items)) if (!a?.done && s(a?.text)) out.push(`${s(a.text)} (${a.owner === "client" ? them : "Justin"}${a.due ? `, due ${s(a.due)}` : ""}; from "${s(c.title) || "earlier call"}")`);
+  return out;
+};
+const refsOf = (cp: any, prior: any[]) => [cp, ...prior].filter((c: any) => c && s(c.reference_md)).map((c: any) => ({ title: s(c.title), md: s(c.reference_md) }));
+
 async function loadContext(db: any, clientId: string, excludeId = "", cp: any = null) {
   const type = TYPES.includes(cp?.call_type) ? cp.call_type : "client";
   const positioning = USES_POSITIONING.has(type) ? await loadPositioning(db) : [];
@@ -40,12 +46,9 @@ async function loadContext(db: any, clientId: string, excludeId = "", cp: any = 
     const who = s(cp?.company) || s(cp?.contact_name);
     const calls = who ? arr(await safe(db.CallPrep.filter(s(cp?.company) ? { company: s(cp.company) } : { contact_name: s(cp.contact_name) }, "-created_date", 6), [])) : [];
     const prior = calls.filter((c: any) => c.id !== excludeId).slice(0, 3);
-    const followUps: string[] = [];
-    for (const c of prior) for (const a of arr(c.action_items)) if (!a?.done && s(a?.text)) followUps.push(`${s(a.text)} (${a.owner === "client" ? "them" : "Justin"}${a.due ? `, due ${s(a.due)}` : ""}; from "${s(c.title) || "earlier call"}")`);
-    const refs = [cp, ...prior].filter((c: any) => c && s(c.reference_md)).map((c: any) => ({ title: s(c.title), md: s(c.reference_md) }));
-    return { client: null, facts: [], dossier: null, work: [], openTasks: [], posts: [], apps: [], prior, followUps, positioning, type, cp, launch: [], refs };
+    return { client: null, facts: [], dossier: null, work: [], openTasks: [], posts: [], apps: [], prior, followUps: followUpsOf(prior, "them"), positioning, type, cp, launch: [], refs: refsOf(cp, prior), brain: null };
   }
-  const [client, facts, dossiers, work, tasks, posts, apps, calls] = await Promise.all([
+  const [client, facts, dossiers, work, tasks, posts, apps, calls, brains, launchAll] = await Promise.all([
     safe(db.CRMClient.get(clientId), null),
     safe(db.BrainFact.filter({ client_id: clientId, status: "active" }, "-updated_date", 120), []),
     safe(db.ClientDossier.filter({ client_id: clientId }, "-updated_date", 2), []),
@@ -54,17 +57,15 @@ async function loadContext(db: any, clientId: string, excludeId = "", cp: any = 
     safe(db.ContentPost.filter({ client_id: clientId }, "-published_at", 8), []),
     safe(db.ClientAppProfile.filter({ client_id: clientId }, "-updated_date", 6), []),
     safe(db.CallPrep.filter({ client_id: clientId }, "-created_date", 6), []),
+    safe(db.BusinessBrain.filter({ client_id: clientId }, "-updated_date", 1), []),
+    safe(db.LaunchItem.filter({ client_id: clientId }, "-updated_date", 40), []),
   ]);
-  const brain = arr(await safe(db.BusinessBrain.filter({ client_id: clientId }, "-updated_date", 1), []))[0] || null;
-  const launch = arr(await safe(db.LaunchItem.filter({ client_id: clientId }, "-updated_date", 40), [])).filter((l: any) => !["done", "skipped", "cancelled"].includes(s(l.status)));
+  const launch = arr(launchAll).filter((l: any) => !["done", "skipped", "cancelled"].includes(s(l.status)));
   const byName = client?.business ? await safe(db.BrainFact.filter({ client_name: client.business, status: "active" }, "-updated_date", 40), []) : [];
   const allFacts = [...arr(facts), ...arr(byName).filter((f: any) => !arr(facts).some((x: any) => x.id === f.id))];
   const openTasks = arr(tasks).filter((t: any) => !["done", "cancelled", "archived"].includes(s(t.status)));
   const prior = arr(calls).filter((c: any) => c.id !== excludeId).slice(0, 3);
-  const followUps: string[] = [];
-  for (const c of prior) for (const a of arr(c.action_items)) if (!a?.done && s(a?.text)) followUps.push(`${s(a.text)} (${a.owner === "client" ? "client" : "Justin"}${a.due ? `, due ${s(a.due)}` : ""}; from "${s(c.title) || "earlier call"}")`);
-  const refs = [cp, ...prior].filter((c: any) => c && s(c.reference_md)).map((c: any) => ({ title: s(c.title), md: s(c.reference_md) }));
-  return { client, facts: allFacts, dossier: arr(dossiers)[0] || null, work: arr(work), openTasks, posts: arr(posts), apps: arr(apps), prior, followUps, positioning, type, cp, launch, refs, brain };
+  return { client, facts: allFacts, dossier: arr(dossiers)[0] || null, work: arr(work), openTasks, posts: arr(posts), apps: arr(apps), prior, followUps: followUpsOf(prior, "client"), positioning, type, cp, launch, refs: refsOf(cp, prior), brain: arr(brains)[0] || null };
 }
 
 function contextText(ctx: any) {
@@ -80,12 +81,12 @@ function contextText(ctx: any) {
   if (arr(c.services_managed).length) lines.push(`We manage: ${arr(c.services_managed).join(", ")}`);
   if (arr(c.notes).length) lines.push(`CRM notes: ${arr(c.notes).map((n: any) => clip(n, 220)).join(" | ")}`);
   if (c.next_step) lines.push(`CRM next step: ${s(c.next_step)}`);
-  if (arr(d.offers).length) lines.push(`Offers (dossier): ${arr(d.offers).map((o: any) => `${s(o.name)}${o.price ? ` ${s(o.price)}` : ""}${o.promise ? ` (${s(o.promise)})` : ""}`).join("; ")}`);
-  if (arr(d.services).length) lines.push(`Services (dossier): ${arr(d.services).map((x: any) => s(x.name)).filter(Boolean).join(", ")}`);
   if (ctx.brain?.context_md) lines.push(`BUSINESS BRAIN (the client's profile; source of truth for facts):\n${clip(String(ctx.brain.context_md).replace(/<!--[^>]*-->/g, ""), 7000)}`);
   if (ctx.brain?.glance) lines.push(`AT A GLANCE:\n${clip(ctx.brain.glance, 1500)}`);
   const oq = arr(ctx.brain?.open_questions).filter((q: any) => s(q.status) !== "answered" && s(q.q));
   if (oq.length) lines.push(`OPEN QUESTIONS IN THE BRAIN (good things to ask if they fit this call):\n${oq.slice(0, 15).map((q: any) => `- ${clip(q.q, 240)}`).join("\n")}`);
+  if (arr(d.offers).length) lines.push(`Offers (dossier): ${arr(d.offers).map((o: any) => `${s(o.name)}${o.price ? ` ${s(o.price)}` : ""}${o.promise ? ` (${s(o.promise)})` : ""}`).join("; ")}`);
+  if (arr(d.services).length) lines.push(`Services (dossier): ${arr(d.services).map((x: any) => s(x.name)).filter(Boolean).join(", ")}`);
   if (ctx.facts.length) lines.push(`STORED FACTS (brain):\n${ctx.facts.slice(0, 80).map((f: any) => `- [${s(f.pillar)}] ${clip(f.statement, 260)}`).join("\n")}`);
   if (ctx.work.length) lines.push(`RECENT WORK DONE:\n${ctx.work.slice(0, 12).map((w: any) => `- ${s(w.completed_at).slice(0, 10)} ${clip(w.title, 200)}`).join("\n")}`);
   if (ctx.openTasks.length) lines.push(`OPEN TASKS:\n${ctx.openTasks.slice(0, 25).map((t: any) => `- ${clip(t.title, 160)} (${s(t.status)}${t.due_date ? `, due ${s(t.due_date)}` : ""})`).join("\n")}`);
@@ -100,20 +101,20 @@ function contextText(ctx: any) {
 
 function toMarkdown(cp: any) {
   const out: string[] = [];
-  const total = arr(cp.agenda).reduce((n: number, a: any) => n + (Number(a.minutes) || 0), 0);
   out.push(`# ${s(cp.title) || "Call"}${cp.client_name ? ` · ${s(cp.client_name)}` : ""}`);
-  if (cp.scheduled_for) out.push(`_${new Date(cp.scheduled_for).toLocaleString("en-US", { timeZone: "America/Los_Angeles", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} PT · ${total} min_`);
-  else out.push(`_${total} min_`);
+  if (cp.scheduled_for) out.push(`_${new Date(cp.scheduled_for).toLocaleString("en-US", { timeZone: "America/Los_Angeles", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} PT_`);
   if (cp.goal) out.push(`\n**Goal:** ${s(cp.goal)}`);
   if (arr(cp.remember).length) out.push(`\n**Don't forget**\n${arr(cp.remember).map((x: any) => `- ${s(x)}`).join("\n")}`);
+  if (arr(cp.background).length) out.push(`\n**Where things stand**\n${arr(cp.background).map((x: any) => `- ${s(x)}`).join("\n")}`);
   if (arr(cp.prep_checklist).length) out.push(`\n**Have open**\n${arr(cp.prep_checklist).map((x: any) => `- [ ] ${s(x)}`).join("\n")}`);
   out.push("\n## Talk about");
   arr(cp.agenda).forEach((a: any, i: number) => {
     out.push(`\n### ${i + 1}. ${s(a.topic)}`);
-    if (a.decision_needed) out.push(`**Decision:** ${s(a.decision_needed)}`);
+    if (a.decision_needed) out.push(`**Decide:** ${s(a.decision_needed)}`);
     arr(a.talking_points).forEach((t: any) => out.push(`- ${s(t)}`));
     arr(a.questions).forEach((q: any) => out.push(`- Ask: ${s(q)}`));
   });
+  if (arr(cp.show).length) out.push(`\n## Show\n${arr(cp.show).map((x: any) => `- ${s(x)}`).join("\n")}`);
   if (arr(cp.asks_from_client).length) out.push(`\n## Get from ${s(cp.client_name) || "the client"}\n${arr(cp.asks_from_client).map((x: any) => `- ${s(x)}`).join("\n")}`);
   if (arr(cp.risks).length) out.push(`\n## Watch for\n${arr(cp.risks).map((x: any) => `- ${s(x)}`).join("\n")}`);
   if (arr(cp.conflicts).length) out.push(`\n## Check before the call (conflicts with what we have on file)\n${arr(cp.conflicts).map((x: any) => `- ${s(x)}`).join("\n")}`);
@@ -185,7 +186,7 @@ function structurePrompt(cp: any, ctx: any) {
     ...TYPE_RULES[type],
     "HOW JUSTIN WORKS: he does NOT want a script. He wings it and talks naturally; he wants things to remember so he doesn't forget, and his questions laid out so he gets every answer. So every bullet is a memory jogger of 3-12 words, never a sentence to read out. No 'Say: ...' lines, no openers, no word-for-word lines.",
     "- remember: the 3-7 things he must not forget on this call, shortest possible.",
-    "- background: 3-8 bullets on where things stand with them right now, ONLY from the context below (stored facts, work, to-dos, prep notes). Empty if nothing on file.",
+    "- background: 3-8 bullets on where things stand with them right now, ONLY from the context below (business brain, stored facts, work, to-dos, prep notes). Empty if nothing on file.",
     "- show: things to pull up and show (pages, screens, files), if any.",
     "Turn his notes into the prep. Rules:",
     "- goal: ONE sentence, what must be true when the call ends.",
@@ -195,14 +196,14 @@ function structurePrompt(cp: any, ctx: any) {
       + " Close with a final topic 'Next steps and next call date' (purpose decide) that confirms owners and dates.",
     "- If OPEN ACTION ITEMS FROM LAST CALLS are given, add an early topic 'Follow-ups from last call' covering only those, briefly.",
     `- Give every topic rough minutes; total about ${Number(cp.timebox_minutes) || 25}. Minutes are a soft guide only.`,
-    "- talking_points: memory joggers, 3-12 words each, from his notes or the context. questions: the questions to ask, short and plain, one thing each; include EVERY question his notes mention plus any answer still missing from the context. decision_needed: the yes/no or choice to get, for decide items.",
+    "- talking_points: memory joggers, 3-12 words each, from his notes or the context. questions: the questions to ask, short and plain, one thing each; include EVERY question his notes mention, plus open brain questions or missing to-do answers that fit this call. decision_needed: the yes/no or choice to get, for decide items.",
     "- prep_checklist: things Justin should have open before the call (specific pages, URLs, numbers, files) drawn from the notes and context.",
     "- asks_from_client: what to get from them (assets, approvals, numbers, logins, decisions).",
     "- risks: things that could derail the call or the project; keep it to real ones.",
-    "- conflicts: anything in his notes that disagrees with STORED FACTS, dossier, CRM notes or the site, or anything his notes say is inconsistent with itself (e.g. two different numbers for the same thing). Quote both sides. Empty if none.",
+    "- conflicts: anything in his notes that disagrees with the BUSINESS BRAIN, STORED FACTS, dossier, CRM notes or the site, or anything his notes say is inconsistent with itself (e.g. two different numbers for the same thing). Quote both sides. Empty if none.",
     "- Never repeat why former clients left, or anything personal about anyone, on a call plan.",
     "- NEVER invent facts, prices, dates, numbers or promises. If something is unknown, make it a question. Do not promise outcomes on Justin's behalf.",
-    "- title: short, e.g. 'Pre-launch walkthrough'. Use plain words, no emoji, no hype.",
+    "- title: short, e.g. 'Pre-launch walkthrough'. Use plain words, no emoji, no hype. Never write 'Base44'.",
     "",
     contextText(ctx),
     "",
@@ -243,7 +244,7 @@ function debriefPrompt(cp: any, ctx: any, outcomes: string) {
       ? "You turn Justin's notes from an internal meeting about Interstellar Strategies into action items and brain facts about Interstellar itself."
       : "You turn Justin's after-call notes into action items and brain facts for the business he spoke with.",
     "action_items: every concrete next step that was said. owner 'justin' (Justin / Interstellar) or 'client'. due only if a date or day was said (write it as said); otherwise empty.",
-    "brain_facts: durable facts about the CLIENT'S BUSINESS that were actually said in the notes (prices, lead times, preferences, approvals, decisions, numbers, goals). Rules:",
+    "brain_facts: durable facts about the CLIENT'S BUSINESS that were actually said in the notes or the captured answers (prices, lead times, preferences, approvals, decisions, numbers, goals). Rules:",
     "- Only what the notes say. Never infer, never generalize, never add numbers. quote = the words in the notes it comes from.",
     "- One fact per item, written as a plain statement that will still be true later, e.g. 'Standard fabrication lead time is about 4 days (Tyler, Nov 2026 call)'.",
     "- Skip anything personal or sensitive about any person (health, family, relationships, religion, politics, money troubles, legal matters), credentials, and small talk.",
@@ -274,7 +275,7 @@ async function structureCall(db: any, llm: any, cp: any, b: any) {
   const patch: any = {
     ...st, qa, raw_notes: cp.raw_notes, follow_ups: ctx.followUps, status: cp.status === "done" ? "done" : "ready", generated_at: now(),
     client_name: s(ctx.client?.business) || cp.client_name,
-    context_summary: `${ctx.positioning.length ? `${ctx.positioning.length} positioning facts · ` : ""}${ctx.facts.length} brain facts · ${ctx.work.length} recent work · ${ctx.openTasks.length} open tasks · ${ctx.posts.length} site posts · ${ctx.apps.length} systems · ${ctx.prior.length} earlier calls · ${arr(ctx.launch).length} launch to-dos · ${arr(ctx.refs).length} prep notes${ctx.brain ? " · business brain" : ""}${ctx.dossier ? " · dossier" : ""}`,
+    context_summary: `${ctx.positioning.length ? `${ctx.positioning.length} positioning facts · ` : ""}${ctx.brain ? "business brain · " : ""}${ctx.facts.length} brain facts · ${ctx.work.length} recent work · ${ctx.openTasks.length} open tasks · ${ctx.posts.length} site posts · ${ctx.apps.length} systems · ${ctx.prior.length} earlier calls · ${arr(ctx.launch).length} launch to-dos · ${arr(ctx.refs).length} prep notes${ctx.dossier ? " · dossier" : ""}`,
   };
   patch.structure = toMarkdown({ ...cp, ...patch });
   const saved = await db.CallPrep.update(cp.id, patch);
@@ -294,7 +295,7 @@ Deno.serve(async (req) => {
     if (mode === "context") {
       const ctx = await loadContext(db, s(b.client_id));
       if (!ctx.client) return Response.json({ ok: false, error: "Client not found" }, { status: 404 });
-      return Response.json({ ok: true, follow_ups: ctx.followUps, counts: { facts: ctx.facts.length, work: ctx.work.length, open_tasks: ctx.openTasks.length, posts: ctx.posts.length, apps: ctx.apps.length, prior_calls: ctx.prior.length, launch: arr(ctx.launch).length } });
+      return Response.json({ ok: true, follow_ups: ctx.followUps, counts: { brain: ctx.brain ? 1 : 0, facts: ctx.facts.length, work: ctx.work.length, open_tasks: ctx.openTasks.length, posts: ctx.posts.length, apps: ctx.apps.length, prior_calls: ctx.prior.length, launch: arr(ctx.launch).length } });
     }
 
     if (mode === "quick") {
@@ -304,7 +305,7 @@ Deno.serve(async (req) => {
       const roster = clients.map((c: any) => `${c.id} | ${s(c.business)} | contact ${s(c.contact)} | ${s(c.domain)} | ${s(c.status)}`).join("\n");
       const today = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles", weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" });
       const pick: any = await llm([
-        "Justin dictated a request to prep a call. Work out who it is with and the basics. Match the business or the person to ONE client in the roster when it clearly fits (names may be misheard by dictation, e.g. 'small cakes' = Smallcakes, 'simple social' = SMPL Social, 'visceral' = VSRL). If none fits, leave client_id empty and fill contact_name/company from what he said.",
+        "Justin dictated a request to prep a call. Work out who it is with and the basics. Match the business or the person to ONE client in the roster when it clearly fits (names may be misheard by dictation, e.g. 'small cakes' = Smallcakes, 'simple social' = SMPL Social, 'visceral' = VSRL, 'j crew' = J Crew Coaching). If none fits, leave client_id empty and fill contact_name/company from what he said.",
         `Today is ${today} (Pacific). scheduled_for: an ISO date-time only if he said a day or time, interpreted in Pacific time; else empty.`,
         "call_type: client for current clients; sales_discovery / sales_close for prospects; partner, investor, win_back or internal when he says so.",
         "title: 2-5 words, e.g. 'Launch walkthrough'.",
