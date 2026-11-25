@@ -2,12 +2,14 @@
 // what happened on the call into action items and proposed brain facts. Built-in InvokeLLM only. Admin only.
 //   { mode: "structure", call_prep_id }                      reads raw_notes + client context, writes the plan (status ready)
 //   { mode: "structure", client_id, raw_notes, title?, scheduled_for?, timebox_minutes? }   creates the CallPrep first
+//   { mode: "quick", raw_notes }                             one dictation: works out the client from the roster, creates + structures
 //   { mode: "debrief", call_prep_id, outcomes? }             proposes action_items + brain_facts_proposed (status done)
 //   { mode: "fact", call_prep_id, index, decision }          decision accepted -> writes a BrainFact on the client; rejected -> marks it
 //   { mode: "context", client_id }                           what the agent would read (for the UI)
 //   { mode: "pitch" }                                       writes PitchScript (30 s / 2 min / 10 min) from the positioning facts
 // call_type changes the structure: client | sales_discovery | sales_close | investor | partner | win_back | internal.
 // Sales, investor, partner, internal and win-back calls also read Interstellar's positioning (BrainFact source = positioning).
+// Output is a cheat sheet (remember / background / show / topics / questions with answers), never a script.
 // Never invents facts, prices or promises; flags conflicts with stored facts; nothing personal is ever proposed as a fact.
 // deno-lint-ignore-file no-explicit-any
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
@@ -98,10 +100,11 @@ function toMarkdown(cp: any) {
   if (cp.scheduled_for) out.push(`_${new Date(cp.scheduled_for).toLocaleString("en-US", { timeZone: "America/Los_Angeles", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} PT · ${total} min_`);
   else out.push(`_${total} min_`);
   if (cp.goal) out.push(`\n**Goal:** ${s(cp.goal)}`);
+  if (arr(cp.remember).length) out.push(`\n**Don't forget**\n${arr(cp.remember).map((x: any) => `- ${s(x)}`).join("\n")}`);
   if (arr(cp.prep_checklist).length) out.push(`\n**Have open**\n${arr(cp.prep_checklist).map((x: any) => `- [ ] ${s(x)}`).join("\n")}`);
-  out.push("\n## Agenda");
+  out.push("\n## Talk about");
   arr(cp.agenda).forEach((a: any, i: number) => {
-    out.push(`\n### ${i + 1}. ${s(a.topic)} (${Number(a.minutes) || 0} min · ${s(a.purpose)})`);
+    out.push(`\n### ${i + 1}. ${s(a.topic)}`);
     if (a.decision_needed) out.push(`**Decision:** ${s(a.decision_needed)}`);
     arr(a.talking_points).forEach((t: any) => out.push(`- ${s(t)}`));
     arr(a.questions).forEach((q: any) => out.push(`- Ask: ${s(q)}`));
@@ -137,7 +140,7 @@ const STRUCTURE_SCHEMA = {
     risks: { type: "array", items: { type: "string" } },
     conflicts: { type: "array", items: { type: "string" } },
   },
-  required: ["goal", "agenda"],
+  required: ["goal", "agenda", "remember"],
 };
 
 const TYPE_RULES: Record<string, string[]> = {
@@ -173,23 +176,23 @@ const TYPE_RULES: Record<string, string[]> = {
 function structurePrompt(cp: any, ctx: any) {
   const type = TYPES.includes(cp?.call_type) ? cp.call_type : "client";
   return [
-    `You are Justin Cowell's call planner. Justin runs Interstellar Strategies, a digital agency. He spends too long on calls; your job is a tight ${TYPE_LABEL[type]} that gets more done.`,
+    `You are Justin Cowell's call prep. Justin runs Interstellar Strategies, a digital agency. Prep a focused ${TYPE_LABEL[type]} that gets everything done.`,
     ...TYPE_RULES[type],
     "HOW JUSTIN WORKS: he does NOT want a script. He wings it and talks naturally; he wants things to remember so he doesn't forget, and his questions laid out so he gets every answer. So every bullet is a memory jogger of 3-12 words, never a sentence to read out. No 'Say: ...' lines, no openers, no word-for-word lines.",
     "- remember: the 3-7 things he must not forget on this call, shortest possible.",
     "- background: 3-8 bullets on where things stand with them right now, ONLY from the context below (stored facts, work, to-dos, prep notes). Empty if nothing on file.",
     "- show: things to pull up and show (pages, screens, files), if any.",
-    "Turn his notes into a call plan. Rules:",
+    "Turn his notes into the prep. Rules:",
     "- goal: ONE sentence, what must be true when the call ends.",
     (type === "client"
-      ? "- Agenda order: open with the goal (1-2 min, purpose inform), then every DECISION item, then show items, then asks, then informs."
-      : "- Agenda order: follow the call-type rules above (state the goal in the first item).")
-      + " Close with a final item 'Recap, next steps, next call date' (2-3 min, purpose decide) that confirms owners and dates.",
-    "- If OPEN ACTION ITEMS FROM LAST CALLS are given, add an early item 'Follow-ups from last call' covering only those, briefly.",
-    `- Timebox every item in whole minutes. Total = ${Number(cp.timebox_minutes) || 25} minutes unless his notes clearly need less (default range 20-30). Never exceed 30 unless he asked for longer.`,
-    "- talking_points: memory joggers, 3-12 words each, from his notes or the context. questions: the questions to ask, short and plain, one thing each. decision_needed: the yes/no or choice to get, for decide items.",
+      ? "- Topic order (agenda): decisions first, then things to show, then asks, then updates."
+      : "- Topic order (agenda): follow the call-type rules above.")
+      + " Close with a final topic 'Next steps and next call date' (purpose decide) that confirms owners and dates.",
+    "- If OPEN ACTION ITEMS FROM LAST CALLS are given, add an early topic 'Follow-ups from last call' covering only those, briefly.",
+    `- Give every topic rough minutes; total about ${Number(cp.timebox_minutes) || 25}. Minutes are a soft guide only.`,
+    "- talking_points: memory joggers, 3-12 words each, from his notes or the context. questions: the questions to ask, short and plain, one thing each; include EVERY question his notes mention plus any answer still missing from the context. decision_needed: the yes/no or choice to get, for decide items.",
     "- prep_checklist: things Justin should have open before the call (specific pages, URLs, numbers, files) drawn from the notes and context.",
-    "- asks_from_client: what to get from them (assets, approvals, numbers, decisions).",
+    "- asks_from_client: what to get from them (assets, approvals, numbers, logins, decisions).",
     "- risks: things that could derail the call or the project; keep it to real ones.",
     "- conflicts: anything in his notes that disagrees with STORED FACTS, dossier, CRM notes or the site, or anything his notes say is inconsistent with itself (e.g. two different numbers for the same thing). Quote both sides. Empty if none.",
     "- Never repeat why former clients left, or anything personal about anyone, on a call plan.",
@@ -206,7 +209,7 @@ function cleanStructure(r: any, cp: any) {
   const agenda = arr(r?.agenda).map((a: any) => ({
     topic: clip(a?.topic, 140), minutes: Math.max(1, Math.round(Number(a?.minutes) || 2)), purpose: PURPOSES.includes(a?.purpose) ? a.purpose : "inform",
     talking_points: arr(a?.talking_points).map((x: any) => clip(x, 300)).filter(Boolean).slice(0, 8),
-    questions: arr(a?.questions).map((x: any) => clip(x, 300)).filter(Boolean).slice(0, 6),
+    questions: arr(a?.questions).map((x: any) => clip(x, 300)).filter(Boolean).slice(0, 8),
     decision_needed: clip(a?.decision_needed, 300), done: false,
   })).filter((a: any) => a.topic).slice(0, 12);
   const list = (v: any, n = 12) => arr(v).map((x: any) => clip(x, 300)).filter(Boolean).slice(0, n);
@@ -250,28 +253,28 @@ function debriefPrompt(cp: any, ctx: any, outcomes: string) {
 }
 
 async function structureCall(db: any, llm: any, cp: any, b: any) {
-      if (b.raw_notes != null && s(b.raw_notes) !== s(cp.raw_notes)) cp = { ...cp, raw_notes: s(b.raw_notes) };
-      if (b.timebox_minutes) cp = { ...cp, timebox_minutes: Number(b.timebox_minutes) };
-      if (s(cp.raw_notes).length < 5) return Response.json({ ok: false, error: "Say or type what the call needs to cover first" }, { status: 400 });
-      const ctx = await loadContext(db, s(cp.client_id), cp.id, cp);
-      const r: any = await llm(structurePrompt(cp, ctx), STRUCTURE_SCHEMA);
-      const st = cleanStructure(r, cp);
-      if (!st.agenda.length) return Response.json({ ok: false, error: "The planner returned no agenda; try again" }, { status: 502 });
-      const old = arr(cp.qa);
-      const qa = st.agenda.flatMap((a: any) => a.questions.map((q: string) => {
-        const prev = old.find((o: any) => s(o.q).toLowerCase() === q.toLowerCase());
-        return { q, topic: a.topic, answer: s(prev?.answer), asked: !!prev?.asked };
-      }));
-      for (const o of old) if (s(o.answer) && !qa.some((x: any) => s(x.q).toLowerCase() === s(o.q).toLowerCase())) qa.push(o);
-      const patch: any = {
-        ...st, qa, raw_notes: cp.raw_notes, follow_ups: ctx.followUps, status: cp.status === "done" ? "done" : "ready", generated_at: now(),
-        client_name: s(ctx.client?.business) || cp.client_name,
-        context_summary: `${ctx.positioning.length ? `${ctx.positioning.length} positioning facts · ` : ""}${ctx.facts.length} brain facts · ${ctx.work.length} recent work · ${ctx.openTasks.length} open tasks · ${ctx.posts.length} site posts · ${ctx.apps.length} systems · ${ctx.prior.length} earlier calls · ${arr(ctx.launch).length} launch to-dos · ${arr(ctx.refs).length} prep notes${ctx.dossier ? " · dossier" : ""}`,
-      };
-      patch.structure = toMarkdown({ ...cp, ...patch });
-      const saved = await db.CallPrep.update(cp.id, patch);
-      return Response.json({ ok: true, call_prep: { ...cp, ...patch, ...(saved || {}), id: cp.id } });
-    }
+  if (b.raw_notes != null && s(b.raw_notes) !== s(cp.raw_notes)) cp = { ...cp, raw_notes: s(b.raw_notes) };
+  if (b.timebox_minutes) cp = { ...cp, timebox_minutes: Number(b.timebox_minutes) };
+  if (s(cp.raw_notes).length < 5) return Response.json({ ok: false, error: "Say or type what the call needs to cover first" }, { status: 400 });
+  const ctx = await loadContext(db, s(cp.client_id), cp.id, cp);
+  const r: any = await llm(structurePrompt(cp, ctx), STRUCTURE_SCHEMA);
+  const st = cleanStructure(r, cp);
+  if (!st.agenda.length) return Response.json({ ok: false, error: "The planner returned no agenda; try again" }, { status: 502 });
+  const old = arr(cp.qa);
+  const qa: any[] = st.agenda.flatMap((a: any) => a.questions.map((q: string) => {
+    const prev = old.find((o: any) => s(o.q).toLowerCase() === q.toLowerCase());
+    return { q, topic: a.topic, answer: s(prev?.answer), asked: !!prev?.asked };
+  }));
+  for (const o of old) if (s(o.answer) && !qa.some((x: any) => s(x.q).toLowerCase() === s(o.q).toLowerCase())) qa.push(o);
+  const patch: any = {
+    ...st, qa, raw_notes: cp.raw_notes, follow_ups: ctx.followUps, status: cp.status === "done" ? "done" : "ready", generated_at: now(),
+    client_name: s(ctx.client?.business) || cp.client_name,
+    context_summary: `${ctx.positioning.length ? `${ctx.positioning.length} positioning facts · ` : ""}${ctx.facts.length} brain facts · ${ctx.work.length} recent work · ${ctx.openTasks.length} open tasks · ${ctx.posts.length} site posts · ${ctx.apps.length} systems · ${ctx.prior.length} earlier calls · ${arr(ctx.launch).length} launch to-dos · ${arr(ctx.refs).length} prep notes${ctx.dossier ? " · dossier" : ""}`,
+  };
+  patch.structure = toMarkdown({ ...cp, ...patch });
+  const saved = await db.CallPrep.update(cp.id, patch);
+  return Response.json({ ok: true, call_prep: { ...cp, ...patch, ...(saved || {}), id: cp.id } });
+}
 
 Deno.serve(async (req) => {
   try {
@@ -286,7 +289,7 @@ Deno.serve(async (req) => {
     if (mode === "context") {
       const ctx = await loadContext(db, s(b.client_id));
       if (!ctx.client) return Response.json({ ok: false, error: "Client not found" }, { status: 404 });
-      return Response.json({ ok: true, follow_ups: ctx.followUps, counts: { facts: ctx.facts.length, work: ctx.work.length, open_tasks: ctx.openTasks.length, posts: ctx.posts.length, apps: ctx.apps.length, prior_calls: ctx.prior.length } });
+      return Response.json({ ok: true, follow_ups: ctx.followUps, counts: { facts: ctx.facts.length, work: ctx.work.length, open_tasks: ctx.openTasks.length, posts: ctx.posts.length, apps: ctx.apps.length, prior_calls: ctx.prior.length, launch: arr(ctx.launch).length } });
     }
 
     if (mode === "quick") {
@@ -306,13 +309,11 @@ Deno.serve(async (req) => {
       const match = clients.find((c: any) => c.id === s(pick?.client_id));
       const when = s(pick?.scheduled_for) && !isNaN(Date.parse(s(pick.scheduled_for))) ? new Date(s(pick.scheduled_for)).toISOString() : undefined;
       const call_type = TYPES.includes(pick?.call_type) ? pick.call_type : (match ? "client" : "sales_discovery");
-      let created = await db.CallPrep.create({
+      const created = await db.CallPrep.create({
         call_type, client_id: match?.id || "", client_name: s(match?.business) || s(pick?.company), contact_name: s(pick?.contact_name) || s(match?.contact),
         company: match ? "" : s(pick?.company), title: clip(pick?.title, 80), scheduled_for: when, status: "draft", raw_notes: said, timebox_minutes: 25, created_at: now(), source: "app",
       });
-      b.call_prep_id = created.id;
-      b.mode = "structure";
-      return await structureCall(db, llm, created, b);
+      return await structureCall(db, llm, created, { raw_notes: said });
     }
 
     let cp: any = null;
@@ -342,7 +343,7 @@ Deno.serve(async (req) => {
       cp = await db.CallPrep.create({
         call_type, client_id: client?.id || "", client_name: s(client?.business) || s(b.company) || (call_type === "internal" ? "Interstellar Strategies" : ""),
         contact_name: s(b.contact_name), company: s(b.company), title: s(b.title), scheduled_for: b.scheduled_for || undefined, status: "draft",
-        raw_notes: s(b.raw_notes), timebox_minutes: Number(b.timebox_minutes) || 25, created_at: now(),
+        raw_notes: s(b.raw_notes), timebox_minutes: Number(b.timebox_minutes) || 25, created_at: now(), source: "app",
       });
     }
     if (!cp) return Response.json({ ok: false, error: "Call prep not found" }, { status: 404 });
