@@ -104,7 +104,7 @@ export default function CheatSheet({ cp, set, onSave }) {
             <div className="space-y-3.5">
               {cp.agenda.map((a, i) => (
                 <div key={i}>
-                  <p className="text-[14.5px] font-semibold text-white">{a.topic}</p>
+                  <p className="text-[14.5px] font-semibold text-white">{a.topic}{!arr(a.talking_points).length && arr(a.questions).length ? <span className="mono ml-2 text-[10.5px] font-normal text-[var(--ink-s)]">{arr(a.questions).length} question{arr(a.questions).length === 1 ? "" : "s"} →</span> : null}</p>
                   {arr(a.talking_points).length ? <div className="mt-1.5"><Dots items={a.talking_points} /></div> : null}
                   {a.decision_needed ? <p className="mt-1.5 border-l-2 border-[#ff6a00] pl-2.5 text-[13px] text-[#ffd2b0]">Decide: {a.decision_needed}</p> : null}
                 </div>

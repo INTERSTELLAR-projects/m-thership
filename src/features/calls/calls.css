@@ -45,3 +45,6 @@
 .agx.cpx .cpx-md strong{color:#fff}
 .agx.cpx .cpx-md table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
 .agx.cpx .cpx-md td,.agx.cpx .cpx-md th{border:1px solid rgba(255,255,255,.1);padding:4px 6px;text-align:left}
+/* Tabs scroll sideways on phones instead of pushing the page wider */
+.agx.cpx .tabs { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.agx.cpx .tabs::-webkit-scrollbar { display: none; }
