@@ -5,6 +5,7 @@ import { queueFromInvoice } from "../../shared/portalInvite.ts";
 import { creditFromCheckoutSession } from "../../shared/fuel.ts";
 import { activateFromCheckoutSession, handleSubscriptionEvent } from "../../shared/addons.ts";
 import { fromStripeInvoice } from "../../shared/leadStage.ts";
+import { recordPackageInvoice } from "../../shared/packageLedger.ts";
 
 /*
  * Stripe → Møthership, as it happens. Register this function's URL in Stripe (Developers → Webhooks) for:
@@ -63,7 +64,9 @@ export default async function (req: Request) {
     // A Stripe invoice for a lead's customer: Won (auto, undoable) + paid amount onto the deal. Never emails.
     const lead = /^invoice\./.test(event.type || "") ? await fromStripeInvoice(base44.asServiceRole.entities, event.data?.object).catch((e: any) => ({ error: e.message })) : null;
     if (event.type === "invoice.paid") invite = await queueFromInvoice(base44, event.data?.object).catch((e: any) => ({ queued: false, reason: e.message }));
-    return Response.json({ received: true, type: event.type, synced: result.synced, unmatched: result.unmatched.length, invite, addon, lead });
+    // 40-Day Business Rebuild: apply the paid invoice to the client's package balance (idempotent by invoice id).
+    const pkg = event.type === "invoice.paid" ? await recordPackageInvoice(base44.asServiceRole.entities, event.data?.object).catch((e: any) => ({ applied: false, error: e.message })) : null;
+    return Response.json({ received: true, type: event.type, synced: result.synced, unmatched: result.unmatched.length, invite, addon, lead, pkg });
   } catch (error: any) {
     return Response.json({ received: true, error: error.message }, { status: 200 });
   }
