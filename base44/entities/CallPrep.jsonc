@@ -1,6 +1,6 @@
 {
   "name": "CallPrep",
-  "description": "Structure call: one planned call (client, sales, investor, partner, win-back or internal). Justin dictates what he needs to cover (raw_notes, verbatim); the callPrepAgent function turns it into a goal, a timeboxed agenda (decisions first), a prep checklist, asks and risks, with open action items from the last calls rolled forward. After the call he dictates outcomes; the debrief proposes action items and brain facts, and each fact is written as a BrainFact on the client only after he accepts it. Admin only.",
+  "description": "Structure call: one planned call (client, sales, investor, partner, win-back or internal). Justin dictates what he needs to cover (raw_notes, verbatim); the callPrepAgent function turns it into a goal, a timeboxed agenda (decisions first), a prep checklist, asks and risks, with open action items from the last calls rolled forward. After the call he dictates outcomes; the debrief proposes action items and brain facts, and each fact is written as a BrainFact on the client only after he accepts it. Admin only. Cheat-sheet layout (remember, background, show, questions with answers) is the default view; PDFs are saved on the record so every prep is kept.",
   "type": "object",
   "properties": {
     "call_type": {
@@ -209,6 +209,86 @@
     "company": {
       "type": "string",
       "description": "Their company when they are not a CRM client"
+    },
+    "remember": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Cheat sheet: 3-7 must-not-forget points, a few words each (memory joggers, not a script)"
+    },
+    "background": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Cheat sheet: where things stand with them right now, from the brain (short bullets)"
+    },
+    "show": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Things to show on the call (pages, screens, files)"
+    },
+    "qa": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "asked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Questions to ask, with the answer captured during the call"
+    },
+    "reference_md": {
+      "type": "string",
+      "description": "Longer prep or background in markdown (written in Claude or pasted). Read by the agent for this call and later calls with the same client"
+    },
+    "pdfs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "generated",
+              "uploaded"
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Saved PDFs of this prep (generated cheat sheets and uploaded files)"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "app",
+        "claude"
+      ],
+      "default": "app",
+      "description": "Where the prep was made"
     }
   },
   "required": [],
