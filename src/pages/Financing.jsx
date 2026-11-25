@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useDeepLinkParam, useDeepLinkFocus } from "@/lib/deepLink";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, CalendarClock, ChevronDown, Edit, HandCoins, Landmark, Loader2, Plus, Receipt, Trash2, Wallet } from "lucide-react";
+import { AlertTriangle, CalendarClock, ChevronDown, Edit, HandCoins, Landmark, Loader2, Plus, Receipt, Rocket, Sparkles, Trash2, Wallet } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState, FinanceStyles, KpiTile } from "@/components/financial/finance/ui";
-import { FREQUENCIES, HEALTH, analyze, fmtDate, freqLabel, startOfDay, suggestPayment, toISODate } from "@/features/financing/schedule";
+import { FREE_UNDER, FREQUENCIES, HEALTH, PACKAGE_CARE, PACKAGE_PLANS, PACKAGE_REFERRAL_OFF, PACKAGE_START, analyze, fmtDate, freqLabel, parseDate, startOfDay, suggestPayment, toISODate } from "@/features/financing/schedule";
 
 const money = (v, d = 0) => `$${(Number(v) || 0).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d })}`;
 const money2 = (v) => money(v, 2);
@@ -42,6 +42,8 @@ export default function Financing() {
   const [filter, setFilter] = useState(linkedPlan ? "all" : "attention");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [pkgOpen, setPkgOpen] = useState(false);
+  const [upgrading, setUpgrading] = useState(null);
   const [paying, setPaying] = useState(null);
   const [toDelete, setToDelete] = useState(null);
   const [open, setOpen] = useState(() => new Set(linkedPlan ? [linkedPlan] : []));
@@ -93,6 +95,27 @@ export default function Financing() {
     await base44.entities.ClientFinancing.update(plan.id, changes);
     await refresh();
   };
+  const savePackage = async (fields) => {
+    if (editing) await base44.entities.ClientFinancing.update(editing.id, fields);
+    else await base44.entities.ClientFinancing.create({ ...fields, payments: [], upgrades: [] });
+    await refresh();
+  };
+  const addUpgrade = async (plan, up) => {
+    if (up.mode === "balance") {
+      const upgrades = [...(plan.upgrades || []), { date: up.date, label: up.label, amount: up.amount, from_installment: up.from_installment }];
+      await base44.entities.ClientFinancing.update(plan.id, { upgrades, status: plan.status === "paid_off" ? "active" : plan.status });
+      const after = analyze({ ...plan, upgrades }, now);
+      await base44.entities.Task.create({
+        title: `${plan.client_name}: update Stripe to ${money2(after.amt)}/mo`,
+        notes: `Upgrade "${up.label}" (${money2(up.amount)}) was added to the 40-Day Business Rebuild balance. New balance ${money2(after.balance)} over ${after.monthsLeft} month${after.monthsLeft === 1 ? "" : "s"}: change the Stripe subscription amount to ${money2(after.amt)}/mo from the next billing date.`,
+        client_id: plan.client_id || "", client_name: plan.client_name || "", category: "finance", priority: 1, status: "next", source: "automation",
+      }).catch(() => null);
+    } else {
+      const line = `${up.date}: upgrade "${up.label}" ${up.amount < FREE_UNDER ? "done free (under $250)" : `${money2(up.amount)} paid up front`}`;
+      await base44.entities.ClientFinancing.update(plan.id, { notes: [plan.notes, line].filter(Boolean).join("\n") });
+    }
+    await refresh();
+  };
   const del = async () => {
     if (!toDelete) return;
     await base44.entities.ClientFinancing.delete(toDelete.id);
@@ -111,9 +134,14 @@ export default function Financing() {
           <p className="max-w-xl text-[12px] text-ink/55">
             Every client on a payment plan, short or long term. Record payments as they land; anything past its due date plus the grace days shows as late.
           </p>
-          <Button onClick={() => { setEditing(null); setFormOpen(true); }} className="h-9 gap-2 border-0 font-semibold text-white flame-bg hover:opacity-90">
-            <Plus className="h-4 w-4" />New payment plan
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => { setEditing(null); setPkgOpen(true); }} className="h-9 gap-2 border-0 font-semibold text-white flame-bg hover:opacity-90">
+              <Rocket className="h-4 w-4" />New 40-Day Rebuild
+            </Button>
+            <Button variant="outline" onClick={() => { setEditing(null); setFormOpen(true); }} className="h-9 gap-2">
+              <Plus className="h-4 w-4" />Other payment plan
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -148,7 +176,8 @@ export default function Financing() {
           <div className="space-y-3">
             {shown.map(({ plan, a }) => (
               <PlanCard key={plan.id} plan={plan} a={a} expanded={open.has(plan.id)} onToggle={() => toggle(plan.id)}
-                onPay={() => setPaying(plan)} onEdit={() => { setEditing(plan); setFormOpen(true); }} onDelete={() => setToDelete(plan)}
+                onPay={() => setPaying(plan)} onUpgrade={() => setUpgrading(plan)}
+                onEdit={() => { setEditing(plan); if (plan.kind === "package") setPkgOpen(true); else setFormOpen(true); }} onDelete={() => setToDelete(plan)}
                 onRemovePayment={(idx) => removePayment(plan, idx)} />
             ))}
           </div>
@@ -156,6 +185,8 @@ export default function Financing() {
       </div>
 
       <PlanForm open={formOpen} onOpenChange={setFormOpen} initial={editing} clients={clientsQ.data || []} onSubmit={save} />
+      <PackageForm open={pkgOpen} onOpenChange={setPkgOpen} initial={editing} clients={clientsQ.data || []} onSubmit={savePackage} />
+      <UpgradeDialog plan={upgrading} onClose={() => setUpgrading(null)} onSubmit={addUpgrade} />
       <PaymentDialog plan={paying} onClose={() => setPaying(null)} onSubmit={recordPayment} />
 
       <AlertDialog open={!!toDelete} onOpenChange={(o) => { if (!o) setToDelete(null); }}>
@@ -181,7 +212,9 @@ function HealthPill({ health }) {
   return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide ${h.tone}`}>{h.label}</span>;
 }
 
-function PlanCard({ plan, a, expanded, onToggle, onPay, onEdit, onDelete, onRemovePayment }) {
+function PlanCard({ plan, a, expanded, onToggle, onPay, onUpgrade, onEdit, onDelete, onRemovePayment }) {
+  const pkg = a.isPackage ? PACKAGE_PLANS[plan.package_plan] : null;
+  const launched = plan.launch_date && parseDate(plan.launch_date) <= startOfDay(new Date());
   const closed = ["paid_off", "cancelled"].includes(a.health);
   const nextLine = closed
     ? a.health === "paid_off" ? `Paid off · ${money2(a.paid)} collected` : "Cancelled"
@@ -198,14 +231,26 @@ function PlanCard({ plan, a, expanded, onToggle, onPay, onEdit, onDelete, onRemo
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-[15px] font-semibold text-ink">{plan.client_name}</h3>
             <HealthPill health={a.health} />
-            <span className="mono-label text-[10px] text-ink/45">{plan.term_type === "long" ? "Long-term" : "Short-term"}</span>
+            {pkg ? (
+              <span className="rounded-full bg-[#ff6a00]/12 px-2 py-0.5 text-[10.5px] font-semibold text-[#c2410c]">40-Day Rebuild · {pkg.label}</span>
+            ) : (
+              <span className="mono-label text-[10px] text-ink/45">{plan.term_type === "long" ? "Long-term" : "Short-term"}</span>
+            )}
             {plan.financed_by === "third_party" && <span className="mono-label text-[10px] text-ink/45">via {plan.lender || "lender"}</span>}
           </div>
           <p className="mt-0.5 text-[13px] text-ink/70">{plan.title}</p>
           <p className={`mt-2 text-[12.5px] font-medium ${a.health === "late" ? "text-[#ff3c00]" : "text-ink/80"}`}>{nextLine}</p>
+          {pkg && (
+            <p className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11.5px] text-ink/60">
+              <span>{plan.start_paid_date ? `Start ${money(plan.start_payment)} paid ${fmtDate(parseDate(plan.start_paid_date))}` : <span className="font-semibold text-[#ff3c00]">Start {money(plan.start_payment)} not paid yet</span>}</span>
+              <span>{launched ? `Launched ${fmtDate(parseDate(plan.launch_date))}` : `Monthly starts at launch (${plan.launch_date ? fmtDate(parseDate(plan.launch_date)) : "date not set"})`}</span>
+              <span>{a.health === "paid_off" ? `Now HyperCare+ ${money(plan.after_payoff_monthly || PACKAGE_CARE)}/mo · client owns the code` : `Then HyperCare+ ${money(plan.after_payoff_monthly || PACKAGE_CARE)}/mo`}</span>
+              {plan.stripe_subscription_id ? <span>Stripe linked · auto-tracked</span> : <span>Stripe links on the first matching invoice</span>}
+            </p>
+          )}
         </div>
         <div className="grid grid-cols-3 gap-4 text-right">
-          <div><p className="mono-label text-[9.5px] text-ink/45">Installment</p><p className="text-[14px] font-semibold tabular-nums">{money2(a.amt)}</p><p className="text-[10.5px] text-ink/45">{freqLabel(plan.frequency)}</p></div>
+          <div><p className="mono-label text-[9.5px] text-ink/45">{pkg ? "Monthly now" : "Installment"}</p><p className="text-[14px] font-semibold tabular-nums">{money2(a.amt)}</p><p className="text-[10.5px] text-ink/45">{pkg ? `${a.monthsLeft} month${a.monthsLeft === 1 ? "" : "s"} left` : freqLabel(plan.frequency)}</p></div>
           <div><p className="mono-label text-[9.5px] text-ink/45">Paid</p><p className="text-[14px] font-semibold tabular-nums">{a.covered}/{a.n}</p><p className="text-[10.5px] text-ink/45">{money(a.paid)}</p></div>
           <div><p className="mono-label text-[9.5px] text-ink/45">Balance</p><p className="text-[14px] font-semibold tabular-nums">{money2(a.balance)}</p><p className="text-[10.5px] text-ink/45">ends {fmtDate(a.endDate)}</p></div>
         </div>
@@ -220,6 +265,9 @@ function PlanCard({ plan, a, expanded, onToggle, onPay, onEdit, onDelete, onRemo
       <div className="flex flex-wrap items-center gap-2 p-4 pt-3">
         {!closed && (
           <Button size="sm" onClick={onPay} className="h-8 gap-1.5 border-0 text-white flame-bg hover:opacity-90"><HandCoins className="h-3.5 w-3.5" />Record payment</Button>
+        )}
+        {pkg && (
+          <Button size="sm" variant="outline" onClick={onUpgrade} className="h-8 gap-1.5"><Sparkles className="h-3.5 w-3.5" />Add upgrade</Button>
         )}
         <Button size="sm" variant="outline" onClick={onToggle} className="h-8 gap-1.5">
           <ChevronDown className={`h-3.5 w-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} />Schedule & payments
@@ -264,7 +312,8 @@ function PlanCard({ plan, a, expanded, onToggle, onPay, onEdit, onDelete, onRemo
               </ul>
             )}
             <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1 text-[11.5px] text-ink/60">
-              {plan.total_price ? (<><dt>Price</dt><dd className="text-right tabular-nums">{money2(plan.total_price)}</dd></>) : null}
+              {plan.total_price ? (<><dt>{pkg ? "Package balance at start" : "Price"}</dt><dd className="text-right tabular-nums">{money2(plan.total_price)}</dd></>) : null}
+              {pkg && (plan.upgrades || []).map((u, i) => (<><dt key={`u${i}`}>Upgrade · {u.label}</dt><dd key={`v${i}`} className="text-right tabular-nums">+{money2(u.amount)}</dd></>))}
               {plan.down_payment ? (<><dt>Down payment</dt><dd className="text-right tabular-nums">{money2(plan.down_payment)}</dd></>) : null}
               {plan.interest_rate ? (<><dt>APR</dt><dd className="text-right tabular-nums">{plan.interest_rate}%</dd></>) : null}
               <dt>Scheduled total</dt><dd className="text-right tabular-nums">{money2(a.scheduledTotal)}</dd>
