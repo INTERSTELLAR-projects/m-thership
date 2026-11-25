@@ -40,7 +40,8 @@ async function loadContext(db: any, clientId: string, excludeId = "", cp: any = 
     const prior = calls.filter((c: any) => c.id !== excludeId).slice(0, 3);
     const followUps: string[] = [];
     for (const c of prior) for (const a of arr(c.action_items)) if (!a?.done && s(a?.text)) followUps.push(`${s(a.text)} (${a.owner === "client" ? "them" : "Justin"}${a.due ? `, due ${s(a.due)}` : ""}; from "${s(c.title) || "earlier call"}")`);
-    return { client: null, facts: [], dossier: null, work: [], openTasks: [], posts: [], apps: [], prior, followUps, positioning, type, cp };
+    const refs = [cp, ...prior].filter((c: any) => c && s(c.reference_md)).map((c: any) => ({ title: s(c.title), md: s(c.reference_md) }));
+    return { client: null, facts: [], dossier: null, work: [], openTasks: [], posts: [], apps: [], prior, followUps, positioning, type, cp, launch: [], refs };
   }
   const [client, facts, dossiers, work, tasks, posts, apps, calls] = await Promise.all([
     safe(db.CRMClient.get(clientId), null),
@@ -52,13 +53,15 @@ async function loadContext(db: any, clientId: string, excludeId = "", cp: any = 
     safe(db.ClientAppProfile.filter({ client_id: clientId }, "-updated_date", 6), []),
     safe(db.CallPrep.filter({ client_id: clientId }, "-created_date", 6), []),
   ]);
+  const launch = arr(await safe(db.LaunchItem.filter({ client_id: clientId }, "-updated_date", 40), [])).filter((l: any) => !["done", "skipped", "cancelled"].includes(s(l.status)));
   const byName = client?.business ? await safe(db.BrainFact.filter({ client_name: client.business, status: "active" }, "-updated_date", 40), []) : [];
   const allFacts = [...arr(facts), ...arr(byName).filter((f: any) => !arr(facts).some((x: any) => x.id === f.id))];
   const openTasks = arr(tasks).filter((t: any) => !["done", "cancelled", "archived"].includes(s(t.status)));
   const prior = arr(calls).filter((c: any) => c.id !== excludeId).slice(0, 3);
   const followUps: string[] = [];
   for (const c of prior) for (const a of arr(c.action_items)) if (!a?.done && s(a?.text)) followUps.push(`${s(a.text)} (${a.owner === "client" ? "client" : "Justin"}${a.due ? `, due ${s(a.due)}` : ""}; from "${s(c.title) || "earlier call"}")`);
-  return { client, facts: allFacts, dossier: arr(dossiers)[0] || null, work: arr(work), openTasks, posts: arr(posts), apps: arr(apps), prior, followUps, positioning, type, cp };
+  const refs = [cp, ...prior].filter((c: any) => c && s(c.reference_md)).map((c: any) => ({ title: s(c.title), md: s(c.reference_md) }));
+  return { client, facts: allFacts, dossier: arr(dossiers)[0] || null, work: arr(work), openTasks, posts: arr(posts), apps: arr(apps), prior, followUps, positioning, type, cp, launch, refs };
 }
 
 function contextText(ctx: any) {
@@ -82,6 +85,8 @@ function contextText(ctx: any) {
   if (ctx.posts.length) lines.push(`RECENT SITE POSTS: ${ctx.posts.map((p: any) => `${clip(p.title, 80)} (${s(p.status)})`).join("; ")}`);
   if (ctx.apps.length) lines.push(`CLIENT SYSTEMS: ${ctx.apps.map((a: any) => `${s(a.app_name)} [${s(a.kind)}] ${s(a.publish_state)}${a.domain ? ` ${s(a.domain)}` : ""}`).join("; ")}`);
   if (ctx.prior.length) lines.push(`LAST CALLS:\n${ctx.prior.map((p: any) => `- ${s(p.title)} (${s(p.status)}${p.completed_at ? `, ${s(p.completed_at).slice(0, 10)}` : ""}) outcomes: ${clip(p.outcomes, 500) || "none recorded"}`).join("\n")}`);
+  if (arr(ctx.launch).length) lines.push(`OPEN LAUNCH TO-DOS FOR THEM (Road to Dec 31):\n${ctx.launch.slice(0, 20).map((l: any) => `- ${clip(l.title, 160)} (${s(l.owner) || "?"}, ${s(l.status)})${l.notes ? ` ${clip(l.notes, 200)}` : ""}`).join("\n")}`);
+  if (arr(ctx.refs).length) lines.push(`PREP NOTES ALREADY WRITTEN (from Justin's work in Claude and earlier preps; treat as background, newest first):\n${ctx.refs.slice(0, 3).map((r: any) => `--- ${r.title}\n${clip(r.md, 3500)}`).join("\n")}`);
   if (ctx.followUps.length) lines.push(`OPEN ACTION ITEMS FROM LAST CALLS (roll these forward):\n${ctx.followUps.map((f: string) => `- ${f}`).join("\n")}`);
   return lines.join("\n");
 }
@@ -124,6 +129,9 @@ const STRUCTURE_SCHEMA = {
         required: ["topic", "minutes", "purpose"],
       },
     },
+    remember: { type: "array", items: { type: "string" } },
+    background: { type: "array", items: { type: "string" } },
+    show: { type: "array", items: { type: "string" } },
     prep_checklist: { type: "array", items: { type: "string" } },
     asks_from_client: { type: "array", items: { type: "string" } },
     risks: { type: "array", items: { type: "string" } },
@@ -167,6 +175,10 @@ function structurePrompt(cp: any, ctx: any) {
   return [
     `You are Justin Cowell's call planner. Justin runs Interstellar Strategies, a digital agency. He spends too long on calls; your job is a tight ${TYPE_LABEL[type]} that gets more done.`,
     ...TYPE_RULES[type],
+    "HOW JUSTIN WORKS: he does NOT want a script. He wings it and talks naturally; he wants things to remember so he doesn't forget, and his questions laid out so he gets every answer. So every bullet is a memory jogger of 3-12 words, never a sentence to read out. No 'Say: ...' lines, no openers, no word-for-word lines.",
+    "- remember: the 3-7 things he must not forget on this call, shortest possible.",
+    "- background: 3-8 bullets on where things stand with them right now, ONLY from the context below (stored facts, work, to-dos, prep notes). Empty if nothing on file.",
+    "- show: things to pull up and show (pages, screens, files), if any.",
     "Turn his notes into a call plan. Rules:",
     "- goal: ONE sentence, what must be true when the call ends.",
     (type === "client"
@@ -175,7 +187,7 @@ function structurePrompt(cp: any, ctx: any) {
       + " Close with a final item 'Recap, next steps, next call date' (2-3 min, purpose decide) that confirms owners and dates.",
     "- If OPEN ACTION ITEMS FROM LAST CALLS are given, add an early item 'Follow-ups from last call' covering only those, briefly.",
     `- Timebox every item in whole minutes. Total = ${Number(cp.timebox_minutes) || 25} minutes unless his notes clearly need less (default range 20-30). Never exceed 30 unless he asked for longer.`,
-    "- talking_points: short, concrete, from his notes or the context. questions: exact questions to ask the client. decision_needed: the yes/no or choice to get, for decide items.",
+    "- talking_points: memory joggers, 3-12 words each, from his notes or the context. questions: the questions to ask, short and plain, one thing each. decision_needed: the yes/no or choice to get, for decide items.",
     "- prep_checklist: things Justin should have open before the call (specific pages, URLs, numbers, files) drawn from the notes and context.",
     "- asks_from_client: what to get from them (assets, approvals, numbers, decisions).",
     "- risks: things that could derail the call or the project; keep it to real ones.",
@@ -203,6 +215,7 @@ function cleanStructure(r: any, cp: any) {
     goal: clip(r?.goal, 300),
     agenda,
     timebox_minutes: agenda.reduce((n: number, a: any) => n + a.minutes, 0),
+    remember: list(r?.remember, 8), background: list(r?.background, 10), show: list(r?.show, 10),
     prep_checklist: list(r?.prep_checklist), asks_from_client: list(r?.asks_from_client), risks: list(r?.risks, 8), conflicts: list(r?.conflicts, 8),
   };
 }
@@ -236,6 +249,30 @@ function debriefPrompt(cp: any, ctx: any, outcomes: string) {
   ].join("\n");
 }
 
+async function structureCall(db: any, llm: any, cp: any, b: any) {
+      if (b.raw_notes != null && s(b.raw_notes) !== s(cp.raw_notes)) cp = { ...cp, raw_notes: s(b.raw_notes) };
+      if (b.timebox_minutes) cp = { ...cp, timebox_minutes: Number(b.timebox_minutes) };
+      if (s(cp.raw_notes).length < 5) return Response.json({ ok: false, error: "Say or type what the call needs to cover first" }, { status: 400 });
+      const ctx = await loadContext(db, s(cp.client_id), cp.id, cp);
+      const r: any = await llm(structurePrompt(cp, ctx), STRUCTURE_SCHEMA);
+      const st = cleanStructure(r, cp);
+      if (!st.agenda.length) return Response.json({ ok: false, error: "The planner returned no agenda; try again" }, { status: 502 });
+      const old = arr(cp.qa);
+      const qa = st.agenda.flatMap((a: any) => a.questions.map((q: string) => {
+        const prev = old.find((o: any) => s(o.q).toLowerCase() === q.toLowerCase());
+        return { q, topic: a.topic, answer: s(prev?.answer), asked: !!prev?.asked };
+      }));
+      for (const o of old) if (s(o.answer) && !qa.some((x: any) => s(x.q).toLowerCase() === s(o.q).toLowerCase())) qa.push(o);
+      const patch: any = {
+        ...st, qa, raw_notes: cp.raw_notes, follow_ups: ctx.followUps, status: cp.status === "done" ? "done" : "ready", generated_at: now(),
+        client_name: s(ctx.client?.business) || cp.client_name,
+        context_summary: `${ctx.positioning.length ? `${ctx.positioning.length} positioning facts · ` : ""}${ctx.facts.length} brain facts · ${ctx.work.length} recent work · ${ctx.openTasks.length} open tasks · ${ctx.posts.length} site posts · ${ctx.apps.length} systems · ${ctx.prior.length} earlier calls${ctx.dossier ? " · dossier" : ""}`,
+      };
+      patch.structure = toMarkdown({ ...cp, ...patch });
+      const saved = await db.CallPrep.update(cp.id, patch);
+      return Response.json({ ok: true, call_prep: { ...cp, ...patch, ...(saved || {}), id: cp.id } });
+    }
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -250,6 +287,32 @@ Deno.serve(async (req) => {
       const ctx = await loadContext(db, s(b.client_id));
       if (!ctx.client) return Response.json({ ok: false, error: "Client not found" }, { status: 404 });
       return Response.json({ ok: true, follow_ups: ctx.followUps, counts: { facts: ctx.facts.length, work: ctx.work.length, open_tasks: ctx.openTasks.length, posts: ctx.posts.length, apps: ctx.apps.length, prior_calls: ctx.prior.length } });
+    }
+
+    if (mode === "quick") {
+      const said = s(b.raw_notes);
+      if (said.length < 5) return Response.json({ ok: false, error: "Say who the call is with and what it needs to cover" }, { status: 400 });
+      const clients = arr(await safe(db.CRMClient.list("business", 400), [])).filter((c: any) => c.status !== "Inactive" && s(c.business));
+      const roster = clients.map((c: any) => `${c.id} | ${s(c.business)} | contact ${s(c.contact)} | ${s(c.domain)} | ${s(c.status)}`).join("\n");
+      const today = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles", weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" });
+      const pick: any = await llm([
+        "Justin dictated a request to prep a call. Work out who it is with and the basics. Match the business or the person to ONE client in the roster when it clearly fits (names may be misheard by dictation, e.g. 'small cakes' = Smallcakes, 'simple social' = SMPL Social, 'visceral' = VSRL). If none fits, leave client_id empty and fill contact_name/company from what he said.",
+        `Today is ${today} (Pacific). scheduled_for: an ISO date-time only if he said a day or time, interpreted in Pacific time; else empty.`,
+        "call_type: client for current clients; sales_discovery / sales_close for prospects; partner, investor, win_back or internal when he says so.",
+        "title: 2-5 words, e.g. 'Launch walkthrough'.",
+        `ROSTER (id | business | contact | domain | status):\n${roster}`,
+        `WHAT HE SAID:\n${said}`,
+      ].join("\n\n"), { type: "object", properties: { client_id: { type: "string" }, contact_name: { type: "string" }, company: { type: "string" }, call_type: { type: "string", enum: TYPES }, title: { type: "string" }, scheduled_for: { type: "string" } }, required: ["call_type"] });
+      const match = clients.find((c: any) => c.id === s(pick?.client_id));
+      const when = s(pick?.scheduled_for) && !isNaN(Date.parse(s(pick.scheduled_for))) ? new Date(s(pick.scheduled_for)).toISOString() : undefined;
+      const call_type = TYPES.includes(pick?.call_type) ? pick.call_type : (match ? "client" : "sales_discovery");
+      let created = await db.CallPrep.create({
+        call_type, client_id: match?.id || "", client_name: s(match?.business) || s(pick?.company), contact_name: s(pick?.contact_name) || s(match?.contact),
+        company: match ? "" : s(pick?.company), title: clip(pick?.title, 80), scheduled_for: when, status: "draft", raw_notes: said, timebox_minutes: 25, created_at: now(), source: "app",
+      });
+      b.call_prep_id = created.id;
+      b.mode = "structure";
+      return await structureCall(db, llm, created, b);
     }
 
     let cp: any = null;
@@ -284,26 +347,11 @@ Deno.serve(async (req) => {
     }
     if (!cp) return Response.json({ ok: false, error: "Call prep not found" }, { status: 404 });
 
-    if (mode === "structure") {
-      if (b.raw_notes != null && s(b.raw_notes) !== s(cp.raw_notes)) cp = { ...cp, raw_notes: s(b.raw_notes) };
-      if (b.timebox_minutes) cp = { ...cp, timebox_minutes: Number(b.timebox_minutes) };
-      if (s(cp.raw_notes).length < 5) return Response.json({ ok: false, error: "Say or type what the call needs to cover first" }, { status: 400 });
-      const ctx = await loadContext(db, s(cp.client_id), cp.id, cp);
-      const r: any = await llm(structurePrompt(cp, ctx), STRUCTURE_SCHEMA);
-      const st = cleanStructure(r, cp);
-      if (!st.agenda.length) return Response.json({ ok: false, error: "The planner returned no agenda; try again" }, { status: 502 });
-      const patch: any = {
-        ...st, raw_notes: cp.raw_notes, follow_ups: ctx.followUps, status: cp.status === "done" ? "done" : "ready", generated_at: now(),
-        client_name: s(ctx.client?.business) || cp.client_name,
-        context_summary: `${ctx.positioning.length ? `${ctx.positioning.length} positioning facts · ` : ""}${ctx.facts.length} brain facts · ${ctx.work.length} recent work · ${ctx.openTasks.length} open tasks · ${ctx.posts.length} site posts · ${ctx.apps.length} systems · ${ctx.prior.length} earlier calls${ctx.dossier ? " · dossier" : ""}`,
-      };
-      patch.structure = toMarkdown({ ...cp, ...patch });
-      const saved = await db.CallPrep.update(cp.id, patch);
-      return Response.json({ ok: true, call_prep: { ...cp, ...patch, ...(saved || {}), id: cp.id } });
-    }
+    if (mode === "structure") return await structureCall(db, llm, cp, b);
 
     if (mode === "debrief") {
-      const outcomes = s(b.outcomes ?? cp.outcomes);
+      const answered = arr(cp.qa).filter((x: any) => s(x.answer));
+      const outcomes = [s(b.outcomes ?? cp.outcomes), answered.length ? `ANSWERS CAPTURED DURING THE CALL:\n${answered.map((x: any) => `- Q: ${s(x.q)}\n  A: ${s(x.answer)}`).join("\n")}` : ""].filter(Boolean).join("\n\n");
       if (outcomes.length < 5) return Response.json({ ok: false, error: "Say or type what happened on the call first" }, { status: 400 });
       const ctx = await loadContext(db, s(cp.client_id), cp.id, cp);
       const r: any = await llm(debriefPrompt(cp, ctx, outcomes), DEBRIEF_SCHEMA);
@@ -317,7 +365,7 @@ Deno.serve(async (req) => {
           .filter((f: any) => !keep.some((k: any) => s(k.fact).toLowerCase() === f.fact.toLowerCase()))
           .slice(0, 15),
       ];
-      const patch = { outcomes, action_items, brain_facts_proposed, status: "done", completed_at: cp.completed_at || now() };
+      const patch = { outcomes: s(b.outcomes ?? cp.outcomes), action_items, brain_facts_proposed, status: "done", completed_at: cp.completed_at || now() };
       await db.CallPrep.update(cp.id, patch);
       return Response.json({ ok: true, call_prep: { ...cp, ...patch } });
     }
