@@ -67,7 +67,36 @@ export function SelfServeStrip({ call, refresh, preview }) {
   );
 }
 
-// Brand & assets: one page linking every brand thing the client has. Only tiles whose tab exists show.
+// Workspace hub pages (Plan, Brand & files, Account): the group's tiles, an optional extra tile list, then `children`
+// (e.g. Goals under Plan, Billing under Account). Locked tiles keep their label and still open their preview.
+export function HubPage({ group, extra = [], go, children }) {
+  if (!group && !extra.length) return children || null;
+  const items = [...extra, ...(group?.items || [])];
+  return (
+    <div className="space-y-6" data-testid={`portal-hub-${group?.id || "x"}`}>
+      <div>
+        <p className="label-cross">({group?.label})</p>
+        <h2 className="mt-2 text-[32px] font-semibold tracking-[-0.04em]">{group?.label}</h2>
+        {group?.hint ? <p className="mt-1 text-[14px] text-ink/55">{group.hint}</p> : null}
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((i) => (
+          <button key={i.k} type="button" onClick={() => go(i.k)} className="card-hover flex items-center gap-3 rounded-md border border-hair bg-card p-4 text-left">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md flame-bg text-white"><i.icon className="h-[18px] w-[18px]" /></span>
+            <span className="min-w-0 flex-1">
+              <span className="flex items-center gap-2 text-[15px] font-semibold">{i.label}{i.badge ? <span className="rounded-full bg-[#ff3c00] px-1.5 font-mono text-[10px] text-white">{i.badge}</span> : null}{i.locked ? <span className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink/45">{i.locked}</span> : null}</span>
+              <span className="block text-[12.5px] text-ink/55">{i.desc}</span>
+            </span>
+            <ArrowUpRight className="h-4 w-4 text-ink/40" />
+          </button>
+        ))}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// Brand & assets (pre-Workspace page; kept for reference): one page linking every brand thing the client has.
 export function BrandAssetsPage({ tabs, go, d }) {
   const has = new Set(tabs);
   const items = [
