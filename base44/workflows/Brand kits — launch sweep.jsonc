@@ -1,0 +1,43 @@
+{
+  "name": "Brand kits \u2014 launch sweep",
+  "description": "Daily 6:13am PT: every Active client whose website is live on its own domain (website_live_at) and has no Interstellar brand kit yet gets one queued Claude job to build it from their website and Command System in the shared Interstellar template. Justin approves the kit in M\u00f8thership before the client sees it. Only queues jobs. Function: brand-kits / sweep.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "13 6 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "brand_kits_launch_sweep",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "b1": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brand-kits",
+            "args": {
+              "action": "sweep"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
