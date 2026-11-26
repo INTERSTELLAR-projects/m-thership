@@ -4,6 +4,7 @@ import { ArrowUpRight, LogOut, X, ChevronDown, Check, Eye, UserRound, LayoutGrid
 import { ScheduleCallButton, ScheduleCallModal } from "@/features/portal/PortalNav";
 import { HEADER_TABS, HUBS, STUDIO_KEYS, groupsFor, labelFor } from "@/features/portal/v2/portalMap";
 import { HubPage, SelfServeStrip } from "@/features/portal/v2/PortalPages";
+import BrandKitFrame, { isV2Kit } from "@/features/brandkit/BrandKitFrame";
 import PortalSubmit from "@/features/portal/v2/PortalSubmit";
 import { EverythingSheet, PortalV2Motion } from "@/features/portal/v2/Everything";
 import PortalHomeV2 from "@/features/portal/v2/PortalHomeV2";
@@ -551,6 +552,8 @@ function BrandKitView({ call, previewId, business }) {
       </div>
       {q.isLoading ? <p className="text-[13px] text-ink/50">Loading…</p> : !k ? (
         <Panel><Empty>Your brand kit isn&apos;t published yet.</Empty></Panel>
+      ) : isV2Kit(k.kit) ? (
+        <BrandKitFrame kit={k.kit} title={`${business} brand kit`} />
       ) : (
         <div className="rounded-md border border-hair bg-card p-5 md:p-7">
           {k.summary && <p className="mb-5 max-w-3xl text-[14.5px] leading-relaxed text-ink/75">{k.summary}</p>}
