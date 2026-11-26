@@ -4,6 +4,9 @@
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const fmtMd = (md) => { const [m, dd] = String(md || "").split("-").map(Number); return m ? `${MONTHS[m - 1]} ${dd}` : ""; };
+
 export default function PortalSeasons({ call }) {
   const [d, setD] = useState(null);
   const [err, setErr] = useState("");
@@ -30,19 +33,44 @@ export default function PortalSeasons({ call }) {
     <div className="space-y-6" data-testid="portal-seasons">
       <div>
         <h2 className="text-[22px] font-semibold tracking-[-0.03em]">Seasons &amp; offers</h2>
-        <p className="mt-1 text-[13px] text-ink/60">Your website changes with the seasons automatically. You don&apos;t need to do anything. Want a different look for a while? Switch one on below and it takes over until you turn it off. Offers run between their dates.</p>
-        {!off && d.auto_on !== false ? (
-          <p className="mt-2 rounded-md border border-[#ff3c00]/30 bg-[#ff3c00]/[0.04] px-3 py-2 text-[12.5px] text-ink/70" data-testid="season-auto">
-            {(d.seasons || []).some((s) => s.active)
-              ? "Automatic seasons are paused while your own pick is on. Turn it off and the calendar takes over again."
-              : d.auto ? <>On your site now, automatically: <strong>{d.auto.label}</strong>.</> : "No seasonal look right now. Your site shows its normal look until spring."}
-          </p>
-        ) : null}
+        <p className="mt-1 text-[13px] text-ink/60">Give your website a subtle holiday touch, switch it into a season look, and run offers with an end date.</p>
         {off ? <p className="mt-2 rounded-md border border-hair bg-paper px-3 py-2 text-[12.5px] text-ink/60">Your website isn&apos;t connected to seasons and offers yet. Send us a request and we&apos;ll switch it on.</p> : null}
       </div>
 
+      {d.touches ? (
+        <section className="rounded-md border border-hair p-4" data-testid="holiday-touches">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-[15px] font-semibold">Holiday touches</h3>
+              <p className="mt-1 max-w-xl text-[13px] text-ink/60">A light, tasteful decoration on your website around each holiday, then back to normal on its own. Popular with home service businesses. Off unless you turn it on.</p>
+            </div>
+            {off ? (
+              <span className="text-[12.5px] text-ink/55">Ask us to connect your site first</span>
+            ) : (
+              <button type="button" role="switch" aria-checked={d.touches.on} disabled={!!busy}
+                onClick={() => run("touches", "touches_set", { on: !d.touches.on })}
+                className={`inline-flex h-9 items-center gap-2 rounded-full border px-3.5 text-[13px] font-medium ${d.touches.on ? "border-[#ff3c00] bg-[#ff3c00]/[0.06]" : "border-hair hover:border-ink/40"}`}>
+                {busy === "touches" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <span className={`h-2.5 w-2.5 rounded-full ${d.touches.on ? "bg-[#ff3c00]" : "bg-ink/25"}`} aria-hidden="true" />}
+                {d.touches.on ? "On" : "Off"}
+              </button>
+            )}
+          </div>
+          {d.touches.on ? (
+            <p className="mt-2 text-[12.5px] text-ink/65">{d.touches.now ? <>On your site now: <strong>{d.touches.now.label}</strong>.</> : <>Next up: <strong>{d.touches.next?.label}</strong>.</>}</p>
+          ) : null}
+          <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
+            {(d.touches.calendar || []).map((h) => (
+              <li key={h.key} className={`rounded border px-2.5 py-1.5 text-[12.5px] ${d.touches.on && d.touches.now?.key === h.key ? "border-[#ff3c00]/40 bg-[#ff3c00]/[0.04]" : "border-hair"}`}>
+                <span className="font-medium">{h.label}</span> <span className="text-ink/45">· {fmtMd(h.from)}–{fmtMd(h.to)}</span>
+                <span className="block text-ink/55">{h.look}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <section>
-        <h3 className="mb-2 text-[15px] font-semibold">Season or holiday</h3>
+        <h3 className="mb-2 text-[15px] font-semibold">Season or holiday look</h3>
         <ul className="grid gap-2 sm:grid-cols-2">
           {(d.presets || []).map((p) => {
             const row = byKey.get(p.key);
