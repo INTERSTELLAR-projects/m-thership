@@ -33,6 +33,20 @@ const CLIENT_SCORE_FLOOR = 70;
 const EDIT_WORK_KINDS = ["site_edit", "schema", "new_page", "project_page", "search_console", "bing"];
 const bandLabel = (score: number | null) => (score == null ? "No data" : score >= 90 ? "Excellent" : score >= 75 ? "Good" : score >= 50 ? "Needs work" : "Poor");
 type Row = Record<string, unknown>;
+
+// The client's next open call prep (soonest upcoming, else the newest undated one) with only its shared questions.
+async function nextCallFor(db: any, cid: string) {
+  const rows = ((await db.CallPrep.filter({ client_id: cid }, "-created_date", 30).catch(() => [])) || []) as Row[];
+  const now = Date.now() - 2 * 3600e3;
+  const open = rows.filter((r) => r.status !== "done" && (!r.scheduled_for || Date.parse(String(r.scheduled_for)) >= now));
+  open.sort((a, b) => (a.scheduled_for ? Date.parse(String(a.scheduled_for)) : 9e15) - (b.scheduled_for ? Date.parse(String(b.scheduled_for)) : 9e15));
+  for (const r of open) {
+    const qa = Array.isArray(r.qa) ? (r.qa as Row[]) : [];
+    const questions = qa.map((x, i) => ({ i, q: String(x.q || ""), answer: String(x.client_answer || ""), share: x.share === true })).filter((x) => x.share && x.q).map(({ share: _s, ...x }) => x);
+    if (questions.length) return { id: r.id, title: String(r.title || "Our next call"), scheduled_for: r.scheduled_for || null, questions };
+  }
+  return null;
+}
 function clientHealthSummary({ audits = [], fixes = [], work = [] }: { audits?: Row[]; fixes?: Row[]; work?: Row[] }) {
   const done = audits.filter((a) => typeof a.health_score === "number" && a.strategy !== "desktop")
     .sort((a, b) => String(a.run_at).localeCompare(String(b.run_at)));
@@ -297,6 +311,7 @@ export async function portalHandler(req: Request): Promise<Response> {
         unread: msgs.filter((m: Record<string, unknown>) => m.sender_role === "admin" && !m.read_at).length + groupUnread,
         work_feed: workFeed,
         work_counts: workCountsOut,
+        next_call: await nextCallFor(db, cid).catch(() => null),
       });
     }
 
@@ -796,6 +811,20 @@ export async function portalHandler(req: Request): Promise<Response> {
       const t = await ownTpl(args.id);
       if (!t) return Response.json({ error: "Only your own templates can be deleted" }, { status: 403 });
       await db.SignatureTemplate.delete(t.id);
+      return Response.json({ ok: true });
+    }
+
+    // ---- Workspace: "Questions for our next call". Only questions Justin marked share=true on this client's next
+    // open call prep; the client's answer is stored beside his (never over his own call notes). ----
+    if (action === "call_answer") {
+      const prep = args.prep_id ? await db.CallPrep.get(String(args.prep_id)).catch(() => null) : null;
+      if (!prep || prep.client_id !== cid || prep.status === "done") return Response.json({ error: "Not found" }, { status: 404 });
+      const i = Number(args.i);
+      const qa = Array.isArray(prep.qa) ? [...prep.qa] : [];
+      if (!Number.isInteger(i) || !qa[i] || qa[i].share !== true) return Response.json({ error: "Not found" }, { status: 404 });
+      const answer = String(args.answer || "").trim().slice(0, 2000);
+      qa[i] = { ...qa[i], client_answer: answer, client_answered_at: new Date().toISOString() };
+      await db.CallPrep.update(prep.id, { qa });
       return Response.json({ ok: true });
     }
 
