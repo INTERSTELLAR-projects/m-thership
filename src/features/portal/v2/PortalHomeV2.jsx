@@ -12,6 +12,7 @@ import { analyze } from "@/features/financing/schedule";
 import NovaBar from "./NovaBar";
 import Launcher from "./Launcher";
 import PortalTodos from "./PortalTodos";
+import NextCallBand from "./NextCallBand";
 import { PortalPillarsBand } from "./PortalPages";
 import { PortalBuildBand, PortalUnlocksBand, LaunchMoment } from "./PortalBuild";
 import { inPeriod, pacificToday } from "./portalMap";
@@ -323,9 +324,9 @@ export default function PortalHomeV2({ d, groups, go, call, refresh, preview, on
       <section className="pv2-rise">
         <p className="label-cross">({greeting()}{first && !preview ? `, ${first}` : ""})</p>
         <h1 className="mt-3 text-[34px] font-semibold leading-[0.98] tracking-[-0.05em] sm:text-[48px] lg:text-[60px]">
-          Everything we&apos;re doing for <span className="text-[#ff3c00]">{d.client.business}</span>, live.
+          Scaling <span className="text-[#ff3c00]">{d.client.business}</span>, together.
         </h1>
-        <p className="mt-3 max-w-2xl text-[14.5px] leading-relaxed text-ink/60 sm:text-[15.5px]">We built your business its own operating system, and we run it with you every month. Done for you, or do it yourself.</p>
+        <p className="mt-3 max-w-2xl text-[14.5px] leading-relaxed text-ink/60 sm:text-[15.5px]">Your Interstellar Workspace: what we did, what&apos;s next, what we need from you and how it&apos;s paying off. Your day-to-day tools live in your Command System.</p>
         <ol className="mt-4 flex flex-wrap gap-2" aria-label="How it works">
           {[["Build it", "done"], ["Run it", "live"], ["Grow it", "next"]].map(([t, s], i) => (
             <li key={t} className={`inline-flex h-9 items-center gap-2 rounded-full border px-3.5 text-[12.5px] font-medium ${s === "live" ? "border-[#ff3c00] bg-white text-ink" : "border-hair bg-card text-ink/65"}`}>
@@ -340,6 +341,8 @@ export default function PortalHomeV2({ d, groups, go, call, refresh, preview, on
       {!preview ? <LaunchMoment clientId={d.client.id} build={d.build} business={d.client.business} /> : null}
 
       <NovaBar onSend={onAsk} business={d.client.business} />
+
+      <NextCallBand next={d.next_call} call={call} preview={preview} />
 
       <PortalBuildBand build={d.build} />
       <PortalUnlocksBand unlocks={d.unlocks} />
