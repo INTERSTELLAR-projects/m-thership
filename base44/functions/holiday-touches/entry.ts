@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
-import { holidayFor, todayPacific } from "../../shared/siteExtras.js";
+import { HOLIDAYS, holidayFor, todayPacific } from "../../shared/siteExtras.js";
 import { HOLIDAY_TOUCHES_JS } from "../../shared/holidayTouchesScript.js";
 
 /*
@@ -22,7 +22,6 @@ export default async function (req: Request) {
     const client = ((await db.CRMClient.filter({ site_key: key }, "-updated_date", 1).catch(() => [])) || [])[0];
     if (!client || client.status === "Inactive" || client.holiday_touches !== true) return new Response(NOOP, { headers });
     const previewKey = url.searchParams.get("preview") || "";
-    const { HOLIDAYS } = await import("../../shared/siteExtras.js");
     const h = (previewKey && HOLIDAYS.find((x: { key: string }) => x.key === previewKey)) || holidayFor(todayPacific());
     if (!h) return new Response(NOOP, { headers });
     const decor = JSON.stringify({ effect: h.effect, trim: h.trim });
