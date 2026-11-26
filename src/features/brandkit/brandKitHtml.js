@@ -31,7 +31,11 @@ function mix(a, b, t) { const A = rgb(a), B = rgb(b); return "#" + A.map((v, i) 
 function fontStack(f, fb) { return f && f.family ? `"${String(f.family).replace(/"/g, "")}", ${fb || f.fallback || "sans-serif"}` : (fb || "sans-serif"); }
 function fontLinks(t) {
   const urls = [t.display, t.body, t.utility].map((f) => f && f.google_css_url).filter((u) => /^https:\/\/fonts\.googleapis\.com\//.test(String(u || "")));
-  return [...new Set(urls)].map((u) => `<link rel="stylesheet" href="${esc(u)}">`).join("");
+  const links = [...new Set(urls)].map((u) => `<link rel="stylesheet" href="${esc(u)}">`).join("");
+  // Licensed fonts the client's site hosts itself (font_file_url): load them by @font-face.
+  const faces = [t.display, t.body, t.utility].filter((f) => f && f.family && /^https:\/\/[^"'()\s]+\.(woff2?|ttf|otf)$/i.test(String(f.font_file_url || "")))
+    .map((f) => `@font-face{font-family:"${String(f.family).replace(/"/g, "")}";src:url("${f.font_file_url}");font-display:swap}`).join("");
+  return links + (faces ? `<style>${faces}</style>` : "");
 }
 
 // ---- normalise the kit into the tokens the template needs (with safe fallbacks) ----
@@ -154,7 +158,7 @@ ${inner}
 <div class="pf"><span>${esc(name)} Brand Kit</span><span>Brand kit by Interstellar</span></div></section>`;
 }
 
-const logoImg = (url, alt, style = "") => (url ? `<img src="${esc(url)}" alt="${esc(alt)}" ${style ? `style="${style}"` : ""} loading="lazy">` : "");
+const logoImg = (url, alt, style = "") => (url ? `<img src="${esc(url)}" alt="${esc(alt)}" ${style ? `style="${style}"` : ""} loading="lazy" onerror="this.style.display='none'">` : "");
 
 function pCover(T, k) {
   const id = k.identity || {}, L = k.logo || {};
@@ -173,7 +177,7 @@ function pGlance(T, k) {
   const top = arr(k.palette).slice(0, 5);
   return frame(1, "At a glance", T, k, `
 <div class="grid2" style="align-items:start"><div style="display:flex;flex-direction:column;gap:18px"><span class="eyebrow">Who we are</span>
-<h2 style="font-size:clamp(28px,3.6vw,46px);line-height:1.05">${esc(id.one_liner || id.tagline || id.name)}</h2>${m.elevator_pitch ? `<p class="lede">${esc(m.elevator_pitch)}</p>` : ""}</div>
+${(() => { const t = id.one_liner || id.tagline || id.name || ""; const sz = t.length > 140 ? "clamp(20px,2.2vw,28px)" : t.length > 80 ? "clamp(24px,2.8vw,36px)" : "clamp(28px,3.6vw,46px)"; return `<h2 style="font-size:${sz};line-height:1.08">${esc(t)}</h2>`; })()}${m.elevator_pitch ? `<p class="lede">${esc(m.elevator_pitch)}</p>` : ""}</div>
 <div style="display:flex;flex-direction:column;gap:14px">
 <div class="card"><span class="eyebrow">Personality</span><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">${arr(v.traits).map((t) => `<span class="chip">${esc(t.name)}</span>`).join("")}</div></div>
 <div class="card"><span class="eyebrow">Core colors</span><div style="display:flex;height:56px;border-radius:var(--r);overflow:hidden;margin-top:12px">${top.map((p) => okHex(p.hex) ? `<div style="flex:1;background:${okHex(p.hex)}" title="${esc(p.name)}"></div>` : "").join("")}</div></div>
@@ -185,8 +189,8 @@ function pLogo(T, k) {
   const L = k.logo || {}, name = k.identity?.name || "";
   const main = L.primary_url || L.on_dark_url || L.on_light_url;
   if (!main) return "";
-  const onDark = L.on_dark_url || (L.designed_for === "dark" ? main : "");
-  const onLight = L.on_light_url || (L.designed_for !== "dark" ? main : "");
+  const onDark = L.on_dark_url || (/dark/i.test(String(L.designed_for || "")) ? main : "");
+  const onLight = L.on_light_url || (!/dark/i.test(String(L.designed_for || "")) ? main : "");
   const darkBg = T.dark ? T.bg : mix(T.ink, "#000000", 0.2), lightBg = T.dark ? mix(T.ink, "#ffffff", 0.6) : T.bg;
   return frame(2, "Logo", T, k, `
 <div style="display:flex;flex-direction:column;gap:12px"><span class="eyebrow">Our mark</span><h2>Logo</h2>
@@ -300,13 +304,13 @@ function pImagery(T, k) {
   return frame(8, "Imagery", T, k, `
 <div class="grid2" style="align-items:end"><div style="display:flex;flex-direction:column;gap:12px"><span class="eyebrow">Photography</span><h2>Imagery</h2></div>
 <div style="display:flex;flex-wrap:wrap;gap:8px">${arr(im.style).slice(0, 6).map((x) => `<span class="chip">${esc(x)}</span>`).join("")}</div></div>
-<div class="ph-grid">${ph.map((p) => `<figure>${logoImg(p.url, p.caption || "")}</figure>`).join("")}</div>`);
+<div class="ph-grid">${ph.map((p) => `<figure>${logoImg(p.url, p.caption || "")}</figure>`).join("")}</div><script>document.querySelectorAll(".ph-grid img").forEach(function(i){i.addEventListener("error",function(){var f=i.closest("figure");if(f)f.remove();var g=document.querySelector(".ph-grid");if(g&&!g.children.length){var p=g.closest(".page");if(p)p.remove();}})});</script>`);
 }
 
 function pApps(T, k) {
   const id = k.identity || {}, L = k.logo || {}, m = k.messaging || {}, ct = k.contact || {};
   const logo = L.primary_url || L.on_dark_url || L.on_light_url;
-  const logoDark = L.on_dark_url || (L.designed_for === "dark" ? logo : "");
+  const logoDark = L.on_dark_url || (/dark/i.test(String(L.designed_for || "")) ? logo : "");
   const photo = arr(k.imagery?.photos).find((p) => /^https:\/\//.test(String(p.url || "")))?.url;
   const p = k.components?.button_primary || {}, pbg = okHex(p.bg) || T.accent, pfg = okHex(p.fg) || onColor(pbg);
   const head = m.headlines?.[0] || id.tagline || id.name;
@@ -315,12 +319,12 @@ function pApps(T, k) {
 <div style="display:flex;flex-direction:column;gap:12px"><span class="eyebrow">Applications</span><h2>The brand in use</h2>
 <p class="lede">Starting points for social, print, email and the web. Everything uses the same colors, type and corners.</p></div>
 <div class="grid3">
-<div class="post">${photo ? `<img class="bgimg" src="${esc(photo)}" alt="">` : ""}${logoDark ? `<img src="${esc(logoDark)}" alt="" style="position:absolute;top:18px;left:18px;max-height:30px;max-width:50%">` : ""}<span class="eyebrow" style="color:#fff;opacity:.85">${esc(id.location || id.industry || "")}</span><h3 style="margin-top:8px">${esc(head)}</h3><span class="btn" style="margin-top:14px;align-self:flex-start;height:38px;font-size:13px;background:${pbg};color:${pfg}">${esc(m.ctas?.[0] || "Learn more")}</span></div>
+<div class="post">${photo ? `<img class="bgimg" src="${esc(photo)}" alt="" onerror="this.remove()">` : ""}${logoDark ? `<img src="${esc(logoDark)}" alt="" style="position:absolute;top:18px;left:18px;max-height:30px;max-width:50%">` : ""}<span class="eyebrow" style="color:#fff;opacity:.85">${esc(id.location || id.industry || "")}</span><h3 style="margin-top:8px">${esc(head)}</h3><span class="btn" style="margin-top:14px;align-self:flex-start;height:38px;font-size:13px;background:${pbg};color:${pfg}">${esc(m.ctas?.[0] || "Learn more")}</span></div>
 <div style="display:flex;flex-direction:column;gap:14px">
 <div class="bcard" style="background:${cardBg};color:${cardFg}">${logoDark || logo ? logoImg(logoDark || logo, "", "max-height:34px;max-width:60%;object-fit:contain") : `<b>${esc(id.name)}</b>`}<div style="font-size:12px;line-height:1.5"><b>Your Name</b><br>${esc(ct.phone || "")}${ct.phone && id.domain ? " · " : ""}${esc(id.domain || "")}</div></div>
 <div class="bcard" style="background:${T.accent};color:${onColor(T.accent)};justify-content:center;align-items:center"><div style="font-family:var(--fd);font-weight:var(--wd);font-size:22px;text-align:center;text-transform:${T.displayCase};letter-spacing:${T.displayTrack}">${esc(id.tagline || id.name)}</div></div></div>
 <div style="display:flex;flex-direction:column;gap:14px">
-<div class="sig">${logo ? logoImg(logo, "", `max-height:40px;max-width:90px;object-fit:contain;${L.designed_for === "dark" ? `background:${T.bg};padding:6px;border-radius:6px` : ""}`) : ""}<div style="font-size:12.5px;line-height:1.45;border-left:2px solid ${T.accent};padding-left:12px"><b>Your Name</b><br>Title · ${esc(id.name)}<br><span style="color:${T.accent}">${esc(id.domain || "")}</span>${ct.phone ? `<br>${esc(ct.phone)}` : ""}</div></div>
+<div class="sig">${logo ? logoImg(logo, "", `max-height:40px;max-width:90px;object-fit:contain;${/dark/i.test(String(L.designed_for || "")) ? `background:${T.bg};padding:6px;border-radius:6px` : ""}`) : ""}<div style="font-size:12.5px;line-height:1.45;border-left:2px solid ${T.accent};padding-left:12px"><b>Your Name</b><br>Title · ${esc(id.name)}<br><span style="color:${T.accent}">${esc(id.domain || "")}</span>${ct.phone ? `<br>${esc(ct.phone)}` : ""}</div></div>
 <div class="mini"><div class="nav">${logo ? logoImg(logo, "", "max-height:22px;max-width:110px;object-fit:contain") : `<b>${esc(id.name)}</b>`}<span class="btn" style="height:28px;padding:0 10px;font-size:11px;background:${pbg};color:${pfg}">${esc(m.ctas?.[0] || "Contact")}</span></div>
 <div class="hero"><div class="eyebrow">${esc(id.location || "")}</div><div style="font-family:var(--fd);font-weight:var(--wd);font-size:24px;line-height:1.05;margin-top:8px;text-transform:${T.displayCase};letter-spacing:${T.displayTrack}">${esc(head)}</div></div></div></div></div>`);
 }
