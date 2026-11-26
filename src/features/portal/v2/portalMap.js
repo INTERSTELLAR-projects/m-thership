@@ -54,7 +54,7 @@ export const GROUPS = [
     id: "brand", label: "Brand & files", hint: "Your brand kit, deliverables and site seasons",
     items: [
       { k: "files", label: "Files & brand kit", desc: "Deliverables, logo rules, colors and fonts", icon: FolderOpen },
-      { k: "seasons", label: "Seasons & offers", desc: "Your site's seasonal look and offers", icon: CalendarHeart },
+      { k: "seasons", label: "Seasons & offers", desc: "Holiday touches, season looks and offers", icon: CalendarHeart },
     ],
   },
   {
