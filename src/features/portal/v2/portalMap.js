@@ -8,59 +8,77 @@ import {
   CreditCard, Crown, Store, UserRound, CalendarHeart,
 } from "lucide-react";
 
-// Four pages (Nov 2026 simplification): Glance (home) · Requests & self-serve · Brand & assets · Billing.
-// The header shows exactly these four plus Everything, Schedule a call and Account. Every older tab key still opens.
+// Interstellar Workspace (Nov 25 2026): six pages, the shared place where we scale the business together.
+//   Together (home) · Results · Requests · Plan · Brand & files · Account
+// Day-to-day tools (Social, Email, Signatures, QR, Hiring, Training…) are moving into each client's Command System as
+// "Interstellar Tools"; until they land there they stay reachable from one group, never from the main pages.
+// Every older tab key still opens.
 export const HEADER_TABS = [
-  { k: "home", label: "Glance" },
+  { k: "home", label: "Together" },
+  { k: "results", label: "Results" },
   { k: "requests", label: "Requests" },
-  { k: "assets", label: "Brand & assets" },
-  { k: "billing", label: "Billing" },
+  { k: "plan", label: "Plan" },
+  { k: "assets", label: "Brand & files" },
+  { k: "acct", label: "Account" },
 ];
+
+// Hub pages (Plan, Brand & files, Account) render their group's tiles. Key = header tab, value = group id.
+export const HUBS = { plan: "plan", assets: "brand", acct: "account" };
 
 export const GROUPS = [
   {
-    id: "glance", label: "Glance", hint: "Progress, what's done, what's next and your numbers",
+    id: "results", label: "Results", hint: "How it's paying off, from every source",
     items: [
-      { k: "goals", label: "Goals & plan", desc: "Targets and what we're fixing next", icon: Target },
-      { k: "results", label: "Search results", desc: "Traffic, calls and how people find you", icon: LineChart },
+      { k: "results", label: "Search & traffic", desc: "Traffic, calls and how people find you", icon: LineChart },
       { k: "gbp", label: "Google Business", desc: "Your profile, reviews and review link", icon: MapPin },
       { k: "mentions", label: "Mentions & PR", desc: "Listings, press and links we earned", icon: Newspaper },
-      { k: "seasons", label: "Seasons & offers", desc: "Switch your site to a season look and run offers", icon: CalendarHeart },
     ],
   },
   {
-    id: "requests", label: "Requests & self-serve", hint: "Ask us, chat, or do it yourself",
+    id: "requests", label: "Requests", hint: "Ask us anything, or chat with the team",
     items: [
-      { k: "requests", label: "Requests", desc: "Edits, content, projects, drops and offers", icon: ClipboardList },
+      { k: "requests", label: "Requests", desc: "Edits, projects, blogs, events and offers", icon: ClipboardList },
       { k: "messages", label: "Messages", desc: "Chat with the Interstellar team", icon: MessageSquare },
+    ],
+  },
+  {
+    id: "plan", label: "Plan", hint: "Where we're going and how we get there",
+    items: [
+      { k: "goals", label: "Goals & roadmap", desc: "Targets and what we're building next", icon: Target },
+      { k: "playbook", label: "Your playbook", desc: "Your industry growth plan", icon: Compass },
+      { k: "brain", label: "Your Brain", desc: "What we know, and the questions that teach it more", icon: Brain },
+      { k: "resources", label: "SOPs & guides", desc: "How your business runs, step by step", icon: BookOpen },
+    ],
+  },
+  {
+    id: "brand", label: "Brand & files", hint: "Your brand kit, deliverables and site seasons",
+    items: [
+      { k: "files", label: "Files & brand kit", desc: "Deliverables, logo rules, colors and fonts", icon: FolderOpen },
+      { k: "seasons", label: "Seasons & offers", desc: "Your site's seasonal look and offers", icon: CalendarHeart },
+    ],
+  },
+  {
+    id: "tools", label: "Interstellar Tools", hint: "Moving into your Command System, where your day-to-day work lives",
+    items: [
       { k: "studio_social", label: "Social", desc: "Plan, design and publish posts", icon: Megaphone },
       { k: "studio_email", label: "Email", desc: "Campaigns and automations to your list", icon: Mail },
       { k: "studio_presentations", label: "Presentations", desc: "On-brand decks from one prompt", icon: Presentation },
+      { k: "signatures", label: "Signatures", desc: "On-brand email signatures", icon: PenLine, bonus: true },
+      { k: "qr", label: "QR codes", desc: "Branded codes you can re-point", icon: QrCode, bonus: true },
+      { k: "studio_hiring", label: "Hiring", desc: "When to hire, and who", icon: UserPlus },
+      { k: "studio_training", label: "Training", desc: "Train new people from your processes", icon: GraduationCap },
       { k: "studio_accounting", label: "Accounting & taxes", desc: "Books, receipts and quarterly taxes", icon: Calculator },
       { k: "studio_ads", label: "Ads", desc: "An ads agent that watches your spend", icon: BadgeDollarSign },
       { k: "studio_smpl", label: "SMPL. Studio", desc: "AI image, video and voice", icon: Sparkles, cobrand: true },
     ],
   },
   {
-    id: "brand", label: "Brand & assets", hint: "Your Brain, brand kit, files and tools",
-    items: [
-      { k: "brain", label: "Your Brain", desc: "What we know, and the questions that teach it more", icon: Brain },
-      { k: "files", label: "Files & brand kit", desc: "Deliverables, logo rules, colors and fonts", icon: FolderOpen },
-      { k: "signatures", label: "Signatures", desc: "On-brand email signatures", icon: PenLine, bonus: true },
-      { k: "qr", label: "QR codes", desc: "Branded codes you can re-point", icon: QrCode, bonus: true },
-      { k: "playbook", label: "Your playbook", desc: "Your industry growth plan", icon: Compass },
-      { k: "resources", label: "SOPs & guides", desc: "How your business runs, step by step", icon: BookOpen },
-      { k: "studio_hiring", label: "Hiring", desc: "When to hire, and who", icon: UserPlus },
-      { k: "studio_training", label: "Training", desc: "Train new people from your processes", icon: GraduationCap },
-    ],
-  },
-  {
-    id: "account", label: "Billing", hint: "Plan, payments, rewards and login",
+    id: "account", label: "Account", hint: "Plan, payments, rewards and login",
     items: [
       { k: "billing", label: "Billing", desc: "Your plan, payments and fuel", icon: CreditCard },
       { k: "referrals", label: "Prestige referrals", desc: "Refer a business, earn credit", icon: Crown },
       { k: "upgrades", label: "Upgrades", desc: "New features to try, then unlock", icon: Store },
-      { k: "account", label: "Account & security", desc: "Login and 2-step verification", icon: UserRound },
+      { k: "account", label: "Login & security", desc: "Login and 2-step verification", icon: UserRound },
     ],
   },
 ];
@@ -71,8 +89,10 @@ export const STUDIO_KEYS = new Set(["studio_social", "studio_email", "studio_pre
 
 // Labels for the header / mobile button ("where am I").
 export function labelFor(tab) {
-  if (tab === "home") return "Glance";
-  if (tab === "assets") return "Brand & assets";
+  if (tab === "home") return "Together";
+  if (tab === "assets") return "Brand & files";
+  if (tab === "plan") return "Plan";
+  if (tab === "acct") return "Account";
   if (tab === "assistant") return "Nøva";
   if (tab === "brand") return "Brand kit";
   return ALL_TILES.find((t) => t.k === tab)?.label || "";
