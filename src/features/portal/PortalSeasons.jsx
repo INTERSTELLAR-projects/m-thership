@@ -30,7 +30,14 @@ export default function PortalSeasons({ call }) {
     <div className="space-y-6" data-testid="portal-seasons">
       <div>
         <h2 className="text-[22px] font-semibold tracking-[-0.03em]">Seasons &amp; offers</h2>
-        <p className="mt-1 text-[13px] text-ink/60">Switch your website into a season or holiday look, and run offers with an end date. Turn a season off and your site goes back to normal.</p>
+        <p className="mt-1 text-[13px] text-ink/60">Your website changes with the seasons automatically. You don&apos;t need to do anything. Want a different look for a while? Switch one on below and it takes over until you turn it off. Offers run between their dates.</p>
+        {!off && d.auto_on !== false ? (
+          <p className="mt-2 rounded-md border border-[#ff3c00]/30 bg-[#ff3c00]/[0.04] px-3 py-2 text-[12.5px] text-ink/70" data-testid="season-auto">
+            {(d.seasons || []).some((s) => s.active)
+              ? "Automatic seasons are paused while your own pick is on. Turn it off and the calendar takes over again."
+              : d.auto ? <>On your site now, automatically: <strong>{d.auto.label}</strong>.</> : "No seasonal look right now. Your site shows its normal look until spring."}
+          </p>
+        ) : null}
         {off ? <p className="mt-2 rounded-md border border-hair bg-paper px-3 py-2 text-[12.5px] text-ink/60">Your website isn&apos;t connected to seasons and offers yet. Send us a request and we&apos;ll switch it on.</p> : null}
       </div>
 
