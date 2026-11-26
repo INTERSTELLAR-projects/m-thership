@@ -13,6 +13,7 @@ import { KIT_SECTIONS, brandKitBrief, gatherBrandInputs, isBrandKitJob, kitFromJ
 import { brandKitDeckBrief } from "@/features/presentations/lib/deckFromDocs";
 import DeckFromDocButton from "@/features/presentations/DeckFromDocButton";
 import DictationBox from "@/features/voice/DictationBox";
+import BrandKitFrame, { isV2Kit } from "@/features/brandkit/BrandKitFrame";
 
 const asList = (v) => (Array.isArray(v) ? v : v ? [v] : []);
 const text = (v) => (typeof v === "string" || typeof v === "number" ? String(v) : "");
@@ -471,7 +472,7 @@ export default function BrandKitTab({ client }) {
           </header>
           <div className="p-4">
             {current.summary && <p className="mb-4 text-[13px] text-ink/70">{current.summary}</p>}
-            <KitView kit={current.kit} body={current.body_md} />
+            {isV2Kit(current.kit) ? <BrandKitFrame kit={current.kit} title={`${client.business} brand kit`} /> : <KitView kit={current.kit} body={current.body_md} />}
           </div>
         </section>
       ) : review.length === 0 && working.length === 0 ? (
