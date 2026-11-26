@@ -76,14 +76,18 @@ export function autoSeasonKey(today) {
   if (md >= "03-20") return "spring";
   return null;
 }
-export function autoSeason(today) {
-  const p = presetFor(autoSeasonKey(today));
+// The Black Friday banner promises deals, so it only runs automatically when the client has a live offer; otherwise
+// the site keeps Fall (or Holiday from Dec 1).
+export function autoSeason(today, hasOffer = false) {
+  let key = autoSeasonKey(today);
+  if (key === "black_friday" && !hasOffer) key = String(today).slice(5) >= "12-01" ? "holiday" : "fall";
+  const p = presetFor(key);
   return p ? { key: p.key, label: p.label, banner_text: p.banner, accent: p.accent, active: true, auto: true } : null;
 }
 
 export function publicConfig(seasons, offers, today, auto = true) {
-  const s = (seasons || []).filter((x) => x.active).sort((a, b) => String(b.activated_at || "").localeCompare(String(a.activated_at || "")))[0] || (auto ? autoSeason(today) : null);
   const live = (offers || []).filter((o) => offerLive(o, today));
+  const s = (seasons || []).filter((x) => x.active).sort((a, b) => String(b.activated_at || "").localeCompare(String(a.activated_at || "")))[0] || (auto ? autoSeason(today, live.length > 0) : null);
   return {
     season: s ? { key: s.key, label: s.label, banner: s.banner_text || "", accent: HEX.test(s.accent || "") ? s.accent : "", featured: s.featured_title ? { title: s.featured_title, text: s.featured_text || "" } : null } : null,
     offers: live.map((o) => ({ title: o.title, description: o.description || "", label: offerLabel(o), ends_on: o.ends_on, code: o.discount_status === "created" ? o.discount_code || "" : "" })),
