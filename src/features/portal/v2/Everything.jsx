@@ -90,7 +90,7 @@ export function EverythingSheet({ open, onClose, groups, tab, onPick, unread, cl
         <div className="h-[3px] shrink-0 bg-[linear-gradient(90deg,#ff3c00,#ff6a00,#ffaa00)]" aria-hidden="true" />
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-hair px-4 pb-4 pt-4 sm:px-6">
           <div className="min-w-0">
-            <BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={17} />
+            <BrandLockup word="INTERSTELLAR" sub="Workspace" size={17} />
             <p className="mt-3 truncate text-[17px] font-semibold tracking-[-0.02em]">{client?.business || "Your business"}</p>
           </div>
           <button type="button" onClick={onClose} className="-mr-2 flex h-11 w-11 items-center justify-center text-ink/60 hover:text-ink" aria-label="Close">

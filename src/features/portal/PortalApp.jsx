@@ -257,13 +257,13 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, brainOpen = 0, previe
           {/* Møthership mark | [client logo] [Client name]: the client side leads; the switcher sits on it for package owners. */}
           <button type="button" onClick={() => setTab && go("home")} className="flex shrink-0 items-center" aria-label="Home">
             <span className="sm:hidden"><BrandLockup word="" size={14} className="pm-mark-only" /></span>
-            <span className="hidden sm:inline-flex"><BrandLockup word="MØTHERSHIP" sub="by Interstellar" size={13} /></span>
+            <span className="hidden sm:inline-flex"><BrandLockup word="INTERSTELLAR" sub="Workspace" size={13} /></span>
           </button>
           <span className="h-8 w-px shrink-0 bg-hair" aria-hidden="true" />
-          {client ? <ClientHeaderBrand client={client} businesses={multi ? businesses : []} onSwitch={multi ? onSwitch : null} /> : <p className="truncate text-[14px] font-semibold tracking-[-0.02em]">Client portal</p>}
+          {client ? <ClientHeaderBrand client={client} businesses={multi ? businesses : []} onSwitch={multi ? onSwitch : null} /> : <p className="truncate text-[14px] font-semibold tracking-[-0.02em]">Interstellar Workspace</p>}
           {setTab ? (
             <>
-              <nav aria-label="Portal" className="ml-auto hidden items-center gap-0.5 lg:flex">
+              <nav aria-label="Workspace" className="ml-auto hidden items-center gap-0.5 xl:flex">
                 {HEADER_TABS.map((h) => (
                   <button key={h.k} type="button" data-tab={h.k} aria-current={tab === h.k ? "page" : undefined} onClick={() => go(h.k)} className={`relative flex h-10 items-center gap-1.5 px-3 text-[13.5px] font-medium ${tab === h.k ? "text-ink" : "text-ink/55 hover:text-ink"}`}>
                     {h.label}
@@ -272,13 +272,13 @@ function Shell({ client, tabs = TABS, tab, setTab, unread, brainOpen = 0, previe
                   </button>
                 ))}
                 <button type="button" data-everything-button onClick={() => setSheet(true)} aria-expanded={sheet} className={`ml-1 flex h-10 items-center gap-2 rounded-md border px-3 text-[13.5px] font-medium ${!["home", ...HEADER_TABS.map((h) => h.k)].includes(tab) ? "border-ink bg-white" : "border-hair bg-card hover:border-ink/30"}`}>
-                  <LayoutGrid className="h-4 w-4" /> Everything
+                  <LayoutGrid className="h-4 w-4" /> <span className="sr-only 2xl:not-sr-only">Everything</span>
                   {brainOpen > 0 && <span className="h-2 w-2 rounded-full bg-[#ff3c00]" aria-label="Something needs you" />}
                 </button>
               </nav>
-              <div className="ml-auto flex items-center gap-2 lg:ml-2">
+              <div className="ml-auto flex items-center gap-2 xl:ml-2">
                 <ScheduleCallButton onClick={() => setSchedOpen(true)} />
-                <button type="button" data-portal-menu-button onClick={() => setSheet(true)} aria-expanded={sheet} aria-label={`Open menu${current ? `, current page ${current}` : ""}`} className="relative flex h-11 items-center gap-2 rounded-md border border-hair bg-card px-3 text-[13px] font-medium lg:hidden">
+                <button type="button" data-portal-menu-button onClick={() => setSheet(true)} aria-expanded={sheet} aria-label={`Open menu${current ? `, current page ${current}` : ""}`} className="relative flex h-11 items-center gap-2 rounded-md border border-hair bg-card px-3 text-[13px] font-medium xl:hidden">
                   <span className="max-w-[96px] truncate sm:max-w-[160px]">{current || "Menu"}</span>
                   <Menu className="h-5 w-5" aria-hidden="true" />
                   {(unread > 0 || brainOpen > 0) && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#ff3c00]" aria-hidden="true" />}

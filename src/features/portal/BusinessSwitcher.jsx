@@ -42,7 +42,7 @@ export function ClientHeaderBrand({ client, businesses = [], onSwitch }) {
       <Mark b={b} size={36} />
       <span className="min-w-0 text-left">
         <span className="block truncate text-[15px] font-semibold leading-tight tracking-[-0.03em] sm:text-[17px]"><span className="sm:hidden">{short(b.business)}</span><span className="hidden sm:inline">{b.business}</span></span>
-        <span className="hidden font-mono text-[9px] uppercase tracking-[0.14em] text-ink/45 sm:block">{multi ? "Switch business" : "Client portal"}</span>
+        <span className="hidden font-mono text-[9px] uppercase tracking-[0.14em] text-ink/45 sm:block">{multi ? "Switch business" : "Your Workspace"}</span>
       </span>
       {multi ? <ChevronDown className={`h-4 w-4 shrink-0 text-ink/45 transition-transform ${open ? "rotate-180" : ""}`} /> : null}
     </>
