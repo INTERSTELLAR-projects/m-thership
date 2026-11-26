@@ -7,7 +7,7 @@ import { workCounts } from "./workCounts.ts";
 import { scorePillars, portalPillars } from "./clientPillars.js";
 import { portalView } from "./buildTemplates.js";
 import { submitTypesFor, checkSubmission, statusLabel, SUBMIT_TYPES, RECEIVED_TEXT } from "./submitTypes.js";
-import { SEASON_PRESETS, cleanSeason, cleanOffer, offerLabel, todayPacific } from "./siteExtras.js";
+import { SEASON_PRESETS, cleanSeason, cleanOffer, offerLabel, todayPacific, autoSeason, offerLive } from "./siteExtras.js";
 import { LEAD_ACTIONS, leadHome, leadTrack } from "./leadPortal.ts";
 import { termsGate } from "./termsServer.ts";
 
@@ -842,6 +842,9 @@ export async function portalHandler(req: Request): Promise<Response> {
         ]);
         return Response.json({
           supported, today: todayPacific(), presets: SEASON_PRESETS,
+          // Automatic seasons: what the calendar puts on their site when nothing is switched on by hand.
+          auto_on: client.seasons_auto !== false,
+          auto: (() => { const a = autoSeason(todayPacific(), (offers || []).some((o: Record<string, unknown>) => offerLive(o, todayPacific()))); return a ? { key: a.key, label: a.label } : null; })(),
           seasons: (seasons || []).map((r: Record<string, unknown>) => pick(r, ["id", "key", "label", "active", "banner_text", "accent", "featured_title", "featured_text", "activated_at"])),
           offers: (offers || []).map((r: Record<string, unknown>) => ({ ...pick(r, OFFER_KEYS), label: offerLabel(r) })),
         });
