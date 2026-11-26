@@ -2,8 +2,8 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, LogOut, X, ChevronDown, Check, Eye, UserRound, LayoutGrid, Menu, Palette } from "lucide-react";
 import { ScheduleCallButton, ScheduleCallModal } from "@/features/portal/PortalNav";
-import { HEADER_TABS, STUDIO_KEYS, groupsFor, labelFor } from "@/features/portal/v2/portalMap";
-import { BrandAssetsPage, SelfServeStrip } from "@/features/portal/v2/PortalPages";
+import { HEADER_TABS, HUBS, STUDIO_KEYS, groupsFor, labelFor } from "@/features/portal/v2/portalMap";
+import { HubPage, SelfServeStrip } from "@/features/portal/v2/PortalPages";
 import PortalSubmit from "@/features/portal/v2/PortalSubmit";
 import { EverythingSheet, PortalV2Motion } from "@/features/portal/v2/Everything";
 import PortalHomeV2 from "@/features/portal/v2/PortalHomeV2";
@@ -51,7 +51,7 @@ const LeadPortalView = lazy(() => import("@/features/leads/LeadPortalView"));
 // Tabs this portal can show. Grouping, labels and icons for the header nav live in PortalNav.jsx (NAV);
 // free-for-life bonus tools (Signatures, QR Codes) are tagged there and listed together on Home.
 // Portal v2 (Nov 2026): + brain, mentions, billing. Navigation for all of them is the one-tap map in v2/portalMap.js.
-const TABS = [["home", "Glance"], ["assets", "Brand & assets"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["resources", "Resources"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["brain", "Your Brain"], ["mentions", "Mentions & PR"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["seasons", "Seasons & offers"], ["upgrades", "Upgrades"], ["billing", "Billing"], ["referrals", "Referrals"], ["messages", "Messages"], ["account", "Account"]];
+const TABS = [["home", "Together"], ["plan", "Plan"], ["assets", "Brand & files"], ["acct", "Account"], ["assistant", "Assistant"], ["results", "Results"], ["gbp", "Google Business"], ["goals", "Goals"], ["files", "Files"], ["resources", "Resources"], ["brand", "Brand kit"], ["playbook", "Playbook"], ["brain", "Your Brain"], ["mentions", "Mentions & PR"], ["requests", "Requests"], ["signatures", "Signatures"], ["qr", "QR Codes"], ["seasons", "Seasons & offers"], ["upgrades", "Upgrades"], ["billing", "Billing"], ["referrals", "Referrals"], ["messages", "Messages"], ["account", "Account"]];
 
 function usePortal(previewId) {
   const call = async (action, args = {}) => (await base44.functions.invoke("portal", { action, client_id: previewId, ...args })).data;
@@ -191,7 +191,16 @@ export default function PortalApp({ previewId }) {
           {tab === "playbook" && d.has_playbook && <PortalPlaybook call={call} previewId={scopeId} business={d.client.business} />}
           {tab === "resources" && <PortalResources call={call} previewId={scopeId} business={d.client.business} go={setTab} />}
           {tab === "requests" && <div className="space-y-8"><PortalSubmit call={call} scopeId={scopeId} preview={!!previewId} /><RequestsView d={d} call={call} refresh={refresh} previewId={scopeId} /><SelfServeStrip call={call} refresh={refresh} preview={!!previewId} /></div>}
-          {tab === "assets" && <BrandAssetsPage tabs={tabs.map(([k]) => k)} go={go} d={d} />}
+          {HUBS[tab] && (() => {
+            const g = withBadges(groupsFor(tabs.map(([k]) => k), st.locked, st.planLocked ? "HyperCare+" : "Soon"), d).find((x) => x.id === HUBS[tab]);
+            const extra = tab === "assets" && d.has_brand_kit ? [{ k: "brand", label: "Brand kit", desc: "Logo rules, colors, fonts and voice", icon: Palette }] : [];
+            return (
+              <HubPage group={g} extra={extra} go={go}>
+                {tab === "plan" ? <GoalsView d={d} /> : null}
+                {tab === "acct" ? <BillingView d={d} fuel={fuel} go={go} scopeId={scopeId} preview={!!previewId} onRefuel={() => setRefuelOpen(true)} /> : null}
+              </HubPage>
+            );
+          })()}
           {tab === "signatures" && <PortalSignatures call={call} />}
           {tab === "seasons" && <PortalSeasons call={call} />}
           {tab === "qr" && <PortalQr call={call} previewId={scopeId} openId={qrOpen} />}
