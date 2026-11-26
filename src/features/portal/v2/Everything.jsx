@@ -84,7 +84,7 @@ export function EverythingSheet({ open, onClose, groups, tab, onPick, unread, cl
     <div className="fixed inset-0 z-[55]" data-everything-sheet>
       <div className="absolute inset-0 bg-ink/50 motion-safe:animate-[pv2Fade_.18s_ease-out]" onClick={onClose} />
       <div
-        ref={panel} role="dialog" aria-modal="true" aria-label="Everything in your portal"
+        ref={panel} role="dialog" aria-modal="true" aria-label="Everything in your Workspace"
         className="absolute inset-y-0 right-0 flex w-full max-w-[760px] flex-col border-l border-hair bg-canvas shadow-2xl motion-safe:animate-[pv2Slide_.28s_cubic-bezier(.22,1,.36,1)]"
       >
         <div className="h-[3px] shrink-0 bg-[linear-gradient(90deg,#ff3c00,#ff6a00,#ffaa00)]" aria-hidden="true" />
@@ -100,7 +100,7 @@ export function EverythingSheet({ open, onClose, groups, tab, onPick, unread, cl
         {businesses.length > 1 && onSwitch && <div className="shrink-0 border-b border-hair"><BusinessPills businesses={businesses} currentId={client?.id} onSwitch={(id) => { onClose(); onSwitch(id); }} /></div>}
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
           <button type="button" onClick={() => pick("home")} aria-current={tab === "home" ? "page" : undefined} className={`mb-5 flex min-h-[52px] w-full items-center justify-between rounded-md border px-4 text-[15px] font-semibold ${tab === "home" ? "border-[#ff3c00] bg-white" : "border-hair bg-card hover:border-ink/30"}`}>
-            Home <ArrowUpRight className="h-4 w-4 text-ink/40" />
+            Together <span className="font-normal text-ink/50">· home</span> <ArrowUpRight className="h-4 w-4 text-ink/40" />
           </button>
           <EverythingGrid groups={groups} tab={tab} onPick={pick} unread={unread} dense />
         </div>
