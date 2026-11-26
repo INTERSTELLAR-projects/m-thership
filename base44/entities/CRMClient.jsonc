@@ -4,6 +4,11 @@
     "accent": {
       "type": "string"
     },
+    "holiday_touches": {
+      "type": "boolean",
+      "default": false,
+      "description": "Subtle holiday decor on their website (snow, leaves, garland, pumpkins, clovers). Off unless the client or Justin turns it on."
+    },
     "blogSchedule": {
       "items": {
         "additionalProperties": true,
@@ -403,10 +408,31 @@
       "type": "string",
       "format": "date-time"
     },
-    "build_queue": { "type": "object", "additionalProperties": true, "description": "Lead Engine build queue: {status: pending|queued|building|ready|failed|skipped, reason, attempts, next_try_at, approved_at, approved_by, done_at}. Lead Finder adds leads as pending (Approve to build); approved leads are scraped and their template preview built in the background under a daily cap with backoff." },
-    "lead_heat": { "type": "string", "enum": ["cold", "warm", "hot", "hottest", "booked"], "description": "From portal engagement (sent, opened, came back)" },
-    "callback_at": { "type": "string", "format": "date-time", "description": "When they asked to be called back" },
-    "portfolio_item_id": { "type": "string", "description": "PortfolioItem made when this client's site launched (stops the launch workflow re-running)" },
+    "build_queue": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Lead Engine build queue: {status: pending|queued|building|ready|failed|skipped, reason, attempts, next_try_at, approved_at, approved_by, done_at}. Lead Finder adds leads as pending (Approve to build); approved leads are scraped and their template preview built in the background under a daily cap with backoff."
+    },
+    "lead_heat": {
+      "type": "string",
+      "enum": [
+        "cold",
+        "warm",
+        "hot",
+        "hottest",
+        "booked"
+      ],
+      "description": "From portal engagement (sent, opened, came back)"
+    },
+    "callback_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When they asked to be called back"
+    },
+    "portfolio_item_id": {
+      "type": "string",
+      "description": "PortfolioItem made when this client's site launched (stops the launch workflow re-running)"
+    },
     "builder_rep_id": {
       "type": "string",
       "description": "SalesRep who built the preview (first right to present it)"
