@@ -23,8 +23,8 @@ export default async function (req: Request) {
       db.SiteSeason.filter({ client_id: client.id, active: true }, "-activated_at", 5).catch(() => []),
       db.SiteOffer.filter({ client_id: client.id, status: "live" }, "ends_on", 20).catch(() => []),
     ]);
-    // Seasons follow the calendar for every client unless we switched automatic seasons off on the CRM record.
-    return new Response(JSON.stringify(publicConfig(seasons || [], offers || [], todayPacific(), client.seasons_auto !== false)), { headers });
+    // Holiday touches only when the client turned them on (off by default).
+    return new Response(JSON.stringify(publicConfig(seasons || [], offers || [], todayPacific(), client.holiday_touches === true)), { headers });
   } catch {
     return new Response(JSON.stringify(EMPTY), { headers });
   }
