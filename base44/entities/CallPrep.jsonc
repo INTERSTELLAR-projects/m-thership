@@ -247,10 +247,21 @@
           },
           "asked": {
             "type": "boolean"
+          },
+          "share": {
+            "type": "boolean",
+            "description": "Shown in the client's Workspace as a question for the next call"
+          },
+          "client_answer": {
+            "type": "string",
+            "description": "What the client typed in their Workspace before the call"
+          },
+          "client_answered_at": {
+            "type": "string"
           }
         }
       },
-      "description": "Questions to ask, with the answer captured during the call"
+      "description": "Questions to ask, with the answer captured during the call. share=true puts one in the client's Workspace."
     },
     "reference_md": {
       "type": "string",
