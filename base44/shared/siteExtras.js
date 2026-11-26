@@ -54,41 +54,31 @@ export const offerLabel = (o) => (o.kind === "amount" ? `$${Number(o.value).toLo
 export const offerLive = (o, today) => !!o && o.status !== "ended" && isDate(today) && o.starts_on <= today && today <= o.ends_on;
 
 // The ONLY data the public site-config function returns: no ids, no discount codes until created, no client data.
-// Automatic seasons (Workspace, Nov 25 2026): every connected site follows the calendar with no toggle. A season the
-// client (or we) switched on by hand wins over the calendar. Dates are Pacific, "YYYY-MM-DD".
-//   Spring Mar 20–May 31 · Summer Jun 1–Aug 31 · Fall Sep 1–Nov 30 · Black Friday (day after Thanksgiving → Cyber
-//   Monday, overrides Fall) · Holiday Dec 1–31 · Jan 1–Mar 19: none (the site's normal look).
-export function blackFridayRange(year) {
-  const nov1 = new Date(Date.UTC(year, 10, 1)).getUTCDay();
-  const thanksgiving = 1 + ((4 - nov1 + 7) % 7) + 21; // 4th Thursday of November
-  const d = (n) => new Date(Date.UTC(year, 10, n)).toISOString().slice(0, 10);
-  return [d(thanksgiving + 1), d(thanksgiving + 4)];
+// Holiday touches (Nov 25 2026): subtle decor (light snow, falling leaves, a garland on the menu bar, small pumpkins,
+// clovers, stars). OFF for every client until they (or we) turn it on: CRMClient.holiday_touches. Best for home
+// service businesses; others usually leave it off. No text, no banner, no offer claims. Dates are Pacific, MM-DD.
+export const HOLIDAYS = [
+  { key: "st_patricks", label: "St. Patrick's Day", from: "03-10", to: "03-17", effect: "clovers", trim: null, look: "A few four-leaf clovers drifting down" },
+  { key: "july_4", label: "Fourth of July", from: "06-28", to: "07-04", effect: "stars", trim: null, look: "A few small red, white and blue stars" },
+  { key: "halloween", label: "Halloween", from: "10-17", to: "10-31", effect: "leaves", trim: "pumpkins", look: "Small pumpkins on your menu bar and a few falling leaves" },
+  { key: "thanksgiving", label: "Thanksgiving", from: "11-01", to: "11-30", effect: "leaves", trim: null, look: "A few autumn leaves drifting down" },
+  { key: "christmas", label: "Christmas", from: "12-01", to: "12-26", effect: "snow", trim: "garland", look: "Light snowfall and a garland along your menu bar" },
+];
+export function holidayFor(today) {
+  const md = String(today || "").slice(5, 10);
+  return HOLIDAYS.find((h) => md >= h.from && md <= h.to) || null;
 }
-export function autoSeasonKey(today) {
-  const t = String(today || "").slice(0, 10);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(t)) return null;
-  const [from, to] = blackFridayRange(Number(t.slice(0, 4)));
-  if (t >= from && t <= to) return "black_friday";
-  const md = t.slice(5);
-  if (md >= "12-01") return "holiday";
-  if (md >= "09-01") return "fall";
-  if (md >= "06-01") return "summer";
-  if (md >= "03-20") return "spring";
-  return null;
-}
-// The Black Friday banner promises deals, so it only runs automatically when the client has a live offer; otherwise
-// the site keeps Fall (or Holiday from Dec 1).
-export function autoSeason(today, hasOffer = false) {
-  let key = autoSeasonKey(today);
-  if (key === "black_friday" && !hasOffer) key = String(today).slice(5) >= "12-01" ? "holiday" : "fall";
-  const p = presetFor(key);
-  return p ? { key: p.key, label: p.label, banner_text: p.banner, accent: p.accent, active: true, auto: true } : null;
+export function nextHoliday(today) {
+  const md = String(today || "").slice(5, 10);
+  return HOLIDAYS.find((h) => h.from > md) || HOLIDAYS[0];
 }
 
-export function publicConfig(seasons, offers, today, auto = true) {
+export function publicConfig(seasons, offers, today, touches = false) {
   const live = (offers || []).filter((o) => offerLive(o, today));
-  const s = (seasons || []).filter((x) => x.active).sort((a, b) => String(b.activated_at || "").localeCompare(String(a.activated_at || "")))[0] || (auto ? autoSeason(today, live.length > 0) : null);
+  const s = (seasons || []).filter((x) => x.active).sort((a, b) => String(b.activated_at || "").localeCompare(String(a.activated_at || "")))[0] || null;
+  const h = touches ? holidayFor(today) : null;
   return {
+    decor: h ? { key: h.key, effect: h.effect, trim: h.trim } : null,
     season: s ? { key: s.key, label: s.label, banner: s.banner_text || "", accent: HEX.test(s.accent || "") ? s.accent : "", featured: s.featured_title ? { title: s.featured_title, text: s.featured_text || "" } : null } : null,
     offers: live.map((o) => ({ title: o.title, description: o.description || "", label: offerLabel(o), ends_on: o.ends_on, code: o.discount_status === "created" ? o.discount_code || "" : "" })),
   };
