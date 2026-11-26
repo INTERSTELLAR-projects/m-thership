@@ -44,7 +44,20 @@ function Answer({ x, i, setQa, onSave }) {
         </button>
         <div className="min-w-0 flex-1">
           <p className="text-[14.5px] leading-snug text-white">{x.q}</p>
-          {x.topic ? <p className="mono mt-0.5 text-[9.5px] uppercase tracking-[.12em] text-[var(--ink-s)]">{x.topic}</p> : null}
+          <div className="mt-0.5 flex flex-wrap items-center gap-2">
+            {x.topic ? <p className="mono text-[9.5px] uppercase tracking-[.12em] text-[var(--ink-s)]">{x.topic}</p> : null}
+            {/* Workspace: shared questions show on the client's home as "Questions for our next call" so they can answer ahead. */}
+            <button type="button" onClick={() => { set({ share: !x.share }); setTimeout(onSave, 50); }} aria-pressed={!!x.share}
+              title="Show this question in the client's Workspace so they can answer before the call"
+              className={`mono rounded border px-1.5 py-0.5 text-[9.5px] uppercase tracking-[.1em] ${x.share ? "border-[#ff6a00] bg-[rgba(255,106,0,.15)] text-[#ffb37a]" : "border-[var(--hair-d2)] text-[var(--ink-s)] hover:text-white"}`}>
+              {x.share ? "In their Workspace" : "Ask in Workspace"}
+            </button>
+          </div>
+          {x.client_answer ? (
+            <p className="mt-2 rounded border border-[rgba(255,106,0,.3)] bg-[rgba(255,106,0,.06)] px-2.5 py-1.5 text-[13px] text-white/85">
+              <span className="mono mr-1.5 text-[9.5px] uppercase tracking-[.1em] text-[#ffb37a]">They answered</span>{x.client_answer}
+            </p>
+          ) : null}
           <div className="mt-2 flex items-start gap-2">
             <textarea ref={ref} rows={hasAnswer ? Math.min(6, Math.ceil(String(x.answer).length / 70) + 1) : 1} className="inp !min-h-[34px] !py-1.5 !text-[13px]"
               placeholder="Their answer…" value={x.answer || ""} onChange={(e) => set({ answer: e.target.value })} onBlur={onSave} />
