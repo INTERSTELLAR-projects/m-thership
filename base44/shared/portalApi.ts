@@ -7,7 +7,7 @@ import { workCounts } from "./workCounts.ts";
 import { scorePillars, portalPillars } from "./clientPillars.js";
 import { portalView } from "./buildTemplates.js";
 import { submitTypesFor, checkSubmission, statusLabel, SUBMIT_TYPES, RECEIVED_TEXT } from "./submitTypes.js";
-import { SEASON_PRESETS, cleanSeason, cleanOffer, offerLabel, todayPacific, autoSeason, offerLive } from "./siteExtras.js";
+import { SEASON_PRESETS, cleanSeason, cleanOffer, offerLabel, todayPacific, HOLIDAYS, holidayFor, nextHoliday } from "./siteExtras.js";
 import { LEAD_ACTIONS, leadHome, leadTrack } from "./leadPortal.ts";
 import { termsGate } from "./termsServer.ts";
 
@@ -832,7 +832,7 @@ export async function portalHandler(req: Request): Promise<Response> {
     // Never returns another client's rows: ReviewClient is matched on crm_client_id === cid only.
     // ---- Seasons + offers (self-serve, Nov 19 2026). The site reads them through the public site-config function. ----
     // A checkout discount for an offer is a hard gate (money): it waits for Justin's one tap and is never created here.
-    if (action === "seasons" || action === "season_set" || action === "offer_save" || action === "offer_end") {
+    if (action === "seasons" || action === "season_set" || action === "offer_save" || action === "offer_end" || action === "touches_set") {
       const OFFER_KEYS = ["id", "title", "description", "kind", "value", "starts_on", "ends_on", "status", "discount_status", "discount_code"];
       const supported = !!client.site_key;
       if (action === "seasons") {
@@ -842,14 +842,22 @@ export async function portalHandler(req: Request): Promise<Response> {
         ]);
         return Response.json({
           supported, today: todayPacific(), presets: SEASON_PRESETS,
-          // Automatic seasons: what the calendar puts on their site when nothing is switched on by hand.
-          auto_on: client.seasons_auto !== false,
-          auto: (() => { const a = autoSeason(todayPacific(), (offers || []).some((o: Record<string, unknown>) => offerLive(o, todayPacific()))); return a ? { key: a.key, label: a.label } : null; })(),
+          // Holiday touches: off until the client turns them on. Calendar + what each one looks like.
+          touches: {
+            on: client.holiday_touches === true,
+            now: (() => { const h = holidayFor(todayPacific()); return h ? { key: h.key, label: h.label } : null; })(),
+            next: (() => { const h = nextHoliday(todayPacific()); return h ? { key: h.key, label: h.label, from: h.from } : null; })(),
+            calendar: HOLIDAYS.map((h) => ({ key: h.key, label: h.label, from: h.from, to: h.to, look: h.look })),
+          },
           seasons: (seasons || []).map((r: Record<string, unknown>) => pick(r, ["id", "key", "label", "active", "banner_text", "accent", "featured_title", "featured_text", "activated_at"])),
           offers: (offers || []).map((r: Record<string, unknown>) => ({ ...pick(r, OFFER_KEYS), label: offerLabel(r) })),
         });
       }
       if (!supported) return Response.json({ error: "Your website isn't connected to seasons and offers yet. Ask us and we'll switch it on." }, { status: 400 });
+      if (action === "touches_set") {
+        await db.CRMClient.update(cid, { holiday_touches: args.on === true });
+        return Response.json({ ok: true, on: args.on === true });
+      }
       if (action === "season_set") {
         const c = cleanSeason(args);
         if ((c as any).error) return Response.json({ error: (c as any).error }, { status: 400 });
